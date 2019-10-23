@@ -1996,7 +1996,7 @@ subroutine esp(natom, x, mom_ind)
     e_y = zero
     e_z = zero
     e_q = zero
-    read(dat_unit,'(1x,4e16.0)') esp_qm, xb_esp, yb_esp, zb_esp
+    read(dat_unit,'(1x,4f16.0)') esp_qm, xb_esp, yb_esp, zb_esp
     x_esp = xb_esp * BOHRS_TO_A
     y_esp = yb_esp * BOHRS_TO_A
     z_esp = zb_esp * BOHRS_TO_A

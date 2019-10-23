@@ -1755,6 +1755,7 @@ contains
   !! @param[in] this potential object
   !! @param[in,out] ulj grid to add potential to
   subroutine uvLJrEwaldPotentialWithMinimumImage(this, ulj)
+    use omp_lib
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -1772,6 +1773,13 @@ contains
     _REAL_ :: solutePosition(3)
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
+    integer :: numtasks, mytaskid
+    character(len=50) omp_threads
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
+    write(6,*) 'omp_threads: ', trim(omp_threads)
+    write(6,*) 'max threads: ', omp_get_max_threads()
+    ! call omp_set_num_theads(2)
 
     beta = 1.d0/this%chargeSmear
     do iu = 1, this%solute%numAtoms
@@ -1780,10 +1788,12 @@ contains
        end do
     end do
 
-#ifndef MPI
-!$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm) 
-#endif
-    do igz = 1, this%grid%localDimsR(3)
+!$omp parallel private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
+!$omp&   igx,igy,igz,iu) 
+    numtasks = omp_get_num_threads()
+    mytaskid = omp_get_thread_num()
+    write(6,*) 'in lj: ',numtasks, mytaskid
+    do igz = mytaskid+1, this%grid%localDimsR(3), numtasks
        rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
        do igy = 1, this%grid%localDimsR(2)
           ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
@@ -1811,9 +1821,8 @@ contains
           end do
        end do
     end do
-#ifndef MPI
-!$omp end parallel do
-#endif
+!$omp end parallel
+  stop
   end subroutine uvLJrEwaldPotentialWithMinimumImage
 
   !> Synthesizing the Coulomb solute potential in a sparser box.

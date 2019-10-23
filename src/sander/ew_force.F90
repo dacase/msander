@@ -1021,7 +1021,7 @@ subroutine force_info(ees,eer,eed,eea, &
       write(6,30)molvir(1,1),molvir(1,2),molvir(1,3)
       write(6,30)molvir(2,1),molvir(2,2),molvir(2,3)
       write(6,30)molvir(3,1),molvir(3,2),molvir(3,3)
-      30 format(5x,'MOLECULAR VIRIAL: ',3(1x,e14.8))
+      30 format(5x,'MOLECULAR VIRIAL: ',3(1x,e14.7))
    end if
    if ( verbose == 3 )then
       write(6,*)'--------------------------------------------'
@@ -1029,51 +1029,51 @@ subroutine force_info(ees,eer,eed,eea, &
       write(6,31)rec_vir(2,1),rec_vir(2,2),rec_vir(2,3)
       write(6,31)rec_vir(3,1),rec_vir(3,2),rec_vir(3,3)
       write(6,*)'..................'
-      31 format(5x,'Reciprocal VIRIAL: ',3(1x,e14.8))
+      31 format(5x,'Reciprocal VIRIAL: ',3(1x,e14.7))
       write(6,32)dir_vir(1,1),dir_vir(1,2),dir_vir(1,3)
       write(6,32)dir_vir(2,1),dir_vir(2,2),dir_vir(2,3)
       write(6,32)dir_vir(3,1),dir_vir(3,2),dir_vir(3,3)
       write(6,*)'..................'
-      32 format(5x,'Direct VIRIAL: ',3(1x,e14.8))
+      32 format(5x,'Direct VIRIAL: ',3(1x,e14.7))
       write(6,38)eedvir
       write(6,*)'..................'
-      38 format(5x,'Dir Sum EE vir trace: ',e14.8)
+      38 format(5x,'Dir Sum EE vir trace: ',e14.7)
       write(6,33)adj_vir(1,1),adj_vir(1,2),adj_vir(1,3)
       write(6,33)adj_vir(2,1),adj_vir(2,2),adj_vir(2,3)
       write(6,33)adj_vir(3,1),adj_vir(3,2),adj_vir(3,3)
       write(6,*)'..................'
-      33 format(5x,'Adjust VIRIAL: ',3(1x,e14.8))
+      33 format(5x,'Adjust VIRIAL: ',3(1x,e14.7))
       write(6,34)rec_vird(1,1),rec_vird(1,2),rec_vird(1,3)
       write(6,34)rec_vird(2,1),rec_vird(2,2),rec_vird(2,3)
       write(6,34)rec_vird(3,1),rec_vird(3,2),rec_vird(3,3)
       write(6,*)'..................'
-      34 format(5x,'Recip Disp. VIRIAL: ',3(1x,e14.8))
+      34 format(5x,'Recip Disp. VIRIAL: ',3(1x,e14.7))
       write(6,35)self_vir(1,1),self_vir(1,2),self_vir(1,3)
       write(6,35)self_vir(2,1),self_vir(2,2),self_vir(2,3)
       write(6,35)self_vir(3,1),self_vir(3,2),self_vir(3,3)
       write(6,*)'..................'
-      35 format(5x,'Self VIRIAL: ',3(1x,e14.8))
+      35 format(5x,'Self VIRIAL: ',3(1x,e14.7))
 #ifdef LES
       write(6,36)les_vir(1,1),les_vir(1,2),les_vir(1,3)
       write(6,36)les_vir(2,1),les_vir(2,2),les_vir(2,3)
       write(6,36)les_vir(3,1),les_vir(3,2),les_vir(3,3)
       write(6,*)'..................'
-      36 format(5x,'LES VIRIAL: ',3(1x,e14.8))
+      36 format(5x,'LES VIRIAL: ',3(1x,e14.7))
 #endif
       write(6,40)e14vir(1,1),e14vir(1,2),e14vir(1,3)
       write(6,40)e14vir(2,1),e14vir(2,2),e14vir(2,3)
       write(6,40)e14vir(3,1),e14vir(3,2),e14vir(3,3)
       write(6,*)'..................'
-      40 format(5x,'E14 VIRIAL: ',3(1x,e14.8))
+      40 format(5x,'E14 VIRIAL: ',3(1x,e14.7))
       write(6,37)atvir(1,1),atvir(1,2),atvir(1,3)
       write(6,37)atvir(2,1),atvir(2,2),atvir(2,3)
       write(6,37)atvir(3,1),atvir(3,2),atvir(3,3)
-      37 format(5x,'Atomic VIRIAL: ',3(1x,e14.8))
+      37 format(5x,'Atomic VIRIAL: ',3(1x,e14.7))
       write(6,*)'--------------------------------------------'
       write(6,39)subvir(1,1),subvir(1,2),subvir(1,3)
       write(6,39)subvir(2,1),subvir(2,2),subvir(2,3)
       write(6,39)subvir(3,1),subvir(3,2),subvir(3,3)
-      39 format(5x,'Sub    VIRIAL: ',3(1x,e14.8))
+      39 format(5x,'Sub    VIRIAL: ',3(1x,e14.7))
       write(6,*)'--------------------------------------------'
    end if  ! ( verbose == 3 )
    return

@@ -607,7 +607,7 @@ subroutine rms_check(natom,xx,ix,ih,ipairs,x,f, &
       write(6,*)'First check new, old coordinates'
       write(6,*)'-----------------------------------------'
       write(6,51)sqrt(maxrms),jmax
-      51 format(1x,'Maximum atomic RMS coordinate error: ',e9.3, &
+      51 format(1x,'Maximum atomic RMS coordinate error: ',e10.3, &
             ' at atom number ',i9)
 
       read(30,200)count
@@ -975,7 +975,7 @@ subroutine compare(a,b,string)
    den = max(abs(a),abs(b))+small
    err = abs(a-b)/den
    write(6,60)string,a,b,err
-   60 format(1x,a,e12.5,' vs ',e12.5,' relative error: ',e9.3)
+   60 format(1x,a,e12.5,' vs ',e12.5,' relative error: ',e10.3)
    return
 end subroutine compare 
 !--------------------------------------------------
@@ -999,8 +999,8 @@ subroutine compare_vir(u,v,string)
          end if
       end do
    end do
-   60 format(1x,a,e12.5,' vs ',e12.5,' relative error: ',e9.3)
-   61 format(24x,e12.5,' vs ',e12.5,' relative error: ',e9.3)
+   60 format(1x,a,e12.5,' vs ',e12.5,' relative error: ',e10.3)
+   61 format(24x,e12.5,' vs ',e12.5,' relative error: ',e10.3)
    return
 end subroutine compare_vir 
 !--------------------------------------------------
@@ -1568,11 +1568,11 @@ subroutine frc_compare(f1,f2,f3,f4,srms,natom)
    write(6,62)minrms,jmin
    call do_percentiles(srms,maxrms,minrms,natom)
    write(6,60)sqrt(totnum/(3*natom))
-   61 format(1x,'Maximum atomic RMS force error: ',e9.3, &
+   61 format(1x,'Maximum atomic RMS force error: ',e10.3, &
          ' at atom number ',i9)
-   62 format(1x,'Minimum atomic RMS force error: ',e9.3, &
+   62 format(1x,'Minimum atomic RMS force error: ',e10.3, &
          ' at atom number ',i9)
-   60 format(1x,'Overall RMS FORCE ERROR:  ',e9.3)
+   60 format(1x,'Overall RMS FORCE ERROR:  ',e10.3)
    write(6,*)'-----------------------------------------'
    maxrms = -1.d0
    minrms = 10.d0
@@ -1691,7 +1691,7 @@ subroutine do_percentiles(srms,max,min,natom)
    71 format(1x,'The 50th,75th,90th,95th and 99th percentile', &
          '  Atomic RMS force errors:')
    write(6,70)apmed,apsev5,apninety,apninety5,apninety9
-   70 format(5(1x,e9.3))
+   70 format(5(1x,e10.3))
    return
 end subroutine do_percentiles 
 !------------------------------------------------------------

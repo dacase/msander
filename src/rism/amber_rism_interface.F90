@@ -2871,7 +2871,6 @@ contains
     use rism3d_opendx
     use rism3d_xyzv
     use rism3d_c, only: createElectronDensityMap
-    use rism_io, only : readRDF1D
     use safemem
     implicit none
 

@@ -728,7 +728,7 @@
       9003 format (5x,'Alpha =',f9.3,3x,'Beta  =',f9.3,3x,'Gamma =',f9.3)
       9004 format (5x,'NFFT1 =',i5  ,7x,'NFFT2 =',i5  ,7x,'NFFT3 =',i5)
       9005 format (5x,'Interpolation order =',i5)
-      9006 format (5x,'Cutoff=',f9.3,3x,'Tol   =',e9.3)
+      9006 format (5x,'Cutoff=',f9.3,3x,'Tol   =',e10.3)
       9007 format (5x,'Ewald Coefficient =',f9.5)
    end if
 
@@ -829,7 +829,7 @@
          else
             write(6, '(5x," tight_p_conv = False (converge density to 0.05xSqrt[SCFCRT])")')
          end if
-         write(6, '(5x,"      scfconv = ",e9.3,"  itrmax = ",i8)') qmmm_nml%scfconv, qmmm_nml%itrmax
+         write(6, '(5x,"      scfconv = ",e10.3,"  itrmax = ",i8)') qmmm_nml%scfconv, qmmm_nml%itrmax
          if (qmmm_nml%printcharges) then
             write(6, '(5x," printcharges = True ")',ADVANCE='NO')
          else

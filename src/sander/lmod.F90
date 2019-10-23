@@ -937,7 +937,7 @@ subroutine write_lmod_namelist( )
          'arnoldi_dimension            = ', arnoldi_dimension
       write(6,'(5x,a,i7)') &
          'conflib_size                 = ', conflib_size
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'energy_window                = ', energy_window
       write(6,'(5x,a,i7)') &
          'explored_low_modes           = ', explored_low_modes
@@ -945,15 +945,15 @@ subroutine write_lmod_namelist( )
          'frequency_eigenvector_recalc = ', frequency_eigenvector_recalc
       write(6,'(5x,a,i7)') &
          'frequency_ligand_rotrans     = ', frequency_ligand_rotrans
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'lmod_minimize_grms           = ', lmod_minimize_grms
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'lmod_relax_grms              = ', lmod_relax_grms
       write(6,'(5x,a,i7)') &
          'lmod_restart_frequency       = ', lmod_restart_frequency
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'lmod_step_size_max           = ', lmod_step_size_max
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'lmod_step_size_min           = ', lmod_step_size_min
       write(6,'(5x,a,i7)') &
          'lmod_verbosity               = ', lmod_verbosity
@@ -973,7 +973,7 @@ subroutine write_lmod_namelist( )
          'random_seed                  = ', random_seed
       write(6,'(5x,a,i7)') &
          'restart_pool_size            = ', restart_pool_size
-      write(6,'(5x,a,g11.5)') &
+      write(6,'(5x,a,g12.5)') &
          'rtemperature                 = ', rtemperature
       write(6,'(5x,a,i7)') &
          'total_low_modes              = ', total_low_modes

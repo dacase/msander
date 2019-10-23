@@ -342,9 +342,9 @@ module cns_xref
 
     open(ipdb, file='mmen2.dat', status='old')
     read(ipdb, '(A80)') line
-    read(ipdb, '(E20.14)') ener_scratch(1)
+    read(ipdb, '(E20.13)') ener_scratch(1)
     read(ipdb, '(A80)') line
-    read(ipdb, '(E20.14)') ener_scratch(2)
+    read(ipdb, '(E20.13)') ener_scratch(2)
     read(ipdb, '(A80)') line
     read(ipdb, '(F8.6,1X,F8.6)') ener_scratch(4), ener_scratch(3)
     close(ipdb)
@@ -358,7 +358,7 @@ module cns_xref
                        &incorrect', '.')
     end if
     do iatm = 1, natcns
-      read(ipdb,'(3(E20.14,1X))') xgrd1, xgrd2, xgrd3
+      read(ipdb,'(3(E20.13,1X))') xgrd1, xgrd2, xgrd3
       jatm = medcns(iatm)
       if (jatm > 0) then
         jbase = 3*(jatm - 1)

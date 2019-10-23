@@ -387,7 +387,7 @@ contains
       write(6, '(2a)')       '|   core           = ', adf_nml%core
       write(6, '(2a)')       '|   fit_type       = ', adf_nml%fit_type
       write(6, '(2a)')       '|   guess          = ', adf_nml%guess
-      write(6, '(a,E22.16)') '|   integration    = ', adf_nml%integration
+      write(6, '(a,E22.15)') '|   integration    = ', adf_nml%integration
     end if
     write(6, '(a,es10.2)')   '|   scf_conv       = ', adf_nml%scf_conv
     write(6, '(a,i5)')       '|   scf_iter       = ', adf_nml%scf_iter
@@ -580,7 +580,7 @@ contains
            'END'
       
       ! SCF keyword
-      write (iunit,'(a,/,a,i0,/,a,E22.16,/,a,/)') &
+      write (iunit,'(a,/,a,i0,/,a,E22.15,/,a,/)') &
            'SCF '                         , &
            'iterations ', adf_nml%scf_iter, &
            'converge '  , adf_nml%scf_conv, &
@@ -588,7 +588,7 @@ contains
 
       ! INTEGRATION, BECKEGRID, ZLMFIT keywords
       if(adf_nml%integration > 0.0d0) then 
-         write (iunit,'(a,E22.16,/)') 'INTEGRATION ', adf_nml%integration
+         write (iunit,'(a,E22.15,/)') 'INTEGRATION ', adf_nml%integration
       end if
 
       if ( adf_nml%beckegrid /= '' ) then

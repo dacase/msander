@@ -4177,9 +4177,7 @@ contains
     ! EXCEPT the center grid point.
     numElectronsAtGridCenter = totalSolventElectrons - electronRDFSum
 
-#ifdef _OPENMP_
 !$omp parallel do shared(this, density, electronMap, numSmearGridPoints, numElectronsAtGridCenter)
-#endif
     do igzCenter = 0, this%grid%globalDimsR(3) - 1
        rzCenter = igzCenter * this%grid%voxelVectorsR(3, :)
        do igyCenter = 0, this%grid%globalDimsR(2) - 1
@@ -4246,9 +4244,7 @@ contains
           end do
        end do
     end do
-#ifdef _OPENMP_
 !$omp end parallel do
-#endif
   end subroutine createElectronDensityMap
 
   !> Transfer a density map of one site of a solvent molecule on

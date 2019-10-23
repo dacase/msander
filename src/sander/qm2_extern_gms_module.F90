@@ -480,7 +480,7 @@ contains
       end if
 
       ! $SCF card
-      write(iurun,'(a,/,a,/,a,E22.16,/,a,/)') &
+      write(iurun,'(a,/,a,/,a,E22.15,/,a,/)') &
            ' $SCF'        , &
            'DIRSCF=.TRUE.', &
            'CONV='        , gms_nml%scf_conv, &

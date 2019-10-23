@@ -103,10 +103,6 @@ SUBROUTINE SetupSlaterAuxiliary(N,SA,SB,RAB)
       ABSX   = ABS(BETA) 
 !     ZERO ARGUMENT.                                                    
       IF(ABSX.LT.1.0D-06) THEN 
-!DIR$ SHORTLOOP                                                         
-!$DIR MAX_TRIPS(64)                                                     
-!VDIR LOOPCNT=64                                                        
-!VOCL LOOP,REPEAT(63)                                                   
          DO 20 I=1,N+1 
    20    B(I) = B0(I) 
          RETURN 

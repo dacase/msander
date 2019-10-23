@@ -212,8 +212,8 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
             x(l95),ene,carrms,qsetup)
 
       write (6,364) ene%pot%tot,carrms
-      364 format ('minimization completed, ENE=',1x,e14.8, &
-            1x,'RMS=',1x,e12.6)
+      364 format ('minimization completed, ENE=',1x,e14.7, &
+            1x,'RMS=',1x,e12.5)
 
       if (master .and. itgtmd == 1) then
          write (6,'(a,f8.3)') "Final RMSD from reference: ",rmsdvalue

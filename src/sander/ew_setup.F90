@@ -2030,7 +2030,7 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
          call maxexp_from_mlim(maxexp,mlimit,recip)
 #ifndef API
          write(6,100)maxexp
-         100 format(1x,'maxexp calculated from mlimit: ',e8.3)
+         100 format(1x,'maxexp calculated from mlimit: ',e10.3)
 #endif
       else
          call float_legal_range('rsum_tol: (Ewald recip sum tol) ', &
@@ -2039,7 +2039,7 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
             call find_maxexp(ew_coeff,rsum_tol,maxexp)
 #ifndef API
             write(6,101)maxexp
-            101 format(1x,'maxexp calculated from rsum_tol: ',e8.3)
+            101 format(1x,'maxexp calculated from rsum_tol: ',e10.3)
 #endif
          end if
          

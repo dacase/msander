@@ -1338,8 +1338,8 @@ subroutine mdeng(nf,nstep,time,ener,onefac,ntp,csurften)
    if (csurften > 0) &
      write(nf, 3) 'L10 ', ener%surface_ten
 
-   2 format(a, i8, 20(2x,e16.10))
-   3 format(a, 20(e16.10,2x))
+   2 format(a, i8, 20(2x,e16.9))
+   3 format(a, 20(e16.9,2x))
    return
 
     entry mdeng_reset

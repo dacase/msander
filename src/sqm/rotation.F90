@@ -323,15 +323,8 @@ SUBROUTINE Rotate2Center2Electron(W,LIMIJ,LImkl,rotationMatrix)
 !           6 FOR KL=PP, 5 FOR KL=DS, 15 FOR KL=PD AND KL=DD).          
 ! *** FIRST STEP - TRANSFORMATION FOR INDICES KL IN (KL,IJ).            
 !     LOOP OVER OUTER TWO INDICES IJ (NOT TRANSFORMED).                 
-!$DIR SCALAR                                                            
-!VDIR NOVECTOR                                                          
-!VOCL LOOP,SCALAR                                                       
       DO 180 IJ=1,LIMIJ 
 !     LOOP OVER INNER TWO INDICES KL (TRANSFORMED).                     
-!DIR$ NEXTSCALAR                                                        
-!$DIR SCALAR                                                            
-!VDIR NOVECTOR                                                          
-!VOCL LOOP,SCALAR                                                       
       DO 170 KL=1,LImkl 
       IF(R2CENT(KL,IJ)) THEN 
          WREPP    = W(KL,IJ) 
@@ -397,16 +390,9 @@ SUBROUTINE Rotate2Center2Electron(W,LIMIJ,LImkl,rotationMatrix)
   180 END DO 
 ! *** SECOND STEP - TRANSFORMATION FOR OUTER TWO INDICES.               
 !     LOOP OVER OUTER TWO INDICES IJ (TRANSFORMED).                     
-!$DIR SCALAR                                                            
-!VDIR NOVECTOR                                                          
-!VOCL LOOP,SCALAR                                                       
       DO 280 IJ=1,LIMIJ 
       MIJ    = MET(IJ) 
 !     LOOP OVER INNER TWO INDICES KL (NOT TRANSFORMED).                 
-!DIR$ NEXTSCALAR                                                        
-!$DIR SCALAR                                                            
-!VDIR NOVECTOR                                                          
-!VOCL LOOP,SCALAR                                                       
       DO 270 KL=1,LImkl 
       IF(ABS(V(KL,IJ)).GT.VSMALL) THEN 
          WREPP  = V(KL,IJ) 
