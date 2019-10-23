@@ -16,6 +16,7 @@ cc="gcc -fPIC"
 cxx="g++ -fPIC"
 fc="gfortran -fPIC"
 flibs_mkl=""
+openmp='yes'
 
 #  process command-line flags:
 for var in "$@"; do
@@ -51,34 +52,7 @@ if [ "$requested_help" = "yes" ] ; then
     exit 0
 fi
 
-#------------------------------------------------------------------------------
-#  check on AMBERHOME environment variable
-#------------------------------------------------------------------------------
-check_amberhome() {
-   if [ -z "$AMBERHOME" ]; then
-      echo ""
-      echo "Error: Your AMBERHOME environment variable is not set!"
-      echo ""
-      echo "You must manually set it.  Enter the line appropriate for your shell:"
-      echo "export AMBERHOME=$1    # (for bash, zsh, ksh, etc.)"
-      echo "setenv AMBERHOME $1    # (for csh, tcsh)"
-      echo ""
-      exit 1
-   elif [ ! -d $AMBERHOME ]; then
-      echo ""
-      echo "Error: Your AMBERHOME environment variable is set to $AMBERHOME"
-      echo "This does not appear to be a directory.  It should be set to $1"
-      exit 1
-   elif [ ! "$AMBERHOME" = "$1" -a ! "$AMBERHOME" = "${1}/" ]; then
-      echo ""
-      echo "Error: AMBERHOME is expected to be $amberhome but it is currently"
-      echo "       $AMBERHOME    You need to reset this variable"
-      exit 1
-   fi
-}
-
 amberhome=`pwd`
-check_amberhome $amberhome
 
 #------------------------------------------------------------------------------
 #  Make some needed directories:
@@ -86,33 +60,14 @@ check_amberhome $amberhome
 if [ ! -d bin ]; then
     mkdir bin
 fi
-if [ ! -d bin/to_be_dispatched ]; then
-    mkdir bin/to_be_dispatched
-fi
 if [ ! -d include ]; then
     mkdir include
 fi
 if [ ! -d lib ]; then
     mkdir lib
 fi
-if [ ! -d lib/python2.7 ]; then
-    mkdir lib/python2.7
-fi
-if [ ! -d lib/python2.7/site-packages ]; then
-    mkdir lib/python2.7/site-packages
-fi
-if [ ! -d logs ]; then
-    mkdir logs
-fi
 
 cp src/include/CompatibilityMacros.h include
-
-if [ "$rism" == "" -o ! -d src/rism ]; then
-   test -d src/rism || mkdir src/rism
-   cat <<EOF > src/rism/amber_rism_interface.F90
-!  dummy file for making sander without rism
-EOF
-fi
 
 #------------------------------------------------------------------------------
 #  Initialize variables that are architecture specific:
@@ -123,12 +78,6 @@ if [ "$processor" = "em64t" -o "$processor" = "x86_64" ] ; then
 else
     x86_64='no'
 fi
-
-#--------------------------------------------------------------------------
-#  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
-#--------------------------------------------------------------------------
-
-mkl_type='mkl'
 # Determine linker type. Currently only matters for MKL
 ld_version=`ld -v 2>&1 | awk '{print $1}'`
 case "$ld_version" in
@@ -142,6 +91,12 @@ if [ `uname -s|awk '{print $1}'` = "Darwin" ]; then
 else
     is_mac='no'
 fi
+
+#--------------------------------------------------------------------------
+#  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
+#--------------------------------------------------------------------------
+
+mkl_type='mkl'
 
 if [ "$mkl_type" = 'mkl' ] ; then
   lapack=skip
@@ -177,6 +132,7 @@ if [ "$mkl_type" = 'mkl' ] ; then
   # specified, for example to turn on SMP diagonalizers for QMMM
   # then we link to the threaded version of MKL and inside the code
   # the number of threads for vector functions etc will be set to 1.
+
   # Always link static version of MKL - just easier from an end
   # user perspective.
   if [ "$link_type" = 'line' ] ; then
@@ -267,9 +223,9 @@ cat <<EOF > src/config.h
 
 # (1)  Location of the installation
 
-AMBERTOOLS=ambermini
-AMBER_PREFIX=$AMBERHOME
-BASEDIR=$AMBERHOME
+AMBERTOOLS=sandermini
+AMBER_PREFIX=$amberhome
+BASEDIR=$amberhome
 BINDIR=\$(BASEDIR)/bin
 LIBDIR=\$(BASEDIR)/lib
 INCDIR=\$(BASEDIR)/include
@@ -325,7 +281,6 @@ cat <<EOF >> src/config.h
 
 CC=$cc
 CFLAGS=$bintraj \$(LOCALFLAGS)
-# FLIBS= -lsff $rism -larpack \$(BLAS) \$(NETCDFLIB) \$(LIBGFORTRAN) -lgfortran -w 
 CNOOPTFLAGS=
 COPTFLAGS=-O3 -mtune=native 
 
@@ -340,8 +295,8 @@ CXXOPTFLAGS=-O3
 #  (5)  Fortran compilers
 
 FC=$fc
-FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS) $mklinc
-FLIBSF= $rism -larpack \$(BLAS) $flibs_mkl
+FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS) $mklinc -fopenmp -DOPENMP
+FLIBSF= $rism -larpack $flibs_mkl -fopenmp
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
 
@@ -381,12 +336,6 @@ EOF
 fi
 
 cat <<EOF >> src/config.h
-
-#Python interpreter we are using and install options
-PYTHON=python
-PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python2.7/site-packages
-PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
@@ -509,41 +458,6 @@ cd src
 
 if [ "$bintraj" == "-DBINTRAJ" ]; then
    ./configure_netcdf
-fi
-if [ -s ./configure_fftw3 ]; then
-  ./configure_fftw3 "$enablempi"
-fi
-if [ -s ./configure_xblas ]; then
-  ./configure_xblas
-fi
-if [ -s ./configure_boost ]; then
-  ./configure_boost
-fi
-
-#  Optional components: will be come command-line args at some point:
-
-if [ -d cpptraj -a ! -s cpptraj/configure_cpptraj.log ]; then
-   cd cpptraj
-   printf "Configuring cpptraj..."
-
-   OS=`uname -s`
-   if [  "$OS" == "Darwin" ]; then
-      compiler="clang"
-   else
-      compiler="gnu"
-   fi
-
-   ./configure -amberlib --prefix=$AMBERHOME \
-        --requires-flink --skip-checks  $compiler > configure_cpptraj.log
-   status=$?
-   if [ $status -gt 0 ]; then
-      printf "\nError: Unable to configure cpptraj\n"
-      printf "       Please check $AMBERHOME/src/cpptraj/configure_cpptraj.log\n"
-      exit 1
-   else
-      printf "OK\n"
-   fi
-   cd ..
 fi
 
 if [ "$conda" == "yes" ]; then

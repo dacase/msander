@@ -1185,9 +1185,13 @@ subroutine qm2_pseudo_diag(matrix,vectors,noccupied,eigen,norbs,smallsum, &
   lumo=noccupied+1
 #ifdef OPENMP
 !$OMP PARALLEL &
-!$OMP DEFAULT(PRIVATE) &
-!$OMP SHARED(lumo, norbs, noccupied, matrix, vectors, scratch_matrix, matrix_workspace, veccount, eigeni, eigen, c,d, smallsum, vectmp1,vectmp2,vectmp3,vecjs)
-!workspace can be shared for OMP since no two threads should do the same value of i.
+!$OMP& DEFAULT(PRIVATE) &
+!$OMP& SHARED(lumo, norbs, noccupied, matrix, vectors, scratch_matrix, &
+!$OMP&        matrix_workspace, veccount, eigeni, eigen, c,d, smallsum, &
+!$OMP&        vectmp1,vectmp2,vectmp3,vecjs)
+
+!workspace can be shared for OMP since no two threads should do the 
+! same value of i.
 !$OMP DO SCHEDULE(guided)
 #endif
   do i = lumo,norbs

@@ -1,4 +1,4 @@
-#   top-level Makefile for ambermini
+#   top-level Makefile for sandermini
 
 include config.h
 
@@ -8,7 +8,6 @@ install:
 	@(if [ -s rism/Makefile ] ; then cd rism && $(MAKE) librism; fi )
 	@(if [ -d sqm ] ; then cd sqm && $(MAKE) libsqm; fi )
 	@(if [ -s sander/Makefile ] ; then cd sander && $(MAKE) install; fi )
-	@(if [ -d addles ] ; then cd addles && $(MAKE) install; fi )
 
 	@echo ""
 	@echo "Installation of ${AMBERTOOLS} is complete at `date`."
@@ -19,7 +18,6 @@ clean:
 	-(cd sqm && $(MAKE) clean )
 	-(cd rism && $(MAKE) clean )
 	-(cd sander && $(MAKE) clean )
-	-(cd addles && $(MAKE) clean )
 	-(cd lib && $(MAKE) clean )
 
 uninstall: clean
@@ -27,7 +25,6 @@ uninstall: clean
 	-(cd sqm && $(MAKE) uninstall )
 	-(cd rism && $(MAKE) uninstall )
 	-(cd sander && $(MAKE) uninstall )
-	-(cd addles && $(MAKE) uninstall )
 	-(cd lib && $(MAKE) uninstall )
-	-(/bin/rm -rf $(BINDIR)/* $(LIBDIR) $(INCDIR))
+	-(/bin/rm -rf $(BINDIR)/* $(LIBDIR) $(INCDIR) config.h)
 
