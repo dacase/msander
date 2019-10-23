@@ -30,6 +30,9 @@ module xray_globals_module
    ! If TRUE, write the full 4-character ChainID to the SegID field.
    logical, save :: pdb_use_segid, pdb_wrap_names
 
+   ! if TRUE, use the vector (complex) difference between Fobs and Fcalc.
+   logical, save :: vector_target
+
    ! Standard condensed spacegroup name, or integer spacegroup number
    character(len=16), save :: spacegroup_name
 
@@ -89,7 +92,9 @@ module xray_globals_module
 
    integer, save :: bfactor_refinement_interval
 
-   character(len=132) :: atom_selection_mask
+   character(len=256) :: atom_selection_mask
+
+   real(real_kind), save :: ihkl_duration=0._rk_, dhkl_duration=0._rk_
 
    !----------------------------------------------------------------------------
    ! GLOBALS:
@@ -110,9 +115,11 @@ module xray_globals_module
    ! Reflection data:
 
    integer, save :: num_hkl
+   real(real_kind), save :: Fcalc_scale, norm_scale
    integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
 
-   real(real_kind), allocatable, target, save :: Fobs(:), sigFobs(:)
+   real(real_kind), allocatable, target, save :: abs_Fobs(:), sigFobs(:)
+   complex(real_kind), allocatable, target, save :: Fobs(:)
    real(real_kind), allocatable, save :: mSS4(:)
    integer, allocatable, save :: test_flag(:)
    integer, allocatable, save :: test_selection(:), work_selection(:)

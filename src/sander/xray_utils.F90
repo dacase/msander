@@ -356,7 +356,7 @@ contains
 #endif /* MKL */
 #endif /* 0 */
 
-   ! Given a logical-slection array, return an array of indices into the
+   ! Given a logical-selection array, return an array of indices into the
    ! selection's target array, and the number of selected indices.
    subroutine pack_index(selection,index,count)
       implicit none

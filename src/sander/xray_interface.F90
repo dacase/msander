@@ -30,11 +30,12 @@ module xray_interface_module
          spacegroup_name, &
          reflection_infile, &
          reflection_infile_format, &
-         reflection_fobs, &
-         reflection_sigfobs, &
+         reflection_Fobs, &
+         reflection_sigFobs, &
          resolution_low, &
          resolution_high, &
          xray_weight, &
+         vector_target, &
          solvent_mask_probe_radius, &
          solvent_mask_expand, &
          solvent_mask_outfile, &
@@ -88,10 +89,11 @@ contains
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
       !write(stdout,'(5X,A)') reflection_infile_format
-      !write(stdout,'(5X,A)') reflection_fobs
-      !write(stdout,'(5X,A)') reflection_sigfobs
+      !write(stdout,'(5X,A)') reflection_Fobs
+      !write(stdout,'(5X,A)') reflection_sigFobs
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
+      write(stdout,'(5X,A,L1)') 'Use vector target: ',vector_target
       write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
       write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
       write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
@@ -100,7 +102,7 @@ contains
       write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',solvent_scale,', B-factor:', solvent_bfactor
       write(stdout,'(5X,A,I2)')   'FFT method: ',fft_method
       write(stdout,'(5X,A,3(5X,I5))') 'FFT Grid Size: ',fft_grid_size
-      write(stdout,'(5X,A,F9.5)') 'FFT Grid Spaceing: ',fft_grid_spacing
+      write(stdout,'(5X,A,F9.5)') 'FFT Grid Spacing: ',fft_grid_spacing
       write(stdout,'(5X,A,F8.3)') 'FFT B-factor Sharpen: ',fft_bfactor_sharpen
       write(stdout,'(5X,A,E10.3)') 'FFT Densty Toleranec: ',fft_density_tolerance
       write(stdout,'(5X,A,E10.3)') 'FFT Reflection Tolerance: ',fft_reflection_tolerance
@@ -131,9 +133,10 @@ contains
                stat=alloc_status)
          REQUIRE(alloc_status==0)
 
-         call nxtsec(prmtop_lun,STDOUT,0,'*','RESIDUE_NUMBER',fmt,ierr)
+         call nxtsec_reset()
+         call nxtsec(prmtop_lun,STDOUT,0,'(20I4)','RESIDUE_NUMBER',fmt,ierr)
          read(prmtop_lun,fmt) residue_number
-         call nxtsec(prmtop_lun,STDOUT,0,'*','RESIDUE_CHAINID',fmt,ierr)
+         call nxtsec(prmtop_lun,STDOUT,0,'(20A4)','RESIDUE_CHAINID',fmt,ierr)
          read(prmtop_lun,fmt) residue_chainid
 
          call nxtsec(prmtop_lun,STDOUT,1,'*','RESIDUE_ICODE',fmt,ierr)
@@ -150,13 +153,13 @@ contains
             atom_altloc=' '
          end if
 
-         call nxtsec(prmtop_lun,STDOUT,0,'*','ATOM_ELEMENT',fmt,ierr)
+         call nxtsec(prmtop_lun,STDOUT,0,'(20A4)','ATOM_ELEMENT',fmt,ierr)
          read(prmtop_lun,fmt) atom_element
       ! end if
 
       if (reflection_infile == '') return
 
-      call nxtsec(prmtop_lun,out_lun,0,'*','XRAY_NUM_SCATTER_TYPES',fmt,ierr)
+      call nxtsec(prmtop_lun,out_lun,0,'(I4)','XRAY_NUM_SCATTER_TYPES',fmt,ierr)
       if (fmt=='*') then
          write(stdout,'(A)') &
             'ERROR: XRAY_NUM_SCATTER_TYPES not found in PRMTOP file.'
@@ -169,9 +172,9 @@ contains
             stat=alloc_status)
       REQUIRE(alloc_status==0)
 
-      call nxtsec(prmtop_lun,out_lun,0,'*','XRAY_ATOM_SCATTER_TYPE_INDEX',fmt,ierr)
+      call nxtsec(prmtop_lun,out_lun,0,'(20I4)','XRAY_ATOM_SCATTER_TYPE_INDEX',fmt,ierr)
       read(prmtop_lun,fmt) atom_scatter_type
-      call nxtsec(prmtop_lun,out_lun,0,'*','XRAY_SCATTER_COEFFICIENTS',fmt,ierr)
+      call nxtsec(prmtop_lun,out_lun,0,'(F12.6)','XRAY_SCATTER_COEFFICIENTS',fmt,ierr)
       read(prmtop_lun,fmt) scatter_coefficients
       call nxtsec(prmtop_lun,out_lun,1,'*','XRAY_SYMMETRY_TYPE',fmt,ierr)
       if (ierr==-2) then
@@ -222,6 +225,8 @@ contains
             i = find_atom(name,resName,chainID,resSeq,iCode)
             if (i<0) then
                write(stdout,'(2A)') 'Atom not found: ',trim(line)
+               write(stdout,'(A4,1x,A4,1x,A4,1x,I4,A4)') &
+                      name,resName,chainID,resSeq,iCode
                stop
             end if
             if (atom_occupancy(i) >= 0) then
@@ -309,10 +314,11 @@ contains
       ! locals
       integer :: unit, iatom, ires, ierr
       integer :: first1, last1, first2, last2, ibond
+      integer :: iatom_p, ires_p
       character(len=4) :: name
       character(len=8) :: date
       character(len=10) :: time
-      logical, allocatable :: linked(:)
+      ! logical, allocatable :: linked(:)
       ! character(len=1) :: altloc
       ! character(len=4) :: segid
       character(len=3) :: resName
@@ -327,6 +333,7 @@ contains
       ! GMS: Fix for pgf90 compiler
       character(len=4) :: this_residue_chainid
       ! begin
+#if 0
       allocate(linked(num_residues),stat=ierr)
       if (ierr==0) then
          do ires = 1,num_residues-1
@@ -345,12 +352,13 @@ contains
             end do
          end do
       end if
+#endif
 
       call amopen(allocate_lun(unit),filename,owrite,'F','R')
       call date_and_time(date,time)
       if (title/='') write(unit,'(2A)') 'REMARK  ', title
       if (title1/='') write(unit,'(2A)') 'REMARK  ', title1
-      write(unit,'(12A)') 'REMARK  Written by Amber 10, SANDER, ', &
+      write(unit,'(12A)') 'REMARK  Written by Amber 20, SANDER, ', &
             date(1:4),'.',date(5:6),'.',date(7:8),'  ', &
             time(1:2),':',time(3:4),':',time(5:6)
 
@@ -388,7 +396,7 @@ contains
             ! ***NOTE***
             ! This code only adds a leading space to give element-alignment
             ! where possible. It is impossible to follow the PDB version 3
-            ! "remediated" format correctly, because it has no alignement rules.
+            ! "remediated" format correctly, because it has no alignment rules.
             ! Instead, it assumes you have a complete database of all known
             ! residues, and any other residue names are a fatal error.
             name = atom_name(iatom)
@@ -404,16 +412,17 @@ contains
             this_residue_chainid = residue_chainid(ires)
             ! DRR: PGI does not seem to like any() inside merge() intrinsic.
             isStandardRes = any(resName==standard_pdb_residues)
+            ! don't overflow atom or residue numbers:
+            iatom_p = mod( iatom, 100000 )
+            ires_p = mod( residue_number(ires), 10000 )
             write(unit,'(A6,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)')&
                   merge('ATOM  ', 'HETATM', isStandardRes), &
-                  iatom,name,atom_altloc(iatom)(1:1), &
+                  iatom_p,name,atom_altloc(iatom)(1:1), &
                   resName,residue_chainid(ires)(1:1), &
-                  residue_number(ires),residue_icode(ires)(1:1), &
+                  ires_p,residue_icode(ires)(1:1), &
                   coordinate(1:3,iatom), &
                   atom_occupancy(iatom), &
                   atom_bfactor(iatom), &
-                  ! GMS: Fix for pgf90 compiler
-                  !merge(residue_chainid(ires),'    ',pdb_use_segid), &
                   merge(this_residue_chainid,'    ',pdb_use_segid), &
                   atom_element(iatom)
          end do
@@ -427,13 +436,14 @@ contains
       use nblist, only: a, b, c, alpha, beta, gamma
       use xray_utils_module, only: allocate_lun
       use xray_reciprocal_space_module, only: derive_cell_info
-      use xray_FFT_module, only: FFT_setup
+      ! use xray_FFT_module, only: FFT_setup
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status
+      real(real_kind) :: phi
 
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
 
@@ -462,25 +472,43 @@ contains
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
       read(hkl_lun,*,end=1,err=1) num_hkl
-      allocate(hkl_index(3,num_hkl),Fobs(num_hkl),sigFobs(num_hkl), &
+      allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             mSS4(num_hkl),test_flag(num_hkl),stat=alloc_status)
       REQUIRE(alloc_status==0)
-      do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) &
-               hkl_index(1:3,i),Fobs(i),sigFobs(i),test_flag(i)
-         ! ignore test_flag for now: use all reflections
-         test_flag(i) = 1
-      end do
-      close(hkl_lun)
-      !call hkl_reduce()
 
-      if( fft_method > 0 ) call FFT_setup()
+      !  each line contains h,k,l and two reals
+      !  if vector_target == .false., these are Fobs, sigFobs (for diffraction)
+      !  if vector_target == .true.,  these are Fobs, phiFobs (for cryoEM)
+
+      do i = 1,num_hkl
+         read(hkl_lun,*,end=1,err=1) hkl_index(1:3,i),abs_Fobs(i),sigFobs(i)
+      end do
+
+      ! for now, use all reflections:
+      test_flag(:) = 1
+
+      ! set up complex Fobs(:), if vector target is requested
+      if( vector_target ) then
+         allocate(Fobs(num_hkl),stat=alloc_status)
+         REQUIRE(alloc_status==0)
+         do i = 1,num_hkl
+            !  sigFobs() here is assumed to be really phi()
+            phi = sigFobs(i) * 0.0174532925d0
+            Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi) )
+         end do
+      endif
+      
+      close(hkl_lun)
+
+      ! if( fft_method > 0 ) call FFT_setup()
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
                igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
+         write(6,'(a,i6,a,a)') 'Found ',sum(atom_selection),' atoms in ', &
+               atom_selection_mask
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
@@ -496,11 +524,12 @@ contains
       pdb_read_coordinates = .false.
       pdb_use_segid = .false.
       pdb_wrap_names = .false.
+      vector_target = .false.
       spacegroup_name = 'P 1'
       reflection_infile = ''
       reflection_infile_format = 'raw'
-      reflection_fobs = '4'
-      reflection_sigfobs = '5'
+      reflection_Fobs = '4'
+      reflection_sigFobs = '5'
       resolution_low = 50
       resolution_high = 0
       xray_weight = 3e+5 ! typical for Residual target
@@ -542,9 +571,14 @@ contains
             atom_selection,residue_chainid,residue_icode, &
             atom_element,atom_altloc,residue_number, &
             scatter_coefficients, &
-            hkl_index,Fobs,sigFobs,mSS4,test_flag, &
+            hkl_index,abs_Fobs,sigFobs,mSS4,test_flag, &
             stat=dealloc_status)
       REQUIRE(dealloc_status==0)
+      if( vector_target ) then
+         deallocate(Fobs,stat=dealloc_status)
+         REQUIRE(dealloc_status==0)
+      endif
+
    end subroutine xray_fini
 
    ! NOTE: CNS supports user-defined functions for:
@@ -568,18 +602,19 @@ contains
       real(real_kind), allocatable :: frac_xyz(:,:)
       real(real_kind), allocatable :: xray_dxyz(:,:), xray_dB(:)
       complex(real_kind), allocatable :: Fcalc(:)
-      real(real_kind), allocatable, target :: Fcalc_amplitude(:)
+      real(real_kind), allocatable, target :: abs_Fcalc(:)
       complex(real_kind), allocatable :: dF(:)
+      real(real_kind) :: phi
       type(hkl_data_scale_type) :: data(2)
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i
+      logical, save :: first=.true.
 
       allocate(sel_index(num_atoms),stat=alloc_status)
       REQUIRE(alloc_status==0)
       call pack_index(atom_selection(:)==1 .and. atom_scatter_type(:)>0, sel_index, num_selected)
-
       allocate(frac_xyz(3,num_selected),dF(num_hkl),Fcalc(num_hkl), &
-            Fcalc_amplitude(num_hkl), &
+            abs_Fcalc(num_hkl), &
             xray_dxyz(3,num_selected),xray_dB(num_selected), stat=alloc_status)
       REQUIRE(alloc_status==0)
 
@@ -591,6 +626,7 @@ contains
             atom_bfactor(sel_index(1:num_selected)), &
             atom_occupancy(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)) )
+#if 0
       else
          call FFT_Fcalc(num_hkl,Fcalc,test_flag-1, &
             num_selected,frac_xyz, &
@@ -598,30 +634,21 @@ contains
             atom_occupancy(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
             num_scatter_types,scatter_ncoeffs,scatter_coefficients)
+#endif
       endif
-      
-      Fcalc_amplitude = abs(Fcalc)
 
 #if 0
-      ! dac: appropriate place to dump h,k,l,Fc,phic, if requested
-      do i=1,num_hkl
-         write(20,'(i5,a,i5,a,i5,a,f12.5,f12,5)') hkl_index(1,i), &
-          achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9) &
-          Fobs(i), achar(9), Fcalc_amplitude(i)
-      end do
-#endif
-
-      data(1)%f => Fobs
+      abs_Fcalc(:) = abs(Fcalc(:))
+      data(1)%f => abs_Fobs
       data(1)%sigma => sigFobs
       data(1)%name = "Fobs"
       data(1)%refine_bfactor = .false.
 
-      data(2)%f => Fcalc_amplitude
+      data(2)%f => abs_Fcalc
       data(2)%name = "Fcalc"
       data(2)%scale = -1
       data(2)%refine_scale = .false.
 
-#if 0
       call scale_data(num_hkl,hkl_index, & ! selection=ALL
             num_sets=2,data=data, &
             scale_min=1e-4_rk_, scale_max=1e+4_rk_, &
@@ -631,8 +658,48 @@ contains
 #endif
 
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
-      call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag,deriv=dF, &
-           residual=r_work, xray_energy=xray_energy)
+
+      if( vector_target ) then
+         call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
+            residual=r_work, xray_energy=xray_energy)
+      else
+         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag,deriv=dF, &
+            residual=r_work, xray_energy=xray_energy)
+      endif
+      abs_Fcalc(:) = abs(Fcalc(:))
+
+#if 1
+      if( first ) then
+         write( 6,'(a,f15.5,e15.5)') 'At start: Fcalc_scale, norm_scale = ', &
+              Fcalc_scale, norm_scale
+         open(20,file='first.fmtz',action='write')
+         if( vector_target ) then
+            do i=1,num_hkl
+#  if 1
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+                hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                real(Fobs(i)), achar(9), Fcalc_scale*real(Fcalc(i)), achar(9),  &
+                aimag(Fobs(i)), achar(9), Fcalc_scale*aimag(Fcalc(i)) 
+#  else
+               phi = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                abs_Fcalc(i), achar(9), phi
+#  endif
+            end do
+         else
+            do i=1,num_hkl
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                abs_Fobs(i), achar(9), abs_Fcalc(i)
+            end do
+         endif
+         close(20)
+         first=.false.
+      endif
+#endif
+
       xray_energy = xray_weight * xray_energy
       xray_e = xray_energy
       dF = xray_weight * dF
@@ -651,6 +718,7 @@ contains
             atom_scatter_type(sel_index(1:num_selected)), &
             dxyz=xray_dxyz )
          endif
+#if 0
       else
          call FFT_dXYZBQ_dF(num_hkl,dF,test_flag-1, &
             num_selected,frac_xyz, &
@@ -658,6 +726,7 @@ contains
             atom_occupancy(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
             num_scatter_types,scatter_ncoeffs,scatter_coefficients,xray_dxyz)
+#endif
       endif
 
       ! Convert xray_dxyz() back to orthogonal coordinates: 
@@ -668,7 +737,7 @@ contains
       if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
 
       deallocate(frac_xyz,dF,Fcalc, &
-            Fcalc_amplitude, xray_dxyz, xray_dB, stat=dealloc_status)
+            abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
       REQUIRE(dealloc_status==0)
       deallocate(sel_index,stat=dealloc_status)
       REQUIRE(dealloc_status==0)
@@ -678,13 +747,13 @@ contains
    subroutine xray_write_md_state(unit)
       integer, intent(in) :: unit
       write(unit,'(3(1x,A,f14.4))') &
-        'E(XRAY)= ',xray_energy,' R(WORK) = ',r_work,' R(FREE)   = ',r_free
+        'Exray  = ', xray_energy, ' Rwork   = ', r_work, ' Rfree      = ', r_free
    end subroutine xray_write_md_state
 
    subroutine xray_write_min_state(unit)
       integer, intent(in) :: unit
       write(unit,'(3(1x,A,f13.4))') &
-        'E(XRAY) = ',xray_energy,' R(WORK) = ',r_work,' R(FREE)    = ',r_free
+        'Exray   = ', xray_energy, ' Rwork   = ', r_work, ' Rfree      = ', r_free
    end subroutine xray_write_min_state
 
 end module xray_interface_module

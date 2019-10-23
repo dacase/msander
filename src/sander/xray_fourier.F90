@@ -7,8 +7,6 @@ module xray_fourier_module
 ! saved.
 !
 ! These routines all pass F90-style dimensioned arrays.
-! This version has several dependent modules commented out using CPP
-! conditionals.
 !
 !  SUBROUTINES:
 !
@@ -17,9 +15,12 @@ module xray_fourier_module
 !                              This one uses the direct (exact) Fourier.
 !
 !  dTarget_dF         --  Calculate a structure-factor restraint force
-!                              from the difference of Fobs and Fcalc. The
-!                              residual restraint target-function is a
-!                              harmonic restraint in reciprocal space.
+!                              from the scalar difference of |Fobs| and |Fcalc|.
+!
+!  dTargetV_dF        --  Calculate a structure-factor restraint force
+!                              from the vector (complex) difference of Fobs 
+!                              and Fcalc.  (For use when phases are available,
+!                              as in cryoEM.
 !
 ! FUNCTIONS:
 !
@@ -28,7 +29,7 @@ module xray_fourier_module
 !                              and a modified resolution, defined as -S*S/4.0, 
 !                              where S is the reciprocal resolution. (mss4 
 !                              stands for "Minus S Squared over 4") See comments
-!                              at the beginning of xray_fourier_Fcalc()
+!                              at the beginning of fourier_Fcalc()
 
    use xray_globals_module
    use constants, only: M_TWOPI => TWOPI
@@ -71,19 +72,18 @@ contains
       real(real_kind) :: atomic_scatter_factor(num_scatter_types)
       real(real_kind) :: f(num_atoms), angle(num_atoms)
       double precision :: time0, time1
-      logical, save :: first=.true.
 
-      !  use the following if you expect num_atoms to change during a run:
+      ! Use the following if you expect num_atoms to change during a run:
       ! integer :: alloc_status
       ! allocate(angle(num_atoms), f(num_atoms), stat=alloc_status)
       ! REQUIRE(alloc_status==0)
 
-      ! call wallclock( time0 )
+      call wallclock( time0 )
 !$omp parallel do private(ihkl, i, atomic_scatter_factor, f, angle )
       do ihkl = 1, num_hkl
-         ! if (present(hkl_selected)) then
-         !    if (hkl_selected(ihkl)==0) cycle
-         ! end if
+         if (present(hkl_selected)) then
+            if (hkl_selected(ihkl)==0) cycle
+         end if
 
          ! NOTE: the atomic scatter factors do not change for a given atom type
          ! and hkl index as long as the unit cell is unchanged. If the number 
@@ -92,8 +92,8 @@ contains
          ! (this is *not* what is being done here, however)
 
          do i = 1, num_scatter_types
-             atomic_scatter_factor(i) = &
-               atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
+           atomic_scatter_factor(i) = &
+             atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
          end do
 
          ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
@@ -117,21 +117,19 @@ contains
 
          f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
               * atomic_scatter_factor(scatter_type_index(:))
-#ifdef USE_ISCALE
          if (present(occupancy)) then
             f(:) = f(:)*occupancy(:)
          endif
-#endif
          angle(:) = matmul(M_TWOPI * hkl(1:3,ihkl),xyz(1:3,:))
-         Fcalc(ihkl) = cmplx( sum(f(:) * sin(angle(:))), &
-              sum(f(:) * cos(angle(:))), rk_ )
+
+         Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
+              sum(f(:) * sin(angle(:))), rk_ )
+
       end do
 !$omp end parallel do
-      ! call wallclock( time1 )
-      ! if ( first ) then
-      !    write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
-      !    first = .false.
-      ! endif
+      call wallclock( time1 )
+      ihkl_duration = ihkl_duration + time1 - time0
+      ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
 
    end subroutine fourier_Fcalc
 
@@ -180,12 +178,12 @@ contains
       real(real_kind) :: dhkl(3)
       complex(real_kind) :: f
       real(real_kind) :: phase
-      ! double precision time0, time1
+      double precision time0, time1
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
-      ! call wallclock( time0 )
+      call wallclock( time0 )
 #ifdef USE_ISCALE
 !$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  reduction( +:d_tempFactor )
 #else
@@ -193,7 +191,7 @@ contains
 #endif
       REFLECTION: do ihkl = 1,num_hkl
          !if (present(hkl_selected)) then
-            if (hkl_selected(ihkl)==0) cycle REFLECTION
+         !   if (hkl_selected(ihkl)==0) cycle REFLECTION
          !end if
 
          do i = 1,num_scatter_types
@@ -212,9 +210,8 @@ contains
             f = atomic_scatter_factor(scatter_type_index(iatom)) &
                   * exp(mSS4(ihkl) * tempFactor(iatom)) 
    
-            f = f * cmplx(sin(phase),cos(phase), rk_)
+            f = f * cmplx(cos(phase),sin(phase), rk_)
 
-#ifdef USE_ISCALE
             if (present(d_occupancy)) then
                d_occupancy(iatom) = d_occupancy(iatom) + &
                  real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl))
@@ -229,35 +226,32 @@ contains
                   + ( real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl)) ) &
                   * mSS4(ihkl)
             end if
-#endif
 
-            ! if (present(dxyz)) then
-               dxyz(:,iatom) = dxyz(:,iatom) + dhkl(:) * &
+            if (present(dxyz)) then
+               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
                    ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
-            ! end if
+            end if
 
          end do ATOM
 
       end do REFLECTION
 !$omp end parallel do
-      ! call wallclock( time1 )
-      ! if ( first ) then
-      !    write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
-      !    first = .false.
-      ! endif
+      call wallclock( time1 )
+      dhkl_duration = dhkl_duration + time1 - time0
+      ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
 
    end subroutine fourier_dXYZBQ_dF
 
    ! -------------------------------------------------------------------------
    ! R - factor = sum(abs(Fobs - Fcalc)) / sum(Fobs)
    ! This routine computes the force gradient on Fcalc as a harmonic
-   ! restraint
+   ! restraint on the magnitudes of Fobs and Fcalc
 
-   subroutine dTarget_dF(num_hkl,fobs,Fcalc,weight,selected,deriv, &
+   subroutine dTarget_dF(num_hkl,abs_Fobs,Fcalc,weight,selected,deriv, &
          residual,xray_energy)
       implicit none
       integer, intent(in) :: num_hkl
-      real(real_kind), intent(in) :: fobs(:)
+      real(real_kind), intent(in) :: abs_Fobs(:)
       complex(real_kind), intent(in) :: Fcalc(:)
       integer, intent(in), optional :: selected(:)
       real(real_kind), intent(in), optional :: weight (:)
@@ -267,56 +261,26 @@ contains
 
       real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
       real(real_kind) :: abs_Fcalc(num_hkl)
-      real(real_kind) :: Fcalc_scale, norm_scale
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
-      integer :: num_selected, i
+      logical, save :: first = .true.
 
       abs_Fcalc(:) = abs(Fcalc(:))
 
-#if 0   /* no weights for now!  */
-      if (present(weight)) then
+      if( first ) then
          if (present(selected)) then
-            sum_fo_fc = sum(weight * fobs * abs_Fcalc,selected/=0)
-            sum_fo_fo = sum(weight * fobs ** 2,selected/=0)
-            sum_fc_fc = sum(weight * abs_Fcalc ** 2,selected/=0)
-         else
-            sum_fo_fc = sum(weight * fobs * abs_Fcalc)
-            sum_fo_fo = sum(weight * fobs ** 2)
-            sum_fc_fc = sum(weight * abs_Fcalc ** 2)
-         end if
-      else
-#endif
-         if (present(selected)) then
-            sum_fo_fc = sum(fobs * abs_Fcalc,selected/=0)
-            sum_fo_fo = sum(fobs ** 2,selected/=0)
+            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+            sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
             sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
-            num_selected = 0
-            do i=1,num_hkl
-              if( selected(i) /= 0 ) num_selected = num_selected + 1
-            end do
          else
-            sum_fo_fc = sum(fobs * abs_Fcalc)
-            sum_fo_fo = sum(fobs ** 2)
+            sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
+            sum_fo_fo = sum(abs_Fobs ** 2)
             sum_fc_fc = sum(abs_Fcalc ** 2)
          end if
-#if 0
-      end if
-#endif
 
-      if (sum_fc_fc<F_EPSILON .or. sum_fo_fo<F_EPSILON) then
-         if (present(deriv)) then
-            if (present(selected)) then
-               where (selected/=0) deriv = (0.0_rk_,0.0_rk_)
-            else
-               deriv = (0.0_rk_,0.0_rk_)
-            end if
-         end if
-         if (present(residual)) residual = -1.0_rk_
-         return
-      end if
-
-      Fcalc_scale = sum_fo_fc / sum_fc_fc
-      norm_scale = 1.0_rk_ / sum_fo_fo
+         Fcalc_scale = sum_fo_fc / sum_fc_fc
+         norm_scale = 1.0_rk_ / sum_fo_fo
+         first = .false.
+      endif
 
       ! Note: when Fcalc is approximately zero the phase is undefined, 
       ! so no force can be determined even if the energy is high. (Similar 
@@ -331,57 +295,26 @@ contains
       !      respect to Fcalc
 
       if (present(deriv)) then
-#if 0  /* no weights for now!  */
-         if (present(weight)) then
-            if (present(selected)) then
-               where (selected/=0)
-               where (abs_Fcalc > F_EPSILON)
-               deriv = Fcalc * ( - 2.0_rk_ * Fcalc_scale * &
-                     weight * norm_scale * ( fobs / abs_Fcalc - Fcalc_scale ) )
-            else where
-               deriv = (0.0_rk_,0.0_rk_)
-               end where
-               end where
-            else ! no selected
-               where (abs_Fcalc > F_EPSILON)
-               deriv = Fcalc * ( - 2.0_rk_ * Fcalc_scale * &
-                     weight * norm_scale * ( fobs / abs_Fcalc - Fcalc_scale ) )
-            else where
-               deriv = (0.0_rk_,0.0_rk_)
-               end where
-            end if
-         else ! no weight
-#endif
-            if (present(selected)) then
-               where (selected/=0)
-                  where (abs_Fcalc > F_EPSILON)
-                     deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
-                        ( fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
+         if (present(selected)) then
+            where (selected/=0)
+               deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
+                  ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
 #if 1
-                        ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
+                  ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
 #else
-                        ! add in terms from derivative of Fcalc_scale:
-                        ( Fcalc_scale/abs_Fcalc(:) + &
-                          fobs(:)/sum_fc_fc - 2._rk_*abs_Fcalc(:) * &
-                          sum_fo_fc/(sum_fc_fc**2) )
+                  ! add in terms from derivative of Fcalc_scale:
+                  !   only kept here for possible later referral
+                  ( Fcalc_scale/abs_Fcalc(:) + &
+                    abs_Fobs(:)/sum_fc_fc - 2._rk_*abs_Fcalc(:) * &
+                    sum_fo_fc/(sum_fc_fc**2) )
 #endif
-                  else where
-                     deriv = (0.0_rk_,0.0_rk_)
-                  end where
-                  else where
-                     deriv = (0.0_rk_,0.0_rk_)
-               end where
-            else ! no selected (and no weight)
-               where (abs_Fcalc > F_EPSILON)
-                  deriv = (0.0_rk_,0.0_rk_)  !FIXME
-               else where
-                  deriv = (0.0_rk_,0.0_rk_)
-               end where
-            end if
+            end where
+         else ! no selected (and no weight)
+            deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
+               ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
+               ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
          end if
-#if 0
       end if
-#endif
 
       ! Do the appropriate R - factor calculation, depending on weights 
       ! and/or a selection mask.
@@ -389,25 +322,67 @@ contains
       if (present(residual)) then
          if (present(weight)) then
             if (present(selected)) then
-               residual = sum(weight * abs(fobs - Fcalc_scale * abs_Fcalc), &
-                 selected/=0) / sum(fobs,selected/=0)
+               residual = sum(weight * abs(abs_Fobs - Fcalc_scale*abs_Fcalc), &
+                 selected/=0) / sum(abs_Fobs,selected/=0)
             else
-               residual = sum (weight * abs( fobs - Fcalc_scale * abs_Fcalc )) &
-                / sum(fobs)
+               residual = sum (weight * abs( abs_Fobs - Fcalc_scale*abs_Fcalc )) &
+                / sum(abs_Fobs)
             end if
          else
             if (present(selected)) then
-               residual = sum(abs(fobs - Fcalc_scale * abs_Fcalc), &
-                  selected/=0) / sum(fobs, selected/=0)
+               residual = sum(abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
+                  selected/=0) / sum(abs_Fobs, selected/=0)
                xray_energy = norm_scale * &
-                 sum((fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
+                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
             else
-               residual = sum (abs(fobs - Fcalc_scale * abs_Fcalc)) / sum(fobs)
+               residual = sum (abs(abs_Fobs - Fcalc_scale*abs_Fcalc)) &
+                    / sum(abs_Fobs)
+               xray_energy = norm_scale * &
+                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2)
             end if
          end if
       end if
 
    end subroutine dTarget_dF
+
+   ! This routine computes the force gradient on Fcalc as a harmonic
+   ! restraint on the vector (complex) difference between Fcalc and
+   ! Fobs
+
+   subroutine dTargetV_dF(num_hkl,Fobs,Fcalc,deriv, &
+         residual,xray_energy)
+      implicit none
+      integer, intent(in) :: num_hkl
+      complex(real_kind), intent(in) :: Fobs(:)
+      complex(real_kind), intent(inout) :: Fcalc(:)
+      complex(real_kind), intent(out) :: deriv(:)
+      real(real_kind), intent(out) :: residual
+      real(real_kind), intent(out) :: xray_energy
+
+      real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
+      real(real_kind) :: abs_Fcalc(num_hkl)
+      real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
+      complex(real_kind) :: vecdif(num_hkl)
+      logical, save :: first = .true.
+
+      abs_Fcalc(:) = abs(Fcalc(:))
+
+      if (first) then
+         sum_fo_fo = sum(abs_Fobs ** 2)
+         sum_fc_fc = sum(abs_Fcalc ** 2)
+         sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
+         Fcalc_scale = sum_fo_fc / sum_fc_fc
+
+         norm_scale = 1.0_rk_ / sum_fo_fo
+         first = .false.
+      endif
+
+      vecdif(:) = Fobs(:) - Fcalc_scale * Fcalc(:)
+      xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
+      deriv(:) = - norm_scale * 2._rk_ * Fcalc_scale * vecdif(:)
+      residual = sum (abs(vecdif)) / sum(abs_Fobs)
+
+   end subroutine dTargetV_dF
 
    function atom_scatter_factor_mss4(coeffs,mss4) result(sfac)
       real(real_kind) :: sfac
@@ -457,7 +432,7 @@ contains
         l = hkl_index(3,ihkl)
         S2 = (h*astar)**2 + (k*bstar)**2 + (l*cstar)**2  &
            + 2*k*l*bstar*cstar*cosas + 2*l*h*cstar*astar*cosbs  &
-           + 2*h*k*astar*bstar*cosgs 
+           + 2*h*k*astar*bstar*cosgs
         mSS4(ihkl) = -S2/4.
       end do
    end subroutine get_mss4

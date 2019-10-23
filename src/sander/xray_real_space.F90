@@ -90,8 +90,10 @@ contains
       !FIXME: update for non-orthognal cells
       sphere_extent(:) = int(rcut_max * angstrom_to_grid(:)) + 1
       max_points = product(sphere_extent(:) * 2 + 1)
+#ifdef _XRAY_DEBUG
       write(6,*)'sphere_extent=',sphere_extent
       write(6,*)'max_points=',max_points
+#endif
 
       allocate( &
             points(max_points), &          !  grid pointers (for data scattering)
@@ -105,9 +107,11 @@ contains
             stat=alloc_status)
       REQUIRE(alloc_status==0)
 
+#ifdef _XRAY_DEBUG
       write(6,*) "RCUT_MAX = ",rcut_max
       write(6,*) "SPHERE_MAX = ",sphere_extent(:)
       write(6,*) 'NUM_ATOMS = ',num_atoms
+#endif
 
       min_usage = 1
       max_usage = 0
