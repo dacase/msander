@@ -16,9 +16,6 @@
    use qmmm_read_and_alloc, only : read_qmmm_nm_and_alloc
    use qmmm_vsolv_module, only: qmmm_vsolv_store_parameters, new
    use qm2_extern_module, only: qm2_extern_finalize
-   use sebomd_module, only : sebomd_obj, &
-                  sebomd_open_files, sebomd_close_files, sebomd_setup
-   use sebomd_arrays, only : init_sebomd_arrays, cleanup_sebomd_arrays
 #ifdef LES
    use genbornles
 #else
@@ -268,16 +265,10 @@
 
    end if
 
-   call sebomd_setup
    if (qmmm_nml%ifqnt .or. abfqmmm_param%abfqmmm == 1) then
       if(abfqmmm_param%abfqmmm == 0) then
          call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
                                      dummy, 0, .false., qmmm_options)
-         if (qmmm_nml%qmtheory%SEBOMD) then
-            ! don't do QM/MM
-            qmmm_nml%ifqnt= .false.
-            sebomd_obj%do_sebomd = .true.
-         end if
       end if
       if(qmmm_struct%abfqmmm == 1 .and. abfqmmm_param%abfqmmm == 0) then
          call abfqmmm_setup(natom,nres,ix(i02),ih(m04),ih(m02),x(lmass), &
@@ -717,13 +708,6 @@
       call deallocate_stacks             
       call stack_setup()
    end if
-
-   if (sebomd_obj%do_sebomd) then
-      ! open necessary files
-      call sebomd_open_files
-      ! initialize SEBOMD arrays
-      call init_sebomd_arrays(natom)
-   endif
 
 #ifdef OPENMP
 

@@ -897,7 +897,6 @@ end subroutine profile_time
 !+ Written by Ross Walker (SDSC, 2009)
 subroutine print_ongoing_time_summary(total_steps,current_step,time_step,write_unit)
 use qmmm_module, only: qmmm_nml
-use sebomd_module, only : sebomd_obj
 
 ! Make the ongoing time summary work with explicit Constant pH simulations JMS 2/2011
 use constantph, only: relaxations, tot_relax
@@ -998,7 +997,7 @@ use constante, only: relaxations_e, tot_relax_e
     end if
     write (write_unit,'(a,f10.2,a,f10.2)') &
                     '|     Elapsed(s) = ',elapsed_time,' Per Step(ms) = ',time_per_step
-    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) .or. (sebomd_obj%do_sebomd)) then
+    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
       write (write_unit,'(a,f10.3,a,f10.2)') &
                       '|         ps/day = ',ns_per_day*1000.0d0,  '   seconds/ps = ',sec_per_ns/1000.0d0
     else
@@ -1022,7 +1021,7 @@ use constante, only: relaxations_e, tot_relax_e
     end if
     write (write_unit,'(a,f10.2,a,f10.2)') &
                     '|     Elapsed(s) = ',total_elapsed_time,' Per Step(ms) = ',avg_time_per_step
-    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) .or. (sebomd_obj%do_sebomd)) then
+    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
       write (write_unit,'(a,f10.3,a,f10.2)') &
                     '|         ps/day = ',total_ns_per_day*1000.0d0,  '   seconds/ps = ',total_sec_per_ns/1000.0d0
     else
@@ -1062,7 +1061,7 @@ use constante, only: relaxations_e, tot_relax_e
       end if
       write (write_unit,'(a,f10.2,a,f10.2)') &
                       '|     Elapsed(s) = ', elapsed_time,' Per Step(ms) = ',time_per_step
-      if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) .or. (sebomd_obj%do_sebomd)) then
+      if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
         write (write_unit,'(a,f10.3,a,f10.2)') &
                         '|         ps/day = ',ns_per_day*1000.0d0,  '   seconds/ps = ',sec_per_ns/1000.0d0
       else
@@ -1074,7 +1073,7 @@ use constante, only: relaxations_e, tot_relax_e
     write (write_unit,'(a)') '| Average timings for all steps:'
     write (write_unit,'(a,f10.2,a,f10.2)') &
                     '|     Elapsed(s) = ', total_elapsed_time,' Per Step(ms) = ', avg_time_per_step
-    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) .or. (sebomd_obj%do_sebomd)) then
+    if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
       write (write_unit,'(a,f10.3,a,f10.2)') &
                       '|         ps/day = ', total_ns_per_day*1000.0d0,  '   seconds/ps = ', total_sec_per_ns/1000.0d0
     else

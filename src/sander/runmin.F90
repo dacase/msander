@@ -17,7 +17,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
    use fastwt
    use constants, only : zero, one, TEN_TO_MINUS5, TEN_TO_MINUS6
    use qmmm_module, only : qmmm_nml, qmmm_struct, qmmm_mpi, qm2_struct
-   use poisson_boltzmann, only: outwat, oution
    use bintraj, only: end_binary_frame
    use file_io_dat
 
@@ -33,7 +32,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 #endif
 
    use state
-   use sebomd_module, only : sebomd_obj
    implicit none
 
 #ifdef MPI
@@ -54,7 +52,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 #include "nmr.h"
 #include "extra.h"
 #include "ew_cntrl.h"
-#include "../pbsa/pb_md.h"
 
    ! ------ passed in variables --------------------
    _REAL_   xx(*)
@@ -264,19 +261,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
       end if
    end if
 
-   ! reset pb-related flags
-   if(master)then
-      if ( igb == 10 .or. ipb /= 0 ) then
-         if ( mod(n_force_calls,npbgrid) == 0 ) pbgrid = .true.
-         if ( ntpr > 0 ) then
-            if ( mod(n_force_calls,ntpr) == 0 ) pbprint = .true.
-         end if
-         if ( mod(n_force_calls,nsnbr) == 0 ) ntnbr = 1
-         if ( mod(n_force_calls,nsnba) == 0 ) ntnba = 1
-         npbstep = n_force_calls
-      end if
-   endif
-
    iprint = 0
    if (n_force_calls == maxcyc .or. n_force_calls == 1) iprint=1
    
@@ -303,23 +287,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
    
    irespa = n_force_calls
 
-   if (sebomd_obj%do_sebomd) then
-     ! write down atomic charges and density matrix if needed
-     sebomd_obj%iflagch = 0
-     if (sebomd_obj%ntwc /= 0) then
-        if (mod(n_force_calls,sebomd_obj%ntwc) == 0) sebomd_obj%iflagch = 1
-     endif
-!    sebomd_obj%pdmx = 0
-!    if (sebomd_obj%pdump /= 0) then
-!       if (mod(n_force_calls,ntwr) == 0) sebomd_obj%pdmx = 1
-!       if (n_force_calls == maxcyc) sebomd_obj%pdmx = 1
-!    endif
-     sebomd_obj%iflagbo = 0
-     if (sebomd_obj%ntwb /= 0) then
-        if (mod(n_force_calls,sebomd_obj%ntwb) == 0) sebomd_obj%iflagbo = 1
-     endif
-   endif
-   
    call force(xx,ix,ih,ipairs,x,fg,ene,ene%vir, &
          xx(l96), xx(l97), xx(l98),xx(l99),qsetup, do_list_update,n_force_calls)
 
@@ -426,7 +393,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
    if ((ifcap == 2 .or. ifcap == 5) .and. n_force_calls == 1) then  
       ! HG added this to account for waters not being considered if ifcap == 2,5
       fnq = fnq * fnq
-      fnq = fnq - 3 * (outwat + oution)
       fnq = sqrt(fnq)
    end if          
 
@@ -800,25 +766,7 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 
    300 continue  ! The converged minimization terminates 
 
-   if (sebomd_obj%do_sebomd) then
-     ! write down atomic charges and density matrix if needed
-     sebomd_obj%iflagch = 0
-     if (sebomd_obj%ntwc /= 0) then
-        if (mod(n_force_calls,sebomd_obj%ntwc) == 0) sebomd_obj%iflagch = 1
-     endif
-!    sebomd_obj%pdmx = 0
-!    if (sebomd_obj%pdump /= 0) then
-!       if (mod(n_force_calls,ntwr) == 0) sebomd_obj%pdmx = 1
-!       if (n_force_calls == maxcyc) sebomd_obj%pdmx = 1
-!    endif
-     sebomd_obj%iflagbo = 0
-     if (sebomd_obj%ntwb /= 0) then
-        if (mod(n_force_calls,sebomd_obj%ntwb) == 0) sebomd_obj%iflagbo = 1
-     endif
-   endif
-
    !    do a final force call with iprint=1 to get proper nmr restaint printout:
-
    iprint=1
    call force(xx,ix,ih,ipairs,x,fg,ene,ene%vir, &
          xx(l96), xx(l97), xx(l98),xx(l99),qsetup, do_list_update,n_force_calls)

@@ -178,10 +178,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! scaledMD
   use scaledMD_mod
 
-  ! SEBOMD: Semi-Empirical Born-Oppenheimer MD
-  use sebomd_module, only: sebomd_obj, sebomd_gradient_write, &
-                           sebomd_hessian_compute
-
   ! SINR (Stochastic Isokinetic Nose-Hoover RESPA integrator)
   use sinr_t
 
@@ -265,7 +261,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #include "ew_mpole.h"
 #include "def_time.h"
 #include "extra_pts.h"
-#include "../pbsa/pb_md.h"
 
 #ifdef LES
   ! additional variables for PIMD and LES
@@ -902,26 +897,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Semi-Classical Initial Value Representation
 
 !------------------------------------------------------------------------------
-    ! Semi-Empirical Born-Oppenheimer Molecular Dynamics:
-    if (sebomd_obj%do_sebomd) then
-
-      ! Computes the Hessian matrix if necessary
-      if (sebomd_obj%ntwh /= 0) then
-
-        ! Don't output atomic charges and bond orders
-        sebomd_obj%iflagch_old = sebomd_obj%iflagch
-        sebomd_obj%iflagch = 0
-        sebomd_obj%iflagbo_old = sebomd_obj%iflagbo
-        sebomd_obj%iflagbo = 0
-        call sebomd_gradient_write(f, 3*natom)
-        call sebomd_hessian_compute(xx, ix, ih, ipairs, x, ener, &
-                                    qsetup, do_list_update, nstep)
-        sebomd_obj%iflagch = sebomd_obj%iflagch_old
-        sebomd_obj%iflagbo = sebomd_obj%iflagbo_old
-      endif
-    endif
-    ! End SEBOMD
-
 !------------------------------------------------------------------------------
     ! Write information concerning constant PH molecular dynamics
     if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. master .and. &
@@ -1733,22 +1708,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 1b: prepare to get the forces for the system's current coordinates {{{
-  npbstep = nstep
   iprint = 0
   if (nstep == 0 .or. nstep+1 == nstlim) iprint = 1
   if (rem .eq. 0 .or. mdloop .gt. 0) nfe_real_mdstep = .True.
-  if (sebomd_obj%do_sebomd) then
-
-    ! Write down atomic charges and density matrix if needed
-    sebomd_obj%iflagch = 0
-    if (sebomd_obj%ntwc .ne. 0) then
-      if (mod(nstep+1,sebomd_obj%ntwc) == 0) sebomd_obj%iflagch = 1
-    end if
-    sebomd_obj%iflagbo = 0
-    if (sebomd_obj%ntwb .ne. 0) then
-      if (mod(nstep+1, sebomd_obj%ntwb) == 0) sebomd_obj%iflagbo = 1
-    end if
-  end if
 
 #ifdef MPI
   ! Set do_mbar for the force contributions
@@ -1818,26 +1780,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! }}}
   endif
 
-!------------------------------------------------------------------------------
-  ! Semi-Empirical Born-Oppenheimer MD {{{
-  if (sebomd_obj%do_sebomd) then
-
-    ! Compute the hessian matrix if necessary
-    is_remainder0 = .false.
-    if (sebomd_obj%ntwh /= 0) is_remainder0 = mod(nstep+1, sebomd_obj%ntwh) == 0
-    if ( is_remainder0 ) then
-      ! don't output atomic charges and bond orders
-      sebomd_obj%iflagch_old = sebomd_obj%iflagch
-      sebomd_obj%iflagch = 0
-      sebomd_obj%iflagbo_old = sebomd_obj%iflagbo
-      sebomd_obj%iflagbo = 0
-      call sebomd_gradient_write(f, 3*natom)
-      call sebomd_hessian_compute(xx, ix, ih, ipairs, x, ener, qsetup, &
-                                  do_list_update, nstep)
-      sebomd_obj%iflagch = sebomd_obj%iflagch_old
-      sebomd_obj%iflagbo = sebomd_obj%iflagbo_old
-    endif
-  endif
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -3942,20 +3884,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (ntpr > 0) lout = (mod(total_nstep,ntpr) == 0 .and. onstep)
   irespa = irespa + 1
 
-  ! Reset flags related to Poisson-Boltzmann electrostatics
-#ifdef MPI
-  if (mytaskid == 0) then
-#endif /* MPI */
-  if (igb == 10 .or. ipb .ne. 0) then
-    if (mod(nstep,npbgrid) == 0 .and. nstep .ne. nstlim) pbgrid = .true.
-    pbprint = nstep == nstlim
-    if ( ntpr > 0 ) pbprint = pbprint .or. mod(nstep,ntpr) == 0
-    if (mod(nstep,nsnbr) == 0 .and. nstep /= nstlim) ntnbr = 1
-    if (mod(nstep,nsnba) == 0 .and. nstep /= nstlim) ntnba = 1
-  end if
-#ifdef MPI
-  end if
-#endif /* MPI */
   ! }}}
 
 !------------------------------------------------------------------------------

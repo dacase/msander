@@ -41,7 +41,6 @@
 #  ifdef EMIL
    use emil_mod, only : emil_do_calc
 #  endif
-   use sebomd_module, only: sebomd_obj, sebomd_write_info, sebomd_check_options
    use qmmm_module, only : qmmm_nml, qmmm_vsolv, qmmm_struct
    use qmmm_vsolv_module, only : print
    use linear_response, only : lrt_interval
@@ -906,13 +905,6 @@
       call print(qmmm_vsolv)
    end if
 
-!---- SEBOMD options ----
-
-   if (sebomd_obj%do_sebomd) then
-     call sebomd_write_info()
-     call sebomd_check_options()
-   endif
-
 !---- XRAY Options ----
    if( xray_active ) then
       call xray_write_options()
@@ -1620,11 +1612,6 @@
    !------------------------------------------------------------------------
    ! If user has requested Poisson-Boltzmann electrostatics, set up variables
    !------------------------------------------------------------------------
-
-   if ( igb == 10 .or. ipb /= 0 ) then
-      call pb_init(ifcap,natom,nres,ntypes,nbonh,nbona,ix(i02),ix(i04),ix(i06),ix(i08),ix(i10),&
-                   ix(iibh),ix(ijbh),ix(iiba),ix(ijba),ix(ibellygp),ih(m02),ih(m04),ih(m06),x(l15),x(l97))
-   end if  ! ( igb == 10 .or. ipb /= 0 )
 
    if (icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) then
       !  Initialize all constant pH data to 0 and read it in

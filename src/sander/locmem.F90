@@ -14,7 +14,6 @@ subroutine locmem()
    use amoeba_mdin, only : iamoeba
 #endif
    use linear_response, only: ilrt
-   use sebomd_module, only : sebomd_obj
    implicit none
    
 #  include "box.h"
@@ -80,15 +79,6 @@ subroutine locmem()
    !                  LDF   ! polarizable dipole damping factor
    !                  Lcpcrg! Constant pHstate charges
    !                  Lcpene! Constant pHstate energies
-   ! SEBOMD {
-   !                  gradsebomd  ! sebomd gradient array
-   !                  grad1tmp    ! temporary gradient array 
-   !                  grad2tmp    ! temporary gradient array 
-   !                  grad3tmp    ! temporary gradient array 
-   !                  grad4tmp    ! temporary gradient array 
-   !                  divchg      ! PME charges for sebomd   
-   !                  hessian     ! numerical hessian for small solute
-   ! SEBOMD }
    
    !     --- Identification of Hollerith arrays
    
@@ -325,18 +315,6 @@ subroutine locmem()
    else
       call adj_mem_ptr( r_ptr, l190, 0)
    end if
-
-   ! SEBOMD {
-   call adj_mem_ptr( r_ptr, gradsebomd, 3*natom + mxvar + 40 )
-   call adj_mem_ptr( r_ptr, grad1tmp, 3*natom + mxvar + 40 )
-   call adj_mem_ptr( r_ptr, grad2tmp, 3*natom + mxvar + 40 )
-   call adj_mem_ptr( r_ptr, grad3tmp, 3*natom + mxvar + 40 )
-   call adj_mem_ptr( r_ptr, grad4tmp, 3*natom + mxvar + 40 )
-   call adj_mem_ptr( r_ptr, divchg, natom)
-   sebomd_obj%nhessian = 3*min(natom, 22) ! 22 atom maximum
-   call adj_mem_ptr( r_ptr, hessian, sebomd_obj%nhessian*(sebomd_obj%nhessian+1)/2 )
-!  write(6,'("locmem", 2i5)') natom, sebomd_obj%nhessian
-   ! } SEBOMD
 
    lastr = r_ptr
    

@@ -19,7 +19,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #endif
    use decomp, only : decpair
    use parms , only: req, rk
-   use poisson_boltzmann, only : outflagorig
    use file_io_dat
 
 !! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -126,11 +125,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
          ic = icb(jn+ist)
          rij0 = rij(jn)
          da = rij0-req(ic)
-         if((ifcap == 2 .or. ifcap == 5))then
-            if( (outflagorig(ii) == 1 .or. outflagorig(jj) == 1)) then
-               da = 0.0d0
-            end if
-         endif
          !  for rms deviation from ideal bonds:
          ebdev = ebdev + da*da
          df = rk(ic)*da
@@ -1162,7 +1156,6 @@ end subroutine ephi
 !+ [Enter a one-line description of subroutine capwat here]
 subroutine capwat(nat,x,f,ecap)
 
-   use poisson_boltzmann, only : outflagorig
    implicit none
    integer:: i, nat
    _REAL_ :: da, delta, df, ecap, f, tm34, x, xa, ya, za, zero
@@ -1193,11 +1186,6 @@ subroutine capwat(nat,x,f,ecap)
       za = zcap-x(3,i)
       da = sqrt(xa*xa+ya*ya+za*za+tm34)
       delta = max(zero,da-cutcap)
-      if( ifcap == 2 .or. ifcap == 5) then
-         if(outflagorig(i) == 1) then
-            delta = 0.0d0
-         end if
-      end if
       ecap = ecap + 0.5*fcap*delta*delta
       df = fcap*delta/da
       f(1,i) = f(1,i)+df*xa

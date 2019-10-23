@@ -188,7 +188,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    use crg_reloc, only : ifcr
    use emap,only : temap,scemap
    use ff11_mod, only : cmap_active
-   use sebomd_module, only : sebomd_obj
    use xray_interface_module, only: xray_active, xray_write_min_state
 
    implicit none
@@ -328,9 +327,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
      end if
    end if
 
-   if (sebomd_obj%do_sebomd) then
-     write(6,9200) sebomd_obj%esebomd
-   end if
 #ifdef PUPIL_SUPPORT
    write(6,9900) escf
 #endif
@@ -442,9 +438,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
         end if
       end if
 
-      if (sebomd_obj%do_sebomd) then
-        write(7,9200) sebomd_obj%esebomd
-      end if
 #ifdef PUPIL_SUPPORT
       write(7,9900) escf
 #endif
@@ -527,7 +520,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    9191 format(1x,'Dipole convergence: rms = ',e10.3, &
          ' temperature = ',f6.2)
    9100 format (1x,'DV/DL  = ',f14.4)
-   9200 format (1x,'ESEBOMD =',f14.4)
 #ifdef PUPIL_SUPPORT
    9900 format (1x,'PUPESCF =',f14.4)
 #endif

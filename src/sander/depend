@@ -868,7 +868,6 @@ dynlib.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -910,7 +909,6 @@ dynlib.LES.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -951,7 +949,6 @@ dynlib.PUPIL.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -992,7 +989,6 @@ dynlib.APBS.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -1033,7 +1029,6 @@ dynlib.API.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -1074,7 +1069,6 @@ dynlib.LESAPI.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    sebomd_module.o\
                     amd.o\
                     abfqmmm_module.o\
                     ew_mpole.h\
@@ -1186,7 +1180,6 @@ ene.o: \
                     les.o\
                     decomp.o\
                     parms.o\
-                    poisson_boltzmann.o\
                     file_io_dat.o\
                     pimd_vars.o\
                     remd.o\
@@ -1219,7 +1212,6 @@ ene.LES.o: \
                     les.o\
                     decomp.o\
                     parms.o\
-                    poisson_boltzmann.o\
                     file_io_dat.o\
                     pimd_vars.o\
                     remd.LES.o\
@@ -2229,9 +2221,6 @@ force.o: \
                     softcore.o\
                     evb_vars.o\
                     remd.o\
-                    poisson_boltzmann.o\
-                    dispersion_cavity.o\
-                    pbtimer_module.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
                     trace.o\
@@ -2257,7 +2246,6 @@ force.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    sebomd_module.o\
                     abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
@@ -2267,7 +2255,6 @@ force.o: \
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h\
-                    ../pbsa/pb_md.h\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -2275,7 +2262,6 @@ force.o: \
                     tgtmd.h\
                     multitmd.h\
                     flocntrl.h\
-                    sebomd_force.inc\
                     pupil_force.inc
 
 
@@ -2298,9 +2284,6 @@ force.LES.o: \
                     softcore.o\
                     evb_vars.o\
                     remd.LES.o\
-                    poisson_boltzmann.o\
-                    dispersion_cavity.o\
-                    pbtimer_module.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
                     trace.o\
@@ -2326,7 +2309,6 @@ force.LES.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    sebomd_module.o\
                     abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
@@ -2336,7 +2318,6 @@ force.LES.o: \
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h\
-                    ../pbsa/pb_md.h\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -2344,7 +2325,6 @@ force.LES.o: \
                     tgtmd.h\
                     multitmd.h\
                     flocntrl.h\
-                    sebomd_force.inc\
                     pupil_force.inc
 
 force.LES.o:   force.F90
@@ -2366,9 +2346,6 @@ force.PUPIL.o: \
                     softcore.o\
                     evb_vars.o\
                     remd.o\
-                    poisson_boltzmann.o\
-                    dispersion_cavity.o\
-                    pbtimer_module.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
                     trace.o\
@@ -2394,7 +2371,6 @@ force.PUPIL.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    sebomd_module.o\
                     abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
@@ -2404,7 +2380,6 @@ force.PUPIL.o: \
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h\
-                    ../pbsa/pb_md.h\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -2412,7 +2387,6 @@ force.PUPIL.o: \
                     tgtmd.h\
                     multitmd.h\
                     flocntrl.h\
-                    sebomd_force.inc\
                     pupil_force.inc
 
 force.PUPIL.o:   force.F90
@@ -2434,9 +2408,6 @@ force.APBS.o: \
                     softcore.o\
                     evb_vars.o\
                     remd.o\
-                    poisson_boltzmann.o\
-                    dispersion_cavity.o\
-                    pbtimer_module.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.APBS.o\
                     trace.o\
@@ -2462,7 +2433,6 @@ force.APBS.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    sebomd_module.o\
                     abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
@@ -2472,7 +2442,6 @@ force.APBS.o: \
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h\
-                    ../pbsa/pb_md.h\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -2480,7 +2449,6 @@ force.APBS.o: \
                     tgtmd.h\
                     multitmd.h\
                     flocntrl.h\
-                    sebomd_force.inc\
                     pupil_force.inc
 
 force.APBS.o:   force.F90
@@ -2614,8 +2582,6 @@ interface_setup.F90: \
                     qm2_read_nm_and_alloc.o\
                     qmmm_vsolv_module.o\
                     qm2_extern_module.o\
-                    sebomd_module.o\
-                    sebomd_arrays.o\
                     egb.o\
                     decomp.o\
                     fastwt.o\
@@ -2776,7 +2742,6 @@ locmem.o: \
                     nonbond_list.o\
                     amoeba_mdin.o\
                     linear_response.o\
-                    sebomd_module.o\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -2799,7 +2764,6 @@ locmem.LES.o: \
                     nonbond_list.LES.o\
                     amoeba_mdin.o\
                     linear_response.o\
-                    sebomd_module.o\
                     box.h\
                     nmr.h\
                     ../include/memory.h\
@@ -3027,7 +2991,6 @@ mdread1.F90: \
                     linear_response.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
-                    sebomd_module.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -3065,7 +3028,6 @@ mdread2.F90: \
                     les.o\
                     emap.o\
                     emil.o\
-                    sebomd_module.o\
                     qmmm_module.o\
                     qmmm_vsolv_module.o\
                     linear_response.o\
@@ -3360,7 +3322,6 @@ new_time.o: \
                     extra.h\
                     parallel.h\
                     qmmm_module.o\
-                    sebomd_module.o\
                     constantph.o\
                     constante.o\
                     ../include/md.h
@@ -3379,7 +3340,6 @@ new_time.API.o: \
                     extra.h\
                     parallel.h\
                     qmmm_module.o\
-                    sebomd_module.o\
                     constantph.o\
                     constante.o\
                     ../include/md.h
@@ -4444,7 +4404,6 @@ printe.o: \
                     xref.o\
                     charmm.o\
                     emap.o\
-                    sebomd_module.o\
                     xray_interface.o\
                     ew_mpole.h\
                     ew_cntrl.h
@@ -4474,7 +4433,6 @@ printe.PUPIL.o: \
                     xref.o\
                     charmm.o\
                     emap.o\
-                    sebomd_module.o\
                     xray_interface.o\
                     ew_mpole.h\
                     ew_cntrl.h
@@ -4503,7 +4461,6 @@ printe.APBS.o: \
                     xref.o\
                     charmm.o\
                     emap.o\
-                    sebomd_module.o\
                     xray_interface.o\
                     ew_mpole.h\
                     ew_cntrl.h
@@ -5215,7 +5172,6 @@ rmsgrd.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
-                    poisson_boltzmann.o\
                     ../include/md.h\
                     box.h\
                     ../include/memory.h
@@ -5271,7 +5227,6 @@ runmd.o: \
                     abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
-                    sebomd_module.o\
                     sinr_t.o\
                     parallel.h\
                     ../include/md.h\
@@ -5286,7 +5241,6 @@ runmd.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
-                    ../pbsa/pb_md.h\
                     degcnt.inc\
                     Plumed_init.inc\
                     Plumed_force.inc
@@ -5342,7 +5296,6 @@ runmd.LES.o: \
                     abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
-                    sebomd_module.o\
                     sinr_t.o\
                     parallel.h\
                     ../include/md.h\
@@ -5357,7 +5310,6 @@ runmd.LES.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
-                    ../pbsa/pb_md.h\
                     degcnt.inc\
                     Plumed_init.inc\
                     Plumed_force.inc
@@ -5373,21 +5325,18 @@ runmin.o: \
                     fastwt.o\
                     constants.o\
                     qmmm_module.o\
-                    poisson_boltzmann.o\
                     bintraj.o\
                     file_io_dat.o\
                     evb_vars.o\
                     softcore.o\
                     state.o\
-                    sebomd_module.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
                     ../include/memory.h\
                     nmr.h\
                     extra.h\
-                    ew_cntrl.h\
-                    ../pbsa/pb_md.h
+                    ew_cntrl.h
 
 
 runmin.o:   runmin.F90
@@ -5408,9 +5357,7 @@ sander.o: \
                     qmmm_vsolv_module.o\
                     qm2_extern_module.o\
                     qmmm_module.o\
-                    sebomd_module.o\
                     decomp.o\
-                    sebomd_arrays.o\
                     egb.o\
                     les.o\
                     fastwt.o\
@@ -5487,9 +5434,7 @@ sander.LES.o: \
                     qmmm_vsolv_module.o\
                     qm2_extern_module.LES.o\
                     qmmm_module.o\
-                    sebomd_module.o\
                     decomp.o\
-                    sebomd_arrays.o\
                     egb.LES.o\
                     les.o\
                     fastwt.o\
@@ -5565,9 +5510,7 @@ sander.PUPIL.o: \
                     qmmm_vsolv_module.o\
                     qm2_extern_module.o\
                     qmmm_module.o\
-                    sebomd_module.o\
                     decomp.o\
-                    sebomd_arrays.o\
                     egb.o\
                     les.o\
                     fastwt.o\
@@ -5643,9 +5586,7 @@ sander.APBS.o: \
                     qmmm_vsolv_module.o\
                     qm2_extern_module.o\
                     qmmm_module.o\
-                    sebomd_module.o\
                     decomp.o\
-                    sebomd_arrays.o\
                     egb.o\
                     les.o\
                     fastwt.o\
@@ -5896,25 +5837,6 @@ schlegel_uff.o: \
 schlegel_uff.o:   schlegel_uff.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_uff.F90
-
-
-sebomd_arrays.o:   sebomd_arrays.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ sebomd_arrays.F90
-
-sebomd_module.o: \
-                    ../include/dprec.fh\
-                    parallel.h\
-                    box.h\
-                    ../include/md.h\
-                    state.o\
-                    ../include/memory.h\
-                    file_io_dat.o
-
-
-sebomd_module.o:   sebomd_module.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ sebomd_module.F90
 
 select_coord.o: \
                     ../include/assert.fh\
@@ -6440,36 +6362,27 @@ constants.o: ../lib/constants.F90
 		test -e amber_rism_interface.SANDER.o || touch amber_rism_interface.SANDER.o; \
 	fi
 
-poisson_boltzmann.o:  libpbsa file_io_dat.o 
+qmmm_module.o: 
 	test -e $@ || touch $@
 
-dispersion_cavity.o:  libpbsa
+qmmm_nml_module.o:  
 	test -e $@ || touch $@
 
-pbtimer_module.o:  libpbsa
+qmmm_qmtheorymodule.o:  
 	test -e $@ || touch $@
 
-qmmm_module.o: libsqm 
+qmmm_struct_module.o:  
 	test -e $@ || touch $@
 
-qmmm_nml_module.o:  libsqm 
+qmmm_vsolv_module.o:  
 	test -e $@ || touch $@
 
-qmmm_qmtheorymodule.o:  libsqm 
+qm2_read_nm_and_alloc.o:  
 	test -e $@ || touch $@
 
-qmmm_struct_module.o:  libsqm 
+elementOrbitalIndex.o:  
 	test -e $@ || touch $@
 
-qmmm_vsolv_module.o:  libsqm 
-	test -e $@ || touch $@
-
-qm2_read_nm_and_alloc.o:  libsqm 
-	test -e $@ || touch $@
-
-elementOrbitalIndex.o:  libsqm 
-	test -e $@ || touch $@
-
-utilitiesmodule.o:  libsqm 
+utilitiesmodule.o:  
 	test -e $@ || touch $@
 

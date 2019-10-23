@@ -28,8 +28,6 @@ subroutine sander()
 #ifdef MPI
   use qmmm_module, only : qmmm_nml, qmmm_struct, deallocate_qmmm, qmmm_mpi, &
                           qm2_struct, qmmm_vsolv, qm2_params, qmmm_mpi_setup
-  use sebomd_module, only : sebomd_obj, sebomd_open_files, sebomd_bcast_obj, &
-                            sebomd_close_files, sebomd_setup
   use decomp, only : allocate_int_decomp, allocate_real_decomp, &
                      deallocate_int_decomp, deallocate_real_decomp, &
                      synchronize_dec, build_dec_mask, decmask, indx, jgroup, &
@@ -37,13 +35,10 @@ subroutine sander()
 #else
   use qmmm_module, only : qmmm_nml, qmmm_struct, deallocate_qmmm, qmmm_mpi, &
                           qm2_struct, qmmm_vsolv, qm2_params
-  use sebomd_module, only : sebomd_obj, sebomd_open_files, &
-                            sebomd_close_files, sebomd_setup
   use decomp, only : allocate_int_decomp, allocate_real_decomp, &
                      deallocate_int_decomp, deallocate_real_decomp, &
                      nat, nrs
 #endif /* MPI */
-  use sebomd_arrays, only : init_sebomd_arrays, cleanup_sebomd_arrays
 #ifdef LES
   use genbornles
 #  ifdef MPI
@@ -402,18 +397,11 @@ subroutine sander()
         if( xray_active ) call xray_read_parm(8,6)
       end if
 
-      call sebomd_setup
       ! Branch for QM/MM systems
       if (qmmm_nml%ifqnt .or. abfqmmm_param%abfqmmm == 1) then
         if (abfqmmm_param%abfqmmm == 0) then
           call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
                                       dummy, 0, .true.)
-          if (qmmm_nml%qmtheory%SEBOMD) then
-
-            ! Don't do QM/MM
-            qmmm_nml%ifqnt = .false.
-            sebomd_obj%do_sebomd = .true.
-          end if
         end if
         if (qmmm_struct%abfqmmm == 1 .and. abfqmmm_param%abfqmmm == 0) then
           call abfqmmm_setup(natom, nres, ix(i02), ih(m04), ih(m02), &
@@ -1248,18 +1236,6 @@ subroutine sander()
       end if
     end if
 
-    ! Tell all nodes if this is a Semi-Empirical Born-Oppenheimer run:
-    ! transfer SEBOMD information to the nodes, open necessary files,
-    ! and initialize SEBOMD arrays.
-    call mpi_bcast(sebomd_obj%do_sebomd, 1, MPI_LOGICAL, 0, commsander, ier)
-    if (sebomd_obj%do_sebomd) then
-      call sebomd_bcast_obj()
-      if (master) then
-        call sebomd_open_files
-      end if
-      call init_sebomd_arrays(natom)
-    end if
-
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
       mpi_orig = .true.
@@ -1398,11 +1374,6 @@ subroutine sander()
       call stack_setup()
     end if
 
-    ! Open necessary files and initialize SEBOMD arrays
-    if (sebomd_obj%do_sebomd) then
-      call sebomd_open_files
-      call init_sebomd_arrays(natom)
-    endif
 #endif /* MPI */
 
 #ifdef OPENMP
@@ -1948,12 +1919,6 @@ subroutine sander()
   if (ifcr .ne. 0) then
     call cr_cleanup()
   end if
-  if (sebomd_obj%do_sebomd) then
-    if (master) then
-      call sebomd_close_files
-    end if
-    call cleanup_sebomd_arrays
-  end if
 
   if (master .and. iwrap == 2) then
     deallocate(iwrap_mask_atoms, stat=ier)
@@ -1964,11 +1929,6 @@ subroutine sander()
   if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
       hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
     call deallocate_gb()
-  end if
-  if (master) then
-    if (igb == 10 .or. ipb .ne. 0) then
-      call pb_free()
-    end if
   end if
   deallocate(ih, stat=ier)
   REQUIRE(ier == 0)

@@ -66,7 +66,6 @@
 #ifdef APBS
    use apbs
 #endif /* APBS */
-   use sebomd_module, only: read_sebomd_namelist, sebomd_namelist_default
    use nfe_sander_proxy, only: infe
    implicit none
 #  include "box.h"
@@ -87,7 +86,6 @@
    integer     itotst
    integer     inerr
    logical     mdin_cntrl, mdin_lmod, mdin_qmmm  ! true if namelists are in mdin
-   logical     mdin_sebomd
    integer ::  ifqnt    ! local here --> put into qmmm_nml%ifqnt after read here
    integer     mxgrp
    integer     iemap
@@ -645,7 +643,6 @@
 #endif /* APBS */
    mdin_lmod=.false.
    mdin_amoeba=.false.
-   mdin_sebomd=.false.
    iamoeba = 0
 #ifdef MPI /* SOFT CORE */
    scalpha=0.5
@@ -740,10 +737,6 @@
 
    call nmlsrc('amoeba',5,ifind)
    if (ifind /= 0) mdin_amoeba=.true.
-   rewind 5
-
-   call nmlsrc('sebomd',5,ifind)
-   if (ifind /= 0) mdin_sebomd=.true.
    rewind 5
 
    call nmlsrc('xray',5,ifind)
@@ -1212,18 +1205,6 @@
       gbalpha = 1.09511284d0
    end if
 
-   !--------------------------------------------------------------------
-   ! If user has requested PB electrostatics, read some more input
-   !--------------------------------------------------------------------
-
-   if ( igb == 10 .or. ipb /= 0 ) then
-#ifdef MPI
-      write(6,'(a)') "PBSA currently doesn't work with MPI inside SANDER."
-      FATAL_ERROR
-#endif /*MPI*/
-      call pb_read
-   end if
-
 #ifdef APBS
    if ( mdin_apbs ) then
       call apbs_read
@@ -1232,12 +1213,6 @@
 
 #ifndef API
    call xray_read_mdin(mdin_lun=5)
-
-   call sebomd_namelist_default
-   if (mdin_sebomd) then
-     rewind 5
-     call read_sebomd_namelist
-   endif
 
    if( iamoeba == 1 ) then
       if( mdin_amoeba ) then

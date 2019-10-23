@@ -11,7 +11,7 @@ include ../config.h
 	@echo "[ARPACK]  CC $<"
 	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
-install: $(LIBDIR)/libarpack.a
+libarpack: $(LIBDIR)/libarpack.a
 
 ARPACKLIB= ivout.o dvout.o dgetv0.o dlaqrb.o dnaitr.o dnapps.o \
 dnaup2.o dnaupd.o dnconv.o dneigh.o dmout.o \

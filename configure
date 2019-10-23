@@ -114,6 +114,15 @@ if [ "$rism" == "" -o ! -d src/rism ]; then
 EOF
 fi
 
+#------------------------------------------------------------------------------
+#  Initialize variables that are architecture specific:
+#------------------------------------------------------------------------------
+processor=`uname -m`
+if [ "$processor" = "em64t" -o "$processor" = "x86_64" ] ; then
+    x86_64='yes'
+else
+    x86_64='no'
+fi
 
 #--------------------------------------------------------------------------
 #  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
@@ -128,6 +137,11 @@ case "$ld_version" in
     *)
         gnuld='no' ;;
 esac
+if [ `uname -s|awk '{print $1}'` = "Darwin" ]; then
+    is_mac='yes'
+else
+    is_mac='no'
+fi
 
 if [ "$mkl_type" = 'mkl' ] ; then
   lapack=skip
@@ -145,7 +159,7 @@ if [ "$mkl_type" = 'mkl' ] ; then
   echo ""
   if [ ! -z "$mklroot" ] ; then
     echo "Using MKL for BLAS/LAPACK in $mklroot"
-    mklinc="-I$mklroot/include"
+    mklinc="-I$mklroot/include -I$mklroot/include/fftw"
   else
     echo "Using MKL for BLAS/LAPACK"
   fi
@@ -326,7 +340,7 @@ CXXOPTFLAGS=-O3
 #  (5)  Fortran compilers
 
 FC=$fc
-FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS)
+FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS) $mklinc
 FLIBSF= $rism -larpack \$(BLAS) $flibs_mkl
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
@@ -536,37 +550,6 @@ if [ "$conda" == "yes" ]; then
    exit 0
 fi
 
-if [ -d ../miniconda -o -L ../miniconda ]; then
-	printf "\nUsing the python in $AMBERHOME/miniconda\n\n"
-else
-   echo ""
-   echo "We highly recommend to let AMBER install Python with all prerequisites"
-   echo "insie $AMBERHOME via a Continuum Miniconda distribution. "
-   echo "This will only need to be done once."
-   echo "It may take several minutes and will require Internet access."
-   echo ""
-   printf "Should I download and install Miniconda for you? [y/n] "
-   read answer
-   answer=`echo $answer | tr YN yn`
-   if [ "$answer" = 'y' ]; then
-       echo "Downloading an Amber-compatible Python version 2.7 via Miniconda "
-       echo "and installing it. This may take several minutes."
-       echo ""
-       echo "================================================================================"
-       ./configure_python --prefix $AMBERHOME
-       if [ $? -ne 0 ]; then
-           echo "Problem installing Miniconda... see error above."
-           exit 1
-       fi
-       echo "================================================================================"
-       echo "Done installing Miniconda!"
-   else
-       echo "You choose not to install Miniconda."
-       echo "   You will need to set up python on your own."
-       echo "   Then edit the src/config.h file to have the PYTHON variable"
-       echo "   point to the desired python program."
-   fi
-fi
 cd ..
 
 printf "\nThe next step is to type \n    'cd src && make install'\n\n"

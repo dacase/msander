@@ -290,7 +290,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use ff11_mod, only: cmap_active
   use nbips, only: ips
   use emap,only: temap
-  use sebomd_module, only: sebomd_obj
   use amd_mod, only: iamd
   use abfqmmm_module, only: abfqmmm_param
 
@@ -566,9 +565,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-  if (sebomd_obj%do_sebomd) then
-    write(6,9200) sebomd_obj%esebomd
-  end if
 #ifdef PUPIL_SUPPORT
   ! PUPIL interface
   write(6, 9900) escf
@@ -840,9 +836,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-  if (sebomd_obj%do_sebomd) then
-    write(7, 9200) sebomd_obj%esebomd
-  end if
 #ifdef PUPIL_SUPPORT
   ! PUPIL interface
   write(7, 9900) escf
@@ -1037,7 +1030,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
          ' temperature = ',f6.2)
   9100 format (1x,'DV/DL  = ',f14.4)
   9188 format (1x,'Ewald error estimate: ', e12.4)
-  9200 format (1x,'ESEBOMD =',f14.4)
   1005 format(" SGLF = ",F8.4,X,F8.2,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
   1006 format(" SGHF = ",F8.4,X,F8.4,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
 #ifdef PUPIL_SUPPORT
@@ -1059,7 +1051,6 @@ subroutine pimd_report(nstep, time, ounit, ener, onefac)
   use qmmm_module, only: qmmm_nml
   use charmm_mod, only: charmm_active
   use file_io_dat
-  use sebomd_module, only: sebomd_obj
 
   implicit none
 
@@ -1205,9 +1196,6 @@ subroutine pimd_report(nstep, time, ounit, ener, onefac)
       write(7,'(" ERROR - UNKNOWN QM THEORY")')
     end if
   end if
-  if (sebomd_obj%do_sebomd) then
-    write(6, 9200) sebomd_obj%esebomd
-  end if
   if (gbsa > 0) then
     write(7, 9077) esurf
   end if
@@ -1262,7 +1250,6 @@ subroutine pimd_report(nstep, time, ounit, ener, onefac)
   9092 format (1x,'EXTERNESCF= ',f14.4)
   9093 format (1x,'PM3MAISESCF= ',f14.4)
   9100 format (1x,'DV/DL  = ',f14.4)
-  9200 format (1x,'ESEBOMD =',f14.4)
 end subroutine pimd_report
 
 !------------------------------------------------------------------------------

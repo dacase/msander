@@ -255,17 +255,12 @@ print "../rism/amber_rism_interface.SANDER.o: ../rism/amber_rism_interface.F90\n
   ."\tfi\n\n"
   ;
 
-print "poisson_boltzmann.o:  libpbsa file_io_dat.o \n\ttest -e \$\@ || touch \$\@\n\n";
-print "dispersion_cavity.o:  libpbsa\n\ttest -e \$\@ || touch \$\@\n\n";
-print "pbtimer_module.o:  libpbsa\n\ttest -e \$\@ || touch \$\@\n\n";
-
-
 #  special "compilation" rule for module object files in ../sqm
-print "qmmm_module.o: libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_nml_module.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_qmtheorymodule.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_struct_module.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_vsolv_module.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qm2_read_nm_and_alloc.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "elementOrbitalIndex.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
-print "utilitiesmodule.o:  libsqm \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_module.o: \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_nml_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_qmtheorymodule.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_struct_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_vsolv_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qm2_read_nm_and_alloc.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "elementOrbitalIndex.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "utilitiesmodule.o:  \n\ttest -e \$\@ || touch \$\@\n\n";

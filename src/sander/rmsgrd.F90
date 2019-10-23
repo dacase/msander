@@ -12,7 +12,6 @@
 subroutine rmsgrd(forces, grms)
    
    use constants, only : ZERO
-   use poisson_boltzmann, only : outwat, oution
    
    implicit none
    
@@ -47,10 +46,6 @@ subroutine rmsgrd(forces, grms)
    !end if
    !numcomponents = numcomponents - shakecomponents
    
-   if (ifcap == 2 .or. ifcap == 5) then
-      numcomponents = numcomponents - 3*(outwat + oution)
-   end if
-      
    ! Initialise rmsgrad so it at least has a valid value
    grms = ZERO
    dotprod = ddot(3*nrp, forces, 1, forces, 1)

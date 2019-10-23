@@ -62,9 +62,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use miller, only: dlnQ_dl
   use remd, only: rem ! wasn't used for LES above
 #endif /* LES && MPI */
-  use poisson_boltzmann, only: pb_force
-  use dispersion_cavity, only: npopt, np_force
-  use pbtimer_module, only: pbtimer_init, pbtimer_summary
 #ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, rism_force
 #endif /* RISMSANDER */
@@ -125,7 +122,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif /* MPI */
   use state
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
-  use sebomd_module, only: sebomd_obj, sebomd_save_forces
   use abfqmmm_module
   use les_data, only: temp0les
   use music_module, only : music_force
@@ -170,7 +166,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   logical belly
 #include "../include/md.h"
-#include "../pbsa/pb_md.h"
 #include "box.h"
 #include "nmr.h"
 #include "../include/memory.h"
@@ -223,10 +218,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
    
   ! Aceelerated MD variables
   _REAL_ amd_totdih
-
-  ! SEBOMD Gradient test variables
-  _REAL_ :: em2, em1, e0, ep1, ep2
-  _REAL_ :: fx1, fx2, fxx, xdx, dx
 
   ! MuSiC
   _REAL_ :: music_vdisp, music_vang, music_vgauss, music_spohr89
@@ -320,13 +311,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
    end if
 #endif
 
-  if (sebomd_obj%do_sebomd) then
-    ! step 0: initialize temporary array for saving restraint
-    !         (required since SEBOMD forces are stored in a different array)
-    call sebomd_save_forces(0, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-  end if
-
 #ifndef PUPIL_SUPPORT
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
 
@@ -347,22 +331,12 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     call cr_reassign_charge(x, f, pot%ct, xx(l15), natom)
   end if
 #endif
-  if (sebomd_obj%do_sebomd) then
-    ! step 1/2 to save forces from nfe_on_force
-    call sebomd_save_forces(1, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-  end if
 
 #if !defined(DISABLE_NFE)
   if (infe == 1) then
     call nfe_on_force(x, f, enfe)
   end if
 #endif
-
-  ! Semi-Empirical Born-Oppenheimer MD
-  if (sebomd_obj%do_sebomd) then
-#include "sebomd_force.inc"
-  endif
 
   ! Do weight changes, if requested.  Updated 9/2007 by Matthew Seetin
   ! to enable plane-point and plane-plane restraints.
@@ -599,43 +573,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
    call timer_stop(TIME_NONBON)
 
    ! Calculate other contributions to the forces
-   !   - When igb==10, a Poisson-Boltzmann solvent is active.  All nonbonds
-   !     are done in the subroutine pb_force, and all nonpolar interactions
-   !     are done in np_force:
-   !   - Holger Gohlka put this part here such that "outflag" is known from
-   !     a call of pb_force; outflag is needed in the "bond" routine in the
-   !     case of ifcap == 2,5 (i.e., ivcap == 1,5)
-#ifdef MPI
-   if(mytaskid == 0)then
-#endif
-     if (igb == 10 .or. ipb /= 0 ) then
-       call timer_start(TIME_PBFORCE)
-       call pbtimer_init
-       call pb_force(natom, nres, ntypes, npdec, ix(i02), ix(i04), ix(i06), &
-                     ix(i10), cn1, cn2, xx(l15), x, f, evdw, eelt, epol)
-       if (pbgrid) pbgrid = .false.
-       if (pbinit) pbinit = .false.
-       pot%vdw  = evdw
-       pot%elec = eelt
-       pot%pb   = epol
-       call timer_stop(TIME_PBFORCE)
-
-       call timer_start(TIME_NPFORCE)
-       esurf = 0.0d0
-       edisp = 0.0d0
-       if (ifcap == 0  .and. npopt /= 0) then
-         call np_force(natom, nres, ntypes, ix(i02), ix(i04), ix(i06), &
-                       cn1, cn2, x, f, esurf, edisp)
-       end if
-       if (pbprint) pbprint = .false.
-       pot%surf = esurf
-       pot%disp = edisp
-       call pbtimer_summary
-       call timer_stop(TIME_NPFORCE)
-     end if  ! ( igb == 10 .or. ipb /= 0 )
-#ifdef MPI
-   end if
-#endif
 
   ! Bonds with H
   call timer_start(TIME_BOND)
@@ -823,10 +760,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   call timer_stop(TIME_BOND)
 
   ! Step 1/2 to save emap + entr + ecap forces
-  if (sebomd_obj%do_sebomd) then
-     call sebomd_save_forces(1, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                             xx(grad2tmp))
-  end if
 
   ! Calculate the EMAP constraint energy
   if (temap) then   ! ntr=1 (positional restraints)
@@ -877,12 +810,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     call mexit(6,1)
     !call orth(natom,ix(ibellygp),x,f,eorth)
     !ene(20) = ene(20) + eorth
-  end if
-
-  if (sebomd_obj%do_sebomd) then
-    ! step 2/2 to save emap + entr + ecap forces
-    call sebomd_save_forces(2, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
   end if
 
   ! No energy expression for ifcap == 5 given because only
@@ -977,11 +904,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! End APBS force computations
 #endif /* APBS */
 
-  if (sebomd_obj%do_sebomd) then
-    ! step 1/2 to save eshf + epcshf + ealign + ecsa forces
-    call sebomd_save_forces(1, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-  end if
   if (master) then
     !  These parts of the NMR energies are not parallelized, so only
     !  are done on the master node:
@@ -993,11 +915,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     if (iredir(7) /= 0) call pcshift(natom,x,f)
     if (iredir(9) /= 0) call csa1(natom,x,f)
     if (iredir(8) /= 0) call align1(natom,x,f,xx(lmass))
-  end if
-
-  if (sebomd_obj%do_sebomd) then
-    ! step 2/2 to save eshf + epcshf + ealign + ecsa forces
-    call sebomd_save_forces(2,natom,f,xx(gradsebomd),xx(grad1tmp),xx(grad2tmp))
   end if
 
   ! additional force due to charge relocation
@@ -1027,11 +944,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   !      all processors, and added into the force vector.  Hence, below
   !      is the place to put any component of the force calculation that
   !      has not (yet) been parallelized.
-  if (sebomd_obj%do_sebomd) then
-    ! step 1/2 to save enmr + edssp forces
-    call sebomd_save_forces(1, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-  end if
 
   ! Calculate the NMR restraint energy contributions, if requested.
   ! (Even though this is not parallelized, it needs to be run on all
@@ -1061,11 +973,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     edssp = 0.d0
   end if
 #endif
-  if (sebomd_obj%do_sebomd) then
-    ! step 2/2 to save enmr + edssp forces
-    call sebomd_save_forces(2, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-  end if
 
   ! X-ray refinement section: add the target function and gradient
   call cns_xref_run(natom,ih(m04), x,f,ener)
@@ -1111,28 +1018,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! MuSiC - GAL17 force field
   pot%tot = pot%tot + music_vdisp + music_vang + music_vgauss + music_spohr89
-
-  ! SEBOMD: apply lambda term to forces and energy between full QM
-  ! calculation and full MM calculation.  If lambda .eq. 1.0 (default),
-  ! the MM calculations are zeroed.
-  if (sebomd_obj%do_sebomd) then
-
-    ! step 3: apply restraint forces to SEBOMD forces
-    call sebomd_save_forces(3, natom, f, xx(gradsebomd), xx(grad1tmp), &
-                            xx(grad2tmp))
-
-    ! new potential energy
-    ! (to have full restraint, we add pot%constraint to the SEBOMD energy)
-    ! (see sebomd_save_forces subroutine for explanation)
-    pot%tot = (one - sebomd_obj%lambda) * pot%tot + &
-               sebomd_obj%lambda * (sebomd_obj%esebomd + pot%constraint)
-
-    ! new forces
-    do i = 1, 3*natom
-      f(i) = (one - sebomd_obj%lambda)*f(i) + &
-             sebomd_obj%lambda * xx(gradsebomd + i - 1)
-    end do
-  end if
 
   ! Accelerate MD: calculate the total potential energy weight,
   ! then apply it to all the force elements f=f*fwgt.  Update
