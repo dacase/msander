@@ -62,9 +62,6 @@
 #ifndef API
    use xray_interface_module, only: xray_active, xray_write_options
 #endif /* API */
-#if defined(LES) && defined(MPI)
-   use evb_pimd, only: evb_pimd_init
-#endif /* LES && MPI */
 #ifdef MPI
    use softcore, only : ifsc, scalpha, scbeta, dvdl_norest, &
                         sceeorder, logdvdl, dynlmb
@@ -1709,23 +1706,6 @@
         call mexit(6, 1)
       end if
     end if
-
-!  +---------------------------------------------------------------+
-!  |  Read EVB input file                                          |
-!  +---------------------------------------------------------------+
-
-   if( ievb /= 0 ) then
-#ifdef MPI
-      call evb_input
-      call evb_init
-#  if defined(LES)
-!KFW  call evb_pimd_init
-#  endif
-#else
-      write(6,'(/2x,a)') 'Setting ievb>0 requires compilation with MPI'
-      FATAL_ERROR
-#endif
-   endif
 
    if( iyammp /= 0 ) write( 6, '(a)' ) '  Using yammp non-bonded potential'
 

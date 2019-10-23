@@ -261,15 +261,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use file_io_dat
 
 #if defined( MPI )
-  use evb_parm, only: nevb, nbias, evb_dyn
-  use evb_data, only: evb_frc, evb_bias, evb_nrg, evb_nrg_ave, evb_nrg_rms
   use remd, only : rem, repnum, mdloop, stagid, &
                    remd_dimension, group_num, replica_indexes
-#  ifdef LES
-  use evb_pimd, only: evb_vec0_bead, nbead_inv
-#  else
-  use evb_data, only : evb_Hmat
-#  endif
 #endif /* MPI */
 #ifdef LES
   use les_data, only : temp0les
@@ -481,38 +474,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (ifcr /= 0) then
     write(6, 9099) ect
   end if
-
-#ifdef MPI
-  if (ievb /= 0) then
-    write(6,'(A)')
-    write(6,'(A)') ' EVB:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    if (evb_frc%evb_ave) then
-      write(6, 888) evb_nrg_ave(1), evb_nrg_ave(2), evb_nrg_ave(3)
-      evb_frc%evb_ave = .false.
-    else if( evb_frc%evb_rms ) then
-      write(6, 888) evb_nrg_rms(1), evb_nrg_rms(2), evb_nrg_rms(3)
-      evb_frc%evb_rms = .false.
-    else
-      if (trim(adjustl(evb_dyn)) == "evb_map") then
-        write(6, 777) evb_nrg(1), evb_nrg(2), evb_nrg(3)
-      else
-        write(6, 888) evb_nrg(1), evb_nrg(2), evb_nrg(3)
-      endif
-#ifdef LES
-      write(6, 999) 'C_0^2  = ', &
-                    (sum(evb_vec0_bead(n,:)**2)*nbead_inv, n = 1, nevb)
-#else
-      write(6, 999) 'C_0^2  = ', (evb_Hmat%evb_vec0(n)**2, n = 1, nevb)
-#endif
-      if (nbias > 0) then
-        write(6, 999) 'EVB RC = ', (evb_bias%RC(n), n = 1, nbias)
-      end if
-      if (nbias > 1) then
-        write(6, 999) 'Vumb_i = ', (evb_bias%nrg_bias(n), n = 1, nbias)
-      end if
-    end if
-  end if
-#endif /* MPI */
 
   if (iamd .gt. 0) then
     write(6, 9180) amd_boost
@@ -736,35 +697,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(7, 9180) amd_boost
   end if
 #ifdef MPI
-  if (ievb /= 0) then
-    write(7,'(A)')
-    write(7,'(A)') ' EVB:~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    if (evb_frc%evb_ave) then
-      write(7, 888) evb_nrg_ave(1), evb_nrg_ave(2), evb_nrg_ave(3)
-      evb_frc%evb_ave = .false.
-    else if( evb_frc%evb_rms ) then
-      write(7, 888) evb_nrg_rms(1), evb_nrg_rms(2), evb_nrg_rms(3)
-      evb_frc%evb_rms = .false.
-    else
-      if (trim(adjustl(evb_dyn)) == "evb_map") then
-        write(7, 777) evb_nrg(1), evb_nrg(2), evb_nrg(3)
-      else
-        write(7, 888) evb_nrg(1), evb_nrg(2), evb_nrg(3)
-      endif
-#ifdef LES
-      write(7, 999) 'C_0^2  = ', &
-                    (sum(evb_vec0_bead(n,:)**2)*nbead_inv, n = 1, nevb)
-#else
-      write(7, 999) 'C_0^2  = ', (evb_Hmat%evb_vec0(n)**2, n = 1, nevb)
-#endif
-      if (nbias > 0) then
-        write(7, 999) 'EVB RC = ', (evb_bias%RC(n), n = 1, nbias)
-      end if
-      if (nbias > 1) then
-        write(7, 999) 'Vumb_i = ', (evb_bias%nrg_bias(n), n = 1, nbias)
-      end if
-    end if
-  end if
 
   ! Print current REMD info (replica#, temp0, excgh#) only for iout7 > 0
   ! (Not for average/rms)

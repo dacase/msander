@@ -390,35 +390,6 @@ bintraj.LES.o:   bintraj.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
-bmat_debug.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-bmat_debug.o:   bmat_debug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bmat_debug.F90
-
-bmat_grad.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-bmat_grad.o:   bmat_grad.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bmat_grad.F90
-
-bmat_inv.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-bmat_inv.o:   bmat_inv.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bmat_inv.F90
-
 bmat_inv_debug.o: \
                     ../include/dprec.fh
 
@@ -426,34 +397,6 @@ bmat_inv_debug.o: \
 bmat_inv_debug.o:   bmat_inv_debug.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bmat_inv_debug.F90
-
-bnd_strtch.o: \
-                    ../include/dprec.fh\
-                    evb_mathf.o
-
-
-bnd_strtch.o:   bnd_strtch.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bnd_strtch.F90
-
-bond_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-bond_anal2num.o:   bond_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ bond_anal2num.F90
-
-cart2internal.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o
-
-
-cart2internal.o:   cart2internal.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ cart2internal.F90
 
 charmm.o: \
                     copyright.h\
@@ -485,15 +428,6 @@ charmm.API.o: \
 charmm.API.o:   charmm.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ charmm.F90
-
-check_input.o: \
-                    file_io_dat.o\
-                    parallel.h
-
-
-check_input.o:   check_input.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ check_input.F90
 
 cmd_matrix.o: \
                     ../include/dprec.fh\
@@ -688,15 +622,6 @@ cshf.o:   cshf.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ cshf.F90
 
-dbonds_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-dbonds_anal2num.o:   dbonds_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ dbonds_anal2num.F90
-
 debug.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -794,33 +719,6 @@ degcnt.LES.o:   degcnt.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ degcnt.F90
 
-dg_debug.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-dg_debug.o:   dg_debug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ dg_debug.F90
-
-dg_grad2cart.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh
-
-
-dg_grad2cart.o:   dg_grad2cart.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ dg_grad2cart.F90
-
-dg_grad_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-dg_grad_anal2num.o:   dg_grad_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ dg_grad_anal2num.F90
-
 dihed_tors.o: \
                     ../include/dprec.fh
 
@@ -854,9 +752,7 @@ dynlib.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -895,9 +791,7 @@ dynlib.LES.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.LES.o\
-                    evb_pimd_init.LES.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -935,9 +829,7 @@ dynlib.PUPIL.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -975,9 +867,7 @@ dynlib.APBS.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -1015,9 +905,7 @@ dynlib.API.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -1055,9 +943,7 @@ dynlib.LESAPI.o: \
                     ../include/md.h\
                     extra.h\
                     pimd_vars.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     les.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     qmmm_module.o\
@@ -1082,15 +968,6 @@ dynlib.LESAPI.o: \
 dynlib.LESAPI.o:   dynlib.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ dynlib.F90
-
-egap_umb_2stdebug.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-egap_umb_2stdebug.o:   egap_umb_2stdebug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ egap_umb_2stdebug.F90
 
 egb.o: \
                     copyright.h\
@@ -1246,351 +1123,6 @@ erfcfun.o: \
 erfcfun.o:   erfcfun.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ erfcfun.F90
-
-evb_2stdebug.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-evb_2stdebug.o:   evb_2stdebug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_2stdebug.F90
-
-evb_alloc.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    ../include/md.h
-
-
-evb_alloc.o:   evb_alloc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_alloc.F90
-
-evb_alloc.LES.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.LES.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    ../include/md.h
-
-evb_alloc.LES.o:   evb_alloc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_alloc.F90
-
-evb_bcast.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_bcast.o:   evb_bcast.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_bcast.F90
-
-evb_dealloc.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h
-
-
-evb_dealloc.o:   evb_dealloc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_dealloc.F90
-
-evb_force.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    constants.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    parallel.h\
-                    ../include/md.h
-
-
-evb_force.o:   evb_force.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_force.F90
-
-evb_force.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    constants.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    parallel.h\
-                    ../include/md.h
-
-evb_force.LES.o:   evb_force.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_force.F90
-
-evb_gfchk.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_gfchk.o:   evb_gfchk.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_gfchk.F90
-
-evb_init.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_init.o:   evb_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_init.F90
-
-evb_input.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    ../include/memory.h
-
-
-evb_input.o:   evb_input.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_input.F90
-
-evb_input.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    ../include/memory.h
-
-evb_input.LES.o:   evb_input.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_input.F90
-
-evb_io.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_io.o:   evb_io.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_io.F90
-
-evb_io_debug.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_io_debug.o:   evb_io_debug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_io_debug.F90
-
-evb_io_debug2.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_io_debug2.o:   evb_io_debug2.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_io_debug2.F90
-
-evb_keywrd.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    parallel.h
-
-
-evb_keywrd.o:   evb_keywrd.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_keywrd.F90
-
-evb_mathf.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh
-
-
-evb_mathf.o:   evb_mathf.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_mathf.F90
-
-evb_matrix.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_pimd_init.o
-
-
-evb_matrix.o:   evb_matrix.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_matrix.F90
-
-evb_matrix.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_pimd_init.LES.o
-
-evb_matrix.LES.o:   evb_matrix.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_matrix.F90
-
-evb_ntrfc.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    constants.o\
-                    les.o\
-                    state.o\
-                    pimd_vars.o\
-                    evb_pimd_init.o\
-                    parallel.h\
-                    extra.h\
-                    ../include/memory.h
-
-
-evb_ntrfc.o:   evb_ntrfc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_ntrfc.F90
-
-evb_ntrfc.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    constants.o\
-                    les.o\
-                    state.o\
-                    pimd_vars.o\
-                    evb_pimd_init.LES.o\
-                    parallel.h\
-                    extra.h\
-                    ../include/memory.h
-
-evb_ntrfc.LES.o:   evb_ntrfc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_ntrfc.F90
-
-evb_outoptions.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    ../include/memory.h
-
-
-evb_outoptions.o:   evb_outoptions.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_outoptions.F90
-
-evb_pimd_init.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    les.o\
-                    pimd_vars.o\
-                    evb_vars.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    extra.h
-
-
-evb_pimd_init.o:   evb_pimd_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_pimd_init.F90
-
-evb_pimd_init.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    les.o\
-                    pimd_vars.o\
-                    evb_vars.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    extra.h
-
-evb_pimd_init.LES.o:   evb_pimd_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_pimd_init.F90
-
-evb_umb.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o\
-                    evb_pimd_init.o\
-                    ../include/md.h
-
-
-evb_umb.o:   evb_umb.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_umb.F90
-
-evb_umb.LES.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o\
-                    evb_pimd_init.LES.o\
-                    ../include/md.h
-
-evb_umb.LES.o:   evb_umb.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_umb.F90
-
-evb_umb_primitive.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.o\
-                    parallel.h\
-                    ../include/md.h
-
-
-evb_umb_primitive.o:   evb_umb_primitive.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_umb_primitive.F90
-
-evb_umb_primitive.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.LES.o\
-                    parallel.h\
-                    ../include/md.h
-
-evb_umb_primitive.LES.o:   evb_umb_primitive.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_umb_primitive.F90
-
-evb_vars.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh
-
-
-evb_vars.o:   evb_vars.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ evb_vars.F90
 
 ew_bndpol.o: \
                     copyright.h\
@@ -2050,26 +1582,6 @@ ew_setup.LESAPI.o:   ew_setup.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
 
-exchange_gauss.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-exchange_gauss.o:   exchange_gauss.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ exchange_gauss.F90
-
-exchange_warshel.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-exchange_warshel.o:   exchange_warshel.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ exchange_warshel.F90
-
 extra_pts.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -2219,7 +1731,6 @@ force.o: \
                     les.o\
                     qmmm_module.o\
                     softcore.o\
-                    evb_vars.o\
                     remd.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
@@ -2282,7 +1793,6 @@ force.LES.o: \
                     les.o\
                     qmmm_module.o\
                     softcore.o\
-                    evb_vars.o\
                     remd.LES.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
@@ -2344,7 +1854,6 @@ force.PUPIL.o: \
                     les.o\
                     qmmm_module.o\
                     softcore.o\
-                    evb_vars.o\
                     remd.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.o\
@@ -2406,7 +1915,6 @@ force.APBS.o: \
                     les.o\
                     qmmm_module.o\
                     softcore.o\
-                    evb_vars.o\
                     remd.o\
                     ../rism/amber_rism_interface.SANDER.o\
                     apbs.APBS.o\
@@ -2667,15 +2175,6 @@ iwrap2.o: \
 iwrap2.o:   iwrap2.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ iwrap2.F90
-
-kappa_keck.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-kappa_keck.o:   kappa_keck.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ kappa_keck.F90
 
 les.o: \
                     ../include/dprec.fh
@@ -3035,7 +2534,6 @@ mdread2.F90: \
                     apbs.o\
                     mdin_emil_dat.o\
                     xray_interface.o\
-                    evb_pimd_init.o\
                     softcore.o\
                     mbar.o\
                     remd.o\
@@ -3146,35 +2644,6 @@ minrit.LES.o:   minrit.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
-mod_vdw.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    les.o\
-                    parms.o\
-                    evb_vars.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    nonbond_list.o
-
-
-mod_vdw.o:   mod_vdw.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ mod_vdw.F90
-
-mod_vdw.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    les.o\
-                    parms.o\
-                    evb_vars.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    nonbond_list.LES.o
-
-mod_vdw.LES.o:   mod_vdw.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ mod_vdw.F90
-
 molecule.o: \
                     copyright.h\
                     ../include/assert.fh\
@@ -3184,40 +2653,6 @@ molecule.o: \
 molecule.o:   molecule.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ molecule.F90
-
-morse_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-morse_anal2num.o:   morse_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ morse_anal2num.F90
-
-morsify.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    les.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    parms.o
-
-
-morsify.o:   morsify.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ morsify.F90
-
-morsify.LES.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    les.o\
-                    parallel.h\
-                    ../include/memory.h\
-                    parms.o
-
-morsify.LES.o:   morsify.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ morsify.F90
 
 mt19937.o: \
                     nfe-utils.h\
@@ -3257,7 +2692,6 @@ multisander.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
-                    evb_pimd_init.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -3278,7 +2712,6 @@ multisander.LES.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
-                    evb_pimd_init.LES.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -4116,33 +3549,6 @@ nose_hoover_init_LES.o:   nose_hoover_init_LES.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ nose_hoover_init_LES.F90
 
-out_evb.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.o\
-                    parallel.h\
-                    ../include/md.h
-
-
-out_evb.o:   out_evb.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ out_evb.F90
-
-out_evb.LES.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    pimd_vars.o\
-                    evb_pimd_init.LES.o\
-                    parallel.h\
-                    ../include/md.h
-
-out_evb.LES.o:   out_evb.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ out_evb.F90
-
 parallel.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -4289,8 +3695,6 @@ pimd_force.o: \
                     constants.o\
                     pimd_vars.o\
                     les.o\
-                    evb_pimd_init.o\
-                    evb_vars.o\
                     ../include/md.h\
                     ../include/memory.h\
                     parallel.h\
@@ -4308,8 +3712,6 @@ pimd_force.LES.o: \
                     constants.o\
                     pimd_vars.o\
                     les.o\
-                    evb_pimd_init.LES.o\
-                    evb_vars.o\
                     ../include/md.h\
                     ../include/memory.h\
                     parallel.h\
@@ -4327,8 +3729,6 @@ pimd_init.o: \
                     pimd_vars.o\
                     cmd_vars.o\
                     les.o\
-                    evb_pimd_init.o\
-                    evb_vars.o\
                     random.o\
                     ../include/md.h\
                     extra.h\
@@ -4349,8 +3749,6 @@ pimd_init.LES.o: \
                     pimd_vars.o\
                     cmd_vars.o\
                     les.o\
-                    evb_pimd_init.LES.o\
-                    evb_vars.o\
                     random.o\
                     ../include/md.h\
                     extra.h\
@@ -4886,24 +4284,6 @@ rattle.o:   rattle.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ rattle.F90
 
-rcbond_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-rcbond_anal2num.o:   rcbond_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ rcbond_anal2num.F90
-
-rcdbonds_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-rcdbonds_anal2num.o:   rcdbonds_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ rcdbonds_anal2num.F90
-
 rdparm.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -5012,37 +4392,6 @@ rdparm.LESAPI.o: \
 rdparm.LESAPI.o:   rdparm.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ rdparm.F90
-
-react_flux.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-react_flux.o:   react_flux.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ react_flux.F90
-
-react_flux_init.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-react_flux_init.o:   react_flux_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ react_flux_init.F90
-
-react_path.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    ../include/md.h
-
-
-react_path.o:   react_path.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ react_path.F90
 
 relax_mat.o: \
                     copyright.h\
@@ -5208,9 +4557,7 @@ runmd.o: \
                     nonbond_list.o\
                     sglds.o\
                     les.o\
-                    evb_vars.o\
                     remd.o\
-                    evb_pimd_init.o\
                     softcore.o\
                     mbar.o\
                     amoeba_mdin.o\
@@ -5277,9 +4624,7 @@ runmd.LES.o: \
                     nonbond_list.LES.o\
                     sglds.o\
                     les.o\
-                    evb_vars.o\
                     remd.LES.o\
-                    evb_pimd_init.LES.o\
                     softcore.o\
                     mbar.o\
                     amoeba_mdin.o\
@@ -5327,7 +4672,6 @@ runmin.o: \
                     qmmm_module.o\
                     bintraj.o\
                     file_io_dat.o\
-                    evb_vars.o\
                     softcore.o\
                     state.o\
                     parallel.h\
@@ -5378,8 +4722,6 @@ sander.o: \
                     softcore.o\
                     mbar.o\
                     linear_response.o\
-                    evb_vars.o\
-                    evb_pimd_init.o\
                     remd.o\
                     bintraj.o\
                     pimd_vars.o\
@@ -5455,8 +4797,6 @@ sander.LES.o: \
                     softcore.o\
                     mbar.o\
                     linear_response.o\
-                    evb_vars.o\
-                    evb_pimd_init.LES.o\
                     remd.LES.o\
                     bintraj.LES.o\
                     pimd_vars.o\
@@ -5531,8 +4871,6 @@ sander.PUPIL.o: \
                     softcore.o\
                     mbar.o\
                     linear_response.o\
-                    evb_vars.o\
-                    evb_pimd_init.o\
                     remd.o\
                     bintraj.o\
                     pimd_vars.o\
@@ -5607,8 +4945,6 @@ sander.APBS.o: \
                     softcore.o\
                     mbar.o\
                     linear_response.o\
-                    evb_vars.o\
-                    evb_pimd_init.o\
                     remd.o\
                     bintraj.o\
                     pimd_vars.o\
@@ -5667,187 +5003,6 @@ scaledMD.o: \
 scaledMD.o:   scaledMD.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ scaledMD.F90
-
-schlegel_angle.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o
-
-
-schlegel_angle.o:   schlegel_angle.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_angle.F90
-
-schlegel_dg.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    schlegel_uff.o\
-                    schlegel_dihed.o\
-                    schlegel_angle.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h\
-                    evb_mathf.o
-
-
-schlegel_dg.o:   schlegel_dg.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_dg.F90
-
-schlegel_dihed.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o
-
-
-schlegel_dihed.o:   schlegel_dihed.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_dihed.F90
-
-schlegel_diis.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-schlegel_diis.o:   schlegel_diis.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_diis.F90
-
-schlegel_full.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-schlegel_full.o:   schlegel_full.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_full.F90
-
-schlegel_gbasis.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o
-
-
-schlegel_gbasis.o:   schlegel_gbasis.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_gbasis.F90
-
-schlegel_gmres.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    evb_mathf.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_gmres.o:   schlegel_gmres.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_gmres.F90
-
-schlegel_hcn_cart.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_hcn_cart.o:   schlegel_hcn_cart.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_hcn_cart.F90
-
-schlegel_hcn_cart_irc.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_hcn_cart_irc.o:   schlegel_hcn_cart_irc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_hcn_cart_irc.F90
-
-schlegel_hcn_int_irc.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_hcn_int_irc.o:   schlegel_hcn_int_irc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_hcn_int_irc.F90
-
-schlegel_pgbasis.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o
-
-
-schlegel_pgbasis.o:   schlegel_pgbasis.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_pgbasis.F90
-
-schlegel_poh_irc.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_poh_irc.o:   schlegel_poh_irc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_poh_irc.F90
-
-schlegel_poh_uff.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    file_io_dat.o\
-                    parallel.h\
-                    extra.h
-
-
-schlegel_poh_uff.o:   schlegel_poh_uff.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_poh_uff.F90
-
-schlegel_uff.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    evb_vars.o\
-                    schlegel_uff_parm.h
-
-
-schlegel_uff.o:   schlegel_uff.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ schlegel_uff.F90
-
-select_coord.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o
-
-
-select_coord.o:   select_coord.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ select_coord.F90
 
 set.o: \
                     copyright.h\
@@ -6185,36 +5340,6 @@ unitv.o:   unitv.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ unitv.F90
 
-vdw_anal2num.o: \
-                    ../include/dprec.fh\
-                    parms.o\
-                    evb_vars.o\
-                    ../include/memory.h
-
-
-vdw_anal2num.o:   vdw_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ vdw_anal2num.F90
-
-wdc_bmat.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o\
-                    evb_mathf.o
-
-
-wdc_bmat.o:   wdc_bmat.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ wdc_bmat.F90
-
-xgauss_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-xgauss_anal2num.o:   xgauss_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ xgauss_anal2num.F90
-
 xray_FFT.o: \
                     ../include/assert.fh\
                     xray_globals.o\
@@ -6318,15 +5443,6 @@ xref.o: \
 xref.o:   xref.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ xref.F90
-
-xwarshel_anal2num.o: \
-                    ../include/dprec.fh\
-                    evb_vars.o
-
-
-xwarshel_anal2num.o:   xwarshel_anal2num.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) $(RISMSANDER) -o $@ xwarshel_anal2num.F90
 
 yammpnb.o: \
                     copyright.h\

@@ -87,13 +87,6 @@ program multisander
   use nfe_sander_proxy, only: infe
 #endif /* DISABLE_NFE */
 
-#ifdef MPI
-#  ifdef LES
-  use evb_pimd, only: evb_begin, evb_end, lpimd_dcrypt, nslice_per_group, &
-                      nslice_per_node, lpimd_group
-#  endif /* LES */
-#endif /* MPI */
-
   implicit none
 
   ! Update this when the version changes! (Make sure to update the len if
@@ -256,53 +249,6 @@ program multisander
       call mpi_comm_rank(commmaster, masterrank, ierror)
     end if
   end if
-
-  ! Define a communicator for multisander-EVB/LES-PIMD and
-  ! assign bead tasks to PEs via evb_begin & evb_end
-#ifdef LES
-  nslice_per_group = nslice / numgroup
-  lpimd_id = worldrank / (worldsize / numgroup)
-  lpimd_group = lpimd_id
-  lpimd_size = 0
-  lpimd_rank = MPI_UNDEFINED
-  if (numgroup > 1 .and. nslice > 0) then
-    comm_lpimd = mpi_comm_null
-    if (sanderrank > nslice_per_group - 1) then
-      lpimd_id = MPI_UNDEFINED
-    end if
-    call mpi_comm_split(commworld, lpimd_id, worldrank, comm_lpimd, ierror)
-    if (ierror .ne. MPI_SUCCESS) then
-      write(6,'(2(A,2X,I8))') 'COMM_LPIMD Error: MPI_COMM_SPLIT error ', &
-                              ierror, ' on PE ', worldrank
-    end if
-    if (comm_lpimd .ne. MPI_COMM_NULL) then
-      call mpi_comm_size(comm_lpimd, lpimd_size, ierror)
-      call mpi_comm_rank(comm_lpimd, lpimd_rank, ierror)
-      if (nslice_per_group > lpimd_size) then
-        nslice_per_node = nslice_per_group / lpimd_size
-      else
-        nslice_per_node = 1
-      endif
-      allocate(evb_begin(lpimd_size), evb_end(lpimd_size), &
-               stat = alloc_error)
-      REQUIRE(alloc_error == 0)
-      do n = 1, lpimd_size
-        ndx = lpimd_group * nslice_per_group
-        evb_begin(n) = (n - 1)*nslice_per_node + 1 + ndx
-        evb_end(n) = n*nslice_per_node + ndx
-      enddo
-      allocate(lpimd_dcrypt(lpimd_size, nslice_per_node), stat=alloc_error)
-      REQUIRE(alloc_error == 0)
-      do n = 1, lpimd_size
-        nn = 0
-        do m = evb_begin(n), evb_end(n)
-          nn = nn + 1
-          lpimd_dcrypt(n,nn) = m
-        enddo
-      enddo
-    endif
-  endif
-#endif /* LES */
 
   ! Setup mytaskid and numtasks for each group:
   mytaskid = sanderrank

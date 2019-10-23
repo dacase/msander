@@ -89,10 +89,6 @@ subroutine sander()
                               cleanup_linear_response
 
 #if defined(MPI)
-  use evb_parm, only: xch_type
-#  if defined(LES)
-  use evb_pimd, only: evb_pimd_init
-#  endif /* LES */
   ! Replica Exchange Molecular Dynamics
   use remd, only : rem, mdloop, remd1d_setup, remd_exchange, reservoir_remd_exchange, &
                    remd_cleanup, hremd_exchange, ph_remd_exchange, e_remd_exchange, &
@@ -1063,38 +1059,20 @@ subroutine sander()
     call startup_groups(ier)
     call startup(x, ix, ih)
 
-    ! Broadcast Empirical Valence Bond / Path Integral MD inputs/parameters to
-    ! all PEs.  Note: the masters have all required EVB/PIMD inputs/parameters
-    ! via call to mdread2 (evb_input, evb_init, evb_pimd_init).  For EVB/PIMD,
+    ! Broadcast Path Integral MD inputs/parameters to
+    ! all PEs.  Note: the masters have all required PIMD inputs/parameters
+    ! via call to mdread2).  For PIMD,
     ! all PEs need the inputs/parameters ... so we perform this initialization
     ! again for all PEs besides the masters.  The alternative is to use
     ! MPI_BCAST.
     call mpi_bcast(ievb , 1, MPI_INTEGER, 0, commworld, ier)
     call mpi_bcast(ipimd, 1, MPI_INTEGER, 0, commworld, ier)
-    if (ievb .ne. 0) then
-      call mpi_bcast(evbin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
-      if (.not. master) then
-        call evb_input
-        call evb_init
-      end if
-    end if
 
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
     call mpi_bcast (cnum(1:natom), natom, MPI_INTEGER, 0, commworld, ier)
     call mpi_bcast (evbin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
 #  endif /* LES */
-    if (ievb .ne. 0) then
-#  if defined(LES)
-      if (ipimd > 0 .and. .not. master) then
-        call evb_input
-        call evb_init
-      end if
-      call evb_pimd_init
-#  endif /* LES */
-      call evb_bcast
-      call evb_alloc
-    end if
 
     ! Obtain B vector for Schlegel's distributed Gaussian method
     if (trim(adjustl(xch_type)) == "dist_gauss") then

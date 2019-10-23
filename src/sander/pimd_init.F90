@@ -12,10 +12,6 @@ subroutine pimd_init(natom,mass,winv,v,pimdtype)
                         omega_nmode, adiab_param
 #ifdef LES
    use les_data, only : cnum
-#  ifdef MPI
-   use evb_pimd,  only: bead_dcrypt
-   use miller,    only: ti_mass, nti_mass, do_ti_mass
-#  endif /* MPI */
 #else /* ! LES */
    use full_pimd_vars, only: mybeadid
 #endif /* LES */

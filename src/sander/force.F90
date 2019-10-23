@@ -57,9 +57,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use softcore, only: sc_ener
 #endif /* MPI */
 #if defined(LES) && defined(MPI)
-  use evb_data, only: nrg_frc
   use pimd_vars, only: equal_part
-  use miller, only: dlnQ_dl
   use remd, only: rem ! wasn't used for LES above
 #endif /* LES && MPI */
 #ifdef RISMSANDER
@@ -1109,13 +1107,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                         MPI_SUM, commsander, ierr)
     nrg_all(:) = nrg_bead(:)
   end if
-  if (ievb /= 0) then
-    call evb_ntrfc(x, f, ener, ix, ipairs, vel0_nrg_sum)
-  end if
-#  else
-  if (ievb /= 0) then
-    call evb_ntrfc(x, f, ener, xx(lmass), ix, ipairs)
-  end if
 #  endif /* LES */
 #endif /* MPI */
 
@@ -1127,7 +1118,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       nrg_frc(3) = vel0_nrg_sum
       nrg_frc(2) = equal_part + Epot_deriv
       nrg_frc(1) = nrg_frc(3) + nrg_frc(2)
-      dlnQ_dl = dvdl
     endif
 #  endif /* MPI */
 #else /* NOT LES below */

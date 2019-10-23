@@ -20,10 +20,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
    use bintraj, only: end_binary_frame
    use file_io_dat
 
-#if defined( MPI )
-   use evb_data, only: evb_frc
-#endif /* MPI */
-   
 #ifdef MPI /* SOFT CORE */
    use softcore, only: extra_atoms, sc_ener, sc_dvdl, sc_tot_dvdl, &
                        sc_tot_dvdl_partner, ifsc, sc_mix_sum, sc_print_energies,&
@@ -348,10 +344,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 
    !f = ene(23)
    f = ene%pot%tot
-
-#if defined( MPI ) 
-   if( ievb /= 0 ) f = evb_frc%evb_nrg
-#endif /* MPI */
 
    ntnb = 0
    sum = ddot(n,fg,1,fg,1)
@@ -832,10 +824,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 #endif
 
 #ifdef MPI
-   if( ievb /= 0 ) then
-      call evb_dealloc 
-   endif
-
    if( icfe /= 0 ) then
       deallocate( frcti, stat=ier )
       REQUIRE( ier == 0 )

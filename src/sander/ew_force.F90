@@ -757,7 +757,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 !  +---------------------------------------------------------------+
 !  |  NOTE: evdwr (which is only calculated for the master) has    |
 !  |  been mpi_allreduced above but this gets overcounted when     |
-!  |  nrg_all is later mpi_allreduced before evb_ntrfc.  Only      |
+!  |  nrg_all is later mpi_allreduced before ntrfc.  Only      |
 !  |  accumulate evdwr on the master PE.                           | 
 !  +---------------------------------------------------------------+
 

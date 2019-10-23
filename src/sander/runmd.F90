@@ -119,16 +119,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
 
 #ifdef MPI
-  use evb_parm,  only: evb_dyn, nbias
-  use evb_data,  only: evb_frc, evb_vel0, evb_bias, evb_nrg, evb_nrg_ave, &
-                       evb_nrg_rms, evb_nrg_tmp, evb_nrg_old, evb_nrg_tmp2, &
-                       evb_nrg_old2
   use remd, only: rem, mdloop, remd_ekmh, repnum, stagid, my_remd_data, &
                   hybrid_remd_ene, next_rem_method, remd_types, replica_indexes, &
                   my_pressure, my_volume
 #  ifdef LES
-  use evb_pimd,  only: evb_pimd_dealloc
-  use miller,    only: i_qi
   use pimd_vars, only : real_mass
 #  endif /* LES */
   use softcore, only: ifsc, sc_dvdl, sc_tot_dvdl, sc_tot_dvdl_partner, &
@@ -799,27 +793,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* MPI or LES */
       call force(xx, ix, ih, ipairs, cartpos, f, ener, ener%vir, xx(l96), &
                  xx(l97), xx(l98), xx(l99), qsetup, do_list_update, nstep)
-#if defined(MPI) && defined(LES)
-      if (ievb == 1 .and. i_qi > 0) then
-        call evb_umb(f, cartpos, real_mass, natom, istart3, iend3)
-        if (i_qi == 2) then
-          call qi_corrf_les(cartpos, real_mass)
-        end if
-        evb_nrg(1) = evb_frc%evb_nrg
-        evb_nrg(2) = evb_vel0%evb_nrg
-        if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-      end if
-#endif /* MPI and LES */
       call trans_frc_cart_to_nmode(f)
       i3 = 3*(istart-1)
-#if defined(MPI) && defined(LES)
-      if (ievb /= 0 .and. i_qi == 0) then
-        call evb_umb(f, x, real_mass, natom, istart3, iend3)
-        evb_nrg(1) = evb_frc%evb_nrg
-        evb_nrg(2) = evb_vel0%evb_nrg
-        if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-      end if
-#endif /* MPI and LES */
 
 !------------------------------------------------------------------------------
     ! for LSC-IVR:
@@ -880,18 +855,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
       call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                  xx(l98), xx(l99), qsetup, do_list_update, nstep)
-#ifdef MPI
-      if (ievb /= 0) then
-#  ifdef LES
-        call evb_umb_primitive(f, x, real_mass, natom, istart, iend)
-#  else
-        call evb_umb_primitive(f, x, amass, natom, istart, iend)
-#  endif /* LES */
-        evb_nrg(1) = evb_frc%evb_nrg
-        evb_nrg(2) = evb_vel0%evb_nrg
-        if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-      endif
-#endif /* MPI */
     endif
     ! End branches into Normal Mode Path Integral MD, Centroid MD, Linearized
     ! Semi-Classical Initial Value Representation
@@ -1663,17 +1626,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
   ! }}}
 
-  ! EVB reactive flux: {{{
-  ! driver for coordinating backward and
-  ! forward propagation as well as for enforcing stopping criteria
-#if defined(MPI)
-   if (ievb .ne. 0 .and. trim(adjustl(evb_dyn)) == "react_flux") then
-     REQUIRE( ipimd.eq.0 .or. ipimd.eq.NMPIMD )
-     call react_flux(x, v, f, winv, tempi*factt, dt5, dtx, nr, nstep, nstlim)
-   endif
-#endif
-   ! }}}
-
 !------------------------------------------------------------------------------
   ! Step 1a: do some setup for pressure calculations: {{{
   if (ntp > 0 .and. iamoeba == 0 .and. ipimd==0) then
@@ -1729,26 +1681,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call trans_pos_nmode_to_cart(x, cartpos)
     call force(xx, ix, ih, ipairs, cartpos, f, ener, ener%vir, xx(l96), &
                xx(l97), xx(l98), xx(l99), qsetup, do_list_update, nstep)
-#if defined(MPI) && defined(LES)
-    if (ievb == 1 .and. i_qi > 0) then
-      call evb_umb(f, cartpos, real_mass, natom, istart3, iend3)
-      if (i_qi == 2) then
-        call qi_corrf_les(cartpos, real_mass)
-      end if
-      evb_nrg(1) = evb_frc%evb_nrg
-      evb_nrg(2) = evb_vel0%evb_nrg
-      if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-    end if
-#endif
     call trans_frc_cart_to_nmode(f)
-#if defined(MPI) && defined(LES)
-    if (ievb .ne. 0 .and. i_qi == 0) then
-      call evb_umb (f, x, real_mass, natom, istart3, iend3)
-      evb_nrg(1) = evb_frc%evb_nrg
-      evb_nrg(2) = evb_vel0%evb_nrg
-      if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-    end if
-#endif /* MPI and LES */
   ! }}}
   else
 !------------------------------------------------------------------------------
@@ -1764,20 +1697,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
 
-    !   EVB umbrellas:  {{{
-#if defined(MPI)
-    if (ievb .ne. 0) then
-#  ifdef LES
-      call evb_umb_primitive(f, x, real_mass, natom, istart, iend)
-#  else
-      call evb_umb_primitive(f, x, amass, natom, istart, iend)
-#  endif /* LES */
-      evb_nrg(1) = evb_frc%evb_nrg
-      evb_nrg(2) = evb_vel0%evb_nrg
-      if (nbias > 0) evb_nrg(3) = sum(evb_bias%nrg_bias(:))
-    endif
-#endif
-    ! }}}
   endif
 
   ! }}}
@@ -3826,10 +3745,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
        ekhf2 = ekhf2 + ekph*ekph
     endif
 #ifdef MPI
-    if (ievb .ne. 0) then
-      evb_nrg_ave(:) = evb_nrg_ave(:) + evb_nrg(:)
-      evb_nrg_rms(:) = evb_nrg_rms(:) + evb_nrg(:)**2
-    endif
     if (ifsc .ne. 0) then
       sc_ener_ave(1:ti_ene_cnt) = sc_ener_ave(1:ti_ene_cnt) + &
                                   sc_ener(1:ti_ene_cnt)
@@ -4447,16 +4362,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         call zero_neg_values_state(enert2_tmp)
         enert2_tmp = sqrt(enert2_tmp)
 #ifdef MPI
-        if (ievb /= 0) then
-          evb_nrg_tmp (:) = evb_nrg_ave(:) - evb_nrg_old (:)
-          evb_nrg_tmp2(:) = evb_nrg_rms(:) - evb_nrg_old2(:)
-          evb_nrg_old (:) = evb_nrg_ave(:)
-          evb_nrg_old2(:) = evb_nrg_rms(:)
-          evb_nrg_tmp (:) = evb_nrg_tmp (:) / tspan
-          evb_nrg_tmp2(:) = evb_nrg_tmp2(:) / tspan - evb_nrg_tmp(:)**2
-          evb_nrg_tmp2(:) = max(evb_nrg_tmp2(:), 0.0d0)
-          evb_nrg_tmp2(:) = sqrt(evb_nrg_tmp2(:))
-        endif
         if (ifsc .ne. 0) then
           do m = 1,ti_ene_cnt
             sc_ener_tmp(m) = sc_ener_ave(m) - sc_ener_old(m)
@@ -4471,7 +4376,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
             sc_ener_tmp2(m) = sqrt(sc_ener_tmp2(m))
           end do
         end if
-        if (ievb .ne. 0) evb_frc%evb_ave = .true.
 #endif
 #ifdef RISMSANDER
         if (rismprm%rism == 1) then
@@ -4485,7 +4389,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         call prntmd(total_nstep, t, enert_tmp, onefac, 0, .false.)
 #ifdef MPI
         if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_tmp)
-        if (ievb .ne. 0) evb_frc%evb_rms = .true.
 #endif /* MPI */
         write(6, 550)
         call prntmd(total_nstep, t, enert2_tmp, onefac, 0, .true.)
@@ -4718,12 +4621,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
          write(fh_ek, '(2(1x,F14.4))') ekhf2, ekhf2*onefac(1)
       endif
 #ifdef MPI
-      if (ievb .ne. 0) then
-        evb_nrg_ave(:) = evb_nrg_ave(:) / tspan
-        evb_nrg_rms(:) = evb_nrg_rms(:) / tspan - evb_nrg_ave(:)**2
-        evb_nrg_rms(:) = max( evb_nrg_rms(:), 0.0d0 )
-        evb_nrg_rms(:) = sqrt( evb_nrg_rms(:) )
-      endif
       if (ifsc .ne. 0) then
         do m = 1, ti_ene_cnt
           sc_ener_ave(m) = sc_ener_ave(m)/tspan
@@ -4734,13 +4631,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           sc_ener_rms(m) = sqrt(sc_ener_rms(m))
         end do
       end if
-      if (ievb .ne. 0) evb_frc%evb_ave = .true.
 #endif
       write(6, 540) nvalid
       call prntmd(total_nstep, t, enert, onefac, 0, .false.)
 #ifdef MPI /* SOFT CORE */
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_ave)
-      if (ievb .ne. 0) evb_frc%evb_rms = .true.
       if (ipimd > 0 .and. worldrank == 0) then
         write(pimd_unit, 540) nvalid
         call pimd_report(nstep, t, pimd_unit, totenert, onefac)
@@ -4812,14 +4707,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! this started about 120 lines ago and the way it started
   ! depends on whether MPI is part of the compilation. }}}
 
-#ifdef MPI
-  if (ievb .ne. 0) then
-    call evb_dealloc
-#  if defined(LES)
-    if (master) call evb_pimd_dealloc
-#  endif /* LES */
-  endif
-#endif /* MPI */
   if (icfe .ne. 0) then
     deallocate( frcti, stat = ierr )
     REQUIRE( ierr == 0 )
