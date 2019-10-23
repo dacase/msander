@@ -1,0 +1,574 @@
+#!/bin/bash
+
+#  "Automatic" configure script for ambermini
+printf "configure script for ambermini\n\n"
+
+# set up defaults:
+verbose="@"
+enablempi=
+requested_help="no"
+bintraj="-DBINTRAJ"
+rism="-lrism"
+blas="-llapack -lblas"
+blas_install="install"
+conda="no"
+cc="gcc -fPIC"
+cxx="g++ -fPIC"
+fc="gfortran -fPIC"
+flibs_mkl=""
+
+#  process command-line flags:
+for var in "$@"; do
+    case "$var" in
+        -h|-H|--h|--he|--hel|--help|-help)
+            requested_help="yes";;
+        -fullhelp|--full|--fullhelp|--full-h|--full-he|--full-hel|--full-help)
+            requested_help="yes";;
+        --verbose)
+            verbose="";;
+        --macAccelerate)
+            blas="-framework Accelerate" 
+            blas_install="skip";;
+        --conda)
+            conda="yes";;
+        --no-netcdf)
+            bintraj="";;
+        --mingw)
+            cc="x86_64-w64-mingw32-gcc --static"
+            cxx="x86_64-w64-mingw32-g++ --static"
+            fc="x86_64-w64-mingw32-gfortran --static";;
+        --no-rism)
+            rism="";;
+        --parallel)
+            enablempi="--enable-mpi=yes"
+            /bin/rm -f src/fftw3_config.log;;
+    esac
+done
+
+if [ "$requested_help" = "yes" ] ; then
+	printf " --verbose      give build details, otherwise be more silent\n"
+	printf " --parallel     prepare for parallel build\n"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#  check on AMBERHOME environment variable
+#------------------------------------------------------------------------------
+check_amberhome() {
+   if [ -z "$AMBERHOME" ]; then
+      echo ""
+      echo "Error: Your AMBERHOME environment variable is not set!"
+      echo ""
+      echo "You must manually set it.  Enter the line appropriate for your shell:"
+      echo "export AMBERHOME=$1    # (for bash, zsh, ksh, etc.)"
+      echo "setenv AMBERHOME $1    # (for csh, tcsh)"
+      echo ""
+      exit 1
+   elif [ ! -d $AMBERHOME ]; then
+      echo ""
+      echo "Error: Your AMBERHOME environment variable is set to $AMBERHOME"
+      echo "This does not appear to be a directory.  It should be set to $1"
+      exit 1
+   elif [ ! "$AMBERHOME" = "$1" -a ! "$AMBERHOME" = "${1}/" ]; then
+      echo ""
+      echo "Error: AMBERHOME is expected to be $amberhome but it is currently"
+      echo "       $AMBERHOME    You need to reset this variable"
+      exit 1
+   fi
+}
+
+amberhome=`pwd`
+check_amberhome $amberhome
+
+#------------------------------------------------------------------------------
+#  Make some needed directories:
+#------------------------------------------------------------------------------
+if [ ! -d bin ]; then
+    mkdir bin
+fi
+if [ ! -d bin/to_be_dispatched ]; then
+    mkdir bin/to_be_dispatched
+fi
+if [ ! -d include ]; then
+    mkdir include
+fi
+if [ ! -d lib ]; then
+    mkdir lib
+fi
+if [ ! -d lib/python2.7 ]; then
+    mkdir lib/python2.7
+fi
+if [ ! -d lib/python2.7/site-packages ]; then
+    mkdir lib/python2.7/site-packages
+fi
+if [ ! -d logs ]; then
+    mkdir logs
+fi
+
+cp src/include/CompatibilityMacros.h include
+
+if [ "$rism" == "" -o ! -d src/rism ]; then
+   test -d src/rism || mkdir src/rism
+   cat <<EOF > src/rism/amber_rism_interface.F90
+!  dummy file for making sander without rism
+EOF
+fi
+
+
+#--------------------------------------------------------------------------
+#  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
+#--------------------------------------------------------------------------
+
+mkl_type='mkl'
+# Determine linker type. Currently only matters for MKL
+ld_version=`ld -v 2>&1 | awk '{print $1}'`
+case "$ld_version" in
+    *GNU*)
+        gnuld='yes';;
+    *)
+        gnuld='no' ;;
+esac
+
+if [ "$mkl_type" = 'mkl' ] ; then
+  lapack=skip
+  blas=skip
+  flibs="-larpack "
+  flibsf="-larpack "
+  fppflags="$fppflags -DMKL"
+  # Determine MKL home directory
+  mklroot=''
+  if [ ! -z "$MKLROOT" ] ; then
+    mklroot=$MKLROOT
+  elif [ ! -z "$MKL_HOME" ] ; then
+    mklroot=$MKL_HOME
+  fi
+  echo ""
+  if [ ! -z "$mklroot" ] ; then
+    echo "Using MKL for BLAS/LAPACK in $mklroot"
+    mklinc="-I$mklroot/include"
+  else
+    echo "Using MKL for BLAS/LAPACK"
+  fi
+  # Determine how we are linking MKL
+  link_type='mkl'
+  if  [ "$compiler" = 'intel' ] ; then
+    if [ "$cc_version_major" -lt 11 -o "$fc_version_major" -lt 11 ] ; then
+      link_type='line'
+    fi
+  else
+    link_type='line'
+  fi
+  # We always link to the sequential version of MKL since typically
+  # one runs an MPI thread for each core.  However, if openmp is
+  # specified, for example to turn on SMP diagonalizers for QMMM
+  # then we link to the threaded version of MKL and inside the code
+  # the number of threads for vector functions etc will be set to 1.
+  # Always link static version of MKL - just easier from an end
+  # user perspective.
+  if [ "$link_type" = 'line' ] ; then
+    # ----- Link line advisor style. Requires MKLROOT ------
+    if [ -z "$mklroot" ] ; then
+      echo "Error: MKLROOT/MKL_HOME not set." > /dev/stderr
+      exit 1
+    fi
+    mkll="$mklroot/lib/32"
+    mklinterfacelayer='libmkl_intel.a'
+    if [ "$is_mac" = 'yes' ] ; then
+      mkll="$mklroot/lib"
+      if [ "$x86_64" = 'yes' ]; then
+        mklinterfacelayer='libmkl_intel_lp64.a'
+      fi
+    elif [ "$x86_64" = 'yes' ]; then
+      if [ -d "$mklroot/lib/em64t" ]; then
+        mkll="$mklroot/lib/em64t"
+        mkl_procstring="em64t"
+      else
+        mkll="$mklroot/lib/intel64"
+        mkl_procstring="intel64"
+      fi
+      # lp64 is 32 bit integers on 64 bit platforms
+      mklinterfacelayer='libmkl_intel_lp64.a'
+    fi
+    # Determing threading interface if necessary
+    mklthread="$mkll/libmkl_sequential.a"
+    mklomp=''
+    if [ "$openmp" = 'yes' ] ; then
+      if [ "$compiler" = 'intel' ] ; then
+        mklthread="$mkll/libmkl_intel_thread.a"
+        mklomp='-liomp5'
+      elif [ "$compiler" = 'pgi' ] ; then
+        mklthread="$mkll/libmkl_pgi_thread.a"
+        mklomp='-pgf90libs -mp'
+      else
+        mklthread="$mkll/libmkl_gnu_thread.a"
+        mklomp='-lgomp'
+      fi
+      if [ "$is_mac" = 'yes' -a "$compiler" != 'intel' ] ; then
+        echo "Warning: OpenMP MKL not supported on OSX without Intel compilers. Using sequential."
+        mklthread="$mkll/libmkl_sequential.a"
+        mklomp=''
+      fi
+    fi
+    # Set link flags
+    if [ "$gnuld" = 'yes' ]; then
+      echo "GNU linker assumed."
+      flibs_mkl="-Wl,--start-group $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a -Wl,--end-group $mklomp -lpthread"
+    else
+      echo "Non-GNU linker assumed."
+      flibs_mkl="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a -lpthread"
+    fi
+    # GNU compilers with MKL requires -ldl
+    if [ "$compiler" = 'gnu' ]; then
+      flibs_mkl="$flibs_mkl -ldl"
+    fi
+  else
+    # ----- Use simple flag for Intel compilers ------------
+    if [ "$openmp" = 'yes' ]; then
+      flibs_mkl='-mkl'
+    else
+      flibs_mkl='-mkl=sequential'
+    fi
+  fi
+elif [ "$gotolib" = 'yes' ]; then
+    lapack=skip
+    blas=skip
+    flibs="-larpack $GOTO -lpthread"
+    flibsf="-larpack $GOTO -lpthread"
+elif [ "$macAccelerate" = 'yes' ] ; then
+    lapack=skip
+    blas=skip
+    flibs="-larpack "
+    flibsf="-larpack "
+    flibs_arch="$flibs_arch -framework Accelerate"
+    flibsf_arch="$flibsf_arch -framework Accelerate"
+fi
+
+#--------------------------------------------------------------------------
+#  create the config.h file: may differ for different subsets
+#--------------------------------------------------------------------------
+
+cat <<EOF > src/config.h
+
+###############################################################################
+
+# (1)  Location of the installation
+
+AMBERTOOLS=ambermini
+AMBER_PREFIX=$AMBERHOME
+BASEDIR=$AMBERHOME
+BINDIR=\$(BASEDIR)/bin
+LIBDIR=\$(BASEDIR)/lib
+INCDIR=\$(BASEDIR)/include
+DATDIR=\$(BASEDIR)/dat
+LOGDIR=\$(BASEDIR)/logs
+
+###############################################################################
+
+#  (2) Distinguish between Linux and MacOS  (no windows, at least for now)
+
+OS=\$(shell uname -s)
+ifeq "\$(OS)" "Darwin"
+   SHARED_SUFFIX=.dylib
+   MAKE_SHARED=-dynamiclib
+   LIBGFORTRAN=\$(shell \$(BASEDIR)/src/libgfortran.sh)  
+   LM=
+   LDFLAGS=
+else
+   SHARED_SUFFIX=.so
+   MAKE_SHARED=-shared
+   LM=-lm
+   LDFLAGS=-static
+endif
+
+###############################################################################
+
+#  (3) allow for the use of netcdf
+
+EOF
+
+if [ "$bintraj" == "-DBINTRAJ" ]; then
+cat <<EOF >> src/config.h
+NETCDF=\$(INCDIR)/netcdf.mod
+NETCDFLIB=\$(LIBDIR)/libnetcdf.a
+NETCDFLIBF=\$(LIBDIR)/libnetcdff.a \$(LIBDIR)/libnetcdf.a
+NETCDFINC=-I\$(INCDIR)
+EOF
+else
+cat <<EOF >> src/config.h
+NETCDF=
+NETCDFLIB=
+NETCDFLIBF=
+NETCDFINC=
+
+EOF
+fi
+
+cat <<EOF >> src/config.h
+
+###############################################################################
+
+#  (4)  C/C++ compilers  (note: no parallel C++ code for now)
+
+CC=$cc
+CFLAGS=$bintraj \$(LOCALFLAGS)
+# FLIBS= -lsff $rism -larpack \$(BLAS) \$(NETCDFLIB) \$(LIBGFORTRAN) -lgfortran -w 
+CNOOPTFLAGS=
+COPTFLAGS=-O3 -mtune=native 
+
+CXX=$cxx
+CPLUSPLUS=g++
+CXXFLAGS=$bintraj
+CXXNOOPTFLAGS=
+CXXOPTFLAGS=-O3 
+
+###############################################################################
+
+#  (5)  Fortran compilers
+
+FC=$fc
+FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS)
+FLIBSF= $rism -larpack \$(BLAS) $flibs_mkl
+FNOOPTFLAGS= -O0 -g
+FOPTFLAGS= -O3 -g -mtune=native
+
+###############################################################################
+
+#  (6)  other flags:
+
+LEX=   flex
+YACC=  bison -y
+AR=    ar rv
+M4=    m4
+RANLIB=ranlib
+MV=mv
+CP=cp
+MAKE=make
+VB=$verbose
+MAKE_XLEAP=skip_xleap
+
+EOF
+
+if [ "$rism" == "-lrism" ]; then
+cat <<EOF >> src/config.h
+# RISM:
+RISMSFF=-DRISMSFF
+SFF_RISM_INTERFACE=../rism/amber_rism_interface.NAB.o
+RISMSANDER=-DRISMSANDER
+SANDER_RISM_INTERFACE=../rism/amber_rism_interface.SANDER.o
+EOF
+else
+cat <<EOF >> src/config.h
+# RISM:
+RISMSFF=
+SFF_RISM_INTERFACE=
+RISMSANDER=
+SANDER_RISM_INTERFACE=
+EOF
+fi
+
+cat <<EOF >> src/config.h
+
+#Python interpreter we are using and install options
+PYTHON=python
+PYTHON_INSTALL=--prefix=\$(BASEDIR)
+PYTHONPATH=\$(BASEDIR)/lib/python2.7/site-packages
+PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
+
+# PLUMED related variables:
+PLUMED_INCLUDE_FILE=
+PLUMED_LOAD=Plumed.o
+PLUMED_DEPENDENCIES=Plumed.o
+EOF
+
+#--------------------------------------------------------------------------
+#  Test if the C compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.c
+#include <stdio.h>
+int main()
+{
+   printf( "testing a C program\n" );
+}
+EOF
+
+printf "Testing gcc..."
+gcc -o testp testp.c
+./testp | grep "testing a C program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a C program using gcc\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+    printf "OK\n"
+fi
+/bin/rm -f testp.c testp.o testp
+
+#--------------------------------------------------------------------------
+#  Test if the Fortran compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.f
+      program testf
+      write(6,*) 'testing a Fortran program'
+      end program testf
+EOF
+
+printf "Testing gfortran..."
+gfortran -o testp testp.f
+./testp | grep "testing a Fortran program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a Fortran program using gfortran\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+	printf "OK\n"
+fi
+/bin/rm -f testp.f testp.o testp
+
+#--------------------------------------------------------------------------
+#  Test if flex is available and works
+#--------------------------------------------------------------------------
+
+  printf "Testing flex..."
+  cat <<EOF >testp.l
+%{
+
+
+%}
+%%
+
+ddm[=\ ][^\ \n\t,]+         { ECHO; ddm = 1;}
+
+%%
+EOF
+
+flex -t testp.l | grep ddm  > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to run flex.\n"
+    printf "       Please check your PATH, or install the program.\n"
+    exit 1
+else
+    printf "OK\n"
+fi
+/bin/rm -f testp.l
+
+#--------------------------------------------------------------------------
+#  Test if bison is available and works
+#--------------------------------------------------------------------------
+
+  printf "Testing bison..."
+  cat <<EOF >testp.y
+%{
+static int curItemNo, curValueNo, itemIndex;
+%}
+%token NUMBER
+%%
+term: NUMBER  { curItemNo = 1; }
+
+%%
+EOF
+
+bison -y testp.y 
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to run bison.\n"
+    printf "       Please check your PATH, or install the program.\n"
+    exit 1
+else
+    printf "OK\n"
+fi
+/bin/rm -f testp.y y.tab.c
+
+#--------------------------------------------------------------------------
+#  Configuration steps
+#--------------------------------------------------------------------------
+
+cd src
+
+if [ "$bintraj" == "-DBINTRAJ" ]; then
+   ./configure_netcdf
+fi
+if [ -s ./configure_fftw3 ]; then
+  ./configure_fftw3 "$enablempi"
+fi
+if [ -s ./configure_xblas ]; then
+  ./configure_xblas
+fi
+if [ -s ./configure_boost ]; then
+  ./configure_boost
+fi
+
+#  Optional components: will be come command-line args at some point:
+
+if [ -d cpptraj -a ! -s cpptraj/configure_cpptraj.log ]; then
+   cd cpptraj
+   printf "Configuring cpptraj..."
+
+   OS=`uname -s`
+   if [  "$OS" == "Darwin" ]; then
+      compiler="clang"
+   else
+      compiler="gnu"
+   fi
+
+   ./configure -amberlib --prefix=$AMBERHOME \
+        --requires-flink --skip-checks  $compiler > configure_cpptraj.log
+   status=$?
+   if [ $status -gt 0 ]; then
+      printf "\nError: Unable to configure cpptraj\n"
+      printf "       Please check $AMBERHOME/src/cpptraj/configure_cpptraj.log\n"
+      exit 1
+   else
+      printf "OK\n"
+   fi
+   cd ..
+fi
+
+if [ "$conda" == "yes" ]; then
+   exit 0
+fi
+
+if [ -d ../miniconda -o -L ../miniconda ]; then
+	printf "\nUsing the python in $AMBERHOME/miniconda\n\n"
+else
+   echo ""
+   echo "We highly recommend to let AMBER install Python with all prerequisites"
+   echo "insie $AMBERHOME via a Continuum Miniconda distribution. "
+   echo "This will only need to be done once."
+   echo "It may take several minutes and will require Internet access."
+   echo ""
+   printf "Should I download and install Miniconda for you? [y/n] "
+   read answer
+   answer=`echo $answer | tr YN yn`
+   if [ "$answer" = 'y' ]; then
+       echo "Downloading an Amber-compatible Python version 2.7 via Miniconda "
+       echo "and installing it. This may take several minutes."
+       echo ""
+       echo "================================================================================"
+       ./configure_python --prefix $AMBERHOME
+       if [ $? -ne 0 ]; then
+           echo "Problem installing Miniconda... see error above."
+           exit 1
+       fi
+       echo "================================================================================"
+       echo "Done installing Miniconda!"
+   else
+       echo "You choose not to install Miniconda."
+       echo "   You will need to set up python on your own."
+       echo "   Then edit the src/config.h file to have the PYTHON variable"
+       echo "   point to the desired python program."
+   fi
+fi
+cd ..
+
+printf "\nThe next step is to type \n    'cd src && make install'\n\n"
+
+exit 0

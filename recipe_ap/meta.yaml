@@ -1,0 +1,14 @@
+package:
+  name: amber_phenix
+  version: 0.9.6
+
+source:
+  path: ../
+  
+build:
+  number: 0
+
+about:
+    home: https://ambermd.org
+    license: GNU General Public License (GPL/LGPL)
+    summary: Parts of AmberTools that are needed for interaction with the phenix crystallographic refinement package.
