@@ -1,0 +1,5 @@
+source leaprc.ff14SB
+set default PBRadii mbondi3
+x = loadpdb 2igd.pdb
+saveAmberParm x 2igd.parm7 2igd.rst7
+quit

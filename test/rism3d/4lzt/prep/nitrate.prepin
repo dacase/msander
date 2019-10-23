@@ -1,0 +1,22 @@
+    0    0    2
+
+This is a remark line
+molecule.res
+NO3 XYZ 0
+CHANGE    OMIT DU   BEG
+0.0
+1   DU1  DU M   0.       0.        0.     0.0   
+2   DU2  DU M   0.       0.        1.     0.0   
+3   DU3  DU M   0.       1.        0.     0.0   
+4   N    NP 3    0.016   -0.003   -0.018    0.905
+5   O1   OS E    0.291   -0.413    1.155   -0.635
+6   O3   OS E    0.894    0.188   -0.860   -0.635
+7   O2   OS E   -1.201    0.227   -0.278   -0.635
+
+
+LOOP
+
+IMPROPER
+
+DONE
+STOP

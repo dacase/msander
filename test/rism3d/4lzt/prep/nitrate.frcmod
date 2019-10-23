@@ -1,0 +1,20 @@
+PARAMFILE PhD Thesis Marc Baaden 250800
+
+MASS
+NP 14.01
+OS 16.
+
+BOND
+NP-OS   300.    1.26
+
+ANGL
+OS-NP-OS        150.    120.
+
+DIHE
+
+IMPR
+
+NONBD
+  NP       1.8240     0.1700
+  OS       1.6612     0.2100    
+

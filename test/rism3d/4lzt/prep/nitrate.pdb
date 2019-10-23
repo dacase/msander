@@ -1,0 +1,13 @@
+# 1.2ns-h3ono3
+ATOM      1 N    NO3    65       1.538  -0.710  -1.495  0.905
+ATOM      2 O1   NO3    65       1.813  -1.120  -0.322 -0.635
+ATOM      3 O3   NO3    65       2.416  -0.519  -2.337 -0.635
+ATOM      4 O2   NO3    65       0.321  -0.480  -1.755 -0.635
+END
+#liaisons :
+CONNECT    1 NP   2 3 4 
+CONNECT    2 OS   1 
+CONNECT    3 OS   1 
+CONNECT    4 OS   1 
+END
+#Nombre total de liaisons : 3

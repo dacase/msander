@@ -1,0 +1,252 @@
+
+          -------------------------------------------------------
+          Amber 18 SANDER                              2018
+          -------------------------------------------------------
+
+| Run on 05/22/2019 at 15:43:50
+
+|   Executable path: /home/tluchko/projects/testing/fix-center/bin/sander
+| Working directory: /home/tluchko/projects/testing/fix-center/test/rism3d/phosphate
+|          Hostname: metropolis.csun.edu
+
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: ph1.pse1.out                                                          
+|INPCRD: ph1.x                                                                 
+|  PARM: ph1.top                                                               
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|   Xvv: ../../../AmberTools/test/rism1d/tip3p-kh/tip3p.xvv.save
+ 
+ Here is the input file:
+ 
+ simple check for phosphate                                                    
+ &cntrl                                                                        
+    ntx=1, ntpr=1, ntwx=0,                                                     
+    imin=0,nstlim=0,                                                           
+    ntp=0,                                                                     
+    ntc=3,ntf=3,                                                               
+    ntb=0,                                                                     
+    nrespa=1,                                                                  
+    cut=12,                                                                    
+    irism=1,                                                                   
+/                                                                              
+&rism                                                                          
+    buffer = 12d0,                                                             
+    closure="pse1"                                                             
+    uccoeff=-0.149818,-3.2114559,-0.00053163,0.0103954                         
+    treeDCF=.false.                                                            
+    treeTCF=.false.                                                            
+    treeCoulomb=.false.                                                        
+    asympKSpaceTolerance = 0                                                   
+    ljTolerance = 0                                                            
+ /                                                                             
+|non-periodic 3D-RISM Forcing igb=6
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 03/18/12 Time = 15:07:48
+ NATOM  =       6 NTYPES =       3 NBONH =       1 MBONA  =       4
+ NTHETH =       1 MTHETA =       6 NPHIH =       3 MPHIA  =       0
+ NHPARM =       0 NPARM  =       0 NNB   =      16 NRES   =       1
+ NBONA  =       4 NTHETA =       6 NPHIA =       0 NUMBND =       3
+ NUMANG =       3 NPTRA  =       1 NATYP =       4 NPHB   =       0
+ IFBOX  =       1 NMXRS  =       6 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+ Implicit solvent radii are modified Bondi radii (mbondi)                                                   
+
+|     Memory Use     Allocated
+|     Real                1357
+|     Hollerith             21
+|     Integer            20176
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total               89 kbytes
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+po4                                                                             
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       3, ntb     =       0, igb     =       6, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =  12.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =         0, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+SHAKE:
+     ntc     =       3, jfastw  =       0
+     tol     =   0.00001
+3D-RISM:
+     closure   =  PSE1    
+     uccoeff   = -1.49818E-01 -3.21146E+00 -5.31630E-04  1.03954E-02
+     solvcut   =  12.00000, buffer  =  12.00000
+     grd_spc   =   0.50000    0.50000    0.50000
+     ng3       =        -1         -1         -1
+     solvbox   =  -1.00000   -1.00000   -1.00000
+     tolerance =  1.00E-05
+     mdiis_del =   0.70000, mdiis_nv=         5
+     mdiis_meth=         2, mdiis_re=  1.00E+01
+     maxstep   =     10000, npropaga=         5
+     centering =         1, zerofrc =         1
+     apply_rism=         1, asympcorr=         T
+     rismnrespa=         1, fcestrid=         0, fcecut  =9999.00000
+     fcenbasis =        20, fcenbase=        20, fcecrd  =         0
+|     fceweigh =         0, fcetrans     =         0  , fcesort    =         0
+|     fceifreq =         1, fceenormsw=  0.00D+00, fcentfrcor=         0
+|     fcewrite =    0         , fceread  =    0
+     polarDecomp         =         0, entropicDecomp    =         0
+     gfCorrection        =         0, pcplusCorrection  =         0
+     periodic            =         
+     write_ther=         1, volfmt  =  dx      
+     saveprogre=         0, ntwrism =        -1, verbose =         0
+     molReconstruct =    F
+     progress  =         1
+     treeDCF        =    F, treeTCF      =    F, treeCoulomb      =    F
+     treeDCFMAC     = 0.100, treeTCFMAC   = 0.100, treeCoulombMAC   = 0.100
+     treeDCFOrder   =    2, treeTCFOrder =    2, treeCoulombOrder =    2
+     treeDCFN0      =  500, treeTCFN0    =  500, treeCoulombN0    =  500
+     asympKSpaceTolerance =  0.00E+00, chargeSmear = 1.000
+     ljToleranc=  0.00E+00
+     biasPotent=   0.00000
+|  INFO: Old style inpcrd file read
+
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+po4                                                                             
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):      13.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =       7.     NUM_NOSHAKE =      0     CORRECTED RNDFP =       7.
+|  TOTAL # of degrees of freedom (RNDF) =       7.
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =      -324.3702  EKtot   =         0.0000  EPtot      =      -324.3702
+ BOND   =         0.0000  ANGLE   =        14.7473  DIHED      =         0.0128
+ 1-4 NB =         0.0000  1-4 EEL =       -95.6915  VDWAALS    =         0.0000
+ EELEC  =         0.0000  ERISM   =      -243.4388  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                     -3.2437021398151717E+002   0.0000000000000000E+000   0.0000000000000000E+000   0.0000000000000000E+000   1.4747321984283280E+001   1.2791774265399125E-002   0.0000000000000000E+000   0.0000000000000000E+000  -9.5691530208491059E+001   0.0000000000000000E+000  -2.4343879753157481E+002
+rism_excessChemicalPotential              -2.4343879753157671E+002   3.2057756493157238E+004  -3.2301195290688815E+004
+rism_excessChemicalPotentialUC            -2.5899935881151066E+002
+rism_solventPotentialEnergy               -5.2096129379426202E+002   3.1627108923581043E+004  -3.2148070217375305E+004
+rism_partialMolarVolume                    8.2427381088626277E+001
+rism_totalParticlesBox                                               6.7621054470010517E+002   1.3571563100138617E+003
+rism_totalChargeBox                        1.9745869958925821E+000  -5.6395959427988771E+002   5.6593418127578025E+002
+rism_excessParticlesBox                                             -3.5092001499786547E+000  -2.2831796863059877E+000
+rism_excessChargeBox                       1.9745869958926010E+000   2.9266729250821979E+000  -9.5208592918959678E-001
+rism_excessParticles                                                -3.5092001499786547E+000  -2.2831796863059877E+000
+rism_excessCharge                          1.9745869958926010E+000   2.9266729250821979E+000  -9.5208592918959678E-001
+rism_KirkwoodBuff                                                   -1.0538136342819152E+002  -3.4281969966281224E+001
+rism_DCFintegral                                                    -1.6471911905033600E+006   8.2300508000241523E+005
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|    Read coords time           0.00 ( 0.02% of Total)
+|                LJ Grid time               0.01 ( 0.30% of 3D-RI)
+|                Ewald Grid time            0.01 ( 0.42% of 3D-RI)
+|                Asymptotics time           0.04 ( 1.90% of 3D-RI)
+|                      FFT time                   0.60 (35.30% of R1RIS)
+|                         LAPACK time                0.00 ( 0.25% of MDIIS)
+|                         DATA time                  0.09 (25.35% of MDIIS)
+|                         Other                      0.26 (74.40% of MDIIS)
+|                      MDIIS time                 0.35 (20.68% of R1RIS)
+|                      Other                      0.75 (44.02% of R1RIS)
+|                   R1RISM time                1.70 (99.85% of RXRIS)
+|                   Other                      0.00 ( 0.15% of RXRIS)
+|                RXRISM time                1.71 (90.38% of 3D-RI)
+|                EXCESSCHEMICALPOTENT       0.01 ( 0.43% of 3D-RI)
+|                FF time                    0.09 ( 4.71% of 3D-RI)
+|                Resize Solvent Box t       0.03 ( 1.74% of 3D-RI)
+|                Solution Propagation       0.00 ( 0.05% of 3D-RI)
+|                Other                      0.00 ( 0.07% of 3D-RI)
+|             3D-RISM time               1.89 (100.0% of Nonbo)
+|                Calc gb off-diag           0.00 (94.28% of Gen B)
+|                Other                      0.00 ( 5.72% of Gen B)
+|             Gen Born time              0.00 ( 0.01% of Nonbo)
+|          Nonbond force              1.89 (100.0% of Force)
+|       Force time                 1.89 (98.83% of Runmd)
+|       Other                      0.02 ( 1.17% of Runmd)
+|    Runmd Time                 1.91 (96.27% of Total)
+|    Other                      0.07 ( 3.70% of Total)
+| Total time                 1.99 (100.0% of ALL  )
+
+| Number of list builds   :          0
+
+| Highest rstack allocated:          0
+| Highest istack allocated:          0
+|           Job began  at 15:43:50.731  on 05/22/2019
+|           Setup done at 15:43:50.806  on 05/22/2019
+|           Run   done at 15:43:52.717  on 05/22/2019
+|     wallclock() was called     807 times
+
+|3D-RISM memory allocation summary
+|Type          Maximum        Current   
+|Integer       0.00063 GB     0.00000 GB
+|Real          0.05435 GB     0.00000 GB
+|Logical       0.00000 GB     0.00000 GB
+|Character     0.00000 GB     0.00000 GB
+|---------------------------------------
+|Total         0.05466 GB     0.00000 GB

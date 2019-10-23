@@ -1,0 +1,20 @@
+molecule m,m2;
+atom a;
+float bfact[ hashed ];
+
+m = getpdb( "2WCU.prot.pdb" );
+
+for( a in m ){
+	// printf( "%s  %8.3f\n", a.fullname, a.bfact );
+    bfact[ a.fullname ] = a.bfact;
+}
+
+m2 = getpdb( "SolvXtal.pdb" );
+for( a in m2 ){
+	if( a.fullname in bfact ){
+		a.bfact = bfact[a.fullname];
+        fprintf( stderr, "setting bfact for %s to %8.3f\n", a.fullname, a.bfact );
+	}
+}
+
+putpdb( "foo.pdb", m2, "-wwpdb" );

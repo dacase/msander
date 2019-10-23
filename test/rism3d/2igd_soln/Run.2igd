@@ -1,0 +1,73 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP Tests PME potential gradients vs. analytic forces
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander"
+
+if ! { ../checkrismunsupported.sh $TESTsander } exit 0
+
+if( ! $?DO_PARALLEL ) then
+        setenv DO_PARALLEL " "
+else
+        set numprocs=`echo $DO_PARALLEL | awk -f ../../numprocs.awk `
+        if ( $numprocs > 4 ) then
+            echo " DO_PARALLEL set to $DO_PARALLEL"
+            goto toomany
+        endif
+        set TESTsander = $TESTsander.MPI
+        echo "Running $DO_PARALLEL $TESTsander"
+endif
+
+cat > mdin <<EOF
+2igd crystal unit cell
+ &cntrl
+    ntx=1, ntpr=1, ntwx=0, ntwr=0
+    ioutfm=1
+    imin=1, drms=1E-4
+    maxcyc=1, 
+    ig=314159
+    ntb=0
+    irism=1
+    cut=8.0
+ /
+ &rism
+    closure='kh'
+    !a real minimization should use a much lower tolerance
+    tolerance=1e-6
+    buffer=15, grdspc=0.5,0.5,0.5
+    solvcut=12.d0
+    verbose=1
+    npropagate=5
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10
+    apply_rism_force=1
+ /
+EOF
+
+$DO_PARALLEL $TESTsander -O -i mdin -o 2igd.out \
+    -p 2igd.parm7 -c 2igd.rst7 \
+    -xvv ../xvv/spc.kh.xvv || goto error
+
+../../dacdif -a 1.e-6 2igd.out.save 2igd.out
+/bin/rm -f mdin mdinfo restrt
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+toomany:
+    echo " too many processors for this test, exiting"
+    echo "============================================================"
+    exit(0)
+
+
+
+
+
+
+
+
+
+

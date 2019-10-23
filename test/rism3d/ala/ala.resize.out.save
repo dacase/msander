@@ -1,0 +1,575 @@
+
+          -------------------------------------------------------
+          Amber 18 SANDER                              2018
+          -------------------------------------------------------
+
+| Run on 05/22/2019 at 15:41:09
+
+|   Executable path: /home/tluchko/projects/testing/fix-center/bin/sander
+| Working directory: /home/tluchko/projects/testing/fix-center/test/rism3d/ala
+|          Hostname: metropolis.csun.edu
+
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: ala.resize.out                                                        
+|INPCRD: ala.rst7                                                              
+|  PARM: ala.parm7                                                             
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|   Xvv: ../../../AmberTools/test/rism1d/spc-kh/spc.xvv.save
+ 
+ Here is the input file:
+ 
+Alanine dipeptide run                                                          
+ &cntrl                                                                        
+    ntx=1, ntpr=5, ntwx=0,ntwr=0                                               
+    nstlim=50,dt=0.001,                                                        
+    ntt=3, ig=314159, tempi=0,gamma_ln=10,temp0=300, tempi=300,                
+    ntp=0,                                                                     
+    ntc=2,ntf=2,                                                               
+    ntb=0,                                                                     
+    nrespa=1,                                                                  
+    irism=1                                                                    
+    cut=999,                                                                   
+/                                                                              
+&rism                                                                          
+    rismnrespa=5                                                               
+    fcenbasis=5,fcestride=2,fcecrd=2                                           
+    fcetrans=4                                                                 
+    fcenbase=5                                                                 
+    tolerance=1d-8                                                             
+    buffer=10                                                                  
+    mdiis_method=2                                                             
+    verbose=1                                                                  
+    gfCorrection = 1                                                           
+    pcplusCorrection = 1                                                       
+    uccoeff=-0.149818,-0.1136266,-0.00053163,0.0103954                         
+    treeDCF=.false.                                                            
+    treeTCF=.false.                                                            
+    treeCoulomb=.false.                                                        
+    asympKSpaceTolerance = 0                                                   
+    ljTolerance = 0                                                            
+ /                                                                             
+|non-periodic 3D-RISM Forcing igb=6
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 12/10/08 Time = 14:10:41
+ NATOM  =      22 NTYPES =       7 NBONH =      12 MBONA  =       9
+ NTHETH =      25 MTHETA =      11 NPHIH =      42 MPHIA  =      22
+ NHPARM =       0 NPARM  =       0 NNB   =      99 NRES   =       3
+ NBONA  =       9 NTHETA =      11 NPHIA =      22 NUMBND =       8
+ NUMANG =      16 NPTRA  =      21 NATYP =       7 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      10 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+ Implicit solvent radii are modified Bondi radii (mbondi)                                                   
+
+|     Memory Use     Allocated
+|     Real                4609
+|     Hollerith             71
+|     Integer            21047
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total              118 kbytes
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+ACE                                                                             
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       5, ntrx    =       1, ntwr    =      50
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       2, ntb     =       0, igb     =       6, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     = 999.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =        50, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Langevin dynamics temperature regulation:
+     ig      =  314159
+     temp0   = 300.00000, tempi   = 300.00000, gamma_ln=  10.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
+3D-RISM:
+     closure   =  KH      
+     uccoeff   = -1.49818E-01 -1.13627E-01 -5.31630E-04  1.03954E-02
+     solvcut   =  10.00000, buffer  =  10.00000
+     grd_spc   =   0.50000    0.50000    0.50000
+     ng3       =        -1         -1         -1
+     solvbox   =  -1.00000   -1.00000   -1.00000
+     tolerance =  1.00E-08
+     mdiis_del =   0.70000, mdiis_nv=         5
+     mdiis_meth=         2, mdiis_re=  1.00E+01
+     maxstep   =     10000, npropaga=         5
+     centering =         1, zerofrc =         1
+     apply_rism=         1, asympcorr=         T
+     rismnrespa=         5, fcestrid=         2, fcecut  =9999.00000
+     fcenbasis =         5, fcenbase=         5, fcecrd  =         2
+|     fceweigh =         0, fcetrans     =         4  , fcesort    =         0
+|     fceifreq =         1, fceenormsw=  0.00D+00, fcentfrcor=         0
+|     fcewrite =    0         , fceread  =    0
+     polarDecomp         =         0, entropicDecomp    =         0
+     gfCorrection        =         1, pcplusCorrection  =         1
+     periodic            =         
+     write_ther=         1, volfmt  =  dx      
+     saveprogre=         0, ntwrism =        -1, verbose =         1
+     molReconstruct =    F
+     progress  =         1
+     treeDCF        =    F, treeTCF      =    F, treeCoulomb      =    F
+     treeDCFMAC     = 0.100, treeTCFMAC   = 0.100, treeCoulombMAC   = 0.100
+     treeDCFOrder   =    2, treeTCFOrder =    2, treeCoulombOrder =    2
+     treeDCFN0      =  500, treeTCFN0    =  500, treeCoulombN0    =  500
+     asympKSpaceTolerance =  0.00E+00, chargeSmear = 1.000
+     ljToleranc=  0.00E+00
+     biasPotent=   0.00000
+|  INFO: Old style inpcrd file read
+
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+ACE                                                                             
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):      54.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =      54.     NUM_NOSHAKE =      0     CORRECTED RNDFP =      54.
+|  TOTAL # of degrees of freedom (RNDF) =      54.
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.594,      10.095,      10.497
+|Switching to KH closure
+|RXRISM converged in   168 steps
+|Number of samples    1  /  Size of the outer time step (in dt):    0
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   448.53  PRESS =     0.0
+ Etot   =        23.7662  EKtot   =        24.0652  EPtot      =        -0.2991
+ BOND   =         0.0199  ANGLE   =         0.3669  DIHED      =         7.4922
+ 1-4 NB =         5.0158  1-4 EEL =        50.2288  VDWAALS    =         2.8089
+ EELEC  =       -82.4013  ERISM   =        16.1698  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                     -2.9907299576498048E-001   2.8089140654000886E+000  -8.2401331382912744E+001   1.9891987813857596E-002   3.6688023725071578E-001   7.4921632691029689E+000   0.0000000000000000E+000   5.0157574998830254E+000   5.0228823055198333E+001   0.0000000000000000E+000   1.6169828272498769E+001
+rism_excessChemicalPotential               1.6169828272498762E+001   7.9315845427421337E+001  -6.3146017154922575E+001
+rism_excessChemicalPotentialGF             6.0015815492327818E+000   7.4903848552281687E+001  -6.8902267003048905E+001
+rism_excessChemicalPotentialPCPLUS        -1.4984121012356232E+001
+rism_excessChemicalPotentialUC            -1.2785113937508891E+001
+rism_solventPotentialEnergy               -4.4416036232558056E+001   1.4625925870829763E+001  -5.9041962103387817E+001
+rism_partialMolarVolume                    1.9250901500492367E+002
+rism_totalParticlesBox                                               6.2302446159448948E+002   1.2460489216665985E+003
+rism_totalChargeBox                       -6.4518478406779604E-007  -5.2807553410335890E+002   5.2807553345817405E+002
+rism_excessParticlesBox                                             -6.3456725259585651E+000  -1.2691346574297516E+001
+rism_excessChargeBox                      -6.4518480807270670E-007   5.3785920376456344E+000  -5.3785926828304422E+000
+rism_excessParticles                                                -6.3456725259585651E+000  -1.2691346574297516E+001
+rism_excessCharge                         -6.4518480807270670E-007   5.3785920376456344E+000  -5.3785926828304422E+000
+rism_KirkwoodBuff                                                   -1.9056069590627291E+002  -1.9056071876483236E+002
+rism_DCFintegral                                                    -6.8811825223571041E+003   1.9720412771234762E+003
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.562,      10.018,      10.457
+|RXRISM converged in   135 steps
+|Number of samples    2  /  Size of the outer time step (in dt):    5
+|Size of the outer time step (in dt)    5
+
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =   214.04  PRESS =     0.0
+ Etot   =        19.4703  EKtot   =        11.4839  EPtot      =         7.9864
+ BOND   =         3.4890  ANGLE   =         6.3990  DIHED      =         7.9363
+ 1-4 NB =         4.6583  1-4 EEL =        48.0825  VDWAALS    =         2.8125
+ EELEC  =       -81.1009  ERISM   =        15.7097  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      7.9864118612658785E+000   2.8124991963889241E+000  -8.1100882464441156E+001   3.4890349006283135E+000   6.3990328116125523E+000   7.9362562507750569E+000   0.0000000000000000E+000   4.6582921257864518E+000   4.8082504113865696E+001   0.0000000000000000E+000   1.5709674926650029E+001
+rism_excessChemicalPotential               1.5709674926650038E+001   7.9906067164759563E+001  -6.4196392238109524E+001
+rism_excessChemicalPotentialGF             5.5522170483133237E+000   7.5499508189972119E+001  -6.9947291141658795E+001
+rism_excessChemicalPotentialPCPLUS        -1.5315740159827541E+001
+rism_excessChemicalPotentialUC            -1.3126274492164864E+001
+rism_solventPotentialEnergy               -4.5071909250211021E+001   1.5242860620921647E+001  -6.0314769871132668E+001
+rism_partialMolarVolume                    1.9171476604156302E+002
+rism_totalParticlesBox                                               6.2305091022550710E+002   1.2461018184726809E+003
+rism_totalChargeBox                       -8.3841763169708312E-007  -5.2809795196302878E+002   5.2809795112461109E+002
+rism_excessParticlesBox                                             -6.3192238949409125E+000  -1.2638449768215141E+001
+rism_excessChargeBox                      -8.3841765990285315E-007   5.3561741779757197E+000  -5.3561750163933795E+000
+rism_excessParticles                                                -6.3192238949409125E+000  -1.2638449768215141E+001
+rism_excessCharge                         -8.3841765990285315E-007   5.3561741779757197E+000  -5.3561750163933795E+000
+rism_KirkwoodBuff                                                   -1.8976644289181706E+002  -1.8976647259651517E+002
+rism_DCFintegral                                                    -6.9103502129873477E+003   1.9927459784412019E+003
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.482,      10.035,      10.439
+|RXRISM converged in   134 steps
+|Number of samples    3  /  Size of the outer time step (in dt):    5
+|Size of the outer time step (in dt)    5
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   232.04  PRESS =     0.0
+ Etot   =        19.4268  EKtot   =        12.4501  EPtot      =         6.9767
+ BOND   =         1.5353  ANGLE   =         8.9634  DIHED      =         8.5923
+ 1-4 NB =         4.1045  1-4 EEL =        46.2802  VDWAALS    =         1.3528
+ EELEC  =       -79.6155  ERISM   =        15.7636  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      6.9766521687281298E+000   1.3528096262750924E+000  -7.9615490876952776E+001   1.5352538054392157E+000   8.9634457869223159E+000   8.5922797510115672E+000   0.0000000000000000E+000   4.1045424226406375E+000   4.6280189520588472E+001   0.0000000000000000E+000   1.5763622132803608E+001
+rism_excessChemicalPotential               1.5763622132803604E+001   8.2165378517389058E+001  -6.6401756384585454E+001
+rism_excessChemicalPotentialGF             5.6010154451743546E+000   7.7757738136843841E+001  -7.2156722691669486E+001
+rism_excessChemicalPotentialPCPLUS        -1.5305221867670026E+001
+rism_excessChemicalPotentialUC            -1.3112532365749578E+001
+rism_solventPotentialEnergy               -4.5055820217302738E+001   1.7062371570314390E+001  -6.2118191787617128E+001
+rism_partialMolarVolume                    1.9198312551598059E+002
+rism_totalParticlesBox                                               6.2304197371972259E+002   1.2460839457736392E+003
+rism_totalChargeBox                       -7.0596852086649336E-007  -5.2809037738071925E+002   5.2809037667475070E+002
+rism_excessParticlesBox                                             -6.3281604007254497E+000  -1.2656322467256716E+001
+rism_excessChargeBox                      -7.0596850586342419E-007   5.3637487602852323E+000  -5.3637494662537382E+000
+rism_excessParticles                                                -6.3281604007254497E+000  -1.2656322467256716E+001
+rism_excessCharge                         -7.0596850586342419E-007   5.3637487602852323E+000  -5.3637494662537382E+000
+rism_KirkwoodBuff                                                   -1.9003480637170128E+002  -1.9003483138379531E+002
+rism_DCFintegral                                                    -7.0470640027954651E+003   2.0590347690409199E+003
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.411,      10.095,      10.446
+|RXRISM converged in   190 steps
+|Number of samples    4
+|Size of the outer time step (in dt)    5
+
+ NSTEP =       15   TIME(PS) =       0.015  TEMP(K) =   197.77  PRESS =     0.0
+ Etot   =        17.0140  EKtot   =        10.6112  EPtot      =         6.4029
+ BOND   =         2.0030  ANGLE   =         8.1597  DIHED      =         8.2929
+ 1-4 NB =         3.9712  1-4 EEL =        45.9101  VDWAALS    =         1.0129
+ EELEC  =       -79.0691  ERISM   =        16.1223  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      6.4028678461560986E+000   1.0128643385999667E+000  -7.9069076167838318E+001   2.0029604811852888E+000   8.1597014251191151E+000   8.2928960829458926E+000   0.0000000000000000E+000   3.9711653276315380E+000   4.5910106063538890E+001   0.0000000000000000E+000   1.6122250294973728E+001
+rism_excessChemicalPotential               1.6122250294973725E+001   8.0299927374657713E+001  -6.4177677079683988E+001
+rism_excessChemicalPotentialGF             5.9633003563693592E+000   7.5889979654423357E+001  -6.9926679298053998E+001
+rism_excessChemicalPotentialPCPLUS        -1.5016998362162502E+001
+rism_excessChemicalPotentialUC            -1.2819082550782047E+001
+rism_solventPotentialEnergy               -4.4467840142635232E+001   1.5682742314214805E+001  -6.0150582456850039E+001
+rism_partialMolarVolume                    1.9241817569154423E+002
+rism_totalParticlesBox                                               6.2302748601158476E+002   1.2460549718034292E+003
+rism_totalChargeBox                       -9.3125917769306583E-008  -5.2807809759929103E+002   5.2807809750616514E+002
+rism_excessParticlesBox                                             -6.3426481088633082E+000  -1.2685296437466844E+001
+rism_excessChargeBox                      -9.3125908767465088E-008   5.3760285417134819E+000  -5.3760286348393906E+000
+rism_excessParticles                                                -6.3426481088633082E+000  -1.2685296437466844E+001
+rism_excessCharge                         -9.3125908767465088E-008   5.3760285417134819E+000  -5.3760286348393906E+000
+rism_KirkwoodBuff                                                   -1.9046987258943369E+002  -1.9046987588883582E+002
+rism_DCFintegral                                                    -6.9274750129739014E+003   1.9958875728974344E+003
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.451,      10.026,      10.454
+|RXRISM converged in   156 steps
+|Size of the outer time step (in dt)    5
+
+ NSTEP =       20   TIME(PS) =       0.020  TEMP(K) =   297.87  PRESS =     0.0
+ Etot   =        18.9892  EKtot   =        15.9822  EPtot      =         3.0070
+ BOND   =         1.0768  ANGLE   =         6.3832  DIHED      =         7.6889
+ 1-4 NB =         3.5490  1-4 EEL =        46.6675  VDWAALS    =         0.8532
+ EELEC  =       -79.3350  ERISM   =        16.1234  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      3.0069907434737289E+000   8.5323026531588386E-001  -7.9335000588659199E+001   1.0768076814793051E+000   6.3832010789127001E+000   7.6888743819843022E+000   0.0000000000000000E+000   3.5489632253621091E+000   4.6667537124838930E+001   0.0000000000000000E+000   1.6123377574239679E+001
+rism_excessChemicalPotential               1.6123377574239683E+001   7.7610602013707179E+001  -6.1487224439467496E+001
+rism_excessChemicalPotentialGF             5.9199075257417633E+000   7.3178857534668609E+001  -6.7258950008926845E+001
+rism_excessChemicalPotentialPCPLUS        -1.5228514913920135E+001
+rism_excessChemicalPotentialUC            -1.3014814032085942E+001
+rism_solventPotentialEnergy               -4.4944844509549810E+001   1.3619035495293110E+001  -5.8563880004842922E+001
+rism_partialMolarVolume                    1.9373216173173861E+002
+rism_totalParticlesBox                                               6.2298373007784824E+002   1.2459674605862997E+003
+rism_totalChargeBox                        1.8248963231276660E-007  -5.2804101006982398E+002   5.2804101025231364E+002
+rism_excessParticlesBox                                             -6.3864040425998487E+000  -1.2772807654596376E+001
+rism_excessChargeBox                       1.8248968752406105E-007   5.4131160711805899E+000  -5.4131158886909025E+000
+rism_excessParticles                                                -6.3864040425998487E+000  -1.2772807654596376E+001
+rism_excessCharge                          1.8248968752406105E-007   5.4131160711805899E+000  -5.4131158886909025E+000
+rism_KirkwoodBuff                                                   -1.9178386431351882E+002  -1.9178385784800486E+002
+rism_DCFintegral                                                    -6.7574733648737611E+003   1.9007605545273491E+003
+
+ NSTEP =       25   TIME(PS) =       0.025  TEMP(K) =   308.71  PRESS =     0.0
+ Etot   =         3.7674  EKtot   =        16.5634  EPtot      =       -12.7960
+ BOND   =         3.1161  ANGLE   =         5.3450  DIHED      =         7.9320
+ 1-4 NB =         3.0891  1-4 EEL =        47.1551  VDWAALS    =         0.0216
+ EELEC  =       -79.4549  ERISM   =         0.0000  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.606,       9.758,      10.420
+|RXRISM converged in   154 steps
+    Error of the extrapolation:   4.856 %
+
+ NSTEP =       30   TIME(PS) =       0.030  TEMP(K) =   223.64  PRESS =     0.0
+ Etot   =        20.7724  EKtot   =        11.9992  EPtot      =         8.7733
+ BOND   =         2.2465  ANGLE   =        11.7393  DIHED      =         8.8796
+ 1-4 NB =         2.8797  1-4 EEL =        46.8915  VDWAALS    =        -0.8089
+ EELEC  =       -78.8710  ERISM   =        15.8165  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      8.7732705763027852E+000  -8.0887029666770327E-001  -7.8870959528590944E+001   2.2464635447577481E+000   1.1739330292863372E+001   8.8796092243073907E+000   0.0000000000000000E+000   2.8796808023399736E+000   4.6891518197773493E+001   0.0000000000000000E+000   1.5816498339519462E+001
+rism_excessChemicalPotential               1.5816498339519470E+001   8.1100339896491818E+001  -6.5283841556972348E+001
+rism_excessChemicalPotentialGF             5.4649671037796566E+000   7.6620976052681073E+001  -7.1156008948901416E+001
+rism_excessChemicalPotentialPCPLUS        -1.6102282914544698E+001
+rism_excessChemicalPotentialUC            -1.3846500496339759E+001
+rism_solventPotentialEnergy               -4.6904086875992945E+001   1.5669765899366286E+001  -6.2573852775359228E+001
+rism_partialMolarVolume                    1.9723512685965116E+002
+rism_totalParticlesBox                                               6.2286708187000499E+002   1.2457341624419619E+003
+rism_totalChargeBox                       -5.5011281699935726E-007  -5.2794213904877063E+002   5.2794213849865787E+002
+rism_excessParticlesBox                                             -6.5030522504430470E+000  -1.3006105798934094E+001
+rism_excessChargeBox                      -5.5011274258413434E-007   5.5119870922338370E+000  -5.5119876423465799E+000
+rism_excessParticles                                                -6.5030522504430470E+000  -1.3006105798934094E+001
+rism_excessCharge                         -5.5011274258413434E-007   5.5119870922338370E+000  -5.5119876423465799E+000
+rism_KirkwoodBuff                                                   -1.9528681275151146E+002  -1.9528683224171752E+002
+rism_DCFintegral                                                    -7.0026633133190999E+003   1.9963600322253874E+003
+
+ NSTEP =       35   TIME(PS) =       0.035  TEMP(K) =   226.27  PRESS =     0.0
+ Etot   =         3.6035  EKtot   =        12.1404  EPtot      =        -8.5369
+ BOND   =         4.9198  ANGLE   =         8.5774  DIHED      =         9.3490
+ 1-4 NB =         2.4087  1-4 EEL =        47.4104  VDWAALS    =        -1.2162
+ EELEC  =       -79.9860  ERISM   =         0.0000  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.383,       9.854,      10.403
+|RXRISM converged in   186 steps
+    Error of the extrapolation:   6.096 %
+
+ NSTEP =       40   TIME(PS) =       0.040  TEMP(K) =   214.05  PRESS =     0.0
+ Etot   =        20.8319  EKtot   =        11.4848  EPtot      =         9.3471
+ BOND   =         3.6009  ANGLE   =        12.6889  DIHED      =         9.0851
+ 1-4 NB =         2.0543  1-4 EEL =        46.6192  VDWAALS    =        -1.2279
+ EELEC  =       -79.8795  ERISM   =        16.4062  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      9.3471265947916109E+000  -1.2279443347810972E+000  -7.9879464341520617E+001   3.6008953448803478E+000   1.2688857962729850E+001   9.0851246550731073E+000   0.0000000000000000E+000   2.0542557855122245E+000   4.6619245628936092E+001   0.0000000000000000E+000   1.6406155893961699E+001
+rism_excessChemicalPotential               1.6406155893961696E+001   7.7840483346553938E+001  -6.1434327452592242E+001
+rism_excessChemicalPotentialGF             6.0323522967578214E+000   7.3343007777812332E+001  -6.7310655481054511E+001
+rism_excessChemicalPotentialPCPLUS        -1.5687462355380980E+001
+rism_excessChemicalPotentialUC            -1.3418701360392941E+001
+rism_solventPotentialEnergy               -4.6097390800933930E+001   1.3203903593504114E+001  -5.9301294394438045E+001
+rism_partialMolarVolume                    1.9831549382820913E+002
+rism_totalParticlesBox                                               6.2283110577030959E+002   1.2456622098186022E+003
+rism_totalChargeBox                       -7.2979076373163385E-007  -5.2791164570664250E+002   5.2791164497685168E+002
+rism_excessParticlesBox                                             -6.5390283501384836E+000  -1.3078058422293861E+001
+rism_excessChargeBox                      -7.2979076013089722E-007   5.5424804343620133E+000  -5.5424811641527727E+000
+rism_excessParticles                                                -6.5390283501384836E+000  -1.3078058422293861E+001
+rism_excessCharge                         -7.2979076013089722E-007   5.5424804343620133E+000  -5.5424811641527727E+000
+rism_KirkwoodBuff                                                   -1.9636717587550049E+002  -1.9636720173160450E+002
+rism_DCFintegral                                                    -6.7952522284981324E+003   1.8843286739189250E+003
+
+ NSTEP =       45   TIME(PS) =       0.045  TEMP(K) =   244.53  PRESS =     0.0
+ Etot   =         2.9384  EKtot   =        13.1202  EPtot      =       -10.1817
+ BOND   =         3.0789  ANGLE   =        10.6949  DIHED      =         8.2380
+ 1-4 NB =         2.1499  1-4 EEL =        44.1569  VDWAALS    =        -1.0076
+ EELEC  =       -77.4926  ERISM   =         0.0000  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+|No Lennard-Jones cutoff
+WARNING> No LJ tolerance or cutoff correction used. For more 
+accurate calculations, increase the tolerance, box 
+dimensions, or use buffer=0
+|Setting solvent box from buffer.
+||Setting solvation box to
+|grid size:         54 X         56 X         50
+|box size [A]:      27.000 X     28.000 X     25.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    10.406,       9.817,      10.379
+|RXRISM converged in   186 steps
+    Error of the extrapolation:   6.372 %
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   254.67  PRESS =     0.0
+ Etot   =        19.2130  EKtot   =        13.6643  EPtot      =         5.5487
+ BOND   =         1.4199  ANGLE   =        11.1787  DIHED      =         8.7906
+ 1-4 NB =         2.4328  1-4 EEL =        42.4184  VDWAALS    =        -0.7521
+ EELEC  =       -75.4261  ERISM   =        15.4866  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+solutePotentialEnergy                      5.5487198090922476E+000  -7.5206280124117408E-001  -7.5426137147040890E+001   1.4199093040598663E+000   1.1178700003891731E+001   8.7905666201607442E+000   0.0000000000000000E+000   2.4327788667260233E+000   4.2418350232619986E+001   0.0000000000000000E+000   1.5486614729915960E+001
+rism_excessChemicalPotential               1.5486614729915956E+001   8.3306726556565977E+001  -6.7820111826650020E+001
+rism_excessChemicalPotentialGF             5.1477212985688396E+000   7.8824495024834889E+001  -7.3676773726266049E+001
+rism_excessChemicalPotentialPCPLUS        -1.6265810146383249E+001
+rism_excessChemicalPotentialUC            -1.4022376768029631E+001
+rism_solventPotentialEnergy               -4.7221780820964113E+001   1.8201440249296038E+001  -6.5423221070260155E+001
+rism_partialMolarVolume                    1.9620716401197177E+002
+rism_totalParticlesBox                                               6.2290131293986019E+002   1.2458026250016701E+003
+rism_totalChargeBox                       -3.7211774892996018E-007  -5.2797115330360498E+002   5.2797115293148727E+002
+rism_excessParticlesBox                                             -6.4688211805878879E+000  -1.2937643239225972E+001
+rism_excessChargeBox                      -3.7211767331449169E-007   5.4829728373995570E+000  -5.4829732095172306E+000
+rism_excessParticles                                                -6.4688211805878879E+000  -1.2937643239225972E+001
+rism_excessCharge                         -3.7211767331449169E-007   5.4829728373995570E+000  -5.4829732095172306E+000
+rism_KirkwoodBuff                                                   -1.9425885291486202E+002  -1.9425886609879606E+002
+rism_DCFintegral                                                    -7.0978389265359019E+003   2.0518698039315441E+003
+
+      A V E R A G E S   O V E R      50 S T E P S
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =   250.95  PRESS =     0.0
+ Etot   =         5.8559  EKtot   =        13.4647  EPtot      =        -7.6088
+ BOND   =         2.5474  ANGLE   =         8.5552  DIHED      =         8.4071
+ 1-4 NB =         3.2283  1-4 EEL =        46.4562  VDWAALS    =         0.2453
+ EELEC  =       -79.2769  ERISM   =         2.2286  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =       50   TIME(PS) =       0.050  TEMP(K) =    50.76  PRESS =     0.0
+ Etot   =         5.5722  EKtot   =         2.7236  EPtot      =         6.4162
+ BOND   =         1.2105  ANGLE   =         2.9095  DIHED      =         0.5469
+ 1-4 NB =         0.9236  1-4 EEL =         1.5798  VDWAALS    =         1.3795
+ EELEC  =         1.3978  ERISM   =         5.5245  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|                LJ Grid time               0.14 ( 0.50% of 3D-RI)
+|                Ewald Grid time            0.16 ( 0.55% of 3D-RI)
+|                Asymptotics time           0.71 ( 2.46% of 3D-RI)
+|                      FFT time                  10.22 (40.27% of R1RIS)
+|                         LAPACK time                0.02 ( 0.24% of MDIIS)
+|                         DATA time                  1.68 (26.11% of MDIIS)
+|                         Other                      4.74 (73.66% of MDIIS)
+|                      MDIIS time                 6.43 (25.34% of R1RIS)
+|                      Other                      8.72 (34.39% of R1RIS)
+|                   R1RISM time               25.37 (100.0% of RXRIS)
+|                   Other                      0.01 ( 0.05% of RXRIS)
+|                RXRISM time               25.38 (87.58% of 3D-RI)
+|                EXCESSCHEMICALPOTENT       0.01 ( 0.05% of 3D-RI)
+|                FF time                    2.49 ( 8.61% of 3D-RI)
+|                Save Interpolation D       0.00 ( 0.01% of 3D-RI)
+|                Resize Solvent Box t       0.04 ( 0.13% of 3D-RI)
+|                Solution Propagation       0.03 ( 0.09% of 3D-RI)
+|                Other                      0.00 ( 0.02% of 3D-RI)
+|             3D-RISM time              28.98 (100.0% of Nonbo)
+|          Nonbond force             28.98 (100.0% of Force)
+|       Force time                28.98 (99.68% of Runmd)
+|       Verlet update time         0.08 ( 0.28% of Runmd)
+|       Other                      0.01 ( 0.04% of Runmd)
+|    Runmd Time                29.08 (99.73% of Total)
+|    Other                      0.08 ( 0.27% of Total)
+| Total time                29.16 (100.0% of ALL  )
+
+| Number of list builds   :          0
+
+| Highest rstack allocated:          0
+| Highest istack allocated:          0
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =      29.08 Per Step(ms) =     581.56
+|         ns/day =       0.15   seconds/ns =  581562.56
+| -----------------------------------------------------
+
+|           Job began  at 15:41:09.175  on 05/22/2019
+|           Setup done at 15:41:09.254  on 05/22/2019
+|           Run   done at 15:41:38.332  on 05/22/2019
+|     wallclock() was called   14331 times
+
+|3D-RISM memory allocation summary
+|Type          Maximum        Current   
+|Integer       0.00059 GB     0.00000 GB
+|Real          0.05076 GB     0.00000 GB
+|Logical       0.00000 GB     0.00000 GB
+|Character     0.00000 GB     0.00000 GB
+|---------------------------------------
+|Total         0.05106 GB     0.00000 GB

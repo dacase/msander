@@ -1,0 +1,15 @@
+This is a simple test case for pdb entry 2WCU, and room-temp P1 crystal
+
+The SolvXtal.pdb has water added, but the waters might not be in good
+positions.  The B-factors in this file were just copied from the original
+pdb entry.
+
+The 2wcu-sf.dat file is a table of observed structure factors, just extracted
+from the mmcif file deposited with the pdb.
+
+Some data files, all with values in the same order as in 2wcu-sf.dat:
+
+sfall_F.dat    values computed from the xray structure using sfall
+obs_F.dat      deposited structure factors
+xray_F.dat     calculated by Juno's program
+xray_Fobs.dat  (scaled) observed F's as printed by Juno's program

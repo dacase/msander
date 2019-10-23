@@ -1,0 +1,74 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP Tests PME potential gradients vs. analytic forces
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+echo "SANDER: 3D-RISM: PME potential - triclinic"
+if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander"
+
+if ! { ../checkrismunsupported.sh $TESTsander } exit 0
+
+if( ! $?DO_PARALLEL ) then
+        setenv DO_PARALLEL " "
+else
+#        set numprocs=`echo $DO_PARALLEL | awk -f ../../numprocs.awk `
+#        if ( $numprocs > 2 ) then
+#            echo " DO_PARALLEL set to $DO_PARALLEL"
+#            goto toomany
+#        endif
+#        set TESTsander = $TESTsander.MPI
+        echo "Running $DO_PARALLEL $TESTsander"
+endif
+
+cat > mdin <<EOF
+4lzt crystal unit cell
+ &cntrl
+    ntx=1, ntpr=1, ntwx=0, ntwr=0
+    ioutfm=1
+    imin=1, drms=1E-4, nstlim=0, maxcyc=0,
+    ig=314159
+    ntb=1
+    irism=1
+    cut=9.0
+ /
+ &rism
+    periodic='pme'
+    closure='kh'
+    buffer=1, grdspc=0.5,0.5,0.5
+    solvcut=9.0
+    verbose=2
+    npropagate=0
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10
+    apply_rism_force=0
+ /
+EOF
+
+$DO_PARALLEL $TESTsander -O -i mdin -o mdout \
+    -p 4lzt.parm7 -c 4lzt.rst7 \
+    -xvv ../xvv/spc-nacl.kh.xvv \
+    || goto error
+
+grep -E "^rism_|^solutePotentialEnergy" mdout | grep -v "rism_DCFintegral" > erism.out
+#grep ERISM 4lzt.pme.out > erism.out
+../../dacdif -r 5.e-2 erism.out.save erism.out
+/bin/rm -f mdin mdinfo restrt mdout
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+toomany:
+    echo " too many processors for this test, exiting"
+    echo "============================================================"
+    exit(0)
+
+
+
+
+
+
+
+
+
+

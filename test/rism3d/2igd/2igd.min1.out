@@ -1,0 +1,450 @@
+
+          -------------------------------------------------------
+          Amber 16 SANDER                              2016
+          -------------------------------------------------------
+
+| Run on 03/31/2017 at 16:16:47
+
+|   Executable path: ../../../bin/sander
+| Working directory: /Users/case/test/amber-rism-periodic/test/rism3d/2igd
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: 2igd.pme.out                                                          
+|INPCRD: 2igd.rst7                                                             
+|  PARM: 2igd.parm7                                                            
+|RESTRT: 2igd.min1.rst7                                                        
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|   Xvv: ../../../AmberTools/test/rism1d/spc-kh/spc.xvv.save
+
+ Here is the input file:
+
+2igd crystal unit cell                                                         
+ &cntrl                                                                        
+    ntx=1, ntpr=1, ntwx=0, ntwr=0, ntxo=1,                                     
+    imin=1, drms=1E-4                                                          
+    maxcyc=10, ntmin=3                                                         
+    ig=314159                                                                  
+    ntb=1                                                                      
+    irism=1                                                                    
+    cut=8.0                                                                    
+ /                                                                             
+ &rism                                                                         
+    periodic='pme'                                                             
+    closure='kh'                                                               
+    !a real minimization should use a much lower tolerance                     
+    tolerance=1e-6                                                             
+    buffer=15, grdspc=0.5,0.5,0.5                                              
+    solvcut=12.d0                                                              
+    verbose=1                                                                  
+    npropagate=5                                                               
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10                               
+    apply_rism_force=1                                                         
+ /                                                                             
+|periodic 3D-RISM Forcing igb=0
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+ getting new box info from bottom of inpcrd
+|  INFO: Old style inpcrd file read
+
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    17.525
+| New format PARM file being parsed.
+| Version =    1.000 Date = 10/19/14 Time = 14:06:44
+ NATOM  =    3708 NTYPES =      13 NBONH =    1836 MBONA  =    1900
+ NTHETH =    4164 MTHETA =    2588 NPHIH =    8572 MPHIA  =    8456
+ NHPARM =       0 NPARM  =       0 NNB   =   20436 NRES   =     244
+ NBONA  =    1900 NTHETA =    2588 NPHIA =    8456 NUMBND =      52
+ NUMANG =     123 NPTRA  =     196 NATYP =      26 NPHB   =       0
+ IFBOX  =       1 NMXRS  =      24 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              377076
+|     Hollerith          11370
+|     Integer           920486
+|     Max Pairs        1236000
+|     nblistReal         44496
+|     nblist Int        278140
+|       Total            12848 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+
+General flags:
+     imin    =       1, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =       1
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =      10, ncyc    =      10, ntmin   =       3
+     dx0     =   0.01000, drms    =   0.00010
+
+LMOD:
+     xmin_method                  = LBFGS
+     lbfgs_memory_depth           =       3
+     matrix_vector_product_method = forward finite difference
+     xmin_verbosity               =       0
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       0
+     Box X =   35.050   Box Y =   40.500   Box Z =   42.370
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   36       NFFT2 =   40       NFFT3 =   45
+     Cutoff=    8.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.34864
+     Interpolation order =    4
+3D-RISM:
+     closure   =  KH      
+     uccoeff   =  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
+     solvcut   =  12.00000, buffer  =  15.00000
+     grd_spc   =   0.50000    0.50000    0.50000
+     ng3       =        -1         -1         -1
+     solvbox   =  -1.00000   -1.00000   -1.00000
+     tolerance =  1.00E-10
+     mdiis_del =   0.70000, mdiis_nv=         5
+     mdiis_meth=         2, mdiis_re=  1.00E+01
+     maxstep   =     10000, npropaga=         5
+     centering =         1, zerofrc =         1
+     apply_rism=         1, asympcorr=         F
+     rismnrespa=         1, fcestrid=         0, fcecut  =9999.00000
+     fcenbasis =        20, fcenbase=        20, fcecrd  =         0
+|     fceweigh =         0, fcetrans     =         0  , fcesort    =         0
+|     fceifreq =         1, fceenormsw=  0.00D+00, fcentfrcor=         0
+|     fcewrite =    0         , fceread  =    0
+     polarDecomp         =         0, entropicDecomp    =         0
+     gfCorrection        =         0, pcplusCorrection  =         0
+     periodic            = pme     
+     write_ther=         1, volfmt  =  dx      
+     saveprogre=         0, ntwrism =        -1, verbose =         1
+     progress  =         1
+     biasPotent=   0.00000
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =  -8.00000008
+     Assuming uniform neutralizing plasma
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+  LMOD XMIN Minimization.
+
+  Note: Owing to the behaviour of the XMIN algorithm,
+        coordinates in the trajectory and intermediate
+        restart files will not match up with energies
+        in the mdout and mdinfo files. The final energy
+        and final coordinates do match.
+
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
+| CHECK d/dx switch(x): max rel err =   0.8332E-11   at   2.782960
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =     532392
+| TOTAL SIZE OF NONBOND LIST =     532392
+||Setting solvation box to
+|grid size:         72 X         84 X         90
+|box size [A]:      35.050 X     40.500 X     42.370
+|grid spacing [A]:      0.487 X      0.482 X      0.471
+|internal angles [°]:      90.000,     90.000,     90.000
+|inscribed sphere radius [A]:     17.525
+|Switching to KH closure
+|RXRISM converged in   816 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      0       6.8615E+02     1.4468E+01     1.2837E+02     HA       1110
+
+ BOND    =      409.8920  ANGLE   =      611.1465  DIHED      =     4314.9311
+ VDWAALS =    -1877.0980  EEL     =   -19848.9515  ERISM      =     2699.9901
+ 1-4 VDW =     1099.6146  1-4 EEL =    13276.6235  RESTRAINT  =        0.0000
+solutePotentialEnergy                      6.86148236E+002  -1.87709802E+003  -1.98489515E+004   4.09892001E+002   6.11146532E+002   4.31493107E+003   0.00000000E+000   1.09961459E+003   1.32766235E+004   0.00000000E+000   2.69999005E+003
+rism_excessChemicalPotential               2.69999005E+003   9.58045108E+003  -6.88046103E+003
+rism_solventPotentialEnergy               -6.72357053E+003  -4.00414639E+003  -2.71942415E+003
+rism_partialMolarVolume                    3.23629393E+004
+rism_totalParticlesBox                                       9.25216492E+002   1.85043300E+003
+rism_totalChargeBox                        6.76342682E-006  -7.84213499E+002   7.84213506E+002
+rism_excessParticlesBox                                     -1.07762157E+003  -2.15524312E+003
+rism_excessChargeBox                       6.76342682E-006   9.13392041E+002  -9.13392034E+002
+rism_KirkwoodBuff                                           -3.23610011E+004  -3.23610009E+004
+rism_DCFintegral                                            -1.13211352E+006   3.16667747E+005
+|RXRISM converged in   688 steps
+|RXRISM converged in   619 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      1       1.2104E+02     6.7771E+00     6.4658E+01     HA       2037
+
+ BOND    =      152.0142  ANGLE   =      485.4424  DIHED      =     4292.1629
+ VDWAALS =    -1919.3088  EEL     =   -19853.5710  ERISM      =     2690.3947
+ 1-4 VDW =     1028.2606  1-4 EEL =    13245.6421  RESTRAINT  =        0.0000
+solutePotentialEnergy                      1.21037044E+002  -1.91930883E+003  -1.98535710E+004   1.52014224E+002   4.85442382E+002   4.29216288E+003   0.00000000E+000   1.02826056E+003   1.32456421E+004   0.00000000E+000   2.69039466E+003
+rism_excessChemicalPotential               2.69039466E+003   9.56250355E+003  -6.87210889E+003
+rism_solventPotentialEnergy               -6.74007002E+003  -3.98529019E+003  -2.75477983E+003
+rism_partialMolarVolume                    3.23547222E+004
+rism_totalParticlesBox                                       9.25490119E+002   1.85098025E+003
+rism_totalChargeBox                        6.74529001E-006  -7.84445426E+002   7.84445432E+002
+rism_excessParticlesBox                                     -1.07734794E+003  -2.15469586E+003
+rism_excessChargeBox                       6.74529001E-006   9.13160115E+002  -9.13160108E+002
+rism_KirkwoodBuff                                           -3.23527841E+004  -3.23527839E+004
+rism_DCFintegral                                            -1.12933816E+006   3.15343393E+005
+|RXRISM converged in   669 steps
+|RXRISM converged in   585 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      2      -1.0749E+02     6.2323E+00     6.2859E+01     CG       2482
+
+ BOND    =      149.0670  ANGLE   =      395.8242  DIHED      =     4273.4636
+ VDWAALS =    -1960.3017  EEL     =   -19860.6641  ERISM      =     2689.3172
+ 1-4 VDW =      986.0620  1-4 EEL =    13219.7389  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -1.07492975E+002  -1.96030173E+003  -1.98606641E+004   1.49066993E+002   3.95824228E+002   4.27346356E+003   0.00000000E+000   9.86061999E+002   1.32197389E+004   0.00000000E+000   2.68931715E+003
+rism_excessChemicalPotential               2.68931715E+003   9.56793501E+003  -6.87861786E+003
+rism_solventPotentialEnergy               -6.74557064E+003  -3.96529859E+003  -2.78027206E+003
+rism_partialMolarVolume                    3.23643667E+004
+rism_totalParticlesBox                                       9.25168959E+002   1.85033793E+003
+rism_totalChargeBox                        6.60309614E-006  -7.84173211E+002   7.84173217E+002
+rism_excessParticlesBox                                     -1.07766910E+003  -2.15533818E+003
+rism_excessChargeBox                       6.60309614E-006   9.13432330E+002  -9.13432323E+002
+rism_KirkwoodBuff                                           -3.23624285E+004  -3.23624283E+004
+rism_DCFintegral                                            -1.12886736E+006   3.15033665E+005
+|RXRISM converged in   627 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      3      -1.8828E+02     9.4564E+00     1.3625E+02     CG       2482
+
+ BOND    =      214.1513  ANGLE   =      398.1487  DIHED      =     4271.6783
+ VDWAALS =    -2011.3801  EEL     =   -19837.6477  ERISM      =     2688.8282
+ 1-4 VDW =      931.8618  1-4 EEL =    13156.0821  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -1.88277497E+002  -2.01138006E+003  -1.98376477E+004   2.14151252E+002   3.98148664E+002   4.27167831E+003   0.00000000E+000   9.31861786E+002   1.31560821E+004   0.00000000E+000   2.68882819E+003
+rism_excessChemicalPotential               2.68882819E+003   9.68461383E+003  -6.99578564E+003
+rism_solventPotentialEnergy               -6.76000129E+003  -3.80583288E+003  -2.95416841E+003
+rism_partialMolarVolume                    3.24018521E+004
+rism_totalParticlesBox                                       9.23920694E+002   1.84784140E+003
+rism_totalChargeBox                        6.82444200E-006  -7.83115181E+002   7.83115187E+002
+rism_excessParticlesBox                                     -1.07891737E+003  -2.15783472E+003
+rism_excessChargeBox                       6.82444185E-006   9.14490360E+002  -9.14490353E+002
+rism_KirkwoodBuff                                           -3.23999140E+004  -3.23999137E+004
+rism_DCFintegral                                            -1.13258095E+006   3.16601582E+005
+|RXRISM converged in   652 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      4      -3.9181E+02     2.8883E+00     1.8259E+01     CA       2036
+
+ BOND    =       72.1950  ANGLE   =      336.0473  DIHED      =     4262.4488
+ VDWAALS =    -2002.3316  EEL     =   -19853.7323  ERISM      =     2688.8399
+ 1-4 VDW =      933.7279  1-4 EEL =    13170.9922  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -3.91812654E+002  -2.00233156E+003  -1.98537323E+004   7.21949630E+001   3.36047305E+002   4.26244885E+003   0.00000000E+000   9.33727944E+002   1.31709922E+004   0.00000000E+000   2.68883991E+003
+rism_excessChemicalPotential               2.68883991E+003   9.62394781E+003  -6.93510790E+003
+rism_solventPotentialEnergy               -6.75645224E+003  -3.88825582E+003  -2.86819641E+003
+rism_partialMolarVolume                    3.23923171E+004
+rism_totalParticlesBox                                       9.24238209E+002   1.84847643E+003
+rism_totalChargeBox                        6.78027343E-006  -7.83384307E+002   7.83384313E+002
+rism_excessParticlesBox                                     -1.07859985E+003  -2.15719968E+003
+rism_excessChargeBox                       6.78027358E-006   9.14221234E+002  -9.14221227E+002
+rism_KirkwoodBuff                                           -3.23903790E+004  -3.23903788E+004
+rism_DCFintegral                                            -1.13061709E+006   3.15693132E+005
+|RXRISM converged in   542 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      5      -4.2550E+02     2.1187E+00     1.3611E+01     CG       2482
+
+ BOND    =       65.1404  ANGLE   =      327.2891  DIHED      =     4259.9443
+ VDWAALS =    -2005.5954  EEL     =   -19854.6997  ERISM      =     2688.6360
+ 1-4 VDW =      926.7450  1-4 EEL =    13167.0434  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -4.25497041E+002  -2.00559537E+003  -1.98546997E+004   6.51403914E+001   3.27289068E+002   4.25994427E+003   0.00000000E+000   9.26744953E+002   1.31670434E+004   0.00000000E+000   2.68863601E+003
+rism_excessChemicalPotential               2.68863601E+003   9.62119014E+003  -6.93255413E+003
+rism_solventPotentialEnergy               -6.75771081E+003  -3.89053295E+003  -2.86717786E+003
+rism_partialMolarVolume                    3.23945855E+004
+rism_totalParticlesBox                                       9.24162674E+002   1.84832536E+003
+rism_totalChargeBox                        6.69586970E-006  -7.83320283E+002   7.83320290E+002
+rism_excessParticlesBox                                     -1.07867539E+003  -2.15735076E+003
+rism_excessChargeBox                       6.69586986E-006   9.14285258E+002  -9.14285251E+002
+rism_KirkwoodBuff                                           -3.23926473E+004  -3.23926471E+004
+rism_DCFintegral                                            -1.13045008E+006   3.15592146E+005
+|RXRISM converged in   621 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      6      -4.8768E+02     2.3664E+00     3.3169E+01     CG       2482
+
+ BOND    =       66.1930  ANGLE   =      310.5884  DIHED      =     4253.6801
+ VDWAALS =    -2012.7827  EEL     =   -19857.5927  ERISM      =     2692.4891
+ 1-4 VDW =      906.7096  1-4 EEL =    13153.0339  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -4.87681258E+002  -2.01278275E+003  -1.98575927E+004   6.61930333E+001   3.10588449E+002   4.25368008E+003   0.00000000E+000   9.06709609E+002   1.31530339E+004   0.00000000E+000   2.69248912E+003
+rism_excessChemicalPotential               2.69248912E+003   9.60846999E+003  -6.91598087E+003
+rism_solventPotentialEnergy               -6.75336874E+003  -3.90516423E+003  -2.84820452E+003
+rism_partialMolarVolume                    3.24040062E+004
+rism_totalParticlesBox                                       9.23848964E+002   1.84769794E+003
+rism_totalChargeBox                        6.52985205E-006  -7.83054383E+002   7.83054389E+002
+rism_excessParticlesBox                                     -1.07898910E+003  -2.15797818E+003
+rism_excessChargeBox                       6.52985189E-006   9.14551158E+002  -9.14551151E+002
+rism_KirkwoodBuff                                           -3.24020680E+004  -3.24020678E+004
+rism_DCFintegral                                            -1.12989213E+006   3.15240569E+005
+|RXRISM converged in   583 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      7      -5.3776E+02     2.6426E+00     3.3229E+01     CG       2482
+
+ BOND    =       67.6257  ANGLE   =      303.9905  DIHED      =     4251.1772
+ VDWAALS =    -2018.0801  EEL     =   -19864.4209  ERISM      =     2698.8583
+ 1-4 VDW =      887.4733  1-4 EEL =    13135.6181  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -5.37757768E+002  -2.01808008E+003  -1.98644209E+004   6.76257498E+001   3.03990530E+002   4.25117722E+003   0.00000000E+000   8.87473266E+002   1.31356181E+004   0.00000000E+000   2.69885832E+003
+rism_excessChemicalPotential               2.69885832E+003   9.60954796E+003  -6.91068964E+003
+rism_solventPotentialEnergy               -6.74500942E+003  -3.89399034E+003  -2.85101908E+003
+rism_partialMolarVolume                    3.24163532E+004
+rism_totalParticlesBox                                       9.23437807E+002   1.84687563E+003
+rism_totalChargeBox                        6.69923653E-006  -7.82705886E+002   7.82705893E+002
+rism_excessParticlesBox                                     -1.07940025E+003  -2.15880049E+003
+rism_excessChargeBox                       6.69923669E-006   9.14899654E+002  -9.14899648E+002
+rism_KirkwoodBuff                                           -3.24144151E+004  -3.24144148E+004
+rism_DCFintegral                                            -1.12942143E+006   3.14910070E+005
+|RXRISM converged in   544 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      8      -5.7018E+02     3.8617E+00     3.9496E+01     CG       2482
+
+ BOND    =       75.2753  ANGLE   =      309.0660  DIHED      =     4248.9864
+ VDWAALS =    -2023.3527  EEL     =   -19868.4163  ERISM      =     2707.6585
+ 1-4 VDW =      871.3307  1-4 EEL =    13109.2701  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -5.70181891E+002  -2.02335274E+003  -1.98684163E+004   7.52753318E+001   3.09066017E+002   4.24898641E+003   0.00000000E+000   8.71330729E+002   1.31092701E+004   0.00000000E+000   2.70765854E+003
+rism_excessChemicalPotential               2.70765854E+003   9.56480950E+003  -6.85715096E+003
+rism_solventPotentialEnergy               -6.73100578E+003  -3.92256698E+003  -2.80843880E+003
+rism_partialMolarVolume                    3.24266722E+004
+rism_totalParticlesBox                                       9.23094185E+002   1.84618838E+003
+rism_totalChargeBox                        6.62941965E-006  -7.82414632E+002   7.82414638E+002
+rism_excessParticlesBox                                     -1.07974387E+003  -2.15948773E+003
+rism_excessChargeBox                       6.62941965E-006   9.15190909E+002  -9.15190902E+002
+rism_KirkwoodBuff                                           -3.24247341E+004  -3.24247338E+004
+rism_DCFintegral                                            -1.12632091E+006   3.13280285E+005
+|RXRISM converged in   534 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      9      -5.9870E+02     1.6614E+00     1.0919E+01     CG       1555
+
+ BOND    =       58.3491  ANGLE   =      304.2013  DIHED      =     4249.0074
+ VDWAALS =    -2025.3979  EEL     =   -19869.6588  ERISM      =     2706.3480
+ 1-4 VDW =      870.2864  1-4 EEL =    13108.1658  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -5.98698733E+002  -2.02539785E+003  -1.98696588E+004   5.83491291E+001   3.04201315E+002   4.24900741E+003   0.00000000E+000   8.70286369E+002   1.31081658E+004   0.00000000E+000   2.70634796E+003
+rism_excessChemicalPotential               2.70634796E+003   9.56454711E+003  -6.85819915E+003
+rism_solventPotentialEnergy               -6.73346005E+003  -3.91579541E+003  -2.81766464E+003
+rism_partialMolarVolume                    3.24260446E+004
+rism_totalParticlesBox                                       9.23115082E+002   1.84623018E+003
+rism_totalChargeBox                        6.52438768E-006  -7.82432344E+002   7.82432351E+002
+rism_excessParticlesBox                                     -1.07972298E+003  -2.15944594E+003
+rism_excessChargeBox                       6.52438784E-006   9.15173196E+002  -9.15173190E+002
+rism_KirkwoodBuff                                           -3.24241065E+004  -3.24241063E+004
+rism_DCFintegral                                            -1.12595066E+006   3.13099997E+005
+|RXRISM converged in   579 steps
+|RXRISM converged in     1 steps
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+     10      -6.1752E+02     1.4571E+00     9.1611E+00     CZ2       718
+
+ BOND    =       57.9372  ANGLE   =      305.0446  DIHED      =     4248.6022
+ VDWAALS =    -2029.2617  EEL     =   -19872.0769  ERISM      =     2705.3078
+ 1-4 VDW =      866.2137  1-4 EEL =    13100.7148  RESTRAINT  =        0.0000
+solutePotentialEnergy                     -6.17518424E+002  -2.02926172E+003  -1.98720769E+004   5.79371955E+001   3.05044623E+002   4.24860216E+003   0.00000000E+000   8.66213658E+002   1.31007148E+004   0.00000000E+000   2.70530778E+003
+rism_excessChemicalPotential               2.70530778E+003   9.54297572E+003  -6.83766794E+003
+rism_solventPotentialEnergy               -6.73546140E+003  -3.92612989E+003  -2.80933151E+003
+rism_partialMolarVolume                    3.24256074E+004
+rism_totalParticlesBox                                       9.23129643E+002   1.84625930E+003
+rism_totalChargeBox                        6.38139600E-006  -7.82444686E+002   7.82444692E+002
+rism_excessParticlesBox                                     -1.07970842E+003  -2.15941682E+003
+rism_excessChargeBox                       6.38139585E-006   9.15160855E+002  -9.15160848E+002
+rism_KirkwoodBuff                                           -3.24236693E+004  -3.24236690E+004
+rism_DCFintegral                                            -1.12428553E+006   3.12270801E+005
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|                LJ Grid time             538.79 ( 3.07% of 3D-RI)
+|                Ewald Grid time          669.21 ( 3.81% of 3D-RI)
+|                      FFT time                 259.35 (52.60% of R1RIS)
+|                         LAPACK time                0.06 ( 0.08% of MDIIS)
+|                         DATA time                 20.57 (26.73% of MDIIS)
+|                         Other                     56.31 (73.19% of MDIIS)
+|                      MDIIS time                76.94 (15.61% of R1RIS)
+|                      Other                    156.74 (31.79% of R1RIS)
+|                   R1RISM time              493.04 (100.0% of RXRIS)
+|                   Other                      0.12 ( 0.02% of RXRIS)
+|                RXRISM time              493.16 ( 2.81% of 3D-RI)
+|                FF time                15857.30 (90.31% of 3D-RI)
+|             3D-RISM time           17559.37 (96.33% of Nonbo)
+|                AIPS grid                668.88 (100.0% of AIPS )
+|             AIPS time                668.88 ( 3.67% of Nonbo)
+|          Nonbond force          18228.54 (100.0% of Force)
+|       Force time             18228.59 (100.0% of Runmd)
+|    Runmd Time             18228.59 (100.0% of Total)
+| Total time             17559.98 (100.0% of ALL  )
+
+| Number of list builds   :          1
+
+| Highest rstack allocated:     247922
+| Highest istack allocated:       3708
+|           Job began  at 16:16:47.565  on 03/31/2017
+|           Setup done at 16:16:47.740  on 03/31/2017
+|           Run   done at 21:09:27.543  on 03/31/2017
+|     wallclock() was called   97600 times

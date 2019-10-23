@@ -1,0 +1,11 @@
+source leaprc.protein.ff14SB
+set default nocenter on
+
+x = loadPdb 4lzt_prot.pdb
+bond x.6.SG  x.127.SG
+bond x.30.SG x.115.SG
+bond x.64.SG x.80.SG
+bond x.76.SG x.94.SG
+
+saveAmberParm x 4lzt_soln.parm7 4lzt_soln.rst7
+quit

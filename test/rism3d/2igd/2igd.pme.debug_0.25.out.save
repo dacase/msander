@@ -1,0 +1,296 @@
+
+          -------------------------------------------------------
+          Amber 16 SANDER                              2016
+          -------------------------------------------------------
+
+| Run on 04/10/2017 at 15:35:21
+
+|   Executable path: ../../../bin/sander
+| Working directory: /Users/case/amber16/test/rism3d/2igd
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: 2igd.pme.debug.out                                                    
+|INPCRD: 2igd.rst7                                                             
+|  PARM: 2igd.parm7                                                            
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|   Xvv: ../../../AmberTools/test/rism1d/spc-kh/spc.xvv.save
+
+ Here is the input file:
+
+2igd crystal unit cell                                                         
+ &cntrl                                                                        
+    ntx=1, ntpr=1, ntwx=0, ntwr=0                                              
+    ioutfm=1                                                                   
+    imin=1, drms=1E-4                                                          
+    maxcyc=1, ntmin=3                                                          
+    ig=314159                                                                  
+    ntb=1                                                                      
+    irism=1                                                                    
+    cut=8.0                                                                    
+ /                                                                             
+ &ewald                                                                        
+    vdwmeth=0,                                                                 
+ /                                                                             
+ &rism                                                                         
+    periodic='pme'                                                             
+    closure='kh'                                                               
+    !a real minimization should use a much lower tolerance                     
+    tolerance=1e-6                                                             
+    buffer=15, grdspc=0.25,0.25,0.25                                           
+    solvcut=12.d0                                                              
+    verbose=1                                                                  
+    npropagate=5                                                               
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10                               
+    apply_rism_force=1                                                         
+ /                                                                             
+ &debugf                                                                       
+  ! Enable debugging.                                                          
+  do_debugf=1                                                                  
+  ! Atom spatial offset. Negative log of delta used in numerical               
+  ! differentiating; e.g. 4 means delta is 10^-4 Angstroms.                    
+  neglgdel=4                                                                   
+  ! Number of random atoms to test.                                            
+  nranatm=3                                                                    
+  ! Check atomic and molecular virials.                                        
+  chkvir=0                                                                     
+  ! Dump energies, forces, and virials to forcedump.dat.                       
+  dumpfrc=0                                                                    
+  ! Compare energies, forces and virials to forcedump.dat.                     
+  rmsfrc=0                                                                     
+  ! Zero out charge or van der Waals parameters.                               
+  zerochg=0                                                                    
+  zerovdw=0                                                                    
+  ! Real-space (direct) non-bonded interactions (van der Waals, electrostatic).
+  do_dir=1                                                                     
+  ! k-space (reciprocal) portion of Ewald sum.                                 
+  do_rec=1                                                                     
+  ! Adjust Ewald sum to remove the Gaussian charge contribution from           
+  ! neighboring bonded atoms and other atoms that should not have              
+  ! non-bonded pair forces.                                                    
+  do_adj=1                                                                     
+  ! Remove from Ewald sum the interaction of point charge with its own         
+  ! Gaussian.                                                                  
+  do_self=1                                                                    
+  ! Bond forces.                                                               
+  do_bond=1                                                                    
+  ! Angle forces.                                                              
+  do_angle=1                                                                   
+  ! Dihedral forces.                                                           
+  do_ephi=1                                                                    
+  ! cap force (whatever that is).                                              
+  do_cap=1                                                                     
+  ! Apply harmonic position constraints.                                       
+  doxconst=1                                                                   
+  ! 1-4 interactions (???).                                                    
+  do_14=1                                                                      
+  ! Targeted MD simulation with restraints based on RMSD.                      
+  do_tgt=0                                                                     
+  ! PBSA related routines.                                                     
+  do_pbdir=0                                                                   
+  do_pbnp=0                                                                    
+  do_pbfd=0                                                                    
+ /                                                                             
+|periodic 3D-RISM Forcing igb=0
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+ getting new box info from bottom of inpcrd
+|  INFO: Old style inpcrd file read
+
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    17.525
+| New format PARM file being parsed.
+| Version =    1.000 Date = 10/19/14 Time = 14:06:44
+ NATOM  =    3708 NTYPES =      13 NBONH =    1836 MBONA  =    1900
+ NTHETH =    4164 MTHETA =    2588 NPHIH =    8572 MPHIA  =    8456
+ NHPARM =       0 NPARM  =       0 NNB   =   20436 NRES   =     244
+ NBONA  =    1900 NTHETA =    2588 NPHIA =    8456 NUMBND =      52
+ NUMANG =     123 NPTRA  =     196 NATYP =      26 NPHB   =       0
+ IFBOX  =       1 NMXRS  =      24 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              377076
+|     Hollerith          11370
+|     Integer           920486
+|     Max Pairs        1236000
+|     nblistReal         44496
+|     nblist Int        278140
+|       Total            12848 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+
+General flags:
+     imin    =       1, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =       1, ncyc    =      10, ntmin   =       3
+     dx0     =   0.01000, drms    =   0.00010
+
+LMOD:
+     xmin_method                  = LBFGS
+     lbfgs_memory_depth           =       3
+     matrix_vector_product_method = forward finite difference
+     xmin_verbosity               =       0
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       0, eedmeth =       1, netfrc  =       0
+     Box X =   35.050   Box Y =   40.500   Box Z =   42.370
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   36       NFFT2 =   40       NFFT3 =   45
+     Cutoff=    8.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.34864
+     Interpolation order =    4
+| Warning: periodic RISM may still be buggy,
+|    especially for non-orthogonal unit cells. 
+3D-RISM:
+     closure   =  KH      
+     uccoeff   =  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
+     solvcut   =  12.00000, buffer  =  15.00000
+     grd_spc   =   0.25000    0.25000    0.25000
+     ng3       =        -1         -1         -1
+     solvbox   =  -1.00000   -1.00000   -1.00000
+     tolerance =  1.00E-10
+     mdiis_del =   0.70000, mdiis_nv=         5
+     mdiis_meth=         2, mdiis_re=  1.00E+01
+     maxstep   =     10000, npropaga=         5
+     centering =         1, zerofrc =         1
+     apply_rism=         1, asympcorr=         F
+     rismnrespa=         1, fcestrid=         0, fcecut  =9999.00000
+     fcenbasis =        20, fcenbase=        20, fcecrd  =         0
+|     fceweigh =         0, fcetrans     =         0  , fcesort    =         0
+|     fceifreq =         1, fceenormsw=  0.00D+00, fcentfrcor=         0
+|     fcewrite =    0         , fceread  =    0
+     polarDecomp         =         0, entropicDecomp    =         0
+     gfCorrection        =         0, pcplusCorrection  =         0
+     periodic            = pme     
+     write_ther=         1, volfmt  =  dx      
+     saveprogre=         0, ntwrism =        -1, verbose =         1
+     progress  =         1
+     biasPotent=   0.00000
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =  -8.00000008
+     Assuming uniform neutralizing plasma
+ DEBUG FORCE!; calling force routine
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
+| CHECK d/dx switch(x): max rel err =   0.8332E-11   at   2.782960
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =     532392
+| TOTAL SIZE OF NONBOND LIST =     532392
+||Setting solvation box to
+|grid size:        144 X        162 X        180
+|box size [A]:      35.050 X     40.500 X     42.370
+|grid spacing [A]:      0.243 X      0.250 X      0.235
+|internal angles [°]:      90.000,     90.000,     90.000
+|inscribed sphere radius [A]:     17.525
+|Switching to KH closure
+|RXRISM converged in   736 steps
+ DEBUG FORCE!; back from force routine
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       784.5097  EKtot   =         0.0000  EPtot      =       784.5097
+ BOND   =       409.8920  ANGLE   =       611.1465  DIHED      =      4314.9311
+ 1-4 NB =      1099.6146  1-4 EEL =     13276.6235  VDWAALS    =     -1782.1745
+ EELEC  =    -19848.7969  ERISM   =      2703.2734  RESTRAINT  =         0.0000
+ EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     60145.2742
+                                                    Density    =         0.7342
+ Ewald error estimate:   0.7330E-03
+ ------------------------------------------------------------------------------
+
+ --------------------------------------------
+ Checking numerical force for random atoms
+ --------------------------------------------
+|RXRISM converged in   327 steps
+|RXRISM converged in   354 steps
+|RXRISM converged in   401 steps
+|RXRISM converged in   361 steps
+|RXRISM converged in   288 steps
+|RXRISM converged in   391 steps
+         NUMERICAL, ANALYTICAL FORCES (diff) from atom      3318
+      1   11.65834015    11.66283067    -0.00449053
+      2   -1.24928987    -1.24389510    -0.00539478
+      3   -1.93801010    -1.93593691    -0.00207319
+ RMS force error =  0.616E-03
+|RXRISM converged in   428 steps
+|RXRISM converged in   511 steps
+|RXRISM converged in   413 steps
+|RXRISM converged in   379 steps
+|RXRISM converged in   380 steps
+|RXRISM converged in   397 steps
+         NUMERICAL, ANALYTICAL FORCES (diff) from atom      2215
+      1    7.50070354     7.50222083    -0.00151730
+      2  -23.20386709   -23.20158188    -0.00228521
+      3   -7.11055198    -7.11101405     0.00046207
+ RMS force error =  0.110E-03
+|RXRISM converged in   393 steps
+|RXRISM converged in   329 steps
+|RXRISM converged in   423 steps
+|RXRISM converged in   432 steps
+|RXRISM converged in   402 steps
+|RXRISM converged in   382 steps
+         NUMERICAL, ANALYTICAL FORCES (diff) from atom      3336
+      1    6.32385903     6.32227159     0.00158744
+      2    1.35885240     1.35945619    -0.00060379
+      3    1.07076145     1.07178247    -0.00102102
+ RMS force error =  0.302E-03
+ --------------------------------------------

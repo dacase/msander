@@ -12,6 +12,7 @@ rism="-lrism"
 blas="-llapack -lblas"
 blas_install="install"
 conda="no"
+compiler="gnu"
 cc="gcc -fPIC"
 cxx="g++ -fPIC"
 fc="gfortran -fPIC"
@@ -38,6 +39,10 @@ for var in "$@"; do
             cc="x86_64-w64-mingw32-gcc --static"
             cxx="x86_64-w64-mingw32-g++ --static"
             fc="x86_64-w64-mingw32-gfortran --static";;
+        --intel)
+            compiler="intel"
+            cc="icc"
+            fc="ifort";;
         --no-rism)
             rism="";;
         --parallel)
@@ -52,7 +57,7 @@ if [ "$requested_help" = "yes" ] ; then
     exit 0
 fi
 
-amberhome=`pwd`
+msanderhome=`pwd`
 
 #------------------------------------------------------------------------------
 #  Make some needed directories:
@@ -78,6 +83,7 @@ if [ "$processor" = "em64t" -o "$processor" = "x86_64" ] ; then
 else
     x86_64='no'
 fi
+
 # Determine linker type. Currently only matters for MKL
 ld_version=`ld -v 2>&1 | awk '{print $1}'`
 case "$ld_version" in
@@ -86,10 +92,21 @@ case "$ld_version" in
     *)
         gnuld='no' ;;
 esac
-if [ `uname -s|awk '{print $1}'` = "Darwin" ]; then
-    is_mac='yes'
+
+OS=`uname -s`
+if [ "$OS" = "Darwin" ]; then
+   is_mac='yes'
+   shared_suffix=.dylib
+   make_shared=-dynamiclib
+   libgfortran=$(shell $msanderhome/src/libgfortran.sh)  
+   lm=
+   ldflags=
 else
-    is_mac='no'
+   is_mac='no'
+   shared_suffix=.so
+   make_shared=-shared
+   lm=-lm
+   ldflags=-static
 fi
 
 #--------------------------------------------------------------------------
@@ -120,13 +137,10 @@ if [ "$mkl_type" = 'mkl' ] ; then
   fi
   # Determine how we are linking MKL
   link_type='mkl'
-  if  [ "$compiler" = 'intel' ] ; then
-    if [ "$cc_version_major" -lt 11 -o "$fc_version_major" -lt 11 ] ; then
-      link_type='line'
-    fi
-  else
+  if  [ "$compiler" = 'gnu' ] ; then
     link_type='line'
   fi
+
   # We always link to the sequential version of MKL since typically
   # one runs an MPI thread for each core.  However, if openmp is
   # specified, for example to turn on SMP diagonalizers for QMMM
@@ -223,9 +237,9 @@ cat <<EOF > src/config.h
 
 # (1)  Location of the installation
 
-AMBERTOOLS=sandermini
-AMBER_PREFIX=$amberhome
-BASEDIR=$amberhome
+AMBERTOOLS=msander
+AMBER_PREFIX=$msanderhome
+BASEDIR=$msanderhome
 BINDIR=\$(BASEDIR)/bin
 LIBDIR=\$(BASEDIR)/lib
 INCDIR=\$(BASEDIR)/include
@@ -234,21 +248,13 @@ LOGDIR=\$(BASEDIR)/logs
 
 ###############################################################################
 
-#  (2) Distinguish between Linux and MacOS  (no windows, at least for now)
+#  (2) Flags that depend on OS type
 
-OS=\$(shell uname -s)
-ifeq "\$(OS)" "Darwin"
-   SHARED_SUFFIX=.dylib
-   MAKE_SHARED=-dynamiclib
-   LIBGFORTRAN=\$(shell \$(BASEDIR)/src/libgfortran.sh)  
-   LM=
-   LDFLAGS=
-else
-   SHARED_SUFFIX=.so
-   MAKE_SHARED=-shared
-   LM=-lm
-   LDFLAGS=-static
-endif
+SHARED_SUFFIX=$shared_suffix
+MAKE_SHARED=$make_shared
+LIBGFORTRAN=$libgfortran
+LM=$lm
+LDFLAGS=$ldflags
 
 ###############################################################################
 
@@ -313,7 +319,6 @@ MV=mv
 CP=cp
 MAKE=make
 VB=$verbose
-MAKE_XLEAP=skip_xleap
 
 EOF
 

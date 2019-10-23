@@ -88,7 +88,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     mexit.o new_time.o extra_pts.o thermo_int.o \
     matinv.o assert.o erfcfun.o sinr_t.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
-    $(EMILOBJ) $(AMOEBAOBJ) $(SANDER_RISM_INTERFACE) AmberNetcdf.o bintraj.o binrestart.o \
+    $(AMOEBAOBJ) $(SANDER_RISM_INTERFACE) AmberNetcdf.o bintraj.o binrestart.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
@@ -116,7 +116,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     mexit.o new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
     erfcfun.o sinr_t.o md_scheme.LES.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
-    $(AMOEBAOBJ) $(EMILOBJ) $(SANDER_RISM_INTERFACE) \
+    $(AMOEBAOBJ) $(SANDER_RISM_INTERFACE) \
     les.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
     charmm.o crg_reloc.o barostats.o \
@@ -144,18 +144,17 @@ XRAY_OBJS = \
    xray_fftpack.o xray_FFT.o xray_fourier.o xray_globals.o xray_interface.o \
    xray_real_space.o xray_reciprocal_space.o xray_utils.o
 
-install: $(BINDIR)/sander$(SFX) $(BINDIR)/sander.LES$(SFX)
+install: $(BINDIR)/sander$(SFX)
 
 #---------------------------------------------------------------------------
-$(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) \
-              $(FULLPIMDOBJ) $(EMIL) \
+$(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
               $(LSCIVROBJ) force.o syslib ../lib/nxtsec.o \
               $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES)
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	      $(FULLPIMDOBJ) $(LSCIVROBJ) force.o -L$(LIBDIR) -lsqm \
 	      $(NFE_OBJECTS) $(XRAY_OBJS) \
-	      ../lib/nxtsec.o $(EMILLIB) \
+	      ../lib/nxtsec.o \
 	      $(FBLIBS) \
 	      ../lib/sys.a $(NETCDFLIBF) \
 	      $(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
@@ -166,10 +165,10 @@ $(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) \
 $(BINDIR)/sander.LES$(SFX): $(LESOBJ) $(PARTPIMDOBJ) \
               syslib ../lib/nxtsec.o \
               $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
-              $(EMIL) $(PLUMED_DEPENDENCIES)
+              $(PLUMED_DEPENDENCIES)
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) $(LSCIVROBJ) \
-		$(XRAY_OBJS) -L$(LIBDIR) -lsqm $(EMILLIB) \
+		$(XRAY_OBJS) -L$(LIBDIR) -lsqm \
 	        $(FBLIBS) \
 		../lib/nxtsec.o ../lib/sys.a $(NFE_OBJECTS) $(NETCDFLIBF) \
 	      	$(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \

@@ -1,0 +1,243 @@
+
+          -------------------------------------------------------
+          Amber 16 SANDER                              2016
+          -------------------------------------------------------
+
+| Run on 04/13/2017 at 13:51:55
+
+|   Executable path: ../../../bin/sander
+| Working directory: /Users/case/amber16/test/rism3d/2igd_soln
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: 2igd.soln.debug.out                                                   
+|INPCRD: 2igd.rst7                                                             
+|  PARM: 2igd.parm7                                                            
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|   Xvv: ../../../AmberTools/test/rism1d/spc-kh/spc.xvv.save
+
+ Here is the input file:
+
+2igd solution                                                                  
+ &cntrl                                                                        
+    ntx=1, ntpr=1, ntwx=0, ntwr=0                                              
+    ioutfm=1                                                                   
+    imin=1, drms=1E-4                                                          
+    maxcyc=1, ntmin=1                                                          
+    ig=314159                                                                  
+    ntb=0                                                                      
+    irism=1                                                                    
+    cut=12.0                                                                   
+ /                                                                             
+ &rism                                                                         
+    closure='kh',                                                              
+    buffer=-1, ng3=128,128,128, solvbox=64.0,64.0,64.0,                        
+    solvcut=999.d0,                                                            
+    verbose=1,                                                                 
+    write_thermo=0,                                                            
+    npropagate=5,                                                              
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10,                              
+    apply_rism_force=1,                                                        
+    zerofrc=1,                                                                 
+ /                                                                             
+ &debugf                                                                       
+  ! Enable debugging.                                                          
+  do_debugf=1                                                                  
+  ! Atom spatial offset. Negative log of delta used in numerical               
+  ! differentiating; e.g. 4 means delta is 10^-4 Angstroms.                    
+  neglgdel=4                                                                   
+  ! Number of random atoms to test.                                            
+  nranatm=2                                                                    
+  ! Check atomic and molecular virials.                                        
+  chkvir=0                                                                     
+  ! Dump energies, forces, and virials to forcedump.dat.                       
+  dumpfrc=0                                                                    
+  ! Compare energies, forces and virials to forcedump.dat.                     
+  rmsfrc=0                                                                     
+  ! Zero out charge or van der Waals parameters.                               
+  zerochg=1                                                                    
+  zerovdw=1                                                                    
+  ! Real-space (direct) non-bonded interactions (van der Waals, electrostatic).
+  do_dir=0                                                                     
+  ! k-space (reciprocal) portion of Ewald sum.                                 
+  do_rec=0                                                                     
+  ! Adjust Ewald sum to remove the Gaussian charge contribution from           
+  ! neighboring bonded atoms and other atoms that should not have              
+  ! non-bonded pair forces.                                                    
+  do_adj=0                                                                     
+  ! Remove from Ewald sum the interaction of point charge with its own         
+  ! Gaussian.                                                                  
+  do_self=0                                                                    
+  ! Bond forces.                                                               
+  do_bond=0                                                                    
+  ! Angle forces.                                                              
+  do_angle=0                                                                   
+  ! Dihedral forces.                                                           
+  do_ephi=0                                                                    
+  ! cap force (whatever that is).                                              
+  do_cap=0                                                                     
+  ! Apply harmonic position constraints.                                       
+  doxconst=0                                                                   
+  ! 1-4 interactions (???).                                                    
+  do_14=0                                                                      
+  ! Targeted MD simulation with restraints based on RMSD.                      
+  do_tgt=0                                                                     
+  ! PBSA related routines.                                                     
+  do_pbdir=0                                                                   
+  do_pbnp=0                                                                    
+  do_pbfd=0                                                                    
+ /                                                                             
+|non-periodic 3D-RISM Forcing igb=6
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 11/06/15 Time = 15:01:07
+ NATOM  =     927 NTYPES =      13 NBONH =     459 MBONA  =     475
+ NTHETH =    1041 MTHETA =     647 NPHIH =    2155 MPHIA  =    2065
+ NHPARM =       0 NPARM  =       0 NNB   =    5109 NRES   =      61
+ NBONA  =     475 NTHETA =     647 NPHIA =    2065 NUMBND =      52
+ NUMANG =     123 NPTRA  =     154 NATYP =      26 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      24 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+ Implicit solvent radii are ArgH and AspGluO modified Bondi2 radii (mbondi3)                                
+
+|     Memory Use     Allocated
+|     Real               82164
+|     Hollerith           2844
+|     Integer            72306
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total              935 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+
+General flags:
+     imin    =       1, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       0, igb     =       6, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =  12.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =       1, ncyc    =      10, ntmin   =       1
+     dx0     =   0.01000, drms    =   0.00010
+3D-RISM:
+     closure   =  KH      
+     uccoeff   =  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
+     solvcut   = 999.00000, buffer  =  -1.00000
+     grd_spc   =   0.50000    0.50000    0.50000
+     ng3       =       128        128        128
+     solvbox   =  64.00000   64.00000   64.00000
+     tolerance =  1.00E-10
+     mdiis_del =   0.70000, mdiis_nv=         5
+     mdiis_meth=         2, mdiis_re=  1.00E+01
+     maxstep   =     10000, npropaga=         5
+     centering =         1, zerofrc =         1
+     apply_rism=         1, asympcorr=         T
+     rismnrespa=         1, fcestrid=         0, fcecut  =9999.00000
+     fcenbasis =        20, fcenbase=        20, fcecrd  =         0
+|     fceweigh =         0, fcetrans     =         0  , fcesort    =         0
+|     fceifreq =         1, fceenormsw=  0.00D+00, fcentfrcor=         0
+|     fcewrite =    0         , fceread  =    0
+     polarDecomp         =         0, entropicDecomp    =         0
+     gfCorrection        =         0, pcplusCorrection  =         0
+     periodic            =         
+     write_ther=         0, volfmt  =  dx      
+     saveprogre=         0, ntwrism =        -1, verbose =         1
+     progress  =         1
+     biasPotent=   0.00000
+|  INFO: Old style inpcrd file read
+
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+ DEBUG FORCE!; calling force routine
+||Setting solvation box to
+|grid size:        128 X        128 X        128
+|box size [A]:      64.000 X     64.000 X     64.000
+|grid spacing [A]:      0.500 X      0.500 X      0.500
+|effective buffer [A]:    21.026,       9.984,      18.633
+|Switching to KH closure
+|RXRISM converged in   659 steps
+ DEBUG FORCE!; back from force routine
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       240.5881  EKtot   =         0.0000  EPtot      =       240.5881
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  ERISM   =       240.5881  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+ --------------------------------------------
+ Checking numerical force for random atoms
+ --------------------------------------------
+|RXRISM converged in   286 steps
+|RXRISM converged in   296 steps
+|RXRISM converged in   241 steps
+|RXRISM converged in   226 steps
+|RXRISM converged in   260 steps
+|RXRISM converged in   226 steps
+         NUMERICAL, ANALYTICAL FORCES (diff) from atom       829
+      1   -7.93366132    -7.93387182     0.00021050
+      2   -7.92285377    -7.92340950     0.00055573
+      3    0.52571097     0.52564255     0.00006842
+ RMS force error =  0.533E-04
+|RXRISM converged in   256 steps
+|RXRISM converged in   267 steps
+|RXRISM converged in   236 steps
+|RXRISM converged in   235 steps
+|RXRISM converged in   250 steps
+|RXRISM converged in   291 steps
+         NUMERICAL, ANALYTICAL FORCES (diff) from atom       553
+      1  -13.53298055   -13.53312723     0.00014667
+      2   -9.70579679    -9.70533784    -0.00045896
+      3    4.55247129     4.55235450     0.00011678
+ RMS force error =  0.287E-04
+ --------------------------------------------

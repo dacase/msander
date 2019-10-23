@@ -1,0 +1,6 @@
+#!/bin/sh
+
+../Run.mol kh
+../Run.mol pse3
+../Run.mol hnc
+
