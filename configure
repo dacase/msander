@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#  "Automatic" configure script for ambermini
-printf "configure script for ambermini\n\n"
+#  "Automatic" configure script for msander
+printf "configure script for msander\n\n"
 
 # set up defaults:
 verbose="@"
@@ -64,6 +64,9 @@ msanderhome=`pwd`
 if [ ! -d bin ]; then
     mkdir bin
 fi
+if [ ! -d include ]; then
+    mkdir include
+fi
 if [ ! -d lib ]; then
     mkdir lib
 fi
@@ -116,8 +119,42 @@ elif [ ! -z "$MKL_HOME" ] ; then
 fi
 
 if [ -z "$mklroot" ] ; then
-  echo "msander requires the Intel MKL libraries"
-  exit 1
+
+   echo "using OpenBLAS libraries in $GOTO"
+   flibs_mkl="-lfftw3 $GOTO -lpthread"
+
+    if [ ! -s "lib/libfftw3.a" ]; then
+    printf "\nConfiguring fftw-3.3 (may be time-consuming)..."
+    enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
+    mpicc=""
+    enable_sse="--enable-sse2=yes"
+    cd src/fftw-3.3 && \
+        ./configure --disable-doc --prefix=$msanderhome \
+        --libdir=$msanderhome/lib \
+        --enable-static $enable_sse\
+        CC="$cc" CFLAGS="$cflags $coptflags" \
+        F77="$fc" FFLAGS="$fflags $foptflags" \
+        > ../fftw3_config.log 2>&1
+      ncerror=$?
+    if [ $ncerror -gt 0 ]; then
+        echo "Error: FFTW configure returned $ncerror"
+        exit 1
+    else
+        echo "OK"
+    fi
+
+    # Build FFTW3
+    printf "Compiling the FFTW3 interface (may be time-consuming)..."
+    make install > fftw3.compile.log 2>&1
+    if [ $? -ne 0 ]; then
+      printf "\nError: FFTW3 compile failed.\n"
+      exit 1
+    else
+      printf "OK\n"
+   fi
+   else
+      echo "Using fftw-3.3 already built"
+   fi
 
 else
 
