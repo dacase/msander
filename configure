@@ -41,7 +41,7 @@ for var in "$@"; do
             compiler="intel"
             cc="icc"
             fc="ifort"
-            ompflag="-fopenmp -DOPENMP";;
+            ompflag="-qopenmp -DOPENMP";;
         --no-rism)
             rism="";;
         --parallel)
@@ -64,14 +64,9 @@ msanderhome=`pwd`
 if [ ! -d bin ]; then
     mkdir bin
 fi
-if [ ! -d include ]; then
-    mkdir include
-fi
 if [ ! -d lib ]; then
     mkdir lib
 fi
-
-cp src/include/CompatibilityMacros.h include
 
 #------------------------------------------------------------------------------
 #  Initialize variables that are architecture specific:
@@ -126,7 +121,7 @@ if [ -z "$mklroot" ] ; then
 
 else
 
-  echo "Using MKL for BLAS/LAPACK in $mklroot"
+  echo "Using MKL for BLAS/LAPACK/FFTW in $mklroot"
   mklinc="-I$mklroot/include -I$mklroot/include/fftw"
 
   # Determine how we are linking MKL
@@ -144,7 +139,8 @@ else
   # Always link static version of MKL - just easier from an end
   # user perspective.
 
-  if [ "$link_type" = 'line' ] ; then
+  # if [ "$link_type" = 'line' ] ; then
+  if true; then
 
     # ----- Link line advisor style. ------
 
@@ -349,8 +345,8 @@ int main()
 }
 EOF
 
-printf "Testing gcc..."
-gcc -o testp testp.c
+printf "Testing $cc ..."
+$cc -o testp testp.c
 ./testp | grep "testing a C program" > /dev/null
 status=$?
 
@@ -373,8 +369,8 @@ cat <<EOF >testp.f
       end program testf
 EOF
 
-printf "Testing gfortran..."
-gfortran -o testp testp.f
+printf "Testing $fc ..."
+$fc -o testp testp.f
 ./testp | grep "testing a Fortran program" > /dev/null
 status=$?
 

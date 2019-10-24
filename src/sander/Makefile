@@ -144,42 +144,38 @@ XRAY_OBJS = \
    xray_fftpack.o xray_FFT.o xray_fourier.o xray_globals.o xray_interface.o \
    xray_real_space.o xray_reciprocal_space.o xray_utils.o
 
+.PHONY: dummy
+
 install: $(BINDIR)/sander$(SFX)
+
+dummy:
 
 #---------------------------------------------------------------------------
 $(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
-              $(LSCIVROBJ) force.o syslib ../lib/nxtsec.o \
+              $(LSCIVROBJ) force.o dummy \
               $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES)
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	      $(FULLPIMDOBJ) $(LSCIVROBJ) force.o -L$(LIBDIR) -lsqm \
 	      $(NFE_OBJECTS) $(XRAY_OBJS) \
-	      ../lib/nxtsec.o \
 	      $(FBLIBS) \
-	      ../lib/sys.a $(NETCDFLIBF) \
+	      ../lib/sys2.a $(NETCDFLIBF) \
 	      $(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
 	      $(LDFLAGS) $(AMBERLDFLAGS)  $(LOCALFLAGS)  $(LIOLIBS) $(PLUMED_LOAD)
 
 
 #---------------------------------------------------------------------------
 $(BINDIR)/sander.LES$(SFX): $(LESOBJ) $(PARTPIMDOBJ) \
-              syslib ../lib/nxtsec.o \
               $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
-              $(PLUMED_DEPENDENCIES)
+              $(PLUMED_DEPENDENCIES) dummy
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) $(LSCIVROBJ) \
 		$(XRAY_OBJS) -L$(LIBDIR) -lsqm \
 	        $(FBLIBS) \
-		../lib/nxtsec.o ../lib/sys.a $(NFE_OBJECTS) $(NETCDFLIBF) \
+		../lib/sys2.a $(NFE_OBJECTS) $(NETCDFLIBF) \
 	      	$(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
 		$(LDFLAGS) $(AMBERLDFLAGS)  $(LIOLIBS) $(PLUMED_LOAD)
 
-
-syslib:
-	cd ../lib && $(MAKE) sys.a
-
-../lib/nxtsec.o:  ../lib/nxtsec.F
-	cd ../lib && $(MAKE) nxtsec.o
 
 fftw3_dummy.o:  fftw3_dummy.c
 	@echo "[SANDER]  CC $<"

@@ -7,6 +7,7 @@ install:
 	@(if [ -d arpack ] ; then cd arpack && $(MAKE) libarpack; fi );
 	@(if [ -s rism/Makefile ] ; then cd rism && $(MAKE) librism; fi )
 	@(if [ -d sqm ] ; then cd sqm && $(MAKE) libsqm; fi )
+	@(if [ -d lib ] ; then cd lib && $(MAKE) sys2.a; fi )
 	@(if [ -s sander/Makefile ] ; then cd sander && $(MAKE) install; fi )
 
 	@echo ""
