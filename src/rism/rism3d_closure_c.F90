@@ -79,7 +79,6 @@ module rism3d_closure_c
   private LJCorrection_excessChemicalPotential, &
        LJCorrection_TCF_int, LJCorrection_DCF_int, &
        force_brute, &
-       solventPoissonForce, ewaldSumForce, ewaldSumShortRangeForce, &
        coulombicForce, lennardJonesForcePeriodic, lennardJonesForce, &
        particleMeshEwaldRecipForce
   
@@ -2646,6 +2645,7 @@ contains
   subroutine lennardJonesForcePeriodic(this, ff, guv)
     use constants, only : PI, KB
     use rism_util, only : checksum
+    use omp_lib
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -2654,16 +2654,12 @@ contains
     _REAL_, intent(inout) :: ff(3, this%solute%numAtoms) !> Force on each atom.
     _REAL_, intent(in) :: guv(:, :) !< Site-site pair correlation function.
     
-    ! Amount to offset the grid in the z-axis (when using MPI).
-    _REAL_ :: offset
     ! Grid, solute, slovent, and dimension indices.
     integer :: igx, igy, igz, ig, iu, iv, id
     ! Grid point position.
-    _REAL_ :: rx(3), ry(3), rz(3), gridPoint(3)
+    _REAL_ :: rx(3), ry(3), rz(3)
     ! Distance of grid point from solute.
-    _REAL_ :: soluteDistanceSquared
-    ! Distance projected along unit cell z-axis.
-    _REAL_ :: cellZ
+    _REAL_ :: sd2
     ! Base term in LJ equation (ratio of sigma and distance).
     _REAL_ :: ljBaseTerm
     ! Minimum distance to prevent divide by zero.
@@ -2672,55 +2668,63 @@ contains
     _REAL_ :: solutePosition(3)
     ! Lennard-Jones force between two particles.
     _REAL_ :: dUlj_dr
-    _REAL_ :: debugenergy
+    _REAL_ :: debugenergy, time0, time1
 
-    do iu = 1, this%solute%numAtoms
+    integer :: numtasks, mytaskid
+    character(len=50) omp_threads
+
+    !  Following should not be necessary, but ifort doesn't seem to
+    !  do the right thing with the OMP_NUM_THREADS environment variable here
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
+    read( omp_threads, * ) numtasks
+    call wallclock(time0)
+
+!$omp parallel private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
+!$omp&   igx,igy,igz,iu,iv,ig,mytaskid) num_threads(numtasks)
+    mytaskid = omp_get_thread_num()
+
+    do iu = mytaskid+1, this%solute%numAtoms, numtasks
        do igz = 1, this%grid%localDimsR(3)
-          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
+          rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
           do igy = 1, this%grid%localDimsR(2)
              ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
              do igx = 1, this%grid%localDimsR(1)
                 rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-                gridPoint = rx + ry + rz
 
-#ifdef MPI
-                ig = 1 + (igx - 1) + (igy -1) * (this%grid%globalDimsR(1) + 2) &
-                       + (igz - 1) * this%grid%globalDimsR(2) &
-                             * (this%grid%globalDimsR(1) + 2)
-#else
                 ig = 1 + (igx - 1) + (igy - 1) * this%grid%globalDimsR(1) &
                        + (igz - 1) * this%grid%globalDimsR(2) &
                                    * this%grid%globalDimsR(1)
-#endif
                 
                 ! Vector from solute atom to grid point, in real space.
-                solutePosition = gridPoint - this%solute%position(:, iu)
+                solutePosition = rx + ry + rz - this%solute%position(:, iu)
                 
                 ! Adjust distance to be to the closest solute atom
                 ! image, which may be in an adjacent cell.
                 solutePosition = minimumImage(this, solutePosition)
-                
    
-                soluteDistanceSquared = dot_product(solutePosition, solutePosition)
-                soluteDistanceSquared = max (minDistanceSquared, soluteDistanceSquared)
+                sd2 = dot_product(solutePosition, solutePosition)
+                sd2 = max (minDistanceSquared, sd2)
 
-                if (soluteDistanceSquared < this%cutoff2) then
+                if (sd2 < this%cutoff2) then
                    dUlj_dr = 0
                    do iv = 1, this%solvent%numAtomTypes
-                      ljBaseTerm = soluteDistanceSquared / this%ljSigmaUV(iu, iv)**2
+                      ljBaseTerm = sd2 / this%ljSigmaUV(iu, iv)**2
                       ljBaseTerm = 1d0 / ljBaseTerm**3
                       dUlj_dr = dUlj_dr + this%ljEpsilonUV(iu, iv) &
                            * ljBaseTerm * (ljBaseTerm - 1.d0) &
                             * this%solvent%density(iv) * guv(ig, iv)
                    end do
                    ff(:, iu) = ff(:, iu) &
-                        - dUlj_dr * solutePosition(:) / soluteDistanceSquared
+                        - dUlj_dr * solutePosition(:) / sd2
                 end if
              end do
           end do
        end do
     end do
+!$omp end parallel
     ff = ff * this%grid%voxelVolume *12d0
+    call wallclock(time1)
+    write(6,*) 'ljForce: ', numtasks, time1-time0
   end subroutine lennardJonesForcePeriodic
 
   
@@ -2859,6 +2863,7 @@ contains
   end subroutine coulombicForce
 
   
+#if 0
   ! Short-range, direct part of the Ewald sum (PME) force exerted on
   ! solute by the solvent charge density.
   subroutine ewaldSumShortRangeForce(this, ff, guv)
@@ -2880,7 +2885,7 @@ contains
 
     _REAL_ :: rx(3), ry(3), rz(3)
     _REAL_ :: gridPoint(3), solutePosition(3)
-    _REAL_ :: soluteDistance, soluteDistance2
+    _REAL_ :: sd, sd2
     _REAL_ :: dUc_dr, frc(3)
 
     ! For MPI spatial decomposition.
@@ -2922,29 +2927,23 @@ contains
                 solutePosition = minimumImage(this, solutePosition)
 
                 ! Distance from solute atom to grid point.
-                soluteDistance2 = dot_product(solutePosition, solutePosition)
+                sd2 = dot_product(solutePosition, solutePosition)
 
-                if (soluteDistance2 < minDistance2) &
-                        soluteDistance2 = minDistance2
+                if (sd2 < minDistance2) sd2 = minDistance2
 
                 ! Short-range term of Ewald sum.
-                if (soluteDistance2 < this%cutoff2) then
-                   soluteDistance = sqrt(soluteDistance2)
+                if (sd2 < this%cutoff2) then
+                   sd = sqrt(sd2)
                    dUc_dr = 0
                    do iv = 1, this%solvent%numAtomTypes
                       dUc_dr = dUc_dr + this%solvent%density(iv) &
                            * guv(ig, iv) * this%solvent%charge(iv)
                    end do
 
-!                   debugenergy =  debugenergy + dUc_dr * this%solute%charge(iu) * &
-!                                  this%grid%voxelVolume * &
-!                                  erfc(soluteDistance / this%chargeSmear) / soluteDistance
-
-
                    dUc_dr = dUc_dr * &
-                        ( factor * exp(-soluteDistance2 / smear2) &
-                        + erfc(soluteDistance / this%chargeSmear) &
-                        / soluteDistance )/ soluteDistance2
+                        ( factor * exp(-sd2 / smear2) &
+                        + erfc(sd / this%chargeSmear) &
+                        / sd )/ sd2
 
                    frc = frc + dUc_dr * solutePosition 
                 end if
@@ -2953,9 +2952,7 @@ contains
        end do
        ff(:, iu) = ff(:, iu) - frc * this%grid%voxelVolume * this%solute%charge(iu)
     end do
-!    write (6, "(a,e24.16e2)") "PMEs = ", debugenergy *( KB * this%solvent%temperature)
   end subroutine ewaldSumShortRangeForce
-
 
 ! (incomplete & vvv slow) Ewald electrostatic forces 
   subroutine ewaldSumForce(this, ff, guv)
@@ -2973,7 +2970,7 @@ contains
 
     _REAL_ :: rx(3), ry(3), rz(3)
     _REAL_ :: gridPoint(3), solutePosition(3)
-    _REAL_ :: soluteDistance, soluteDistance2
+    _REAL_ :: sd, sd2
     _REAL_ :: dUc_dk, kforce(3), kforceSum(3), phase
     _REAL_ :: smear2_4
     _REAL_ :: totalSolventCharge
@@ -3052,6 +3049,7 @@ contains
 
     !TODO: Add in short-range Ewald sum by calling ewaldSumShortRangeForce().
   end subroutine ewaldSumForce
+#endif
 
 ! Computes the PME reciprocal, long range part of electrostatic forces exerted 
 ! by the solvent charge density onto the solute.
@@ -3061,6 +3059,7 @@ contains
     use constants, only : pi, KB
     use FFTW3
     use rism_util, only: r2c_pointer
+    use omp_lib
     implicit none
 #if defined(MPI)
     include 'mpif.h'
@@ -3131,9 +3130,19 @@ contains
     _REAL_, parameter :: minDistance = 0.002
     _REAL_, parameter :: minDistance2 = minDistance**2
     _REAL_ :: gridPoint(3), solutePosition(3)
-    _REAL_ :: soluteDistance, soluteDistance2
+    _REAL_ :: sd, sd2
 
     _REAL_ :: qall
+
+    _REAL_ :: time0, time1
+    integer :: numtasks, mytaskid
+    character(len=50) omp_threads
+
+    !  Following should not be necessary, but ifort doesn't seem to
+    !  do the right thing with the OMP_NUM_THREADS environment variable here
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
+    read( omp_threads, * ) numtasks
+    call wallclock(time0)
 
 
     smear = this%chargeSmear
@@ -3159,32 +3168,17 @@ contains
     bsplineFourierCoeffZ => safemem_realloc(bsplineFourierCoeffZ, this%grid%globalDimsR(3), .false.)
 
     gaussianFourierCoeff => safemem_realloc(gaussianFourierCoeff, &
-         gridDimX_k * this%grid%localDimsR(2) * this%grid%localDimsR(3), .false.)
+        gridDimX_k * this%grid%localDimsR(2) * this%grid%localDimsR(3), .false.)
 
-#if defined(MPI)
-    localPtsK = fftw_mpi_local_size_3d(N, M, L / 2 + 1, &
-         this%grid%mpicomm, local_N, local_k_offset)
-#else
     localPtsK = gridDimX_k * this%grid%localDimsR(2) * this%grid%localDimsR(3)
     local_N = this%grid%localDimsR(3)
     local_k_offset = 0
-#endif
 
     rho_r_cptr = fftw_alloc_real(2 * localPtsK)
     rho_c_cptr = fftw_alloc_complex(localPtsK)
-#if defined(MPI)
-    call c_f_pointer(rho_r_cptr, rho_r, [2*(L/2+1), M, local_N])
-    call c_f_pointer(rho_r_cptr, outr_1d, [2*(L/2+1) * M * local_N])
-    call c_f_pointer(rho_c_cptr, rho_c, [L/2+1, M, local_N])
-    if (this%grid%mpirank == 0) then
-       rho_final_cptr = fftw_alloc_real(L * M * N)
-       call c_f_pointer(rho_final_cptr, rho_final, [L, M, N])
-    end if
-#else
     call c_f_pointer(rho_r_cptr, rho_r, [L, M, local_N])
     call c_f_pointer(rho_r_cptr, outr_1d, [L * M * local_N])
     call c_f_pointer(rho_c_cptr, rho_c, [L/2+1, M, local_N])
-#endif
 
    ! Angular wave numbers.
    do igk = 0, gridDimX_k - 1
@@ -3225,73 +3219,21 @@ contains
           byz = bsplineFourierCoeffY(iy + 1) * bsplineFourierCoeffZ(iz + 1 + this%grid%offsetR(3))
           do ix = 0, gridDimX_k - 1
 
-!#if defined(MPI)
-!             igk = 1 + ix + &
-!                  iy * (this%grid%localDimsK(1) / 2) + &
-!                  iz * this%grid%localDimsK(2) * (this%grid%localDimsK(1) / 2)
-!#else
-!
-!             igk = 1 + ix + iy * (this%grid%localDimsR(1) / 2 ) +&
-!                    iz * this%grid%localDimsR(2) * (this%grid%localDimsR(1) / 2 )
-!             if (ix .eq. gridDimX_k - 1) then
-!                 igk = 1 + iy + iz * this%grid%globalDimsR(2) &
-!               + this%grid%globalDimsR(1) / 2 * this%grid%globalDimsR(2) * this%grid%globalDimsR(3)
-!             end if
-!#endif
              bxyz = bsplineFourierCoeffX(ix + 1) * byz
              waveVector = kxi(ix+1,:) + kyi(iy+1,:) + kzi(iz+1,:)
 
              k2 = dot_product(waveVector, waveVector)
              !k2 = this%grid%waveVectors2(igk)
-!            if ( abs(k2-this%grid%waveVectors2(igk)) .gt. 1e-8   ) then
-!               write (6,*) "-|: ", iz,iy,ix,ixyz,igk,k2-this%grid%waveVectors2(igk), this%grid%mpirank
-!            end if
              kernel(ixyz) = (4 * pi / k2) * exp(k2 * t) / bxyz
              ixyz = ixyz + 1
           end do
        end do
     end do
 
-!    ixyz = 1
-!    do iz = 0, this%grid%localDimsR(3) - 1
-!       do iy = 0, this%grid%localDimsR(2) - 1
-!          byz = bsplineFourierCoeffY(iy + 1) * bsplineFourierCoeffZ(iz + 1 + this%grid%offsetR(3))
-!          do ix = 0, gridDimX_k - 1
-!#if defined(MPI)
-!             igk = 1 + ix + &
-!                  iy * (this%grid%localDimsK(1) / 2) + &
-!                  iz * this%grid%localDimsK(2) * (this%grid%localDimsK(1) / 2)
-!#else
-!             igk = 1 + ix + iy * (this%grid%localDimsR(1) / 2 ) +&
-!                    iz * this%grid%localDimsR(2) * (this%grid%localDimsR(1) / 2 )
-!             if (ix .eq. gridDimX_k - 1) then
-!                 igk = 1 + iy + iz * this%grid%globalDimsR(2) &
-!               + this%grid%globalDimsR(1) / 2 * this%grid%globalDimsR(2) * this%grid%globalDimsR(3)
-!             end if
-!#endif
-!             bxyz = bsplineFourierCoeffX(ix + 1) * byz
-!             k2 = this%grid%waveVectors2(igk)
-!             kernel(ixyz) = (4 * pi / k2) * exp(k2 * t) / bxyz
-!             ixyz = ixyz + 1
-!          end do
-!       end do
-!    end do
-!
     ! Remove the k = 0 term (tinfoil boundary conditions).
-    if (this%grid%offsetR(3) == 0) then
-       kernel(1) = 0d0
-    end if
+    kernel(1) = 0d0
 
     ! Allocate the FFT.
-#if defined(MPI)
-    planfwd = fftw_mpi_plan_dft_r2c_3d(N, M, L, &
-         rho_r, rho_c, this%grid%mpicomm, &
-         FFTW_ESTIMATE)
-
-    planbwd = fftw_mpi_plan_dft_c2r_3d(N, M, L, &
-         rho_c, rho_r, this%grid%mpicomm, &
-         FFTW_ESTIMATE)
-#else
     planfwd = fftw_plan_dft_r2c_3d( &
          this%grid%globalDimsR(3), &
          this%grid%globalDimsR(2), &
@@ -3302,7 +3244,6 @@ contains
          this%grid%globalDimsR(2), &
          this%grid%globalDimsR(1), &
          rho_c, rho_r, FFTW_ESTIMATE)
-#endif /*defined(MPI)*/
 
     ! (1) get solvent charge density, rho(r) on the grid
     rho_r = 0d0
@@ -3314,15 +3255,9 @@ contains
              do igx = 1, this%grid%localDimsR(1)
                 ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
                      (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
-                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                   igk = ig1
-#endif /*defined(MPI)*/
                    rho_r(igx,igy,igz) = rho_r(igx,igy,igz) &
                      + this%solvent%charge(iv) &
-                     * guv(igk,iv) * this%solvent%density(iv)
+                     * guv(ig1,iv) * this%solvent%density(iv)
              end do
           end do
        end do
@@ -3330,47 +3265,50 @@ contains
 
     rho_r = rho_r * this%grid%voxelVolume
 
-
-
+    call wallclock(time1)
+    write(6,*) 'ewald force, before short range: ', time1 - time0
+    time0 = time1
 
     !
     ! short range part of PME.
     !
-    do iu = 1, this%solute%numAtoms
+
+!$omp parallel private (rx,ry,rz,solutePosition,sd2,sd, &
+!$omp&   igx,igy,igz,iu,mytaskid) num_threads(numtasks)
+    mytaskid = omp_get_thread_num()
+
+    do iu = mytaskid+1, this%solute%numAtoms, numtasks
         do igz = 1, this%grid%localDimsR(3)
-           rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
+           rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
            do igy = 1, this%grid%localDimsR(2)
               ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
               do igx = 1, this%grid%localDimsR(1)
                  rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-                 gridPoint = rx + ry + rz
-                 solutePosition = gridPoint - this%solute%position(:, iu)
+                 solutePosition = rx + ry + rz - this%solute%position(:, iu)
                  solutePosition = minimumImage(this, solutePosition)
-                 soluteDistance2 = dot_product(solutePosition, solutePosition)
-    
-                 soluteDistance2 = max(minDistance2,soluteDistance2)
-                 if (soluteDistance2 < this%cutoff2) then
-                    soluteDistance = sqrt(soluteDistance2)
+                 sd2 = dot_product(solutePosition, solutePosition)
+                 sd2 = max(minDistance2,sd2)
+                 if (sd2 < this%cutoff2) then
+                    sd = sqrt(sd2)
                     ff(:,iu) = ff(:,iu) - rho_r(igx,igy,igz) * this%solute%charge(iu) * &
-                          (( factor * exp(-soluteDistance2 / smear2) &
-                          + erfc(soluteDistance / this%chargeSmear) &
-                          / soluteDistance )/ soluteDistance2) * solutePosition
+                          (( factor * exp(-sd2 / smear2) &
+                          + erfc(sd / this%chargeSmear) &
+                          / sd )/ sd2) * solutePosition
                  end if 
               end do
            end do
         end do
     end do
+!$omp end parallel
+    call wallclock(time1)
+    write(6,*) 'short-range PME force: ', time1 - time0
+    time0 = time1
 
 
     ! (2) FT [ rho(r) ]
     ! Convert the charge density into reciprocal space.
 
-#if defined(MPI)
-    call fftw_mpi_execute_dft_r2c(planfwd, rho_r, rho_c)
-#else
     call fftw_execute_dft_r2c(planfwd, rho_r, rho_c)
-#endif
-
 
     ! Convolution.
     do igz = 0, local_N - 1
@@ -3385,14 +3323,11 @@ contains
 
     ! Evaluate the recip-space potential at the grid points.
     rho_r = 0
-#if defined(MPI)
-    call fftw_mpi_execute_dft_c2r(planbwd, rho_c, rho_r)
-#else
     call fftw_execute_dft_c2r(planbwd, rho_c, rho_r)
-#endif
     rho_r = rho_r / this%grid%boxVolume
 
-! Here is where interpolation/differentiation starts.
+!   Here is where interpolation/differentiation starts.
+
     do iu = 1, this%solute%numAtoms
        ! Convert Cartesian position to reciprocal space by projecting
        ! to reciprocal unit cell vectors.
@@ -3418,27 +3353,20 @@ contains
 
        potGrad = 0
 
-             do k = 1, splineOrder
-#if defined(MPI)
-                 if ( (gridPoints(k,3) < this%grid%offsetR(3)) &
-                      .or. (gridPoints(k,3) + 1 > this%grid%offsetR(3) + this%grid%localDimsR(3))) then
-                    cycle
-                 end if
-#endif
-                do i = 1, splineOrder
-                   do j = 1, splineOrder
+       do k = 1, splineOrder
+          do i = 1, splineOrder
+             do j = 1, splineOrder
 
-
-
-                rhoijk = rho_R(1 + gridPoints(i,1),1 + gridPoints(j,2),1 + gridPoints(k,3) - this%grid%offsetR(3))
+                rhoijk = rho_R(1 + gridPoints(i,1), &
+                               1 + gridPoints(j,2), &
+                               1 + gridPoints(k,3) )
                
-!                debug_energy = debug_energy + this%solute%charge(iu) * rhoijk &
-!                     & * weights(i,1) * weights(j,2) * weights(k,3)
-
-                potGrad(1) = potGrad(1) + weights(k,3)      * weightDerivs(i,1) * weights(j,2) * rhoijk 
-                potGrad(2) = potGrad(2) + weights(k,3)      * weights(i,1)      * weightDerivs(j,2) * rhoijk 
-                potGrad(3) = potGrad(3) + weightDerivs(k,3) * weights(i,1)      * weights(j,2) * rhoijk
-
+                potGrad(1) = potGrad(1) + weights(k,3) &
+                    * weightDerivs(i,1) * weights(j,2) * rhoijk 
+                potGrad(2) = potGrad(2) + weights(k,3) &
+                    * weights(i,1)      * weightDerivs(j,2) * rhoijk 
+                potGrad(3) = potGrad(3) + weightDerivs(k,3) &
+                    * weights(i,1)      * weights(j,2) * rhoijk
 
             end do
           end do
@@ -3491,15 +3419,17 @@ contains
     if (safemem_dealloc(kernel) /= 0) then
        call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
     end if
+    call wallclock(time1)
+    write(6,*) 'post short-range PME force: ', time1 - time0
+    time0 = time1
 
   end subroutine particleMeshEwaldRecipForce 
 
-
-
+#if 0
 ! Conputes electrostatic forces exerted on the solute by the 
 ! solvent charge density by solving the Poisson eq at the 
 ! solute positions by a spectral (FT) approach. No Ewald trick. 
-! Force errors are larger and not uniform that the Ewald approach.  
+! Force errors are larger and not as uniform than with the Ewald approach.  
   subroutine solventPoissonForce(this, ff, guv)
     use bspline
     use constants, only : pi, fourpi
@@ -3739,7 +3669,7 @@ contains
     ierr = safemem_dealloc(elecPotentialK,o_aligned=.true.)
 
   end subroutine solventPoissonForce
-  
+#endif
   
   !> Calculates both Lennard-Jones and electrostatic solvation forces
   !! over the entire grid without cutoffs.
