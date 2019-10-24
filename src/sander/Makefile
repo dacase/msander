@@ -15,7 +15,7 @@ VPATH=
 
 # Sander Fortran source files are free format
 # Add also search paths for .mod files
-LOCALFLAGS = $(FREEFORMAT_FLAG) -I../sqm -I../rism -I../../include
+LOCALFLAGS = -I../sqm -I../rism 
 
 NFE_OBJECTS = \
     nfe-abmd-hooks.o nfe-bbmd-ctxt.o nfe-bbmd-hooks.o  \
@@ -161,7 +161,7 @@ $(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
 	      $(FBLIBS) \
 	      ../lib/sys2.a $(NETCDFLIBF) \
 	      $(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
-	      $(LDFLAGS) $(AMBERLDFLAGS)  $(LOCALFLAGS)  $(LIOLIBS) $(PLUMED_LOAD)
+	      $(LDFLAGS) $(AMBERLDFLAGS) $(LIOLIBS) $(PLUMED_LOAD)
 
 
 #---------------------------------------------------------------------------

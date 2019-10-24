@@ -92,7 +92,7 @@ if [ "$OS" = "Darwin" ]; then
    is_mac='yes'
    shared_suffix=.dylib
    make_shared=-dynamiclib
-   libgfortran=$(shell $msanderhome/src/libgfortran.sh)  
+   libgfortran=`$msanderhome/src/libgfortran.sh`
    lm=
    ldflags=
 else
@@ -139,8 +139,7 @@ else
   # Always link static version of MKL - just easier from an end
   # user perspective.
 
-  # if [ "$link_type" = 'line' ] ; then
-  if true; then
+  if [ "$link_type" = 'line' ] ; then
 
     # ----- Link line advisor style. ------
 
@@ -190,7 +189,7 @@ else
       flibs_mkl="-Wl,--start-group $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a -Wl,--end-group $mklomp -lpthread"
     else
       echo "Non-GNU linker assumed."
-      flibs_mkl="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a -lpthread"
+      flibs_mkl="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a $mklomp -lpthread"
     fi
     # GNU compilers with MKL requires -ldl
     if [ "$compiler" = 'gnu' ]; then

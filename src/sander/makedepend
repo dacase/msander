@@ -181,55 +181,28 @@ foreach $file ( <*.F90> ){
 
 	printf "\n$fileroot.o:   $fileroot.F90\n";
 	if( $optimized{$fileroot} ){
-		printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+		printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 	} else {
-		printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+		printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 	}
 	if( defined $LES{$fileroot} ){
 		printf "$fileroot.LES.o: $depsLES\n" unless $depsLES eq "";
 		printf "\n$fileroot.LES.o:   $fileroot.F90\n";
 		if( $optimized{$fileroot} ){
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DLES -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 		} else {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 		}
 	}
 	if( defined $PUPIL{$fileroot} ){
 		printf "$fileroot.PUPIL.o: $depsPUPIL\n" unless $depsPUPIL eq "";
 		printf "\n$fileroot.PUPIL.o:   $fileroot.F90\n";
 		if( $optimized{$fileroot} ){
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DPUPIL_SUPPORT -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 		} else {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DPUPIL_SUPPORT -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
 		}
 	}
-	if( defined $APBS{$fileroot} ){
-		printf "$fileroot.APBS.o: $depsAPBS\n" unless $depsAPBS eq "";
-		printf "\n$fileroot.APBS.o:   $fileroot.F90\n";
-		if( $optimized{$fileroot} ){
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPBS -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-		} else {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPBS -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-		}
-	}
-    if( defined $API{$fileroot} ){
-        printf "$fileroot.API.o: $depsAPI\n";
-        printf "\n$fileroot.API.o:   $fileroot.F90\n";
-        if ( $optimized{$fileroot} ) {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPI -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        } else {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPI -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        }
-    }
-    if( defined $LESAPI{$fileroot} ){
-        printf "$fileroot.LESAPI.o: $depsLESAPI\n";
-        printf "\n$fileroot.LESAPI.o:   $fileroot.F90\n";
-        if ( $optimized{$fileroot} ) {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPI -DLES -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        } else {
-			printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -DAPI -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        }
-    }
 }
 
 # special "compilation rule" for netcdf.o
