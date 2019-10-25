@@ -302,18 +302,12 @@ EOF
 if [ "$rism" == "-lrism" ]; then
 cat <<EOF >> src/config.h
 # RISM:
-RISMSFF=-DRISMSFF
-SFF_RISM_INTERFACE=../rism/amber_rism_interface.NAB.o
 RISMSANDER=-DRISMSANDER
-SANDER_RISM_INTERFACE=../rism/amber_rism_interface.SANDER.o
 EOF
 else
 cat <<EOF >> src/config.h
 # RISM:
-RISMSFF=
-SFF_RISM_INTERFACE=
 RISMSANDER=
-SANDER_RISM_INTERFACE=
 EOF
 fi
 
