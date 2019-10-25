@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#  "Automatic" configure script for ambermini
-printf "configure script for ambermini\n\n"
+printf "configure script for msander\n\n"
 
 # set up defaults:
 verbose="@"
@@ -250,11 +249,12 @@ LDFLAGS=$ldflags
 EOF
 
 if [ "$bintraj" == "-DBINTRAJ" ]; then
+   echo "Using netcdf from $NETCDF_HOME"
 cat <<EOF >> src/config.h
-NETCDF=\$(INCDIR)/netcdf.mod
-NETCDFLIB=\$(LIBDIR)/libnetcdf.a
-NETCDFLIBF=\$(LIBDIR)/libnetcdff.a \$(LIBDIR)/libnetcdf.a
-NETCDFINC=-I\$(INCDIR)
+NETCDF=$NETCDF_HOME/include/netcdf.mod
+NETCDFLIB=$NETCDF_HOME/lib/libnetcdf.a
+NETCDFLIBF=$NETCDF_HOME/lib/libnetcdff.a $NETCDF_HOME/lib/libnetcdf.a
+NETCDFINC=-I$NETCDF_HOME/include
 EOF
 else
 cat <<EOF >> src/config.h
@@ -262,7 +262,6 @@ NETCDF=
 NETCDFLIB=
 NETCDFLIBF=
 NETCDFINC=
-
 EOF
 fi
 
@@ -270,26 +269,20 @@ cat <<EOF >> src/config.h
 
 ###############################################################################
 
-#  (4)  C/C++ compilers  (note: no parallel C++ code for now)
+#  (4)  C compiler
 
 CC=$cc
-CFLAGS=$bintraj \$(LOCALFLAGS)
+CFLAGS=$bintraj
 CNOOPTFLAGS=
 COPTFLAGS=-O3 -mtune=native 
 
-CXX=$cxx
-CPLUSPLUS=g++
-CXXFLAGS=$bintraj
-CXXNOOPTFLAGS=
-CXXOPTFLAGS=-O3 
-
 ###############################################################################
 
-#  (5)  Fortran compilers
+#  (5)  Fortran compiler
 
 FC=$fc
 FFLAGS=$bintraj $mklinc $ompflag 
-FLIBSF= $rism -larpack -lsys $flibs_mkl $ompflag
+FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
 
@@ -388,10 +381,6 @@ fi
 #--------------------------------------------------------------------------
 
 cd src
-
-if [ "$bintraj" == "-DBINTRAJ" ]; then
-   ./configure_netcdf
-fi
 
 if [ "$conda" == "yes" ]; then
    exit 0
