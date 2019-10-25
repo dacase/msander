@@ -1672,7 +1672,6 @@ contains
   !! @param[in] this potential object
   !! @param[in,out] ulj grid to add potential to
   subroutine uvLJrEwaldPotentialWithMinimumImage(this, ulj)
-    use omp_lib
     implicit none
 #ifdef MPI
     include 'mpif.h'

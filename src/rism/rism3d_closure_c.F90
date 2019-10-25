@@ -2867,7 +2867,6 @@ contains
     use constants, only : pi, KB
     use FFTW3
     use rism_util, only: r2c_pointer
-    use omp_lib
     implicit none
 #if defined(MPI)
     include 'mpif.h'
