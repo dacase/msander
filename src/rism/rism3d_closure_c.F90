@@ -2724,7 +2724,6 @@ contains
 !$omp end parallel
     ff = ff * this%grid%voxelVolume *12d0
     call wallclock(time1)
-    write(6,*) 'ljForce: ', numtasks, time1-time0
   end subroutine lennardJonesForcePeriodic
 
   
@@ -3076,10 +3075,6 @@ contains
 
     rho_r = rho_r * this%grid%voxelVolume
 
-    call wallclock(time1)
-    write(6,*) 'ewald force, before short range: ', time1 - time0
-    time0 = time1
-
     !
     ! short range part of PME.
     !
@@ -3111,10 +3106,6 @@ contains
         end do
     end do
 !$omp end parallel
-    call wallclock(time1)
-    write(6,*) 'short-range PME force: ', time1 - time0
-    time0 = time1
-
 
     ! (2) FT [ rho(r) ]
     ! Convert the charge density into reciprocal space.
@@ -3230,8 +3221,7 @@ contains
        call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
     end if
     call wallclock(time1)
-    write(6,*) 'post short-range PME force: ', time1 - time0
-    time0 = time1
+    write(6,*) 'short-range PME force: ', time1 - time0
 
   end subroutine particleMeshEwaldRecipForce 
 
