@@ -87,8 +87,7 @@ program multisander
   use nfe_sander_proxy, only: infe
 #endif /* DISABLE_NFE */
 
-  use omp_lib, only: omp_get_num_threads
-
+  use omp_lib
   implicit none
 
   ! Update this when the version changes! (Make sure to update the len if
@@ -339,11 +338,6 @@ program multisander
   ! End of REMD initialization
 
 #else 
-
-!$omp parallel
-  write(6,*) omp_get_num_theads()
-!$omp end parallel
-   stop
 
   numgroup = 1
   mytaskid = 0
