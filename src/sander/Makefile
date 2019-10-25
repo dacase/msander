@@ -85,7 +85,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     ew_fft.o nonbond_list.o short_ene.o pol_gauss.o ew_recip.o pcshift.o align.o csa.o \
     rfree.o rgroup.o amopen.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
-    mexit.o new_time.o extra_pts.o thermo_int.o \
+    new_time.o extra_pts.o thermo_int.o \
     matinv.o assert.o erfcfun.o sinr_t.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
     $(AMOEBAOBJ) $(SANDER_RISM_INTERFACE) AmberNetcdf.o bintraj.o binrestart.o \
@@ -113,7 +113,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     align.o csa.o rfree.o rgroup.o \
     amopen.o sander_lib.o random.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
-    mexit.o new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
+    new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
     erfcfun.o sinr_t.o md_scheme.LES.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
     $(AMOEBAOBJ) $(SANDER_RISM_INTERFACE) \
@@ -148,46 +148,41 @@ XRAY_OBJS = \
 
 install: $(BINDIR)/sander$(SFX)
 
+install.les: $(BINDIR)/sander.LES$(SFX)
+
 dummy:
 
 #---------------------------------------------------------------------------
-$(BINDIR)/sander$(SFX): $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
+$(BINDIR)/sander$(SFX): libs $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
               $(LSCIVROBJ) force.o dummy \
               $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES)
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	      $(FULLPIMDOBJ) $(LSCIVROBJ) force.o -L$(LIBDIR) -lsqm \
 	      $(NFE_OBJECTS) $(XRAY_OBJS) \
-	      $(FBLIBS) \
-	      ../lib/sys2.a $(NETCDFLIBF) \
+	      $(FBLIBS)  $(NETCDFLIBF) \
 	      $(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
 	      $(LDFLAGS) $(AMBERLDFLAGS) $(LIOLIBS) $(PLUMED_LOAD)
 
 
 #---------------------------------------------------------------------------
-$(BINDIR)/sander.LES$(SFX): $(LESOBJ) $(PARTPIMDOBJ) \
+$(BINDIR)/sander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
               $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
               $(PLUMED_DEPENDENCIES) dummy
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) $(LSCIVROBJ) \
 		$(XRAY_OBJS) -L$(LIBDIR) -lsqm \
-	        $(FBLIBS) \
-		../lib/sys2.a $(NFE_OBJECTS) $(NETCDFLIBF) \
+	        $(FBLIBS) $(NFE_OBJECTS) $(NETCDFLIBF) \
 	      	$(FLIBS_RISMSANDER) $(FFTW3) $(FLIBSF) \
 		$(LDFLAGS) $(AMBERLDFLAGS)  $(LIOLIBS) $(PLUMED_LOAD)
 
 
-fftw3_dummy.o:  fftw3_dummy.c
-	@echo "[SANDER]  CC $<"
-	$(VB)$(CC) -c fftw3_dummy.c
-
-pmemd_clib:
-	cd ../pmemd/src && $(CC) -c $(CPPFLAGS) $(CNOOPTFLAGS) \
-		$(CFLAGS) $(AMBERCFLAGS) pmemd_clib.c
-
-../lib/mexit.o:  ../lib/mexit.F
-	cd ../lib && $(MAKE) mexit.o
-
+libs:
+	cd ../arpack && $(MAKE) libarpack
+	cd ../rism && $(MAKE) librism
+	cd ../sqm && $(MAKE) libsqm
+	cd ../lib && $(MAKE) libsys
+    
 ifndef PLUMED_INCLUDE_FILE
 Plumed.o: Plumed.c
 	@echo "[SANDER]  CC $<"
@@ -218,24 +213,6 @@ clean:
 	/bin/rm -f *.d
 	/bin/rm -f *nbflag
 	/bin/rm -f *__genmod.f90  # intel compiler-generated interface modules
-
-uninstall.serial:
-	/bin/rm -f $(BINDIR)/mopac.sh
-	-for file in $(SERIALPROGS) ; do \
-	  /bin/rm -f $${file} ; \
-	done
-	/bin/rm -f $(LIBDIR)/libsander.so $(LIBDIR)/libsander.dylib
-	/bin/rm -f $(LIBDIR)/libsanderles.so $(LIBDIR)/libsanderles.dylib
-	/bin/rm -f $(INCDIR)/sander_api.mod $(INCDIR)/sander_api.MOD
-	/bin/rm -f $(INCDIR)/sanderles_api.mod $(INCDIR)/sanderles_api.MOD
-	/bin/rm -f $(INCDIR)/sander.h
-
-uninstall.parallel:
-	-for file in $(PARALLELPROGS) ; do \
-	  /bin/rm -f $${file} ; \
-	done
-
-uninstall: uninstall.serial uninstall.parallel
 
 depend::
 	./makedepend > depend

@@ -1787,7 +1787,11 @@ contains
     end do
 
 !$omp parallel private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,mytaskid) num_threads(numtasks)
+!$omp&   igx,igy,igz,iu,mytaskid) 
+
+    write(6,*) 'ljpot: ', omp_get_num_threads()
+    stop
+
     mytaskid = omp_get_thread_num()
     do igz = mytaskid+1, this%grid%localDimsR(3), numtasks
        rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)

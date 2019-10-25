@@ -87,6 +87,8 @@ program multisander
   use nfe_sander_proxy, only: infe
 #endif /* DISABLE_NFE */
 
+  use omp_lib, only: omp_get_num_threads
+
   implicit none
 
   ! Update this when the version changes! (Make sure to update the len if
@@ -336,8 +338,13 @@ program multisander
   endif
   ! End of REMD initialization
 
-#else /* non-MPI section below... this couples to the MPI
-         definition pre-processor directive at line ~107 */
+#else 
+
+!$omp parallel
+  write(6,*) omp_get_num_theads()
+!$omp end parallel
+   stop
+
   numgroup = 1
   mytaskid = 0
   numtasks = 1

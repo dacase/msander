@@ -285,7 +285,7 @@ CXXOPTFLAGS=-O3
 #  (5)  Fortran compilers
 
 FC=$fc
-FFLAGS=$bintraj -I\$(INCDIR) \$(LOCALFLAGS) $mklinc $ompflag 
+FFLAGS=$bintraj $mklinc $ompflag 
 FLIBSF= $rism -larpack $flibs_mkl $ompflag
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
