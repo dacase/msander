@@ -2645,7 +2645,6 @@ contains
   subroutine lennardJonesForcePeriodic(this, ff, guv)
     use constants, only : PI, KB
     use rism_util, only : checksum
-    use omp_lib
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -2670,20 +2669,19 @@ contains
     _REAL_ :: dUlj_dr
     _REAL_ :: debugenergy, time0, time1
 
-    integer :: numtasks, mytaskid
-    character(len=50) omp_threads
+    integer :: numtasks
+    character(len=5) omp_num_threads
 
     !  Following should not be necessary, but ifort doesn't seem to
     !  do the right thing with the OMP_NUM_THREADS environment variable here
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
-    read( omp_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
+    read( omp_num_threads, * ) numtasks
     call wallclock(time0)
 
-!$omp parallel private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,iv,ig,mytaskid) num_threads(numtasks)
-    mytaskid = omp_get_thread_num()
+!$omp parallel do private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
+!$omp&   igx,igy,igz,iu,iv,ig) num_threads(numtasks)
 
-    do iu = mytaskid+1, this%solute%numAtoms, numtasks
+    do iu = 1, this%solute%numAtoms
        do igz = 1, this%grid%localDimsR(3)
           rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
           do igy = 1, this%grid%localDimsR(2)
@@ -2721,7 +2719,7 @@ contains
           end do
        end do
     end do
-!$omp end parallel
+!$omp end parallel do
     ff = ff * this%grid%voxelVolume *12d0
     call wallclock(time1)
   end subroutine lennardJonesForcePeriodic
@@ -2945,7 +2943,7 @@ contains
     _REAL_ :: qall
 
     _REAL_ :: time0, time1
-    integer :: numtasks, mytaskid
+    integer :: numtasks
     character(len=50) omp_threads
 
     !  Following should not be necessary, but ifort doesn't seem to
@@ -3079,11 +3077,10 @@ contains
     ! short range part of PME.
     !
 
-!$omp parallel private (rx,ry,rz,solutePosition,sd2,sd, &
-!$omp&   igx,igy,igz,iu,mytaskid) num_threads(numtasks)
-    mytaskid = omp_get_thread_num()
+!$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd, &
+!$omp&   igx,igy,igz,iu) num_threads(numtasks)
 
-    do iu = mytaskid+1, this%solute%numAtoms, numtasks
+    do iu =1, this%solute%numAtoms
         do igz = 1, this%grid%localDimsR(3)
            rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
            do igy = 1, this%grid%localDimsR(2)
@@ -3105,7 +3102,7 @@ contains
            end do
         end do
     end do
-!$omp end parallel
+!$omp end parallel do
 
     ! (2) FT [ rho(r) ]
     ! Convert the charge density into reciprocal space.
