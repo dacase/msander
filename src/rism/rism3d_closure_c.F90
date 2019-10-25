@@ -2276,12 +2276,12 @@ contains
 #endif /*RISM_DEBUG*/
     ff = 0
     if (periodicPotential == '') then
-       ! if (this%potential%cutoff2 > sum(this%grid%boxLength**2)) then
+       if (this%potential%cutoff2 > sum(this%grid%boxLength**2)) then
           call force_brute(this, ff, guv)
-       ! else
-       !    call lennardJonesForce(this, ff, guv, .false.)
-       !    call coulombicForce(this, ff, guv)
-       ! endif
+       else
+          call lennardJonesForce(this, ff, guv, .false.)
+          call coulombicForce(this, ff, guv)
+       endif
     else
        call lennardJonesForcePeriodic(this%potential, ff, guv)
        call particleMeshEwaldRecipForce(this%potential, ff, guv)
@@ -3221,7 +3221,7 @@ contains
        call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
     end if
     call wallclock(time1)
-    write(6,*) 'short-range PME force: ', time1 - time0
+    ! write(6,*) 'short-range PME force: ', time1 - time0
 
   end subroutine particleMeshEwaldRecipForce 
 
