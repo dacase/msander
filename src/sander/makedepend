@@ -36,9 +36,6 @@ $LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} = $LES{"pa
 $PUPIL{"sander"} = $PUPIL{"force"} = $PUPIL{"mexit"} = $PUPIL{"mdfil"} = 
 	$PUPIL{"mdread"} = $PUPIL{"printe"} = $PUPIL{"dynlib"} = 1;
 
-#The following files only appear in SANDER and not any of the special builds
-#$RISM{"../rism/amber_rism_interface.SANDER"} = 1;
-
 #  in order to get a mapping between module names and file names, we have
 #  have to set up the following hash. 
 #  (special cases, since source is elsewhere)
@@ -53,7 +50,7 @@ $modulefile{"qmmm_qmtheorymodule"} = "qmmm_qmtheorymodule";
 $modulefile{"qmmm_struct_module"} = "qmmm_struct_module";
 $modulefile{"qmmm_vsolv_module"} = "qmmm_vsolv_module";
 $modulefile{"qmmm_read_and_alloc"} = "qm2_read_nm_and_alloc";
-$modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface.SANDER";
+$modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface";
 $modulefile{"poisson_boltzmann"} = "poisson_boltzmann";
 $modulefile{"dispersion_cavity"} = "dispersion_cavity";
 $modulefile{"pbtimer_module"} = "pbtimer_module";
@@ -192,16 +189,6 @@ printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) 
 
 printf "constants.o: ../lib/constants.F90\n";
 printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o constants.o ../lib/constants.F90\n\n";
-
-#  special compilation rule for amber_rism_interface
-print "../rism/amber_rism_interface.SANDER.o: ../rism/amber_rism_interface.F90\n"
-  ."\tcd ../rism && \\\n"
-  ."\tif [ -n \"\$(RISMSANDER)\" ]; then \\\n"
-  ."\t\t\$(MAKE) amber_rism_interface.SANDER.o; \\\n"
-  ."\telse \\\n"
-  ."\t\ttest -e amber_rism_interface.SANDER.o || touch amber_rism_interface.SANDER.o; \\\n"
-  ."\tfi\n\n"
-  ;
 
 #  special "compilation" rule for module object files in ../sqm
 print "qmmm_module.o: \n\ttest -e \$\@ || touch \$\@\n\n";

@@ -688,7 +688,7 @@ dynlib.o: \
                     pimd_vars.o\
                     remd.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -727,7 +727,7 @@ dynlib.LES.o: \
                     pimd_vars.o\
                     remd.LES.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -765,7 +765,7 @@ dynlib.PUPIL.o: \
                     pimd_vars.o\
                     remd.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -1380,7 +1380,7 @@ force.o: \
                     qmmm_module.o\
                     softcore.o\
                     remd.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1442,7 +1442,7 @@ force.LES.o: \
                     qmmm_module.o\
                     softcore.o\
                     remd.LES.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1503,7 +1503,7 @@ force.PUPIL.o: \
                     qmmm_module.o\
                     softcore.o\
                     remd.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1660,7 +1660,7 @@ interface_setup.F90: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -1916,7 +1916,7 @@ md_scheme.LES.o:   md_scheme.F90
 mdfil.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -1930,7 +1930,7 @@ mdfil.o:   mdfil.F90
 mdfil.LES.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -1943,7 +1943,7 @@ mdfil.LES.o:   mdfil.F90
 mdfil.PUPIL.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -2031,7 +2031,7 @@ mdread1.F90: \
                     mbar.o\
                     remd.o\
                     linear_response.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
@@ -3258,7 +3258,7 @@ printe.o: \
                     multitmd.h\
                     crg_reloc.o\
                     constants.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     charmm.o\
@@ -3287,7 +3287,7 @@ printe.PUPIL.o: \
                     multitmd.h\
                     crg_reloc.o\
                     constants.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     charmm.o\
@@ -3888,7 +3888,7 @@ runmd.o: \
                     lscivr_vars.o\
                     md_scheme.o\
                     nose_hoover.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
@@ -3955,7 +3955,7 @@ runmd.LES.o: \
                     lscivr_vars.o\
                     md_scheme.LES.o\
                     nose_hoover.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
@@ -4058,7 +4058,7 @@ sander.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4133,7 +4133,7 @@ sander.LES.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4207,7 +4207,7 @@ sander.PUPIL.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4695,14 +4695,6 @@ random.o: ../lib/random.F90 ../lib/random.h
 constants.o: ../lib/constants.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o constants.o ../lib/constants.F90
-
-../rism/amber_rism_interface.SANDER.o: ../rism/amber_rism_interface.F90
-	cd ../rism && \
-	if [ -n "$(RISMSANDER)" ]; then \
-		$(MAKE) amber_rism_interface.SANDER.o; \
-	else \
-		test -e amber_rism_interface.SANDER.o || touch amber_rism_interface.SANDER.o; \
-	fi
 
 qmmm_module.o: 
 	test -e $@ || touch $@
