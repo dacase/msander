@@ -289,7 +289,7 @@ CXXOPTFLAGS=-O3
 
 FC=$fc
 FFLAGS=$bintraj $mklinc $ompflag 
-FLIBSF= $rism -larpack $flibs_mkl $ompflag
+FLIBSF= $rism -larpack -lsys $flibs_mkl $ompflag
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
 

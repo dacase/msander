@@ -244,14 +244,6 @@ amoeba_vdw.o:   amoeba_vdw.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_vdw.F90
 
-amopen.o: \
-                    copyright.h
-
-
-amopen.o:   amopen.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amopen.F90
-
 ang_bend.o: \
                     ../include/dprec.fh
 
@@ -2151,25 +2143,6 @@ memory_module.o:   memory_module.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ memory_module.F90
 
-mexit.o: \
-                    copyright.h\
-                    pupildata.o\
-                    parallel.h
-
-
-mexit.o:   mexit.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
-
-mexit.PUPIL.o: \
-                    copyright.h\
-                    pupildata.o\
-                    parallel.h
-
-mexit.PUPIL.o:   mexit.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
-
 minrit.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -2243,6 +2216,7 @@ multisander.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
+                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -2263,6 +2237,7 @@ multisander.LES.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
+                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -4705,6 +4680,9 @@ yammpnb.o:   yammpnb.F90
 
 netcdf.o:  $(NETCDF)
 	test -e $@ || touch netcdf.o
+
+omp_lib.o:
+	test -e $@ || touch omp_lib.o
 
 AmberNetcdf.o: ../lib/AmberNetcdf.F90
 	@echo '[SANDER]  FC $<'

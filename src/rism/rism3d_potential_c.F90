@@ -1787,10 +1787,7 @@ contains
     end do
 
 !$omp parallel private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,mytaskid) 
-
-    write(6,*) 'ljpot: ', omp_get_num_threads()
-    stop
+!$omp&   igx,igy,igz,iu,mytaskid) num_threads(numtasks)
 
     mytaskid = omp_get_thread_num()
     do igz = mytaskid+1, this%grid%localDimsR(3), numtasks

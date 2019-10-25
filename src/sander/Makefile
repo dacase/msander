@@ -83,7 +83,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     set.o dynlib.o mdfil.o nmlsrc.o \
     ew_force.o ew_setup.o ew_box.o ew_bspline.o\
     ew_fft.o nonbond_list.o short_ene.o pol_gauss.o ew_recip.o pcshift.o align.o csa.o \
-    rfree.o rgroup.o amopen.o \
+    rfree.o rgroup.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.o thermo_int.o \
     matinv.o assert.o erfcfun.o sinr_t.o md_scheme.o \
@@ -111,7 +111,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     ew_force.LES.o ew_setup.LES.o ew_bspline.o\
     ew_fft.o short_ene.LES.o pol_gauss.o ew_recip.LES.o pcshift.o \
     align.o csa.o rfree.o rgroup.o \
-    amopen.o sander_lib.o random.o \
+    sander_lib.o random.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
     erfcfun.o sinr_t.o md_scheme.LES.o \
