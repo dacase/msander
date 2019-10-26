@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-set sander = "../../bin/sander"
+set sander = "../../bin/msander"
 if( $?TESTsander ) then
    set sander = $TESTsander
 endif
