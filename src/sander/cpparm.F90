@@ -133,11 +133,9 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
    use molecule, only : mol_info
    use nblist, only : a,b,c
    use parms
-   use pimd_vars, only : dmdlm, itimass
    use prmtop_type, only : prmtop_struct
 #ifdef LES
    use amoeba_mdin, only : iamoeba
-   use pimd_vars, only : ipimd
    use les_data, only : lestyp, lesfac, cnum, subsp, nlesty, nlesadj, &
                         maxlestyp, maxles, lfac, lesfac, lestmp, ileslst, &
                         jleslst, maxlesadj
@@ -403,19 +401,6 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
 
    end if
 
-   !     ----- READ THE PERTURBED MASSES IF NEEDED  -----
-   if (itimass > 0) then
-      ! JVAN: dmdlm must be allocated here, not in pimd_init.
-      allocate( dmdlm(1:natom),stat=ier )
-      REQUIRE( ier == 0 )
-      dmdlm(1:natom) = parmdata%ti_mass(1:natom)
-      do i=1,natom
-         massdiff = (dmdlm(i) - x(lwinv+i-1))
-         x(lwinv+i-1) = x(lwinv+i-1) + clambda * massdiff
-         dmdlm(i) = massdiff/x(lwinv+i-1)
-      end do
-   end if
-   
 #ifdef DSSP
    !   ----- construct an array containing the atom numbers of the carbon atoms of all peptide
    !         groups
@@ -474,10 +459,6 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
       ! since many atoms will not have any correction partners (since 
       ! they are not in LES).
 
-      if( ipimd.eq.0 ) then
-      ! pimd are not going to use nb_adjust_les, so we do not need to generate
-      ! les adjust list
-      !
       do k=1,natom
          
          lestmp=nlesty*(lestyp(k)-1)
@@ -551,8 +532,6 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
          
       end do
       
-      end if !(ipimd == 0 )
-
       ! end creation of LES adjustment list and reading LES info
 
    end if  ! (nparm==1)

@@ -934,7 +934,6 @@ subroutine load_adj_mask(iblo,inb,natom, &
       mxadjmsk,mask1,mask2,numadjst,verbose)
 #ifdef LES
    use les_data, only : cnum, lestyp
-   use pimd_vars, only: ipimd
 #endif
    implicit none
    integer iblo(*),inb(*),natom
@@ -983,7 +982,7 @@ subroutine load_adj_mask(iblo,inb,natom, &
          !         use extra arrays mask1,mask2 to speed the nb_adjust routine
          if ( k > i )then
 #ifdef LES
-         if( ipimd==0 .or. lestyp(i).ne.lestyp(k) .or. cnum(i).eq.cnum(k) ) then
+         if( lestyp(i).ne.lestyp(k) .or. cnum(i).eq.cnum(k) ) then
 #endif             
              numadjst = numadjst + 1
              mask1(numadjst) = i
@@ -1006,7 +1005,6 @@ subroutine load_adj_mask_qmqm(iblo,inb,natom, &
       mxadjmsk,mask1,mask2,numadjst,qm_mask,verbose)
 #ifdef LES
    use les_data, only : cnum, lestyp
-   use pimd_vars, only: ipimd
 #endif
    implicit none
    integer, intent(in) :: iblo(*), inb(*), natom, mxadjmsk, verbose
@@ -1089,7 +1087,7 @@ subroutine load_adj_mask_qmqm(iblo,inb,natom, &
                   ! atom pair has not yet been excluded
                   ! exclude it now
 #ifdef LES
-                  if( ipimd==0 .or. lestyp(i).ne.lestyp(k) .or. cnum(i).eq.cnum(k) ) then
+                  if( lestyp(i).ne.lestyp(k) .or. cnum(i).eq.cnum(k) ) then
 #endif             
                      numadjst = numadjst + 1
                      mask1(numadjst) = i

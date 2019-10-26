@@ -51,9 +51,6 @@ module qm2_extern_module
   subroutine qm2_extern_get_qm_forces(nstep, nqmatoms, qmcoords, qmtypes, &
        nclatoms, clcoords, escf, dxyzqm, dxyzcl)
 
-    use neb_vars, only: ineb
-    use pimd_vars, only: ipimd
-    use full_pimd_vars, only: mybeadid
     use file_io_dat
 #if defined(MPI)
     use remd, only : rem
@@ -79,10 +76,6 @@ module qm2_extern_module
 
     ! Determine id
     id = ''
-    if ( (ipimd > 0) .or. (ineb >0) ) then
-       ! Add number in case of parallel PIMD runs
-       write (id,'(i3.3)') mybeadid
-    end if
 
 #if defined(MPI)
     ! In parallel runs, only one thread needs to call the EXTERN program

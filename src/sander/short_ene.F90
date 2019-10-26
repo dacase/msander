@@ -253,7 +253,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   use file_io_dat
 #ifdef LES
   use les_data, only: cnum, lestyp, lestmp, lesfac, lfac, nlesty
-  use pimd_vars, only: ipimd, nrg_all, nbead, nbead_inv
 #endif
   use decomp, only: decpr, decpair
   use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
@@ -416,7 +415,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = b0 - d_switch_dx*dxdr
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
 
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -509,7 +508,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = b0 - d_switch_dx*dxdr
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
             
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -766,7 +765,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = (b0 - d_switch_dx*dxdr)*delr2inv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
 
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -849,7 +848,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = (b0 - d_switch_dx*dxdr)*delr2inv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
 
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -923,7 +922,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = (b0 - d_switch_dx*dxdr)*delr2inv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
 
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -1001,7 +1000,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       b1 = (b0 - d_switch_dx*dxdr)*delr2inv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
 
         ! If we are using PME, then the correction for lfac will
         ! be done after the reciprocal space calculation is done,
@@ -1069,7 +1068,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = delrinv * delrinv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
         if (ifcr .ne. 0) then
           call cr_add_dcdr_factor(i, delrinv*cgj)
@@ -1136,7 +1135,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = delrinv * delrinv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
         if (ifcr .ne. 0) then
           call cr_add_dcdr_factor(i, delrinv*cgj)
@@ -1193,7 +1192,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = delrinv * delrinv
       cgj = charge(j)
 #  if defined(LES) 
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
         if (ifcr .ne. 0) then
           call cr_add_dcdr_factor(i, delrinv*cgj)
@@ -1259,7 +1258,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = one / delr2
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delr2inv
         if (ifcr .ne. 0) then
           call cr_add_dcdr_factor(i, delr2inv*cgj)
@@ -1322,7 +1321,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = one / delr2
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delr2inv
         if (ifcr .ne. 0) then
           call cr_add_dcdr_factor(i, delr2inv*cgj)
@@ -1384,7 +1383,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       uips2 = rips2r * delr2
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
         b1 = delrinv
       else
@@ -1446,7 +1445,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       delr2inv = delrinv * delrinv
       cgj = charge(j)
 #ifdef LES
-      if (use_pme .ne. 0 .and. ipimd == 0) then
+      if (use_pme .ne. 0) then
         b0 = cgi*cgj*delrinv
         b1 = delrinv
       else

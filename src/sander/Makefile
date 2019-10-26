@@ -71,10 +71,6 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
-FULLPIMDOBJ = pimd_vars.o pimd_force.o pimd_init.o cmd_vars.o cmd_matrix.o
-
-PARTPIMDOBJ = pimd_vars.o pimd_force.LES.o pimd_init.LES.o cmd_vars.o cmd_matrix.LES.o
-
 LSCIVROBJ = lscivr_vars.o lsc_init.o lsc_xp.o
 
 LESOBJ= memory_module.o stack.o file_io_dat.o \

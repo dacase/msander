@@ -198,7 +198,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
 #ifdef LES
    use les_data, only : elesp, lestmp, lfac, nlesty, lestyp, cnum
-   use pimd_vars, only: ipimd,nrg_all
 #  ifdef MPI
       use remd, only : rem
 #  endif
@@ -1106,14 +1105,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          end if
       end do !k=1,icount
 
-#ifdef LES
-      if(ipimd>0) then
-         nrg_all(icnum) = nrg_all(icnum) + nrg_vdw_tmp
-         nrg_all(icnum) = nrg_all(icnum) + nrg_ele_tmp
-         nrg_all(icnum) = nrg_all(icnum) + nrg_egb_tmp
-      endif
-#endif
-
   !---- End first outer loop ----
 
       if (qmmm_nml%ifqnt) then
@@ -1696,11 +1687,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
          end if  !  ( gbsa == 2 )
 
-#ifdef LES
-      if(ipimd>0) nrg_all(icnum) = nrg_all(icnum) + nrg_egb_tmp
-#endif
-
-
       end do   ! end loop over atom i
 
       call timer_stop(TIME_GBRAD2)
@@ -1869,9 +1855,6 @@ VACUUM3 &
          end if !if not skipv(i)
        end do
 
-#ifdef LES
-       if(ipimd>0) nrg_all(icnum) = nrg_all(icnum) + nrg_vdw_tmp
-#endif
        f(3*mm_no-2) = f(3*mm_no-2) + dumx
        f(3*mm_no-1) = f(3*mm_no-1) + dumy
        f(3*mm_no  ) = f(3*mm_no  ) + dumz

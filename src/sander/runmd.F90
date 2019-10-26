@@ -60,7 +60,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use commandline_module, only: cpein_specified
   use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
-  use neb_vars, only: ineb, neb_nbead
   use lscivr_vars, only: ilscivr, ndof_lsc, natom_lsc, mass_lsc, v2_lsc, &
                          ilsc, x_lsc, f_lsc, dx_lsc
   use md_scheme, only: ischeme, thermostat_step
@@ -73,7 +72,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                                    rism_solvdist_thermo_calc, mylcm
 #endif /* RISMSANDER */
 
-  use full_pimd_vars, only: totener,totenert,totenert2,mybeadid,xall
   use qmmm_module, only: qmmm_nml,qmmm_struct, qmmm_mpi, qm2_struct
 
 #ifdef MPI
@@ -110,16 +108,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                       ekinles0, ekmhles, ekphles, rndfles
 #else
   use sgld, only: isgsta,isgend,sg_fix_degree_count
-  use pimd_vars, only: nbead, itimass
 #endif
 
 #ifdef MPI
   use remd, only: rem, mdloop, remd_ekmh, repnum, stagid, my_remd_data, &
                   hybrid_remd_ene, next_rem_method, remd_types, replica_indexes, &
                   my_pressure, my_volume
-#  ifdef LES
-  use pimd_vars, only : real_mass
-#  endif /* LES */
   use softcore, only: ifsc, sc_dvdl, sc_tot_dvdl, sc_tot_dvdl_partner, &
                       sc_dvdl_ee, sc_tot_dvdl_ee, sc_tot_dvdl_partner_ee, &
                       extra_atoms, mix_temp_scaling, sc_pscale, &
@@ -2604,13 +2598,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
   end if
 
-  ! NEB: remove velocities but ONLY for the end beads so V doesn't
-  ! accumulate if there are high forces
-  if (ineb > 0 .and. (mybeadid == 1 .or. mybeadid == neb_nbead)) then
-    x(1:3*natom) = f(1:3*natom)
-    v(1:3*natom) = 0.d0
-  end if
-
 !------------------------------------------------------------------------------
   if (ntt == 1 .or. onstep) then
     ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
@@ -3287,22 +3274,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* MPI */
     if (nvalid == 1) etot_start = ener%tot
 
-#ifndef LES
-#  ifdef MPI
-    if (master .and. ineb > 0) &
-      call mpi_reduce(ener%kin%tot, totener%kin%tot, 1, &
-                      MPI_DOUBLE_PRECISION, mpi_sum, 0, commmaster, ierr)
-#  endif /* MPI */
-
-!------------------------------------------------------------------------------
-    ! Passing of dvdl=dV/dl for Thermodynamic Integration w.r.t. mass
-    ! Note that ener(39) (in runmd and mix_frcti) =
-    !       = ener(17) = ene(21) (in force). All denote dvdl.
-    ! Note, ener() is now historical, MJW Feb 2010
-
-    totenert  = totenert + totener
-    totenert2 = totenert2 + (totener*totener)
-#endif /* LES is not defined */
     kinetic_E_save(2) = kinetic_E_save(1)
     kinetic_E_save(1) = ener%kin%tot
   end if

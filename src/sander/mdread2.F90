@@ -27,8 +27,6 @@
    use amoeba_runmd, only : AM_RUNMD_get_coords
    use nose_hoover_module, only: nchain  ! APJ
    use md_scheme, only: ischeme, therm_par
-   use neb_vars, only: last_neb_atom, ineb
-   use cmd_vars, only: adiab_param
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
    use file_io_dat
@@ -44,14 +42,12 @@
    use qmmm_module, only : qmmm_nml, qmmm_vsolv, qmmm_struct
    use qmmm_vsolv_module, only : print
    use linear_response, only : lrt_interval
-   use pimd_vars, only: itimass
    use crg_reloc, only: ifcr, cropt, crcut, crskin, crprintcharges
 #else
 #  ifdef LES
    use qmmm_module, only : qmmm_nml
 #  endif
 #endif /* API */
-   use pimd_vars, only: ipimd
    use qmmm_module, only: get_atomic_number, qm_gb
 #ifdef APBS
    use apbs
@@ -156,12 +152,6 @@
    if (ifbox == 2) write(6, '(/5x,''BOX TYPE: TRUNCATED OCTAHEDRON'')')
    if (ifbox == 3) write(6, '(/5x,''BOX TYPE: GENERAL'')')
 #endif
-
-   ! For 0< ipimd <= 3, no removal of COM motion
-   if (ischeme==0 .and. ipimd>0.and.ipimd<=3) then
-      nscm = 0
-      ndfmin = 0
-   endif
 
    if (ntr.eq.1) &
       nscm = 0
@@ -456,10 +446,6 @@
    if( ntr == 1 ) write(6,'(5x,a,f10.5)') 'restraint_wt =', restraint_wt
 
    if( imin /= 0 ) then
-      if( ipimd > 0 ) then
-         write(6,'(/a)') 'pimd cannot be used in energy minimization'
-         stop
-      end if
 
       write(6,'(/a)') 'Energy minimization:'
       ! print inputable variables applicable to all minimization methods.
@@ -637,27 +623,6 @@
       write (6,'(a,i4,a,i4)') ' Linear Response Theory: ilrt =', ilrt, ' lrt_interval =', lrt_interval
       write (6,*)
    end if
-
-   ! Options for TI w.r.t. mass.
-   select case (itimass)
-   case (0)     ! Default: no TI wrt. mass.
-   case (1,2)   ! 1 = use virial est., 2 = use thermodynamic est.
-      write(6,'(/a)') 'Isotope effects (thermodynamic integration w.r.t. mass):'
-      write(6,'(5x,4(a,i8))') 'itimass =',itimass
-      write(6,'(5x,3(a,f10.5))') 'clambda =',clambda
-      if (icfe /= 0) then
-         write(6,'(/2x,a,i2,a,i2,a)') 'Error: Cannot do TI w.r.t. both potential (icfe =', &
-            icfe, ') and mass (itimass =', itimass, ').'
-         stop
-      endif
-      if (ipimd == 0) then
-         write(6,'(/2x,a)') 'Error (IPIMD=0): TI w.r.t. mass requires a PIMD run.'
-         stop
-      endif
-   case default ! Invalid itimass
-      write(6,'(/2x,a,i2,a)') 'Error: Invalid ITIMASS (', itimass, ' ).'
-      stop
-   end select
 
    if( itgtmd == 1 ) then
       write(6,'(/a)') 'Targeted molecular dynamics:'
@@ -2495,60 +2460,6 @@
             eedtbdns,denslo,denshi)
    end if  ! ( igb == 0 .and. ipb == 0 )
 
-   if( ntb==2 .and. ipimd==1) then
-      write(6,*) 'primitive PIMD is incompatible with NTP ensemble'
-      inerr=1
-   endif
-
-   if( ntb==2 .and. ipimd==3 ) then
-      write(6,*) 'CMD is incompatible with NTP ensemble'
-      inerr=1
-   endif
-
-   if( ipimd==3 .and. adiab_param>=1.0 ) then
-      write(6,*) 'For CMD adiab_param must be <=1'
-      inerr=1
-   endif
-
-   if( ntb==2 .and. ipimd==4 ) then
-      write(6,*) 'RPMD is incompatible with NTP ensemble'
-      inerr=1
-   endif
-
-   if( ntt/=0 .and. ipimd==4 ) then
-      write(6,*) 'RPMD is incompatible with NVT ensemble'
-      inerr=1
-   endif
-
-   if( ntt/=4 .and. ipimd==2 ) then
-      write(6,*) 'NMPIMD requires Nose-Hoover chains (ntt=4)'
-      inerr=1
-   endif
-
-   if( ntt/=4 .and. ipimd==3 ) then
-      write(6,*) 'CMD requires Nose-Hoover chains (ntt=4)'
-      inerr=1
-   endif
-
-#if !defined(MPI)
-   if( ineb > 0 ) then
-      write(6,*) 'NEB requires MPI'
-      inerr=1
-   endif
-#endif
-
-#ifdef LES
-   if( ineb > 0 ) then
-      write(6,*) 'NEB no longer works with LES: use multiple groups and a groupfile instead'
-      inerr=1
-   endif
-#endif
-
-   if( ineb > 0 .and. ipimd > 0 ) then
-      write(6,*) 'ineb>0 and ipimd>0 are incompatible options'
-      inerr=1
-   endif
-
    if( iamoeba == 1 )then
 #ifdef LES
       write(6,*)'amoeba is incompatible with LES'
@@ -2745,58 +2656,6 @@
       end if ! (itgtmd == 2)
 
    end if  ! (konst.or.dotgtmd)
-
-   if (ineb>0) then
-      ! carlos: read in fitmask and rmsmask info for NEB, just as done for tgtmd
-      ! init last_neb_atom, which is used to determine the limits for the
-      ! communication of neighbor coordinates (to reduce size for explicit
-      ! water)
-      last_neb_atom = 0
-
-      if (ntr /= 0) then
-        write(6,'(/2x,a)') 'cannot use NEB with ntr restraints'
-! CARLOS: WHY NOT? SHOULD BE OK.
-! potential for user error is restrained region overlaps with NEB region. would
-! blow up.
-        call mexit(6,1)
-      else
-         ! read in atom group for fitting (=overlap region)
-         call atommask( natom, nres, 0, ih(m04), ih(m06), &
-            ix(i02), ih(m02), x(lcrd), tgtfitmask, ix(itgtfitgp) )
-         ! see comments above (for ntr) for the following reduction cycle
-         nattgtfit = 0
-         do i=1,natom
-           if( ix(itgtfitgp-1+i) <= 0 ) cycle
-           nattgtfit = nattgtfit + 1
-           ix(itgtfitgp-1+nattgtfit) = i
-           if (i.gt.last_neb_atom) last_neb_atom = i
-         end do
-         write(6,'(a)') "The following selection will be used for NEB structure fitting"
-         write(6,'(a,a,a,i5,a)')  &
-         '     Mask "', tgtfitmask(1:len_trim(tgtfitmask)-1),  &
-         '" matches ',nattgtfit,' atoms'
-      end if
-      ! read in atom group for tgtmd rmsd calculation
-      call atommask( natom, nres, 0, ih(m04), ih(m06), &
-         ix(i02), ih(m02), x(lcrd), tgtrmsmask, ix(itgtrmsgp) )
-      nattgtrms = 0
-      do i=1,natom
-        if( ix(itgtrmsgp-1+i) <= 0 ) cycle
-        nattgtrms = nattgtrms + 1
-        ix(itgtrmsgp-1+nattgtrms) = i
-        if (i.gt.last_neb_atom) last_neb_atom = i
-      end do
-      write(6,'(a)') "The following selection will be used for NEB force application"
-      write(6,'(a,a,a,i5,a)')  &
-      '     Mask "', tgtrmsmask(1:len_trim(tgtrmsmask)-1),  &
-      '" matches ',nattgtrms,' atoms'
-      write(6,'(/2x,a,i6)') "Last atom in NEB fitmask or rmsmask is ",last_neb_atom
-
-      if (nattgtrms<=0 .or. nattgtfit <= 0) then
-        write(6,'(/2x,a)') 'NEB requires use of tgtfitmask and tgtrmsmask'
-        call mexit(6,1)
-      endif
-   endif
 
    ! dotgtmd may be false here even if doing tgtmd
    ! this is so belly info is read properly? following existing KONST code

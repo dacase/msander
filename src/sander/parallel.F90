@@ -44,9 +44,6 @@ subroutine startup(xx,ix,ih)
    use nblist, only : ucell,bc_ewucr,bc_ewuci,nbflag, &
                      BC_DIRPARS,numnptrs
    use file_io_dat
-   use pimd_vars, only: ipimd
-   use neb_vars, only: ineb
-   use cmd_vars,  only: adiab_param, eq_cmd, restart_cmd
    use nose_hoover_module, only: nchain      ! APJ
    use lscivr_vars, only: ilscivr
    use md_scheme, only: ischeme, ithermostat, therm_par
@@ -165,8 +162,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(lesfac,BC_LESR,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
-   call mpi_bcast(ipimd, 1, mpi_integer, 0,commsander,ierr)
-   call mpi_bcast(ineb, 1, MPI_INTEGER, 0, commsander, ierr )
    call mpi_bcast(adiab_param, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
    call mpi_bcast(eq_cmd,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(restart_cmd,1,MPI_INTEGER,0,commsander,ierr)
@@ -399,7 +394,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    !************************************************************
 
    use trace
-   use neb_vars, only : ineb
    use qmmm_module, only : qmmm_nml
    use state
    implicit none
@@ -440,10 +434,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    f(j+2)   = vir(3)
 
    !f(j+32) = newbalance !what is this for?  !TODO mjw fix this
-
-   ! carlos removed ineb here, no need for master to know all forces with new
-   ! NEB code
-
 
    if( mpi_orig.or. ievb>0 .or. icfe>0 ) then
 
@@ -515,7 +505,7 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
       !if(forcetmp(j+32) > 0.d0)newbalance=1  !TODO mjw
 #endif
 
-      if (init /= 3 .AND.ineb==0 .AND. qmmm_nml%vsolv < 2) then
+      if (init /= 3 .AND. qmmm_nml%vsolv < 2) then
          !  ---Do a distributed sum of the force array:
          call fsum(f,forcetmp)
       else
