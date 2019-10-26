@@ -62,9 +62,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
   use cmd_vars, only: activate, file_pos_cmd, file_vel_cmd, nstep_cmd, &
                       t_cmd, eq_cmd, restart_cmd, etot_cmd, eke_cmd, temp_cmd
-  use pimd_vars, only: ipimd, natomCL, bnd_vir, Eimp_virial, equal_part, &
-                       Epot_deriv, tau_vol, Epot_spring, NMPIMD, CMD, &
-                       cartpos, cartvel
   use neb_vars, only: ineb, neb_nbead
   use lscivr_vars, only: ilscivr, ndof_lsc, natom_lsc, mass_lsc, v2_lsc, &
                          ilsc, x_lsc, f_lsc, dx_lsc
@@ -536,13 +533,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   fac(3) = boltz2*rndfs
   if (rndfs < 0.1d0) fac(3) = 1.d-6
 #endif
-  if (ipimd == CMD) then
-    if (eq_cmd) then
-      fac(1) = boltz2 * dble(3*natomCL)
-    else
-      fac(1) = boltz2 * dble(3*(natomCL-1))
-    endif
-  endif
   onefac(1) = 1.0d0 / fac(1)
   onefac(2) = 1.0d0 / fac(2)
   onefac(3) = 1.0d0 / fac(3)
@@ -631,48 +621,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! middle scheme when nscm is enabled
   if (nscm > 0 .and. ischeme > 0) then
      if (ifbox == 0) then
-        if (ipimd == 0) then
-           call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
+        call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
 #ifdef MPI
-    ! Soft core position mixing
-           if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
+        ! Soft core position mixing
+        if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
 #endif /* MPI */
-        else if (ipimd > 0) then
-#ifdef MPI
-#ifndef LES
-           REQUIRE( allocated(xall) )
-           if (sanderrank.eq.0) then
-              call MPI_Allgather(x   ,3*natom,MPI_DOUBLE_PRECISION,&
-                                 xall,3*natom,MPI_DOUBLE_PRECISION,&
-                                 commmaster,ierr) 
-           endif
-           
-           call MPI_Bcast(xall,3*natom*nbead,MPI_DOUBLE_PRECISION,&
-              0, commsander,ierr)
-           x_centroid(1:3,1:natom)=0.0
-           do i = 1, nbead
-              do j = istart, iend
-                 x_centroid(1:3,j)=x_centroid(1:3,j)+xall(1:3,j,i)
-              end do
-           end do
-           x_centroid(1:3,1:natom) = x_centroid(1:3,1:natom)/dble(nbead)
-           ! position of mass center
-           sysx = 0.d0
-           sysy = 0.d0
-           sysz = 0.d0
-           tmp = 0.d0
-           do i = 1, natom
-             aamass = amass(i)
-             sysx = sysx + aamass*x_centroid(1,i)
-             sysy = sysy + aamass*x_centroid(2,i)
-             sysz = sysz + aamass*x_centroid(3,i)
-           end do
-           sysx = sysx * tmassinv * dble(nbead)
-           sysy = sysy * tmassinv * dble(nbead)
-           sysz = sysz * tmassinv * dble(nbead)
-#endif
-#endif 
-        end if ! pimd or not
      end if ! ifbox==0: non-periodic
   end if ! middle scheme when nscm is enabled
 
@@ -758,11 +711,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   endif
 
 !------------------------------------------------------------------------------
-  ! Transform cartesian positions into normal mode positions for
-  ! (Normal Mode) Path Integral Molecular Dynamics (PIMD)
-  if (ipimd == NMPIMD .or. ipimd == CMD) call trans_pos_cart_to_nmode(x)
-
-!------------------------------------------------------------------------------
   ! Make a first dynamics step. {{{
   ! init = 3: general startup if not continuing a previous run
   if (init == 3 .or. nstlim == 0 .or. &
@@ -772,7 +720,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Calculate the center of mass for each molecule, kinetic energy of the
     ! molecule's center of mass, and coordinates of each molecule relative to
     ! its center of mass in the simulation.
-    if (ntp > 0 .and. iamoeba == 0 .and. ipimd == 0) then
+    if (ntp > 0 .and. iamoeba == 0) then
       xr(1:nr3) = x(1:nr3)
       call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, 1, nr)
     end if
@@ -782,24 +730,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     irespa = 0
     iprint = 1
 
-!------------------------------------------------------------------------------
-    ! for path-integral MD:
-
-    if (ipimd == NMPIMD .or. ipimd == CMD) then
-#if defined(MPI) || defined(LES)
-      call trans_pos_nmode_to_cart(x, cartpos)
-#else
-      call trans_pos_nmode_to_cart(cartpos)
-#endif /* MPI or LES */
-      call force(xx, ix, ih, ipairs, cartpos, f, ener, ener%vir, xx(l96), &
-                 xx(l97), xx(l98), xx(l99), qsetup, do_list_update, nstep)
-      call trans_frc_cart_to_nmode(f)
-      i3 = 3*(istart-1)
 
 !------------------------------------------------------------------------------
     ! for LSC-IVR:
 
-    else if (ilscivr == 1) then
+    if (ilscivr == 1) then
 
       ! Prepare the Hessian Matrix of the potential for the Linearized
       ! Semi-Classical Initial Value Representation (LSC-IVR).  At this
@@ -1029,9 +964,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #ifdef LES
         if (temp0les < 0.d0) then
           tempsu = tempsu + rterm
-          if (ipimd == CMD .and. (cnum(j) == 0 .or. cnum(j) == 1)) then
-            eke_cmd = eke_cmd + aamass*v(i3)*v(i3)
-          endif
         else
           if (cnum(j) == 0) then
             tempsu = tempsu + rterm
@@ -1040,12 +972,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           end if
         end if
 #else
-        if (ipimd == CMD .and. mybeadid == 1) &
-          eke_cmd = eke_cmd + aamass*v(i3)*v(i3)
         tempsu = tempsu + rterm
 #endif
-        if (ipimd .ne. NMPIMD .and. ipimd .ne. CMD) &
-          v(i3) = v(i3) - f(i3) * winf
+        v(i3) = v(i3) - f(i3) * winf
         if (vlim) v(i3) = sign(min(abs(v(i3)), vlimit), v(i3))
       end do
     end do
@@ -1079,30 +1008,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (temp0les < 0.d0) then
       ener%kin%solv = 0.d0
       ener%kin%tot = ener%kin%solt
-      ! For CMD: "virial" estimate of KE
-      if (ipimd > 0) then
-        ener%kin%solv = equal_part + Epot_deriv
-        ener%tot = ener%kin%solv + ener%pot%tot
-      else
-        ener%tot = ener%kin%tot + ener%pot%tot
-      endif
-      if (ipimd == CMD) then
-        ener%kin%tot  = eke_cmd*0.5d0
-        ener%kin%solv = ener%kin%tot
-      endif
+      ener%tot = ener%kin%tot + ener%pot%tot
     else
       ener%kin%solv = tempsules * 0.5d0
       ener%kin%tot = ener%kin%solt + ener%kin%solv
     end if
 #else
     ! For better output for parallel PIMD/NMPIM/CMD/RPMD
-    if (ipimd > 0) then
-      ener%tot = 0.d0
-      ener%kin%tot = 0.d0
-      ener%kin%solt = 0.d0
-      ener%kin%solv = 0.d0
-      ener%volume = 0.d0
-    endif
     ener%kin%tot = ener%kin%solt
     ener%tot = ener%kin%tot + ener%pot%tot
 #endif /* LES */
@@ -1220,7 +1132,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       rewind(7)
 
 #ifdef LES
-      if (.not. ipimd > 0) ener%tot = ener%kin%tot+ener%pot%tot
+      ener%tot = ener%kin%tot+ener%pot%tot
 #endif /* LES */
 
       if (abfqmmm_param%abfqmmm /= 1 .or. &
@@ -1286,75 +1198,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
   ! End of contingencies primarily related to init not equal to 4 }}}
 
-  if (ntp > 0 .and. ipimd > 0) then
-    REQUIRE(ipimd == NMPIMD)
-#ifdef LES
-    call part_setup_cnst_press_pimd(Nkt, tau_vol)
-#else
-    call full_setup_cnst_press_pimd(Nkt, tau_vol)
-#endif
-    e2 = 1.0 / (2.0*3.0)
-    e4 = e2 / (4.0*5.0)
-    e6 = e4 / (6.0*7.0)
-    e8 = e6 / (8.0*9.0)
-    x_lnv = log(box(1)*box(2)*box(3)) / 3
-  end if
-
 !------------------------------------------------------------------------------
-  ! For Centroid MD {{{
-  if (ipimd == CMD) then
-    if (.not. eq_cmd) then
-
-      ! De-activate thermostat for path-centroid.
-#ifdef LES
-      do iatom = 1, natom
-        do idim = 1, 3
-          if (cnum(iatom) == 0 .or. cnum(iatom) == 1) then
-            activate = .false.
-          else
-            activate = .true.
-          end if
-          call Thermostat_switch(thermo(idim,iatom), activate)
-        enddo
-      enddo
-      if (.not. restart_cmd) then
-
-        ! Scale path-centroid velocity and set total momentum equal to zero.
-        call part_scale_vel_centroid(v, amass, istart, iend)
-        nstep_cmd = 0
-        t_cmd = 0.d0
-      else
-        t_cmd = t
-        nstep_cmd = int( t / dt )
-      end if
-#else
-      if (mybeadid == 1) then
-        activate = .false.
-      else
-        activate = .true.
-      end if
-      do iatom = 1, natom
-        do idim  = 1, 3
-          call Thermostat_switch(thermo(idim, iatom), activate)
-        enddo
-      enddo
-      if (.not. restart_cmd) then
-
-        ! Scale path-centroid velocity and set total momentum equal to zero.
-        call full_scale_vel_centroid(v,amass,istart,iend)
-        nstep_cmd = 0
-        t_cmd = 0.d0
-      else
-        nstep_cmd = nstep
-        t_cmd = t
-      end if
-#endif /* LES */
-    else
-      nstep_cmd = nstep
-      t_cmd = t
-    end if
-  end if
-  ! End of contingency for Centroid MD with constant pressure conditions }}}
 
 #ifdef MPI
   ! If this is a replica run and we are on exchange > 1, restore the
@@ -1628,7 +1472,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 1a: do some setup for pressure calculations: {{{
-  if (ntp > 0 .and. iamoeba == 0 .and. ipimd==0) then
+  if (ntp > 0 .and. iamoeba == 0) then
     ener%cmt(1:3) = 0.d0
     xr(1:nr3) = x(1:nr3)
 
@@ -1676,29 +1520,18 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Step 1b': actually get the forces for the system's current coordinates {{{
 
-  if (ipimd == NMPIMD .or. ipimd == CMD) then
-  ! Contingency for Normal Mode Path Integral MD or Centroid MD {{{
-    call trans_pos_nmode_to_cart(x, cartpos)
-    call force(xx, ix, ih, ipairs, cartpos, f, ener, ener%vir, xx(l96), &
-               xx(l97), xx(l98), xx(l99), qsetup, do_list_update, nstep)
-    call trans_frc_cart_to_nmode(f)
+!------------------------------------------------------------------------------
+  ! Thermodynamic Integration decomposition {{{
+  if (idecomp > 0 .and. ntpr > 0) then
+    decpr = .false.
+    if (mod(nstep+1, ntpr) == 0) decpr = .true.
+  end if
   ! }}}
-  else
-!------------------------------------------------------------------------------
-    ! Thermodynamic Integration decomposition {{{
-    if (idecomp > 0 .and. ntpr > 0) then
-      decpr = .false.
-      if (mod(nstep+1, ntpr) == 0) decpr = .true.
-    end if
-    ! }}}
 
 !------------------------------------------------------------------------------
-    ! This(!) is where the force() routine mainly gets called:
-    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-               xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-  endif
-
+  ! This(!) is where the force() routine mainly gets called:
+  call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
+             xx(l98), xx(l99), qsetup, do_list_update, nstep)
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -1868,105 +1701,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (ntt == 1) dttp = dt/tautp
   ! }}}
 
-!------------------------------------------------------------------------------
-  ! Pressure coupling for PIMD:  {{{
-  if (ntp > 0 .and. ipimd > 0) then
-    REQUIRE(ipimd == NMPIMD)
-    centvir = 0.0
-#ifdef LES
-    do iatom=istart,iend
-      if (cnum(iatom) == 0 .or. cnum(iatom) == 1) then
-        centvir = centvir - x(3*iatom-2)*f(3*iatom-2)
-        centvir = centvir - x(3*iatom-1)*f(3*iatom-1)
-        centvir = centvir - x(3*iatom)*f(3*iatom)
-      end if
-    end do
-#else
-    if (mybeadid == 1) then
-      do iatom = istart, iend
-        centvir = centvir-x(3*iatom-2)*f(3*iatom-2)
-        centvir = centvir-x(3*iatom-1)*f(3*iatom-1)
-        centvir = centvir-x(3*iatom  )*f(3*iatom)
-      end do
-    end if
-#endif /* LES */
-
-    if (iamoeba == 1) then
-      atomvir = sum(ener%vir(1:3))
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-      call mpi_allreduce(MPI_IN_PLACE, centvir, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      call mpi_allreduce(MPI_IN_PLACE, atomvir, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-#  else
-      call mpi_allreduce(centvir, mpitmp, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      centvir = mpitmp(1)
-      tmp = 0.0
-      call mpi_allreduce(atomvir, tmp, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      atomvir=tmp
-#  endif /* USE_MPI_IN_PLACE */
-#endif /* MPI */
-    else
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-      call mpi_allreduce(MPI_IN_PLACE, centvir, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      call mpi_allreduce(MPI_IN_PLACE, bnd_vir, 9, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      call mpi_allreduce(MPI_IN_PLACE, e14vir, 9, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-#    ifndef LES
-      if (master) &
-        call mpi_allreduce(MPI_IN_PLACE, atvir, 9, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commmaster, ierr)
-#    endif /* LES */
-#  else
-      call mpi_allreduce(centvir, tmp, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      centvir = tmp
-      tmpvir = 0.0
-      call mpi_allreduce(bnd_vir, tmpvir, 9, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      bnd_vir = tmpvir
-#    ifndef LES
-      if (master) then
-        tmpvir = 0.0
-        call mpi_allreduce(e14vir, tmpvir, 9, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commmaster, ierr)
-        e14vir = tmpvir
-        tmpvir = 0.0
-        call mpi_allreduce(atvir, tmpvir, 9, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commmaster, ierr)
-        atvir=tmpvir
-      endif
-#    else
-      tmpvir = 0.0
-      call mpi_allreduce(e14vir, tmpvir, 9, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      e14vir = tmpvir
-#    endif /* LES */
-#  endif /* USE_MPI_IN_PLACE */
-      call mpi_bcast(atvir, 9, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-      call mpi_bcast(e14vir, 9, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-#endif /* MPI */
-      atomvir = 0.0
-      atomvir = atomvir + atvir(1,1) + bnd_vir(1,1) + e14vir(1,1)
-      atomvir = atomvir + atvir(2,2) + bnd_vir(2,2) + e14vir(2,2)
-      atomvir = atomvir + atvir(3,3) + bnd_vir(3,3) + e14vir(3,3)
-    end if
-    pressure = (Nkt*3.0 - centvir - (atomvir-Eimp_virial)) / (3.0*volume)
-    f_lnv_p = (pressure - pres0/pconv) * volume * 3.0
-  end if
-  ! }}}
-
   ! Constant pressure conditions: {{{
   if (ntp > 0) then
     ener%volume = volume
     ener%density = tmass / (0.602204d0*volume)
-    if (iamoeba == 0 .and. ipimd == 0) then
+    if (iamoeba == 0) then
       ener%cmt(4) = 0.d0
       ener%vir(4) = 0.d0
       ener%pres(4) = 0.d0
@@ -2086,7 +1825,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! and velocities are synchronized, we must correct the new velccities
     ! velocities by backing them up half a step using the current forces.
     ! Note that this fix only works for Newtonian dynamics.
-    if (gammai == 0.d0 .and. (ipimd .ne. NMPIMD .or. ipimd .ne. CMD)) then
+    if (gammai == 0.d0) then
       i3 = 3*(istart - 1)
       do j = istart, iend
         wfac = winv(j) * dt5
@@ -2508,38 +2247,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     do j = istart, iend
       wfac = dtx / amass(j)
       do idim = 1, 3
-#ifdef LES
-        if (ntp > 0 .and. ipimd == NMPIMD .and. &
-            (cnum(j) .eq. 0 .or. cnum(j) .eq. 1)) then
-#else
-        if (ntp > 0 .and. ipimd == NMPIMD .and. mybeadid == 1) then
-#endif /* LES */
-          exp1 = exp(-dt5*thermo(idim,j)%v(1) - dt5*v_lnv*c2_lnv)
-          Ekin2_tot = Ekin2_tot + amass(j) * v(i3+idim) * v(i3+idim)
-        else
-          exp1 = exp(-dt5 * thermo(idim,j)%v(1))
-        end if
+        exp1 = exp(-dt5 * thermo(idim,j)%v(1))
         exp2 = exp1 * exp1
         vold(i3+idim) = v(i3+idim)
         v(i3+idim) = v(i3+idim) * exp2 + f(i3+idim) * wfac * exp1
       end do
       i3 = i3 + 3
     end do
-    if (ntp > 0 .and. ipimd == NMPIMD) then
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-      call mpi_allreduce(MPI_IN_PLACE, Ekin2_tot, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-#  else
-      call mpi_allreduce(Ekin2_tot, mpitmp, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      Ekin2_tot = mpitmp(1)
-#  endif /* USE_MPI_IN_PLACE */
-#endif /* MPI */
-      f_lnv_v = Ekin2_tot*(c2_lnv - 1)
-      tmp = exp(-dt5 * thermo_lnv%v(1))
-      v_lnv = tmp*(tmp*v_lnv + dtx*(f_lnv_v + f_lnv_p)/mass_lnv)
-    end if
     call Thermostat_integrate_1(nchain, thermo, nthermo, dtx, ntp)
     ! }}}
 
@@ -2550,17 +2264,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     do j = istart, iend
       wfac = dtx / amass(j)
       do idim = 1, 3
-#ifdef LES
-        if (ntp > 0 .and. ipimd == NMPIMD .and. &
-            (cnum(j) == 0 .or. cnum(j) == 1)) then
-#else
-        if (ntp > 0 .and. ipimd == NMPIMD .and. mybeadid == 1) then
-#endif
-          Ekin2_tot = Ekin2_tot + amass(j)*v(i3+idim)*v(i3+idim)
-          exp1 = exp(-dt5 * v_lnv * c2_lnv)
-        else
-          exp1 = 1.d0
-        end if
+        exp1 = 1.d0
         exp2 = exp1 * exp1
         vold(i3+idim) = v(i3+idim)
         v(i3+idim) = v(i3+idim) * exp2
@@ -2568,19 +2272,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end do
       i3 = i3 + 3
     end do
-    if (ntp > 0 .and. ipimd == NMPIMD) then
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-      call mpi_allreduce(MPI_IN_PLACE, Ekin2_tot, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-#  else
-      call mpi_allreduce(Ekin2_tot, mpitmp, 1, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commworld, ierr)
-      Ekin2_tot = mpitmp(1)
-#  endif /* USE_MPI_IN_PLACE */
-#endif /* MPI */
-      f_lnv_v = Ekin2_tot*(c2_lnv - 1)
-    end if
     if (abfqmmm_param%abfqmmm == 1) then
 #ifdef MPI
       call xdist(v, xx(lfrctmp), natom)
@@ -2655,10 +2346,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #ifndef LES
       ! Always sync random number stream for PIMD
       ! (AWG: not sure if this is required)
-      if (ipimd > 0) then
-        iskip_start = iskip_start + 3*nr*(mybeadid-1)
-        iskip_end = iskip_end + 3*nr*(nbead-mybeadid)
-      end if
 #endif
     endif
       do j = 1, iskip_start
@@ -2706,7 +2393,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (temap) call emap_move()
 
   ! Consider vlimit {{{
-  if (vlim .and. ipimd == 0) then
+  if (vlim) then
     vmax = 0.0d0
     do i = istart3, iend3
       vmax = max(vmax, abs(v(i)))
@@ -2764,9 +2451,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         end if
       end if
 #endif
-      ! ipimd forces will probably not be right if some type of
-      ! transformation is necessary. This is from the vel dump code -- keep
-      ! it here as a holder in case somebody wants to fix it.
       call corpac(f,1,nrx,MDFRC_UNIT,loutfm)
     end if
   else
@@ -2801,14 +2485,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     else
       iskip_start = 3*(istart-1)
       iskip_end = 3*(nr-iend)
-#ifndef LES
-      ! Always sync random number stream for PIMD
-      ! (AWG: not sure if this is required)
-      if (ipimd > 0) then
-        iskip_start = iskip_start + 3*nr*(mybeadid-1)
-        iskip_end = iskip_end + 3*nr*(nbead-mybeadid)
-      end if
-#endif
     endif
     call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
     do i3 = istart3, iend3
@@ -2818,37 +2494,16 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   else
     ! default AMBER scheme {{{
 #ifdef LES
-  if (ntp > 0 .and. ipimd == NMPIMD) then
-    aa = exp(dt5 * v_lnv)
-    arg2 = v_lnv * dt5 * v_lnv * dt5
-    poly = 1.0d0 + arg2*(e2 + arg2*(e4 + arg2*(e6 + arg2*e8)))
-  endif
   i3 = 3*(istart-1)
   do j = istart, iend
-    if (ntp > 0 .and. ipimd == NMPIMD .and. &
-        (cnum(j) == 0 .or. cnum(j) == 1)) then
-      do idim = 1, 3
-        f(i3+idim) = x(i3+idim)
-        x(i3+idim) = aa*(x(i3+idim)*aa + v(i3+idim)*poly*dtx)
-      enddo
-    else
-      do idim = 1, 3
-        f(i3+idim) = x(i3+idim)
-        x(i3+idim) = x(i3+idim)+v(i3+idim)*dtx
-      enddo
-    endif
+    do idim = 1, 3
+      f(i3+idim) = x(i3+idim)
+      x(i3+idim) = x(i3+idim)+v(i3+idim)*dtx
+    enddo
     i3 = i3 + 3
   enddo
 #else
-  if (ntp > 0 .and. ipimd == NMPIMD .and. mybeadid == 1) then
-    aa = exp(dt5 * v_lnv)
-    arg2 = v_lnv * dt5 * v_lnv * dt5
-    poly = 1.0d0 + arg2*(e2 + arg2*(e4 + arg2*(e6 + arg2*e8)))
-    do i3 = istart3, iend3
-      f(i3) = x(i3)
-      x(i3) = aa*(x(i3)*aa + v(i3)*poly*dtx)
-    end do
-  else if (ntt == 10) then
+  if (ntt == 10) then
     do i3 = istart3, iend3
       f(i3) = x(i3)
     end do
@@ -2939,13 +2594,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
     ! Step 4b: Now fix the velocities and calculate KE.
     ! Re-estimate the velocities from differences in positions.
-    if (.not. (ipimd == NMPIMD .and. ipimd == CMD .and. mybeadid .ne. 1)) then
-      if (ischeme == 0) then
-        v(istart3:iend3) = (x(istart3:iend3) - f(istart3:iend3))*dtxinv
-      else
-        v(istart3:iend3) = v(istart3:iend3) &
-          + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
-      end if
+    if (ischeme == 0) then
+      v(istart3:iend3) = (x(istart3:iend3) - f(istart3:iend3))*dtxinv
+    else
+      v(istart3:iend3) = v(istart3:iend3) &
+        + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
     end if
     call timer_stop(TIME_SHAKE)
     ! }}}
@@ -3026,9 +2679,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           if (temp0les < 0.d0) then
             eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
             ekph = ekph + aamass*v(i3)**2
-            if (ipimd == CMD .and. (cnum(j) == 0 .or. cnum(j) == 1)) then
-              eke_cmd = eke_cmd + aamass*0.25d0*(v(i3)+vold(i3))**2
-            endif
           else
             if (cnum(j) == 0) then
               eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
@@ -3082,11 +2732,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
     ! Sum up the partial kinetic energies: {{{
 #ifdef MPI
-    if (ipimd == CMD) then
-      call mpi_reduce(eke_cmd, tmp_eke_cmd, 1, MPI_DOUBLE_PRECISION, &
-                      mpi_sum, 0, commsander, ierr)
-      eke_cmd = tmp_eke_cmd
-    endif
 #  ifdef LES
     if (.not. mpi_orig .and. numtasks > 1) then
       if (temp0les < 0) then
@@ -3381,7 +3026,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (mod(nstep,nsnb) == 0) ntnb = 1
     end if
     if (ifbox == 0) then
-      if ((ischeme==0.and.is_langevin) .or. (ischeme>0.and.ipimd==0)) then
+      if ((ischeme==0.and.is_langevin) .or. ischeme>0) then
 
         ! Get current center of the system
         call get_position(nr, x, vcmx, vcmy, vcmz, sysrange, 0)
@@ -3392,41 +3037,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         call re_position(nr, ntr, x, xc, vcmx, vcmy, vcmz, sysx, sysy, &
                          sysz, sysrange, mv_flag, 0)
 
-      elseif (ischeme>0 .and. ipimd>0) then   
-#ifdef MPI
-#ifndef LES
-         if (sanderrank.eq.0) then
-            call MPI_Allgather(x   ,3*natom,MPI_DOUBLE_PRECISION,&
-                               xall,3*natom,MPI_DOUBLE_PRECISION,&
-                               commmaster,ierr) 
-         endif
-         
-         call MPI_Bcast(xall,3*natom*nbead,MPI_DOUBLE_PRECISION,&
-            0, commsander,ierr)
-         x_centroid(1:3,1:natom)=0.0
-         do i = 1, nbead
-            do j = istart, iend
-               x_centroid(1:3,j)=x_centroid(1:3,j)+xall(1:3,j,i)
-            end do
-         end do
-         x_centroid(1:3,1:natom)=x_centroid(1:3,1:natom)/dble(nbead)
-         ! position of mass center
-         vcmx = 0.d0
-         vcmy = 0.d0
-         vcmz = 0.d0
-         do i = 1, natom
-           aamass = amass(i)
-           vcmx = vcmx + aamass*x_centroid(1,i)
-           vcmy = vcmy + aamass*x_centroid(2,i)
-           vcmz = vcmz + aamass*x_centroid(3,i)
-         end do
-         vcmx = vcmx * tmassinv * dble(nbead) 
-         vcmy = vcmy * tmassinv * dble(nbead)
-         vcmz = vcmz * tmassinv * dble(nbead)
-         call re_position(nr, ntr, x, xc, vcmx, vcmy, vcmz, sysx, sysy, &
-                          sysz, sysrange, mv_flag, 0)
-#endif
-#endif
       else
         ! Non-periodic simulation: remove both translation and rotation.
         ! Back the coords up 1/2 step, so that they correspond to the
@@ -3501,27 +3111,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 7: scale coordinates if NPT with Berendsen barostat:
-  !  First, for ipimd: {{{
-  if (ntp > 0 .and. ipimd > 0 .and. barostat == 1) then
-    x_lnv_old = x_lnv
-    x_lnv = x_lnv_old + v_lnv * dtx
-    rmu(1:3) = exp(x_lnv - x_lnv_old)
-    box(1:3) = box(1:3) * rmu(1:3)
-    volume = box(1) * box(2) * box(3)
-    ener%box(1:3) = box(1:3)
-    ! Only for NMPIMD in sander.LES
-    ! (in sander.MPI volume, pressure and density printed in pimdout)
-#ifdef LES
-    ener%volume = volume
-#else
-    ener%volume = 0.
-    totener%volume = volume
-#endif
-    call redo_ucell(rmu)
-    call fill_tranvec()
-    call ew_pscale(natom,x,amass,nspm,nsp,2)
-  end if
-  ! }}}
   if (iamoeba == 0 .and. barostat == 1) then
     !  next, for non-amoeba: {{{
     if (ntp == 1) then
@@ -3635,25 +3224,14 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (ntr > 0 .and. nrc > 0) &
         call ew_pscale(natom, xc, amass, nspm, nsp, npscal)
     end if
-    if (ipimd == NMPIMD .and. ntp > 0) then
-      ener%cmt(4) = 0.d0
-      ener%vir(4) = 0.d0
-      ener%pres(4) = pressure*pconv
-    end if
     ! }}}
   else if (barostat == 1) then
     ! finally, for amoeba: {{{
     if (ntp > 0) then
-      if (ipimd == 0) then     ! for classical AMOEBA
-        ener%cmt(4) = eke      !  for printing in prntmd()
-        ener%vir(4) = ener%vir(1) + ener%vir(2) + ener%vir(3)
-        ener%pres(4) = (pressure_constant/volume) * &
-                       (2.d0*eke - ener%vir(4)) / 3.d0
-      elseif (ipimd == NMPIMD) then     ! for NMPIMD AMOEBA
-        ener%cmt(4)  = 0.d0
-        ener%vir(4)  = 0.d0
-        ener%pres(4) = pressure*pconv
-      endif
+      ener%cmt(4) = eke      !  for printing in prntmd()
+      ener%vir(4) = ener%vir(1) + ener%vir(2) + ener%vir(3)
+      ener%pres(4) = (pressure_constant/volume) * &
+                     (2.d0*eke - ener%vir(4)) / 3.d0
       call AM_RUNMD_scale_cell(natom, ener%pres(4), dt, pres0, taup, x)
       call fill_tranvec()
     end if
@@ -3673,23 +3251,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     endif
   end if
 
-  if (ipimd > 0) then
-    ener%kin%solv = equal_part + Epot_deriv  ! "virial" estimate of KE
-    ener%tot = ener%kin%solv + ener%pot%tot
-  endif
 #else
-  if (ipimd > 0) then
 
-    ! Use a "virial" estimator for the KE, rather
-    ! than one derived from the  bead velocities
-    totener%kin%solv = equal_part + Epot_deriv
-  else
-
-    ! Pastor, Brooks, Szabo conserved quantity
-    ! for harmonic oscillator: Eq. 4.7b of Mol.
-    ! Phys. 65:1409-1419, 1988
-    ener%kin%solv = ekpbs + ener%pot%tot
-  endif
+  ! Pastor, Brooks, Szabo conserved quantity
+  ! for harmonic oscillator: Eq. 4.7b of Mol.
+  ! Phys. 65:1409-1419, 1988
+  ener%kin%solv = ekpbs + ener%pot%tot
   ener%kin%solt = eke
   ener%kin%tot  = ener%kin%solt
   if (ntt == 1 .and. onstep) ekmh = max(ekph,fac(1)*10.d0)
@@ -3704,32 +3271,14 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Total energy is sum of KE + PE:
-  if (ipimd > 0) then
-    totener%tot = totener%kin%solv + totener%pot%tot
-    etot_save   = totener%kin%tot  + totener%pot%tot
-    if (ipimd == CMD) then
-      etot_cmd = eke_cmd*0.5 + ener%pot%tot
-      totener%tot = etot_cmd
-      ener%tot = etot_cmd
-      ener%kin%tot  = eke_cmd*0.5
-      ener%kin%solv = ener%kin%tot
-    end if
-  else
-    ener%tot = ener%kin%tot + ener%pot%tot
-    etot_save = ener%tot
-  end if
+  ener%tot = ener%kin%tot + ener%pot%tot
+  etot_save = ener%tot
 
 !------------------------------------------------------------------------------
   ! Step 8: update the step counter and the integration time: {{{
   if (abfqmmm_param%abfqmmm .ne. 1) then
     nstep = nstep + 1
     t = t + dt
-  end if
-
-  ! For Centroid MD
-  if (ipimd == CMD) then
-    nstep_cmd = nstep_cmd + 1
-    t_cmd = t_cmd + dt
   end if
 
   ! Full energies are only calculated every nrespa steps.
@@ -3756,7 +3305,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 #ifndef LES
 #  ifdef MPI
-    if (master .and. (ipimd > 0 .or. ineb > 0)) &
+    if (master .and. ineb > 0) &
       call mpi_reduce(ener%kin%tot, totener%kin%tot, 1, &
                       MPI_DOUBLE_PRECISION, mpi_sum, 0, commmaster, ierr)
 #  endif /* MPI */
@@ -3766,17 +3315,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Note that ener(39) (in runmd and mix_frcti) =
     !       = ener(17) = ene(21) (in force). All denote dvdl.
     ! Note, ener() is now historical, MJW Feb 2010
-    if (ipimd>0 .and. itimass>0) totener%pot%dvdl = ener%pot%dvdl
 
-    if (ipimd == NMPIMD .and. ntp > 0) then
-      totener%pres(4) = pressure * pconv
-      totener%density = tmass / (0.602204d0*volume)
-    endif
-    if (ipimd == CMD) then
-      totener%kin%tot = eke_cmd * 0.5d0
-      totener%kin%solv = totener%kin%tot
-      totener%tot = totener%kin%tot + totener%pot%tot
-    endif
     totenert  = totenert + totener
     totenert2 = totenert2 + (totener*totener)
 #endif /* LES is not defined */
@@ -3816,28 +3355,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif
    ! }}}
-  !    coordinate dumps: {{{
-  if (ixdump) then
-    if (ipimd .eq. NMPIMD .or. ipimd == CMD) then
-#if defined(LES) || defined(MPI)
-      call trans_pos_nmode_to_cart(x, cartpos)
-      call trans_vel_nmode_to_cart(v, cartvel)
-#else
-      call trans_pos_nmode_to_cart(cartpos)
-      call trans_vel_nmode_to_cart(cartvel)
-#endif /* LES or MPI */
-    endif
-  endif
-  ! }}}
   !    some non-standard dumps: {{{
   if (itdump) then
-    if (ipimd == NMPIMD .or. ipimd == CMD) then
-#if defined(LES) || defined(MPI)
-      call trans_pos_nmode_to_cart(x, cartpos)
-#else
-      call trans_pos_nmode_to_cart(cartpos)
-#endif /* LES or MPI */
-    endif
     ! Accelerated MD: Flush amdlog file
     if (iamd > 0) then
 #ifdef MPI
@@ -3861,17 +3380,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
   end if
   ! }}}
-  !    velocity dumps: {{{
-  if (ivdump) then
-    if (ipimd == NMPIMD .or. ipimd == CMD) then
-#if defined(LES) || defined(MPI)
-      call trans_vel_nmode_to_cart(v, cartvel)
-#else
-      call trans_vel_nmode_to_cart(cartvel)
-#endif /* LES or MPI */
-    endif
-  endif
-  ! }}}
 
   ! Begin writing output on the master process.
   if (master) then
@@ -3887,17 +3395,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (iwrap == 0) then
         nr = nrp
 #ifdef LES
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          call mdwrit(nstep, nr, ntxo, ntb, cartpos, cartvel, t, temp0,solvph,solve)
-        else
-          call mdwrit(nstep,nr,ntxo,ntb,x,v,t,temp0les,solvph,solve)
-        endif
+        call mdwrit(nstep,nr,ntxo,ntb,x,v,t,temp0les,solvph,solve)
 #else
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          call mdwrit(nstep, nr, ntxo, ntb, cartpos, cartvel, t, temp0,solvph,solve)
-        else
-          call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
-        endif
+        call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
 #endif /* LES */
 !------------------------------------------------------------------------------
       else if (iwrap == 1) then
@@ -3911,17 +3411,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           call reassign_rstack(routine)
         end if
         REQUIRE(rstack_ok)
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          do iatom = 1, natom
-            do m = 1, 3
-              r_stack(l_temp+3*(iatom-1)+m-1) = cartpos(m,iatom)
-            end do
-          end do
-        else
-          do m = 1, nr3
-            r_stack(l_temp+m-1) = x(m)
-          end do
-        end if
+        do m = 1, nr3
+          r_stack(l_temp+m-1) = x(m)
+        end do
         call wrap_molecules(nspm, nsp, r_stack(l_temp))
         if (ifbox == 2) then
           call wrap_to(nspm, nsp, r_stack(l_temp), box)
@@ -3946,17 +3438,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           call reassign_rstack(routine)
         endif
         REQUIRE(rstack_ok)
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          do iatom = 1, natom
-            do m = 1, 3
-              r_stack(l_temp+3*(iatom-1)+m-1) = cartpos(m,iatom)
-            end do
-          end do
-        else
-          do m = 1, nr3
-            r_stack(l_temp+m-1) = x(m)
-          end do
-        end if
+        do m = 1, nr3
+          r_stack(l_temp+m-1) = x(m)
+        end do
         nr = nrp
 
         ! Now, wrap the coordinates around the iwrap_mask:
@@ -4004,11 +3488,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end if
 #endif /* MPI */
       if (iwrap == 0) then
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          call corpac(cartpos, 1, nrx, MDCRD_UNIT, loutfm)
-        else
-          call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
-        endif
+        call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
         if (ntb > 0) call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
       else if (iwrap == 1) then
         call get_stack(l_temp, nr3, routine)
@@ -4018,17 +3498,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           call reassign_rstack(routine)
         end if
         REQUIRE(rstack_ok)
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          do iatom = 1, natom
-            do m = 1, 3
-              r_stack(l_temp+3*(iatom-1)+m-1) = cartpos(m,iatom)
-            end do
-          end do
-        else
-          do m = 1, nr3
-            r_stack(l_temp+m-1) = x(m)
-          end do
-        endif
+        do m = 1, nr3
+          r_stack(l_temp+m-1) = x(m)
+        end do
         call wrap_molecules(nspm, nsp, r_stack(l_temp))
         if (ifbox == 2) call wrap_to(nspm, nsp, r_stack(l_temp), box)
         call corpac(r_stack(l_temp), 1, nrx, MDCRD_UNIT, loutfm)
@@ -4047,17 +3519,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           call reassign_rstack(routine)
         end if
         REQUIRE(rstack_ok)
-        if (ipimd == NMPIMD .or. ipimd == CMD) then
-          do iatom = 1, natom
-            do m = 1, 3
-              r_stack(l_temp+3*(iatom-1)+m-1) = cartpos(m,iatom)
-            end do
-          end do
-        else
-          do m = 1, nr3
-            r_stack(l_temp+m-1) = x(m)
-          end do
-        endif
+        do m = 1, nr3
+          r_stack(l_temp+m-1) = x(m)
+        end do
         call iwrap2(n_iwrap_mask_atoms, iwrap_mask_atoms, r_stack(l_temp), &
                     box_center)
         call corpac(r_stack(l_temp), 1, nrx, MDCRD_UNIT, loutfm)
@@ -4096,11 +3560,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end if
 #endif /* MPI */
 
-      if (ipimd == NMPIMD .or. ipimd == CMD) then
-        call corpac(cartvel, 1, nrx, MDVEL_UNIT, loutfm)
-      else
-        call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
-      endif
+      call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
     end if
     ! }}}
 
@@ -4131,7 +3591,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (facc .ne. 'A') rewind(7)
 
       ! Conserved quantity for Nose'-Hoover based thermostats.
-      if (ipimd  == 0 .and. ntt > 4 .and. ntt <= 8) then
+      if (ntt > 4 .and. ntt <= 8) then
         Econserved = ener%kin%tot + ener%pot%tot + E_nhc
         if (ntp > 0) Econserved = Econserved + pres0 / pconv * volume
 #ifdef MPI
@@ -4142,45 +3602,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         end if
 #endif /* MPI */
       endif
-#ifdef LES
-      if (ipimd > 0 .and. ntt == 4) then
-        Econserved = ener%kin%tot + ener%pot%tot + E_nhc
-        Econserved = Econserved   + Epot_spring
-        if (ntp > 0) Econserved = Econserved + pres0 / pconv * volume
-        write(file_nhc, '(I10,F14.4)') nstep, Econserved
-      endif
-      if (ipimd == CMD) then
-        ener%kin%tot  = eke_cmd*0.5d0
-        ener%kin%solv = ener%kin%tot
-        ener%tot   = ener%kin%tot + ener%pot%tot
-      end if
-#else
-      if (ipimd > 0) then
-        ener%tot = 0.d0
-        ener%kin%tot = 0.d0
-
-        ! Conserved quantity for Nose'-Hoover thermostat.
-        if (ntt == 4) then
-          Econserved = totener%kin%tot + totener%pot%tot + E_nhc
-          Econserved = Econserved + Epot_spring
-          if (ntp > 0) Econserved = Econserved + volume*(pres0/pconv)
-#  ifdef MPI
-          if (worldrank == 0) then
-#  endif /* MPI */
-          write(file_nhc,'(I10,F14.4)') nstep, Econserved
-#  ifdef MPI
-          end if
-#  endif /* MPI */
-        endif
-#  ifdef MPI
-        if (worldrank == 0) then
-#  endif /* MPI */
-        call pimd_report(nstep, t, pimd_unit, totener, onefac)
-#  ifdef MPI
-        end if
-#  endif /* MPI */
-      end if
-#endif /* LES */
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
       if (ischeme > 0 .and. rem == 0 .and. master) then
 	 write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekph*onefac(1)
@@ -4228,48 +3649,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
       if (ifcr > 0 .and. crprintcharges > 0) &
         call cr_print_charge(xx(l15), total_nstep)
-
-!------------------------------------------------------------------------------
-      ! Output for Centroid MD
-#ifdef LES
-      if (ipimd == CMD) then
-        ncmd = 0
-        do iatom = 1, natom
-          if (cnum(iatom) == 0 .or. cnum(iatom) == 1) then
-            xcmd(ncmd+1) = x(3*iatom-2)
-            xcmd(ncmd+2) = x(3*iatom-1)
-            xcmd(ncmd+3) = x(3*iatom)
-            vcmd(ncmd+1) = v(3*iatom-2)
-            vcmd(ncmd+2) = v(3*iatom-1)
-            vcmd(ncmd+3) = v(3*iatom)
-            ncmd = ncmd+3
-          endif
-        enddo
-        write(file_pos_cmd, '(10f8.3)') xcmd(1:ncmd)
-        write(file_vel_cmd, '(10f8.3)') vcmd(1:ncmd)
-        write(file_pos_cmd, '(10f8.3)') box(1:3)
-        eke_cmd = eke_cmd * 0.5d0
-        etot_cmd = eke_cmd + ener%pot%tot
-        if (eq_cmd) then
-          temp_cmd = eke_cmd / (boltz2 * dble(3*natomCL))
-        else
-          temp_cmd = eke_cmd / (boltz2 * dble(3*(natomCL-1)))
-        endif
-      endif
-#else
-      if (ipimd == CMD .and. mybeadid == 1) then
-        write(file_pos_cmd, '(10f8.3)') x(1:3*natom)
-        write(file_vel_cmd, '(10f8.3)') v(1:3*natom)
-        write(file_pos_cmd, '(10f8.3)') box(1:3)
-        eke_cmd = eke_cmd * 0.5d0
-        etot_cmd = eke_cmd + totener%pot%tot
-        if (eq_cmd) then
-          temp_cmd = eke_cmd / (boltz2*dble(3*natom))
-        else
-          temp_cmd = eke_cmd / (boltz2*dble(3*(natom-1)))
-        endif
-      end if
-#endif /* LES */
 
 !------------------------------------------------------------------------------
       ! Print QMMM Muliken Charges if needed
@@ -4603,14 +3982,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       enert2 = sqrt(enert2)
       edvdl = edvdl/tspan
 
-      ! For PIMD/NMPIMD/CMD/RPMD averages
-      if (ipimd>0) then
-        totenert = totenert/tspan
-        totenert2 = totenert2/tspan - (totenert*totenert)
-        call zero_neg_values_state(totenert2)
-        totenert2 =  sqrt(totenert2)
-      end if
-
       if (ischeme > 0 .and. rem == 0 .and. master) then
 	 ekhf = ekhf / tspan
 	 ekhf2 = ekhf2/tspan - ekhf*ekhf
@@ -4636,12 +4007,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call prntmd(total_nstep, t, enert, onefac, 0, .false.)
 #ifdef MPI /* SOFT CORE */
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_ave)
-      if (ipimd > 0 .and. worldrank == 0) then
-        write(pimd_unit, 540) nvalid
-        call pimd_report(nstep, t, pimd_unit, totenert, onefac)
-        write(pimd_unit, 550)
-        call pimd_report(nstep, t, pimd_unit, totenert2, onefac)
-      endif
 #endif
       if (nmropt > 0) call nmrptx(6)
       write(6, 550)
