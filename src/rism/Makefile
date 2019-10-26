@@ -15,7 +15,8 @@ LIBOBJ = quaternion.o array_util.o rism_util.o rism_report_c.o \
 	fce_c.o erfcfun.o safemem.o blend.o rism_timer_c.o constants.o \
 	getopts_c.o bspline.o  fftw3.o dsi.o dcpval.o \
 	dqagie.o dqelg.o dqk15i.o dqpsrt.o d1mach.o i1mach.o \
-	xermsg.o xerprn.o xersve.o xerhlt.o xercnt.o xgetua.o fdump.o j4save.o
+	xermsg.o xerprn.o xersve.o xerhlt.o xercnt.o xgetua.o fdump.o j4save.o \
+    amber_rism_interface.o
 
 librism: $(LIBDIR)/librism.a
 
