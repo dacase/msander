@@ -60,8 +60,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use commandline_module, only: cpein_specified
   use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
-  use cmd_vars, only: activate, file_pos_cmd, file_vel_cmd, nstep_cmd, &
-                      t_cmd, eq_cmd, restart_cmd, etot_cmd, eke_cmd, temp_cmd
   use neb_vars, only: ineb, neb_nbead
   use lscivr_vars, only: ilscivr, ndof_lsc, natom_lsc, mass_lsc, v2_lsc, &
                          ilsc, x_lsc, f_lsc, dx_lsc
@@ -254,9 +252,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #include "extra_pts.h"
 
 #ifdef LES
-  ! additional variables for PIMD and LES
-  _REAL_  :: xcmd(3*natomCL), vcmd(3*natomCL), vscalt
-  integer :: ncmd
 #else
   _REAL_ sgsta_rndfp, sgend_rndfp, ignore_solvent
 #endif
@@ -368,8 +363,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: ekhf, ekhf2
 
 #ifdef MPI
-  ! variable used in CMD
-  _REAL_ :: tmp_eke_cmd ! Use for temporary packing of mpi messages.
 
   ! for adaptive qm/mm runs
   _REAL_ :: adqmmm_first_energy, etotcorr, tadc
@@ -685,11 +678,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   edvdl_r    = null_state_rec
 
 !------------------------------------------------------------------------------
-  ! For Path Integral Molecular Dynamics (PIMD), Normal Mode PIMD, Centroid
-  ! Centroid Molecular Dynamics (CMD), or Ring Polymer Molecular Dynamics
-  ! (RPMD):
-  totenert   = null_state_rec
-  totenert2  = null_state_rec
 
   ener%kin%pres_scale_solt = 1.d0
   ener%kin%pres_scale_solv = 1.d0
@@ -954,7 +942,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Added LES tempsu (actual LES sum of m*v**2 )
     tempsules = 0.0d0
 #endif
-    eke_cmd = 0.d0
     do j = 1,nrp
       winf = winv(j) * dt5
       aamass = amass(j)
@@ -2634,7 +2621,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekeles = 0.d0
     ekphles = 0.d0
 #endif
-    eke_cmd = 0.d0
 
     if (ischeme == 1) then
     ! LF-Middle: use velocity v(t) for KE calculation {{{
@@ -2690,8 +2676,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           end if
 #else
           eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
-          if (mybeadid == 1) &
-            eke_cmd = eke_cmd + aamass*0.25d0*(v(i3) + vold(i3))**2
 
           ! Try pseudo KE from Eq. 4.7b of Pastor, Brooks & Szabo,
           ! Mol. Phys. 65, 1409-1419 (1988):
