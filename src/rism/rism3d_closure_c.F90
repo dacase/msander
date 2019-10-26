@@ -80,7 +80,7 @@ module rism3d_closure_c
        LJCorrection_TCF_int, LJCorrection_DCF_int, &
        force_brute, &
        coulombicForce, lennardJonesForcePeriodic, lennardJonesForce, &
-       particleMeshEwaldRecipForce
+       particleMeshEwaldForce
   
 contains
 
@@ -2284,7 +2284,7 @@ contains
        endif
     else
        call lennardJonesForcePeriodic(this%potential, ff, guv)
-       call particleMeshEwaldRecipForce(this%potential, ff, guv)
+       call particleMeshEwaldForce(this%potential, ff, guv)
     end if
 
   end subroutine rism3d_closure_force
@@ -2861,7 +2861,7 @@ contains
 
 ! Computes the PME reciprocal, long range part of electrostatic forces exerted 
 ! by the solvent charge density onto the solute.
-  subroutine particleMeshEwaldRecipForce (this,ff,guv)
+  subroutine particleMeshEwaldForce (this,ff,guv)
     use, intrinsic :: iso_c_binding
     use bspline
     use constants, only : pi, KB
@@ -3219,7 +3219,7 @@ contains
     call wallclock(time1)
     ! write(6,*) 'short-range PME force: ', time1 - time0
 
-  end subroutine particleMeshEwaldRecipForce 
+  end subroutine particleMeshEwaldForce 
 
   !> Calculates both Lennard-Jones and electrostatic solvation forces
   !! over the entire grid without cutoffs.
