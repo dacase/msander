@@ -3344,6 +3344,8 @@ contains
        end do
     end do
 #else
+!$omp parallel do private(iv,igx,igy,igz,ig1)  &
+!$omp&        num_threads(this%solvent%numAtomTypes)
     do iv = 1, this%solvent%numAtomTypes
        if (this%solute%charged .and. .not.periodic) then
           do igz = 1, this%grid%localDimsR(3)
@@ -3372,6 +3374,7 @@ contains
        ! Zero out extra space.
        this%guv(this%grid%totalLocalPointsR + 1:this%grid%totalLocalPointsK, iv) = 0.d0
     end do
+!$omp end parallel do
 #endif /*defined(MPI)*/
 
     ! --------------------------------------------------------------
@@ -3404,6 +3407,8 @@ contains
     ! --------------------------------------------------------------
     ! Huv(k) by RISM.
     ! --------------------------------------------------------------
+!$omp parallel do private(iv1,iv2,ig1,iga)  &
+!$omp&        num_threads(this%solvent%numAtomTypes)
     do iv1 = 1, this%solvent%numAtomTypes
        do ig1 = 1, this%grid%totalLocalPointsK
           this%huv(ig1, iv1) = 0d0
@@ -3417,6 +3422,7 @@ contains
           end do
        end do
     end do
+!$omp end parallel do
 
     ! ---------------------------------------------------------------
     ! Remove the background charge effect from periodic calculations.
@@ -3522,6 +3528,8 @@ contains
     ! Calculate TCF residual for use in estimating DCF residual.
     ! --------------------------------------------------------------
     this%cuvres(:, :) = 0
+!$omp parallel do private(iv,igx,igy,igz,ig1,igk)  &
+!$omp&        num_threads(this%solvent%numAtomTypes)
     do iv = 1, this%solvent%numAtomTypes
        do igz = 1, this%grid%localDimsR(3)
           do igy = 1, this%grid%localDimsR(2)
@@ -3539,6 +3547,7 @@ contains
           end do
        end do
     end do
+!$omp end parallel do
 
     ! --------------------------------------------------------------
     ! MDIIS

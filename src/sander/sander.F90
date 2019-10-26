@@ -101,8 +101,6 @@ subroutine sander()
 #  define rem 0
 #endif /* MPI */
 
-  use pimd_vars, only: ipimd
-  use neb_vars, only: ineb
   use trajenemod, only: trajene
 
   ! CHARMM support
@@ -1066,7 +1064,6 @@ subroutine sander()
     ! again for all PEs besides the masters.  The alternative is to use
     ! MPI_BCAST.
     call mpi_bcast(ievb , 1, MPI_INTEGER, 0, commworld, ier)
-    call mpi_bcast(ipimd, 1, MPI_INTEGER, 0, commworld, ier)
 
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
@@ -1484,16 +1481,6 @@ subroutine sander()
           call scaledMD_setup(ntwx)
         endif
 
-        ! Path Integral Molecular Dynamics
-        if (ipimd > 0) then
-          call pimd_init(natom, x(lmass), x(lwinv), x(lvel), ipimd)
-        end if
-
-        ! Nudged Elastic Band simulations
-        if (ineb > 0) then
-          call neb_init()
-        end if
-
 #ifdef MPI
         ! Replica Exchange Molecular Dynamics.  If this is not a REMD run,
         ! runmd is called only once.  If this is a REMD run, runmd is
@@ -1862,12 +1849,6 @@ subroutine sander()
     call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
   end if
 
-  if (ipimd > 0) then
-    call pimd_finalize(ipimd)
-  end if
-  if (ineb > 0) then
-    call neb_finalize()
-  end if
   if (idecomp > 0) then
     call deallocate_real_decomp()
     call deallocate_int_decomp()

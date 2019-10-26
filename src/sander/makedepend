@@ -36,26 +36,12 @@ $LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} = $LES{"pa
 $PUPIL{"sander"} = $PUPIL{"force"} = $PUPIL{"mexit"} = $PUPIL{"mdfil"} = 
 	$PUPIL{"mdread"} = $PUPIL{"printe"} = $PUPIL{"dynlib"} = 1;
 
-$APBS{"apbs"} = $APBS{"apbs_vars"} = $APBS{"dynlib"} = $APBS{"force"} =
-	$APBS{"mdread"} = $APBS{"printe"} = $APBS{"sander"} = $APBS{"file_io_dat"} = 1;
-
-$API{"rdparm"} = $API{"debug"} = $API{"set"} = $API{"fastwt"} =
-    $API{"ew_setup"} = $API{"nonbond_list"} = $API{"ew_box"} =
-    $API{"new_time"} = $API{"dynlib"} = $API{"qm_mm"} = 
-    $API{"extra_pts"} = $API{"charmm"} = 1;
-
-$LESAPI{"rdparm"} = $LESAPI{"set"} = $LESAPI{"ew_setup"} =
-    $LESAPI{"nonbond_list"} = $LESAPI{"ew_box"} = $LESAPI{"dynlib"} = 
-    $LESAPI{"interface"} = $LESAPI{"qm_mm"} = $LESAPI{"extra_pts"} = 1;
-
-#The following files only appear in SANDER and not any of the special builds
-#$RISM{"../rism/amber_rism_interface.SANDER"} = 1;
-
 #  in order to get a mapping between module names and file names, we have
 #  have to set up the following hash. 
 #  (special cases, since source is elsewhere)
 #  (check also below  (end of this file) for "compilation" rules)
 $modulefile{"netcdf"} = "netcdf";
+$modulefile{"omp_lib"} = "omp_lib";
 $modulefile{"AmberNetcdf_mod"} = "AmberNetcdf";
 $modulefile{"ElementOrbitalIndex"} = "elementOrbitalIndex";
 $modulefile{"qmmm_module"} = "qmmm_module";
@@ -64,7 +50,7 @@ $modulefile{"qmmm_qmtheorymodule"} = "qmmm_qmtheorymodule";
 $modulefile{"qmmm_struct_module"} = "qmmm_struct_module";
 $modulefile{"qmmm_vsolv_module"} = "qmmm_vsolv_module";
 $modulefile{"qmmm_read_and_alloc"} = "qm2_read_nm_and_alloc";
-$modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface.SANDER";
+$modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface";
 $modulefile{"poisson_boltzmann"} = "poisson_boltzmann";
 $modulefile{"dispersion_cavity"} = "dispersion_cavity";
 $modulefile{"pbtimer_module"} = "pbtimer_module";
@@ -135,23 +121,6 @@ foreach $file ( <*.F90> ){
                                   $depsPUPIL .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
                                 }
                                 
-                                if( defined $APBS{$modulefile{$usee}} ){
-                                  $depsAPBS .= "\\\n                    " .  $modulefile{$usee} .  ".APBS.o" ;
-                                } else {
-                                  $depsAPBS .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
-                                }
-
-                                if( defined $API{$modulefile{$usee}} ){
-                                    $depsAPI .= "\\\n                    " .  $modulefile{$usee} .  ".API.o" ;
-                                } else {
-                                    $depsAPI .= "\\\n                    " .  $modulefile{$usee} .  ".o" ;
-                                }
-                                if( defined $LESAPI{$modulefile{$usee}} ){
-                                    $depsLESAPI .= "\\\n                    " .  $modulefile{$usee} .  ".LESAPI.o" ;
-                                } else {
-                                    $depsLESAPI .= "\\\n                    " .  $modulefile{$usee} .  ".o" ;
-                                }
-
 				$used{ $fileroot,$modulefile{$usee} } = 1;
 			}
 		}
@@ -208,6 +177,9 @@ foreach $file ( <*.F90> ){
 # special "compilation rule" for netcdf.o
 printf "netcdf.o:  \$(NETCDF)\n\ttest -e \$\@ || touch netcdf.o\n\n";
 
+# special "compilation rule" for omp_lib.o
+printf "omp_lib.o:\n\ttest -e \$\@ || touch omp_lib.o\n\n";
+
 # special compilation rule for AmberNetcdf.o, random.o, and constants.o
 printf "AmberNetcdf.o: ../lib/AmberNetcdf.F90\n";
 printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o AmberNetcdf.o ../lib/AmberNetcdf.F90\n\n";
@@ -217,16 +189,6 @@ printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) 
 
 printf "constants.o: ../lib/constants.F90\n";
 printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o constants.o ../lib/constants.F90\n\n";
-
-#  special compilation rule for amber_rism_interface
-print "../rism/amber_rism_interface.SANDER.o: ../rism/amber_rism_interface.F90\n"
-  ."\tcd ../rism && \\\n"
-  ."\tif [ -n \"\$(RISMSANDER)\" ]; then \\\n"
-  ."\t\t\$(MAKE) amber_rism_interface.SANDER.o; \\\n"
-  ."\telse \\\n"
-  ."\t\ttest -e amber_rism_interface.SANDER.o || touch amber_rism_interface.SANDER.o; \\\n"
-  ."\tfi\n\n"
-  ;
 
 #  special "compilation" rule for module object files in ../sqm
 print "qmmm_module.o: \n\ttest -e \$\@ || touch \$\@\n\n";

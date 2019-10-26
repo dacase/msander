@@ -638,17 +638,12 @@ module amber_rism_interface
 
   private :: rism_mpi_bcast
 
-  
-
 end module amber_rism_interface
 
-#ifdef SANDER
 module sander_rism_interface
   use amber_rism_interface
   implicit none
 contains
-#endif
-
 
   !> Sets all input parameters for 3D-RISM.  This _must_ be called by the head
   !! node and may be called by all nodes.  If all nodes call this
@@ -747,29 +742,7 @@ contains
   !! @param[in] atomTypeIndex Solute atom type index.
   !! @param[in] nonbondedParmIndex Solute nonbonded parameter index.
   subroutine rism_setparam( &
-#ifdef SANDER
        mdin, &
-#else /* not SANDER */
-       userData, ntol, tol, &
-       closurelen, nclosure, closurechar, &
-       xvvlen, xvvchar, &
-       guvlen, guvchar, huvlen, huvchar, cuvlen, cuvchar, &
-       uuvlen, uuvchar, asymplen, asympchar, quvlen, quvchar, &    
-       chgDistlen, chgDistchar, &
-       excessChemicalPotentiallen, excessChemicalPotentialchar, &
-       solvationEnergylen, solvationEnergychar, entropylen, entropychar, &
-       excessChemicalPotentialGFlen, excessChemicalPotentialGFchar, &
-       solvationEnergyGFlen, solvationEnergyGFchar, entropyGFlen, entropyGFchar, &
-       excessChemicalPotentialPCPLUSlen, excessChemicalPotentialPCPLUSchar, &
-       solvationEnergyPCPLUSlen, solvationEnergyPCPLUSchar, entropyPCPLUSlen, entropyPCPLUSchar, &
-       excessChemicalPotentialUClen, excessChemicalPotentialUCchar, &
-       solvationEnergyUClen, solvationEnergyUCchar, entropyUClen, entropyUCchar, &
-       solventPotentialEnergylen, solventPotentialEnergychar, &
-       electronMaplen, electronMapchar, &
-       volfmtlen, volfmtchar, &
-       periodiclen, periodicchar, &
-       rstlen, rstchar, &
-#endif /*SANDER*/
        comm, &
        numAtoms, numTypes, &
        charge, mass, ljA, ljB, &
@@ -784,42 +757,9 @@ contains
     integer, intent(in) :: numAtoms, numTypes, atomTypeIndex(numTypes**2), nonbondedParmIndex(numAtoms)
     _REAL_, intent(in) :: charge(numAtoms), mass(numAtoms), ljA(numTypes*(numTypes + 1)/2), &
          ljB(numTypes*(numTypes + 1)/2)
-#ifdef SANDER
     !  character(*), intent(in) :: xvvfile, mdin
     character(*), intent(in) :: mdin
     integer :: mdin_unit=55
-#else /*SANDER*/
-    type(rismprm_t), intent(in) :: userData;
-    integer, intent(in) :: ntol
-    _REAL_, intent(in)  :: tol(ntol)
-    integer, intent(in) :: closurelen, nclosure, &
-         xvvlen, guvlen, huvlen, cuvlen, uuvlen, &
-         asymplen, quvlen, chgDistLen, &
-         excessChemicalPotentiallen, solvationEnergylen, entropylen, &
-         excessChemicalPotentialGFlen, solvationEnergyGFlen, entropyGFlen, &
-         excessChemicalPotentialPCPLUSlen, solvationEnergyPCPLUSlen, entropyPCPLUSlen, &
-         excessChemicalPotentialUClen, solvationEnergyUClen, entropyUClen, &
-         solventPotentialEnergylen, &
-         electronMaplen, &
-         volfmtlen, periodiclen, rstlen
-    integer(kind=1), intent(in) :: closurechar(closurelen*nclosure), &
-         xvvchar(xvvlen + 1), guvchar(guvlen + 1), &
-         huvchar(huvlen + 1), cuvchar(cuvlen + 1), uuvchar(uuvlen + 1), &
-         asympchar(asymplen + 1), quvchar(quvlen + 1), chgDistchar(chgDistlen + 1), &
-         excessChemicalPotentialchar(excessChemicalPotentiallen + 1), &
-         solvationEnergychar(solvationEnergylen + 1), entropychar(entropylen + 1), &
-         excessChemicalPotentialGFchar(excessChemicalPotentiallen + 1), &
-         solvationEnergyGFchar(solvationEnergylen + 1), entropyGFchar(entropylen + 1), &
-         excessChemicalPotentialPCPLUSchar(excessChemicalPotentiallen + 1), &
-         solvationEnergyPCPLUSchar(solvationEnergylen + 1), entropyPCPLUSchar(entropylen + 1), &
-         excessChemicalPotentialUCchar(excessChemicalPotentiallen + 1), &
-         solvationEnergyUCchar(solvationEnergylen + 1), entropyUCchar(entropylen + 1), &
-         solventPotentialEnergychar(solventPotentialEnergylen + 1), &
-         electronMapchar(electronMaplen + 1), &
-         volfmtchar(volfmtlen + 1), periodicchar(periodiclen + 1), &
-         rstchar(rstlen + 1)
-    !  character(xvvlen):: xvvfile
-#endif /*SANDER*/
     integer, intent(in) :: comm
     character(len=16) :: whtspc
     integer :: i, stat, err
@@ -854,17 +794,10 @@ contains
 #endif /*MPI*/
 
     ! If this is not a RISM run, we're done.
-#ifdef SANDER
     if (rismprm%rism == 0) then
        call rism_timer_stop(timer_init)
        return
     end if
-#else /*SANDER*/
-    if (userData%rism == 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
-#endif /*SANDER*/
 
     ! Rank 0 only.
     if (mpirank /= 0) then
@@ -876,7 +809,6 @@ contains
     outunit = rism_report_getMUnit()
     call defaults()
 
-#ifdef SANDER
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
     open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
@@ -885,47 +817,6 @@ contains
     end if
     call read_namelist(mdin_unit)
     if (.not.op) close(unit=mdin_unit)
-#else /*.not.SANDER*/
-    if (ntol /= 0) then
-       tolerancelist => safemem_realloc(tolerancelist, ntol)
-       tolerancelist = tol(1:ntol)
-    end if
-    call update_param(userData)
-    iclosurechar = 1
-    closurelist => safemem_realloc(closurelist, len(closurelist), max(nclosure, 1))
-    do iclosure = 1, nclosure
-       ! The default in SFF is to pass an empty string, but, since
-       ! this would overwrite our defaults, ignore it.
-       if (closurechar((iclosure - 1) * closurelen + 1) == 0) exit
-       call cstr2fstr(closurelist(iclosure), closurechar((iclosure-1)*closurelen + 1), closurelen)
-    end do
-    call cstr2fstr(xvvfile, xvvchar, xvvlen)
-    call cstr2fstr(guvfile, guvchar, guvlen)
-    call cstr2fstr(huvfile, huvchar, huvlen)
-    call cstr2fstr(cuvfile, cuvchar, cuvlen)
-    call cstr2fstr(uuvfile, uuvchar, uuvlen)
-    call cstr2fstr(asympfile, asympchar, asymplen)
-    call cstr2fstr(quvfile, quvchar, quvlen)
-    call cstr2fstr(chgDistfile, chgDistchar, chgDistlen)
-    call cstr2fstr(excessChemicalPotentialfile, excessChemicalPotentialchar, excessChemicalPotentiallen)
-    call cstr2fstr(solvationEnergyfile, solvationEnergychar, solvationEnergylen)
-    call cstr2fstr(entropyfile, entropychar, entropylen)
-    call cstr2fstr(excessChemicalPotentialGFfile, excessChemicalPotentialGFchar, excessChemicalPotentialGFlen)
-    call cstr2fstr(solvationEnergyGFfile, solvationEnergyGFchar, solvationEnergyGFlen)
-    call cstr2fstr(entropyGFfile, entropyGFchar, entropyGFlen)
-    call cstr2fstr(excessChemicalPotentialPCPLUSfile, excessChemicalPotentialPCPLUSchar, excessChemicalPotentialPCPLUSlen)
-    call cstr2fstr(solvationEnergyPCPLUSfile, solvationEnergyPCPLUSchar, solvationEnergyPCPLUSlen)
-    call cstr2fstr(entropyPCPLUSfile, entropyPCPLUSchar, entropyPCPLUSlen)
-    call cstr2fstr(excessChemicalPotentialUCfile, excessChemicalPotentialUCchar, excessChemicalPotentialUClen)
-    call cstr2fstr(solvationEnergyUCfile, solvationEnergyUCchar, solvationEnergyUClen)
-    call cstr2fstr(entropyUCfile, entropyUCchar, entropyUClen)
-    call cstr2fstr(solventPotentialEnergyfile, solventPotentialEnergychar, solventPotentialEnergylen)
-    call cstr2fstr(electronMapFile, electronMapchar, electronMaplen)
-    if (volfmtlen > 0) &
-         call cstr2fstr(volfmt, volfmtchar, volfmtlen)
-    call cstr2fstr(periodicPotential, periodicchar, periodiclen)
-    call cstr2fstr(crdFile, rstchar, rstlen)
-#endif /*SANDER*/
 
     ! Initialize 3D-RISM solute and solvent.
     call rism3d_solvent_new(solvent, xvvfile)    
@@ -938,7 +829,6 @@ contains
 
     call sanity_check()
     
-#ifdef SANDER
     if (rismprm%rism >= 1) then
        write(outunit, '(a)') "3D-RISM:"
        if (rismprm%rism < 1) then
@@ -1081,7 +971,6 @@ contains
        end if
        call flush(outunit)
     end if
-#endif /*SANDER*/
 
     call rism_timer_stop(timer_init)
 
@@ -1166,9 +1055,7 @@ contains
     _REAL_ :: ljTolerance
     _REAL_ :: chargeSmear
     logical :: molReconstruct
-#ifdef SANDER
     integer :: write_thermo
-#endif
     namelist /rism/ &
          ! closure
          closure, closureOrder, uccoeff, &
@@ -1206,9 +1093,7 @@ contains
          fcewrite, fceread, fceenormsw, &
 #endif /*RISM_CRDINTERP*/
          !output
-#ifdef SANDER
          write_thermo, &
-#endif
          saveprogress, ntwrism, verbose, progress, volfmt
 
     inquire(file=mdin, opened=op, number=un)
@@ -1259,11 +1144,9 @@ contains
     if (trim(timer_write%name) .ne. "3D-RISM Output") &
          call rism_timer_new(timer_write, "3D-RISM Output", timer)
 
-#ifdef SANDER
     call rism_report_setMUnit(6)
     call rism_report_setWUnit(6)
     call rism_report_setEUnit(6)
-#endif /*SANDER*/
 
 #ifdef MPI
     mpicomm = comm
@@ -1419,10 +1302,6 @@ contains
     integer :: err
     _REAL_ :: mpi_temp, partialMolarVolume
 
-#if !defined(SANDER)
-    integer, external :: rism_calc_type
-#endif
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Adding new variables
 
@@ -1541,7 +1420,6 @@ contains
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
-#ifdef SANDER
        ! Ugly, ugly hack.  SANDER runs force on the first frame twice.
        ! This messes up the solution propagation.  Here we set the
        ! solution counter back one to ignore one of the duplicate
@@ -1549,8 +1427,6 @@ contains
        if (irespa == 1) then
           rism_3d%nsolution = 1
        end if
-#else /*SANDER*/
-#endif /*SANDER*/
        if (rismprm%apply_rism_force == 1) then
           call rism3d_force(rism_3d, ff)
           if (rismprm%zerofrc == 1) then
@@ -1918,11 +1794,7 @@ contains
     use constants, only : kb, COULOMB_CONST_E, PI
     implicit none
     logical*4, intent(in) :: description
-#ifdef SANDER
     _REAL_, intent(in) :: soluPot(25)
-#else
-    _REAL_, intent(in) :: soluPot(11)
-#endif
     
     integer :: iv, iu, ig, il, err
     integer :: ix, iy, iz
@@ -2174,14 +2046,10 @@ contains
        ! DATA: free energy-based properties.
        if (mpirank==0 .and. associated(rismthermo%excessChemicalPotential)) then
 
-#ifdef SANDER
           ! Cast the SANDER array into the order of the NAB array.
           call thermo_print_results_line('solutePotentialEnergy', soluPot(1), (/soluPot(2), &
                soluPot(3), soluPot(5), soluPot(6), soluPot(7), soluPot(13), &
                soluPot(8), soluPot(9), soluPot(10), soluPot(24)/), 10)
-#else
-          call thermo_print_results_line('solutePotentialEnergy', soluPot(1), soluPot(2:), 10)
-#endif
           call thermo_print_results_line('rism_excessChemicalPotential', sum(rismthermo%excessChemicalPotential), &
                rismthermo%excessChemicalPotential, rism_3d%solvent%numAtomTypes)
           if (rismprm%gfCorrection == 1) then
@@ -2625,7 +2493,6 @@ contains
     if (mpirank==0) then
        write(outunit, '(a)')
        write(outunit, '(a)') "|3D-RISM memory allocation summary"
-#ifdef SANDER
        write(outunit, '(a)') "|Type          Maximum        Current   "
        write(outunit, '(a, 2(f12.5, a))') "|Integer  ", &
             dble(memstats(6))/BYTES_PER_GB, " GB", &
@@ -2643,20 +2510,6 @@ contains
        write(outunit, '(a, 2(f12.5, a))') "|Total    ", &
             dble(memstats(10))/BYTES_PER_GB, " GB", &
             dble(memstats(5))/BYTES_PER_GB, " GB"
-#else
-       write(outunit, '(a)') "|Type          Maximum"
-       write(outunit, '(a, f12.5, a)') "|Integer  ", &
-            dble(memstats(6))/BYTES_PER_GB, " GB"
-       write(outunit, '(a, f12.5, a)') "|Real     ", &
-            dble(memstats(7))/BYTES_PER_GB, " GB"
-       write(outunit, '(a, f12.5, a)') "|Logical  ", &
-            dble(memstats(8))/BYTES_PER_GB, " GB"
-       write(outunit, '(a, f12.5, a)') "|Character", &
-            dble(memstats(9))/BYTES_PER_GB, " GB"
-       write(outunit, '(a)') "|------------------------"
-       write(outunit, '(a, f12.5, a)') "|Total    ", &
-            dble(memstats(10))/BYTES_PER_GB, " GB"
-#endif /* SANDER */
     end if
   end subroutine rism_max_memory
 
@@ -3779,11 +3632,9 @@ contains
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast TOLERANCE")
 
-#ifdef SANDER
        call mpi_bcast(rismprm%write_thermo, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast WRITE_THERMO")
-#endif
 
        ! These are not being used currently.
        call mpi_bcast(pa_orient, 1, mpi_integer, 0, mpicomm, err)
@@ -3968,9 +3819,7 @@ contains
     rismprm%ljTolerance = -1
     !charge smear
     rismprm%chargeSmear = 1d0
-#ifdef SANDER
     rismprm%write_thermo=1
-#endif
   end subroutine defaults
 
   
@@ -4121,9 +3970,7 @@ contains
     _REAL_ :: asympKSpaceTolerance
     _REAL_ :: ljTolerance
     _REAL_ :: chargeSmear
-#ifdef SANDER
     integer :: write_thermo
-#endif
     namelist /rism/ &
          ! closure
          closure, closureOrder, uccoeff, &
@@ -4158,9 +4005,7 @@ contains
          fceenormsw, fcewrite, fceread, &
 #endif /*RISM_CRDINTERP*/
          !output
-#ifdef SANDER
          write_thermo, &
-#endif
          saveprogress, ntwrism, verbose, progress, volfmt, selftest
     
     call flush(0)
@@ -4225,9 +4070,7 @@ contains
     asympKSpaceTolerance = rismprm%asympKSpaceTolerance
     ljTolerance = rismprm%ljTolerance
     chargeSmear = rismprm%chargeSmear
-#ifdef SANDER
     write_thermo = rismprm%write_thermo
-#endif
 
 !!$  !resize tolerance to the size of closure
 !!$  tolerancelist => safemem_realloc(tolerancelist, size(closurelist))
@@ -4306,9 +4149,7 @@ contains
     rismprm%asympKSpaceTolerance = asympKSpaceTolerance
     rismprm%ljTolerance = ljTolerance
     rismprm%chargeSmear = chargeSmear
-#ifdef SANDER
     rismprm%write_thermo = write_thermo
-#endif
 
     ! Set the RISM cutoff if not set by the user.
     if (rismprm%solvcut < 0) then
@@ -4618,7 +4459,6 @@ contains
   end subroutine cstr2fstr
 
 
-#ifdef SANDER
 !!!Calculates the least common multiple of integers a and b.
 !!!IN:
 !!!  a : integer
@@ -4631,17 +4471,5 @@ contains
     integer :: mylcm, a, b
     mylcm = lcm(a, b)
   end function mylcm
-#else /*SANDER*/
-!!!stubs for SANDER timers for non-SANDER executables
-  subroutine timer_start( label )
-    integer label
-  end subroutine timer_start
 
-  subroutine timer_stop( label )
-    integer label
-  end subroutine timer_stop
-#endif /*SANDER*/
-
-#ifdef SANDER
 end module sander_rism_interface
-#endif

@@ -43,7 +43,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use file_io_dat
 #ifdef LES
   use genbornles
-  use pimd_vars, only: nrg_all
 #  ifdef MPI
   use les_data, only: elesa, elesb, elesd, elesp
 #  endif /* MPI */
@@ -52,12 +51,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use qmmm_module, only: qmmm_struct, qm2_struct
 #endif /* LES */
 #ifdef MPI
-  use neb_vars, only: ineb, neb_force
-  use full_pimd_vars, only: totener
   use softcore, only: sc_ener
 #endif /* MPI */
 #if defined(LES) && defined(MPI)
-  use pimd_vars, only: equal_part
   use remd, only: rem ! wasn't used for LES above
 #endif /* LES && MPI */
 #ifdef RISMSANDER
@@ -68,8 +64,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif /* APBS */
   use trace
   use stack
-  use pimd_vars, only: ipimd, nbead, bnd_vir, Epot_spring, Epot_deriv, &
-                       real_mass, itimass
   use qmmm_module, only : qmmm_nml
   use constants, only: zero, one
   use relax_mat
@@ -303,11 +297,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   vir(1:4) = 0.d0
   virvsene = 0.d0
   f(1:3*natom+iscale) = 0.d0
-#ifdef LES
-   if (ipimd > 0) then
-     nrg_all(1:nbead) = 0.d0
-   end if
-#endif
 
 #ifndef PUPIL_SUPPORT
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
@@ -575,9 +564,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! Bonds with H
   call timer_start(TIME_BOND)
 
-  ! initialize bond virial
-  if (ipimd > 0) bnd_vir = zero
-
 #ifdef MPI /* SOFT CORE */
   ! zero only once, sc bond energy is sum of H and non-H terms
   sc_ener(1) = 0.0d0
@@ -681,9 +667,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! Dihedrals with H
   ! initialize 14 nb energy virial
-  if (ipimd>0) then
-    e14vir = zero
-  end if
   if (ntf < 6) then
 
 #ifdef MPI /* SOFT CORE */
@@ -1109,80 +1092,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if
 #  endif /* LES */
 #endif /* MPI */
-
-  if (ipimd > 0) then
-#ifdef LES
-    call pimd_part_spring_force(x, f, real_mass, Epot_spring, Epot_deriv, dvdl)
-#  ifdef MPI
-    if (ievb /= 0) then
-      nrg_frc(3) = vel0_nrg_sum
-      nrg_frc(2) = equal_part + Epot_deriv
-      nrg_frc(1) = nrg_frc(3) + nrg_frc(2)
-    endif
-#  endif /* MPI */
-#else /* NOT LES below */
-   ener = ener/nbead 
-   f(1:natom*3) = f(1:natom*3)/nbead
-   vir(1:3) = vir(1:3)/nbead
-   atvir = atvir/nbead
-   e14vir = e14vir/nbead
-   bnd_vir = bnd_vir/nbead
-   call pimd_full_spring_force(x, f, real_mass, Epot_spring, Epot_deriv, dvdl)
-#  ifdef MPI
-   if (master) then
-     call mpi_reduce(ener, totener, state_rec_len, MPI_DOUBLE_PRECISION, &
-                     MPI_SUM, 0, commmaster, ierr)
-   end if
-#  endif /* MPI */
-#endif /* LES */
-    ! Pass dvdl = dV/dl for TI w.r.t. mass.
-    if (itimass > 0) then
-      ener%pot%dvdl = dvdl
-    end if
-  end if
-
-#ifdef MPI
-  ! Nudged Elastic Band (NEB) is only supported with MPI
-  if (ineb > 0) then
-
-    ! Only the master thread will do NEB
-    if (sanderrank .eq. 0) then
-      call full_neb_forces(xx(lmass), x, f, ener%pot%tot, ix(itgtfitgp), &
-                           ix(itgtrmsgp))
-    endif
-
-    ! Now, the master thread will broadcast the NEB forces for the rmsgp
-    ! atoms.  All nodes will add this to their current force totals.
-    ! If we wanted all nodes to calculate the NEB forces, they would all
-    ! need access to the neighbor bead coordinates, which is probably
-    ! more expensive than having the master send out the modified forces.
-    call mpi_bcast(neb_force, nattgtrms*3, MPI_DOUBLE_PRECISION, 0, &
-                   commsander, ierr)
-
-    do i = 1, nattgtrms
-
-      ! Make j3 a pointer into the packed NEB force array.  The
-      ! actual atom number for an atom in the rms group can then
-      ! be looked up in the ix array.  i3 is set as a pointer
-      ! into the force array f.
-      j3 = 3*(i - 1)
-      j = ix(itgtrmsgp+i-1)
-      i3 = 3*(j - 1)
-      f(i3+1) = f(i3+1) + neb_force(j3+1)
-      f(i3+2) = f(i3+2) + neb_force(j3+2)
-      f(i3+3) = f(i3+3) + neb_force(j3+3)
-    enddo
-
-    ! CARLOS: what is this doing? ener(27) is neb energy
-    ! looks like it reduces entire energy array
-    ! needs MUCH better documentation on details (such as 28)
-    if (sanderrank .eq. 0) then
-      call mpi_reduce(ener, totener, state_rec_len, MPI_DOUBLE_PRECISION, &
-                      MPI_SUM, 0, commmaster, ierr)
-    end if
-  end if 
-  ! End NEB segment
-#endif /*MPI*/
 
   ! Dump forces in CHARMM format if appropriate and requested
   if (charmm_active) then

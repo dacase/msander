@@ -1544,7 +1544,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
                         belly, ibelly)
 #ifdef LES
   use les_data, only : cnum, lestyp
-  use pimd_vars, only: ipimd
 #endif
 #ifdef MPI /* SOFT CORE */
   use softcore, only : nsc, ifsc
@@ -1589,17 +1588,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
     exclude(k) = i
   end do
 
-#ifdef LES
-  if (ipimd > 0) then
-    do m = kk+1, numlist
-      n = atmlist(m)
-      k = bckptr(n)
-      if (lestyp(i) .eq. lestyp(k) .and. cnum(i) .ne. cnum(k)) then
-        exclude(k) = i
-      end if
-    end do
-  endif
-#endif
   if (qmmm_nml%ifqnt) then
 
     ! Is the current atom a QM atom?

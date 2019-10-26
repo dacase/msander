@@ -101,15 +101,15 @@
       type(rism3d_psen), intent(in) :: this
       _REAL_, intent(out) :: guv(:,:)
       _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
-      integer :: i, iv, ir, ix, iy, iz, ig, ig1
+      integer :: i, iv, ir, ix, iy, iz, ig
       _REAL_ :: tuv, orderfac
 
+!$omp parallel do private(iv,ix,iy,iz,ig,orderfac,tuv)  &
+!$omp&        num_threads(this%pot%solvent%numAtomTypes)
       do iv = 1,this%pot%solvent%numAtomTypes
          do iz = 1, this%grid%localDimsR(3)
             do iy = 1, this%grid%localDimsR(2)
                do ix = 1, this%grid%localDimsR(1)
-                  ig1 = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                       (iz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
 #if defined(MPI)
                   ig = ix + (iy - 1) * (this%grid%localDimsR(1) + 2) &
                        + (iz - 1) * (this%grid%localDimsR(1) + 2) * this%grid%localDimsR(2)
@@ -132,6 +132,7 @@
             end do
          end do
       end do
+!$omp end parallel do
     end subroutine rism3d_psen_guv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

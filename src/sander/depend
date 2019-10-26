@@ -244,14 +244,6 @@ amoeba_vdw.o:   amoeba_vdw.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_vdw.F90
 
-amopen.o: \
-                    copyright.h
-
-
-amopen.o:   amopen.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amopen.F90
-
 ang_bend.o: \
                     ../include/dprec.fh
 
@@ -397,45 +389,6 @@ charmm.o:   charmm.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
 
-cmd_matrix.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    cmd_vars.o\
-                    ../include/md.h\
-                    extra.h\
-                    pimd_vars.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    les.o
-
-
-cmd_matrix.o:   cmd_matrix.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cmd_matrix.F90
-
-cmd_matrix.LES.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    cmd_vars.o\
-                    ../include/md.h\
-                    extra.h\
-                    pimd_vars.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    les.o
-
-cmd_matrix.LES.o:   cmd_matrix.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cmd_matrix.F90
-
-cmd_vars.o: \
-                    ../include/dprec.fh
-
-
-cmd_vars.o:   cmd_vars.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cmd_vars.F90
-
 constante.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -504,7 +457,6 @@ cpparm.o: \
                     dssp.o\
                     molecule.o\
                     nonbond_list.o\
-                    pimd_vars.o\
                     les.o\
                     ew_mpole.h
 
@@ -533,7 +485,6 @@ cpparm.LES.o: \
                     dssp.o\
                     molecule.o\
                     nonbond_list.LES.o\
-                    pimd_vars.o\
                     les.o\
                     ew_mpole.h
 
@@ -693,10 +644,9 @@ dynlib.o: \
                     mdfil.o\
                     ../include/md.h\
                     extra.h\
-                    pimd_vars.o\
                     remd.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -732,10 +682,9 @@ dynlib.LES.o: \
                     mdfil.LES.o\
                     ../include/md.h\
                     extra.h\
-                    pimd_vars.o\
                     remd.LES.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -770,10 +719,9 @@ dynlib.PUPIL.o: \
                     mdfil.PUPIL.o\
                     ../include/md.h\
                     extra.h\
-                    pimd_vars.o\
                     remd.o\
                     les.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     xray_interface.o\
@@ -809,7 +757,6 @@ egb.o: \
                     crg_reloc.o\
                     mdfil.o\
                     les.o\
-                    pimd_vars.o\
                     remd.o\
                     parallel.h\
                     ../include/md.h\
@@ -834,7 +781,6 @@ egb.LES.o: \
                     crg_reloc.o\
                     mdfil.LES.o\
                     les.o\
-                    pimd_vars.o\
                     remd.LES.o\
                     parallel.h\
                     ../include/md.h\
@@ -886,7 +832,6 @@ ene.o: \
                     decomp.o\
                     parms.o\
                     file_io_dat.o\
-                    pimd_vars.o\
                     remd.o\
                     softcore.o\
                     parallel.h\
@@ -918,7 +863,6 @@ ene.LES.o: \
                     decomp.o\
                     parms.o\
                     file_io_dat.o\
-                    pimd_vars.o\
                     remd.LES.o\
                     softcore.o\
                     parallel.h\
@@ -1063,7 +1007,6 @@ ew_force.o: \
                     qmmm_module.o\
                     file_io_dat.o\
                     les.o\
-                    pimd_vars.o\
                     charmm.o\
                     parms.o\
                     ips.o\
@@ -1108,7 +1051,6 @@ ew_force.LES.o: \
                     qmmm_module.o\
                     file_io_dat.o\
                     les.o\
-                    pimd_vars.o\
                     charmm.o\
                     parms.o\
                     ips.o\
@@ -1246,7 +1188,6 @@ ew_setup.o: \
                     qmmm_module.o\
                     def_time.h\
                     les.o\
-                    pimd_vars.o\
                     amoeba_runmd.o\
                     AmberNetcdf.o\
                     binrestart.o\
@@ -1283,7 +1224,6 @@ ew_setup.LES.o: \
                     qmmm_module.o\
                     def_time.h\
                     les.o\
-                    pimd_vars.o\
                     amoeba_runmd.o\
                     AmberNetcdf.o\
                     binrestart.LES.o\
@@ -1383,12 +1323,11 @@ force.o: \
                     nfe-sander-proxy.o\
                     file_io_dat.o\
                     egb.o\
-                    pimd_vars.o\
                     les.o\
                     qmmm_module.o\
                     softcore.o\
                     remd.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1445,12 +1384,11 @@ force.LES.o: \
                     nfe-sander-proxy.o\
                     file_io_dat.o\
                     egb.LES.o\
-                    pimd_vars.o\
                     les.o\
                     qmmm_module.o\
                     softcore.o\
                     remd.LES.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1506,12 +1444,11 @@ force.PUPIL.o: \
                     nfe-sander-proxy.o\
                     file_io_dat.o\
                     egb.o\
-                    pimd_vars.o\
                     les.o\
                     qmmm_module.o\
                     softcore.o\
                     remd.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     trace.o\
                     stack.o\
@@ -1668,7 +1605,7 @@ interface_setup.F90: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -1924,7 +1861,7 @@ md_scheme.LES.o:   md_scheme.F90
 mdfil.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -1938,7 +1875,7 @@ mdfil.o:   mdfil.F90
 mdfil.LES.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -1951,7 +1888,7 @@ mdfil.LES.o:   mdfil.F90
 mdfil.PUPIL.o: \
                     copyright.h\
                     file_io_dat.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     xref.o\
                     ew_parallel.h\
                     parallel.h\
@@ -2021,8 +1958,6 @@ mdread1.F90: \
                     lscivr_vars.o\
                     md_scheme.o\
                     les.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
                     stack.o\
                     nmr.o\
                     crg_reloc.o\
@@ -2039,7 +1974,7 @@ mdread1.F90: \
                     mbar.o\
                     remd.o\
                     linear_response.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
@@ -2069,8 +2004,6 @@ mdread2.F90: \
                     amoeba_runmd.o\
                     nose_hoover.o\
                     md_scheme.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
                     constantph.o\
                     constante.o\
                     file_io_dat.o\
@@ -2151,25 +2084,6 @@ memory_module.o:   memory_module.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ memory_module.F90
 
-mexit.o: \
-                    copyright.h\
-                    pupildata.o\
-                    parallel.h
-
-
-mexit.o:   mexit.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
-
-mexit.PUPIL.o: \
-                    copyright.h\
-                    pupildata.o\
-                    parallel.h
-
-mexit.PUPIL.o:   mexit.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
-
 minrit.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -2243,6 +2157,7 @@ multisander.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
+                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -2263,6 +2178,7 @@ multisander.LES.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
+                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -2957,7 +2873,6 @@ nonbond_list.o: \
                     def_time.h\
                     constants.o\
                     les.o\
-                    pimd_vars.o\
                     softcore.o\
                     qmmm_module.o\
                     box.h\
@@ -2982,7 +2897,6 @@ nonbond_list.LES.o: \
                     def_time.h\
                     constants.o\
                     les.o\
-                    pimd_vars.o\
                     softcore.o\
                     qmmm_module.o\
                     box.h\
@@ -3006,10 +2920,8 @@ nose_hoover.o:   nose_hoover.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nose_hoover.F90
 
 nose_hoover_init.o: \
-                    pimd_vars.o\
                     constants.o\
                     nose_hoover.o\
-                    cmd_vars.o\
                     abfqmmm_module.o\
                     ../include/memory.h\
                     ../include/md.h\
@@ -3022,10 +2934,8 @@ nose_hoover_init.o:   nose_hoover_init.F90
 
 nose_hoover_init_LES.o: \
                     les.o\
-                    pimd_vars.o\
                     constants.o\
                     nose_hoover.o\
-                    cmd_vars.o\
                     ../include/memory.h\
                     ../include/md.h\
                     parallel.h
@@ -3044,8 +2954,6 @@ parallel.o: \
                     les.o\
                     nonbond_list.o\
                     file_io_dat.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
                     nose_hoover.o\
                     lscivr_vars.o\
                     md_scheme.o\
@@ -3096,8 +3004,6 @@ parallel.LES.o: \
                     les.o\
                     nonbond_list.LES.o\
                     file_io_dat.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
                     nose_hoover.o\
                     lscivr_vars.o\
                     md_scheme.LES.o\
@@ -3175,87 +3081,6 @@ pearsn.o:   pearsn.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pearsn.F90
 
-pimd_force.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    constants.o\
-                    pimd_vars.o\
-                    les.o\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    parallel.h\
-                    file_io_dat.o\
-                    def_time.h
-
-
-pimd_force.o:   pimd_force.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pimd_force.F90
-
-pimd_force.LES.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    constants.o\
-                    pimd_vars.o\
-                    les.o\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    parallel.h\
-                    file_io_dat.o\
-                    def_time.h
-
-pimd_force.LES.o:   pimd_force.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pimd_force.F90
-
-pimd_init.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
-                    les.o\
-                    random.o\
-                    ../include/md.h\
-                    extra.h\
-                    file_io_dat.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    nose_hoover.o
-
-
-pimd_init.o:   pimd_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pimd_init.F90
-
-pimd_init.LES.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    constants.o\
-                    pimd_vars.o\
-                    cmd_vars.o\
-                    les.o\
-                    random.o\
-                    ../include/md.h\
-                    extra.h\
-                    file_io_dat.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    nose_hoover.o
-
-pimd_init.LES.o:   pimd_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pimd_init.F90
-
-pimd_vars.o: \
-                    ../include/dprec.fh\
-                    state.o
-
-
-pimd_vars.o:   pimd_vars.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pimd_vars.F90
-
 pol_gauss.o: \
                     copyright.h\
                     ../include/assert.fh\
@@ -3283,7 +3108,7 @@ printe.o: \
                     multitmd.h\
                     crg_reloc.o\
                     constants.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     charmm.o\
@@ -3312,7 +3137,7 @@ printe.PUPIL.o: \
                     multitmd.h\
                     crg_reloc.o\
                     constants.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xref.o\
                     charmm.o\
@@ -3479,7 +3304,6 @@ qm2_extern_module.o: \
                     qm2_extern_qc_module.o\
                     qm2_extern_lio_module.o\
                     qm2_extern_fb_module.o\
-                    pimd_vars.o\
                     file_io_dat.o\
                     remd.o\
                     parallel.h\
@@ -3505,7 +3329,6 @@ qm2_extern_module.LES.o: \
                     qm2_extern_qc_module.o\
                     qm2_extern_lio_module.o\
                     qm2_extern_fb_module.o\
-                    pimd_vars.o\
                     file_io_dat.o\
                     remd.LES.o\
                     parallel.h\
@@ -3724,7 +3547,6 @@ rdparm.o: \
                     ew_cntrl.h\
                     molecule.o\
                     nonbond_list.o\
-                    pimd_vars.o\
                     les.o\
                     dssp.o\
                     ew_mpole.h
@@ -3752,7 +3574,6 @@ rdparm.LES.o: \
                     ew_cntrl.h\
                     molecule.o\
                     nonbond_list.LES.o\
-                    pimd_vars.o\
                     les.o\
                     dssp.o\
                     ew_mpole.h
@@ -3908,12 +3729,10 @@ runmd.o: \
                     nfe-sander-proxy.o\
                     mdfil.o\
                     molecule.o\
-                    cmd_vars.o\
-                    pimd_vars.o\
                     lscivr_vars.o\
                     md_scheme.o\
                     nose_hoover.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
@@ -3975,12 +3794,10 @@ runmd.LES.o: \
                     nfe-sander-proxy.o\
                     mdfil.LES.o\
                     molecule.o\
-                    cmd_vars.o\
-                    pimd_vars.o\
                     lscivr_vars.o\
                     md_scheme.LES.o\
                     nose_hoover.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
@@ -4083,7 +3900,7 @@ sander.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4092,7 +3909,6 @@ sander.o: \
                     linear_response.o\
                     remd.o\
                     bintraj.o\
-                    pimd_vars.o\
                     trajene.o\
                     charmm.o\
                     memory_module.o\
@@ -4158,7 +3974,7 @@ sander.LES.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4167,7 +3983,6 @@ sander.LES.o: \
                     linear_response.o\
                     remd.LES.o\
                     bintraj.LES.o\
-                    pimd_vars.o\
                     trajene.o\
                     charmm.o\
                     memory_module.o\
@@ -4232,7 +4047,7 @@ sander.PUPIL.o: \
                     amoeba_runmd.o\
                     amoeba_mdin.o\
                     amoeba_interface.o\
-                    ../rism/amber_rism_interface.SANDER.o\
+                    ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
                     xray_interface.o\
@@ -4241,7 +4056,6 @@ sander.PUPIL.o: \
                     linear_response.o\
                     remd.o\
                     bintraj.o\
-                    pimd_vars.o\
                     trajene.o\
                     charmm.o\
                     memory_module.o\
@@ -4384,7 +4198,6 @@ short_ene.o: \
                     def_time.h\
                     file_io_dat.o\
                     les.o\
-                    pimd_vars.o\
                     decomp.o\
                     ips.o\
                     mbar.o\
@@ -4419,7 +4232,6 @@ short_ene.LES.o: \
                     def_time.h\
                     file_io_dat.o\
                     les.o\
-                    pimd_vars.o\
                     decomp.o\
                     ips.o\
                     mbar.o\
@@ -4706,6 +4518,9 @@ yammpnb.o:   yammpnb.F90
 netcdf.o:  $(NETCDF)
 	test -e $@ || touch netcdf.o
 
+omp_lib.o:
+	test -e $@ || touch omp_lib.o
+
 AmberNetcdf.o: ../lib/AmberNetcdf.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o AmberNetcdf.o ../lib/AmberNetcdf.F90
@@ -4717,14 +4532,6 @@ random.o: ../lib/random.F90 ../lib/random.h
 constants.o: ../lib/constants.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o constants.o ../lib/constants.F90
-
-../rism/amber_rism_interface.SANDER.o: ../rism/amber_rism_interface.F90
-	cd ../rism && \
-	if [ -n "$(RISMSANDER)" ]; then \
-		$(MAKE) amber_rism_interface.SANDER.o; \
-	else \
-		test -e amber_rism_interface.SANDER.o || touch amber_rism_interface.SANDER.o; \
-	fi
 
 qmmm_module.o: 
 	test -e $@ || touch $@

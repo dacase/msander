@@ -31,11 +31,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use file_io_dat
 #ifdef LES
    use les_data, only : les_vir, cnum, nlesadj, eeles
-   use pimd_vars, only : ipimd, nrg_all,nbead
-   use part_pimd_vars, only: frcx_copy
-#  ifdef MPI
-   use part_pimd_vars, only : frcx_temp
-#  endif
 #else
    use charmm_mod, only : charmm_active, charmm_cn114, charmm_cn214
    use parms, only : one_scee, one_scnb
@@ -179,10 +174,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       call zero_array(frc,3*numatoms) ! note that ips and ipol are inconsistent
       call zero_array(x(lfield),3*numatoms)
    end if
-
-#ifdef LES
-   if(ipimd>0)   frcx_copy(1:3,1:nbead) = 0.d0
-#endif
 
    frcx(1:3) = 0.d0
    
@@ -536,7 +527,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    ! ADJUST ENERGIES,FORCES FOR LES INTRA-COPY PAIR SCALING FACTOR
    
-   if (nlesadj > 0.and.ipimd==0) then
+   if (nlesadj > 0) then
       call timer_start(TIME_LESADJ)
       call nb_adjust_les(charge,eeles,crd, frc, &
             numatoms,les_vir,use_pme)
@@ -592,15 +583,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    if(ntop > numatoms)ntop=numatoms
    call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mpi_sum)
 
-#  ifdef LES
-   if(ipimd>0) then
-      call mpi_allreduce(frcx_copy,frcx_temp,3*ncopy,MPI_DOUBLE_PRECISION, &
-         mpi_sum,commsander,ierr)
-      frcx_copy = frcx_temp
-   end if
-#  endif
-
-
 #  ifdef USE_MPI_IN_PLACE
    call mpi_allreduce(MPI_IN_PLACE,frcx,3,MPI_DOUBLE_PRECISION, &
          mpi_sum,commsander,ierr)
@@ -618,10 +600,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    ntop=numatoms
 #endif /* MPI */
 
-#ifdef LES
-   if(ipimd>0) frcx_copy=frcx_copy/numatoms
-#endif
-
    frcx(1:3)=frcx(1:3)/dble(numatoms - numextra)
    if ( verbose > 0 )then
       if ( master )write(6,33)frcx(1),frcx(2),frcx(3)
@@ -633,17 +611,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       do i = nstart,ntop
 
 #ifdef LES
-         if(ipimd>0) then
-            if(cnum(i).eq.0) then
-               do icopy=1,ncopy
-                  frc(1:3,i) = frc(1:3,i)-frcx_copy(1:3,icopy)
-               enddo
-            else
-               frc(1:3,i)=frc(1:3,i)-frcx_copy(1:3,cnum(i))
-            endif
-         else
-            frc(1:3,i)=frc(1:3,i)-frcx(1:3)
-         end if
 #else
          frc(1,i) = frc(1,i) - frcx(1)
          frc(2,i) = frc(2,i) - frcx(2)
@@ -761,10 +728,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 !  |  accumulate evdwr on the master PE.                           | 
 !  +---------------------------------------------------------------+
 
-!   if(ipimd>0) nrg_all(:) = nrg_all(:) + evdwr/ncopy
-   if( ( ipimd > 0 ) .and. master ) &
-      nrg_all(:) = nrg_all(:) + evdwr/ncopy
-
 #endif
    !  [need to do this here, after reduction of the virials, rather than
    !  in get_nonbond_vir().  (should figure out why....)]
@@ -833,10 +796,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
 #if defined(MPI) && !defined(LES)
    use fft,only:column_fft_flag
 #endif
-#ifdef LES
-   use pimd_vars, only: ipimd, nrg_all
-   use part_pimd_vars, only: ftmp, pimd_mmchg, frcx_copy
-#endif
    implicit none
 #  include "../include/memory.h"
 
@@ -868,32 +827,11 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
    _REAL_ eer_sum
 #endif
 
-#ifdef LES
-   if( ipimd > 0 ) then
-      eer_sum = 0.0
-      ftmp = 0.0
-      pimd_mmchg = 0.0
-   end if
-#endif
-
    if ( mpoltype == 0 )then
 #ifdef LES      
-   if( ipimd > 0 ) then
-      do icopy = 1, ncopy
-         frcx = frcx_copy(:,icopy)
-         call assign_copy_charge(numatoms, charge, pimd_mmchg, icopy)
-         call do_pmesh_kspace(numatoms,crd,pimd_mmchg,ftmp,&
-            prefac1,prefac2,prefac3,fftable,qm_pot_only)
-         frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
-         eer_sum = eer_sum + eer
-         nrg_all(icopy) = nrg_all(icopy) + eer/ncopy
-         frcx_copy(:,icopy) = frcx
-      end do
-   else
-      call do_pmesh_kspace(numatoms,crd,charge,frc, &
+    call do_pmesh_kspace(numatoms,crd,charge,frc, &
            prefac1,prefac2,prefac3,fftable,qm_pot_only)
            frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
-   endif
 
 #else /* LES */
 
@@ -923,14 +861,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
             fftable,frcx(1),frcx(2),frcx(3))
       frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
    end if  ! mpoltype
-
-#ifdef LES
-   if( ipimd > 0 ) then
-      eer = eer_sum/ncopy
-      frc = frc + ftmp/ncopy
-      frcx_copy = frcx_copy/ncopy
-   end if
-#endif
 
 end subroutine do_pme_recip
 
@@ -1170,7 +1100,6 @@ subroutine nb_adjust(charge,eea,crd, &
    use file_io_dat
 #ifdef LES
    use les_data, only : lfac, lestyp, lesfac, cnum, nlesty
-   use pimd_vars, only: ipimd, nrg_all, nbead, nbead_inv
    use nblist, only : cutoffnb
 #else
    use decomp, only: decpr, decpair
@@ -1408,34 +1337,12 @@ subroutine nb_adjust(charge,eea,crd, &
          d0 = (erfc - 1.d0)/r
          d1 = (d0 - ewaldcof*derfc)*delr2inv
 #ifdef LES
-         if( ipimd>0 ) then
-            lfac = lesfac((lestyp(i)-1)*nlesty+lestyp(k))
-            ecur = lfac*cgi*cgk*d0
-            eea = eea + ecur
-            if ( ifcr /= 0 ) then
-               call cr_add_dcdr_factor( i, lfac*cgk*d0 )
-               call cr_add_dcdr_factor( k, lfac*cgi*d0 )
-            end if
-            df = lfac * cgi * cgk * d1
-             
-            if(cnum(i).eq.0.and.cnum(k).eq.0) then
-               nrg_all(1:nbead)=nrg_all(1:nbead) + ecur*nbead_inv
-            else 
-               if(cnum(i).ne.0) then
-                  nrg_all(cnum(i)) = nrg_all(cnum(i)) + ecur
-               else
-                  nrg_all(cnum(k)) = nrg_all(cnum(k)) + ecur
-               end if
-            end if
-
-         else
-            eea = eea + cgi*cgk*d0
-            if ( ifcr /= 0 ) then
-               call cr_add_dcdr_factor( i, cgk*d0 )
-               call cr_add_dcdr_factor( k, cgi*d0 )
-            end if
-            df = cgi*cgk*d1
-         end if       
+         eea = eea + cgi*cgk*d0
+         if ( ifcr /= 0 ) then
+            call cr_add_dcdr_factor( i, cgk*d0 )
+            call cr_add_dcdr_factor( k, cgi*d0 )
+         end if
+         df = cgi*cgk*d1
 #else
          eea = eea + cgi*cgk*d0
          if ( ifcr /= 0 ) then
@@ -1684,7 +1591,6 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    use file_io_dat
 #ifdef LES
    use les_data, only : lfac, lesfac, lestyp, nlesty, cnum
-   use pimd_vars, only: ipimd,nrg_all,nbead,nbead_inv
 #endif
 
    use abfqmmm_module, only: abfqmmm_param
@@ -1716,18 +1622,10 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
       do i = 1,numatoms
          sumq = sumq + cg(i)
 #ifdef LES
-         if(ipimd>0) then
-            lfac=lesfac((lestyp(i)-1)*nlesty+lestyp(i))
-            sumq2 = sumq2 + lfac*cg(i)*cg(i)
-            if ( ifcr /= 0 ) then
-               call cr_add_dcdr_factor( i, 2.0*cg(i)*lfac*d0 )
-            end if
-         else
-            sumq2 = sumq2 + cg(i)*cg(i)
-            if ( ifcr /= 0 ) then
-               call cr_add_dcdr_factor( i, 2.0*cg(i)*d0 )
-            end if
-         endif
+         sumq2 = sumq2 + cg(i)*cg(i)
+         if ( ifcr /= 0 ) then
+            call cr_add_dcdr_factor( i, 2.0*cg(i)*d0 )
+         end if
 #else
          sumq2 = sumq2 + cg(i)*cg(i)
          if ( ifcr /= 0 ) then
@@ -1769,21 +1667,6 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
       end do
       self_vir(j,j) = -ee_plasma
    end do
-#ifdef LES
-   if(ipimd>0) then
-      do i=1,numatoms
-         lfac=lesfac((lestyp(i)-1)*nlesty+lestyp(i))
- 
-         if(cnum(i).eq.0) then
-            nrg_all(1:nbead)=nrg_all(1:nbead) &
-                 + lfac*cg(i)*cg(i)*d0*nbead_inv
-         else 
-            nrg_all(cnum(i)) = nrg_all(cnum(i)) &
-                 + lfac*cg(i)*cg(i)*d0
-         endif
-      end do
-   end if
-#endif
 
    return
 

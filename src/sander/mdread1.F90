@@ -17,9 +17,6 @@
    use lscivr_vars, only: ilscivr, icorf_lsc
    use md_scheme, only: ischeme, ithermostat, therm_par
    use les_data, only : temp0les
-   use pimd_vars, only: ipimd,itimass
-   use neb_vars, only: ineb
-   use cmd_vars, only: restart_cmd, eq_cmd, adiab_param
    use stack, only: lastist,lastrst
    use nmr, only: echoin
    use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
@@ -156,7 +153,7 @@
          noshakemask,crgmask, iwrap_mask, &
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
-         ifqnt,ievb, ipimd, itimass, ineb,profile_mpi, ilscivr, icorf_lsc, &
+         ifqnt,ievb, profile_mpi, ilscivr, icorf_lsc, &
          ipb, inp, nkija, idistr, sinrtau, &
          gbneckscale, &
          gbalphaH,gbbetaH,gbgammaH, &
@@ -184,7 +181,6 @@
 #ifdef EMIL
          emil_do_calc, &
 #endif
-         restart_cmd, eq_cmd, adiab_param,  &
          vdwmodel, & ! mjhsieh - the model used for van der Waals
          ! retired:
          dtemp, dxm, heat, timlim, &
@@ -336,9 +332,6 @@
    temp0les = -ONE
 #endif
    rdt = 0
-   ipimd =0
-   itimass = 0   ! Default = no TI w.r.t. mass.
-   ineb  =0
 
    tautp = ONE
    ntp = 0
@@ -994,12 +987,6 @@
          FATAL_ERROR
       end if
 
-      if (ipimd > 0 ) then
-         write(6,'(/2x,a)') &
-         'Constant Surface Tension is not compatible with PIMD Runs.'
-         FATAL_ERROR
-      end if
-
    end if
 
 ! baroscalingdir valid options
@@ -1028,10 +1015,6 @@
       inerr = 0
       if (ievb /= 0) then
          write(6, '(/2x,a)') 'AMOEBA is not compatible with the MC Barostat'
-         inerr = 1
-      end if
-      if (ipimd /= 0) then
-         write(6, '(/2x,a)') 'PIMD is not compatible with the MC Barostat'
          inerr = 1
       end if
       if (icfe /= 0) then

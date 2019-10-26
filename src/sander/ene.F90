@@ -25,12 +25,10 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 !! ;  EVB modules                                                     ;
 !! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #ifdef LES
-   use pimd_vars, only: nrg_all,nbead,nbead_inv,ipimd
 #  ifdef MPI
       use remd, only : rem
 #  endif
 #endif
-   use pimd_vars, only: bnd_vir
 #ifdef MPI /* SOFT CORE */
    use softcore, only: ifsc, nsc, sc_ener, oneweight, emil_sc
 #endif
@@ -168,27 +166,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #  endif
 #endif
 
-#ifdef LES
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-!!
-      if(ipimd>0) then
-         if( cnum(ii) == 0 .and. cnum(jj) == 0 ) then
-             nrg_all(1:nbead) = nrg_all(1:nbead) + eaw(jn) * nbead_inv
-         else
-             if( cnum(ii) == 0 ) then
-                ndx = cnum(jj)
-             else
-                ndx = cnum(ii)
-             end if
-
-             nrg_all(ndx) = nrg_all(ndx) + eaw(jn)
-         end if
-      end if
-!!
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-#endif /* LES */
-
 !! Amber harmonic bond interaction for comparison with morsify ''''''''''''''''''''''
 !     if( jn == 1 ) then                                                    ! DEBUG ;
 !        write(6,'(A)') '|'                                                 ! DEBUG ;
@@ -216,27 +193,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
          f(j3+1) = f(j3+1)+xa
          f(j3+2) = f(j3+2)+ya
          f(j3+3) = f(j3+3)+za
-         bnd_vir(1,1)=bnd_vir(1,1)+xa*xij(jn)
-         bnd_vir(1,2)=bnd_vir(1,2)+xa*yij(jn)
-         bnd_vir(1,3)=bnd_vir(1,3)+xa*zij(jn)
-         bnd_vir(2,1)=bnd_vir(2,1)+ya*xij(jn)
-         bnd_vir(2,2)=bnd_vir(2,2)+ya*yij(jn)
-         bnd_vir(2,3)=bnd_vir(2,3)+ya*zij(jn)
-         bnd_vir(3,1)=bnd_vir(3,1)+za*xij(jn)
-         bnd_vir(3,2)=bnd_vir(3,2)+za*yij(jn)
-         bnd_vir(3,3)=bnd_vir(3,3)+za*zij(jn)
-
-!! Amber harmonic bond interaction for comparison with morsify ''''''''''''''''''''''
-!     if( jn == 1 ) then                                                    ! DEBUG ;
-!        write(6,'(A)') '|'                                                 ! DEBUG ;
-!        write(6,'(A)') '| ^^^ Amber harmonic force ////////////////////'   ! DEBUG ;
-!        write(6,'(A)') '|'                                                 ! DEBUG ;
-!     endif                                                                 ! DEBUG ;
-!     write(6,'(A,2I8,F14.8)') '| FX = ', i3+1, j3+1, xa                    ! DEBUG ;
-!     write(6,'(A,2I8,F14.8)') '| FY = ', i3+2, j3+2, ya                    ! DEBUG ;
-!     write(6,'(A,2I8,F14.8)') '| FZ = ', i3+3, j3+3, za                    ! DEBUG ;
-!     write(6,'(A)') '|'                                                    ! DEBUG ;
-!! Amber harmonic bond interaction for comparison with morsify ''''''''''''''''''''''
 
       end do
 
@@ -272,7 +228,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
    use file_io_dat
 
 #ifdef LES
-   use pimd_vars, only: ipimd,nrg_all, nbead, nbead_inv
 #  ifdef MPI
       use remd, only : rem
 #  endif
@@ -450,29 +405,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #  endif
 #endif
 
-#if defined(LES)
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-      if( ipimd>0 ) then
-         ii = (it(jn+ist) + 3)/3
-         jj = (jt(jn+ist) + 3)/3
-         kk = (kt(jn+ist) + 3)/3
-
-         if( cnum(ii) == 0 .and. cnum(jj) == 0 .and. cnum(kk) == 0 ) then
-            nrg_all(1:nbead) = nrg_all(1:nbead) + eaw(jn) * nbead_inv
-         else
-            if( cnum(ii) /= 0 ) then
-               ndx = cnum(ii)
-            else if( cnum(jj) /= 0 ) then
-               ndx = cnum(jj)
-            else
-               ndx = cnum(kk)
-            endif
-            nrg_all(ndx) = nrg_all(ndx) + eaw(jn)
-         endif
-      endif
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#endif /* LES */
-
       dfw(jn) = -(df+df)/sin(ant0)
    end do
 
@@ -554,7 +486,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
 !! ;  EVB modules                                                     ;
 !! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #ifdef LES
-   use pimd_vars, only: ipimd,nrg_all, nbead, nbead_inv
 #  ifdef MPI
       use remd, only : rem
 #  endif
@@ -784,33 +715,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       end if
 #  endif
 #endif
-
-#if defined(LES)
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-      if(ipimd>0) then
-         ii = (ip(jn+ist) + 3)/3
-         jj = (jp(jn+ist) + 3)/3
-         kk = (iabs(kp(jn+ist)) + 3)/3
-         ll = (iabs(lp(jn+ist)) + 3)/3
-
-         if( cnum(ii) == 0 .and. cnum(jj) == 0 .and. &
-             cnum(kk) == 0 .and. cnum(ll) == 0       ) then
-            nrg_all(1:nbead) = nrg_all(1:nbead) + epw(jn) * nbead_inv
-         else
-            if( cnum(ii) /= 0 ) then
-               ndx = cnum(ii)
-            else if( cnum(jj) /= 0 ) then
-               ndx = cnum(jj)
-            else if( cnum(kk) /= 0 ) then
-               ndx = cnum(kk)
-            else
-               ndx = cnum(ll)
-            endif
-            nrg_all(ndx) = nrg_all(ndx) + epw(jn)
-         endif
-      endif
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#endif /* LES */
 
       df0 = pn(ic)*(gamc(ic)*sinnp-gams(ic)*cosnp)
       dums = sphi(jn)+sign(1.0d-18,sphi(jn))
@@ -1060,24 +964,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
         endif
 #  endif
 #endif
-
-#if defined(LES)
-      !! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-        if(ipimd>0) then
-           if( cnum(ii) == 0 .and. cnum(jj) == 0 ) then
-              nrg_all(1:nbead) = nrg_all(1:nbead) &
-                 + ( cphi(jn) + sphi(jn) ) * nbead_inv
-           else
-              if( cnum(ii) /= 0 ) then
-                 ndx = cnum(ii)
-              else
-                 ndx = cnum(jj)
-              endif
-              nrg_all(ndx) = nrg_all(ndx) + cphi(jn) + sphi(jn)
-           endif
-        end if
-        !! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#endif /* LES */
 
         if( eedmeth == 5 ) then
            dfn =((-twelve*f1+six*f2)*scnb0-two*g*scee0)*r2

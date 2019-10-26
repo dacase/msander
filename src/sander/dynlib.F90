@@ -256,8 +256,6 @@ end subroutine close_dump_files
 !              in Locally Enhanced Sampling, LES)
 !------------------------------------------------------------------------------
 subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
-  use pimd_vars, only: ipimd, itimass
-  use neb_vars, only: ineb
   use file_io_dat
 
 #if defined( MPI )
@@ -334,15 +332,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! Define various terms
   etot   = ener%tot
   ektot  = ener%kin%tot
-  if (ipimd == 3) then
 
-    ! For Centroid MD, this is the centroid KE
-    temp = ener%kin%tot*onefac(1)
-  else
-
-    ! For Path Integral MD, this is mean classical KE of beads
-    temp = ener%kin%tot*onefac(1)
-  endif
+  ! For Path Integral MD, this is mean classical KE of beads
+  temp = ener%kin%tot*onefac(1)
   eksolt = ener%kin%solt*onefac(2)
 #ifdef LES
 
@@ -359,9 +351,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     eksolv = ener%kin%solv*onefac(3)
   end if
 
-  if (ipimd > 0) then
-    ektot = ener%kin%solv
-  end if
 #else
   if(ntt == 5) then
      eksolv = ener%kin%solv*onefac(3)
@@ -544,11 +533,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (econst /= 0.0) then
     write(6, 9076) epot-econst
   end if
-  if ((icfe > 0) .or. (itimass > 0)) then
+  if (icfe > 0) then
     write(6, 9100) dvdl
-  end if
-  if (ineb > 0) then
-    call pimd_neb_energy_report(6)
   end if
 
 #ifndef LES
@@ -786,7 +772,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
    if (econst /= 0.0) then
      write(7, 9076) epot-econst
    end if
-   if ((icfe > 0) .or. (itimass > 0)) then
+   if (icfe > 0) then
      write(7, 9100) dvdl
    end if
 #ifndef LES
@@ -972,217 +958,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   return
 end subroutine prntmd
 #endif /*ifndef PBSA*/
-
-!------------------------------------------------------------------------------
-! pimd_report:
-!------------------------------------------------------------------------------
-subroutine pimd_report(nstep, time, ounit, ener, onefac)
-  use state
-  use pimd_vars, only: nbead,ipimd,itimass
-  use neb_vars, only: ineb
-  use qmmm_module, only: qmmm_nml
-  use charmm_mod, only: charmm_active
-  use file_io_dat
-
-  implicit none
-
-#  include "../include/md.h"
-#  include "ew_mpole.h"
-#  include "ew_cntrl.h"
-#  include "tgtmd.h"
-  integer ounit,nstep
-  type(state_rec) :: ener
-  _REAL_ time, onefac(*)
-  _REAL_ etot, ektot, eksolt
-  _REAL_ boxx, boxy, boxz, volume, densit, presx, presy, presz, press
-  _REAL_ ekcmx, ekcmy, ekcmz, ekcmt, virx, viry, virz, virt
-  _REAL_ epot, enonb, eel, ehbond, ebond, eangle, edihed, enb14, eel14, econst
-  _REAL_ epol, aveper, aveind, avetot, esurf, dvdl, virvsene, diprms
-  _REAL_ dipiter, egb, epb, dipole_temp, escf, edisp
-
-  etot = ener%tot
-  ektot = ener%kin%solv ! for PIMD, this is "virial" expression
-  if (ipimd == 3 .or. neb > 0) then
-
-    ! This is for CMD
-    temp = ener%kin%tot * onefac(1)
-  else
-
-    ! For PIMD, this is mean classical KE of beads
-    temp = ener%kin%tot * onefac(1) / nbead
-  end if
-
-  boxx = ener%box(1)
-  boxy = ener%box(2)
-  boxz = ener%box(3)
-  eksolt = ener%kin%solt*onefac(2)
-  volume = ener%volume
-  densit = ener%density
-
-  presx = ener%pres(1)
-  presy = ener%pres(2)
-  presz = ener%pres(3)
-  press = ener%pres(4)
-
-  ekcmx = ener%cmt(1)
-  ekcmy = ener%cmt(2)
-  ekcmz = ener%cmt(3)
-  ekcmt = ener%cmt(4)
-
-  virx = ener%vir(1)
-  viry = ener%vir(2)
-  virz = ener%vir(3)
-  virt = ener%vir(4)
-
-  epot = ener%pot%tot
-  enonb = ener%pot%vdw
-  eel = ener%pot%elec
-  ehbond = ener%pot%hbond
-  egb = ener%pot%gb
-  epb = ener%pot%pb
-  ebond = ener%pot%bond
-  eangle = ener%pot%angle
-  edihed = ener%pot%dihedral
-  enb14 = ener%pot%vdw_14
-  eel14 = ener%pot%elec_14
-  econst = ener%pot%constraint
-  epol = ener%pot%polar
-  virvsene = ener%virvsene
-  aveper = ener%aveper
-  aveind = ener%aveind
-  avetot = ener%avetot
-  esurf = ener%pot%surf
-  dvdl = ener%pot%dvdl
-  diprms = ener%diprms
-  dipiter = ener%dipiter
-  dipole_temp = ener%dipole_temp
-  escf = ener%pot%scf
-  edisp = ener%pot%disp
-
-  write(ounit, 8088)
-  write(ounit, 9018) nstep, time, temp, press
-  write(ounit, 9028) etot, ektot, epot
-  write(ounit, 9038) ebond, eangle, edihed
-
-  ! CHARMM specific energy terms
-  if (charmm_active) then
-    write(6, 9039) ener%pot%angle_ub, ener%pot%imp, ener%pot%cmap
-  end if
-
-  write(ounit, 9048) enb14, eel14, enonb
-  if (igb == 0 .and. ipb == 0) then
-    write(ounit, 9058) eel, ehbond, econst
-  else if (igb == 10 .or. ipb /= 0) then
-    write(ounit, 9060) eel, epb, econst
-  else
-    write(ounit, 9059) eel, egb, econst
-  end if
-
-  ! For PIMD/NMPIMD/CMD/RPMD output
-  if (ntp > 0.0 .or. volume /= 0.0) then
-    write(ounit, 9078) ekcmt, virt, volume
-  end if
-  if (ntp > 0.0 .or. volume /= 0.0) then
-    write(ounit, 9079) densit
-  end if
-
-  ! Report of dV/dl for TI w.r.t. mass
-  if (itimass > 0) then
-    write(ounit, 9100) dvdl
-  end if
-
-  if (qmmm_nml%ifqnt) then
-
-    ! Write the SCF energy
-    if (qmmm_nml%qmtheory%PM3) then
-      write(ounit, 9080) escf
-    else if (qmmm_nml%qmtheory%AM1) then
-      write(ounit, 9081) escf
-    else if (qmmm_nml%qmtheory%AM1D) then
-      write(ounit, 9981) escf
-    else if (qmmm_nml%qmtheory%MNDO) then
-      write(ounit, 9082) escf
-    else if (qmmm_nml%qmtheory%MNDOD) then
-      write(ounit, 9982) escf
-    else if (qmmm_nml%qmtheory%PDDGPM3) then
-      write(ounit, 9083) escf
-    else if (qmmm_nml%qmtheory%PDDGMNDO) then
-      write(ounit, 9084) escf
-    else if (qmmm_nml%qmtheory%PM3CARB1) then
-      write(ounit, 9085) escf
-    else if (qmmm_nml%qmtheory%DFTB) then
-      write(ounit, 9086) escf
-    else if (qmmm_nml%qmtheory%RM1) then
-      write(ounit, 9087) escf
-    else if (qmmm_nml%qmtheory%PDDGPM3_08) then
-      write(ounit, 9088) escf
-    else if (qmmm_nml%qmtheory%PM6) then
-      write(ounit, 9089) escf
-    else if (qmmm_nml%qmtheory%PM3ZNB) then
-      write(ounit, 9091) escf
-    else if (qmmm_nml%qmtheory%EXTERN) then
-      write(ounit, 9092) escf
-    else if (qmmm_nml%qmtheory%PM3MAIS) then
-      write(ounit, 9093) escf
-    else
-      write(7,'(" ERROR - UNKNOWN QM THEORY")')
-    end if
-  end if
-  if (gbsa > 0) then
-    write(7, 9077) esurf
-  end if
-  if (igb == 10 .or. ipb /= 0) then
-    write(7, 9074) esurf, edisp
-  end if
-  if (econst /= 0.0) then
-    write(7, 9076) epot-econst
-  end if
-  if (ineb > 0) then
-    call pimd_neb_energy_report(ounit)
-  end if
-
-  ! For PIMD/NMPIMD/CMD/RPMD output
-  8088 format(t2,78('-'),/)
-  9018 format(/1x, 'NSTEP =',i9,3x,'TIME(PS) =',f12.5,2x, &
-         'TEMP(K) =',f9.2,2x,'PRESS =',f8.1)
-  9028 format (1x,'Etot   = ',f14.4,2x,'EKtot   = ',f14.4,2x, &
-         'EPtot      = ',f14.4)
-  9038 format (1x,'BOND   = ',f14.4,2x,'ANGLE   = ',f14.4,2x, &
-         'DIHED      = ',f14.4)
-  9039 format(1x, 'UB     = ', f14.4, 2x, 'IMP     = ', f14.4, 2x, &
-         'CMAP       = ', f14.4)
-
-  9048 format (1x,'1-4 NB = ',f14.4,2x,'1-4 EEL = ',f14.4,2x, &
-         'VDWAALS    = ',f14.4)
-  9058 format (1x,'EELEC  = ',f14.4,2x,'EHBOND  = ',f14.4,2x, &
-         'RESTRAINT  = ',f14.4)
-  9059 format (1x,'EELEC  = ',f14.4,2x,'EGB     = ',f14.4,2x, &
-         'RESTRAINT  = ',f14.4)
-  9060 format (1x,'EELEC  = ',f14.4,2x,'EPB     = ',f14.4,2x, &
-         'RESTRAINT  = ',f14.4)
-  9074 format (1x,'ECAVITY= ',f14.4,2x,'EDISPER = ',f14.4)
-  9076 format (1x,'EAMBER (non-restraint)  = ',f14.4)
-  9077 format (1x,'ESURF= ',f14.4)
-  9078 format (1x,'EKCMT  = ',f14.4,2x,'VIRIAL  = ',f14.4,2x, &
-         'VOLUME     = ',f14.4)
-  9079 format (52x,'Density    = ',f14.4)
-  9080 format (1x,'PM3ESCF= ',f14.4)
-  9081 format (1x,'AM1ESCF= ',f14.4)
-  9981 format (1x,'AM1DESCF= ',f14.4)
-  9082 format (1x,'MNDOESCF= ',f13.4)
-  9982 format (1x,'MNDODESCF= ',f13.4)
-  9083 format (1x,'PDDGPM3-ESCF= ',f12.4)
-  9084 format (1x,'PDDGMNDO-ESCF= ',f11.4)
-  9085 format (1x,'PM3CARB1-ESCF= ',f11.4)
-  9086 format (1x,'DFTBESCF= ',f13.4)
-  9087 format (1x,'RM1ESCF= ',f14.4)
-  9088 format (1x,'PDDGPM3_08-ESCF= ',f12.4)
-  9089 format (1x,'PM6ESCF= ',f14.4)
-  9091 format (1x,'PM3ZNBESCF= ',f14.4)
-  9092 format (1x,'EXTERNESCF= ',f14.4)
-  9093 format (1x,'PM3MAISESCF= ',f14.4)
-  9100 format (1x,'DV/DL  = ',f14.4)
-end subroutine pimd_report
 
 !------------------------------------------------------------------------------
 ! setvel: assign velocities from a Maxwellian distribution for initialization

@@ -317,8 +317,8 @@ module rism3d_potential_c
   end type rism3d_potential
   
   private mixSoluteSolventLJParameters
-  private uvCoulombicPotential, uvEwaldSumPotential
-  private uvLennardJonesPotentialWithCutoff, uvLennardJonesPotentialWithMinimumImage
+  private uvCoulombicPotential
+  private uvLennardJonesPotentialWithCutoff 
   private getnojellywt, uvLJrEwaldPotentialWithMinimumImage, uvParticleMeshRecipEwaldPotential
 contains
 
@@ -549,13 +549,7 @@ contains
 
     if (this%solute%charged) then
        if (this%periodic) then
-          if (this%periodicPotential(1:3) == 'pme') then
-             !write (6,*) "PME Electrostatics."
-             call uvParticleMeshRecipEwaldPotential(this, this%uuv)
-          else if (this%periodicPotential(1:5) == 'ewald') then
-             !write (6,*) "Ewald Sum Electrostatics."
-             call uvEwaldSumPotential(this, this%uuv) 
-          end if
+          call uvParticleMeshRecipEwaldPotential(this, this%uuv)
        else
           if (this%treeCoulomb) then
              ! write(0,*) 'tree coulomb'
@@ -567,7 +561,6 @@ contains
        end if
     end if
 
-
     call rism_timer_stop(this%coulombTimer)
     call timer_stop(TIME_UCOULU)
 
@@ -576,11 +569,7 @@ contains
 
 
     if (this%periodic) then
-         if (this%periodicPotential(1:5) == 'ewald' ) then
-             call uvLennardJonesPotentialWithMinimumImage(this, this%uuv)
-         else if (this%periodicPotential(1:3) == 'pme') then
-             call uvLJrEwaldPotentialWithMinimumImage(this, this%uuv)
-         end if
+       call uvLJrEwaldPotentialWithMinimumImage(this, this%uuv)
     else
        call uvLennardJonesPotentialWithCutoff(this, this%uuv, ljTolerance)
     end if
@@ -1677,85 +1666,12 @@ contains
     end where
   end subroutine uvLennardJonesPotentialWithoutCutoff
 
-  !> Tabulate the solute-solvent 12-6 Lennard-Jones potential in the
-  !! box subject to the minimum image convention.
-  !! @param[in] this potential object
-  !! @param[in,out] ulj grid to add potential to
-  subroutine uvLennardJonesPotentialWithMinimumImage(this, ulj)
-    use constants, only : PI
-    use rism_util, only : checksum
-    implicit none
-#ifdef MPI
-    include 'mpif.h'
-#endif
-    type(rism3d_potential), intent(in) :: this
-    _REAL_, intent(inout) :: ulj(:,:,:,:)
-    ! Amount to offset the grid in the z-axis (when using MPI).
-    _REAL_ :: offset
-    ! Grid, solute, slovent, and dimension indices.
-    integer :: igx, igy, igz, ig, iu, iv, id, cnt
-    ! Grid point position.
-    _REAL_ :: rx(3), ry(3), rz(3), gridPoint(3)
-    ! Distance of grid point from solute.
-    _REAL_ :: soluteDistanceSquared
-    ! Distance projected along unit cell z-axis.
-    _REAL_ :: cellZ
-    ! Base term in LJ equation (ratio of sigma and distance).
-    _REAL_ :: ljBaseTerm
-    ! Minimum LJ term r / sigma and its square.
-    _REAL_ :: minLJBaseTerm
-    parameter (minLJBaseTerm = 0.2d0**2)
-    _REAL_, parameter :: minDistance = 0.002d0
-    _REAL_, parameter :: minDistanceSquared = minDistance**2
-    _REAL_ :: solutePosition(3)
-
-    ! Offset used for dividing the box along the z-axis
-    ! for MPI.
-    !TODO:JAJ Need to adjust for MPI z-slab decomposition.
-    offset = this%grid%spacing(3) * this%grid%offsetR(3)
-    
-    do iu = 1, this%solute%numAtoms
-       ! Calculate the solute-solvent Lennard-Jones potential at each
-       ! grid point in the box.
-       do igz = 1, this%grid%localDimsR(3)
-          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
-          do igy = 1, this%grid%localDimsR(2)
-             ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
-             do igx = 1, this%grid%localDimsR(1)
-                rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-                gridPoint = rx + ry + rz
-
-                ! Vector from grid point to solute atom, in real space.
-                solutePosition = gridPoint - this%solute%position(:, iu)
-
-                ! Apply minimum image convention.
-                solutePosition = minimumImage(this, solutePosition)
-
-                soluteDistanceSquared = dot_product(solutePosition, solutePosition)
-                if (soluteDistanceSquared < this%cutoff2) then
-                   soluteDistanceSquared = max(soluteDistanceSquared, &
-                                               minDistanceSquared )
-                   do iv = 1, this%solvent%numAtomTypes
-                      ljBaseTerm = soluteDistanceSquared / this%ljSigmaUV(iu, iv)**2
-                      ljBaseTerm = 1d0 / ljBaseTerm**3
-                      ulj(igx, igy, igz, iv) = ulj(igx, igy, igz, iv) &
-                           + this%ljEpsilonUV(iu, iv) * ljBaseTerm * (ljBaseTerm - 2.d0)
-                   end do
-                end if
-             end do
-          end do
-       end do
-    end do
-  end subroutine uvLennardJonesPotentialWithMinimumImage
-
-
   !> Tabulate the solute-solvent 12-6 Lennard-Jones potential, and
   !! the short-range Ewald electrostatic potential,  in the
   !! box subject to the minimum image convention.
   !! @param[in] this potential object
   !! @param[in,out] ulj grid to add potential to
   subroutine uvLJrEwaldPotentialWithMinimumImage(this, ulj)
-    use omp_lib
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -1773,11 +1689,11 @@ contains
     _REAL_ :: solutePosition(3)
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
-    integer :: numtasks, mytaskid
-    character(len=50) omp_threads
+    integer :: numtasks
+    character(len=5) omp_num_threads
 
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
-    read( omp_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
+    read( omp_num_threads, * ) numtasks
 
     beta = 1.d0/this%chargeSmear
     do iu = 1, this%solute%numAtoms
@@ -1786,10 +1702,10 @@ contains
        end do
     end do
 
-!$omp parallel private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,mytaskid) num_threads(numtasks)
-    mytaskid = omp_get_thread_num()
-    do igz = mytaskid+1, this%grid%localDimsR(3), numtasks
+!$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
+!$omp&   igx,igy,igz,iu) num_threads(numtasks)
+
+    do igz = 1, this%grid%localDimsR(3)
        rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
        do igy = 1, this%grid%localDimsR(2)
           ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
@@ -1817,7 +1733,7 @@ contains
           end do
        end do
     end do
-!$omp end parallel
+!$omp end parallel do
   end subroutine uvLJrEwaldPotentialWithMinimumImage
 
   !> Synthesizing the Coulomb solute potential in a sparser box.
@@ -1884,125 +1800,6 @@ contains
        ucu = sqrt(HUGE(1d0))
     end where
   end subroutine uvCoulombicPotential
-
-
-  !> Calculate the Ewald sum electric potential between the solute and
-  !! solvent.  The minimum image convention is used to efficiently
-  !! approximate infinitely periodic solute.
-  !! References:
-  !!   Understanding Molecular Simulations 2E, chapter on long range
-  !!   interactions.
-  !!
-  !!   Lipkowitz, Kenny B., and Thomas R. Cundari, eds.
-  !!   “Appendix F: Mathematical Aspects of Ewald Summation.”
-  !!   Reviews in Computational Chemistry, 447–78. 2007.
-  !!   doi/10.1002/9780470164112.app6
-  !! @param[in] this Potential object.
-  !! @param[in,out] ucu Grid to add potential to.
-  subroutine uvEwaldSumPotential(this, ucu)
-    use rism3d_fft_c
-    use rism_util, only : checksum
-    use safemem
-    use constants, only : PI, FOURPI
-    use rism3d_opendx, only : rism3d_opendx_write
-    implicit none
-#ifdef FFW_THREADS
-    integer :: nthreads, totthreads
-    integer, external :: OMP_get_max_threads, OMP_get_num_threads
-    logical, external :: OMP_get_dynamic, OMP_get_nested
-#endif
-    type(rism3d_potential), intent(inout) :: this
-    _REAL_, intent(inout) :: ucu(:,:,:,:)
-
-    ! Flag indicating that this index of the array has not been set.
-    _REAL_ :: untouched = HUGE(0d0)
-
-    ! Temporary / intermediate variables.
-    integer :: igx, igy, igz
-    integer :: iv
-    integer :: ig
-
-    _REAL_ :: total
-    _REAL_ :: chargeCorrection
-
-
-    call timer_start(TIME_UCOULULR)
-    call rism_timer_start(this%coulombLongRangeTimer)
-
-    ! Clearing potentials summators.
-    !TODO: Make this debug-only.
-    ucu(:,:,:,1) = untouched
-    this%uuv1d(:,1) = untouched
-
-    ! Long range (k-space) term in Ewald sum.
-
-    ! In order to cancel the surface charge introduced by ionic or
-    ! polar periodic unit cells, the crystal is assumed to be immersed
-    ! in a medium of infinite dielectric constant (perfect conductor)
-    ! which produces an infinitely large reaction field. This
-    ! limiting case of infinite dielectric results in the k = 0
-    ! contibution to the potential energy always being zero. See
-    ! Understanding Molecular Simulation 2E, section 12.1.3.
-    ! Note: Unclear where this assumption originated or how it is
-    ! physically justified.
-    do iv = 1, this%solvent%numAtomTypes
-       this%uuv1d(:,iv) = this%dcfLongRangeAsympK(:)
-    end do
-
-    ! Convert from reciprocal space to Cartesian space.
-#ifdef MPI
-    this%uuv1d(2:this%grid%totalLocalPointsK:2, :) = &
-         -this%uuv1d(2:this%grid%totalLocalPointsK:2, :)
-    call rism3d_fft_bwd(this%fft, this%uuv1d)
-#else
-    call rism3d_fft_bwd(this%fft, this%uuv1d)
-#endif
-
-    ! Copy the long-range Gaussian charge portion of the Ewald sum to
-    ! to electric potential.
-    do igz = 0, this%grid%localDimsR(3) - 1
-       do igy = 0, this%grid%localDimsR(2) - 1
-          do igx = 0, this%grid%localDimsR(1) - 1
-             ig = 1 + igx + (igy + igz * this%grid%localDimsR(2)) &
-                  * this%grid%localDimsR(1)
-             ucu(igx + 1, igy + 1, igz + 1, 1) = this%uuv1d(ig, 1)
-          end do
-       end do
-    end do
-
-    call rism_timer_stop(this%coulombLongRangeTimer)
-    call timer_stop(TIME_UCOULULR)
-
-    call timer_start(TIME_UCOULUSR)
-    call rism_timer_start(this%coulombShortRangeTimer)
-
-    ! Calculate short-range term of Ewald sum and combine with
-    ! previously calculated long-range term.
-    call uvEwaldSumShortRangePotential(this, ucu)
-
-    call rism_timer_stop(this%coulombShortRangeTimer)
-    call timer_stop(TIME_UCOULUSR)
-
-    ! No correction for self-interaction of a point charge with its
-    ! own Ewald gaussian charge is needed. Correction is only needed
-    ! for intramolecular atomic interactions.  Solute-solvent is
-    ! purely intermolecular.  See p. 298 of Understanding Molecular
-    ! Simulation 2E by Frenkel & Smit (ISBN-13: 978-0-12-267351-1)
-    ! for details.
-
-    ! Additional term for charged systems
-    chargeCorrection = - pi  * (this%solute%totalCharge / this%grid%boxVolume) &
-                        *  this%chargeSmear * this%chargeSmear
-
-    write (6,*) "Ewald charge correction: ", chargeCorrection
-    ucu(:,:,:,1) = ucu(:,:,:,1) + chargeCorrection
-
-
-    ! Calculate electrostatic potential energy on each grid point.
-    do iv = this%solvent%numAtomTypes, 1, -1
-          ucu(:,:,:,iv) = ucu(:,:,:,1) * this%solvent%charge(iv)
-    end do
-  end subroutine uvEwaldSumPotential
 
   !> Short-range portion of the Ewald sum electric potential.
   subroutine uvEwaldSumShortRangePotential(this, ucu)
