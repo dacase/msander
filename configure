@@ -45,8 +45,8 @@ for var in "$@"; do
             ompflag="-qopenmp -DOPENMP";;
         --no-rism)
             rism="";;
-        --parallel)
-            enablempi="--enable-mpi=yes"
+        --mpi)
+            fftw_flags="--enable-mpi=yes"
             /bin/rm -f src/fftw3_config.log;;
     esac
 done
