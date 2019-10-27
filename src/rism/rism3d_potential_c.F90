@@ -1689,11 +1689,13 @@ contains
     _REAL_ :: solutePosition(3)
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
+#ifdef OPENMP
     integer :: numtasks
     character(len=5) omp_num_threads
 
     call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
     read( omp_num_threads, * ) numtasks
+#endif
 
     beta = 1.d0/this%chargeSmear
     do iu = 1, this%solute%numAtoms

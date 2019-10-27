@@ -80,7 +80,7 @@ module rism3d_closure_c
        LJCorrection_TCF_int, LJCorrection_DCF_int, &
        force_brute, &
        coulombicForce, lennardJonesForcePeriodic, lennardJonesForce, &
-       particleMeshEwaldRecipForce
+       particleMeshEwaldForce
   
 contains
 
@@ -2284,7 +2284,7 @@ contains
        endif
     else
        call lennardJonesForcePeriodic(this%potential, ff, guv)
-       call particleMeshEwaldRecipForce(this%potential, ff, guv)
+       call particleMeshEwaldForce(this%potential, ff, guv)
     end if
 
   end subroutine rism3d_closure_force
@@ -2653,6 +2653,8 @@ contains
     _REAL_, intent(inout) :: ff(3, this%solute%numAtoms) !> Force on each atom.
     _REAL_, intent(in) :: guv(:, :) !< Site-site pair correlation function.
     
+    ! Amount to offset the grid in the z-axis (when using MPI).
+    _REAL_ :: offset
     ! Grid, solute, slovent, and dimension indices.
     integer :: igx, igy, igz, ig, iu, iv, id
     ! Grid point position.
@@ -2668,7 +2670,7 @@ contains
     ! Lennard-Jones force between two particles.
     _REAL_ :: dUlj_dr
     _REAL_ :: debugenergy, time0, time1
-
+#ifdef OPENMP
     integer :: numtasks
     character(len=5) omp_num_threads
 
@@ -2676,6 +2678,7 @@ contains
     !  do the right thing with the OMP_NUM_THREADS environment variable here
     call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
     read( omp_num_threads, * ) numtasks
+#endif
     call wallclock(time0)
 
 !$omp parallel do private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
@@ -2683,15 +2686,21 @@ contains
 
     do iu = 1, this%solute%numAtoms
        do igz = 1, this%grid%localDimsR(3)
-          rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
+          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
           do igy = 1, this%grid%localDimsR(2)
              ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
              do igx = 1, this%grid%localDimsR(1)
                 rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
 
+#ifdef MPI
+                ig = 1 + (igx - 1) + (igy -1) * (this%grid%globalDimsR(1) + 2) &
+                       + (igz - 1) * this%grid%globalDimsR(2) &
+                             * (this%grid%globalDimsR(1) + 2)
+#else
                 ig = 1 + (igx - 1) + (igy - 1) * this%grid%globalDimsR(1) &
                        + (igz - 1) * this%grid%globalDimsR(2) &
                                    * this%grid%globalDimsR(1)
+#endif
                 
                 ! Vector from solute atom to grid point, in real space.
                 solutePosition = rx + ry + rz - this%solute%position(:, iu)
@@ -2861,7 +2870,7 @@ contains
 
 ! Computes the PME reciprocal, long range part of electrostatic forces exerted 
 ! by the solvent charge density onto the solute.
-  subroutine particleMeshEwaldRecipForce (this,ff,guv)
+  subroutine particleMeshEwaldForce (this,ff,guv)
     use, intrinsic :: iso_c_binding
     use bspline
     use constants, only : pi, KB
@@ -2942,6 +2951,7 @@ contains
     _REAL_ :: qall
 
     _REAL_ :: time0, time1
+#ifdef OPENMP
     integer :: numtasks
     character(len=50) omp_threads
 
@@ -2949,6 +2959,7 @@ contains
     !  do the right thing with the OMP_NUM_THREADS environment variable here
     call get_environment_variable('OMP_NUM_THREADS', omp_threads)
     read( omp_threads, * ) numtasks
+#endif
     call wallclock(time0)
 
 
@@ -2977,15 +2988,30 @@ contains
     gaussianFourierCoeff => safemem_realloc(gaussianFourierCoeff, &
         gridDimX_k * this%grid%localDimsR(2) * this%grid%localDimsR(3), .false.)
 
+#if defined(MPI)
+    localPtsK = fftw_mpi_local_size_3d(N, M, L / 2 + 1, &
+         this%grid%mpicomm, local_N, local_k_offset)
+#else
     localPtsK = gridDimX_k * this%grid%localDimsR(2) * this%grid%localDimsR(3)
     local_N = this%grid%localDimsR(3)
     local_k_offset = 0
+#endif
 
     rho_r_cptr = fftw_alloc_real(2 * localPtsK)
     rho_c_cptr = fftw_alloc_complex(localPtsK)
+#if defined(MPI)
+    call c_f_pointer(rho_r_cptr, rho_r, [2*(L/2+1), M, local_N])
+    call c_f_pointer(rho_r_cptr, outr_1d, [2*(L/2+1) * M * local_N])
+    call c_f_pointer(rho_c_cptr, rho_c, [L/2+1, M, local_N])
+    if (this%grid%mpirank == 0) then
+       rho_final_cptr = fftw_alloc_real(L * M * N)
+       call c_f_pointer(rho_final_cptr, rho_final, [L, M, N])
+    end if
+#else
     call c_f_pointer(rho_r_cptr, rho_r, [L, M, local_N])
     call c_f_pointer(rho_r_cptr, outr_1d, [L * M * local_N])
     call c_f_pointer(rho_c_cptr, rho_c, [L/2+1, M, local_N])
+#endif
 
    ! Angular wave numbers.
    do igk = 0, gridDimX_k - 1
@@ -3038,9 +3064,20 @@ contains
     end do
 
     ! Remove the k = 0 term (tinfoil boundary conditions).
-    kernel(1) = 0d0
+    if (this%grid%offsetR(3) == 0) then
+       kernel(1) = 0d0
+    end if
 
     ! Allocate the FFT.
+#if defined(MPI)
+    planfwd = fftw_mpi_plan_dft_r2c_3d(N, M, L, &
+         rho_r, rho_c, this%grid%mpicomm, &
+         FFTW_ESTIMATE)
+
+    planbwd = fftw_mpi_plan_dft_c2r_3d(N, M, L, &
+         rho_c, rho_r, this%grid%mpicomm, &
+         FFTW_ESTIMATE)
+#else
     planfwd = fftw_plan_dft_r2c_3d( &
          this%grid%globalDimsR(3), &
          this%grid%globalDimsR(2), &
@@ -3051,6 +3088,7 @@ contains
          this%grid%globalDimsR(2), &
          this%grid%globalDimsR(1), &
          rho_c, rho_r, FFTW_ESTIMATE)
+#endif /*defined(MPI)*/
 
     ! (1) get solvent charge density, rho(r) on the grid
     rho_r = 0d0
@@ -3062,9 +3100,15 @@ contains
              do igx = 1, this%grid%localDimsR(1)
                 ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
                      (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
+kif defined(MPI)
+                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
+                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
+#else
+                   igk = ig1
+#endif /*defined(MPI)*/
                    rho_r(igx,igy,igz) = rho_r(igx,igy,igz) &
                      + this%solvent%charge(iv) &
-                     * guv(ig1,iv) * this%solvent%density(iv)
+                     * guv(igk,iv) * this%solvent%density(iv)
              end do
           end do
        end do
@@ -3081,7 +3125,7 @@ contains
 
     do iu =1, this%solute%numAtoms
         do igz = 1, this%grid%localDimsR(3)
-           rz = (igz - 1) * this%grid%voxelVectorsR(3, :)
+           rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
            do igy = 1, this%grid%localDimsR(2)
               ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
               do igx = 1, this%grid%localDimsR(1)
@@ -3106,7 +3150,11 @@ contains
     ! (2) FT [ rho(r) ]
     ! Convert the charge density into reciprocal space.
 
+#if defined(MPI)
+    call fftw_mpi_execute_dft_r2c(planfwd, rho_r, rho_c)
+#else
     call fftw_execute_dft_r2c(planfwd, rho_r, rho_c)
+#endif
 
     ! Convolution.
     do igz = 0, local_N - 1
@@ -3121,10 +3169,14 @@ contains
 
     ! Evaluate the recip-space potential at the grid points.
     rho_r = 0
+#if defined(MPI)
+    call fftw_mpi_execute_dft_c2r(planbwd, rho_c, rho_r)
+#else
     call fftw_execute_dft_c2r(planbwd, rho_c, rho_r)
+#endif
     rho_r = rho_r / this%grid%boxVolume
 
-!   Here is where interpolation/differentiation starts.
+! Here is where interpolation/differentiation starts.
 
     do iu = 1, this%solute%numAtoms
        ! Convert Cartesian position to reciprocal space by projecting
@@ -3153,6 +3205,12 @@ contains
 
        do k = 1, splineOrder
           do i = 1, splineOrder
+#if defined(MPI)
+             if ( (gridPoints(k,3) < this%grid%offsetR(3)) &
+                  .or. (gridPoints(k,3) + 1 > this%grid%offsetR(3) + this%grid%localDimsR(3))) then
+                cycle
+             end if
+#endif
              do j = 1, splineOrder
 
                 rhoijk = rho_R(1 + gridPoints(i,1), &
@@ -3219,7 +3277,7 @@ contains
     call wallclock(time1)
     ! write(6,*) 'short-range PME force: ', time1 - time0
 
-  end subroutine particleMeshEwaldRecipForce 
+  end subroutine particleMeshEwaldForce 
 
   !> Calculates both Lennard-Jones and electrostatic solvation forces
   !! over the entire grid without cutoffs.
