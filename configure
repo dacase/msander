@@ -16,6 +16,7 @@ fc="gfortran"
 flibs_mkl=""
 openmp='no'
 ompflag='-fopenmp -DOPENMP'
+fftw_flags=""
 
 #  process command-line flags:
 for var in "$@"; do
@@ -29,6 +30,7 @@ for var in "$@"; do
         --conda)
             conda="yes";;
         --openmp)
+            fftw_flags="--enable-openmp"
             openmp="yes";;
         --no-netcdf)
             bintraj="";;
@@ -124,36 +126,41 @@ if [ -z "$mklroot" ] ; then
 
    echo "using OpenBLAS libraries in $GOTO"
    flibs_mkl="-lfftw3 $GOTO -lpthread"
+   mklinc="-I$msanderhome/include"
+   if [ "$openmp" = "yes" ]; then
+      flibs_mkl="-lfftw3_omp $flibs_mkl"
+   fi
 
     if [ ! -s "lib/libfftw3.a" ]; then
-    printf "\nConfiguring fftw-3.3 (may be time-consuming)..."
-    enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
-    mpicc=""
-    enable_sse="--enable-sse2=yes"
-    cd src/fftw-3.3 && \
-        ./configure --disable-doc --prefix=$msanderhome \
-        --libdir=$msanderhome/lib \
-        --enable-static $enable_sse\
-        CC="$cc" CFLAGS="$cflags $coptflags" \
-        F77="$fc" FFLAGS="$fflags $foptflags" \
-        > ../fftw3_config.log 2>&1
-      ncerror=$?
-    if [ $ncerror -gt 0 ]; then
-        echo "Error: FFTW configure returned $ncerror"
-        exit 1
-    else
-        echo "OK"
-    fi
+       printf "\nConfiguring fftw-3.3 (may be time-consuming)..."
+       enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
+       mpicc=""
+       enable_sse="--enable-sse2=yes"
+       cd src/fftw-3.3 && \
+           ./configure --disable-doc --prefix=$msanderhome \
+           --libdir=$msanderhome/lib $fftw_flags \
+           --enable-static $enable_sse\
+           CC="$cc" CFLAGS="$cflags $coptflags" \
+           F77="$fc" FFLAGS="$fflags $foptflags" \
+           > ../fftw3_config.log 2>&1
+         ncerror=$?
+       if [ $ncerror -gt 0 ]; then
+           echo "Error: FFTW configure returned $ncerror"
+           exit 1
+       else
+           echo "OK"
+       fi
 
-    # Build FFTW3
-    printf "Compiling the FFTW3 interface (may be time-consuming)..."
-    make install > fftw3.compile.log 2>&1
-    if [ $? -ne 0 ]; then
-      printf "\nError: FFTW3 compile failed.\n"
-      exit 1
-    else
-      printf "OK\n"
-   fi
+       # Build FFTW3
+       printf "Compiling the FFTW3 interface (may be time-consuming)..."
+       make install > fftw3.compile.log 2>&1
+       if [ $? -ne 0 ]; then
+         printf "\nError: FFTW3 compile failed.\n"
+         exit 1
+       else
+         printf "OK\n"
+      fi
+      cd ../..
    else
       echo "Using fftw-3.3 already built"
    fi
