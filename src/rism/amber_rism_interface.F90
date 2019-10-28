@@ -768,6 +768,8 @@ contains
     integer :: iclosure, iclosurechar
     logical :: op
     integer ::  un
+    integer :: numtasks, ier
+    character(len=5) omp_num_threads
 
     ! In case this is not the first time init has been called (i.e.,
     ! multiple runs) destroy timers and re-create them.
@@ -819,6 +821,18 @@ contains
     if (.not.op) close(unit=mdin_unit)
 
     ! Initialize 3D-RISM solute and solvent.
+
+#ifdef OPENMP
+    ! TODO: following code has not yet been tested.
+    ier = fftw_init_threads()
+    write(6,*) 'fftw_init_threads() returns ', ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
+    read( omp_num_threads, * ) numtasks
+    write(6,'(a,i3)') 'call fftw_plan_with_numthreads: ',numtasks
+    call fftw_plan_with_nthreads(numtasks)
+#endif
+
     call rism3d_solvent_new(solvent, xvvfile)    
     call rism3d_solute_new_sander(solute, numAtoms, numTypes, atomTypeIndex, &
          nonbondedParmIndex, charge, ljA, ljB, mass, solvent%temperature)
