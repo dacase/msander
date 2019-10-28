@@ -1071,10 +1071,6 @@ subroutine sander()
     call mpi_bcast (evbin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
 #  endif /* LES */
 
-    ! Obtain B vector for Schlegel's distributed Gaussian method
-    if (trim(adjustl(xch_type)) == "dist_gauss") then
-      call schlegel_dg
-    end if
     if (ifsc .ne. 0) then
 
       ! Multi-CPU minimization does not work with soft core

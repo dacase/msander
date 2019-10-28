@@ -3100,7 +3100,7 @@ contains
              do igx = 1, this%grid%localDimsR(1)
                 ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
                      (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-kif defined(MPI)
+#if defined(MPI)
                    igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
                         + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
 #else
