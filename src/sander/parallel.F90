@@ -162,9 +162,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(lesfac,BC_LESR,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
-   call mpi_bcast(adiab_param, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-   call mpi_bcast(eq_cmd,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(restart_cmd,1,MPI_INTEGER,0,commsander,ierr)
 
    call mpi_bcast(ilscivr, 1, mpi_integer, 0, commsander, ierr)
 

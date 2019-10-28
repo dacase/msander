@@ -3536,10 +3536,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (ifdump .and. ntwf > 0) call end_binary_frame(MDFRC_UNIT)
     end if
 
-#ifdef MPI
-    if (ievb .ne. 0) call out_evb(nstep)
-#endif /* MPI */
-
 !------------------------------------------------------------------------------
     !    General printed output:  {{{
     if (lout) then

@@ -2,6 +2,9 @@
 
 printf "configure script for msander\n\n"
 
+# Store the command
+command=`echo "$0 $*"`
+
 # set up defaults:
 verbose="@"
 enablempi=
@@ -11,7 +14,6 @@ rism="-lrism"
 conda="no"
 compiler="gnu"
 cc="gcc"
-cxx="g++"
 fc="gfortran"
 flibs_mkl=""
 openmp='no'
@@ -263,6 +265,9 @@ fi
 
 cat <<EOF > src/config.h
 
+#  msander configuration file.
+#  Created on `date` via $command
+
 ###############################################################################
 
 # (1)  Location of the installation
@@ -325,7 +330,7 @@ COPTFLAGS=-O3 -mtune=native
 #  (5)  Fortran compiler
 
 FC=$fc
-FFLAGS=$bintraj $mklinc $ompflag 
+FFLAGS=$bintraj $mklinc $ompflag $mpiflag
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native

@@ -392,13 +392,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 
    !     ----- PRINT THE INTERMEDIATE RESULTS -----
 
-!  x+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++x
-!  |  Output EVB data                                              |
-!  x+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++x
-#ifdef MPI
-   if( ievb /= 0 ) call out_evb ( n_force_calls)
-#endif
-
    ! DAN ROE: modified so that during traj post-proc. only final results
    ! are printed.
    if (lout .and. imin /= 5) then
