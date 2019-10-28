@@ -3204,18 +3204,17 @@ contains
        potGrad = 0
 
        do k = 1, splineOrder
-          do i = 1, splineOrder
 #if defined(MPI)
-             if ( (gridPoints(k,3) < this%grid%offsetR(3)) &
-                  .or. (gridPoints(k,3) + 1 > this%grid%offsetR(3) + this%grid%localDimsR(3))) then
-                cycle
-             end if
+          if (    (gridPoints(k,3) < this%grid%offsetR(3)) &
+             .or. (gridPoints(k,3) + 1 > this%grid%offsetR(3) &
+                                       + this%grid%localDimsR(3))) cycle
 #endif
+          do i = 1, splineOrder
              do j = 1, splineOrder
 
                 rhoijk = rho_R(1 + gridPoints(i,1), &
                                1 + gridPoints(j,2), &
-                               1 + gridPoints(k,3) )
+                               1 + gridPoints(k,3) - this%grid%offsetR(3))
                
                 potGrad(1) = potGrad(1) + weights(k,3) &
                     * weightDerivs(i,1) * weights(j,2) * rhoijk 
