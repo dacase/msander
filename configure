@@ -53,6 +53,7 @@ for var in "$@"; do
             mpiflag="-DMPI"
             mpilibs="-lfftw3_mpi -lfftw3 -lmpi"
             fc="mpif90"
+            sfx=".MPI"
             /bin/rm -f src/fftw3_config.log;;
     esac
 done
@@ -346,6 +347,7 @@ RANLIB=ranlib
 MV=mv
 CP=cp
 MAKE=make
+SFX=$sfx
 VB=$verbose
 
 EOF
