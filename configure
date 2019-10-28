@@ -15,6 +15,7 @@ conda="no"
 compiler="gnu"
 cc="gcc"
 fc="gfortran"
+fc_fftw="gfortran"
 flibs_mkl=""
 openmp='no'
 ompflag='-fopenmp -DOPENMP'
@@ -49,6 +50,9 @@ for var in "$@"; do
             rism="";;
         --mpi)
             fftw_flags="--enable-mpi=yes"
+            mpiflag="-DMPI"
+            mpilibs="-lfftw3_mpi -lfftw3 -lmpi"
+            fc="mpif90"
             /bin/rm -f src/fftw3_config.log;;
     esac
 done
@@ -109,7 +113,7 @@ else
    shared_suffix=.so
    make_shared=-shared
    lm=-lm
-   ldflags=-static
+   ldflags=
 fi
 
 #--------------------------------------------------------------------------
@@ -136,15 +140,13 @@ if [ -z "$mklroot" ] ; then
     if [ ! -s "lib/libfftw3.a" ]; then
        printf "\nConfiguring fftw-3.3 (may be time-consuming)..."
        enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
-       mpicc=""
        enable_sse="--enable-sse2=yes"
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $fftw_flags \
-           --enable-static $enable_sse\
-           CC="$cc" CFLAGS="$cflags $coptflags" \
-           F77="$fc" FFLAGS="$fflags $foptflags" \
-           > ../fftw3_config.log 2>&1
+           --enable-static --enable-sse2=yes \
+           CC="$cc" CFLAGS=""  F77="$fc_fftw" FFLAGS="" FLIBS="-lgfortran -w" \
+           > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
            echo "Error: FFTW configure returned $ncerror"
@@ -331,7 +333,7 @@ COPTFLAGS=-O3 -mtune=native
 
 FC=$fc
 FFLAGS=$bintraj $mklinc $ompflag $mpiflag
-FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag
+FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag $mpilibs
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
 
