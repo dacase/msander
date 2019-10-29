@@ -74,25 +74,17 @@ module rismthermo_c
      _REAL_, pointer :: solvationEnergyUC => NULL()
      !> Partial molar volume.
      _REAL_, pointer :: partialMolarVolume => NULL()
-     !> Partial molar volume temperature derivative.
-     _REAL_, pointer :: partialMolarVolume_dT => NULL()
      !> Total number of particles.
      _REAL_, pointer :: totalParticlesBox(:) => NULL()
      !> Excess number of particles.
      _REAL_, pointer :: excessParticlesBox(:) => NULL()
      !> Excess number of particles after asymptotic TCF correction.
      _REAL_, pointer :: excessParticles(:) => NULL()
-     !> Temperature derivative of the excess number of particles.
-     _REAL_, pointer :: excessParticles_dT(:) => NULL()
      !> Kirkwood-Buff integral (a.k.a. total correlation function
      !! integral).
      _REAL_, pointer :: kirkwoodBuff(:) => NULL()
      !> Direct correlation function integral.
      _REAL_, pointer :: DCFintegral(:) => NULL()
-     !> Kirkwood-Buff integral temperature derivative.
-     _REAL_, pointer :: kirkwoodBuff_dT(:) => NULL()
-     !> Temperature derivative of the direct correlation function integral.
-     _REAL_, pointer :: DCFintegral_dT(:) => NULL()
 
      !> TODO: Document me.
      integer :: mpirank = 0, mpisize = 1, mpicomm = 0
@@ -105,13 +97,12 @@ module rismthermo_c
      !!         excessChemicalPotential(solvent%numAtomTypes), excessChemicalPotentialGF(solvent%numAtomTypes),
      !!         solventPotentialEnergy(solvent%numAtomTypes),
      !!         solvationEnergy(solvent%numAtomTypes),solvationEnergyGF(solvent%numAtomTypes),
-     !!         excessNum(solvent%numAtomTypes), excessNum_dT(solvent%numAtomTypes),
+     !!         excessNum(solvent%numAtomTypes), 
      !!         kirkwoodBuff(solvent%numAtomTypes),
-     !!         kirkwoodBuff_dT(solvent%numAtomTypes), dcfi(solvent%numAtomTypes),
-     !!         DCFintegral_dT(solvent%numAtomTypes),
+     !!         dcfi(solvent%numAtomTypes),
      !!         excessChemicalPotentialPCPLUS(1), solvationEnergyPCPLUS(1),
      !!         excessChemicalPotentialUC(1), solvationEnergyUC(1),
-     !!         partialMolarVolume(1), partialMolarVolume_dT(1)
+     !!         partialMolarVolume(1)
      _REAL_, private, pointer :: mpi_buffer(:) => NULL()
 #if ! defined( USE_MPI_IN_PLACE) && defined( MPI )
      _REAL_, private, pointer :: tmpi_buffer(:) => NULL()
@@ -165,11 +156,8 @@ contains
     this%solvationEnergy => this%mpi_buffer(3*nsite + 1:4*nsite)
     this%solvationEnergyGF => this%mpi_buffer(4*nsite + 1:5*nsite)
     this%excessParticlesBox => this%mpi_buffer(5*nsite + 1:6*nsite)
-    this%excessParticles_dT => this%mpi_buffer(6*nsite + 1:7*nsite)
     this%kirkwoodBuff => this%mpi_buffer(7*nsite + 1:8*nsite)
-    this%kirkwoodBuff_dT => this%mpi_buffer(8*nsite + 1:9*nsite)
     this%DCFintegral => this%mpi_buffer(9*nsite + 1:10*nsite)
-    this%DCFintegral_dT => this%mpi_buffer(10*nsite + 1:11*nsite)
     this%totalParticlesBox => this%mpi_buffer(11*nsite + 1:12*nsite)
     this%excessParticles => this%mpi_buffer(12*nsite + 1:13*nsite)
     this%excessChemicalPotentialPCPLUS => this%mpi_buffer(13*nsite + 1)
@@ -177,7 +165,6 @@ contains
     this%excessChemicalPotentialUC => this%mpi_buffer(13*nsite + 3)
     this%solvationEnergyUC => this%mpi_buffer(13*nsite + 4)
     this%partialMolarVolume => this%mpi_buffer(13*nsite + 5)
-    this%partialMolarVolume_dT => this%mpi_buffer(13*nsite + 6)
   end subroutine rismthermo_new
 
 
@@ -284,15 +271,11 @@ contains
     nullify(this%solvationEnergyPCPLUS)
     nullify(this%solvationEnergyUC)
     nullify(this%partialMolarVolume)
-    nullify(this%partialMolarVolume_dT)
     nullify(this%excessParticlesBox)
     nullify(this%totalParticlesBox)
     nullify(this%excessParticles)
-    nullify(this%excessParticles_dT)
     nullify(this%kirkwoodBuff)
-    nullify(this%kirkwoodBuff_dT)
     nullify(this%DCFintegral)
-    nullify(this%DCFintegral_dT)
     this%mpicomm=0
     this%mpisize=1
     this%mpirank=0
@@ -564,11 +547,6 @@ module amber_rism_interface
   !! potential and, if possible, solvation energy and entropy
   logical :: canCalculateUC
 
-  !> If true, calculate partial molar volume temperature, Universal
-  !! Correction and PCPLUS solvation ! temperature derivative. I.e., the
-  !! solvation energy and entropy
-  logical :: canCalculatePartialMolarVolume_dT
-  
   !> List of closures to use in order.  Only the last closure is used
   !! for thermodynamic output.  This can be used to progressively
   !! increase the order of the closure to aid convergence.  Closure
@@ -1241,9 +1219,6 @@ contains
          atomPositions_fce => safemem_realloc(atomPositions_fce, 3, rism_3d%solute%numAtoms)
 #endif /* RISM_CRDINTERP */
 
-    call temperatureDerivativeCheck()
-
-
     ! Free up a bit of memory.
     call rism3d_solvent_destroy(solvent)
     call rism3d_solute_destroy(solute)
@@ -1653,19 +1628,6 @@ contains
     call rism_timer_stop(timer_write)
     rismthermo%excessChemicalPotential = &
          rism3d_excessChemicalPotential(rism_3d, rismprm%asympCorr)* KB * rism_3d%solvent%temperature
-    if (rismprm%gfCorrection == 1) then
-       rismthermo%excessChemicalPotentialGF = &
-            rism3d_excessChemicalPotentialGF(rism_3d, rismprm%asympCorr)* KB * rism_3d%solvent%temperature
-    end if
-    if (rismprm%pcplusCorrection == 1) then
-       rismthermo%excessChemicalPotentialPCPLUS = &
-            rism3d_excessChemicalPotentialPCPLUS(rism_3d,rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-    end if
-    if (canCalculateUC) then
-       rismthermo%excessChemicalPotentialUC = &
-            rism3d_excessChemicalPotentialUC(rism_3d, rismprm%Uccoeff, rismprm%asympCorr) &
-            * KB * rism_3d%solvent%temperature
-    end if
     rismthermo%solventPotentialEnergy = rism3d_solventPotEne(rism_3d) * KB * rism_3d%solvent%temperature
     rismthermo%partialMolarVolume = rism3d_partialMolarVolume(rism_3d)
     rismthermo%excessParticlesBox = rism3d_excessParticles(rism_3d, .false.)
@@ -1673,41 +1635,8 @@ contains
          + rism_3d%grid%voxelVolume &
          * rism_3d%grid%totalLocalPointsR * rism_3d%solvent%density
          ! this is the local volume for the MPI process.
-    if (.not. rism_3d%periodic) then
-       rismthermo%excessParticles = rism3d_excessParticles(rism_3d, .true.)
-    end if
     rismthermo%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d, rismprm%asympCorr)
     rismthermo%DCFintegral = rism3d_DCFintegral(rism_3d)
-
-    if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-       call rism3d_calculateSolution_dT(rism_3d, rismprm%progress, &
-            rismprm%maxstep, tolerancelist(size(tolerancelist)))
-       rismthermo%solvationEnergy = &
-            rism3d_solvationEnergy(rism_3d, rismprm%asympCorr) * KB * rism_3d%solvent%temperature
-       if (rismprm%gfCorrection == 1) then
-          rismthermo%solvationEnergyGF = &
-               rism3d_solvationEnergyGF(rism_3d, rismprm%asympCorr) * KB * rism_3d%solvent%temperature
-       end if
-       rismthermo%excessParticles_dT = rism3d_excessParticles_dT(rism_3d, rismprm%asympCorr) &
-            / rism_3d%solvent%temperature
-       rismthermo%kirkwoodBuff_dT = &
-            rism3d_kirkwoodbuff_dT(rism_3d, rismprm%asympCorr) &
-            / rism_3d%solvent%temperature
-       rismthermo%DCFintegral_dT = rism3d_DCFintegral_dT(rism_3d) &
-            / rism_3d%solvent%temperature
-       ! PMV_dT based quantities
-       if (canCalculatePartialMolarVolume_dT) then
-          rismthermo%solvationEnergyPCPLUS = &
-               rism3d_solvationEnergyPCPLUS(rism_3d,rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-          if (canCalculateUC) then
-             rismthermo%solvationEnergyUC = &
-                  rism3d_solvationEnergyUC(rism_3d, rismprm%Uccoeff, rismprm%asympCorr)&
-                  * KB * rism_3d%solvent%temperature
-          end if
-          rismthermo%partialMolarVolume_dT = rism3d_partialMolarVolume_dT(rism_3d) &
-               / rism_3d%solvent%temperature
-       end if
-    end if
 
     ! Output distributions.
     if (writedist .and. step >= 0) &
@@ -1715,78 +1644,6 @@ contains
     call rism_timer_start(timer_write)
 
     call rismthermo_mpireduce(rismthermo)
-
-    ! By doing the second RISM calculation here output from the RISM
-    ! routines does not break up the thermodynamic output below.
-    if (rismprm%polarDecomp == 1) then
-       ! Redo calculation with charges off.
-       call rism_timer_stop(timer_write)
-       call rism3d_unsetCharges(rism_3d)
-       call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, rismprm%progress, &
-            rismprm%maxstep, tolerancelist)
-
-       ! Calculate thermodynamics.
-       rismthermo_apol%excessChemicalPotential = &
-            rism3d_excessChemicalPotential(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-       if (rismprm%gfCorrection == 1) then
-          rismthermo_apol%excessChemicalPotentialGF = &
-               rism3d_excessChemicalPotentialGF(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-       end if
-       if (rismprm%pcplusCorrection == 1) then
-          rismthermo_apol%excessChemicalPotentialPCPLUS = &
-               rism3d_excessChemicalPotentialPCPLUS(rism_3d,rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-       end if
-       if (canCalculateUC) then 
-            rismthermo_apol%excessChemicalPotentialUC = &
-            rism3d_excessChemicalPotentialUC(rism_3d, rismprm%Uccoeff, rismprm%asympCorr) &
-            *KB*rism_3d%solvent%temperature
-       end if
-       rismthermo_apol%solventPotentialEnergy = rism3d_solventPotEne(rism_3d)*KB*rism_3d%solvent%temperature
-       rismthermo_apol%partialMolarVolume = rism3d_partialMolarVolume(rism_3d)
-       rismthermo_apol%excessParticles = rism3d_excessParticles(rism_3d, rismprm%asympCorr)
-       rismthermo_apol%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d, rismprm%asympCorr)
-       rismthermo_apol%DCFintegral = rism3d_DCFintegral(rism_3d)
-
-       if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-          call rism3d_calculateSolution_dT(rism_3d, rismprm%progress, &
-               rismprm%maxstep, tolerancelist(size(tolerancelist)))
-          rismthermo_apol%solvationEnergy = &
-               rism3d_solvationEnergy(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-          if (rismprm%gfCorrection == 1) then
-             rismthermo_apol%solvationEnergyGF = &
-                  rism3d_solvationEnergyGF(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-          end if
-          rismthermo_apol%excessParticles_dT = rism3d_excessParticles_dT(rism_3d, rismprm%asympCorr) &
-               /rism_3d%solvent%temperature
-          rismthermo_apol%kirkwoodBuff_dT = &
-               rism3d_kirkwoodbuff_dT(rism_3d, rismprm%asympCorr) &
-               /rism_3d%solvent%temperature
-          rismthermo_apol%DCFintegral_dT = rism3d_DCFintegral_dT(rism_3d) &
-               /rism_3d%solvent%temperature
-          if (canCalculatePartialMolarVolume_dT) then
-             rismthermo_apol%solvationEnergyPCPLUS = &
-                  rism3d_solvationEnergyPCPLUS(rism_3d,rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-             if (canCalculateUC) then
-                rismthermo_apol%solvationEnergyUC = &
-                     rism3d_solvationEnergyUC(rism_3d, rismprm%Uccoeff, rismprm%asympCorr)&
-                     *KB*rism_3d%solvent%temperature
-             end if
-             rismthermo_apol%partialMolarVolume_dT= &
-                  rism3d_partialMolarVolume_dT(rism_3d)/rism_3d%solvent%temperature
-          end if
-       end if
-       call rism3d_resetCharges(rism_3d)
-       call rism_timer_start(timer_write)
-       call rismthermo_mpireduce(rismthermo_apol)
-
-       ! Calculate the polar contribution.
-       call rismthermo_sub(rismthermo_pol, rismthermo, rismthermo_apol)
-    end if
-    if (rismprm%selftest) then
-       call rism_timer_stop(timer_write)
-       call rism3d_selftest(rism_3d)
-       call rism_timer_start(timer_write)
-    end if
     call rism_timer_stop(timer_write)
   end subroutine rism_solvdist_thermo_calc
 
@@ -1866,195 +1723,6 @@ contains
           call thermo_print_descr_line('rism_DCFintegral', '[A^3]', '', 'DCFI_', &
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
 
-          ! Entropic decomposition.
-          if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-             call thermo_print_descr_line('rism_-TS', '[kcal/mol]', 'Total', '-TS_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then             
-                call thermo_print_descr_line('rism_-TS_GF', '[kcal/mol]', 'Total', '-TS_GF_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             end if
-             if (canCalculatePartialMolarVolume_dT) then
-                if (rismprm%pcplusCorrection == 1) then
-                   call thermo_print_descr_line('rism_-TS_PCPLUS','[kcal/mol]','Total','-TS_PCPLUS_',&
-                        rism_3d%solvent%atomname,0)
-                end if
-                if (canCalculateUC) then
-                   call thermo_print_descr_line('rism_-TS_UC', '[kcal/mol]', 'Total', '', &
-                        rism_3d%solvent%atomName, 0)
-                end if
-             end if
-             call thermo_print_descr_line('rism_solvationEnergy', '[kcal/mol]', 'Total', 'SolvEne_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then
-                call thermo_print_descr_line('rism_solvationEnergyGF', '[kcal/mol]', 'Total', 'SolEne_GF_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             end if
-             if (canCalculatePartialMolarVolume_dT) then
-                if (rismprm%pcplusCorrection == 1) then
-                   call thermo_print_descr_line('rism_solvationEnergyPCPLUS','[kcal/mol]',&
-                        'Total','SolvEne_PCPLUS_',&
-                        rism_3d%solvent%atomname,0)
-                end if
-                if (canCalculateUC) then 
-                   call thermo_print_descr_line('rism_solvationEnergyUC','[kcal/mol]','Total','SolvEne_UC_',&
-                        rism_3d%solvent%atomname,0)
-                end if
-                call thermo_print_descr_line('rism_partialMolarVolume_dT', '[A^3/K]', 'PMV_dT', '', &
-                     rism_3d%solvent%atomName, 0)
-             end if
-             call thermo_print_descr_line('rism_excessParticles_dT', '[#/K]', '', 'ExNum_dT_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_excessCharge_dT', '[e/K]', 'Total', 'ExChg_dT_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_KirkwoodBuff_dT', '[A^3/K]', '', 'KB_dT_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_DCFintegral_dT', '[A^3/K]', '', 'DCFI_dT_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-          end if
-
-          ! Polar decomposition.
-          if (rismprm%polarDecomp==1) then
-             call thermo_print_descr_line('rism_polarExcessChemicalPotential', '[kcal/mol]', 'Total', 'polar_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarExcessChemicalPotential', '[kcal/mol]', 'Total', 'apolar_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then
-                call thermo_print_descr_line('rism_polarExcessChemicalPotentialGF', '[kcal/mol]', &
-                     'Total', 'polar_GF_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarExcessChemicalPotentialGF', '[kcal/mol]', &
-                     'Total', 'apolar_GF_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             end if
-             if (rismprm%pcplusCorrection == 1) then
-             call thermo_print_descr_line('rism_polarExcessChemicalPotentialPCPLUS','[kcal/mol]','Total','polar_PCPLUS_',&
-                  rism_3d%solvent%atomname,0)
-             call thermo_print_descr_line('rism_apolarExcessChemicalPotentialPCPLUS','[kcal/mol]','Total','apolar_PCPLUS_',&
-                  rism_3d%solvent%atomname,0)
-             end if
-             if (canCalculateUC) then
-                call thermo_print_descr_line('rism_polarExcessChemicalPotentialUC', &
-                     '[kcal/mol]', 'Total', '', &
-                     rism_3d%solvent%atomName, 0)
-                call thermo_print_descr_line('rism_apolarExcessChemicalPotentialUC', &
-                     '[kcal/mol]', 'Total', '', &
-                     rism_3d%solvent%atomName, 0)
-             end if
-
-             ! Solute-solvent potential energy.
-             call thermo_print_descr_line('rism_polarSolventPotentialEnergy', '[kcal/mol]', 'Total', 'polar_UV_pot_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarSolventPotentialEnergy', '[kcal/mol]', 'Total', 'apolar_UV_pot_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_polarPartialMolarVolume', '[A^3]', 'polar_PMV', '', &
-                  rism_3d%solvent%atomName, 0)
-             call thermo_print_descr_line('rism_apolarPartialMolarVolume', '[A^3]', 'apolar_PMV', '', &
-                  rism_3d%solvent%atomName, 0)
-             call thermo_print_descr_line('rism_polarExcessParticles', '[#]', '', 'polar_ExNum_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarExcessParticles', '[#]', '', 'apolar_ExNum_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_polarExcessCharge', '[e]', 'Total', 'polar_ExChg_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarExcessCharge', '[e]', 'Total', 'apolar_ExChg_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_polarKirkwoodBuff', '[A^3]', '', 'polar_KB_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarKirkwoodBuff', '[A^3]', '', 'apolar_KB_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_polarDCFintegral', '[A^3]', '', 'polar_DCFI_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_apolarDCFintegral', '[A^3]', '', 'apolar_DCFI_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-
-             ! Entropic decomposition w/ polar decomposition.
-             if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-                call thermo_print_descr_line('rism_polar-TS', '[kcal/mol]', 'Total', 'polar_-TS_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolar-TS', '[kcal/mol]', 'Total', 'apolar_-TS_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                if (rismprm%gfCorrection == 1) then
-                   call thermo_print_descr_line('rism_polar-TS_GF', '[kcal/mol]', 'Total', 'polar_-TS_GF_', &
-                        rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                   call thermo_print_descr_line('rism_apolar-TS_GF', '[kcal/mol]', 'Total', 'apolar_-TS_GF_', &
-                        rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                end if
-                if (canCalculatePartialMolarVolume_dT) then 
-                   if (rismprm%pcplusCorrection == 1) then
-                      call thermo_print_descr_line('rism_polar-TS_PCPLUS','[kcal/mol]','Total','polar_-TS_PCPLUS_',&
-                           rism_3d%solvent%atomname,0)
-                      call thermo_print_descr_line('rism_apolar-TS_PCPLUS','[kcal/mol]','Total','apolar_-TS_PCPLUS_',&
-                           rism_3d%solvent%atomname,0)
-                   end if
-                   if (canCalculateUC) then
-                      call thermo_print_descr_line('rism_polar-TS_UC', '[kcal/mol]', 'Total', '', &
-                           rism_3d%solvent%atomName, 0)
-                      call thermo_print_descr_line('rism_apolar-TS_UC', '[kcal/mol]', 'Total', '', &
-                           rism_3d%solvent%atomName, 0)
-                   end if
-                end if
-                call thermo_print_descr_line('rism_polarSolvationEnergy', '[kcal/mol]', 'Total', 'polar_solv_ene_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarSolvationEnergy', '[kcal/mol]', 'Total', 'apolar_solv_ene_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                if (rismprm%gfCorrection == 1) then
-                   call thermo_print_descr_line('rism_polarSolvationEnergyGF', '[kcal/mol]', &
-                        'Total', 'polar_solv_ene_GF_', &
-                        rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                   call thermo_print_descr_line('rism_apolarSolvationEnergyGF', '[kcal/mol]', &
-                        'Total', 'apolar_solv_ene_GF_', &
-                        rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                end if
-                if (canCalculatePartialMolarVolume_dT) then
-                   if (rismprm%pcplusCorrection == 1) then
-                      call thermo_print_descr_line('rism_polarSolvationEnergyPCPLUS',&
-                           '[kcal/mol]','Total','polar_solv_ene_PCPLUS_',&
-                           rism_3d%solvent%atomname,0)
-                      call thermo_print_descr_line('rism_apolarSolvationEnergyPCPLUS',&
-                           '[kcal/mol]','Total','apolar_solv_ene_PCPLUS_',&
-                           rism_3d%solvent%atomname,0)
-                   end if
-                   if (canCalculateUC) then
-                      call thermo_print_descr_line('rism_polarSolvationEnergyUC',&
-                           '[kcal/mol]','Total','polar_solv_ene_UC_',&
-                           rism_3d%solvent%atomname,0)
-                      call thermo_print_descr_line('rism_apolarSolvationEnergyUC',&
-                           '[kcal/mol]','Total','apolar_solv_ene_UC_',&
-                           rism_3d%solvent%atomname,0)
-                   end if
-                end if
-                ! Solute-solvent potential energy.
-                call thermo_print_descr_line('rism_polarSolventPotentialEnergy_dT', '[kcal/mol]', 'Total', 'polar_UV_pot_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarSolventPotentialEnergy_dT', '[kcal/mol]', 'Total', 'apolar_UV_pot_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                if (canCalculatePartialMolarVolume_dT) then
-                   call thermo_print_descr_line('rism_polarPartialMolarVolume_dT', &
-                        '[A^3]', 'polar_partialMolarVolume_dT', '', &
-                        rism_3d%solvent%atomName, 0)
-                   call thermo_print_descr_line('rism_apolarPartialMolarVolume_dT', &
-                        '[A^3]', 'apolar_partialMolarVolume_dT', '', &
-                        rism_3d%solvent%atomName, 0)
-                end if
-                call thermo_print_descr_line('rism_polarExcessParticles_dT', '[#]', '', 'polar_ExNum_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarExcessParticles_dT', '[#]', '', 'apolar_ExNum_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_polarExcessCharge_dT', '[e]', 'Total', 'polar_ExChg_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarExcessCharge_dT', '[e]', 'Total', 'apolar_ExChg_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_polarKirkwoodBuff_dT', '[A^3]', '', 'polar_KB_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarKirkwoodBuff_dT', '[A^3]', '', 'apolar_KB_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_polarDCFintegral_dT', '[A^3]', '', 'polar_DCFI_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-                call thermo_print_descr_line('rism_apolarDCFintegral_dT', '[A^3]', '', 'apolar_DCFI_dT_', &
-                     rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             end if
-          end if
        end if
     else
        ! DATA: free energy-based properties.
@@ -2066,18 +1734,6 @@ contains
                soluPot(8), soluPot(9), soluPot(10), soluPot(24)/), 10)
           call thermo_print_results_line('rism_excessChemicalPotential', sum(rismthermo%excessChemicalPotential), &
                rismthermo%excessChemicalPotential, rism_3d%solvent%numAtomTypes)
-          if (rismprm%gfCorrection == 1) then
-             call thermo_print_results_line('rism_excessChemicalPotentialGF', sum(rismthermo%excessChemicalPotentialGF), &
-                  rismthermo%excessChemicalPotentialGF, rism_3d%solvent%numAtomTypes)
-          end if
-          if (rismprm%pcplusCorrection == 1) then
-             call thermo_print_results_line('rism_excessChemicalPotentialPCPLUS',rismthermo%excessChemicalPotentialPCPLUS,&
-                  (/1d0/),0)
-          end if
-          if (canCalculateUC) then
-             call thermo_print_results_line('rism_excessChemicalPotentialUC', rismthermo%excessChemicalPotentialUC, &
-                  (/1d0/), 0)
-          end if
           call thermo_print_results_line('rism_solventPotentialEnergy', &
                sum(rismthermo%solventPotentialEnergy), &
                rismthermo%solventPotentialEnergy, &
@@ -2103,242 +1759,16 @@ contains
                rismthermo%excessParticlesBox * rism_3d%solvent%charge &
                * sqrt((KB * rism_3d%solvent%temperature) / COULOMB_CONST_E), &
                rism_3d%solvent%numAtomTypes)
-          if (.not. rism_3d%periodic) then
-             call thermo_print_results_line('rism_excessParticles', &
-                  HUGE(1d0), rismthermo%excessParticles, &
-                  rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_excessCharge', &
-                  sum(rismthermo%excessParticles * rism_3d%solvent%charge) &
-                  * sqrt((KB * rism_3d%solvent%temperature) / COULOMB_CONST_E), &
-                  rismthermo%excessParticles * rism_3d%solvent%charge &
-                  * sqrt((KB * rism_3d%solvent%temperature) / COULOMB_CONST_E), &
-                  rism_3d%solvent%numAtomTypes)
-          end if
           call thermo_print_results_line('rism_KirkwoodBuff', HUGE(1d0), &
                rismthermo%kirkwoodBuff, rism_3d%solvent%numAtomTypes)
           call thermo_print_results_line('rism_DCFintegral', HUGE(1d0), &
                rismthermo%DCFintegral, rism_3d%solvent%numAtomTypes)
 
-          ! Entropic decomposition.
-          if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-             call thermo_print_results_line('rism_-TS', &
-                  -sum(rismthermo%solvationEnergy - rismthermo%excessChemicalPotential), &
-                  -1d0*(rismthermo%solvationEnergy - rismthermo%excessChemicalPotential), rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then
-                call thermo_print_results_line('rism_-TS_GF', &
-                     -sum(rismthermo%solvationEnergyGF - rismthermo%excessChemicalPotentialGF), &
-                     -1d0*(rismthermo%solvationEnergyGF - rismthermo%excessChemicalPotentialGF), &
-                     rism_3d%solvent%numAtomTypes)
-             end if
-             ! special case. If the solvation energy is HUGE() the
-             ! expression below will not be and will not be caught by
-             ! thermo_print_results_line
-             if (canCalculatePartialMolarVolume_dT) then
-                if (rismprm%pcplusCorrection == 1) then
-                   call thermo_print_results_line('rism_-TS_PCPLUS', &
-                        -(rismthermo%solvationEnergyPCPLUS - rismthermo%excessChemicalPotentialPCPLUS),&
-                        (/-1d0*(rismthermo%solvationEnergyPCPLUS - rismthermo%excessChemicalPotentialPCPLUS)/),0)
-                end if
-                if (canCalculateUC) then
-                   call thermo_print_results_line('rism_-TS_UC', &
-                        -1d0*(rismthermo%solvationEnergyUC - rismthermo%excessChemicalPotentialUC), &
-                        (/rismthermo%solvationEnergyUC/), 0)
-                end if
-             end if
-             call thermo_print_results_line('rism_solvationEnergy', &
-                  sum(rismthermo%solvationEnergy), rismthermo%solvationEnergy, rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then
-                call thermo_print_results_line('rism_solvationEnergyGF', &
-                     sum(rismthermo%solvationEnergyGF), rismthermo%solvationEnergyGF, rism_3d%solvent%numAtomTypes)
-             end if
-             if (rismprm%pcplusCorrection == 1) then
-                call thermo_print_results_line('rism_solvationEnergyPCPLUS', &
-                     rismthermo%solvationEnergyPCPLUS,(/rismthermo%solvationEnergyPCPLUS/),0)
-             end if
-             if (canCalculateUC) then
-                call thermo_print_results_line('rism_solvationEnergyUC', &
-                     rismthermo%solvationEnergyUC, (/rismthermo%solvationEnergyUC/), 0)
-             end if
-
-             ! Non-free energy-based properties.
-             call thermo_print_results_line('rism_partialMolarVolume_dT', &
-                  rismthermo%partialMolarVolume_dT, (/rismthermo%partialMolarVolume_dT/), 0)
-             call thermo_print_results_line('rism_excessParticles_dT', &
-                  HUGE(1d0), rismthermo%excessParticles_dT, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_excessCharge_dT', &
-                  sum(rismthermo%excessParticles_dT*rism_3d%solvent%charge) &
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rismthermo%excessParticles_dT*rism_3d%solvent%charge&
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_KirkwoodBuff_dT', HUGE(1d0), &
-                  rismthermo%kirkwoodBuff_dT, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_DCFintegral_dT', HUGE(1d0), &
-                  rismthermo%DCFintegral_dT, rism_3d%solvent%numAtomTypes)
-          end if
-
-          ! Polar decomposition.
-          if (rismprm%polarDecomp == 1) then
-             call thermo_print_results_line('rism_polarExcessChemicalPotential', &
-                  sum(rismthermo_pol%excessChemicalPotential), &
-                  rismthermo_pol%excessChemicalPotential, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarExcessChemicalPotential', &
-                  sum(rismthermo_apol%excessChemicalPotential), &
-                  rismthermo_apol%excessChemicalPotential, rism_3d%solvent%numAtomTypes)
-             if (rismprm%gfCorrection == 1) then
-                call thermo_print_results_line('rism_polarExcessChemicalPotentialGF', &
-                     sum(rismthermo_pol%excessChemicalPotentialGF), &
-                     rismthermo_pol%excessChemicalPotentialGF, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarExcessChemicalPotentialGF', &
-                     sum(rismthermo_apol%excessChemicalPotentialGF), &
-                     rismthermo_apol%excessChemicalPotentialGF, rism_3d%solvent%numAtomTypes)
-             end if
-             if (rismprm%pcplusCorrection == 1) then
-                call thermo_print_results_line('rism_polarExcessChemicalPotentialPCPLUS',&
-                     rismthermo_pol%excessChemicalPotentialPCPLUS,&
-                     (/rismthermo_pol%excessChemicalPotentialPCPLUS/),0)
-                call thermo_print_results_line('rism_apolarExcessChemicalPotentialPCPLUS',&
-                     rismthermo_apol%excessChemicalPotentialPCPLUS,&
-                     (/rismthermo_apol%excessChemicalPotentialPCPLUS/),0)
-             end if
-             if (canCalculateUC) then
-                call thermo_print_results_line('rism_polarExcessChemicalPotentialUC', rismthermo_pol%excessChemicalPotentialUC, &
-                     (/1d0/), 0)
-                call thermo_print_results_line('rism_apolarExcessChemicalPotentialUC', rismthermo_apol%excessChemicalPotentialUC, &
-                     (/1d0/), 0)
-             end if
-             call thermo_print_results_line('rism_polarSolventPotentialEnergy', &
-                  sum(rismthermo_pol%solventPotentialEnergy), rismthermo_pol%solventPotentialEnergy, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarSolventPotentialEnergy', &
-                  sum(rismthermo_apol%solventPotentialEnergy), rismthermo_apol%solventPotentialEnergy, rism_3d%solvent%numAtomTypes)
-
-             ! Non-free energy-based properties.
-             call thermo_print_results_line('rism_polarPartialMolarVolume', &
-                  rismthermo_pol%partialMolarVolume, (/1d0/), 0)
-             call thermo_print_results_line('rism_apolarPartialMolarVolume', &
-                  rismthermo_apol%partialMolarVolume, (/1d0/), 0)
-             call thermo_print_results_line('rism_polarExcessParticles', &
-                  HUGE(1d0), rismthermo_pol%excessParticles, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarExcessParticles', &
-                  HUGE(1d0), rismthermo_apol%excessParticles, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_polarExcessCharge', &
-                  sum(rismthermo_pol%excessParticles*rism_3d%solvent%charge) &
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rismthermo_pol%excessParticles*rism_3d%solvent%charge&
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarExcessCharge', &
-                  sum(rismthermo_apol%excessParticles*rism_3d%solvent%charge) &
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rismthermo_apol%excessParticles*rism_3d%solvent%charge&
-                  *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                  rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_polarKirkwoodBuff', HUGE(1d0), &
-                  rismthermo_pol%kirkwoodBuff, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarKirkwoodBuff', HUGE(1d0), &
-                  rismthermo_apol%kirkwoodBuff, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_polarDCFintegral', HUGE(1d0), &
-                  rismthermo_pol%DCFintegral, rism_3d%solvent%numAtomTypes)
-             call thermo_print_results_line('rism_apolarDCFintegral', HUGE(1d0), &
-                  rismthermo_apol%DCFintegral, rism_3d%solvent%numAtomTypes)
-             ! Entropic decomposition w/ polar decomposition.
-             if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-                call thermo_print_results_line('rism_polar-TS', &
-                     -sum(rismthermo_pol%solvationEnergy - rismthermo_pol%excessChemicalPotential), &
-                     -1d0*(rismthermo_pol%solvationEnergy - rismthermo_pol%excessChemicalPotential), rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolar-TS', &
-                     -sum(rismthermo_apol%solvationEnergy - rismthermo_apol%excessChemicalPotential), &
-                     -1d0*(rismthermo_apol%solvationEnergy - rismthermo_apol%excessChemicalPotential), rism_3d%solvent%numAtomTypes)
-                if (rismprm%gfCorrection == 1) then
-                   call thermo_print_results_line('rism_polar-TS_GF', &
-                        -sum(rismthermo_pol%solvationEnergyGF - rismthermo_pol%excessChemicalPotentialGF), &
-                        -1d0*(rismthermo_pol%solvationEnergyGF - rismthermo_pol%excessChemicalPotentialGF), &
-                        rism_3d%solvent%numAtomTypes)
-                   call thermo_print_results_line('rism_apolar-TS_GF', &
-                        -sum(rismthermo_apol%solvationEnergyGF - rismthermo_apol%excessChemicalPotentialGF), &
-                        -1d0*(rismthermo_apol%solvationEnergyGF - rismthermo_apol%excessChemicalPotentialGF), &
-                        rism_3d%solvent%numAtomTypes)
-                end if
-                ! special case. If the solvation energy is HUGE() the
-                ! expression below will not be and will not be caught by
-                ! thermo_print_results_line
-                if (canCalculatePartialMolarVolume_dT) then
-                   if (rismprm%pcplusCorrection == 1) then
-                      call thermo_print_results_line('rism_polar-TS_PCPLUS', &
-                           -(rismthermo_pol%solvationEnergyPCPLUS - rismthermo_pol%excessChemicalPotentialPCPLUS),&
-                           (/-1d0*(rismthermo_pol%solvationEnergyPCPLUS - rismthermo_pol%excessChemicalPotentialPCPLUS)/),0)
-                      call thermo_print_results_line('rism_apolar-TS_PCPLUS', &
-                           -(rismthermo_apol%solvationEnergyPCPLUS - rismthermo_apol%excessChemicalPotentialPCPLUS),&
-                           (/-1d0*(rismthermo_apol%solvationEnergyPCPLUS - rismthermo_apol%excessChemicalPotentialPCPLUS)/),0)
-                   end if
-                   if (canCalculateUC) then
-                      call thermo_print_results_line('rism_polar-TS_UC', &
-                           -1d0*(rismthermo_pol%solvationEnergyUC - rismthermo_pol%excessChemicalPotentialUC), &
-                           (/rismthermo_pol%solvationEnergyUC/), 0)
-                      call thermo_print_results_line('rism_apolar-TS_UC', &
-                           -1d0*(rismthermo_apol%solvationEnergyUC - rismthermo_apol%excessChemicalPotentialUC), &
-                           (/rismthermo_apol%solvationEnergyUC/), 0)
-                   end if
-                end if
-                call thermo_print_results_line('rism_polarSolvationEnergy', &
-                     sum(rismthermo_pol%solvationEnergy), rismthermo_pol%solvationEnergy, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarSolvationEnergy', &
-                     sum(rismthermo_apol%solvationEnergy), rismthermo_apol%solvationEnergy, rism_3d%solvent%numAtomTypes)
-                if (rismprm%gfCorrection == 1) then
-                   call thermo_print_results_line('rism_polarSolvationEnergyGF', &
-                        sum(rismthermo_pol%solvationEnergyGF), rismthermo_pol%solvationEnergyGF, rism_3d%solvent%numAtomTypes)
-                   call thermo_print_results_line('rism_apolarSolvationEnergyGF', &
-                        sum(rismthermo_apol%solvationEnergyGF), rismthermo_apol%solvationEnergyGF, rism_3d%solvent%numAtomTypes)
-                end if
-                if (rismprm%pcplusCorrection == 1) then
-                   call thermo_print_results_line('rism_polarSolvationEnergyPCPLUS', &
-                        rismthermo_pol%solvationEnergyPCPLUS,(/rismthermo_pol%solvationEnergyPCPLUS/),0)
-                   call thermo_print_results_line('rism_apolarSolvationEnergyPCPLUS', &
-                        rismthermo_apol%solvationEnergyPCPLUS,(/rismthermo_apol%solvationEnergyPCPLUS/),0)
-                end if
-                if (canCalculateUC) then
-                   call thermo_print_results_line('rism_polarSolvationEnergyUC', &
-                        rismthermo_pol%solvationEnergyUC, (/rismthermo_pol%solvationEnergyUC/), 0)
-                   call thermo_print_results_line('rism_apolarSolvationEnergyUC', &
-                        rismthermo_apol%solvationEnergyUC, (/rismthermo_apol%solvationEnergyUC/), 0)
-                end if
-                ! Non-free energy-based properties.
-                call thermo_print_results_line('rism_polarPartialMolarVolume_dT', &
-                     rismthermo_pol%partialMolarVolume_dT, (/rismthermo_pol%partialMolarVolume_dT/), 0)
-                call thermo_print_results_line('rism_apolarPartialMolarVolume_dT', &
-                     rismthermo_apol%partialMolarVolume_dT, (/rismthermo_apol%partialMolarVolume_dT/), 0)
-                call thermo_print_results_line('rism_polarExcessParticles_dT', &
-                     HUGE(1d0), rismthermo_pol%excessParticles_dT, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarExcessParticles_dT', &
-                     HUGE(1d0), rismthermo_apol%excessParticles_dT, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_polarExcessCharge_dT', &
-                     sum(rismthermo_pol%excessParticles_dT*rism_3d%solvent%charge) &
-                     *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                     rismthermo_pol%excessParticles_dT*rism_3d%solvent%charge&
-                     *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                     rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarExcessCharge_dT', &
-                     sum(rismthermo_apol%excessParticles_dT*rism_3d%solvent%charge) &
-                     *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                     rismthermo_apol%excessParticles_dT*rism_3d%solvent%charge&
-                     *sqrt((KB *rism_3d%solvent%temperature)/COULOMB_CONST_E), &
-                     rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_polarKirkwoodBuff_dT', HUGE(1d0), &
-                     rismthermo_pol%kirkwoodBuff_dT, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarKirkwoodBuff_dT', HUGE(1d0), &
-                     rismthermo_apol%kirkwoodBuff_dT, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_polarDCFintegral_dT', HUGE(1d0), &
-                     rismthermo_pol%DCFintegral_dT, rism_3d%solvent%numAtomTypes)
-                call thermo_print_results_line('rism_apolarDCFintegral_dT', HUGE(1d0), &
-                     rismthermo_apol%DCFintegral_dT, rism_3d%solvent%numAtomTypes)
-             end if
-          end if
        end if
     end if
     call flush(outunit)
     call rism_timer_stop(timer_write)
   end subroutine rism_thermo_print
-
   
   !> Prints out a description line for thermodynamics output.
   !! @param[in] category Name of the thermodynamic quantity.
@@ -2614,7 +2044,6 @@ contains
     use rism3d_ccp4
     use rism3d_opendx
     use rism3d_xyzv
-    use rism3d_c, only: rism3d_map_site_to_site
     use safemem
     implicit none
 
@@ -2654,25 +2083,9 @@ contains
           end do
           call writeVolume(trim(guvfile)//suffix, work, this%grid, &
                this%solute, mpirank, mpisize, mpicomm)
-          if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-             do k = 1, this%grid%localDimsR(3)
-                do j = 1, this%grid%globalDimsR(2)
-                   do i = 1, this%grid%globalDimsR(1)
-                      work(i, j, k) = this%guv_dT(i + (j - 1) * (this%grid%globalDimsR(1) + 2) &
-                           & + (k - 1) * (this%grid%globalDimsR(1) + 2) * this%grid%globalDimsR(2), iv)
-                   end do
-                end do
-             end do
-             call writeVolume(trim(guvfile)//"_dT"//suffix, work, this%grid, &
-                  this%solute, mpirank, mpisize, mpicomm)
-          end if
 #  else
           call writeVolume(trim(guvfile)//suffix, this%guv(:, iv), &
                this%grid, this%solute)
-          if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-             call writeVolume(trim(guvfile)//"_dT"//suffix, this%guv_dT(:, iv), &
-                  this%grid, this%solute)
-          end if
 
 #  endif /*defined(MPI)*/
        endif
@@ -2715,10 +2128,6 @@ contains
           ! call writeVolume(trim(cuvfile)//suffix, this%cuv(:, :, :, iv), &
           !      this%grid, this%solute, mpirank, mpisize, mpicomm)
 
-          if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-             call writeVolume(trim(cuvfile)//"_dT"//suffix, this%cuv(:, :, :, iv), &
-                  this%grid, this%solute, mpirank, mpisize, mpicomm)
-          end if
        endif
     end do
     if (safemem_dealloc(work)/= 0) &
@@ -2809,7 +2218,6 @@ contains
     use rism3d_ccp4
     use rism3d_opendx
     use rism3d_xyzv
-    use rism3d_c, only: rism3d_map_site_to_site
     use safemem
     implicit none
 
@@ -2877,7 +2285,6 @@ contains
     use rism3d_ccp4
     use rism3d_opendx
     use rism3d_xyzv
-    use rism3d_c, only: rism3d_map_site_to_site
     use safemem
     implicit none
 
@@ -2950,230 +2357,8 @@ contains
           call writeVolume(trim(chgDistfile)//suffix, work, this%grid, &
                this%solute, mpirank, mpisize, mpicomm)
        end if
-
        
-       ! Free energy, energy and entropy.
-       if (len_trim(excessChemicalPotentialfile) /= 0 .or. len_trim(entropyfile) /= 0) then
-          ! Get the solvation free energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          if (safemem_dealloc(excessChemicalPotential_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_MAP")
-          excessChemicalPotential_map => rism3d_excessChemicalPotential_tot_map(this)
-          excessChemicalPotential_map = excessChemicalPotential_map * KB * rism_3d%solvent%temperature
-          if (safemem_dealloc(excessChemicalPotential_V_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_V_MAP")
-          excessChemicalPotential_V_map => rism3d_excessChemicalPotential_site_map(this)
-          excessChemicalPotential_V_map = excessChemicalPotential_V_map * KB * rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       if (len_trim(solvationEnergyfile) /= 0 .or. len_trim(entropyfile) /= 0) then
-          ! Get the solvation energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          !        solvationEnergy_map => safemem_realloc(solvationEnergy_map, &
-          !             this%grid%globalDimsR(1), this%grid%globalDimsR(2), this%grid%localDimsR(3))
-          if (safemem_dealloc(solventPotentialEnergy_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_MAP")
-          solvationEnergy_map => rism3d_solvationEnergy_tot_map(this)
-          solvationEnergy_map = solvationEnergy_map * KB * rism_3d%solvent%temperature
-          if (safemem_dealloc(solvationEnergy_V_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_V_MAP")
-          solvationEnergy_V_map => rism3d_solvationEnergy_site_map(this)
-          solvationEnergy_V_map = solvationEnergy_V_map * KB * rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       if (len_trim(solventPotentialEnergyfile) /= 0) then
-          ! Get the solvation energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          if (safemem_dealloc(solventPotentialEnergy_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_MAP")
-          solventPotentialEnergy_map => rism3d_solventPotEne_tot_map(this)
-          solventPotentialEnergy_map = solventPotentialEnergy_map * KB * rism_3d%solvent%temperature
-          if (safemem_dealloc(solventPotentialEnergy_V_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_V_MAP")
-          solventPotentialEnergy_V_map => rism3d_solventPotEne_site_map(this)
-          solventPotentialEnergy_V_map = solventPotentialEnergy_V_map * KB * rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       ! Outputting excess chemical potential map.
-       if (len_trim(excessChemicalPotentialfile) /= 0) then
-          call writeThermo(writeVolume,excessChemicalPotentialfile, suffix, excessChemicalPotential_map, &
-            excessChemicalPotential_V_map)
-       end if
-       ! Outputting solvation energy map.
-       if (len_trim(solvationEnergyfile) /= 0 .and. rismprm%entropicDecomp == 1 .and. &
-            rism3d_canCalc_DT(rism_3d)) then
-          call writeThermo(writeVolume,solvationEnergyfile, suffix, solvationEnergy_map, solvationEnergy_V_map)
-       end if
-       ! Outputting solvent-solute energy map.
-       if (len_trim(solventPotentialEnergyfile) /= 0) then
-          call writeThermo(writeVolume,solventPotentialEnergyfile, suffix, solventPotentialEnergy_map, &
-          solventPotentialEnergy_V_map)
-       end if
-       ! Outputting entropy map.
-       if (len_trim(entropyfile) /= 0 .and. rismprm%entropicDecomp == 1 .and. &
-            rism3d_canCalc_DT(rism_3d)) then
-          call DAXPY(this%grid%totalLocalPointsR, -1d0, solvationEnergy_map, 1, excessChemicalPotential_map, 1)
-          call DAXPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes, -1d0, &
-               solvationEnergy_V_map, 1, excessChemicalPotential_V_map, 1)
-          call writeThermo(writeVolume,entropyfile, suffix, excessChemicalPotential_map, excessChemicalPotential_V_map)
-       end if
-
-
-       ! PCPLUS free energy, energy and entropy.
-       if (len_trim(excessChemicalPotentialPCPLUSfile) /= 0 .or. len_trim(entropyPCPLUSfile) /= 0) then
-          ! Get the solvation free energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          if (safemem_dealloc(excessChemicalPotential_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_MAP")
-          excessChemicalPotential_map => rism3d_excessChemicalPotentialPCPLUS_tot_map(this)
-          excessChemicalPotential_map = excessChemicalPotential_map*KB*rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       ! Outputting excess chemical potential map.
-       if (len_trim(excessChemicalPotentialPCPLUSfile) /= 0) then
-          call writeVolume(trim(excessChemicalPotentialPCPLUSfile)//suffix, excessChemicalPotential_map, &
-               & this%grid, this%solute, mpirank, mpisize, mpicomm)
-       end if
-       if (rismprm%entropicDecomp == 1 .and.  rism3d_canCalc_DT(rism_3d) &
-            .and. rismthermo%partialMolarVolume_dT /= huge(1d0)) then
-          if (len_trim(solvationEnergyPCPLUSfile) /= 0 .or. len_trim(entropyPCPLUSfile) /= 0) then
-             ! Get the solvation energy map and convert to kcal/mol.
-             call rism_timer_stop(timer_write)
-             if (safemem_dealloc(solvationEnergy_map)/= 0) &
-                  call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_MAP")
-             solvationEnergy_map => rism3d_solvationEnergyPCPLUS_tot_map(this)
-             solvationEnergy_map = solvationEnergy_map*KB*rism_3d%solvent%temperature
-             call rism_timer_start(timer_write)
-          end if
-          ! Outputting solvation energy map.
-          if (len_trim(solvationEnergyPCPLUSfile) /= 0) then
-             call writeVolume(trim(solvationEnergyPCPLUSfile)//suffix, solvationEnergy_map, this%grid, &
-                  this%solute, mpirank, mpisize, mpicomm)
-          end if
-          ! Outputting entropy map.
-          if (len_trim(entropyPCPLUSfile) /= 0) then
-             call DAXPY(this%grid%totalLocalPointsR, -1d0, solvationEnergy_map, 1, excessChemicalPotential_map, 1)
-             call DAXPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes, -1d0, &
-                  solvationEnergy_V_map, 1, excessChemicalPotential_V_map, 1)
-             call writeVolume(trim(entropyPCPLUSfile)//suffix, excessChemicalPotential_map, this%grid, &
-                  this%solute, mpirank, mpisize, mpicomm)
-          end if
-       end if
-
-       ! Universal Correction free energy, energy and entropy.
-       if ((len_trim(excessChemicalPotentialUCfile) /= 0 &
-            .or. len_trim(entropyUCfile) /= 0 &
-            .or. len_trim(solvationEnergyUCfile) /= 0) &
-            .and. .not. canCalculateUC) then
-          call rism_report_warn("UC coefficients not set. Cannot output UC grid files.")
-       else
-          if (len_trim(excessChemicalPotentialUCfile) /= 0 .or. len_trim(entropyUCfile) /= 0) then
-             ! Get the solvation free energy map and convert to kcal/mol.
-             call rism_timer_stop(timer_write)
-             if (safemem_dealloc(excessChemicalPotential_map)/= 0) &
-                  call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_MAP")
-             excessChemicalPotential_map => rism3d_excessChemicalPotentialUC_tot_map(this, rismprm%uccoeff)
-             excessChemicalPotential_map = excessChemicalPotential_map*KB*rism_3d%solvent%temperature
-             call rism_timer_start(timer_write)
-          end if
-          ! Outputting excess chemical potential map.
-          if (len_trim(excessChemicalPotentialUCfile) /= 0) then
-             call writeVolume(trim(excessChemicalPotentialUCfile)//suffix, excessChemicalPotential_map, &
-                  & this%grid, this%solute, mpirank, mpisize, mpicomm)
-          end if
-          if (rismprm%entropicDecomp == 1 .and.  rism3d_canCalc_DT(rism_3d) &
-               .and. rismthermo%partialMolarVolume_dT /= huge(1d0)) then
-             if (len_trim(solvationEnergyUCfile) /= 0 .or. len_trim(entropyUCfile) /= 0) then
-                ! Get the solvation energy map and convert to kcal/mol.
-                call rism_timer_stop(timer_write)
-                if (safemem_dealloc(solvationEnergy_map)/= 0) &
-                     call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_MAP")
-                solvationEnergy_map => rism3d_solvationEnergyUC_tot_map(this, rismprm%uccoeff)
-                solvationEnergy_map = solvationEnergy_map*KB*rism_3d%solvent%temperature
-                call rism_timer_start(timer_write)
-             end if
-             ! Outputting solvation energy map.
-             if (len_trim(solvationEnergyUCfile) /= 0) then
-                call writeVolume(trim(solvationEnergyUCfile)//suffix, solvationEnergy_map, this%grid, &
-                     this%solute, mpirank, mpisize, mpicomm)
-             end if
-             ! Outputting entropy map.
-             if (len_trim(entropyUCfile) /= 0) then
-                call DAXPY(this%grid%totalLocalPointsR, -1d0, solvationEnergy_map, 1, excessChemicalPotential_map, 1)
-                call DAXPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes, -1d0, &
-                     solvationEnergy_V_map, 1, excessChemicalPotential_V_map, 1)
-                call writeVolume(trim(entropyUCfile)//suffix, excessChemicalPotential_map, this%grid, &
-                     this%solute, mpirank, mpisize, mpicomm)
-             end if
-          end if
-       end if
-
-       ! Gaussian fluctuation correction free energy, energy and entropy
-       if (len_trim(excessChemicalPotentialGFfile) /= 0 .or. len_trim(entropyGFfile) /= 0) then
-          ! Get the solvation free energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          if (safemem_dealloc(solventPotentialEnergy_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_MAP")
-          excessChemicalPotential_map => rism3d_excessChemicalPotentialGF_tot_map(this)
-          excessChemicalPotential_map = excessChemicalPotential_map*KB*rism_3d%solvent%temperature
-          if (safemem_dealloc(excessChemicalPotential_V_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_V_MAP")
-          excessChemicalPotential_V_map => rism3d_excessChemicalPotentialGF_site_map(this)
-          excessChemicalPotential_V_map = excessChemicalPotential_V_map*KB*rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       if (len_trim(solvationEnergyGFfile) /= 0 .or. len_trim(entropyGFfile) /= 0) then
-          ! Get the solvation energy map and convert to kcal/mol.
-          call rism_timer_stop(timer_write)
-          !        solvationEnergy_map => safemem_realloc(solvationEnergy_map, &
-          !             this%grid%globalDimsR(1), this%grid%globalDimsR(2), this%grid%localDimsR(3))
-          if (safemem_dealloc(solvationEnergy_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_MAP")
-          solvationEnergy_map => rism3d_solvationEnergyGF_tot_map(this)
-          solvationEnergy_map = solvationEnergy_map*KB*rism_3d%solvent%temperature
-          if (safemem_dealloc(solvationEnergy_V_map)/= 0) &
-               call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_V_MAP")
-          solvationEnergy_V_map => rism3d_solvationEnergyGF_site_map(this)
-          solvationEnergy_V_map = solvationEnergy_V_map*KB*rism_3d%solvent%temperature
-          call rism_timer_start(timer_write)
-       end if
-       ! Outputting excess chemical potential map.
-       if (len_trim(excessChemicalPotentialGFfile) /= 0) then
-          call writeThermo(writeVolume,excessChemicalPotentialGFfile, suffix, excessChemicalPotential_map, &
-            excessChemicalPotential_V_map)
-       end if
-       ! Outputting solvation energy map.
-       if (len_trim(solvationEnergyGFfile) /= 0 .and. rismprm%entropicDecomp == 1 .and. &
-            rism3d_canCalc_DT(rism_3d)) then
-          call writeThermo(writeVolume,solvationEnergyGFfile, suffix, solvationEnergy_map, solvationEnergy_V_map)
-       end if
-       ! Outputting entropy map.
-       if (len_trim(entropyGFfile) /= 0 .and. rismprm%entropicDecomp == 1 .and. &
-            rism3d_canCalc_DT(rism_3d)) then
-          call DAXPY(this%grid%totalLocalPointsR, -1d0, solvationEnergy_map, 1, excessChemicalPotential_map, 1)
-          call DAXPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes, -1d0, &
-               solvationEnergy_V_map, 1, excessChemicalPotential_V_map, 1)
-          call writeThermo(writeVolume,entropyGFfile, suffix, excessChemicalPotential_map, &
-            excessChemicalPotential_V_map)
-       end if
-       if (rismprm%molReconstruct) then
-          call rism_writeMolReconstruct(this, writeVolume, suffix)
-       end if
     endif
-    if (safemem_dealloc(excessChemicalPotential_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_MAP")
-    if (safemem_dealloc(solvationEnergy_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_MAP")
-    if (safemem_dealloc(solventPotentialEnergy_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_MAP")
-    if (safemem_dealloc(excessChemicalPotential_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_V_MAP")
-    if (safemem_dealloc(solvationEnergy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_V_MAP")
-    if (safemem_dealloc(solventEntropy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTENTROPY_V_MAP")
-    if (safemem_dealloc(solventPotentialEnergy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_V_MAP")
   contains
     subroutine writeThermo(wv, root, suffix, data, data_sites)
       implicit none
@@ -3194,111 +2379,6 @@ contains
     end subroutine writeThermo
    end subroutine rism_writeThermodynamicsDistributions
   
-  !> Outputs molecular reconstruction of volumetric data. Each distribution
-  !! is written in a separate file with the step number before the
-  !! suffix. 
-  !! @param[in,out] this 3D-RISM object.
-  !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeMolReconstruct(this, writeVolume, suffix)
-    use constants, only : COULOMB_CONST_E, KB, PI
-    use amber_rism_interface
-    use rism_io
-    use rism3d_ccp4
-    use rism3d_opendx
-    use rism3d_xyzv
-    use rism3d_c, only: rism3d_map_site_to_site
-    use safemem
-    implicit none
-
-    type(rism3d), intent(inout) :: this
-    character(len=64), intent(in) :: suffix
-    procedure (writeVolumeInterface) :: writeVolume 
-    _REAL_, pointer::excessChemicalPotential_V_map(:, :, :, :) => NULL(), &
-         solvationEnergy_V_map(:, :, :, :) => NULL(), &
-         solventPotentialEnergy_V_map(:, :, :, :) => NULL(),&
-         solventEntropy_V_map(:, :, :, :) => NULL()
-    integer :: center_site
-    integer :: iv
-    
-    !
-    ! excess chemical potential
-    !
-    center_site = 1
-    if (len(trim(excessChemicalPotentialfile)) /= 0 .or. len(trim(entropyfile)) /=0) then
-       call rism_timer_stop(timer_write)
-       excessChemicalPotential_V_map => rism3d_excessChemicalPotential_site_map(this)
-       call rism_timer_start(timer_write)
-       call writeReconstruct(excessChemicalPotentialfile, suffix, &
-            excessChemicalPotential_V_map)
-    end if
-    !
-    ! Solvation energy
-    !
-    if (len(trim(solvationEnergyfile)) /= 0 .or. len(trim(entropyfile)) /=0 &
-         .and. rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d)) then
-
-       call rism_timer_stop(timer_write)
-       solvationEnergy_V_map => rism3d_solvationEnergy_site_map(this)
-       call rism_timer_start(timer_write)
-       call writeReconstruct(solvationEnergyFile, suffix, &
-            solvationEnergy_V_map)
-    end if
-    !
-    ! solute-solvent potential energy
-    !
-    if (len(trim(solventPotentialEnergyfile)) /= 0 ) then
-
-       call rism_timer_stop(timer_write)
-       solventPotentialEnergy_V_map => rism3d_solventPotEne_site_map(this)
-       call rism_timer_start(timer_write)
-       call writeReconstruct(solventPotentialEnergyFile, suffix, &
-            solventPotentialEnergy_V_map)
-    end if
-    !
-    ! Solvation Entropy
-    !
-    if (len(trim(entropyfile)) /=0 .and. rismprm%entropicDecomp == 1 .and. &
-         rism3d_canCalc_DT(rism_3d)) then
-       solventEntropy_V_map => safemem_realloc(solventEntropy_V_map, &
-            this%grid%globalDimsR(1), this%grid%globalDimsR(2), this%grid%localDimsR(3), &
-            this%solvent%numAtomTypes)
-       call DCOPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes,&
-            excessChemicalPotential_V_map,1,solventEntropy_V_map,1)
-       
-       call DAXPY(this%grid%totalLocalPointsR*this%solvent%numAtomTypes, -1d0, &
-            solvationEnergy_V_map, 1, solventEntropy_V_map, 1)
-       call writeVolume(trim(entropyfile)//'.mol'//suffix, &
-            solvententropy_V_map(:, :, :, center_site), this%grid, &
-            this%solute, mpirank, mpisize, mpicomm)
-    end if
-    if (safemem_dealloc(excessChemicalPotential_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate EXCESSCHEMICALPOTENTIAL_V_MAP")
-    if (safemem_dealloc(solvationEnergy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVATIONENERGY_V_MAP")
-    if (safemem_dealloc(solventEntropy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTENTROPY_V_MAP")
-    if (safemem_dealloc(solventPotentialEnergy_V_map)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate SOLVENTPOTENTIALENERGY_V_MAP")
-  contains
-    subroutine writeReconstruct(root, suffix, data_sites)
-      implicit none
-      character(len=*), intent(in) :: root, suffix
-      _REAL_, pointer, intent(inout) :: data_sites(:,:,:,:)
-      call rism3d_map_site_to_site(rism_3d, data_sites, center_site)
-       data_sites = data_sites * KB * rism_3d%solvent%temperature
-       do iv = 2,2
-          data_sites(:, :, :, center_site) = &
-               data_sites(:, :, :, center_site)&
-               + data_sites(:, :, :, iv)
-       end do
-       if (len(trim(root)) /= 0 ) then
-          call writeVolume(trim(root)//'.mol'//trim(suffix), &
-               data_sites(:, :, :, center_site), this%grid, &
-               this%solute, mpirank, mpisize, mpicomm)
-       end if
-    end subroutine writeReconstruct
-  end subroutine rism_writeMolReconstruct
-
   
 !!!! INTERPOLATION RESTART FILE I/O
 #if 0
@@ -4217,24 +3297,6 @@ contains
        call rism_report_error("Only 'ccp4', 'dx', and 'xyzv' volumetric data formats are supported")
     end if
 
-    ! Make sure that a valid centering method is used and doesn't
-    ! conflict with other options.
-    if (rismprm%centering > 4 .or. rismprm%centering < -4) &
-         call rism_report_error("Centering must be between -4 and 4")
-    if ((rismprm%centering > 2 .or. rismprm%centering < -2) .and. rismprm%fcestride > 0) &
-         call rism_report_error("CENTERING must be between -2 and 2 when FCESTRIDE > 0")
-
-    ! We can only run temperature derivative if the Xvv file has this information.
-    if (rismprm%entropicDecomp == 1 .and. .not.rism3d_solvent_canCalc_dT(solvent)) &
-         call rism_report_warn("cannot perform temperature derivative. No 1D-RISM temperature derivative data found")
-
-    ! Solvation energy and entropy maps only make sense for entropicDecomp runs.
-    if (rismprm%entropicDecomp /=1 .and. &
-         (len_trim(solvationEnergyfile) /= 0 .or. len_trim(entropyfile) /= 0)) then
-       call rism_report_error(&
-            "Solvation energy and entropy maps require energy/entropy decomposition")
-    end if
-
     ! Resize closure list to the appropriate size.
     if (len_trim(closurelist(size(closurelist))) == 0) then
        closurelist => safemem_realloc(closurelist, len(closurelist), array_index(closurelist, '')-1)
@@ -4332,127 +3394,6 @@ contains
        call rism_report_error('(a,g)',"'chargeSmear' must be >= 0. Got",rismprm%chargeSmear)
     end if
   end subroutine sanity_check
-
-  !> Determines if several temperature derivative based quantities
-  !! (PMV_dT, PCPLUS, UCT, NgBT, etc) can be calculated from the given
-  !! input and change to internal units
-  !! @sideeffects
-  !!   sets canCalculateUC and canCalculatePartialMolarVolume_dT.
-  subroutine temperatureDerivativeCheck()
-    use amber_rism_interface
-    use constants, only : kb
-    implicit none
-    ! check if the user has supplied UC coefficients
-    if (all(rismprm%uccoeff == 0d0)) then
-       canCalculateUC = .false.
-    else
-       canCalculateUC = .true.
-       ! Unit conversion for user supplied parameters.
-       rismprm%uccoeff = rismprm%uccoeff / (KB * rism_3d%solvent%temperature)
-    end if
-
-    ! check if we can calculate temperature derivatives for PMV,
-    ! needed for PCPLUS and UC
-    if (rism_3d%solvent%xikt_dT == huge(1d0)) then
-       canCalculatePartialMolarVolume_dT = .false.
-    else
-       canCalculatePartialMolarVolume_dT = .true.
-    end if
-       
-    ! Warn the user that some values cannot be calculate.
-    if (rismprm%entropicDecomp == 1 .and. rism3d_canCalc_DT(rism_3d) &
-         .and. .not. canCalculatePartialMolarVolume_dT) then
-       call rism_report_warn("Input Xvv file version < 1.001. "&
-            //"Cannot calculate partialMolarVolume_dT, or solvation energy or entropy of UC and PCPLUS.")
-    end if
-  end subroutine temperatureDerivativeCheck
-  
-  !> Modifies the position of the solute using the centering method
-  !! requested. (This used to also rotate the solute in the box but
-  !! this has been disabled.)
-  !! If centering is /= 0 we want to move the solute to the center of
-  !! the solvent box. However, if centering < 0 we only figure out the
-  !! displacement required the _first_ time we see the solute. Thus,
-  !! for centering <= 0, the solute's CM can move relative to the
-  !! grid.
-  !! @param[in] solu solute object.
-  !! @param[in,out] atomPositions The x, y, z position of each solute atom.
-  !!    This is modified to place the solute in the center of the box.
-  !! @param[in] nsolution Number of times a RISM solution has been
-  !!    calculated. Methods < 0 only are used if nsolution == 0.
-  subroutine orient(mySolute, atomPositions, nsolution)
-    use amber_rism_interface
-    use rism_util, only : findCenterOfMass, translate
-    use constants, only : PI
-    implicit none
-    type(rism3d_solute) :: mySolute
-    _REAL_, intent(inout) :: atomPositions(3, mySolute%numAtoms)
-    integer, intent(in) :: nsolution
-    _REAL_ :: weight(mySolute%numAtoms)
-    
-#ifdef RISM_DEBUG
-    write(outunit, *) "RISM REORIENT"
-    call flush(6)
-#endif /*RISM_DEBUG*/
-
-    if (abs(rismprm%centering) == 1) then
-       weight = mySolute%mass
-    else if (abs(rismprm%centering) == 2) then
-       weight = 1
-    end if
-    if (rismprm%centering > 0 .or. (rismprm%centering < 0 .and. nsolution == 0)) then
-       call findCenterOfMass(atomPositions, centerOfMass, weight, mySolute%numAtoms)
-    end if
-    if (rismprm%centering /= 0) then
-       call translate(atomPositions, mySolute%numAtoms, -1 * centerOfMass)
-    end if
-  end subroutine orient
-
-
-  !! Return the solute to its original position.
-  !! IN:
-  !!    solute :: solute object
-  !!    atomPositions  :: the x, y, z position of each solute atom.  This is modified
-  !!             to return the solute to its original MD position and orientation
-  subroutine unorient(mySolute, atomPositions)
-    use amber_rism_interface
-    use rism_util, only: findCenterOfMass, translate
-    implicit none
-    type(rism3d_solute) :: mySolute
-    _REAL_, intent(inout) :: atomPositions(3, mySolute%numAtoms)
-
-    _REAL_ :: cm(3), weight(mySolute%numAtoms)
-    !counters
-    integer :: iu, id
-
-    ! We don't know if additional translations have been performed on
-    ! the mySolute.  1) The first step is to calculate the current COM
-    ! and translate this to the origin.  2) Then the system and forces
-    ! are rotated according to qback.  3) Finally, using centerOfMass,
-    ! we translate the system back to its original MD COM.
-
-#ifdef RISM_DEBUG
-    write(outunit, *)"RISM UNORIENT", centerOfMass
-    ! write(outunit, *) qback
-    call flush(6)
-#endif /*RISM_DEBUG*/
-    if (abs(rismprm%centering)==1) then
-       weight = mySolute%mass
-       call findCenterOfMass(atomPositions, cm, weight, mySolute%numAtoms)
-       call translate(atomPositions, mySolute%numAtoms, -1*cm)
-       call findCenterOfMass(atomPositions, cm, weight, mySolute%numAtoms)
-    else if (abs(rismprm%centering)==2) then
-       weight=1
-       call findCenterOfMass(atomPositions, cm, weight, mySolute%numAtoms)
-       call translate(atomPositions, mySolute%numAtoms, -1*cm)
-       call findCenterOfMass(atomPositions, cm, weight, mySolute%numAtoms)
-    end if
-    if (rismprm%centering /= 0) then
-       call translate(atomPositions, mySolute%numAtoms, centerOfMass)
-    end if
-
-  end subroutine unorient
-
 
   !> Writes the contents of a C string (array of chars) to a Fortran
   !! string.  Will not write past the end of the Fortran string.

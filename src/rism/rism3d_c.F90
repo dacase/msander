@@ -101,14 +101,10 @@ module rism3d_c
      ! thermoTimer :: specifically times thermodynamics calculations
      ! forceTimer :: specifically times force calculation
      ! excessChemicalPotentialTimer :: specificall times excess chemical potential calculation
-     ! solve3DRISM_dTTimer :: specifically times solve3DRISM_dT calculation
-     ! single3DRISM_dTsolutionTimer :: specifically times single3DRISM_dTsolution calculation
-     ! fft_dTTimer :: specifically times FFT calculation for temperature derivatives
      type(rism_timer) :: timer, resizeTimer, reorientTimer, &
           cuvpropTimer, fftTimer, solventTimer, &
           solve3DRISMTimer, single3DRISMsolutionTimer, thermoTimer, &
-          forceTimer, excessChemicalPotentialTimer, &
-          solve3DRISM_dTTimer, single3DRISM_dTsolutionTimer, fft_dTTimer
+          forceTimer, excessChemicalPotentialTimer
 
      !! private !(should be)
 
@@ -231,30 +227,15 @@ module rism3d_c
 
      _REAL_, pointer :: electronMap(:, :, :) => NULL()
 
-     ! Temperature derivative memory
      ! cuvk        :: k-space Cuv solution from 3D-RISM
      !               solution. NOTE: we should consider using Huv or
      !               Guv memory instead.  However, it has to be
      !               checked first that it is not used for any thermodynamics calculations
-     ! xvva_dT     :: solvent dT chi interpolated for our grid size
-     ! guv_dT      :: solvent dT distribution function
-     ! huv_dT      :: guvdT
-     ! cuv_dT      :: solvent dT direct correlation function and points to the
-     !              current active solution in cuvWRK
-     ! cuvres_dT   :: residual value for dT cuv calculation and points to the
-     !              current active solution in cuvresWRK.
-     ! cuvWRK_dT   :: Working dT Cuv memory.  Holds Cuv from previous iterations.
-     ! cuvresWRK_dT:: Working dT Cuvres memory.  Holds Cuvres from previous iterations.
-     _REAL_, pointer ::  xvva_dT(:) => NULL(), &
-          cuv_dT(:, :, :, :) => NULL(), cuvres_dT(:, :) => NULL(), &
-          cuvWRK_dT(:, :, :, :, :) => NULL(), cuvresWRK_dT(:, :, :) => NULL()
 
-     _REAL_, pointer :: cuvk(:, :) => NULL(), guv_dT(:, :) => NULL(), huv_dT(:, :) => NULL()
+     _REAL_, pointer :: cuvk(:, :) => NULL()
 
      ! fft :: fft object for standard 3D-RISM solution
-     ! fft_dT :: fft object for temperature derivative 3D-RISM solution
-     ! fft_cuv :: fft object for Cuv, part of the temperature derivative code
-     type(rism3d_fft) :: fft, fft_dT, fft_cuv
+     type(rism3d_fft) :: fft
 
      !> If true, a periodic 3D-RISM calculation is performed. This
      !! primarily differs from infinite dilution 3D-RISM by using
@@ -273,20 +254,14 @@ module rism3d_c
 
   end type rism3d
 
-  interface  rism3d_map_site_to_site
-     module procedure rism3d_map_site_to_site_flat, rism3d_map_site_to_site_3D
-  end interface rism3d_map_site_to_site
-
   public :: rism3d_new, rism3d_destroy, rism3d_calculateSolution, rism3d_force, &
        rism3d_excessChemicalPotential_tot, rism3d_excessChemicalPotential, &
-       rism3d_excessChemicalPotentialGF_tot, rism3d_excessChemicalPotentialGF, &
-       rism3d_setbox_variable, rism3d_setbox_fixed, &
+       rism3d_setbox_fixed, &
        rism3d_setclosure, rism3d_setverbosity, rism3d_setcut, rism3d_setmdiis
 
-  private :: resizeBox, getMinBoxLength, reallocateBox, reallocateBox_dT, &
-       interpolateSolventSusceptibility, centerSolute, &
+  private :: resizeBox, reallocateBox, &
+       interpolateSolventSusceptibility, &
        solve3DRISM, single3DRISMsolution,  &
-       solve3DRISM_dT, single3DRISMsolution_dT, &
        guessDCF, updateDCFguessHistory
 
 contains
@@ -477,12 +452,6 @@ contains
     call rism_timer_setParent(this%single3DRISMsolutionTimer, this%solve3DRISMTimer)
     call rism_timer_new(this%fftTimer, "FFT")
     call rism_timer_setParent(this%fftTimer, this%single3DRISMsolutionTimer)
-    call rism_timer_new(this%solve3DRISM_dTTimer, "RXRISM_dT")
-    call rism_timer_setParent(this%solve3DRISM_dTTimer, this%solventTimer)
-    call rism_timer_new(this%single3DRISM_dTsolutionTimer, "R1RISM")
-    call rism_timer_setParent(this%single3DRISM_dTsolutionTimer, this%solve3DRISM_dTTimer)
-    call rism_timer_new(this%fft_dTTimer, "FFT")
-    call rism_timer_setParent(this%fft_dTTimer, this%single3DRISM_dTsolutionTimer)
 
     nullify(t_closure)
 
@@ -664,11 +633,7 @@ contains
     call rism_timer_stop(this%timer)
     call rism3d_setcut(this, t_cut)
     call rism3d_setclosurelist(this, t_closure)
-    if (present(o_buffer) .and. present(o_grdspc)) then
-       call rism3d_setbox_variable(this, t_buffer, t_grdspc)
-    else
-       call rism3d_setbox_fixed(this, t_boxlen, t_ng3)
-    end if
+    call rism3d_setbox_fixed(this, t_boxlen, t_ng3)
 
     if (present(o_unitCellDimensions)) then
        !TODO: This can probably be made a local variable.
@@ -702,23 +667,6 @@ contains
 
   end subroutine rism3d_new
 
-
-  !> Check if we can perform a temperature derivative calculation
-  !! (i.e. all the necessary information is available and the closure
-  !! supports it).
-  !! IN:
-  !!   this : rism3d object
-  !! OUT:
-  !!    .true. if we can, .false. if we can't
-  function rism3d_canCalc_DT(this) result(can_dT)
-    implicit none
-    type(rism3d), intent(in) :: this
-    logical :: can_dT
-
-    can_dT = rism3d_solvent_canCalc_dT(this%solvent) .and. &
-         rism3d_closure_canCalc_dT(this%closure)
-  end function rism3d_canCalc_DT
-
   !> Check if we can calculate molecular reconstructions
   !! IN:
   !!   this : rism3d object
@@ -743,24 +691,6 @@ contains
     call rism_timer_setParent(this%timer, parent)
     call rism_timer_stop(this%timer)
   end subroutine rism3d_setTimerParent
-
-
-  !> Sets the parameters for a variable solvation box.
-  !! IN:
-  !!  this :: rism3d object
-  !!  buffer :: shortest distance between solute and solvent box boundary
-  !!  grdspc :: linear grid spacing for the solvent box in each dimension
-  subroutine rism3d_setbox_variable(this, buffer, grdspc)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: buffer, grdspc(3)
-    call rism_timer_start(this%timer)
-    this%varbox = .true.
-    this%buffer = buffer
-    call rism3d_grid_setSpacing(this%grid, grdspc)
-    call rism_timer_stop(this%timer)
-  end subroutine rism3d_setbox_variable
-
 
   !>Sets the parameters for a fixed solvation box.
   !! IN:
@@ -990,69 +920,21 @@ contains
        asympKSpaceTolerance = this%asympKSpaceTolerance
     end if
 
-    if (.not.this%periodic) then
-       ! LJTolerance
-       ! Case 1: if ljtolerance==0, then compute the LJ interation
-       !     without cutoff
-       ! Case 2: if ljtolerance<0 and buffer!=0, fit the LJ cutoff to fit
-       !     inside the solvent box so a correction may be applied
-       ! Case 3: if ljtolerance<0 and buffer==0, select the ljtolerance <
-       !     tolerance but >0 and set buffer large enough to fit the cutoff
-       ! Case 4: if ljtolerance>0 and buffer==0, set buffer large enough
-       !     to fit the cutoff
-       ! Case 5: if ljtolerance > 0 and buffer != 0, use ljtolerance as
-       !     is.  Cutoff correction may not be applied.
-       if (this%ljTolerance .lt. 0d0 .and. this%buffer .eq. 0) then
-          ljTolerance = tolerance(size(tolerance))/10
-          if(this%verbose >0) then
-             call rism_report_message('(a,1p,e12.3)',&
-                  "|Setting Lennard-Jones tolerance to ",&
-                  ljtolerance)
-          end if
-       else
-          ljTolerance = this%ljTolerance
-          if (this%ljTolerance .gt. 0d0) then
-             if (this%verbose > 0) then
-                call rism_report_message('(a,1p,e12.3)',&
-                     "|Using provided Lennard-Jones tolerance : ", &
-                     ljtolerance)
-             end if
-          elseif (this%ljtolerance .eq. 0d0) then
-             if (this%verbose > 0) then
-                call rism_report_message("|No Lennard-Jones cutoff")
-             end if
-             call rism_report_warn(&
-                  'No LJ tolerance or cutoff correction used. For more '&
-                  //NEW_LINE('a')//&
-                  'accurate calculations, increase the tolerance, box '&
-                  //NEW_LINE('a')//&
-                  'dimensions, or use buffer=0')
-          end if
-       end if
-
-       call rism3d_potential_setcut_ljtolerance(this%potential,ljTolerance)
-    end if
     ! k-space asymptotics cutoff depends on the box size and is called
     ! in resizeBox()
         
     ! 2b) Get the minimum box size for this frame.
-    if (this%periodic .or. this%varbox .or. this%nsolution == 0) then
+    ! DAC: don't redo the box size stuff all the time for periodic?
+    !  old:   if (this%periodic .or. this%varbox .or. this%nsolution == 0) then
+    if (this%varbox .or. this%nsolution == 0) then
        call rism_timer_start(this%resizeTimer)
        call timer_start(TIME_RESIZE)
        call resizeBox(this)
        call timer_stop(TIME_RESIZE)
        call rism_timer_stop(this%resizeTimer)
     end if
-    ! By default, center solute in box for the infinite dilution case,
-    ! but not for the periodic case since the origin helps define
-    ! rotation axes.
-    call timer_start(TIME_REORIENT)
-    call rism_timer_start(this%reorientTimer)
-    call centerSolute(this)
-    call rism_timer_stop(this%reorientTimer)
-    call timer_stop(TIME_REORIENT)
 
-    if (this%verbose>0) then
+    if (this%verbose>=0) then
        call rism_report_message("||Setting solvation box to")
        call rism_report_message("(3(a,i10))", "|grid size: ", &
             this%grid%globalDimsR(1), " X ", this%grid%globalDimsR(2), " X ", this%grid%globalDimsR(3))
@@ -1060,38 +942,15 @@ contains
             this%grid%boxLength(1), " X ", this%grid%boxLength(2), " X ", this%grid%boxLength(3))
        call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
             this%grid%spacing(1), " X ", this%grid%spacing(2), " X ", this%grid%spacing(3))
-       if (this%periodic) then
-          call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
-               this%grid%unitCellAngles(1) * 180 / pi, ", ", &
-               this%grid%unitCellAngles(2) * 180 / pi, ", ", &
-               this%grid%unitCellAngles(3) * 180 / pi)
-          call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ", &
-               this%grid%inscribedSphereRadius)
-       else
-          buffer = effective_buffer(this)
-          call rism_report_message("(3(a,f10.3))", "|effective buffer [A]:", &
-               buffer(1), ",  ", buffer(2), ",  ", buffer(3))
-       end if
+       call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
+            this%grid%unitCellAngles(1) * 180 / pi, ", ", &
+            this%grid%unitCellAngles(2) * 180 / pi, ", ", &
+            this%grid%unitCellAngles(3) * 180 / pi)
+       call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ", &
+            this%grid%inscribedSphereRadius)
        call flush(rism_report_getmunit())
     end if
     
-    ! fit the LJ cutoff inside the solvent box
-    if (this%buffer .ne. 0d0 .and. this%ljtolerance .lt. 0d0 .and. .not.this%periodic) then
-       call rism3d_potential_setcut_ljdistance(this%potential,minval(effective_buffer(this)))
-       if(this%verbose >0) then
-          call rism_report_message('(a,f10.3)',"|Setting Lennard-Jones cutoff to fit inside solvent box : ",&
-               sqrt(this%potential%ljCutoffs2(1,1)))
-       end if
-    end if
-    call rism3d_potential_setcut_asympKTolerance(this%potential,asympKSpaceTolerance,this%grid%boxVolume)
-    
-    ! 2) Calculate long range asymptotics of the direct and total
-    ! correlation functions about the solute.
-    call timer_start(TIME_ASYMP)
-    call rism3d_potential_dcf_tcf_long_range_asymptotics(this%potential)
-    call timer_stop(TIME_ASYMP)
-
-
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
     call rism3d_potential_calc(this%potential,ljTolerance)
@@ -1099,10 +958,6 @@ contains
 
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
-#ifdef RISM_DEBUG
-    write(0,*) "(4)", this%grid%totalLocalPointsK, this%grid%waveNumberArraySize
-    call flush(0)
-#endif /*RISM_DEBUG*/
     call timer_start(TIME_CUVPROP)
     call rism_timer_start(this%cuvpropTimer)
     call guessDCF(this)
@@ -1111,10 +966,6 @@ contains
 
 
     ! 5) Calculate 3D-RISM solution using MDIIS.
-#ifdef RISM_DEBUG
-    write(0,*) "(5) RXRISM"
-    call flush(0)
-#endif /*RISM_DEBUG*/
     ! If the user has to provide a list of closures, use it only if
     ! this is the first solution (nsolution == 0) or solution
     ! propagation is turned off (ncuvsteps == 0). Otherwise, the
@@ -1156,47 +1007,6 @@ contains
     call rism_timer_stop(this%solventTimer)
   end subroutine rism3d_calculateSolution
 
-
-  !> Calculates the full 3D-RISM solvent distribution.  This is required to
-  !! calculate solvation energies and entropies.
-  !! IN:
-  !!   this :: rism3d object
-  !!   ksave  :: save itermediate results every ksave interations (0 means no saves)
-  !!   kshow  :: print parameter for relaxation steps every kshow iteration (0 means no saves)
-  !!   maxSteps :: maximum number of rism relaxation steps
-  !!   tolerance    :: convergence tolerance
-  subroutine rism3d_calculateSolution_dT(this, kshow, maxSteps, tolerance)
-    implicit none
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
-    type(rism3d), intent(inout) :: this
-    integer, intent(in) :: kshow, maxSteps
-    _REAL_, intent(in) :: tolerance
-    ! 1) Check for the existance of xvv_dT data.
-    if (.not.rism3d_solvent_canCalc_dT(this%solvent)) then
-       call rism_report_warn("cannot perform temperature derivative. No 1D-RISM temperature derivative data found")
-       return
-    end if
-
-
-    ! 2) Check for the existance of a 3D-RISM solution.
-    ! If memory has been allocated, the solution should already exist.
-    if (.not.(associated(this%cuv) .and. associated(this%cuvres))) then
-       call rism_report_error("a 3D-RISM solution must be present " &
-            //"before a temperature derivative can be calculated")
-    end if
-
-    ! 3) Allocate memory.
-    call reallocateBox_dT(this)
-
-    ! 4) Calculate 3D-RISM DT solution using MDIIS.
-    call timer_start(TIME_RXRISM)
-    call  solve3DRISM_dT(this, kshow, maxSteps, tolerance)
-    call timer_stop(TIME_RXRISM)
-
-  end subroutine rism3d_calculateSolution_dT
-
   !> Calculates the forces on the solute contributed by the solvent according
   !! to 3D-RISM.  Just a wrapper for rism3d_closure_force().
   !! IN:
@@ -1230,18 +1040,13 @@ contains
     logical, optional, intent(in) :: o_lr
     logical :: lr
     _REAL_ :: excessChemicalPotential(this%solvent%numAtomTypes)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
 
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-    if (lr .and. this%solute%charged) then
-       excessChemicalPotential = rism3d_closure_aexcessChemicalPotential(this%closure, this%huv, this%cuv(:, :, :, :))
-    else
-       excessChemicalPotential = rism3d_closure_excessChemicalPotential(this%closure, this%huv, this%cuv(:, :, :, :))
-    end if
+    call rism_timer_start(this%excessChemicalPotentialTimer)
+    excessChemicalPotential = &
+       rism3d_closure_excessChemicalPotential(this%closure, &
+       this%huv, this%cuv(:, :, :, :))
     call rism_timer_stop(this%excessChemicalPotentialTimer)
   end function rism3d_excessChemicalPotential
-
 
   !> Calculate the total excess chemical potential of solvation
   !! IN:
@@ -1262,330 +1067,6 @@ contains
     call rism_timer_stop(this%excessChemicalPotentialTimer)
     excessChemicalPotential = sum(rism3d_excessChemicalPotential(this, o_lr))
   end function rism3d_excessChemicalPotential_tot
-
-
-  !> Returns a 3D map of the excess chemical potential in kT.
-  !! Integrating this map gives the total excess chemical potential as
-  !! returned from rism3d_excessChemicalPotential_tot().  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotential_tot_map(this) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: excessChemicalPotential(:, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    excessChemicalPotential => rism3d_closure_excessChemicalPotential_tot_map(this%closure, this%huv, this%cuv)
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotential_tot_map
-
-
-  !> Returns a 3D map of the excess chemical potential in kT.
-  !! Integrating this map gives the site excess chemical potential
-  !! contribution as returned from rism3d_excessChemicalPotential_tot().  Memory is
-  !! allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotential_site_map(this) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: excessChemicalPotential(:, :, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    excessChemicalPotential => rism3d_closure_excessChemicalPotential_site_map(this%closure, this%huv, this%cuv)
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotential_site_map
-
-
-  !> Returns a 3D map of the excess chemical potential in kT from the GF
-  !! approximation.  Integrating this map gives the total excess
-  !! chemical potential as returned from rism3d_excessChemicalPotential_tot().  Memory is
-  !! allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotentialGF_tot_map(this) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: excessChemicalPotential(:, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    excessChemicalPotential => rism3d_closure_excessChemicalPotentialGF_tot_map(&
-         this%closure, this%huv, this%cuv)
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotentialGF_tot_map
-
-
-  !> Returns a 3D map of the excess chemical potential in kT using the
-  !! GF approximation.  Integrating this map gives the site excess
-  !! chemical potential contribution as returned from
-  !! rism3d_excessChemicalPotential_tot().  Memory is allocated into a pointer and must
-  !! be freed by the calling function. For MPI, only the grid points
-  !! local to this process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotentialGF_site_map(this) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: excessChemicalPotential(:, :, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    excessChemicalPotential => rism3d_closure_excessChemicalPotentialGF_site_map(this%closure, this%huv, this%cuv)
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotentialGF_site_map
-
-  !> Returns a 3D map of the excess chemical potential in kT from the
-  !! PCPLUS.  Integrating this map gives the total excess chemical
-  !! potential as returned from rism3d_excessChemicalPotentialPCPLUS_tot().
-  !! Memory is allocated into a pointer and must be freed by the
-  !! calling function. For MPI, only the grid points local to this
-  !! process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotentialPCPLUS_tot_map(this)&
-       result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: excessChemicalPotential(:, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    excessChemicalPotential => rism3d_closure_excessChemicalPotentialPCPLUS_tot_map(&
-         this%closure, this%huv, this%cuv)
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotentialPCPLUS_tot_map
-
-
-  !> Returns a 3D map of the excess chemical potential in kT from the
-  !! Universal Correction correction.  Integrating this map gives the
-  !! total excess chemical potential as returned from
-  !! rism3d_excessChemicalPotential_tot().
-  !!
-  !! Memory is allocated into a pointer and must be freed by the
-  !! calling function. For MPI, only the grid points local to this
-  !! process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   coeff: coefficients for correction.  For the original correction
-  !!          (a, b) = coeff(1:2).
-  !!          Extra coefficients are a1 and b1 from Johnson et al. 2016.
-  !! OUT:
-  !!   a 3D-grid of the excess chemical potential contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_excessChemicalPotentialUC_tot_map(this, coeff) &
-       result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, intent(in) :: coeff(:)
-    _REAL_, pointer :: excessChemicalPotential(:, :, :)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-    
-    excessChemicalPotential => rism3d_closure_excessChemicalPotentialUC_tot_map(&
-         this%closure, this%huv, this%cuv, UC_temperature_coeff(this,coeff))
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotentialUC_tot_map
-
-
-  !> Calculate the excess chemical potential of solvation for each solvent species
-  !! with the Gaussian fluctuation correction
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    Gaussian fluctuation excess chemical potential of solvation for each
-  !!    solvent species
-  function rism3d_excessChemicalPotentialGF(this, o_lr) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: excessChemicalPotential(this%solvent%numAtomTypes)
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-    if (lr .and. this%solute%charged) then
-       excessChemicalPotential = rism3d_closure_aexcessChemicalPotentialGF(this%closure, this%huv, this%cuv(:, :, :, :))
-    else
-       excessChemicalPotential = rism3d_closure_excessChemicalPotentialGF(this%closure, this%huv, this%cuv(:, :, :, :))
-    end if
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_excessChemicalPotentialGF
-
-
-  !> Calculate the total excess chemical potential of solvation with the Gaussian
-  !! fluctuation correction
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    total Gaussian fluctuation excess chemical potential of solvation
-  function rism3d_excessChemicalPotentialGF_tot(this, o_lr) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: excessChemicalPotential
-    call rism_timer_start(this%excessChemicalPotentialTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-    excessChemicalPotential = sum(rism3d_excessChemicalPotentialGF(this, o_lr))
-  end function rism3d_excessChemicalPotentialGF_tot
-
-
-  !>Calculate the total excess chemical potential of solvation with the
-  !!PC+/3D-RISM Correction
-  !!IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default=.true.) Apply asymptotic long range correction
-  !!OUT:
-  !!    total Universal Correction excess chemical potential of solvation
-  function rism3d_excessChemicalPotentialPCPLUS (this,o_lr) result (excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: excessChemicalPotential
-
-    lr = .true.
-    if(present(o_lr)) lr = o_lr
-
-    if(lr .and. this%solute%charged)then
-       excessChemicalPotential = rism3d_closure_aexcessChemicalPotentialPCPLUS(this%closure,this%huv,&
-            this%cuv(:,:,:,:))
-    else
-       excessChemicalPotential = rism3d_closure_excessChemicalPotentialPCPLUS(this%closure,this%huv,&
-            this%cuv(:,:,:,:))
-    end if
-  end function rism3d_excessChemicalPotentialPCPLUS
-
-  !>Calculate the total solvation energy with the PC+/3D-RISM
-  !!Correction.
-  !!
-  !!IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default=.true.) Apply asymptotic long range correction
-  !!OUT:
-  !!    total PC+/3D-RISM Correction excess chemical potential of
-  !!    solvation
-  function rism3d_solvationEnergyPCPLUS (this,o_lr) result (solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: solvationEnergy
-
-    lr = .true.
-    if(present(o_lr)) lr = o_lr
-
-    if(lr .and. this%solute%charged)then
-       solvationEnergy = rism3d_closure_asolvationEnergyPCPLUS(this%closure,&
-            this%huv_dT,this%cuv_dT,this%huv,this%cuv)
-    else
-       solvationEnergy = rism3d_closure_solvationEnergyPCPLUS(this%closure,&
-            this%huv_dT,this%cuv_dT,this%huv,this%cuv)
-    end if
-  end function rism3d_solvationEnergyPCPLUS
-
-  !> Calculate the total excess chemical potential of solvation with the
-  !! Palmer et al. Universal Correction with optional temperature dependence.
-  !!
-  !! Uses the total molecular density of the solvent.  For pure water,
-  !! this gives the original Palmer correction.  There is no definition
-  !! for mixed solvents but this seems reasonable.
-  !!
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   coeff: coefficients for correction.  For the original correction
-  !!      (a, b) = coeff(1:2). Extra coefficients are a1, b1 from
-  !!      Johson et al. 2016
-  !!   o_lr :: (optional) (default = .true.) Apply asymptotic long
-  !!       range correction
-  !! OUT:
-  !!    total Universal Correction excess chemical potential of solvation
-  function rism3d_excessChemicalPotentialUC(this, coeff, o_lr) result(excessChemicalPotential)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: coeff(:)
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: excessChemicalPotential
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       excessChemicalPotential = rism3d_closure_aexcessChemicalPotentialUC(this%closure, this%huv, &
-            this%cuv(:, :, :, :), UC_temperature_coeff(this,coeff))
-    else
-       excessChemicalPotential = rism3d_closure_excessChemicalPotentialUC(this%closure, this%huv, &
-            this%cuv(:, :, :, :), UC_temperature_coeff(this,coeff))
-    end if
-  end function rism3d_excessChemicalPotentialUC
-
-
-  !> Calculate the total solvation energy with the Palmer et
-  !! al. Universal Correction with optional temperature dependence.
-  !!
-  !! Uses the total molecular density of the solvent.  For pure water,
-  !! this gives the original Palmer correction.  There is no
-  !! definition for mixed solvents but this seems reasonable.
-  !!
-  !! @param[in] this rism3d object with computed solution.
-  !! @param[in] coeff coefficients for correction.  For the original
-  !!     correction (a, b) = coeff(1:2). Extra coefficients are a1, b1
-  !!     from Johnson et al. 2016
-  !! @param[in] o_lr (optional) (default = .true.)
-  !!                 Apply asymptotic long range correction.
-  !! @return Total Universal Correction excess chemical potential of solvation.
-  function rism3d_solvationEnergyUC(this, coeff, o_lr) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: coeff(:)
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: solvationEnergy
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       solvationEnergy = rism3d_closure_asolvationEnergyUC(this%closure, &
-            this%huv_dT, this%cuv_dT, this%huv, this%cuv, UC_temperature_coeff(this,coeff))
-    else
-       solvationEnergy = rism3d_closure_solvationEnergyUC(this%closure, &
-            this%huv_dT, this%cuv_dT, this%huv, this%cuv, UC_temperature_coeff(this,coeff))
-    end if
-  end function rism3d_solvationEnergyUC
-
 
   !> Calculate the solvation interaction energy: de = density sum g*u for
   !! each solvent site.  I.e., the direct intection potential energy of
@@ -1621,293 +1102,6 @@ contains
     call rism_timer_stop(this%thermoTimer)
   end function rism3d_solventPotEne_tot
 
-
-  !> Returns a 3D map of the solvent-solute potential energy in kT.
-  !! Integrating this map gives the site solvent-solute potential energy
-  !! contribution as returned from rism3d_closure_solvPotEne(, .false.).
-  !! Memory is allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!    this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvent-solute energy contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solventPotEne_tot_map(this) result(solvPotEne)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvPotEne(:, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvPotEne => rism3d_closure_solvPotEne_tot_map(this%closure, &
-         this%guv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solventPotEne_tot_map
-
-
-  !> Returns a 3D map of the solvent-solute potential energy in kT.
-  !! Integrating this map gives the site solvent-solute potential energy
-  !! contribution as returned from rism3d_closure_solvPotEne(, .false.).
-  !! Memory is allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!    this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvent-solute energy contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solventPotEne_site_map(this) result(solvPotEne)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvPotEne(:, :, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvPotEne => rism3d_closure_solvPotEne_site_map(this%closure, &
-         this%guv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solventPotEne_site_map
-
-
-  !> Calculate the total solvation energy dE = dmu + dTS which includes both
-  !! solute-solvent interaction energy and the change in solvent
-  !! self-energy due to rearranging around the solvent.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    total solvation energy
-  function rism3d_solvationEnergy_tot(this, o_lr) result(excessChemicalPotential_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: excessChemicalPotential_dT
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-    excessChemicalPotential_dT = sum(rism3d_solvationEnergy(this, lr))
-  end function rism3d_solvationEnergy_tot
-
-
-  !> Returns a 3D map of the solvation energy in kT.
-  !! Integrating this map gives the total solvation energy as
-  !! returned from rism3d_excessChemicalPotential_tot(, .false.).  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergy_tot_map(this) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvationEnergy(:, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergy_tot_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergy_tot_map
-
-
-  !> Returns a 3D map of the solvation energy in kT.
-  !! Integrating this map gives the site solvation energy contribution as
-  !! returned from rism3d_excessChemicalPotential_tot(, .false.).  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergy_site_map(this) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvationEnergy(:, :, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergy_site_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergy_site_map
-
-
-  !> Returns a 3D map of the solvation energy in kT from the GF
-  !! approximation.  Integrating this map gives the total solvation
-  !! energy as returned from rism3d_excessChemicalPotential_tot(, .false.).  Memory is
-  !! allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergyGF_tot_map(this) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvationEnergy(:, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergyGF_tot_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergyGF_tot_map
-
-
-  !> Returns a 3D map of the solvation energy in kT from the GF approximation.
-  !! Integrating this map gives the site solvation energy contribution as
-  !! returned from rism3d_excessChemicalPotential_tot(, .false.).  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions (nx, ny, nz, nsite)
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergyGF_site_map(this) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvationEnergy(:, :, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergyGF_site_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergyGF_site_map
-
-  !! Returns a 3D map of the solvation energy in kT from the PCPLUS.
-  !! Integrating this map gives the total solvation energy as returned
-  !! from rism3d_excessChemicalPotential_tot(, .false.).  Memory is
-  !! allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergyPCPLUS_tot_map(this) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer :: solvationEnergy(:, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergyPCPLUS_tot_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv)
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergyPCPLUS_tot_map
-
-
-  !! Returns a 3D map of the solvation energy in kT from the Universal
-  !! Correction with optional temperature dependence.
-  !!
-  !! Integrating this map gives the total solvation energy as returned
-  !! from rism3d_excessChemicalPotential_tot(, .false.).  Memory is
-  !! allocated into a pointer and must be freed by the calling
-  !! function. For MPI, only the grid points local to this process are
-  !! allocated and calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   coeff: coefficients for correction.  For the original
-  !!       correction (a, b) = coeff(1:2). Extra coefficients are a1,
-  !!       b1 from Johnson et al. 2016
-  !! OUT:
-  !!   a 3D-grid of the solvation energy contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_solvationEnergyUC_tot_map(this, coeff) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: coeff(:)
-    _REAL_, pointer :: solvationEnergy(:, :, :)
-    !      call rism_timer_start(this%excessChemicalPotentialTimer)
-    solvationEnergy => rism3d_closure_solvationEnergyUC_tot_map(this%closure, &
-         this%huv_dT, this%cuv_dT, this%huv, this%cuv, UC_temperature_coeff(this,coeff))
-    !      call rism_timer_stop(this%excessChemicalPotentialTimer)
-  end function rism3d_solvationEnergyUC_tot_map
-
-
-  !! Calculate the solvation energy dE = dmu + dTS which includes both
-  !! solute-solvent interaction energy and the change in solvent
-  !! self-energy due to rearranging around the solvent.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    solvation energy
-  function rism3d_solvationEnergy(this, o_lr) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: solvationEnergy(this%solvent%numAtomTypes)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       solvationEnergy = rism3d_closure_asolvationEnergy(this%closure, this%huv_dT, this%cuv_dT(:, :, :, :), &
-            this%huv, this%cuv(:, :, :, :))
-    else
-       solvationEnergy = rism3d_closure_solvationEnergy(this%closure, this%huv_dT, this%cuv_dT(:, :, :, :), &
-            this%huv, this%cuv(:, :, :, :))
-    end if
-  end function rism3d_solvationEnergy
-
-
-  !! Calculate the solvation energy dE = dmu + dTS the Gaussian
-  !! fluctuation correction, which includes both solute-solvent
-  !! interaction energy and the change in solvent self-energy due to
-  !! rearranging around the solvent.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    solvation energy
-  function rism3d_solvationEnergyGF(this, o_lr) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: solvationEnergy(this%solvent%numAtomTypes)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       solvationEnergy = rism3d_closure_asolvationEnergyGF(this%closure, this%huv_dT, this%cuv_dT(:, :, :, :), &
-            this%huv, this%cuv(:, :, :, :))
-    else
-       solvationEnergy = rism3d_closure_solvationEnergyGF(this%closure, this%huv_dT, this%cuv_dT(:, :, :, :), &
-            this%huv, this%cuv(:, :, :, :))
-    end if
-  end function rism3d_solvationEnergyGF
-
-
-  !! Calculate the total solvation energy dE = dmu + dTSthe Gaussian
-  !! fluctuation correction, which includes both solute-solvent
-  !! interaction energy and the change in solvent self-energy due to
-  !! rearranging around the solvent.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    total solvation energy
-  function rism3d_solvationEnergyGF_tot(this, o_lr) result(solvationEnergy)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: solvationEnergy
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-    solvationEnergy = sum(rism3d_solvationEnergyGF(this, lr))
-  end function rism3d_solvationEnergyGF_tot
-
-
   !! Calculating the partial molar volume of solute.
   !! IN:
   !!   this :: rism3d object with computed solution
@@ -1922,68 +1116,6 @@ contains
     call rism_timer_stop(this%thermoTimer)
   end function rism3d_partialMolarVolume
 
-
-  !! Calculating the partial molar volume temperature derivative
-  !! (T * d/dT) of solute.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   partial molar volume temperature derivative
-  function rism3d_partialMolarVolume_dT(this) result(partialMolarVolume_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_ :: partialMolarVolume_dT
-    call rism_timer_start(this%thermoTimer)
-    partialMolarVolume_dT = rism3d_closure_partialMolarVolume_dT( &
-         this%closure, this%cuv_dT, this%cuv)
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_partialMolarVolume_dT
-
-  !> Returns a 3D map of the partial molar volume temperature derivative.
-  !! Integrating this map gives the total PMV as returned from
-  !! rism3d_partialMolarVolume_tot().  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and
-  !! calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the partial molar volume contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_partialMolarVolume_tot_map(this) result(partialMolarVolume)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: partialMolarVolume(:, :, :)
-    call rism_timer_start(this%thermoTimer)
-    partialMolarVolume => rism3d_closure_partialMolarVolume_tot_map(this%closure, this%cuv)
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_partialMolarVolume_tot_map
-
-  !> Returns a 3D map of the partial molar volume .
-  !! Integrating this map gives the total PMV as returned from
-  !! rism3d_partialMolarVolume_tot().  Memory is allocated into a
-  !! pointer and must be freed by the calling function. For MPI, only
-  !! the grid points local to this process are allocated and
-  !! calculated.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!   a 3D-grid of the partial molar volume contributions
-  !! SIDEEFFECTS:
-  !!   memory is allocated for the grid
-  function rism3d_partialMolarVolume_dT_tot_map(this) result(partialMolarVolume_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical :: lr
-    _REAL_, pointer :: partialMolarVolume_dT(:, :, :)
-    call rism_timer_start(this%thermoTimer)
-    partialMolarVolume_dT => rism3d_closure_partialMolarVolume_dT_tot_map(&
-         this%closure, this%cuv_dT, this%cuv)
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_partialMolarVolume_dT_tot_map
-
   !> Calculating excess number of each solvent type associated with
   !! the solute.
   !! @param[in,out] this rism3d object with computed solution.
@@ -1996,47 +1128,12 @@ contains
     logical, optional, intent(in) :: o_lr
     logical :: lr
     _REAL_ :: num(this%solvent%numAtomTypes)
+
     call rism_timer_start(this%thermoTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       num = rism3d_closure_aexcessParticles(this%closure, this%guv)
-    else
-       num = rism3d_closure_excessParticles(this%closure, this%guv)
-    end if
+    num = rism3d_closure_excessParticles(this%closure, this%guv)
     call rism_timer_stop(this%thermoTimer)
+
   end function rism3d_excessParticles
-
-
-  !> Calculating temperature derivative (T * d/dT) of the excess number of each
-  !! solvent type associated with the solute.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
-  !! OUT:
-  !!    excess number temperature derivative of each solvent type
-  !!    associated with the solute
-  function rism3d_excessParticles_dT(this, o_lr) result(num_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: num_dT(this%solvent%numAtomTypes)
-    call rism_timer_start(this%thermoTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       num_dT = rism3d_closure_aexcessParticles_dT(this%closure, this%guv_dT)
-    else
-       num_dT = rism3d_closure_excessParticles_dT(this%closure, this%guv_dT)
-    end if
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_excessParticles_dT
-
 
   !! Calculate the Kirkwood-Buff integral for the solute. This is the
   !! all space integral of huv.
@@ -2052,51 +1149,12 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: kb(this%solvent%numAtomTypes)
+
     call rism_timer_start(this%thermoTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       kb = rism3d_closure_akirkwoodbuff(this%closure, this%guv)
-    else
-       kb = rism3d_closure_kirkwoodBuff(this%closure, this%guv)
-    end if
+    kb = rism3d_closure_kirkwoodBuff(this%closure, this%guv)
     call rism_timer_stop(this%thermoTimer)
   end function rism3d_kirkwoodBuff
-
-
-  !! Calculate the Kirkwood-Buff temperature derivative (T*d/dT) integral for the
-  !! solute. This is the all space integral of huv_dT.
-  !!
-  !! J. G. Kirkwood; F. P. Buff. J. Chem. Phys. 1951, 19, 774-777
-  !! IN:
-  !!    this :: rism3d object with computed solution
-  !!    o_lr :: (optional) (default = .true.) Apply asymptotic long range
-  !!            correction
-  !! OUT:
-  !!    Kirkwood-Buff integeral temperature derivative for each solvent site
-  function rism3d_kirkwoodBuff_dT(this, o_lr) result(kb_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
-    _REAL_ :: kb_dT(this%solvent%numAtomTypes)
-    call rism_timer_start(this%thermoTimer)
-
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-
-    if (lr .and. this%solute%charged) then
-       kb_dT = rism3d_closure_akirkwoodbuff_dT(this%closure, this%guv_dT)
-    else
-       kb_dT = rism3d_closure_kirkwoodBuff_dT(this%closure, this%guv_dT)
-    end if
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_kirkwoodBuff_dT
-
 
   !! Calculates the direct correlation function integral for the solute. This is the
   !! all space integral of cuv.
@@ -2113,329 +1171,6 @@ contains
     call rism_timer_stop(this%thermoTimer)
   end function rism3d_DCFintegral
 
-
-  !! Calculates the direct correlation function integral temperature
-  !! derivative (T*d/dT) for the solute. This is the all space integral of cuv.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !! OUT:
-  !!    DCF integeral temperature derivative for each solvent site
-  function rism3d_DCFintegral_dT(this) result(dcfi_dT)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_ :: dcfi_dT(this%solvent%numAtomTypes)
-    call rism_timer_start(this%thermoTimer)
-    dcfi_dT = rism3d_closure_DCFintegral_dT(this%closure, this%cuv_dT)
-    call rism_timer_stop(this%thermoTimer)
-  end function rism3d_DCFintegral_dT
-
-
-  !! Perform some internal tests for correctness. Some tests require a
-  !! converged standard [and temperature derivative] solution. A
-  !! warning message will report when tests cannot be run.
-  subroutine rism3d_selftest(this)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer::workTot(:, :, :) => NULL()
-    _REAL_, pointer::workSite(:, :, :, :) => NULL()
-    _REAL_ :: temp(this%solvent%numAtomTypes)
-    _REAL_ :: errorTolerance=1d-8
-    _REAL_ :: uccoeff(4)
-    integer :: iv
-    integer :: totalTests, passedTests
-
-    if (this%nsolution<1) then
-       call rism_report_warn("SELFTEST cannot run without a RISM solution")
-       return
-    end if
-
-    if (this%ljtolerance .ne. 0d0) then
-       call rism_report_warn("SELFTEST must have ljTolerance == 0")
-       return
-    end if
-
-    if (this%asympKSpaceTolerance .ne. 0d0) then
-       call rism_report_warn("SELFTEST must have asympKSpaceTolerance == 0")
-       return
-    end if
-
-    ! initialize counters
-    totalTests=0
-    passedTests=0
-
-    ! UC coefficients are arbitrary.
-    uccoeff=1d0
-    ! test grid output against internal integral
-
-    ! not tested: guv, uuv, asymp, entropy, entropyGF, entropyPCPLUS, entropyUC
-    ! should be tested: cuv, huv, guv, chgdist, potUV
-
-    !! *** Density grids *** 
-
-    !! *** Standard Thermodynamics ***
-
-    !! PMV
-    ! total
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    workTot => rism3d_partialMolarVolume_tot_map(this)
-    temp(1) = rism3d_partialMolarVolume(this)
-    totalTests = totalTests + 1
-    if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-         "total partialMolarVolume grid ")) then
-       passedTests = passedTests + 1
-    end if
-
-    !! *** exchem ***
-    ! total
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    workTot => rism3d_excessChemicalPotential_tot_map(this)
-    temp(1) = rism3d_excessChemicalPotential_tot(this,.false.)
-    totalTests = totalTests + 1
-    if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-         "total excessChemicalPotential grid ")) then
-       passedTests = passedTests + 1
-    end if
-    ! sites
-    if (safemem_dealloc(workSite)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workSite")
-    workSite => rism3d_excessChemicalPotential_site_map(this)
-    temp = rism3d_excessChemicalPotential(this,.false.)
-    do iv=1, this%solvent%numAtomTypes
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workSite(:,:,:,iv),temp(iv),errorTolerance,&
-            "excessChemicalPotential grid for site "//this%solvent%atomName(iv))) then
-          passedTests = passedTests + 1
-       end if
-    end do
-
-    !! *** exchemGF ***
-    ! total
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    workTot => rism3d_excessChemicalPotentialGF_tot_map(this)
-    temp(1) = rism3d_excessChemicalPotentialGF_tot(this,.false.)
-    totalTests = totalTests + 1
-    if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-         "total excessChemicalPotentialGF grid ")) then
-       passedTests = passedTests + 1
-    end if
-    ! sites
-    if (safemem_dealloc(workSite)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workSite")
-    workSite => rism3d_excessChemicalPotentialGF_site_map(this)
-    temp = rism3d_excessChemicalPotentialGF(this,.false.)
-    do iv=1, this%solvent%numAtomTypes
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workSite(:,:,:,iv),temp(iv),errorTolerance,&
-            "excessChemicalPotentialGF grid for site "//this%solvent%atomName(iv))) then
-          passedTests = passedTests + 1
-       end if
-    end do
-
-    !! *** exchemPCPLUS ***
-    ! total
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    workTot => rism3d_excessChemicalPotentialPCPLUS_tot_map(this)
-    temp(1) = rism3d_excessChemicalPotentialPCPLUS(this,.false.)
-    totalTests = totalTests + 1
-    if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-         "total excessChemicalPotentialPCPLUS grid ")) then
-       passedTests = passedTests + 1
-    end if
-
-    !! *** exchemUC ***
-    ! total
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    workTot => rism3d_excessChemicalPotentialUC_tot_map(this,uccoeff)
-    temp(1) = rism3d_excessChemicalPotentialUC(this,uccoeff,.false.)
-    totalTests = totalTests + 1
-    if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-         "total excessChemicalPotentialUC grid ")) then
-       passedTests = passedTests + 1
-    end if
-
-    !! *** entropic decomp ***
-
-    if (associated(this%cuv_dT)) then
-       !! PMV_dT
-       ! total
-       if (safemem_dealloc(workTot)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-       workTot => rism3d_partialMolarVolume_dT_tot_map(this)
-       temp(1) = rism3d_partialMolarVolume_dT(this)
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-            "total partialMolarVolume_dT grid ")) then
-          passedTests = passedTests + 1
-       end if
-
-       !! *** solvene ***
-       ! total
-       if (safemem_dealloc(workTot)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-       workTot => rism3d_solvationEnergy_tot_map(this)
-       temp(1) = rism3d_solvationEnergy_tot(this,.false.)
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-            "total solvationEnergy grid ")) then
-          passedTests = passedTests + 1
-       end if
-       ! sites
-       if (safemem_dealloc(workSite)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workSite")
-       workSite => rism3d_solvationEnergy_site_map(this)
-       temp = rism3d_solvationEnergy(this,.false.)
-       do iv=1, this%solvent%numAtomTypes
-          totalTests = totalTests + 1
-          if (rism3d_integrateCompare(this,workSite(:,:,:,iv),temp(iv),errorTolerance,&
-               "solvationEnergy grid for site "//this%solvent%atomName(iv))) then
-             passedTests = passedTests + 1
-          end if
-       end do
-
-       !! *** solveneGF ***
-       ! total
-       if (safemem_dealloc(workTot)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-       workTot => rism3d_solvationEnergyGF_tot_map(this)
-       temp(1) = rism3d_solvationEnergyGF_tot(this,.false.)
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-            "total solvationEnergyGF grid ")) then
-          passedTests = passedTests + 1
-       end if
-       ! sites
-       if (safemem_dealloc(workSite)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workSite")
-       workSite => rism3d_solvationEnergyGF_site_map(this)
-       temp = rism3d_solvationEnergyGF(this,.false.)
-       do iv=1, this%solvent%numAtomTypes
-          totalTests = totalTests + 1
-          if (rism3d_integrateCompare(this,workSite(:,:,:,iv),temp(iv),errorTolerance,&
-               "solvationEnergyGF grid for site "//this%solvent%atomName(iv))) then
-             passedTests = passedTests + 1
-          end if
-       end do
-
-
-       !! *** solvenePCPLUS ***
-       ! total
-       if (safemem_dealloc(workTot)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-       workTot => rism3d_solvationEnergyPCPLUS_tot_map(this)
-       temp(1) = rism3d_solvationEnergyPCPLUS(this,.false.)
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-            "total solvationEnergyPCPLUS grid ")) then
-          passedTests = passedTests + 1
-       end if
-
-       !! *** solveneUC ***
-       ! total
-       if (safemem_dealloc(workTot)/= 0) &
-            call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-       workTot => rism3d_solvationEnergyUC_tot_map(this,uccoeff)
-       temp(1) = rism3d_solvationEnergyUC(this,uccoeff,.false.)
-       totalTests = totalTests + 1
-       if (rism3d_integrateCompare(this,workTot,temp(1),errorTolerance,&
-            "total solvationEnergyUC grid ")) then
-          passedTests = passedTests + 1
-       end if
-    else
-       call rism_report_warn("SELFTEST not performing temperature dependent checks.")
-       return
-    end if
-
-    call rism_report_message("(a,i3,a,i3,a)", "3D-RISM selftest: ",passedTests,&
-         " of ", totalTests, " passed.") 
-    if (safemem_dealloc(workTot)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workTot")
-    if (safemem_dealloc(workSite)/= 0) &
-         call rism_report_error("RISM3D_SELFTEST: failed to deallocate workSite")
-  end subroutine rism3d_selftest
-
-  !! Write to log file whether or not the test passes within the
-  !! prescribed error. This is a common utility function for
-  !! selftest().
-  !!
-  !! @param[in] this           rism3d object
-  !! @param[in] grid           array to integrate.  Assumes gridspacing of
-  !!                           this%grid%voxelVolume
-  !! @param[in] reference      pre-integrated reference value
-  !! @param[in] errorTolerance allowable error
-  !! @param[in] description    description of the tested quantity
-  !!
-  !! @returns .true. if passed.
-  function rism3d_integrateCompare(this,grid, reference, errorTolerance, description)&
-       result (passed)
-    implicit none
-#ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
-    type(rism3d) :: this
-    _REAL_, intent(in) :: grid(:,:,:)
-    _REAL_, intent(in) :: reference
-    _REAL_, intent(in) :: errorTolerance
-    character(len=*), intent(in) :: description
-    logical :: passed
-    _REAL_ :: gridsum, difference
-    _REAL_ :: reduce_gridsum, reduce_reference
-    integer :: err
-    gridsum = sum(grid)
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-    reduce_gridsum = gridsum
-    reduce_reference = reference
-    if (this%mpirank == 0) then
-       call mpi_reduce(MPI_IN_PLACE, reduce_gridsum, &
-            1, MPI_DOUBLE_PRECISION, &
-            MPI_SUM, 0, this%mpicomm, err)
-       if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-       call mpi_reduce(MPI_IN_PLACE, reduce_reference, &
-            1, MPI_DOUBLE_PRECISION, &
-            MPI_SUM, 0, this%mpicomm, err)
-       if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-    else
-       call MPI_REDUCE(reduce_gridsum, reduce_gridsum, 1, MPI_DOUBLE_PRECISION, &
-            MPI_SUM, 0,this%mpicomm, err)
-       if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-       call MPI_REDUCE(reduce_reference, reduce_reference, 1, MPI_DOUBLE_PRECISION, &
-            MPI_SUM, 0,this%mpicomm, err)
-       if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-    end if
-#  else
-    call MPI_REDUCE(gridsum, reduce_gridsum, 1, MPI_DOUBLE_PRECISION, &
-         MPI_SUM, 0,this%mpicomm, err)
-    if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-    call MPI_REDUCE(reference, reduce_reference, 1, MPI_DOUBLE_PRECISION, &
-         MPI_SUM, 0,this%mpicomm, err)
-    if (err/= 0) call rism_report_warn("RISM3D_SELFTEST: MPI_REDUCE failed.")
-#  endif /*USE_MPI_IN_PLACE*/    
-#else
-    reduce_gridsum = gridsum
-    reduce_reference = reference
-#endif /*MPI*/    
-    if (this%grid%mpirank == 0) then
-       difference = abs(reduce_gridsum*this%grid%voxelVolume - reduce_reference)
-       if ( difference < errorTolerance) then
-          call rism_report_message("(a,e8.2,a,e8.2)","|SELFTEST of "//&
-               description//" PASSED with a difference of ", difference,&
-               " < ", errorTolerance)
-          passed = .true.
-       else
-          call rism_report_warn("(a,e8.2,a,e8.2)","|SELFTEST of "//&
-               description//" FAILED with a difference of ", difference,&
-               " < ", errorTolerance)
-          passed = .false.
-       end if
-       call rism_report_flush()
-    end if
-  end function rism3d_integrateCompare
-
 !!!!!
   !! DEALLOCATE
 !!!!!
@@ -2450,9 +1185,6 @@ contains
     call rism_timer_destroy(this%fftTimer)
     call rism_timer_destroy(this%single3DRISMsolutionTimer)
     call rism_timer_destroy(this%solve3DRISMTimer)
-    call rism_timer_destroy(this%fft_dTTimer)
-    call rism_timer_destroy(this%single3DRISM_dTsolutionTimer)
-    call rism_timer_destroy(this%solve3DRISM_dTTimer)
     call rism_timer_destroy(this%cuvpropTimer)
     call rism_timer_destroy(this%reorientTimer)
     call rism_timer_destroy(this%resizeTimer)
@@ -2479,9 +1211,6 @@ contains
          call rism_report_error("RISM3D: failed to deallocate OLDCUVNOCHG")
     if (safemem_dealloc(this%cuvresWRK) /= 0) &
          call rism_report_error("RISM3D: failed to deallocate CUVRESWRK")
-    if (safemem_dealloc(this%xvva_dT) /= 0) call rism_report_error("RISM3D: failed to deallocate XVVDTA")
-    if (safemem_dealloc(this%cuvWRK_dT) /= 0) call rism_report_error("RISM3D: failed to deallocate CUVDTWRK")
-    if (safemem_dealloc(this%cuvresWRK_dT) /= 0) call rism_report_error("RISM3D: failed to deallocate CUVRESDTWRK")
 
     if (safemem_dealloc(this%closureList) /= 0) &
          call rism_report_error("RISM3D: failed to deallocate CLOSURELIST")
@@ -2500,15 +1229,9 @@ contains
          call rism_report_error("RISM3D: failed to deallocate HUV")
     if (safemem_dealloc(this%cuvk, o_aligned = .true.) /= 0) &
          call rism_report_error("RISM3D: failed to deallocate CUVK")
-    if (safemem_dealloc(this%guv_dT, o_aligned = .true.) /= 0) &
-         call rism_report_error("RISM3D: failed to deallocate GUVDT")
-    if (safemem_dealloc(this%huv_dT, o_aligned = .true.) /= 0) &
-         call rism_report_error("RISM3D: failed to deallocate HUVDT")
     if (safemem_dealloc(this%electronMap) /= 0) &
          call rism_report_error("RISM3D: failed to deallocate electronMap")
     call rism3d_fft_destroy(this%fft)
-    call rism3d_fft_destroy(this%fft_dT)
-    call rism3d_fft_destroy(this%fft_cuv)
     call rism3d_fft_global_finalize()
   end subroutine rism3d_destroy
 
@@ -2633,156 +1356,10 @@ contains
                ', the largest inscribed sphere radius of the unit cell.')
        end if
 
-    else if (this%varbox) then
-
-       ! Get minimum box size defined by the buffer.
-       boxlen = getMinBoxLength(this)
-       
-       ! Round this box size using the prescribed linear density and
-       ! get the number of grid points required.
-       ngr = ceiling(boxlen / this%grid%spacing)
-       boxlen = ngr * this%grid%spacing
-
-       ! Determine if the number of grid points in each dimension
-       ! product only has prime factors 2, 3, 5 or 7. If not
-       ! increment the number of points (in that dimension) until
-       ! this is true.
-
-       ! Make sure that each dimension is divisible by 2 and that
-       ! the y- and z-dimensions are divisible by this%mpisize if
-       ! this%mpisize > 1.
-
-       do id = 1, 3
-          ngr(id) = ngr(id) + mod(ngr(id), 2)
-       end do
-       if (this%mpisize > 2) then
-          do id = 2, 3
-             if (mod(ngr(id), this%mpisize) /= 0) then
-                ngr(id) = ngr(id) + lcm(this%mpisize, 2) &
-                     - mod(ngr(id), lcm(this%mpisize, 2))
-             end if
-          end do
-       end if
-
-       do id = 1, 3
-          do while (.not. isfactorable(ngr(id), primes))
-             if (this%mpisize > 1 .and. id > 1) then
-                ngr(id) = ngr(id) &
-                     + lcm(this%mpisize,2)
-             else
-                ngr(id) = ngr(id) + 2
-             end if
-          end do
-       end do
-       boxlen = ngr * this%grid%spacing
-
-       cuv_dimension_changed = .false.
-       do id = 1, 2, 3
-          ngr_size = merge(ngr(id), ngr(id) / this%mpisize, id /= 3)
-          if (ubound(this%cuv, id) /= ngr_size &
-               .or. ubound(this%oldcuv, id) /= ngr_size) then
-             cuv_dimension_changed = .true.
-             exit
-          end if
-       end do
-       if (.not. associated(this%cuv) &
-            .or. .not. associated(this%oldcuv) &
-            .or. cuv_dimension_changed) then
-          call reallocateBox(this, ngr, this%grid%spacing)
-       end if
-
-    else ! Fixed box size.
-       if(this%verbose >0) then
-          call rism_report_message("|Setting solvent box to fixed size.")
-       end if       
-       do id = 2, 3
-          if (this%mpirank == 0 .and. (mod(this%fixedNumGridPoints(id), this%mpisize) /= 0 &
-               .or. mod(this%fixedNumGridPoints(id), 2) /= 0) ) then
-             call rism_report_error( &
-                  "Sorry, MPI 3D-RISM requires that fixed grid sizes be "// &
-                  "divisible by two and the number of processes in the "// &
-                  "y and z dimensions")
-          end if
-       end do
-       call reallocateBox(this, this%fixedNumGridPoints, this%fixedBoxDimensionsR/this%fixedNumGridPoints)
     end if
 
   end subroutine resizeBox
 
-  !> Get the minimum lengths of the solvent box using the buffer size and/or
-  !! ljTolerance.  If buffer >0, use that directly. If buffer = 0, use LJ
-  !! cutoffs in potential to ensure that the cutoffs are completely in the
-  !! solvent box. buffer <0 is an error.
-  !!
-  !! OUT:
-  !!     (_REAL_(3)) x, y, z dimensions
-  function getMinBoxLength(this) result ( boxLength)
-    use rism_util, only : translate
-    implicit none
-    type(rism3d) :: this
-    _REAL_ :: boxLength(3)
-    integer :: iu, iv, id
-    _REAL_ :: maxdist(3), translation(3)
-    ! move to the solute to the origin to make it easier to get the appropriate box size
-    call centerSolute(this, (/0d0,0d0,0d0/), translation)
-    if (this%buffer > 0) then
-       ! Get minimum box size defined by the buffer.
-       if(this%verbose >0) then
-          call rism_report_message("|Setting solvent box from buffer.")
-       end if
-       ! Get the maximum distance from the center to the furthest atom + buffer
-       do id = 1, 3
-          maxdist(id) = max( maxval(this%solute%position(id, :)) + this%buffer,&
-               abs( minval(this%solute%position(id, :)) - this%buffer))
-       end do
-       boxLength = maxdist*2
-    elseif (this%buffer .eq. 0) then
-       if(this%verbose >0) then
-          call rism_report_message("|Setting solvent box to fit Lennard-Jones cutoff.")
-       end if       
-       if (any(this%potential%ljcutoffs2 == HUGE(1d0))) then
-          call rism_report_error("Both buffer and ljTolerance cannot be 0.")
-       end if
-       ! translate the CoM/CoG of the solute to the origin. Then for each atom,
-       ! add/substract its cutoff from the position in each direction.  Store
-       ! the maximum distance from the origin.
-       maxdist = 0
-       call centerSolute(this,(/0d0,0d0,0d0/))
-       do iv = 1, this%solvent%numAtomTypes
-          do iu = 1, this%solute%numAtoms
-             do id = 1, 3
-                maxdist(id) = max(maxdist(id),&
-                     abs(this%solute%position(id,iu) - sqrt(this%potential%ljCutoffs2(iu,iv))), &
-                     this%solute%position(id,iu) + sqrt(this%potential%ljCutoffs2(iu,iv)))
-             end do
-          end do
-       end do
-       ! box needs to be symmetric about the center of the solute, so the side length is double the max distance
-       boxLength = 2*maxdist
-    elseif (this%buffer .lt. 0 ) then
-       ! we should never get here
-       call rism_report_error("Buffer must be >= 0 for a variable sized solventbox.")
-    end if
-
-    ! return the solute to its original position
-    call translate(this%solute%position, this%solute%numAtoms, &
-         -translation)
-  end function getMinBoxLength  
-
-  !> Calculate the effective minimum buffer distance between the
-  !! solute and the solvent box edge.
-  !! @param[in] this rism3d object.
-  function effective_buffer(this) result(buffer)
-    implicit none
-    type(rism3d), intent(in) :: this
-    _REAL_ :: buffer(3)
-    integer :: idim
-    do idim = 1,3
-       buffer(idim) = min(this%grid%boxLength(idim) - maxval(this%solute%position(idim,:)), &
-            minval(this%solute%position(idim,:)))
-    end do
-  end function effective_buffer
-  
   !> Using the current box size and resize all associated grids and
   !! variables.
   !! @param[in,out] this rism3d object.
@@ -2799,9 +1376,9 @@ contains
     integer :: i, id, irank
     _REAL_ :: memuse
     _REAL_ :: unitCellDimensions(6)
-    _REAL_ :: buffer(3)
 
-    call rism3d_fft_setgrid(this%grid, ngr, grdspc, this%solvent%numAtomTypes, this%fft_aligned)
+    call rism3d_fft_setgrid(this%grid, ngr, grdspc, &
+        this%solvent%numAtomTypes, this%fft_aligned)
 
     !
     ! 2) allocation
@@ -2887,49 +1464,6 @@ contains
     call interpolateSolventSusceptibility(this, this%solvent%xvv, this%xvva)
   end subroutine reallocateBox
 
-
-  !> Using the current box size and resize all the dT associated grids
-  !! and variables.
-  !! IN:
-  !!   this :: rism3d object
-  subroutine reallocateBox_dT(this)
-    use rism3d_fft_c
-    use safemem
-    implicit none
-    type(rism3d), intent(inout) :: this
-
-    this%cuvWRK_dT => safemem_realloc(this%cuvWRK_dT, &
-         this%grid%localDimsR(1), this%grid%localDimsR(2), this%grid%localDimsR(3), &
-         this%solvent%numAtomTypes, this%NVec, .true.)
-    this%cuvresWRK_dT => safemem_realloc(this%cuvresWRK_dT, this%grid%totalLocalPointsR, &
-         this%solvent%numAtomTypes, this%NVec, .false.)
-    this%cuv_dT => this%cuvWRK_dT(:, :, :, :, 1)
-    this%cuvres_dT => this%cuvresWRK_dT(:, :, 1)
-
-    this%xvva_dT => safemem_realloc(this%xvva_dT, this%grid%waveNumberArraySize* (this%solvent%numAtomTypes) **2, .false.)
-
-    this%cuvk => safemem_realloc(this%cuvk, this%grid%totalLocalPointsK, this%solvent%numAtomTypes, &
-         o_preserve = .false., o_aligned = .true.)
-    this%guv_dT => safemem_realloc(this%guv_dT, this%grid%totalLocalPointsK, this%solvent%numAtomTypes, &
-         o_preserve = .false., o_aligned = .true.)
-    this%huv_dT => safemem_realloc(this%huv_dT, this%grid%totalLocalPointsK, this%solvent%numAtomTypes, &
-         o_preserve = .false., o_aligned = .true.)
-
-    call rism3d_fft_destroy(this%fft_dT)
-    call rism3d_fft_destroy(this%fft_cuv)
-    call rism3d_fft_new(this%fft_dT, &
-         this%fftw_planner, this%fftw_localtrans, this%fft_aligned, &
-         this%grid, &
-         this%guv_dT, this%huv_dT)
-    call rism3d_fft_new(this%fft_cuv, &
-         this%fftw_planner, this%fftw_localtrans, this%fft_aligned, &
-         this%grid, &
-         this%cuvk, this%cuvk)
-
-    call interpolateSolventSusceptibility(this, this%solvent%xvv_dT, this%xvva_dT)
-  end subroutine reallocateBox_dT
-
-
   !> Prints the maximum amount of memory allocated at any one time so
   !! far in the run.
   subroutine rism3d_max_memory(this)
@@ -2995,12 +1529,6 @@ contains
     integer :: maxPointsToInterp
     parameter (maxPointsToInterp = 5)
 
-#ifdef RISM_DEBUG
-    write(0,*) "INTERPOLATESOLVENTSUSCEPTIBILITY", &
-      sum(this%solvent%waveNumbers), sum(this%grid%waveNumbers), &
-      this%grid%waveNumberArraySize; call flush(0)
-#endif /*RISM_DEBUG*/
-
     ! Checking R-grid size.
     if (this%grid%waveNumbers(this%grid%waveNumberArraySize) > this%solvent%waveNumbers(this%solvent%numRDFpoints)) then
        call rism_report_error('(a,1pe16.8,a,1pe16.8)', &
@@ -3042,88 +1570,9 @@ contains
     end do
   end subroutine interpolateSolventSusceptibility
 
-
-  !> Center the solute in the solvent box.
-  !! @param[in,out] this rism3d object.
-  !! @param[in] origin_o (optional) position to center on
-  !! @param[out] translation_o (optional) the amount that the solute is moved by
-  subroutine centerSolute(this, origin_o, translation_o)
-    use rism_util, only : findCenterOfMass, translate
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(iN), optional :: origin_o(3)
-    _REAL_, intent(OUT), optional :: translation_o(3)
-    _REAL_ :: origin(3)
-    _REAL_ :: gridpoints(3)
-    _REAL_ :: mass(this%solute%numAtoms)
-    _REAL_ :: projection(3)
-    _REAL_ :: unitCellCenter(3)
-    integer :: id
-    ! If centering is not equal to 0 we want to move the solute to the
-    ! center of the solvent box. However, if centering < 0 we only
-    ! figure out the displacement required the _first_ time we see the
-    ! solute.  Thus, for centering <= 0, the solute's CM can move
-    ! relative to the grid.
-    if (mod(abs(this%centering), 2) == 1) then
-       mass = this%solute%mass
-    else if (mod(abs(this%centering), 2) == 0) then
-       mass = 1
-    end if
-    if (this%centering > 0 .or. (this%centering < 0 .and. this%nsolution == 0)) then
-       call findCenterOfMass(this%solute%position, this%solute%centerOfMass, &
-            mass, this%solute%numAtoms)
-    end if
-    if (this%centering >= 3 .and. this%centering <= 4) then
-       ! The boxsize may not have been properly set yet and the
-       ! non-periodic cell unit vectors will be broken. Only use the
-       ! unit cell vectors if they are all non-zero and non-NaN
-       if(any(this%grid%unitCellVectorsR /= 0d0) .and. &                    ! non-zero
-            all(this%grid%unitCellVectorsR == this%grid%unitCellVectorsR) & ! non-NaN
-            ) then 
-          ! Move the center to the nearest multiple of the grid spacing.
-          ! 1. Project center of mass vector onto the unit cell axis.
-          do id = 1, 3
-             projection(id) = dot_product(this%solute%centerOfMass, &
-                  this%grid%unitCellUnitVectorsR(id, :))
-          end do
-          ! 2. Convert to grid point space, round to nearest grid point.
-          projection = anint(projection / this%grid%spacing)
-          ! 3. Project back to orthonormal Cartesian space.
-          this%solute%centerOfMass = 0
-          do id = 1, 3
-             this%solute%centerOfMass = this%solute%centerOfMass &
-                  + projection(id) * this%grid%voxelVectorsR(id, :)
-          end do
-       else
-          do id = 1, 3
-             this%solute%centerOfMass(id) = anint(this%solute%centerOfMass(id))
-          end do
-       end if
-    end if
-    if (this%centering /= 0) then
-       unitCellCenter = 0
-       do id = 1, 3
-          unitCellCenter = unitCellCenter + this%grid%unitCellVectorsR(id,:)
-       end do
-       unitCellCenter = unitCellCenter / 2
-       if (present(origin_o)) then
-          origin = origin_o
-       else
-          origin = unitCellCenter
-       end if
-       if (present(translation_o)) then
-          translation_o = origin - this%solute%centerOfMass
-       end if
-       call translate(this%solute%position, this%solute%numAtoms, &
-            origin - this%solute%centerOfMass)
-    end if
-  end subroutine centerSolute
-
-
   !!!!
   !! Subroutines to find the iterative 3D-RISM solution.
   !!!!
-
 
   !> Main driver for the 3D-RISM solver.
   !! Makes an initial guess of the direct correlation function and
@@ -3179,9 +1628,7 @@ contains
     if (this%mpirank == 0) then
        inquire (file = cuvsav, exist = found)
        if (found .and. first .and. ksave /= 0) then
-#ifdef RISM_DEBUG
-          write(0,*)'reading saved Cuv file:  ', cuvsav
-#endif /*RISM_DEBUG*/
+          write(6,*)'| reading saved Cuv file:  ', cuvsav
           call readRestartFile(cuvsav, this%cuv(:, :, :, :), &
                this%grid%totalLocalPointsR, this%solvent%numAtomTypes)
        else
@@ -3190,23 +1637,6 @@ contains
           if (this%nsolution == 0 .or. this%ncuvsteps == 0) then
              ! Default initial guess for DCF is zero everywhere.
              this%cuv(:,:,:,:) = 0.d0
-             ! Add long-range part.  This long-range part is
-             ! subtracted in next routine, so the initial guess
-             ! for the DCF remains zero.
-             if (this%solute%charged .and. .not. this%periodic) then
-                do iv = 1, this%solvent%numAtomTypes
-                   do igz = 1, this%grid%localDimsR(3)
-                      do igy = 1, this%grid%localDimsR(2)
-                         do igx = 1, this%grid%localDimsR(1)
-                            ig = igx + (igy-1) * this%grid%localDimsR(1) + &
-                                 (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                            this%cuv(igx, igy, igz, iv) = this%cuv(igx, igy, igz, iv) &
-                                 + this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig)
-                         end do
-                      end do
-                   end do
-                end do
-             end if
           end if
 #ifdef MPI
 #else
@@ -3320,22 +1750,11 @@ contains
     do iv = 1, this%solvent%numAtomTypes
        do igz = 1, this%grid%localDimsR(3)
           do igy = 1, this%grid%localDimsR(2)
-             if (this%solute%charged .and. .not.periodic) then
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy - 1) * this%grid%localDimsR(1) &
-                       + (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%guv(igk, iv) = this%cuv(igx, igy, igz, iv) &
-                        - this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             else
                 do igx = 1, this%grid%localDimsR(1)
                    igk = igx + (igy-1) * (this%grid%localDimsR(1) + 2) &
                         + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
                    this%guv(igk, iv) = this%cuv(igx, igy, igz, iv)
                 end do
-             end if
              ! Zero out extra space.
              igk = this%grid%localDimsR(1) + 1 + (igy-1) * (this%grid%localDimsR(1) + 2) &
                   + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
@@ -3347,19 +1766,6 @@ contains
 !$omp parallel do private(iv,igx,igy,igz,ig1)  &
 !$omp&        num_threads(this%solvent%numAtomTypes)
     do iv = 1, this%solvent%numAtomTypes
-       if (this%solute%charged .and. .not.periodic) then
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                             + (igz-1) * this%grid%localDimsR(2) &
-                                       * this%grid%localDimsR(1)
-                   this%guv(ig1, iv) = this%cuv(igx, igy, igz, iv) &
-                        - this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             end do
-          end do
-       else
           do igz = 1, this%grid%localDimsR(3)
              do igy = 1, this%grid%localDimsR(2)
                 do igx = 1, this%grid%localDimsR(1)
@@ -3370,7 +1776,6 @@ contains
                 end do
              end do
           end do
-       end if
        ! Zero out extra space.
        this%guv(this%grid%totalLocalPointsR + 1:this%grid%totalLocalPointsK, iv) = 0.d0
     end do
@@ -3392,18 +1797,6 @@ contains
     call rism_timer_stop(this%fftTimer)
     call timer_stop(TIME_RISMFFT)
 
-    ! --------------------------------------------------------------
-    ! Add long-range part to Cuv(k) in K-space.
-    ! --------------------------------------------------------------
-    if (this%solute%charged .and. .not.periodic) then
-       do iv = 1, this%solvent%numAtomTypes
-          do ig1 = 1, this%grid%totalLocalPointsK
-             this%guv(ig1, iv) = this%guv(ig1, iv) - this%solvent%charge(iv) &
-                * this%potential%dcfLongRangeAsympK(ig1)
-          end do
-       end do
-    end if
-    
     ! --------------------------------------------------------------
     ! Huv(k) by RISM.
     ! --------------------------------------------------------------
@@ -3433,50 +1826,6 @@ contains
                 this%huv(1,iv) = this%huv(1,iv) - this%potential%phineut(iv)
            end do
          endif
-
-    else
-
-       ! --------------------------------------------------------------
-       ! Add long-range part of Huv(k) at k = 0, which was estimated by
-       ! long-range part of Cuv(k) at k = 0.
-       ! --------------------------------------------------------------
-       if (this%mpirank == 0 .and. this%solute%charged) then
-          do ig1 = 1, 2
-             do iv = 1, this%solvent%numAtomTypes
-                this%huv(ig1, iv) = this%huv(ig1, iv) + this%potential%huvk0(ig1, iv)
-             end do
-          end do
-       end if
-
-       ! --------------------------------------------------------------
-       ! Subtract long-range part from huv in K-space.
-       ! --------------------------------------------------------------
-       if (this%solvent%ionic .and. this%solute%charged) then
-#if defined(MPI)
-          do iv = 1, this%solvent%numAtomTypes
-             if (this%mpirank == 0) then
-                do ig1 = 3, this%grid%totalLocalPointsK
-                   this%huv(ig1, iv) = this%huv(ig1, iv) &
-                        +  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympK(ig1)
-                end do
-             else
-                do ig1 = 1, this%grid%totalLocalPointsK
-                   this%huv(ig1, iv) = this%huv(ig1, iv) &
-                        + this%solvent%charge_sp(iv) &
-                        * this%potential%tcfLongRangeAsympK(ig1)
-                end do
-             end if
-          end do
-#else
-          do iv = 1, this%solvent%numAtomTypes
-             do ig1 = 3, this%grid%totalLocalPointsK
-                this%huv(ig1, iv) = this%huv(ig1, iv) &
-                     + this%solvent%charge_sp(iv) &
-                     * this%potential%tcfLongRangeAsympK(ig1)
-             end do
-          end do
-#endif /*defined(MPI)*/
-       end if
     end if ! periodic
 
     ! --------------------------------------------------------------
@@ -3493,31 +1842,6 @@ contains
 #endif /*defined(MPI)*/
     call rism_timer_stop(this%fftTimer)
     call timer_stop(TIME_RISMFFT)
-
-    ! --------------------------------------------------------------
-    ! Add long-range part to huv in R-space.
-    ! --------------------------------------------------------------
-    if (this%solvent%ionic .and. .not.periodic .and. this%solute%charged) then
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
-                        (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
-                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%huv(igk, iv) = this%huv(igk, iv) &
-                        + this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympR(ig1)
-#else
-                   this%huv(ig1, iv) = this%huv(ig1, iv) &
-                        + this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympR(ig1)
-#endif /*defined(MPI)*/
-                end do
-             end do
-          end do
-       end do
-    end if
 
     ! --------------------------------------------------------------
     ! Solve the closure for the RDF.
@@ -3560,469 +1884,6 @@ contains
     call rism_timer_stop(this%single3DRISMsolutionTimer)
 
   end subroutine single3DRISMsolution
-
-  subroutine solve3DRISM_dT(this, kshow, maxSteps, tolerance)
-
-  !> Main driver for the 3D-RISM ΔT solver.
-  !! IN:
-  !!   this :: rism3d object
-  !!   kshow  :: print parameter for relaxation steps every kshow iterations
-  !!   maxSteps :: maximum number of rism relaxation steps
-  !!   mdiis_method :: MDIIS implementation to use
-
-    use rism3d_fft_c
-    use mdiis_c
-    use rism3d_restart
-    implicit none
-#include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
-    type(rism3d), intent(inout) :: this
-    integer, intent(in) :: kshow, maxSteps
-    _REAL_, intent(in) :: tolerance
-    character(72) ::  cuvsav = 'rism.csv', guvfile
-    integer :: guv_local = 77
-    ! mdiis :: MDIIS solver object
-    type(mdiis), save :: mdiis_o
-
-    integer :: iatv, igx, igy, igz, igk
-    logical ::  found, converged = .false.
-    integer ::  ig, iv, iv2, istep
-    _REAL_ ::  residual = 0
-
-    !_REAL_ ::  delhv0(this%solvent%numAtomTypes)
-
-    logical, save :: first = .true.
-
-    ! irank  :: mpi rank counter
-    ! stat :: iostat
-    integer :: irank, stat, ientry, nentry
-    ! ierr :: mpi error
-    logical :: ierr
-
-    integer :: ig1
-    call rism_timer_start(this%solve3DRISM_dTTimer)
-
-#ifdef MPI
-    call mdiis_new_mpi(mdiis_o, this%mdiis_method, &
-         this%deloz, tolerance, &
-         this%MDIIS_restart, this%mpirank, this%mpisize, this%mpicomm)
-#else
-    call mdiis_new(mdiis_o, this%mdiis_method, &
-         this%deloz, tolerance, this%MDIIS_restart)
-#endif /*MPI*/
-    ! call mdiis_setTimerParent(mdiis_o, this%single3DRISM_dTsolutiontimer)
-    call mdiis_setData(mdiis_o, this%cuvWRK_dT, this%cuvresWRK_dT, &
-         this%grid%totalLocalPointsR * this%solvent%numAtomTypes, this%nvec)
-    this%cuv_dT => this%cuvWRK_dT(:, :, :, :, mdiis_getWorkVector(mdiis_o))
-    this%cuvres_dT => this%cuvresWRK_dT(:, :, mdiis_getWorkVector(mdiis_o))
-
-    this%cuvres_dT = 0
-
-#ifdef MPI
-#else
-    if (this%mpirank == 0) then
-       !   May want to read a saved Cuv file someday:
-       !   inquire (file = cuvsav, exist = found)
-       !   if (found .and. first .and. ksave/=0) then
-       !      call  readRestartFile (cuvsav, this%cuv(:, :, :, :), this%grid%totalLocalPointsR, &
-       !           this%solvent%numAtomTypes)
-       !   else
-#endif /*MPI*/
-       !..... initial Cuv(r)
-       if (first .or. this%ncuvsteps == 0) then
-          !       if (.true.) then
-          this%cuv_dT = 0
-          !..... add long-range part,
-          !..... because this long-range part is subtracted in next routine..
-          if (this%solute%charged) then
-             do iv = 1, this%solvent%numAtomTypes
-                do igz = 1, this%grid%localDimsR(3)
-                   do igy = 1, this%grid%localDimsR(2)
-                      do igx = 1, this%grid%localDimsR(1)
-                         ig = igx + (igy-1) * this%grid%localDimsR(1) + &
-                              (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                         this%cuv_dT(igx, igy, igz, iv) = -1.0d0 * this%solvent%charge(iv) &
-                              *this%potential%dcfLongRangeAsympR(ig)
-                      end do
-                   end do
-                end do
-             end do
-          end if
-       end if
-#ifdef MPI
-#else
-       !         end if
-    end if
-
-#endif /*MPI*/
-
-    !----- Cuv(r) > k ----
-    !.....subtract short-range part from Cuv(r)
-    !.....short-range part of Cuv(r) is loaded in cuvres array
-#if defined(MPI)
-    do iv = 1, this%solvent%numAtomTypes
-       do igz = 1, this%grid%localDimsR(3)
-          do igy = 1, this%grid%localDimsR(2)
-             if (this%solute%charged) then
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   igk = igx + (igy-1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%cuvk(igk, iv) = this%cuv(igx, igy, igz, iv) &
-                        - this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             else
-                do igx = 1, this%grid%localDimsR(1)
-                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%cuvk(igk, iv) = this%cuv(igx, igy, igz, iv)
-                end do
-             end if
-             igk = this%grid%localDimsR(1) + 1 + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                  + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-             this%cuvk(igk:igk +1, iv) =0
-          end do
-       end do
-    end do
-#else
-    if (this%solute%charged) then
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   this%cuvk(ig1, iv) = this%cuv(igx, igy, igz, iv) &
-                        - this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             end do
-          end do
-       end do
-    else
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   this%cuvk(ig1, iv) = this%cuv(igx, igy, igz, iv)
-                end do
-             end do
-          end do
-       end do
-    end if
-#endif /*defined(MPI)*/
-
-    !.....short-range part of Cuv(r) FFT>K
-    call timer_start(TIME_RISMFFT)
-    call rism_timer_start(this%fft_dTTimer)
-#if defined(MPI)
-    call  rism3d_fft_fwd(this%fft_cuv, this%cuvk)
-    this%cuvk(2:this%grid%totalLocalPointsK:2, :) = &
-         -this%cuvk(2:this%grid%totalLocalPointsK:2, :)
-#else
-    call  rism3d_fft_fwd(this%fft_cuv, this%cuvk)
-#endif /*defined(MPI)*/
-    call rism_timer_stop(this%fft_dTTimer)
-    call timer_stop(TIME_RISMFFT)
-    !.....add long-range part to Cuv(k) in K-space
-    if (this%solute%charged) then
-       do iv = 1, this%solvent%numAtomTypes
-          do ig1 = 1, this%grid%totalLocalPointsK
-             this%cuvk(ig1, iv) = this%cuvk(ig1, iv) -  this%solvent%charge(iv) * this%potential%dcfLongRangeAsympK(ig1)
-          end do
-       end do
-    end if
-
-
-    !.......................... relaxing UV RISM  ..........................
-#ifdef RISM_DEBUG
-    write(0, *)'relaxing 3D uv RISM DT:'
-    call flush(0)
-#endif
-
-    do istep = 1, maxSteps
-
-       !................... one relaxation step of UV RISM ....................
-       call timer_start(TIME_R1RISM)
-       call single3DRISMsolution_dT(this, residual, converged, mdiis_o, tolerance)
-       call timer_stop(TIME_R1RISM)
-
-
-       !............. showing selected and last relaxation steps ..............
-       if (kshow /= 0 .and. this%mpirank == 0 .and. this%verbose >= 2) then
-          if (converged .or. mod(istep, kshow) == 0) then
-             call rism_report_message('(a, i5, 5x, a,1pg10.3, 5x, a,i3)', &
-                  ' Step=', istep, 'Resid=', residual, 'IS=', getCurrentNVec(mdiis_o))
-             call rism_report_flush()
-          end if
-       end if
-
-       !.............. saving selected and last relaxation steps ..............
-#ifdef MPI
-#else
-       !         if (ksave /= 0 .and. first) then
-       !            if (converged .or. ksave > 0 .and. mod(istep, ksave) == 0) then
-       !               call  writeRestartFile (cuvsav, this%cuv(:, :, :, :), this%grid%totalLocalPointsR, this%solvent%numAtomTypes)
-       !            end if
-       !         end if
-#endif /*MPI*/
-       !! endfix
-       !............... exiting relaxation loop on convergence ................
-       if (converged) exit
-    end do
-
-    if (.not. converged) then
-       call rism_report_error('(a,i5)','RXRISMDT: reached limit # of relaxation steps: ', maxSteps)
-    end if
-    first = .false.
-    if (this%mpirank == 0 .and. this%verbose >= 1) then
-       call rism_report_message('(a,i5,a)', "|RXRISMDT converged in ", istep)!, " steps")
-    end if
-    call mdiis_destroy(mdiis_o)
-    this%cuv_dT => this%cuvWRK_dT(:, :, :, :, 1)
-    this%cuvres_dT => this%cuvresWRK_dT(:, :, 1)
-    call rism_timer_stop(this%solve3DRISM_dTTimer)
-  end subroutine solve3DRISM_dT
-
-
-  !! One relaxation step for the UV-RISM equation with the HNC
-  !! closure,
-  !! Guv(r) = exp(-this%potential%uuv(r) + Tuv(r) - DelHv0) + DelHv0
-  !! Cuv(r) = Guv(r) - 1 - Tvv(r)
-  !! Huv(k) = Cuv(k) * (Wvv(k) + Density * Hvv(k))
-  !! TuvRes(r) = Huv(r) - Guv(r) - 1
-  !! IN:
-  !!  this :: rism3d object
-  !!  residual ::
-  !!  converged ::
-  !!  mdiis  :: MDIIS object to accelerate convergence
-  subroutine single3DRISMsolution_dT(this, residual, converged, mdiis_o, tolerance)
-    use rism3d_fft_c
-    use mdiis_c
-    implicit none
-#include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
-    type(rism3d) :: this
-    logical ::  converged
-
-    type(mdiis)::mdiis_o
-    integer :: iis
-    _REAL_, intent(inout) ::  residual
-    _REAL_, intent(in) :: tolerance
-    _REAL_ :: earg, tuv0, tvvr
-    integer :: istep
-
-    integer ::  ig1, iga, iv, iv1, iv2, igx, igy, igz, igk
-#ifdef FFW_THREADS
-    integer :: nthreads, totthreads
-    integer, external :: OMP_get_max_threads, OMP_get_num_threads
-    logical, external :: OMP_get_dynamic, OMP_get_nested
-#endif
-
-#ifdef RISM_DEBUG
-    write(0,*)"R1RISMDT"
-    call flush(0)
-#endif
-    call rism_timer_start(this%single3DRISM_dTsolutionTimer)
-
-    ! Subtract short-range part from direct correlation function c(r).
-    ! Short-range part of c(r) is loaded in guv array.
-#if defined(MPI)
-    do iv = 1, this%solvent%numAtomTypes
-       do igz = 1, this%grid%localDimsR(3)
-          do igy = 1, this%grid%localDimsR(2)
-             if (this%solute%charged) then
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   igk = igx + (igy-1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%guv_dT(igk, iv) = this%cuv_dT(igx, igy, igz, iv) &
-                        + this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             else
-                do igx = 1, this%grid%localDimsR(1)
-                   igk = igx + (igy-1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%guv_dT(igk, iv) = this%cuv_dT(igx, igy, igz, iv)
-                end do
-             end if
-             igk = this%grid%localDimsR(1) + 1 + (igy-1) * (this%grid%localDimsR(1) + 2) &
-                  + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-             this%guv_dT(igk:igk +1, iv) =0d0
-          end do
-       end do
-    end do
-#else
-    if (this%solute%charged) then
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   this%guv_dT(ig1, iv) = this%cuv_dT(igx, igy, igz, iv) &
-                        + this%solvent%charge(iv) * this%potential%dcfLongRangeAsympR(ig1)
-                end do
-             end do
-          end do
-       end do
-    else
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) &
-                        + (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   this%guv_dT(ig1, iv) = this%cuv_dT(igx, igy, igz, iv)
-                end do
-             end do
-          end do
-       end do
-    end if
-#endif /*defined(MPI)*/
-    ! Short-range part of c(r) FFT>K.
-    call timer_start(TIME_RISMFFT)
-    call rism_timer_start(this%fft_dTTimer)
-#if defined(MPI)
-    call  rism3d_fft_fwd(this%fft_dT, this%guv_dT)
-    this%guv_dT(2:this%grid%totalLocalPointsK:2, :) = &
-         -this%guv_dT(2:this%grid%totalLocalPointsK:2, :)
-#else
-    call  rism3d_fft_fwd(this%fft_dT, this%guv_dT)
-#endif /*defined(MPI)*/
-    call rism_timer_stop(this%fft_dTTimer)
-    call timer_stop(TIME_RISMFFT)
-    ! Add long-range part to c(k) in K-space.
-    if (this%solute%charged) then
-       do iv = 1, this%solvent%numAtomTypes
-          do ig1 = 1, this%grid%totalLocalPointsK
-             this%guv_dT(ig1, iv) = this%guv_dT(ig1, iv) +  this%solvent%charge(iv) * this%potential%dcfLongRangeAsympK(ig1)
-          end do
-       end do
-    end if
-    ! h(k) by RISM.
-    do iv1 = 1, this%solvent%numAtomTypes
-       do ig1 = 1, this%grid%totalLocalPointsK
-          this%huv_dT(ig1, iv1) = 0d0
-          iga = this%grid%waveVectorWaveNumberMap((ig1 + 1)/2)
-          do iv2 = 1, this%solvent%numAtomTypes
-             this%huv_dT(ig1, iv1) = this%huv_dT(ig1, iv1) + &
-                  this%cuvk(ig1, iv2) * this%xvva_dT(iga + (iv2-1) * this%grid%waveNumberArraySize + &
-                  (iv1 - 1) * this%grid%waveNumberArraySize * this%solvent%numAtomTypes)+ &
-                  this%guv_dT(ig1, iv2) * this%xvva(iga + (iv2-1) * this%grid%waveNumberArraySize + &
-                  (iv1 - 1) * this%grid%waveNumberArraySize * this%solvent%numAtomTypes)
-          end do
-       end do
-    end do
-
-    ! Add long-range part of h(k) at k = 0
-    ! which was estimated by long-range part of c(k) at k = 0.
-    if (this%mpirank == 0 .and. this%solute%charged) then
-       do ig1 = 1, 2
-          do iv = 1, this%solvent%numAtomTypes
-             this%huv_dT(ig1, iv) = this%huv_dT(ig1, iv) + this%potential%huvk0_dT(ig1, iv)
-          end do
-       end do
-    end if
-
-    ! Subtract long-range part from h(k) in k-space.
-    if (this%solvent%ionic .and. this%solute%charged) then
-#if defined(MPI)
-       do iv = 1, this%solvent%numAtomTypes
-          if (this%mpirank == 0) then
-             do ig1 = 3, this%grid%totalLocalPointsK
-                this%huv_dT(ig1, iv) = this%huv_dT(ig1, iv) &
-                     -  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympK(ig1)
-             end do
-          else
-             do ig1 = 1, this%grid%totalLocalPointsK
-                this%huv_dT(ig1, iv) = this%huv_dT(ig1, iv) &
-                     -  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympK(ig1)
-             end do
-          end if
-       end do
-#else
-       do iv = 1, this%solvent%numAtomTypes
-          do ig1 = 3, this%grid%totalLocalPointsK
-             this%huv_dT(ig1, iv) = this%huv_dT(ig1, iv) &
-                  -  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympK(ig1)
-          end do
-       end do
-#endif /*defined(MPI)*/
-    end if
-
-    ! Short-range part of h(k) FFT>R.
-    call timer_start(TIME_RISMFFT)
-    call rism_timer_start(this%fft_dTTimer)
-#if defined(MPI)
-    this%huv_dT(2:this%grid%totalLocalPointsK:2, :)= &
-         -this%huv_dT(2:this%grid%totalLocalPointsK:2, :)
-    call  rism3d_fft_bwd(this%fft_dT, this%huv_dT)
-#else
-    call  rism3d_fft_bwd(this%fft_dT, this%huv_dT)
-#endif /*defined(MPI)*/
-    call rism_timer_stop(this%fft_dTTimer)
-    call timer_stop(TIME_RISMFFT)
-
-    if (this%solvent%ionic .and. this%solute%charged) then
-       !.....add long-range part to huv in R-space
-       do iv = 1, this%solvent%numAtomTypes
-          do igz = 1, this%grid%localDimsR(3)
-             do igy = 1, this%grid%localDimsR(2)
-                do igx = 1, this%grid%localDimsR(1)
-                   ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
-                        (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
-                   igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                        + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-                   this%huv_dT(igk, iv) = this%huv_dT(igk, iv) &
-                        -  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympR(ig1)
-#else
-                   this%huv_dT(ig1, iv) = this%huv_dT(ig1, iv) &
-                        -  this%solvent%charge_sp(iv) * this%potential%tcfLongRangeAsympR(ig1)
-#endif /*defined(MPI)*/
-                end do
-             end do
-          end do
-       end do
-    end if
-    !    this%cuvres_dT(:, :) = 0
-
-    call rism3d_closure_guv_dT(this%closure, this%guv_dT, this%huv_dT, this%cuv_dT, &
-         this%guv, this%huv, this%cuv)
-    do iv = 1, this%solvent%numAtomTypes
-       do igz = 1, this%grid%localDimsR(3)
-          do igy = 1, this%grid%localDimsR(2)
-             do igx = 1, this%grid%localDimsR(1)
-                ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
-                     (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
-                igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                     + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                igk = ig1
-#endif /*defined(MPI)*/
-                this%cuvres_dT(ig1, iv) = this%guv_dT(igk, iv) - this%huv_dT(igk, iv)
-             end do
-          end do
-       end do
-    end do
-    call timer_start(TIME_MDIIS)
-    call mdiis_advance(mdiis_o, residual, converged, tolerance)
-    this%cuv_dT => this%cuvWRK_dT(:, :, :, :, mdiis_getWorkVector(mdiis_o))
-    this%cuvres_dT => this%cuvresWRK_dT(:, :, mdiis_getWorkVector(mdiis_o))
-    call timer_stop(TIME_MDIIS)
-    call rism_timer_stop(this%single3DRISM_dTsolutionTimer)
-
-  end subroutine single3DRISMsolution_dT
-
 
   ! PROPAGATE PREVIOUS SOLUTIONS
 
@@ -4083,39 +1944,6 @@ contains
     call dcopy(this%grid%totalLocalPointsR * this%solvent%numAtomTypes, this%cuv(:, :, :, :), 1, &
          this%oldcuv(:, :, :, :, 1), 1)
   end subroutine updateDCFguessHistory
-
-  !> Convert the user supplied a,b,a1,b1 Universal Correction
-  !! coefficients to a0,b0,a1,b1 coefficients used in
-  !! rism3d_closure_c.
-  !! IN:
-  !!   this :: rism3d object with computed solution
-  !!   coeff: coefficients for correction.  For the original correction
-  !!          (a, b) = coeff(1:2).
-  !!          Extra coefficients are a1 and b1 from Johnson et al. 2016.
-  !! OUT:
-  !!   array of length 4 containing a0,b0,a1,b1
-  function UC_temperature_coeff(this,coeff) result(tcoeff)
-    implicit none
-    type(rism3d) :: this
-    _REAL_, intent(in) :: coeff(:)
-    _REAL_ :: tcoeff(4)
-    ! a0 & a1
-    if (size(coeff) > 2) then
-       tcoeff(1) = coeff(1) - coeff(3)*this%solvent%temperature
-       tcoeff(3) = coeff(3)
-    else
-       tcoeff(1) = coeff(1)
-       tcoeff(3) = 0d0
-    end if
-    ! b0 & b1
-    if (size(coeff) > 3) then
-       tcoeff(2) = coeff(2) - coeff(4)*this%solvent%temperature
-       tcoeff(4) = coeff(4)
-    else
-       tcoeff(2) = coeff(2)
-       tcoeff(4) = 0d0
-    end if
-  end function UC_temperature_coeff
 
   !> Create an electron density map from a 3D solute-solvent RDF by
   !! smearing the 3D RDF with a 1D solvent electron denisty RDF.
@@ -4256,277 +2084,4 @@ contains
 !$omp end parallel do
   end subroutine createElectronDensityMap
 
-  !> Transfer a density map of one site of a solvent molecule on
-  !! to another. E.g., this can be used to localize the hydrogen
-  !! energy distribution of water onto the oxygen site to which it is
-  !! bonded. By combining these transferred densities with that of a
-  !! central site, a molecule distribution can be constructed.
-  !!
-  !! The transfer is for local contributions only and makes use of the
-  !! intramolecular correlation function.  This is approximate and
-  !! will not produce meaningful results for densities with
-  !! significant contributions from the solute core region, such as
-  !! the direct correlation function. Note that the excluded volume is
-  !! zeroed for all sites, including the center site.  This prevents
-  !! non-local contributions where there are no sites being broadcast
-  !! onto physical densities.
-  !!
-  !! E.g., for the excess chemical potential, integrating over the
-  !! resulting distributions will not produce the same result as for
-  !! integrating the original site distributions. The result will be
-  !! lower value, much lower than that given by the Universal
-  !! Correction, which reduces but does not eliminate the positive
-  !! contribution from the excluded volume.
-  !!
-  !! For each non-center site, the following transform is applied
-  !!
-  !!  g_c(r) \times ( w_c,nc(r) * dens_nc(r) )
-  !!
-  !! where 'c' is the central site, 'nc' is the non-central site,
-  !! g_c(r) is the pair distribution function of the central site,
-  !! w_c,nc is the intramolecular correlation function, dens_nc(r) is
-  !! the density function of interest, \times is element-wise
-  !! multiplication and * is convolution.
-  !!
-  !! TODO:
-  !! * figure out molecule from the center_site
-  !! * CLI interface
-  !!
-  !! @param[inout] this rism3d object.
-  !! @param[inout] thermo_map thermodynamic density map of all
-  !!     sites. Sites attached to the central site are
-  !!     modified. Summing over all sites of the species will provide
-  !!     the molecular distribution.
-  !! @param[in] center_site (not implemented) the solvent site to use
-  !!     as the molecular center
-  subroutine rism3d_map_site_to_site_flat(this,thermo_map_flat, center_site)
-    use rism3d_opendx
-    use rism_util, only : heaviside
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer, intent(inout) :: thermo_map_flat(:,:)
-    integer, intent(in) :: center_site
-    _REAL_, pointer :: wvv(:,:,:) =>NULL(), wvva(:) => NULL()
-    integer, pointer :: other_sites(:) => NULL()
-    integer :: i, iga, ig1, iv1, iv2, igz, igy, igx
-
-    ! hard-coded for pure water mapping H onto O
-    other_sites => safemem_realloc(other_sites,1)
-    other_sites = (/2/)
-
-    ! get the intramolecular correlation functions and interpolate onto our 3D grid
-    wvv => rism3d_intramolecular(this)
-    wvva => safemem_realloc(wvva, this%grid%waveNumberArraySize * (this%solvent%numAtomTypes)**2, .false.)
-    call interpolateSolventSusceptibility(this, wvv, wvva)
-
-
-    ! this screens out the excluded volume region from the density distribution
-    thermo_map_flat(:,:) = thermo_map_flat(:,:) * heaviside(this%guv(:,:),2d-1)
-
-    ! forward FFT
-    ! call timer_start(TIME_RISMFFT)
-    ! call rism_timer_start(this%fftTimer)
-#if defined(MPI)
-    call  rism3d_fft_fwd(this%fft, this%guv)
-    this%guv(2:this%grid%totalLocalPointsK:2, :) = &
-         -this%guv(2:this%grid%totalLocalPointsK:2, :)
-    call  rism3d_fft_fwd(this%fft, thermo_map_flat)
-    thermo_map_flat(2:this%grid%totalLocalPointsK:2, :) = &
-         -thermo_map_flat(2:this%grid%totalLocalPointsK:2, :)
-#else
-    call  rism3d_fft_fwd(this%fft, this%guv)
-    call  rism3d_fft_fwd(this%fft, thermo_map_flat)
-#endif /*defined(MPI)*/
-    ! call rism_timer_stop(this%fftTimer)
-    ! call timer_stop(TIME_RISMFFT)
-
-    ! convolution of thermo_map with intramolecular correlation function
-    do i = 1, size(other_sites)
-       iv2 = other_sites(i)
-       iv1 = center_site
-       do ig1 = 1, this%grid%totalLocalPointsK
-          iga = this%grid%waveVectorWaveNumberMap((ig1 + 1) / 2)
-          thermo_map_flat(ig1,iv2) = thermo_map_flat(ig1,iv2) &
-               * wvva(iga + (iv2 - 1) * this%grid%waveNumberArraySize &
-               + (iv1 - 1) * this%grid%waveNumberArraySize * this%solvent%numAtomTypes) &
-               / this%solvent%atomMultiplicity(iv2)
-       end do
-    end do
-
-    ! back FFT
-    ! call timer_start(TIME_RISMFFT)
-    ! call rism_timer_start(this%fftTimer)
-#if defined(MPI)
-    this%guv(2:this%grid%totalLocalPointsK:2, :) = &
-         -this%guv(2:this%grid%totalLocalPointsK:2, :)
-    call  rism3d_fft_bwd(this%fft, this%guv)
-    thermo_map_flat(2:this%grid%totalLocalPointsK:2, :) = &
-         -thermo_map_flat(2:this%grid%totalLocalPointsK:2, :)
-    call  rism3d_fft_bwd(this%fft, thermo_map_flat)
-#else
-    call  rism3d_fft_bwd(this%fft, this%guv)
-    call  rism3d_fft_bwd(this%fft, thermo_map_flat)
-#endif /*defined(MPI)*/
-    ! call rism_timer_stop(this%fftTimer)
-    ! call timer_stop(TIME_RISMFFT)
-
-    ! weight with center-site distribution
-    do i = 1, size(other_sites)
-       iv2 = other_sites(i)
-       iv1 = center_site
-       thermo_map_flat(:,iv2) = thermo_map_flat(:,iv2) * this%guv(:,iv1)
-    end do
-
-    if (safemem_dealloc(wvv) /= 0) &
-         call rism_report_error("RISM3D: MAP_H_TO_O failed")
-    if (safemem_dealloc(wvva) /= 0) &
-         call rism_report_error("RISM3D: MAP_H_TO_O failed")
-    if (safemem_dealloc(other_sites) /= 0) &
-         call rism_report_error("RISM3D: MAP_H_TO_O failed")
-
-  end subroutine rism3d_map_site_to_site_flat
-
-  !> 3D array version of rism3d_map_site_to_site
-  subroutine rism3d_map_site_to_site_3D(this,thermo_map, center_site)
-    use rism3d_opendx
-    use rism_util, only : heaviside
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, pointer, intent(inout) :: thermo_map(:, :, :,:)
-    integer, intent(in) :: center_site
-    _REAL_, pointer :: thermo_map_flat(:,:) => NULL()
-    integer :: igk, iv1, iv2, igz, igy, igx
-
-    if(.not. rism3d_canCalc_molReconstruct(this)) then
-       call rism_report_error("RISM3D: Cannot perform molecular reconstruction." &
-            // "Check that your XVV file is for water and version > 1")
-    end if
-    ! pack 3D distribution in to flat array
-    thermo_map_flat => safemem_realloc(thermo_map_flat, this%grid%totalLocalPointsK, this%solvent%numAtomTypes, &
-         o_preserve = .false., o_aligned = .true.)
-    do iv1 = 1, this%solvent%numAtomTypes
-    ! do i = 1, size(other_sites)
-       ! iv1 = other_sites(i)
-       do igz = 1, this%grid%localDimsR(3)
-          do igy = 1, this%grid%localDimsR(2)
-             do igx = 1, this%grid%localDimsR(1)
-#if defined(MPI)                
-                igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                     + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                igk = igx + (igy-1) * this%grid%localDimsR(1) + &
-                     (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#endif /*defined(MPI)*/                
-                thermo_map_flat(igk, iv1) = thermo_map(igx, igy, igz, iv1)
-             end do
-#if defined(MPI)                
-             ! zero out extra space
-             igk = this%grid%localDimsR(1) + 1 + (igy-1) * (this%grid%localDimsR(1) + 2) &
-                  + (igz-1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-             thermo_map_flat(igk:igk + 1, iv1) = 0
-#endif /*defined(MPI)*/                
-          end do
-       end do
-#if !defined(MPI)
-       ! zero out extra space
-       thermo_map_flat(this%grid%totalLocalPointsR + 1:this%grid%totalLocalPointsK, iv1) = 0d0
-#endif /*!defined(MPI)*/                
-    end do
-
-    ! get the molecular mapping
-    call rism3d_map_site_to_site_flat(this,thermo_map_flat,center_site)
-
-    ! unpack flat array to 3D
-    do iv2 = 1, this%solvent%numAtomTypes
-       do igz = 1, this%grid%localDimsR(3)
-          do igy = 1, this%grid%localDimsR(2)
-             do igx = 1, this%grid%localDimsR(1)
-#if defined(MPI)                
-                igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
-                     + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                igk = igx + (igy-1) * this%grid%localDimsR(1) + &
-                     (igz-1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#endif /*defined(MPI)*/                
-                thermo_map(igx, igy, igz, iv2) = thermo_map_flat(igk, iv2)
-             end do
-          end do
-       end do
-    end do
-
-    if (safemem_dealloc(thermo_map_flat,.true.) /= 0) &
-         call rism_report_error("RISM3D: MAP_H_TO_O failed")
-
-  end subroutine rism3d_map_site_to_site_3D
-  
-  function rism3d_intramolecular(this) result(wvv)
-    use safemem
-    use rism_util
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_ :: wkvv(this%solvent%numAtomTypes,this%solvent%numAtomTypes)
-    _REAL_,pointer :: wvv(:,:,:), wlmvv(:,:,:) => NULL()
-    _REAL_ :: k, kl, wk
-    integer :: ir, iv1, iv2, isp1, isp2, iat1, iat2, imt1
-    wvv => NULL()
-    wlmvv => safemem_realloc(wlmvv, maxval(this%solvent%atomMultiplicity), &
-         this%solvent%numAtomTypes, this%solvent%numAtomTypes)
-    !................ calculating intramolecular distances .................
-    iv2 = 0
-    do isp2 = 1, this%solvent%numMolecules
-       do iat2 = 1, this%solvent%numAtoms(isp2)
-          iv2 = iv2 + 1
-
-          iv1 = 0
-          do isp1 = 1, this%solvent%numMolecules
-             do iat1 = 1, this%solvent%numAtoms(isp1)
-                iv1 = iv1 + 1
-
-                do imt1 = 1, this%solvent%atomMultiplicity(iv1)
-
-                   if (isp1 /= isp2) then
-                      wlmvv(imt1, iv1, iv2) = -1.d0
-                   else
-                      wlmvv(imt1, iv1, iv2) = sqrt(&
-                           (this%solvent%coord(1, imt1, iat1, isp1) - this%solvent%coord(1, 1, iat2, isp2))**2 &
-                           + (this%solvent%coord(2, imt1, iat1, isp1) - this%solvent%coord(2, 1, iat2, isp2))**2 &
-                           + (this%solvent%coord(3, imt1, iat1, isp1) - this%solvent%coord(3, 1, iat2, isp2))**2)
-                   end if
-                end do
-             end do
-          end do
-       end do
-    end do
-
-    
-    wvv => safemem_realloc(wvv, size(this%solvent%xvv), this%solvent%numAtomTypes, &
-         this%solvent%numAtomTypes)
-    do ir = 1, size(this%solvent%xvv)
-       k = (ir - 1) * this%solvent%gridSpacingK
-           ! Getting and reducing the intramolecular matrix Wvv(k).
-       do iv2 = 1, this%solvent%numAtomTypes
-          do iv1 = 1, this%solvent%numAtomTypes
-             wkvv(iv1, iv2) = 0.d0
-             do imt1 = 1, this%solvent%atomMultiplicity(iv1)
-                kl = k * wlmvv(imt1, iv1, iv2)
-                if (wlmvv(imt1, iv1, iv2) < 0.d0) then
-                   wk = 0.d0
-                else if (kl == 0.d0) then
-                   wk = 1.d0
-                else
-                   wk = spherical_bessel_j0(kl)
-                end if
-                wkvv(iv1, iv2) = wkvv(iv1, iv2) + wk
-             end do
-          end do
-       end do
-
-       ! Loading the intramolecular matrix Wvv(k).
-       do iv2 = 1, this%solvent%numAtomTypes
-          do iv1 = 1, this%solvent%numAtomTypes
-             wvv(ir, iv1, iv2) = wkvv(iv1, iv2)
-          end do
-       end do
-    end do
-  end function rism3d_intramolecular
 end module rism3d_c

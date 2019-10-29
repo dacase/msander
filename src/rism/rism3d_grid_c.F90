@@ -240,17 +240,6 @@ contains
 
     this%boxLength = this%globalDimsR * this%spacing
 
-    !TODO: Temporary workaround since boxLength is not defined for
-    ! buffer + grid space combo until here.
-    if (.not. this%periodic) then
-       unitCellDimensions = (/ &
-            this%boxLength(1), &
-            this%boxLength(2), &
-            this%boxLength(3), &
-            90d0, 90d0, 90d0 /)
-       call rism3d_grid_setUnitCellDimensions(this, unitCellDimensions, this%periodic)
-    end if
-    
     if (this%periodic) then
        ! Area of base times height
        ! = cross product of base with the dot product of height.
@@ -261,9 +250,6 @@ contains
        this%voxelVolume = dot_product( &
             & cross((this%voxelVectorsR(1,:)), (this%voxelVectorsR(2,:))), &
             & this%voxelVectorsR(3,:))
-    else
-       this%boxVolume = product(this%boxLength)
-       this%voxelVolume = product(this%spacing)
     end if
 
     width_a = abs(dot_product(this%unitCellVectorsR(1,:), &
@@ -353,19 +339,6 @@ contains
     this%unitCellVectorsK(1, :) = u23(:) / unitCellVolume
     this%unitCellVectorsK(2, :) = u31(:) / unitCellVolume
     this%unitCellVectorsK(3, :) = u12(:) / unitCellVolume
-
-#if 0
-    if( this%periodic ) then
-       write(6,'(a)') 'Unit cell vectors:'
-       write(6,'(3f12.5)') this%unitCellVectorsR(1,:)
-       write(6,'(3f12.5)') this%unitCellVectorsR(2,:)
-       write(6,'(3f12.5)') this%unitCellVectorsR(3,:)
-       write(6,'(a)') 'Reciprocal cell vectors:'
-       write(6,'(3f12.5)') this%unitCellVectorsK(1,:)
-       write(6,'(3f12.5)') this%unitCellVectorsK(2,:)
-       write(6,'(3f12.5)') this%unitCellVectorsK(3,:)
-    endif
-#endif
 
   end subroutine rism3d_grid_setUnitCellDimensions
 
@@ -487,22 +460,12 @@ contains
                   (gDimZ / 2 - 1), gDimZ) - (gDimZ / 2 - 1)
 
              ! Calculating wave vector and its self-product.
-             if (.not. this%periodic) then
-                waveX = 2d0 * PI / this%boxLength(1) * lgx
-                waveY = 2d0 * PI / this%boxLength(2) * lgy
-                waveZ = 2d0 * PI / this%boxLength(3) * lgz
-                this%waveVectors(1, igk) = waveX
-                this%waveVectors(2, igk) = waveY
-                this%waveVectors(3, igk) = waveZ
-                this%waveVectors2(igk) = waveX**2 + waveY**2 + waveZ**2
-             else
                 this%waveVectors(:,igk) = &
                      2d0 * PI * (this%unitCellVectorsK(1,:) * lgx &
                      + this%unitCellVectorsK(2,:) * lgy &
                      + this%unitCellVectorsK(3,:) * lgz)
                 this%waveVectors2(igk) = dot_product(this%waveVectors(:,igk), &
                      this%waveVectors(:,igk))
-             end if
           end do
        end do
     end do
@@ -532,17 +495,6 @@ contains
              igk = 1 + igx + igy * this%globalDimsR(1) / 2 + igz * this%globalDimsR(2) * this%globalDimsR(1) / 2
              
              ! Calculate wave vector and its self-product.
-             if (.not. this%periodic) then
-                !   dac note: next three lines look like orthogonal code(?)
-                waveX = 2d0 * PI / this%boxLength(1) * lgx
-                waveY = 2d0 * PI / this%boxLength(2) * lgy
-                waveZ = 2d0 * PI / this%boxLength(3) * lgz
-                this%waveVectors(1, igk) = waveX
-                this%waveVectors(2, igk) = waveY
-                this%waveVectors(3, igk) = waveZ
-                this%waveVectors2(igk) = waveX**2 + waveY**2 + waveZ**2
-                ! write(0,'(a,2i5,3f12.5)'), 'orthog:  ', igk, lgx, this%waveVectors(:,igk)
-             else
                 this%waveVectors(:,igk) = &
                      2d0 * PI * (this%unitCellVectorsK(1,:) * lgx &
                      + this%unitCellVectorsK(2,:) * lgy &
@@ -550,7 +502,6 @@ contains
                 this%waveVectors2(igk) = dot_product(this%waveVectors(:,igk), &
                      this%waveVectors(:,igk))
                 ! write(0,'(a,2i5,3f12.5)'), 'northog: ', igk, lgx, this%waveVectors(:,igk)
-             end if
           end do
        end do
     end do
@@ -568,24 +519,12 @@ contains
           lgz = mod(igz + (this%globalDimsR(3) / 2 - 1), this%globalDimsR(3)) - (this%globalDimsR(3) / 2 - 1)
 
           ! Calculate wave vector and its self-product.
-          if (.not. this%periodic) then
-             waveX = 2d0 * PI / this%boxLength(1) * lgx
-             waveY = 2d0 * PI / this%boxLength(2) * lgy
-             waveZ = 2d0 * PI / this%boxLength(3) * lgz
-             this%waveVectors(1, igk) = waveX
-             this%waveVectors(2, igk) = waveY
-             this%waveVectors(3, igk) = waveZ
-             this%waveVectors2(igk) = waveX**2 + waveY**2 + waveZ**2
-             ! write(0,'(a,2i5,3f12.5)'), 'orthog:  ', igk, lgx, this%waveVectors(:,igk)
-          else
              this%waveVectors(:,igk) = &
                   2d0 * PI * this%unitCellVectorsK(1, :) * lgx &
                   + 2d0 * PI * this%unitCellVectorsK(2, :) * lgy &
                   + 2d0 * PI * this%unitCellVectorsK(3, :) * lgz
              this%waveVectors2(igk) = &
                   dot_product(this%waveVectors(:, igk), this%waveVectors(:, igk))
-             ! write(0,'(a,2i5,3f12.5)'), 'northog: ', igk, lgx, this%waveVectors(:,igk)
-          end if
        end do
     end do
 

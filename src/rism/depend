@@ -74,30 +74,6 @@ dcpval.o:   dcpval.F90
 		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dcpval.F90
 
 
-dqagie.o:   dqagie.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dqagie.F90
-
-
-dqelg.o:   dqelg.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dqelg.F90
-
-
-dqk15i.o:   dqk15i.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dqk15i.F90
-
-
-dqpsrt.o:   dqpsrt.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dqpsrt.F90
-
-
 dsi.o:   dsi.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
@@ -412,7 +388,6 @@ rism3d_potential_c.o: \
                     rism3d_fft.o\
                     def_time.h\
                     rism3d_opendx.o\
-                    rism3d_tree_cp.o\
                     bspline.o\
                     fftw3.o
 
