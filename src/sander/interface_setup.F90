@@ -167,12 +167,6 @@
 
    nwdvar = 1
    native = 32
-#ifdef ISTAR2
-
-   ! --- Int*2 packing scheme ---
-
-   nwdvar = 2
-#endif  /*ISTAR2*/
    numpk = nwdvar
    nbit = native/numpk
 

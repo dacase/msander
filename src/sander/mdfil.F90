@@ -31,7 +31,6 @@ subroutine mdfil(VERSION, version_requested)
    !     excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile, &
    !     solventPotentialEnergyfile, electronMapFile, crdFile
 #endif
-   use cns_xref, only : is_xref_on
 
    implicit none
 
@@ -189,7 +188,6 @@ subroutine mdfil(VERSION, version_requested)
    owrite = 'N'
 
    facc = 'W'           ! default: overwriting
-   is_xref_on = .false.   !  default for cns_xref
 
 !AMD log file
    amdlog = 'amd.log'   ! default log file name for AMD

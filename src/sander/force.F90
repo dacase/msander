@@ -95,7 +95,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use linear_response, only: ilrt, ee_linear_response, energy_m0, energy_w0, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
                              do_lrt, f_scratch, lrt_solute_sasa
-  use cns_xref
   use xray_interface_module, only: xray_get_derivative, xray_active
 #ifdef USE_ISCALE
   use xray_globals_module, only: atom_bfactor
@@ -954,9 +953,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     edssp = 0.d0
   end if
 #endif
-
-  ! X-ray refinement section: add the target function and gradient
-  call cns_xref_run(natom,ih(m04), x,f,ener)
 
   ! Built-in X-ray target function and gradient
   xray_e = 0.d0

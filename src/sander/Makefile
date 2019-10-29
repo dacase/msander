@@ -68,7 +68,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     matinv.o assert.o erfcfun.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
     $(AMOEBAOBJ) AmberNetcdf.o bintraj.o binrestart.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
+    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
 LSCIVROBJ = lscivr_vars.o lsc_init.o lsc_xp.o
@@ -92,7 +92,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     erfcfun.o md_scheme.LES.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
     $(AMOEBAOBJ) les.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
+    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o barostats.o \
     qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \

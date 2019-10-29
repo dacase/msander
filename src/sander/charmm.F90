@@ -2379,30 +2379,6 @@ subroutine read_cmap_params(nf)
     call generate_cmap_derivatives
 
   endif !if(iok == 0)
-  !Debug
-#ifdef FF11_DEBUG
-  write(6,'(a60)') &
-  "====================================================================="
-  write(6,'(a50)') "         CMAP parsing summary"
-  write(6,'(a60)') &
-  "====================================================================="
-  write(6,'(a)') ""
-  write(6,'(a,i4,a)') "Dumping entire contents of cmap_types(",&
-                                              cmap_type_count,")"
-  write(6,'(a)') ""
-
-  do i=1,cmap_type_count
-    write(6,'(a,i4,a,i4,a)') "cmap_types(",i,"/",cmap_type_count,")"
-    call show_cmap( cmap_types(i) )
-  enddo
-
-  write(6,'(a)') "Atom index to CMAP index map:"
-  write(6,'(a,i4)') "cmap_term_count is:",cmap_term_count
-  do i=1,cmap_term_count
-    write(6,'(6I8)') cmap_index(1:6,i)
-  enddo
-  write(6,'(a)') ""
-#endif /* FF11_DEBUG */
 
 ! ------------------------------
 ! * ENDREAD CMAP TERMS *

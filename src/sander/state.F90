@@ -97,9 +97,6 @@ module state
   ! 
   ! - Newbalance in fdist() is broken and USE_MPI_IN_PLACE may also be broken
   !
-  ! - xref.f::cns_xref_run() is broken, I cannot understand what is being done
-  !   in this routine to map it over to the new state_rec.
-
 
   implicit none
   private 

@@ -182,7 +182,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
         rism_calc_type, rism_thermo_print
 #endif
    use qmmm_module, only : qmmm_nml
-   use cns_xref
    use state ! Access to energy_rec
    use charmm_mod, only : charmm_active
    use crg_reloc, only : ifcr
@@ -332,7 +331,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
 #endif
    if( gbsa > 0 ) write(6,9077) esurf
    if (igb == 10 .or. ipb /= 0) write(6,9074) esurf,edisp
-   call write_cns_xref_min_energies( ene )
 #ifdef APBS
    if (igb == 6 .and. mdin_apbs ) write(6,9069) esurf
 #endif /* APBS */

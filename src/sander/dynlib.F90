@@ -272,7 +272,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #endif
 
   use qmmm_module, only: qmmm_nml,qmmm_struct
-  use cns_xref
   use xray_interface_module, only: xray_active, xray_write_md_state
   use state
   use charmm_mod, only: charmm_active
@@ -594,7 +593,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
                    ener%sgld%trefhf, ener%sgld%frchf, ener%sgld%epothf, &
                    ener%sgld%virsg
   endif
-  call write_cns_xref_md_energies(ener)
   if (xray_active) call xray_write_md_state(6)
 
 #ifdef MPI
