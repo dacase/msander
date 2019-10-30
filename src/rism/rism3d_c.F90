@@ -899,49 +899,31 @@ contains
 
     call rism_timer_start(this%solventTimer)
 
-    ! 0) Quick check that the tolerance list is of the correct length.
+    ! 1) Quick check that the tolerance list is of the correct length.
     if (ubound(tolerance, 1) /= ubound(this%closureList, 1)) &
          call rism_report_error("(a,i3,a,i3)", &
          "RISM3D_SOLVE: number of tolerances, ", &
          ubound(tolerance, 1), ", is not equal to numer of closures, ", &
          ubound(this%closureList, 1))
 
-    ! 1) Reorient solute along the principal axis and resize the grids
-    ! if necessary.
-
-    ! 2a) Set tolerances for LJ potential and long range asymptotics
-    ! asympKSpaceTolerance
-    ! Case 1: use the  asympKSpaceTolerance as is
-    ! Case 2: if asympKSpaceTolerance < 0, select the asympKSpaceTolerance < tolerance
-    ! Case 3: if asympKSpaceTolerance > 0, use the asympKSpaceTolerance
-    if (this%asympKSpaceTolerance <0d0) then
-       asympKSpaceTolerance = tolerance(size(tolerance))/10
-    else
-       asympKSpaceTolerance = this%asympKSpaceTolerance
-    end if
-
-    ! k-space asymptotics cutoff depends on the box size and is called
-    ! in resizeBox()
-        
-    ! 2b) Get the minimum box size for this frame.
-    ! DAC: don't redo the box size stuff all the time for periodic?
-    !  old:   if (this%periodic .or. this%varbox .or. this%nsolution == 0) then
-    if (this%varbox .or. this%nsolution == 0) then
+    ! 2) Get the box size (assumed to be fixed here)
+    if (this%nsolution == 0) then
        call rism_timer_start(this%resizeTimer)
        call timer_start(TIME_RESIZE)
        call resizeBox(this)
        call timer_stop(TIME_RESIZE)
        call rism_timer_stop(this%resizeTimer)
-    end if
 
-    if (this%verbose>=0) then
        call rism_report_message("||Setting solvation box to")
        call rism_report_message("(3(a,i10))", "|grid size: ", &
-            this%grid%globalDimsR(1), " X ", this%grid%globalDimsR(2), " X ", this%grid%globalDimsR(3))
+            this%grid%globalDimsR(1), " X ", this%grid%globalDimsR(2), &
+            " X ", this%grid%globalDimsR(3))
        call rism_report_message("(3(a,f10.3))", "|box size [A]:  ", &
-            this%grid%boxLength(1), " X ", this%grid%boxLength(2), " X ", this%grid%boxLength(3))
+            this%grid%boxLength(1), " X ", this%grid%boxLength(2), &
+            " X ", this%grid%boxLength(3))
        call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
-            this%grid%spacing(1), " X ", this%grid%spacing(2), " X ", this%grid%spacing(3))
+            this%grid%spacing(1), " X ", this%grid%spacing(2), &
+            " X ", this%grid%spacing(3))
        call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
             this%grid%unitCellAngles(1) * 180 / pi, ", ", &
             this%grid%unitCellAngles(2) * 180 / pi, ", ", &
@@ -954,7 +936,6 @@ contains
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
     call rism3d_potential_calc(this%potential,ljTolerance)
-
 
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
