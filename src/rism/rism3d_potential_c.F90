@@ -1220,55 +1220,6 @@ contains
     end if
   end subroutine uvParticleMeshRecipEwaldPotential
 
-  !> Returns the value of the k-space expression for the Lennard-Jones potential
-  !! beyond the cutoff.
-  !! @param[in] k wave number
-  !! @param[in] iu solute atom number
-  !! @param[in] iv solvent species number
-  !! @return The value
-  function rism3D_potential_ulj_gt_cut_k(this,k,iu,iv) result(ulj)
-    use constants, only : pi
-    implicit none
-    type(rism3d_potential), intent(in) :: this
-    _REAL_, intent(in) :: k
-    integer, intent(in) :: iu, iv
-    _REAL_ :: ulj
-    _REAL_ :: cut, cut_inv
-    _REAL_, external :: dsi
-    cut = sqrt(this%ljCutoffs2(iu,iv))
-    cut_inv = 1d0/cut
-    ! could be improved with Horner's method
-
-    ! write(6,*) 'ljCutoff',iu,iv,sqrt(this%ljCutoffs2(iu,iv))
-    ! write(6,*) 'ljA ljB',iu,iv, this%ljAUV(iu,iv),this%ljBUV(iu,iv)
-    ! write(6,*) 'dsi',cut, k,dsi(cut*k)
-    ! r6
-    ulj = -this%ljBUV(iu,iv) * pi/ (12d0 * k) &
-         *( k**4 * (pi - 2*dsi(cut*k)) &
-         
-         -2*(cut_inv**2*k**2 - 6d0*cut_inv**4)*sin(cut*k) &
-         
-         -2*k*(cut_inv*k**2 - 2d0*cut_inv**3)*cos(cut*k))
-
-    ulj = ulj + this%ljAUV(iu,iv) * pi/ (1814400d0 * k) &
-         *(-k**10*(pi - 2*dsi(cut*k)) &
-         
-         +2*((((    cut_inv**2*k**2 &
-              - 6d0*cut_inv**4)*k**2 &
-            + 120d0*cut_inv**6)*k**2 &
-           - 5040d0*cut_inv**8)*k**2 &
-         + 362880d0*cut_inv**10)&
-         *sin(cut*k) &
-         
-         +2*k*(((( cut_inv*k**2&
-             - 2d0*cut_inv**3)*k**2 &
-            + 24d0*cut_inv**5)*k**2 &
-           - 720d0*cut_inv**7)*k**2 &
-         + 40320d0*cut_inv**9)&
-         *cos(cut*k))
-
-  end function rism3D_potential_ulj_gt_cut_k
-  
   !> Applying minimum-image convention to find distance from grid
   !! point to nearest solute atom image, which may be in an adjacent
   !! cell. Closest image is based on solute unit cell dimensions.

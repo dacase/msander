@@ -52,24 +52,6 @@ constants.o:   constants.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ constants.F90
 
-
-d1mach.o:   d1mach.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ d1mach.F90
-
-
-dcpval.o:   dcpval.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dcpval.F90
-
-
-dsi.o:   dsi.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ dsi.F90
-
 erfcfun.o: \
                     ../include/dprec.fh\
                     constants.o
@@ -91,40 +73,10 @@ fce_c.o:   fce_c.F90
 		$(FOPTFLAGS) $(FFLAGS) -o $@ fce_c.F90
 
 
-fdump.o:   fdump.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ fdump.F90
-
-
 fftw3.o:   fftw3.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FNOOPTFLAGS) $(FFLAGS) -o $@ fftw3.F90
-
-getopts_c.o: \
-                    ../include/dprec.fh\
-                    safemem.o\
-                    array_util.o\
-                    rism_report_c.o
-
-
-getopts_c.o:   getopts_c.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ getopts_c.F90
-
-
-i1mach.o:   i1mach.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ i1mach.F90
-
-
-j4save.o:   j4save.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ j4save.F90
 
 mdiis_blas2_c.o: \
                     ../include/dprec.fh\
@@ -476,40 +428,4 @@ safemem.o:   safemem.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ safemem.F90
-
-
-xercnt.o:   xercnt.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xercnt.F90
-
-
-xerhlt.o:   xerhlt.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xerhlt.F90
-
-
-xermsg.o:   xermsg.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xermsg.F90
-
-
-xerprn.o:   xerprn.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xerprn.F90
-
-
-xersve.o:   xersve.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xersve.F90
-
-
-xgetua.o:   xgetua.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ xgetua.F90
 
