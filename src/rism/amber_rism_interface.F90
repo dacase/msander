@@ -625,8 +625,7 @@ contains
 
   !> Sets all input parameters for 3D-RISM.  This _must_ be called by the head
   !! node and may be called by all nodes.  If all nodes call this
-  !! subroutine they must all agree on the value of rismprm%rism
-  !! (SANDER) or userData%rism(SFF).
+  !! subroutine they must all agree on the value of rismprm%rism (SANDER) 
   !!
   !! SANDER prerequisites:
   !!   - Names of 3D-RISM specific I/O files (Xvv, Guv, etc.) are specified on the
@@ -636,11 +635,6 @@ contains
   !! SANDER IN:
   !! @param[in] mdin Name of the mdin file that SANDER name lists are read from.
   !!
-  !! SFF prerequisites:
-  !!   - All user options (including file names) are read from mm_options.l.
-  !!    Non-string options are read into a C struct equivalent to rismprm_t.
-  !!    String options are supplied as char* array, integer length pairs.
-  !!   - gb should be set to 0 (vacuum electrostatics).
   !! @param[in] userdata rismprm_t C struct equivalent with use options.
   !! @param[in] ntol Number of tolerances in the array.
   !! @param[in] tol Array of tolerances read in from the user.
@@ -2915,88 +2909,6 @@ contains
     rismprm%chargeSmear = 1d0
     rismprm%write_thermo=1
   end subroutine defaults
-
-  
-  !> Transfers RISM settings from a rismprm_t type (user) to the
-  !! rismprm parameter set for the 3D-RISM calculation.  For each
-  !! possible setting the new value is used IFF the value > -9999.
-  subroutine update_param(user)
-    use amber_rism_interface
-    implicit none
-    type(rismprm_t), intent(in) :: user
-    rismprm%rism = user%rism
-    rismprm%molReconstruct = user%molReconstruct
-    ! asympCorr, periodic(?), direct sums and selftest are logical, so we can't perform the test
-    rismprm%asympCorr = user%asympCorr
-    rismprm%selftest = user%selftest
-    rismprm%treeDCF = user%treeDCF
-    rismprm%treeTCF = user%treeTCF
-    rismprm%treeCoulomb = user%treeCoulomb
-    
-    if (user%closureOrder > -9999) rismprm%closureOrder = user%closureOrder
-    if (user%uccoeff(1) > -9999) rismprm%uccoeff = user%uccoeff
-    if (user%biasPotential /= 0) rismprm%biasPotential = user%biasPotential
-    if (user%polarDecomp > -9999) rismprm%polarDecomp = user%polarDecomp
-    if (user%entropicDecomp > -9999) rismprm%entropicDecomp = user%entropicDecomp
-    if (user%gfCorrection > -9999) rismprm%gfCorrection = user%gfCorrection
-    if (user%pcplusCorrection > -9999) rismprm%pcplusCorrection = user%pcplusCorrection
-    ! if (user%periodic > -9999) then
-    !    rismprm%periodic = user%periodic
-    !    ! This is the default centering value in periodic case, and
-    !    ! must precede the user defined value.
-    !    rismprm%centering = 0
-    ! end if
-
-    if (user%buffer > -9999) rismprm%buffer = user%buffer
-    if (user%solvcut > 0) then
-       rismprm%solvcut = user%solvcut
-    else
-       rismprm%solvcut = rismprm%buffer
-    end if
-    if (user%grdspc(1) > -9999) rismprm%grdspc = user%grdspc
-    if (user%ng3(1) > -9999) rismprm%ng3 = user%ng3
-    if (user%solvbox(1) > -9999) rismprm%solvbox = user%solvbox
-    if (user%mdiis_del > -9999) rismprm%mdiis_del = user%mdiis_del
-    if (user%mdiis_nvec > -9999) rismprm%mdiis_nvec = user%mdiis_nvec
-    if (user%mdiis_method > -9999) rismprm%mdiis_method = user%mdiis_method
-    if (user%mdiis_restart > -9999) rismprm%mdiis_restart = user%mdiis_restart
-    if (user%maxstep > -9999) rismprm%maxstep = user%maxstep
-    if (user%npropagate > -9999) rismprm%npropagate = user%npropagate
-    if (user%centering > -9999) rismprm%centering = user%centering
-    if (user%zerofrc > -9999) rismprm%zerofrc = user%zerofrc
-    if (user%apply_rism_force > -9999) rismprm%apply_rism_force = user%apply_rism_force
-    if (user%rismnrespa > -9999) rismprm%rismnrespa = user%rismnrespa
-    if (user%fcestride > -9999) rismprm%fcestride = user%fcestride
-    if (user%fcecut > -9999) rismprm%fcecut = user%fcecut
-    if (user%fcenbasis > -9999) rismprm%fcenbasis = user%fcenbasis
-    if (user%fcenbase > -9999) rismprm%fcenbase = user%fcenbase
-    if (user%fcecrd > -9999) rismprm%fcecrd = user%fcecrd
-    if (user%fceweigh > -9999) rismprm%fceweigh = user%fceweigh
-    if (user%fcetrans > -9999) rismprm%fcetrans = user%fcetrans
-    if (user%fcesort > -9999) rismprm%fcesort = user%fcesort
-    if (user%fceifreq > -9999) rismprm%fceifreq = user%fceifreq
-    if (user%fcentfrcor > -9999) rismprm%fcentfrcor = user%fcentfrcor
-    if (user%fcewrite > -9999) rismprm%fcewrite = user%fcewrite
-    if (user%fceread > -9999) rismprm%fceread = user%fceread
-    if (user%fceenormsw > -9999) rismprm%fceenormsw = user%fceenormsw
-    if (user%treeDCFMAC > -9999) rismprm%treeDCFMAC = user%treeDCFMAC
-    if (user%treeTCFMAC > -9999) rismprm%treeTCFMAC = user%treeTCFMAC
-    if (user%treeCoulombMAC > -9999) rismprm%treeCoulombMAC = user%treeCoulombMAC
-    if (user%treeDCFOrder > -9999) rismprm%treeDCFOrder = user%treeDCFOrder
-    if (user%treeTCFOrder > -9999) rismprm%treeTCFOrder = user%treeTCFOrder
-    if (user%treeCoulombOrder > -9999) rismprm%treeCoulombOrder = user%treeCoulombOrder
-    if (user%treeDCFN0 > -9999) rismprm%treeDCFN0 = user%treeDCFN0
-    if (user%treeTCFN0 > -9999) rismprm%treeTCFN0 = user%treeTCFN0
-    if (user%treeCoulombN0 > -9999) rismprm%treeCoulombN0 = user%treeCoulombN0
-    if (user%asympKSpaceTolerance > -9999) rismprm%asympKSpaceTolerance = user%asympKSpaceTolerance
-    if (user%ljTolerance > -9999) rismprm%ljTolerance = user%ljTolerance
-    if (user%chargeSmear > -9999) rismprm%chargeSmear = user%chargeSmear
-    if (user%saveprogress > -9999) rismprm%saveprogress = user%saveprogress
-    if (user%ntwrism > -9999) rismprm%ntwrism = user%ntwrism
-    if (user%verbose > -9999) rismprm%verbose = user%verbose
-    if (user%progress > -9999) rismprm%progress = user%progress
-  end subroutine update_param
-
   
   !> Reads the RISM namelist from the input file.
   subroutine read_namelist(mdin_unit)
