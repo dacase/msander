@@ -33,15 +33,6 @@ array_util.o:   array_util.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ array_util.F90
 
-blend.o: \
-                    ../include/dprec.fh
-
-
-blend.o:   blend.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ blend.F90
-
 bspline.o: \
                     ../include/dprec.fh\
                     constants.o
@@ -205,43 +196,6 @@ quaternion.o:   quaternion.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ quaternion.F90
-
-rism3d.orave.o: \
-                    ../include/dprec.fh\
-                    safemem.o\
-                    getopts_c.o\
-                    rism_report_c.o\
-                    rism3d_grid_c.o\
-                    quaternion.o\
-                    constants.o\
-                    rism3d_opendx.o\
-                    rism_util.o
-
-
-rism3d.orave.o:   rism3d.orave.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ rism3d.orave.F90
-
-rism3d.thermo.o: \
-                    ../include/dprec.fh\
-                    safemem.o\
-                    getopts_c.o\
-                    rism_report_c.o\
-                    rism3d_solvent_c.o\
-                    rism3d_solute_c.o\
-                    rism3d_potential_c.o\
-                    rism3d_grid_c.o\
-                    rism3d_closure_c.o\
-                    rism3d_opendx.o\
-                    rism_util.o\
-                    constants.o
-
-
-rism3d.thermo.o:   rism3d.thermo.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ rism3d.thermo.F90
 
 rism3d_c.o: \
                     ../include/dprec.fh\
@@ -446,16 +400,6 @@ rism3d_solvent_c.o:   rism3d_solvent_c.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ rism3d_solvent_c.F90
 
-rism3d_tree_cp.o: \
-                    ../include/dprec.fh\
-                    safemem.o
-
-
-rism3d_tree_cp.o:   rism3d_tree_cp.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ rism3d_tree_cp.F90
-
 rism3d_xyzv.o: \
                     ../include/dprec.fh\
                     safemem.o\
@@ -532,26 +476,6 @@ safemem.o:   safemem.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ safemem.F90
-
-
-scpval.o:   scpval.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ scpval.F90
-
-solvmdl_c.o: \
-                    ../include/dprec.fh\
-                    rism_report_c.o\
-                    rism_util.o\
-                    rism_parm.o\
-                    constants.o\
-                    safemem.o
-
-
-solvmdl_c.o:   solvmdl_c.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ solvmdl_c.F90
 
 
 xercnt.o:   xercnt.F90
