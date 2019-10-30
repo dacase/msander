@@ -58,7 +58,7 @@
         excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile,&
         solventPotentialEnergyfile
 #  endif /* API */
-   use sander_rism_interface, only: rismprm, rism_getPeriodicPotential
+   use sander_rism_interface, only: rismprm
 #endif /*RISMSANDER*/
 #ifdef APBS
    use apbs
@@ -855,32 +855,21 @@
    end if
 
 #ifdef RISMSANDER
-   ! FIXME periodic RISM currently does not work with the API because it tries
-   ! to extract information from the mdin file.
-#  ifndef API
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
    ! electrostatics are initialized properly.
+
    rismprm%rism=irism
 
    if (irism /= 0) then
-      call rism_getPeriodicPotential(mdin, periodicPotential)
+      periodicPotential = 'pme'
 
-      if (periodicPotential == "") then
 #   ifndef API
-         write(6,'(a)') "|non-periodic 3D-RISM Forcing igb=6"
+      write(6,'(a)') "|periodic 3D-RISM Forcing igb=0"
 #   endif
-         igb = 6
-      else
-#   ifndef API
-         write(6,'(a)') "|periodic 3D-RISM Forcing igb=0"
-#   endif
-         igb = 0
-      end if
+      igb = 0
    end if
-#  endif
 #endif /*RISMSANDER*/
-
 
    if (ifqnt>0) then
       qmmm_nml%ifqnt = .true.

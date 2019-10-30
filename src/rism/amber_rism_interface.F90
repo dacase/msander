@@ -326,17 +326,6 @@ end module rismthermo_c
 !!  endif
 !!  call rism_init(commsander)
 !!
-!! In SFF:
-!!  rism_setparam_( &rismData, &xvvlen, xvvfile,
-!!                  &guvlen, guvfile, &huvlen, huvfile, &cuvlen, cuvfile,
-!!                  &uuvlen, uuvfile, &asymplen, asympfile,
-!!                  &quvlen, quvfile, &chgdistlen, chgdistfile,
-!!                  &volfmtlen, volfmt,
-!!                  &comm,
-!!                  &gb, &(prm->NumAtoms), &(prm->Ntypes), prm->Charges,
-!!                  prm->Masses, prm->Cn1, prm->Cn2, prm->Iac, prm->Cno);
-!!  rism_init_(&comm);
-!!
 !! MPI and other subroutines and functions: All public functions are
 !! safe to call from all nodes and usually must be.  Only
 !! RISM_THERMO_PRINT and RISM_SETPARAM must exclusively be called by
@@ -729,7 +718,6 @@ contains
     integer, intent(in) :: numAtoms, numTypes, atomTypeIndex(numTypes**2), nonbondedParmIndex(numAtoms)
     _REAL_, intent(in) :: charge(numAtoms), mass(numAtoms), ljA(numTypes*(numTypes + 1)/2), &
          ljB(numTypes*(numTypes + 1)/2)
-    !  character(*), intent(in) :: xvvfile, mdin
     character(*), intent(in) :: mdin
     integer :: mdin_unit=55
     integer, intent(in) :: comm
@@ -959,147 +947,8 @@ contains
     end if
 
     call rism_timer_stop(timer_init)
-
   end subroutine rism_setparam
 
-
-  !! Obtain the periodic potential early in sander input processing.
-  !! TODO: This is a hacky solution to ensure igb is set correctly in
-  !! mdread1.F90 which is before rism parameters are normally are set
-  !! by sander. rism_setparam ends up doing the same parmeter file
-  !! parsing later. Either all rism processing could be done when this
-  !! function is called, allowing this to be merged into
-  !! rism_setparam, or else only the parameter file could be parsed
-  !! here, making rism_setparam not need to do so later.
-  subroutine rism_getPeriodicPotential(mdin, periodicPotentialLabel)
-    use amber_rism_interface
-    implicit none
-    character(*), intent(in) :: mdin
-    character(len=8), intent(out) :: periodicPotentialLabel
-    ! character(len=8) :: periodic = ''
-    integer :: un
-    integer :: stat
-    logical :: op
-
-    character(len=8) :: closure(nclosuredefault)
-    _REAL_ :: tolerance(nclosuredefault)
-    integer :: closureOrder
-    integer :: mdin_unit
-    logical :: asympCorr
-    integer :: entropicDecomp
-    integer :: polarDecomp
-    integer :: gfcorrection
-    integer :: pcpluscorrection
-    character(len=8) :: periodic = ''
-    _REAL_ :: uccoeff(size(rismprm%uccoeff))
-    _REAL_ :: biasPotential
-    _REAL_ :: solvcut
-    _REAL_ :: buffer
-    _REAL_ :: grdspc(3)
-    integer ::  ng3(3)
-    _REAL_ :: solvbox(3)
-    _REAL_ :: mdiis_del
-    integer :: mdiis_nvec
-    integer :: mdiis_method
-    _REAL_ :: mdiis_restart
-    integer :: maxstep
-    integer :: npropagate
-    integer :: centering
-    integer :: zerofrc
-    integer :: apply_rism_force
-    integer :: rismnrespa
-    integer :: fcestride
-    _REAL_ :: fcecut
-    integer ::  fcenbasis
-    integer ::  fcenbase
-    integer ::  fcecrd
-    integer ::  fceweigh
-    integer ::  fcetrans
-    integer ::  fcesort
-    integer ::  fceifreq
-    integer ::  fcentfrcor
-    integer ::  fcewrite
-    integer ::  fceread
-    _REAL_  ::  fceenormsw
-    integer :: saveprogress
-    integer :: ntwrism
-    integer :: verbose
-    integer :: progress
-    logical :: treeDCF
-    logical :: treeTCF
-    logical :: treeCoulomb
-    _REAL_ :: treeDCFMAC
-    _REAL_ :: treeTCFMAC
-    _REAL_ :: treeCoulombMAC
-    integer :: treeDCFOrder
-    integer :: treeTCFOrder
-    integer :: treeCoulombOrder
-    integer :: treeDCFN0
-    integer :: treeTCFN0
-    integer :: treeCoulombN0
-    _REAL_ :: asympKSpaceTolerance
-    _REAL_ :: ljTolerance
-    _REAL_ :: chargeSmear
-    logical :: molReconstruct
-    integer :: write_thermo
-    namelist /rism/ &
-         ! closure
-         closure, closureOrder, uccoeff, &
-         entropicDecomp, polarDecomp, &
-         gfCorrection, pcpluscorrection,&
-         biasPotential, &
-         ! thermodynamics
-         asympCorr, periodic, &
-         ! solvation box
-         buffer, grdspc, solvcut, &
-         ng3, solvbox, &
-         ! convergence
-         tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
-         mdiis_restart, maxstep, npropagate, &
-         ! minimization
-         centering, zerofrc, &
-         ! imin=5
-         apply_rism_force, pa_orient, rmsd_orient, &
-         ! md
-         rismnrespa, &
-         ! treecode and direct sum
-         treeDCF, treeTCF, treeCoulomb, &
-         treeDCFMAC, treeTCFMAC, treeCoulombMAC, &
-         treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
-         treeDCFN0, treeTCFN0, treeCoulombN0, &
-         ! long-range asymptotics parameters
-         asympKSpaceTolerance, chargeSmear, &
-         ! LJ potential
-         ljTolerance, &
-         ! molecular reconstruction
-         molReconstruct, &
-#ifdef RISM_CRDINTERP
-         fcestride, fcecut, fcenbasis, fcenbase, fcecrd, &
-         fceweigh, fcetrans, fcesort, fceifreq, fcentfrcor, &
-         fcewrite, fceread, fceenormsw, &
-#endif /*RISM_CRDINTERP*/
-         !output
-         write_thermo, &
-         saveprogress, ntwrism, verbose, progress, volfmt
-
-    inquire(file=mdin, opened=op, number=un)
-    if (op) mdin_unit=un
-    open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
-    if (stat /= 0) then
-       call rism_report_error('(a, i4)', "opening "//trim(mdin)//"failed. IOSTAT=", stat)
-    end if
-
-    
-    rewind(mdin_unit)
-    read(mdin_unit, nml=rism)
-    
-    if (.not. op) close(unit=mdin_unit)
-
-    periodicPotentialLabel = periodic
-    
-  end subroutine rism_getPeriodicPotential
-
-  
   !> Performs all of the initialization required for 3D-RISM
   !! calculations. All parameters should have already been set with
   !! RISM_SETPARAM. For MPI calculations this _must_ be called by all
