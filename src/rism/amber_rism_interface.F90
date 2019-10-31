@@ -713,13 +713,13 @@ contains
 
 #ifdef OPENMP
     ! TODO: following code has not yet been tested.
-    ier = fftw_init_threads()
-    write(6,*) 'fftw_init_threads() returns ', ier
+    ! ier = fftw_init_threads()
+    ! write(6,*) 'fftw_init_threads() returns ', ier
 
     call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
     read( omp_num_threads, * ) numtasks
-    write(6,'(a,i3)') 'call fftw_plan_with_numthreads: ',numtasks
-    call fftw_plan_with_nthreads(numtasks)
+    write(6,'(a,i3,a)') '| Running OpenMP with ',numtasks,' threads'
+    ! call fftw_plan_with_nthreads(numtasks)
 #endif
 
     call rism3d_solvent_new(solvent, xvvfile)    
