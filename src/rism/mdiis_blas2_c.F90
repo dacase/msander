@@ -310,10 +310,6 @@ contains
 #endif /* defined(MPI) */
 
 
-    !Copy memory from the active row into the active column.
-    !There is memory aliasing in this DCOPY call and it is not safe to use.  Instead
-    !we give the compiler control.  The data transfer is so small that this should be insignificant
-!    call DCOPY(nvecWRK, this%overlap(this%vecMap(1), 1), this%nvec, this%overlap(1, this%vecMap(1)), 1)
     this%overlap(:nvecWRK, this%vecmap(1)) = this%overlap(this%vecmap(1), :nvecWRK)
     call timer_stop(TIME_MDIIS_DATA)
     call rism_timer_stop(this%overlapTimer)
