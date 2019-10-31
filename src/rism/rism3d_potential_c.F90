@@ -2,134 +2,6 @@
 
 #include "../include/dprec.fh"
 
-!> A wrapper module to determine k-space long-range asymptotics cut
-!! offs using Newton-Raphson root finding.
-!!
-!! DCF and TCF long-range asymptotics both have similar leading
-!! factors that depend only on the wave vector squared, k2, and not on
-!! the position of the atoms. The contribution of the atom positions
-!! is no more that the total charge of the solute. A suitable cutoff
-!! for k2 is when this factor, multiplied by the total charge, is very
-!! small. We can determine this by solving for k2 that gives a
-!! suitably small number.
-!!
-!! Since the TCF also has a factor of 1/(dielectric constant) and adds
-!! the square of inverse Debye length to k2, it always has a longer
-!! cut off and we can just use the cut off for the DCF.
-!!
-!! See Eqs. 9b and 10a of S. Genheden,
-!! T. Luchko, S. Gusarov, A. Kovalenko, and U. Ryde, The Journal of
-!! Physical Chemistry B 114, 8505 (2010).
-!!
-!! We can't pass internal functions as arguments until gfortran 4.6,
-!! so wrapping this in a module is required.
-module asympk_cut
-  implicit none
-  _REAL_ :: DCFTolerance, DCFCoefficient, SmearSq
-  private :: DCFTolerance, DCFCoefficient, SmearSq
-  contains
-
-    !> Calculates the minimum cut off distance to achieve a maximum DCF error of tolerance.
-    !! @param[in] totalCharge The total charge of the solute
-    !! @param[in] solvent_charges Array of charges for each solvent site.
-    !! @param[in] smear Gaussian charge smearing
-    !! @param[in] boxVolume Volume of supercell
-    !! @param[in] tolerance acceptable error due to the cutoff
-    function asympck_cut_calc(soluteCharges, solventCharges, smear, boxVolume, tolerance) &
-         result (cutoff)
-      use rism_util, only: root_newton
-      use constants, only : FOURPI
-      implicit none
-      _REAL_ :: cutoff
-      _REAL_, intent(in) :: soluteCharges(:), solventCharges(:), tolerance, smear, boxVolume
-      DCFTolerance = tolerance
-      DCFCoefficient = maxval(abs(soluteCharges))*FOURPI*sqrt(2d0)/boxVolume*maxval(abs(solventCharges))
-      smearSq = smear**2
-      cutoff = root_newton(asympck_cut, asympck_cut_deriv, 10d0, 1d-16)
-    end function asympck_cut_calc
-    
-    !> Expression to find the k-space cut off for the DCF asymptotics.
-    !! @param[in] k2 The k-space vector squared. This is a real number.
-    !! @return A real number.  The value of this function.
-    function asympck_cut(k2)
-      implicit none
-      _REAL_ :: asympck_cut
-      _REAL_, intent(in) :: k2
-      asympck_cut = DCFCoefficient/k2*exp(-0.25d0*k2*smearSq) - DCFTolerance
-    end function asympck_cut
-
-    !> Derivative of asympck_cut()
-    !! @param[in] k2 The k-space vector squared. This is a real number.
-    !! @return A real number.  The value of this function.
-    function asympck_cut_deriv(k2)
-      implicit none
-      _REAL_ :: asympck_cut_deriv
-      _REAL_, intent(in) :: k2
-      asympck_cut_deriv = -DCFCoefficient/k2**2*exp(-0.25d0*k2*smearSq)*(1d0+0.25d0*smearSq*k2)
-    end function asympck_cut_deriv
-
-end module asympk_cut
-  
-!> A wrapper module to determine r-space Lennard-Jones cutoff using
-!! Newton-Raphson root finding.
-!!
-!! We can't pass internal functions as arguments until gfortran 4.6,
-!! so wrapping this in a module is required.
-module lj_cut
-  implicit none
-  _REAL_ :: LJTolerance, LJepsilon, LJrmin, factor
-  integer :: LJpower
-  private :: LJTolerance, LJepsilon, LJrmin, LJpower, factor
-  contains
-
-    !> Calculates the minimum cut off distance to achieve a maximum LJ error of
-    !> tolerance.
-    !! @param[in] epsilon LJ epsilon parameter for solute-solvent pair
-    !! @param[in] rmin LJ rmin parameter
-    !! @param[in] tolerance acceptable error due to the cutoff
-    function lennard_jones_cut_calc(epsilon, rmin, power, tolerance) &
-         result (cutoff)
-      use rism_util, only: root_newton
-      use constants, only : FOURPI
-      implicit none
-      _REAL_ :: cutoff
-      _REAL_, intent(in) :: epsilon, rmin, tolerance
-      integer, intent(in) :: power
-      LJTolerance = tolerance
-      LJepsilon = epsilon
-      LJrmin = rmin
-      LJpower = power
-      factor =1d0
-      if (power==6) factor=2d0
-      cutoff = root_newton(lennard_jones_cut, lennard_jones_cut_deriv, 1d0, 1d-16)
-    end function lennard_jones_cut_calc
-    
-    !> Expression to find the r-space cut off for the LJ potential energy.
-    !! @param[in] r The r-space distance. This is a real number.
-    !! @return A real number.  The value of this function.
-    function lennard_jones_cut(r)
-      implicit none
-      _REAL_ :: lennard_jones_cut
-      _REAL_, intent(in) :: r
-      _REAL_ :: rmin_r_power
-      rmin_r_power = (LJrmin/r)**LJpower
-      lennard_jones_cut = LJepsilon*factor*rmin_r_power - LJTolerance
-    end function lennard_jones_cut
-
-    !> Derivative of lennard_jones_cut()
-    !! @param[in] r The r-space distance. This is a real number.
-    !! @return A real number.  The value of this function.
-    function lennard_jones_cut_deriv(r)
-      implicit none
-      _REAL_ :: lennard_jones_cut_deriv
-      _REAL_, intent(in) :: r
-      _REAL_ :: rmin_r_power
-      rmin_r_power = (LJrmin/r)**(LJpower)
-      lennard_jones_cut_deriv = -factor*(LJpower)*LJepsilon*rmin_r_power/r
-    end function lennard_jones_cut_deriv
-
-  end module lj_cut
-  
 !> Electrostatic potential class for 3D-RISM. Used to calculate/store
 !! quantities that are potential dependent and do not change while
 !! converging a solution calculation.
@@ -254,30 +126,6 @@ module rism3d_potential_c
      _REAL_, pointer :: phineut(:) => NULL()
      ! potential energy and long-range asymptotics options
      
-     !> do treecode DCF
-     logical :: treeDCF
-     !> do treecode TCF
-     logical :: treeTCF
-     !> do treecode sum Coulomb
-     logical :: treeCoulomb
-     !> treecode multipole acceptance criterion parameter for DCF
-     _REAL_ :: treeDCFMAC
-     !> treecode multipole acceptance criterion parameter for TCF
-     _REAL_ :: treeTCFMAC
-     !> treecode multipole acceptance criterion parameter for Coulomb
-     _REAL_ :: treeCoulombMAC
-     !> treecode order of Taylor approximation for DCF
-     integer :: treeDCFOrder
-     !> treecode order of Taylor approximation for TCF
-     integer :: treeTCFOrder
-     !> treecode order of Taylor approximation for Coulomb
-     integer :: treeCoulombOrder
-     !> treecode maximum leaf size for DCF
-     integer :: treeDCFN0
-     !> treecode maximum leaf size for TCF
-     integer :: treeTCFN0
-     !> treecode maximum leaf size for Coulomb
-     integer :: treeCoulombN0
      !> Charge smearing parameter for long-range
      !! asymtotics and Ewald, typically eta in the literature
      _REAL_ :: chargeSmear
@@ -303,26 +151,10 @@ contains
   !! @param[in] fft Fast Fourier Transform object.
   !! @param[in] periodic True when calculating potentials for periodic solute.
   !! @param[in] biasPotential Uniform bias to the electrostatic potential (Coulomb or Ewald sum).
-  !! @param[in] treeDCF :: perform treecode DCF
-  !! @param[in] treeTCF :: perform treecode TCF
-  !! @param[in] treeCoulomb :: perform treecode Coulomb potential
-  !! @param[in] treeDCFMAC :: treecode multipole acceptance parameter for DCF
-  !! @param[in] treeTCFMAC :: treecode multipole acceptance parameter for TCF
-  !! @param[in] treeCoulombMAC :: treecode multipole acceptance parameter for Coulomb
-  !! @param[in] treeDCFOrder :: treecode order parameter for DCF
-  !! @param[in] treeTCFOrder :: treecode order parameter for TCF  
-  !! @param[in] treeCoulombOrder :: treecode order parameter for Coulomb
-  !! @param[in] treeDCFN0 :: treecode maximum leaf size for DCF
-  !! @param[in] treeTCFN0 :: treecode maximum leaf size for TCF  
-  !! @param[in] treeCoulombN0 :: treecode maximum leaf size for Coulomb
   !! @param[in] chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
   subroutine rism3d_potential_new(this, grid, solv, solu, cut, fft, periodicPotential, &
        biasPotential,&
-       treeDCF, treeTCF, treeCoulomb, &
-       treeDCFMAC, treeTCFMAC, treeCoulombMAC, &
-       treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
-       treeDCFN0, treeTCFN0, treeCoulombN0, &
        chargeSmear)
     implicit none
     type(rism3d_potential), intent(inout) :: this
@@ -333,18 +165,6 @@ contains
     type(rism3d_fft), target, intent(in) :: fft
     character(len=*), intent(in) :: periodicPotential
     _REAL_, intent(in) :: biasPotential
-    logical, intent(in) :: treeDCF
-    logical, intent(in) :: treeTCF
-    logical, intent(in) :: treeCoulomb
-    _REAL_, intent(in) :: treeDCFMAC
-    _REAL_, intent(in) :: treeTCFMAC
-    _REAL_, intent(in) :: treeCoulombMAC
-    integer, intent(in) :: treeDCFOrder
-    integer, intent(in) :: treeTCFOrder
-    integer, intent(in) :: treeCoulombOrder
-    integer, intent(in) :: treeDCFN0
-    integer, intent(in) :: treeTCFN0
-    integer, intent(in) :: treeCoulombN0
     _REAL_, intent(in) :: chargeSmear
     this%grid => grid
     this%solvent => solv
@@ -355,18 +175,6 @@ contains
        this%periodic = .true.
     end if
     this%biasPotential = biasPotential
-    this%treeDCF = treeDCF
-    this%treeTCF = treeTCF
-    this%treeCoulomb = treeCoulomb
-    this%treeDCFMAC = treeDCFMAC
-    this%treeTCFMAC = treeTCFMAC
-    this%treeCoulombMAC = treeCoulombMAC
-    this%treeDCFOrder = treeDCFOrder
-    this%treeTCFOrder = treeTCFOrder
-    this%treeCoulombOrder = treeCoulombOrder
-    this%treeDCFN0 = treeDCFN0
-    this%treeTCFN0 = treeTCFN0
-    this%treeCoulombN0 = treeCoulombN0
     this%chargeSmear = chargeSmear
     this%ljCutoffs2 => safemem_realloc(this%ljCutoffs2, this%solute%numAtoms, this%solvent%numAtomTypes, .false.)
     this%ljSigmaUV => safemem_realloc(this%ljSigmaUV, this%solute%numAtoms, this%solvent%numAtomTypes, .false.)
@@ -422,13 +230,6 @@ contains
     type(rism3d_potential), intent(inout) :: this
     _REAL_, intent(in) :: asympKSpaceTolerance
     _REAL_, intent(in) :: boxVolume
-    ! asymptotics cutoffs
-    if (asympKSpaceTolerance ==0d0) then
-       this%cut2_chlk = HUGE(1d0)
-    else
-       this%cut2_chlk = asympck_cut_calc(this%solute%charge, this%solvent%charge,&
-            this%chargeSmear, boxVolume, asympKSpaceTolerance)
-    end if
   end subroutine rism3d_potential_setcut_asympktolerance
 
   !> Directly a distance cut off for potential and force.

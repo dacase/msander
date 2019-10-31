@@ -267,18 +267,6 @@ contains
   !!   mdiis_nvec :: number of MDIIS vectors (previous iterations) to keep
   !!   mdiis_del :: scaling factor (step size) applied to estimated gradient (residual)
   !!   mdiis_method :: which implementation of the algorithm
-  !!   treeDCF :: perform treecode DCF
-  !!   treeTCF :: perform treecode TCF
-  !!   treeCoulomb :: perform treecode Coulomb potential
-  !!   treeDCFMAC :: treecode multipole acceptance parameter for DCF
-  !!   treeTCFMAC :: treecode multipole acceptance parameter for TCF
-  !!   treeCoulombMAC :: treecode multipole acceptance parameter for Coulomb
-  !!   treeDCFOrder :: treecode order parameter for DCF
-  !!   treeTCFOrder :: treecode order parameter for TCF
-  !!   treeCoulombOrder :: treecode order parameter for Coulomb
-  !!   treeDCFN0 :: treecode maximum leaf size parameter for DCF
-  !!   treeTCFN0 :: treecode maximum leaf size parameter for TCF
-  !!   treeCoulombN0 :: treecode maximum leaf size parameter for Coulomb
   !!   asympKSpaceTolerance :: long-range asymptotics k-space cut off
   !!       tolerance.  Only grid points that have an approximate value
   !!       greater than this will be computed.
@@ -297,10 +285,6 @@ contains
 
   subroutine rism3d_new(this, solute, solvent, centering, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       treeDCF, treeTCF, treeCoulomb, &
-       treeDCFMAC, treeTCFMAC, treeCoulombMAC, &
-       treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
-       treeDCFN0, treeTCFN0, treeCoulombN0, &
        asympKSpaceTolerance, chargeSmear, &
        o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions, o_biasPotential)
@@ -326,18 +310,6 @@ contains
     character(len = *), optional, intent(in) :: o_periodic
     _REAL_, optional, intent(in) :: o_unitCellDimensions(6)
     _REAL_, optional, intent(in) :: o_biasPotential
-    logical, intent(in) :: treeDCF
-    logical, intent(in) :: treeTCF
-    logical, intent(in) :: treeCoulomb
-    _REAL_, intent(in) :: treeDCFMAC
-    _REAL_, intent(in) :: treeTCFMAC
-    _REAL_, intent(in) :: treeCoulombMAC
-    integer, intent(in) :: treeDCFOrder
-    integer, intent(in) :: treeTCFOrder
-    integer, intent(in) :: treeCoulombOrder
-    integer, intent(in) :: treeDCFN0
-    integer, intent(in) :: treeTCFN0
-    integer, intent(in) :: treeCoulombN0
     _REAL_, intent(in) :: asympKSpaceTolerance
     _REAL_, intent(in) :: chargeSmear
     ! temporary copies
@@ -350,18 +322,6 @@ contains
     integer :: t_ng3(3)
     _REAL_ :: t_unitCellDimensions(6)
     integer :: t_mpicomm
-    logical :: t_treeDCF
-    logical :: t_treeTCF
-    logical :: t_treeCoulomb
-    _REAL_ :: t_treeDCFMAC
-    _REAL_ :: t_treeTCFMAC
-    _REAL_ :: t_treeCoulombMAC
-    integer :: t_treeDCFOrder
-    integer :: t_treeTCFOrder
-    integer :: t_treeCoulombOrder
-    integer :: t_treeDCFN0
-    integer :: t_treeTCFN0
-    integer :: t_treeCoulombN0
     _REAL_ :: t_asympKSpaceTolerance
     _REAL_ :: t_chargeSmear
     integer :: nclosure
@@ -459,18 +419,6 @@ contains
        if (present(o_unitCellDimensions)) then
           t_unitCellDimensions = o_unitCellDimensions
        end if
-       t_treeDCF = treeDCF
-       t_treeTCF = treeTCF
-       t_treeCoulomb = treeCoulomb
-       t_treeDCFMAC = treeDCFMAC
-       t_treeTCFMAC = treeTCFMAC
-       t_treeCoulombMAC = treeCoulombMAC
-       t_treeDCFOrder = treeDCFOrder
-       t_treeTCFOrder = treeTCFOrder
-       t_treeCoulombOrder = treeCoulombOrder
-       t_treeDCFN0 = treeDCFN0
-       t_treeTCFN0 = treeTCFN0
-       t_treeCoulombN0 = treeCoulombN0
        t_asympKSpaceTolerance = asympKSpaceTolerance
        t_chargeSmear = chargeSmear
     end if
@@ -518,30 +466,6 @@ contains
        call mpi_bcast(t_unitCellDimensions, 6, mpi_double_precision, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast UNITCELLDIMENSIONS in constructor failed")
     end if
-    call mpi_bcast(t_treeDCF, 1, mpi_logical, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeDCF in constructor failed")
-    call mpi_bcast(t_treeTCF, 1, mpi_logical, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeTCF in constructor failed")
-    call mpi_bcast(t_treeCoulomb, 1, mpi_logical, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeCoulomb in constructor failed")
-    call mpi_bcast(t_treeDCFMAC, 1, mpi_double, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeDCFMAC in constructor failed")
-    call mpi_bcast(t_treeTCFMAC, 1, mpi_double, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeTCFMAC in constructor failed")
-    call mpi_bcast(t_treeCoulombMAC, 1, mpi_double, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeCoulombMAC in constructor failed")
-    call mpi_bcast(t_treeDCFOrder, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeDCFOrder in constructor failed")
-    call mpi_bcast(t_treeTCFOrder, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeTCFOrder in constructor failed")
-    call mpi_bcast(t_treeCoulombOrder, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeCoulombOrder in constructor failed")
-    call mpi_bcast(t_treeDCFN0, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeDCFN0 in constructor failed")
-    call mpi_bcast(t_treeTCFN0, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeTCFN0 in constructor failed")
-    call mpi_bcast(t_treeCoulombN0, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast treeCoulombN0 in constructor failed")
     call mpi_bcast(t_asympKSpaceTolerance, 1, mpi_double, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast asympKSpaceTolerance in constructor failed")
     call mpi_bcast(t_chargeSmear, 1, mpi_double, 0, this%mpicomm, err)
@@ -554,9 +478,7 @@ contains
     call rism_timer_start(this%timer)
     call rism3d_potential_new(this%potential, this%grid, this%solvent, this%solute, 0d0, &
          this%fft, this%periodicPotential, o_biasPotential,&
-         t_treeDCF, t_treeTCF, t_treeCoulomb, t_treeDCFMAC, t_treeTCFMAC, &
-         t_treeCoulombMAC, t_treeDCFOrder, t_treeTCFOrder, t_treeCoulombOrder, &
-         t_treeDCFN0, t_treeTCFN0, t_treeCoulombN0, chargeSmear)
+         chargeSmear)
     call rism3d_potential_setTimerParent(this%potential, this%solventTimer)
 
 #ifdef MPI

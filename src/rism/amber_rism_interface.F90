@@ -337,13 +337,6 @@ module amber_rism_interface
      !> Uniform bias applied to the electrostic potential.
      _REAL_ :: biasPotential
 
-     !> treecode multipole acceptance criterion parameter for DCF
-     _REAL_ :: treeDCFMAC
-     !> treecode multipole acceptance criterion parameter for TCF
-     _REAL_ :: treeTCFMAC
-     !> treecode multipole acceptance criterion parameter for Coulomb
-     _REAL_ :: treeCoulombMAC
-
      !> long-range asymptotics k-space cut off tolerance.  Only grid
      !! points that have an approximate value greater than this will be computed.
      !! -1 - cutoff selected from calculation tolerance
@@ -437,29 +430,8 @@ module amber_rism_interface
      !! by sander but also serves as padding for alignment for NAB.
      integer :: write_thermo
 
-     !> treecode order of Taylor approximation for DCF
-     integer :: treeDCFOrder
-     !> treecode order of Taylor approximation for TCF
-     integer :: treeTCFOrder
-     !> treecode order of Taylor approximation for Coulomb
-     integer :: treeCoulombOrder
-
-     !> maximum leaf size of tree for DCF
-     integer :: treeDCFN0
-     !> maximum leaf size of tree for TCF
-     integer :: treeTCFN0
-     !> maximum leaf size of tree for Coulomb
-     integer :: treeCoulombN0
-
      !> perform internal consistency test. Done after output.
      logical*4 :: selftest
-
-     !> do treecode DCF
-     logical*4 :: treeDCF
-     !> do treecode TCF
-     logical*4 :: treeTCF
-     !> do treecode Coulomb
-     logical*4 :: treeCoulomb
 
      !> output molecular_reconstruction
      logical*4 :: molReconstruct
@@ -834,22 +806,6 @@ contains
           write(outunit, '(5x, a15, "=", l5)') 'molReconstruct'//whtspc, rismprm%molReconstruct
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'progress'//whtspc, rismprm%progress
-          write(outunit, '(5x, 2(a15, "=", l5), 1(a19 "=", l5))') &
-               'treeDCF'//whtspc, rismprm%treeDCF, &
-               ', treeTCF'//whtspc, rismprm%treeTCF, &
-               ', treeCoulomb'//whtspc, rismprm%treeCoulomb
-          write(outunit, '(5x, 2(a15, "=", f6.3), 1(a19, "=", f6.3))') &
-               'treeDCFMAC'//whtspc, rismprm%treeDCFMAC, &
-               ', treeTCFMAC'//whtspc, rismprm%treeTCFMAC, &
-               ', treeCoulombMAC'//whtspc, rismprm%treeCoulombMAC
-          write(outunit, '(5x, 2(a15, "=", i5), 1(a19, "=", i5))') &
-               'treeDCFOrder'//whtspc, rismprm%treeDCFOrder, &
-               ', treeTCFOrder'//whtspc, rismprm%treeTCFOrder, &
-               ', treeCoulombOrder'//whtspc, rismprm%treeCoulombOrder
-          write(outunit, '(5x, 2(a15, "=", i5), 1(a19, "=", i5))') &
-               'treeDCFN0'//whtspc, rismprm%treeDCFN0, &
-               ', treeTCFN0'//whtspc, rismprm%treeTCFN0, &
-               ', treeCoulombN0'//whtspc, rismprm%treeCoulombN0
           write(outunit, '(5x, a21, "=", es10.2, a14, "=", f6.3)') &
                'asympKSpaceTolerance'//whtspc, rismprm%asympKSpaceTolerance, &
                ', chargeSmear'//whtspc, rismprm%chargeSmear
@@ -985,10 +941,6 @@ contains
        call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%treeDCF, rismprm%treeTCF, rismprm%treeCoulomb, &
-            rismprm%treeDCFMAC, rismprm%treeTCFMAC, rismprm%treeCoulombMAC, &
-            rismprm%treeDCFOrder, rismprm%treeTCFOrder, rismprm%treeCoulombOrder, &
-            rismprm%treeDCFN0, rismprm%treeTCFN0, rismprm%treeCoulombN0, &
             rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
             o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
@@ -997,10 +949,6 @@ contains
        call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%treeDCF, rismprm%treeTCF, rismprm%treeCoulomb, &
-            rismprm%treeDCFMAC, rismprm%treeTCFMAC, rismprm%treeCoulombMAC, &
-            rismprm%treeDCFOrder, rismprm%treeTCFOrder, rismprm%treeCoulombOrder, &
-            rismprm%treeDCFN0, rismprm%treeTCFN0, rismprm%treeCoulombN0, &
             rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
             o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions,&
@@ -2377,15 +2325,6 @@ contains
        call mpi_bcast(rismprm%uccoeff, size(rismprm%uccoeff), mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast FCECUT")
-       call mpi_bcast(rismprm%treeDCFMAC, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeDCFMAC")
-       call mpi_bcast(rismprm%treeTCFMAC, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeTCFMAC")
-       call mpi_bcast(rismprm%treeCoulombMAC, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeCoulombMAC")
        call mpi_bcast(rismprm%asympKSpaceTolerance, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast asympKSpaceTolerance")
@@ -2479,37 +2418,10 @@ contains
        call mpi_bcast(rismprm%progress, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast PROGRESS")       
-       call mpi_bcast(rismprm%treeDCFOrder, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeDCFOrder")
-       call mpi_bcast(rismprm%treeTCFOrder, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeTCFOrder")
-       call mpi_bcast(rismprm%treeCoulombOrder, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeCoulombOrder")
-       call mpi_bcast(rismprm%treeDCFN0, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeDCFN0")
-       call mpi_bcast(rismprm%treeTCFN0, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeTCFN0")
-       call mpi_bcast(rismprm%treeCoulombN0, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeCoulombN0")
 
        call mpi_bcast(rismprm%selftest, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast SELFTEST")
-       call mpi_bcast(rismprm%treeDCF, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeDCF")
-       call mpi_bcast(rismprm%treeTCF, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeTCF")
-       call mpi_bcast(rismprm%treeCoulomb, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast treeCoulomb")
 
        if (mpirank==0) &
             nclosure=ubound(closurelist, 1)
@@ -2694,20 +2606,6 @@ contains
     ! molecular reconstruction
     rismprm%molReconstruct = .false.
     
-    !treecode/direct sum
-    rismprm%treeDCF     = .true.
-    rismprm%treeTCF     = .true.
-    rismprm%treeCoulomb = .false.
-    rismprm%treeDCFMAC     = 0.1d0
-    rismprm%treeTCFMAC     = 0.1d0
-    rismprm%treeCoulombMAC = 0.1d0
-    rismprm%treeDCFOrder     = 2
-    rismprm%treeTCFOrder     = 2
-    rismprm%treeCoulombOrder = 2
-    rismprm%treeDCFN0     = 500
-    rismprm%treeTCFN0     = 500
-    rismprm%treeCoulombN0 = 500
-    
     !long-range asymptotics k-space tolerance
     rismprm%asympKSpaceTolerance = -1
     !Lennard-Jones tolerance
@@ -2767,18 +2665,6 @@ contains
     integer :: verbose
     integer :: progress
     logical :: selftest
-    logical :: treeDCF
-    logical :: treeTCF
-    logical :: treeCoulomb
-    _REAL_ :: treeDCFMAC
-    _REAL_ :: treeTCFMAC
-    _REAL_ :: treeCoulombMAC
-    integer :: treeDCFOrder
-    integer :: treeTCFOrder
-    integer :: treeCoulombOrder
-    integer :: treeDCFN0
-    integer :: treeTCFN0
-    integer :: treeCoulombN0
     _REAL_ :: asympKSpaceTolerance
     _REAL_ :: chargeSmear
     integer :: write_thermo
@@ -2802,11 +2688,6 @@ contains
          apply_rism_force, pa_orient, rmsd_orient, &
          ! md
          rismnrespa, &
-         ! treecode and direct sum
-         treeDCF, treeTCF, treeCoulomb, &
-         treeDCFMAC, treeTCFMAC, treeCoulombMAC, &
-         treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
-         treeDCFN0, treeTCFN0, treeCoulombN0, &
          asympKSpaceTolerance, chargeSmear, &
          molReconstruct, &
 #ifdef RISM_CRDINTERP
@@ -2865,18 +2746,6 @@ contains
     verbose= rismprm%verbose
     progress = rismprm%progress
     selftest = rismprm%selftest
-    treeDCF     = rismprm%treeDCF    
-    treeTCF     = rismprm%treeTCF    
-    treeCoulomb = rismprm%treeCoulomb
-    treeDCFMAC     = rismprm%treeDCFMAC    
-    treeTCFMAC     = rismprm%treeTCFMAC     
-    treeCoulombMAC = rismprm%treeCoulombMAC
-    treeDCFOrder     = rismprm%treeDCFOrder    
-    treeTCFOrder     = rismprm%treeTCFOrder    
-    treeCoulombOrder = rismprm%treeCoulombOrder
-    treeDCFN0     = rismprm%treeDCFN0    
-    treeTCFN0     = rismprm%treeTCFN0    
-    treeCoulombN0 = rismprm%treeCoulombN0
     asympKSpaceTolerance = rismprm%asympKSpaceTolerance
     chargeSmear = rismprm%chargeSmear
     write_thermo = rismprm%write_thermo
@@ -2943,18 +2812,6 @@ contains
     rismprm%verbose=verbose
     rismprm%progress=progress
     rismprm%selftest=selftest
-    rismprm%treeDCF     = treeDCF    
-    rismprm%treeTCF     = treeTCF    
-    rismprm%treeCoulomb = treeCoulomb
-    rismprm%treeDCFMAC     = treeDCFMAC    
-    rismprm%treeTCFMAC     = treeTCFMAC
-    rismprm%treeCoulombMAC = treeCoulombMAC
-    rismprm%treeTCFOrder     = treeTCFOrder    
-    rismprm%treeDCFOrder     = treeDCFOrder    
-    rismprm%treeCoulombOrder = treeCoulombOrder
-    rismprm%treeTCFN0     = treeTCFN0    
-    rismprm%treeDCFN0     = treeDCFN0    
-    rismprm%treeCoulombN0 = treeCoulombN0
     rismprm%asympKSpaceTolerance = asympKSpaceTolerance
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
@@ -3061,35 +2918,6 @@ contains
           write(closurelist, fmt) "PSE", rismprm%closureOrder
        end if
     end do
-
-    ! check treecode parameters
-    if (rismprm%treeDCFMAC .lt.  0.) then
-       call rism_report_error('(a,e16.8e3)',"'treeDCFMAC' must >= 0. Got ",rismprm%treeDCFMAC)
-    end if
-    if (rismprm%treeTCFMAC .lt.  0.) then
-       call rism_report_error('(a,e16.8e3)',"'treeTCFMAC' must >= 0. Got ",rismprm%treeTCFMAC)
-    end if
-    if (rismprm%treeCoulombMAC .lt.  0.) then
-       call rism_report_error('(a,e16.8e3)',"'treeCoulombMAC' must >= 0. Got",rismprm%treeCoulombMAC)
-    end if
-    if (rismprm%treeDCFOrder .lt.  0.) then
-       call rism_report_error('(a,i8)',"'treeDCFOrder' must >= 0. Got ",rismprm%treeDCFOrder)
-    end if
-    if (rismprm%treeTCFOrder .lt.  0.) then
-       call rism_report_error('(a,i8)',"'treeTCFOrder' must >= 0. Got ",rismprm%treeTCFOrder)
-    end if
-    if (rismprm%treeCoulombOrder .lt.  0.) then
-       call rism_report_error('(a,i8)',"'treeCoulombOrder' must >= 0. Got",rismprm%treeCoulombOrder)
-    end if
-    if (rismprm%treeDCFN0 .lt.  1.) then
-       call rism_report_error('(a,i8)',"'treeDCFN0' must >= 1. Got ",rismprm%treeDCFN0)
-    end if
-    if (rismprm%treeTCFN0 .lt.  1.) then
-       call rism_report_error('(a,i8)',"'treeTCFN0' must >= 1. Got ",rismprm%treeTCFN0)
-    end if
-    if (rismprm%treeCoulombN0 .lt.  1.) then
-       call rism_report_error('(a,i8)',"'treeCoulombN0' must >= 1. Got",rismprm%treeCoulombN0)
-    end if
 
     ! long-range asymptotics error tolerance
     if (rismprm%asympKSpaceTolerance .lt. 0d0 .and. rismprm%asympKSpaceTolerance .ne. -1d0) then
