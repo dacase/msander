@@ -1559,22 +1559,61 @@ interface.o: \
                     qmmm_module.o\
                     state.o\
                     interface_setup.F90\
-                    mdread1.F90\
-                    mdread2.F90\
-                    memory_module.o\
-                    nonbond_list.o\
-                    qmmm_adaptive_module.o\
-                    amoeba_runmd.o\
-                    charmm.o\
-                    decomp.o\
-                    egb.o\
-                    molecule.o\
-                    parms.o\
+                    lmod.o\
+                    constantph.o\
+                    constante.o\
+                    amoeba_mdin.o\
+                    nose_hoover.o\
+                    lscivr_vars.o\
+                    md_scheme.o\
+                    les.o\
                     stack.o\
+                    nmr.o\
+                    crg_reloc.o\
+                    sglds.o\
+                    amd.o\
+                    scaledMD.o\
+                    ips.o\
+                    emap.o\
+                    dssp.o\
+                    emil.o\
+                    mdin_emil_dat.o\
                     xray_interface.o\
-                    ../include/md.h\
+                    softcore.o\
+                    mbar.o\
+                    remd.o\
+                    linear_response.o\
+                    ../rism/amber_rism_interface.o\
+                    apbs.o\
+                    nfe-sander-proxy.o\
+                    box.h\
+                    def_time.h\
                     ew_cntrl.h\
+                    ew_pme_recip.h\
+                    ../include/md.h\
                     ../include/memory.h\
+                    nmr.h\
+                    tgtmd.h\
+                    multitmd.h\
+                    ew_erfc_spline.h\
+                    molecule.o\
+                    decomp.o\
+                    findmask.o\
+                    egb.o\
+                    parms.o\
+                    nonbond_list.o\
+                    ew_bndpol.o\
+                    amoeba_runmd.o\
+                    sander_lib.o\
+                    qmmm_vsolv_module.o\
+                    mdfil.o\
+                    parallel.h\
+                    extra_pts.h\
+                    ew_mpole.h\
+                    ew_legal.h\
+                    memory_module.o\
+                    qmmm_adaptive_module.o\
+                    charmm.o\
                     AmberNetcdf.o\
                     binrestart.o
 
@@ -1911,42 +1950,6 @@ mdread.o: \
                     ../include/dprec.fh\
                     nfe-config.h\
                     ../include/assert.fh\
-                    mdread1.F90\
-                    mdread2.F90\
-                    mdreadutils.h
-
-
-mdread.o:   mdread.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
-
-mdread.LES.o: \
-                    copyright.h\
-                    ../include/dprec.fh\
-                    nfe-config.h\
-                    ../include/assert.fh\
-                    mdread1.F90\
-                    mdread2.F90\
-                    mdreadutils.h
-
-mdread.LES.o:   mdread.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
-
-mdread.PUPIL.o: \
-                    copyright.h\
-                    ../include/dprec.fh\
-                    nfe-config.h\
-                    ../include/assert.fh\
-                    mdread1.F90\
-                    mdread2.F90\
-                    mdreadutils.h
-
-mdread.PUPIL.o:   mdread.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
-
-mdread1.F90: \
                     file_io_dat.o\
                     lmod.o\
                     qmmm_module.o\
@@ -1986,58 +1989,160 @@ mdread1.F90: \
                     nmr.h\
                     tgtmd.h\
                     multitmd.h\
-                    ew_erfc_spline.h
-
-mdread2.F90: \
+                    ew_erfc_spline.h\
                     molecule.o\
-                    lmod.o\
                     decomp.o\
                     findmask.o\
                     egb.o\
-                    constants.o\
                     parms.o\
-                    ips.o\
-                    amd.o\
                     nonbond_list.o\
                     ew_bndpol.o\
-                    amoeba_mdin.o\
                     amoeba_runmd.o\
-                    nose_hoover.o\
-                    md_scheme.o\
+                    sander_lib.o\
+                    qmmm_vsolv_module.o\
+                    mdfil.o\
+                    parallel.h\
+                    extra_pts.h\
+                    ew_mpole.h\
+                    ew_legal.h\
+                    mdreadutils.h
+
+
+mdread.o:   mdread.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
+
+mdread.LES.o: \
+                    copyright.h\
+                    ../include/dprec.fh\
+                    nfe-config.h\
+                    ../include/assert.fh\
+                    file_io_dat.o\
+                    lmod.LES.o\
+                    qmmm_module.o\
+                    constants.o\
                     constantph.o\
                     constante.o\
-                    file_io_dat.o\
-                    sander_lib.o\
+                    amoeba_mdin.o\
+                    nose_hoover.o\
+                    lscivr_vars.o\
+                    md_scheme.LES.o\
                     les.o\
-                    emap.o\
-                    emil.o\
-                    qmmm_module.o\
-                    qmmm_vsolv_module.o\
-                    linear_response.o\
+                    stack.o\
+                    nmr.LES.o\
                     crg_reloc.o\
+                    sglds.o\
+                    amd.o\
+                    scaledMD.o\
+                    ips.o\
+                    emap.o\
+                    dssp.o\
+                    emil.o\
+                    mdin_emil_dat.o\
+                    xray_interface.o\
+                    softcore.o\
+                    mbar.o\
+                    remd.LES.o\
+                    linear_response.o\
+                    ../rism/amber_rism_interface.o\
                     apbs.o\
+                    nfe-sander-proxy.o\
+                    box.h\
+                    def_time.h\
+                    ew_cntrl.h\
+                    ew_pme_recip.h\
+                    ../include/md.h\
+                    ../include/memory.h\
+                    nmr.h\
+                    tgtmd.h\
+                    multitmd.h\
+                    ew_erfc_spline.h\
+                    molecule.o\
+                    decomp.o\
+                    findmask.o\
+                    egb.LES.o\
+                    parms.o\
+                    nonbond_list.LES.o\
+                    ew_bndpol.o\
+                    amoeba_runmd.o\
+                    sander_lib.o\
+                    qmmm_vsolv_module.o\
+                    mdfil.LES.o\
+                    parallel.h\
+                    extra_pts.h\
+                    ew_mpole.h\
+                    ew_legal.h\
+                    mdreadutils.h
+
+mdread.LES.o:   mdread.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
+
+mdread.PUPIL.o: \
+                    copyright.h\
+                    ../include/dprec.fh\
+                    nfe-config.h\
+                    ../include/assert.fh\
+                    file_io_dat.o\
+                    lmod.o\
+                    qmmm_module.o\
+                    constants.o\
+                    constantph.o\
+                    constante.o\
+                    amoeba_mdin.o\
+                    nose_hoover.o\
+                    lscivr_vars.o\
+                    md_scheme.o\
+                    les.o\
+                    stack.o\
+                    nmr.o\
+                    crg_reloc.o\
+                    sglds.o\
+                    amd.o\
+                    scaledMD.o\
+                    ips.o\
+                    emap.o\
+                    dssp.o\
+                    emil.o\
                     mdin_emil_dat.o\
                     xray_interface.o\
                     softcore.o\
                     mbar.o\
                     remd.o\
-                    sglds.o\
+                    linear_response.o\
+                    ../rism/amber_rism_interface.o\
+                    apbs.o\
                     nfe-sander-proxy.o\
-                    mdfil.o\
-                    ../include/memory.h\
-                    parallel.h\
-                    ../include/md.h\
                     box.h\
-                    nmr.h\
-                    extra_pts.h\
+                    def_time.h\
                     ew_cntrl.h\
                     ew_pme_recip.h\
+                    ../include/md.h\
+                    ../include/memory.h\
+                    nmr.h\
+                    tgtmd.h\
+                    multitmd.h\
                     ew_erfc_spline.h\
+                    molecule.o\
+                    decomp.o\
+                    findmask.o\
+                    egb.o\
+                    parms.o\
+                    nonbond_list.o\
+                    ew_bndpol.o\
+                    amoeba_runmd.o\
+                    sander_lib.o\
+                    qmmm_vsolv_module.o\
+                    mdfil.PUPIL.o\
+                    parallel.h\
+                    extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
-                    def_time.h\
-                    tgtmd.h\
-                    multitmd.h
+                    mdreadutils.h
+
+mdread.PUPIL.o:   mdread.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
 
 mdwrit.o: \
                     copyright.h\

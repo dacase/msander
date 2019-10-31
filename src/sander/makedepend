@@ -139,7 +139,7 @@ foreach $file ( <*.F90> ){
 			}
 		}
 	}
-        if ($fileroot eq "mdread1" or $fileroot eq "mdread2" or $fileroot eq "isokinetic" or $fileroot eq "oininit" or $fileroot eq "interface_setup") {
+        if ($fileroot eq "isokinetic" or $fileroot eq "oininit" or $fileroot eq "interface_setup") {
                 printf "$fileroot.F90: $deps\n\n" unless $deps eq "";
                 next;
         } else {

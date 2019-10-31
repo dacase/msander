@@ -143,12 +143,6 @@ module rism3d_c
      !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
      _REAL_ :: asympKSpaceTolerance
 
-     !> Lennard-Jones potential tolerance
-     !! -1 - cutoff selected from calculation tolerance
-     !! 0  - no cutoff applied
-     !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
-     _REAL_ :: ljTolerance
-     
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: NVec
@@ -260,19 +254,6 @@ contains
   !! processes. The values and number of elements for the closure list
   !! on non-rank 0 processes still do not matter.
   !!
-  !! Note that ljTolerance, tolerance, buffer, and solvBox are related
-  !!
-  !! Case 1: if ljtolerance==0, then compute the LJ interation
-  !!     without cutoff
-  !! Case 2: if ljtolerance<0 and buffer!=0, fit the LJ cutoff to fit
-  !!     inside the solvent box so a correction may be applied
-  !! Case 3: if ljtolerance<0 and buffer==0, select the ljtolerance <
-  !!     tolerance but >0 and set buffer large enough to fit the cutoff
-  !! Case 4: if ljtolerance>0 and buffer==0, set buffer large enough
-  !!     to fit the cutoff
-  !! Case 5: if ljtolerance > 0 and buffer != 0, use ljtolerance as
-  !!     is.  Cutoff correction may not be applied.
-  !!
   !! IN:
   !!   this :: new rism3d object
   !!   solu :: 3D-RISM solute object
@@ -304,12 +285,6 @@ contains
   !!       -1 - cutoff selected from calculation tolerance
   !!       0  - no cutoff applied
   !!       >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
-  !!   ljTolerance :: Lennard-Jones potential tolerance.  Only grid
-  !!       points that have an approximate value greater than this
-  !!       will be computed.
-  !!       -1 - cutoff selected from calculation tolerance
-  !!       0  - no cutoff applied
-  !!       >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
   !!   chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
   !!   o_buffer :: (optional) shortest distance between solute and solvent box boundary
@@ -326,7 +301,7 @@ contains
        treeDCFMAC, treeTCFMAC, treeCoulombMAC, &
        treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
        treeDCFN0, treeTCFN0, treeCoulombN0, &
-       asympKSpaceTolerance, ljTolerance, chargeSmear, &
+       asympKSpaceTolerance, chargeSmear, &
        o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions, o_biasPotential)
     use rism3d_solute_c
@@ -364,7 +339,6 @@ contains
     integer, intent(in) :: treeTCFN0
     integer, intent(in) :: treeCoulombN0
     _REAL_, intent(in) :: asympKSpaceTolerance
-    _REAL_, intent(in) :: ljTolerance
     _REAL_, intent(in) :: chargeSmear
     ! temporary copies
     character(len = len(closure)), pointer :: t_closure(:)
@@ -389,7 +363,6 @@ contains
     integer :: t_treeTCFN0
     integer :: t_treeCoulombN0
     _REAL_ :: t_asympKSpaceTolerance
-    _REAL_ :: t_ljTolerance
     _REAL_ :: t_chargeSmear
     integer :: nclosure
     integer :: err
@@ -499,7 +472,6 @@ contains
        t_treeTCFN0 = treeTCFN0
        t_treeCoulombN0 = treeCoulombN0
        t_asympKSpaceTolerance = asympKSpaceTolerance
-       t_ljTolerance = ljTolerance
        t_chargeSmear = chargeSmear
     end if
 #ifdef MPI
@@ -572,8 +544,6 @@ contains
     if (err /=0) call rism_report_error("RISM3D: broadcast treeCoulombN0 in constructor failed")
     call mpi_bcast(t_asympKSpaceTolerance, 1, mpi_double, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast asympKSpaceTolerance in constructor failed")
-    call mpi_bcast(t_ljTolerance, 1, mpi_double, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast ljTolerance in constructor failed")
     call mpi_bcast(t_chargeSmear, 1, mpi_double, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast chargeSmear in constructor failed")
 #endif /*MPI*/
@@ -618,7 +588,6 @@ contains
     this%nsolution => this%nsolutionChg
 
     this%asympKSpaceTolerance = t_asympKSpaceTolerance
-    this%ljTolerance = t_ljTolerance
     
     call rism3d_fft_global_init()
     this%fftw_planner = FFT_MEASURE
@@ -861,7 +830,7 @@ contains
     _REAL_, intent(in) :: tolerance(:)
 
     _REAL_ :: asympKSpaceTolerance
-    _REAL_ :: ljTolerance, com(3)
+    _REAL_ :: com(3)
     ! iclosure :: counter for closures
     integer :: iclosure
 
@@ -906,7 +875,7 @@ contains
     
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
-    call rism3d_potential_calc(this%potential,ljTolerance)
+    call rism3d_potential_calc(this%potential)
 
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
@@ -975,7 +944,7 @@ contains
     call rism_timer_stop(this%forceTimer)
     !!!!!!!
     !! - uncomment this to have a proper force check
-    !! call rism3d_checkForceNumDeriv(this%closure, ff, this%guv, this%ljTolerance)
+    !! call rism3d_checkForceNumDeriv(this%closure, ff, this%guv)
     !!!!!!
   end subroutine rism3d_force
 
@@ -1194,13 +1163,6 @@ contains
 
   !> Using the current orientation of the solute, define the minimum box size
   !! and resize all associated grids.
-  !!
-  !! Non-periodic : Either a variable or fixed box size maybe specified
-  !!     (this%varbox). If fixed size, then the number of gridpoints provided by
-  !!     the user are directly applied but check to ensure they meet the minimum
-  !!     requirements of the MPI run, if specified. If variable size the buffer
-  !!     is either (a) taken from the user or (b), if buffer==0, determined from
-  !!     the ljTolerance cutoff. Grid spacing is taken from the user.
   !!
   !! Periodic : the unit cell is used to determine the number of grid points.
   !!

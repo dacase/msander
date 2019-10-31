@@ -343,14 +343,13 @@ contains
   !!                         PRIVATE
 
 ! Numerical, finite difference way to check force computation.
-  subroutine rism3d_checkForceNumDeriv(this, ff, guv, ljTolerance)
+  subroutine rism3d_checkForceNumDeriv(this, ff, guv)
     use constants, only : PI, KB
     use rism_util, only : checksum
     implicit none
     type(rism3d_closure), intent(in) :: this !> potential object.
     _REAL_, intent(in) :: ff(:, :) !> Force on each atom.
     _REAL_, intent(in) :: guv(:, :) !< Site-site pair correlation function.
-    _REAL_, intent(in) :: ljTolerance 
     integer :: iu,id
     _REAL_  :: delta 
     _REAL_  :: ene(this%solvent%numAtomTypes)
@@ -364,11 +363,11 @@ contains
     do iu = 1, this%potential%solute%numAtoms
        do id=1,3
           this%potential%solute%position(id, iu) = this%potential%solute%position(id, iu) - delta
-          call rism3d_potential_calc(this%potential,ljTolerance)
+          call rism3d_potential_calc(this%potential)
           ene = rism3d_closure_solvPotEne(this,guv)
           
           this%potential%solute%position(id, iu) = this%potential%solute%position(id, iu) + 2.0*delta
-          call rism3d_potential_calc(this%potential,ljTolerance)
+          call rism3d_potential_calc(this%potential)
           ene = ene - rism3d_closure_solvPotEne(this,guv)
           ffn(id,iu) = sum(ene)/(2d0*delta)
 

@@ -350,11 +350,6 @@ module amber_rism_interface
      !! 0  - no cutoff applied
      !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
      _REAL_ :: asympKSpaceTolerance
-     !> Tolerance for LJ potential calculation
-     !! -1 - cutoff selected from calculation tolerance
-     !! 0  - no cutoff applied
-     !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
-     _REAL_ :: ljtolerance
      !> Charge smearing parameter for long-range asymtotics and Ewald,
      !! typically eta in the literature
      _REAL_ :: chargeSmear
@@ -736,7 +731,6 @@ contains
        return
     end if
 
-
     outunit = rism_report_getMUnit()
     call defaults()
 
@@ -859,8 +853,6 @@ contains
           write(outunit, '(5x, a21, "=", es10.2, a14, "=", f6.3)') &
                'asympKSpaceTolerance'//whtspc, rismprm%asympKSpaceTolerance, &
                ', chargeSmear'//whtspc, rismprm%chargeSmear
-          write(outunit, '(5x, a10, "=", es10.2)') &
-               'ljTolerance'//whtspc, rismprm%ljTolerance
           write(outunit, '(5x, a10, "=", f10.5)') &
                'biasPotential'//whtspc, rismprm%biasPotential
           !!!! Extrapolation method warnings
@@ -997,7 +989,7 @@ contains
             rismprm%treeDCFMAC, rismprm%treeTCFMAC, rismprm%treeCoulombMAC, &
             rismprm%treeDCFOrder, rismprm%treeTCFOrder, rismprm%treeCoulombOrder, &
             rismprm%treeDCFN0, rismprm%treeTCFN0, rismprm%treeCoulombN0, &
-            rismprm%asympKSpaceTolerance, rismprm%ljTolerance, rismprm%chargeSmear, &
+            rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
             o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
             o_biasPotential=rismprm%biasPotential)
@@ -1009,7 +1001,7 @@ contains
             rismprm%treeDCFMAC, rismprm%treeTCFMAC, rismprm%treeCoulombMAC, &
             rismprm%treeDCFOrder, rismprm%treeTCFOrder, rismprm%treeCoulombOrder, &
             rismprm%treeDCFN0, rismprm%treeTCFN0, rismprm%treeCoulombN0, &
-            rismprm%asympKSpaceTolerance, rismprm%ljTolerance, rismprm%chargeSmear, &
+            rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
             o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions,&
             o_biasPotential=rismprm%biasPotential)
@@ -2397,9 +2389,6 @@ contains
        call mpi_bcast(rismprm%asympKSpaceTolerance, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast asympKSpaceTolerance")
-       call mpi_bcast(rismprm%ljTolerance, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ljTolerance")
        call mpi_bcast(rismprm%chargeSmear, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast chargeSmear")
@@ -2722,7 +2711,6 @@ contains
     !long-range asymptotics k-space tolerance
     rismprm%asympKSpaceTolerance = -1
     !Lennard-Jones tolerance
-    rismprm%ljTolerance = -1
     !charge smear
     rismprm%chargeSmear = 1d0
     rismprm%write_thermo=1
@@ -2792,7 +2780,6 @@ contains
     integer :: treeTCFN0
     integer :: treeCoulombN0
     _REAL_ :: asympKSpaceTolerance
-    _REAL_ :: ljTolerance
     _REAL_ :: chargeSmear
     integer :: write_thermo
     namelist /rism/ &
@@ -2821,7 +2808,6 @@ contains
          treeDCFOrder, treeTCFOrder, treeCoulombOrder, &
          treeDCFN0, treeTCFN0, treeCoulombN0, &
          asympKSpaceTolerance, chargeSmear, &
-         ljTolerance, &
          molReconstruct, &
 #ifdef RISM_CRDINTERP
          fcestride, fcecut, fcenbasis, fcenbase, fcecrd, &
@@ -2892,7 +2878,6 @@ contains
     treeTCFN0     = rismprm%treeTCFN0    
     treeCoulombN0 = rismprm%treeCoulombN0
     asympKSpaceTolerance = rismprm%asympKSpaceTolerance
-    ljTolerance = rismprm%ljTolerance
     chargeSmear = rismprm%chargeSmear
     write_thermo = rismprm%write_thermo
 
@@ -2971,7 +2956,6 @@ contains
     rismprm%treeDCFN0     = treeDCFN0    
     rismprm%treeCoulombN0 = treeCoulombN0
     rismprm%asympKSpaceTolerance = asympKSpaceTolerance
-    rismprm%ljTolerance = ljTolerance
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
 
@@ -3017,8 +3001,6 @@ contains
        if (rismprm%solvcut < 0 .and. periodicPotential /= '') then
           call rism_report_error('solvcut must be >= 0.')
        end if
-    elseif (rismprm%buffer == 0d0 .and. rismprm%ljTolerance == 0d0) then
-       call rism_report_error('buffer and ljTolerance cannot both be 0.')
     end if
 
     ! Ensure that an apropriate file format has been chosen for
@@ -3112,11 +3094,6 @@ contains
     ! long-range asymptotics error tolerance
     if (rismprm%asympKSpaceTolerance .lt. 0d0 .and. rismprm%asympKSpaceTolerance .ne. -1d0) then
        call rism_report_error('(a,e10.2)',"'asympKSpaceTolerance' must be >= 0 or -1. Got",rismprm%asympKSpaceTolerance)
-    end if
-
-    ! Lennard-Jones potential error tolerance
-    if (rismprm%ljTolerance .lt. 0d0 .and. rismprm%ljTolerance .ne. -1d0) then
-       call rism_report_error('(a,e10.2)',"'ljTolerance' must be >= 0 or -1. Got",rismprm%ljTolerance)
     end if
 
     ! charge smear

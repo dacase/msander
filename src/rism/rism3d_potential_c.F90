@@ -410,33 +410,6 @@ contains
     call rism_timer_stop(this%timer)
   end subroutine rism3d_potential_setTimerParent
 
-  !> Sets cut offs for the Lennard-Jones potential calculations.
-  !! @param[in,out] this potential object.
-  !! @param[in] ljTolerance The value below which the LJ potential can be neglected.
-  subroutine rism3d_potential_setcut_ljtolerance(this, ljTolerance)
-    use lj_cut
-    implicit none
-    type(rism3d_potential), intent(inout) :: this
-    _REAL_, intent(in) :: ljTolerance
-
-    integer :: iu, iv
-
-    !find the LJ cutoffs for this atom and each of the solvent sites
-    if (ljTolerance == 0d0) then
-       this%ljCutoffs2=HUGE(1d0)
-    else
-       do iv = 1, this%solvent%numAtomTypes
-          do iu = 1, this%solute%numAtoms
-             this%ljCutoffs2(iu,iv) = lennard_jones_cut_calc(this%ljEpsilonUV(iu, iv),&
-                  this%ljSigmaUV(iu, iv),6,&
-                  ljTolerance)
-             this%ljCutoffs2(iu,iv) = this%ljCutoffs2(iu,iv)**2
-          end do
-       end do
-    end if
-    this%applyLJCorrection = .true.
-  end subroutine rism3d_potential_setcut_ljtolerance
-  
   !> Sets cut offs for the k-space long range asymptotics (LRA)
   !! calculations.
   !! @param[in,out] this potential object.
@@ -477,10 +450,9 @@ contains
   end subroutine rism3d_potential_setcut_ljdistance
   
   !> Calculates the potential on the grid.
-  !! @param[in] ljTolerance :: Lennard-Jones potential tolerance.
   !!       Only grid points that have an approximate value greater
   !!       than this will be computed.
-  subroutine rism3d_potential_calc(this, ljTolerance)
+  subroutine rism3d_potential_calc(this)
     use rism_util, only : checksum
     use rism3d_opendx, only : rism3d_opendx_write
     implicit none
@@ -489,7 +461,6 @@ contains
 #endif
     type(rism3d_potential), intent(inout) :: this !< potential object.
 
-    _REAL_, intent(in) :: ljTolerance
     integer :: id
 
     integer :: ix, iy, iz, ierr
