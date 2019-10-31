@@ -218,20 +218,6 @@ contains
     call rism_timer_stop(this%timer)
   end subroutine rism3d_potential_setTimerParent
 
-  !> Sets cut offs for the k-space long range asymptotics (LRA)
-  !! calculations.
-  !! @param[in,out] this potential object.
-  !! @param[in] asympKTolerance The value below which the long range
-  !!     asymptotics can be neglected.
-  !! @param[in] boxVolume volume of the solvent box
-  subroutine rism3d_potential_setcut_asympktolerance(this, asympKSpaceTolerance, boxVolume)
-    use asympk_cut
-    implicit none
-    type(rism3d_potential), intent(inout) :: this
-    _REAL_, intent(in) :: asympKSpaceTolerance
-    _REAL_, intent(in) :: boxVolume
-  end subroutine rism3d_potential_setcut_asympktolerance
-
   !> Directly a distance cut off for potential and force.
   !! @param[in,out] this potential object.
   !! @param[in] cut Distance cutoff for potential and force calculations.

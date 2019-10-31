@@ -337,12 +337,6 @@ module amber_rism_interface
      !> Uniform bias applied to the electrostic potential.
      _REAL_ :: biasPotential
 
-     !> long-range asymptotics k-space cut off tolerance.  Only grid
-     !! points that have an approximate value greater than this will be computed.
-     !! -1 - cutoff selected from calculation tolerance
-     !! 0  - no cutoff applied
-     !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
-     _REAL_ :: asympKSpaceTolerance
      !> Charge smearing parameter for long-range asymtotics and Ewald,
      !! typically eta in the literature
      _REAL_ :: chargeSmear
@@ -806,9 +800,8 @@ contains
           write(outunit, '(5x, a15, "=", l5)') 'molReconstruct'//whtspc, rismprm%molReconstruct
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'progress'//whtspc, rismprm%progress
-          write(outunit, '(5x, a21, "=", es10.2, a14, "=", f6.3)') &
-               'asympKSpaceTolerance'//whtspc, rismprm%asympKSpaceTolerance, &
-               ', chargeSmear'//whtspc, rismprm%chargeSmear
+          write(outunit, '(5x, a14, "=", f6.3)') &
+               'chargeSmear'//whtspc, rismprm%chargeSmear
           write(outunit, '(5x, a10, "=", f10.5)') &
                'biasPotential'//whtspc, rismprm%biasPotential
           !!!! Extrapolation method warnings
@@ -941,7 +934,7 @@ contains
        call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
+            rismprm%chargeSmear, &
             o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
             o_biasPotential=rismprm%biasPotential)
@@ -949,7 +942,7 @@ contains
        call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%asympKSpaceTolerance, rismprm%chargeSmear, &
+            rismprm%chargeSmear, &
             o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions,&
             o_biasPotential=rismprm%biasPotential)
@@ -2325,9 +2318,6 @@ contains
        call mpi_bcast(rismprm%uccoeff, size(rismprm%uccoeff), mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast FCECUT")
-       call mpi_bcast(rismprm%asympKSpaceTolerance, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast asympKSpaceTolerance")
        call mpi_bcast(rismprm%chargeSmear, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast chargeSmear")
@@ -2607,7 +2597,6 @@ contains
     rismprm%molReconstruct = .false.
     
     !long-range asymptotics k-space tolerance
-    rismprm%asympKSpaceTolerance = -1
     !Lennard-Jones tolerance
     !charge smear
     rismprm%chargeSmear = 1d0
@@ -2665,38 +2654,20 @@ contains
     integer :: verbose
     integer :: progress
     logical :: selftest
-    _REAL_ :: asympKSpaceTolerance
     _REAL_ :: chargeSmear
     integer :: write_thermo
     namelist /rism/ &
-         ! closure
-         closure, closureOrder, uccoeff, &
-         entropicDecomp, polarDecomp, &
-         gfCorrection, pcplusCorrection, &
-         biasPotential, &
-         ! thermodynamics
-         asympCorr, periodic, &
-         ! solvation box
-         buffer, grdspc, solvcut, &
-         ng3, solvbox, &
-         ! convergence
+         closure, closureOrder, biasPotential, periodic, &
+         buffer, grdspc, solvcut, ng3, solvbox, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
-         mdiis_restart, maxstep, npropagate, &
-         ! minimization
-         centering, zerofrc, &
-         ! imin=5
+         mdiis_restart, maxstep, npropagate, centering, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
-         ! md
-         rismnrespa, &
-         asympKSpaceTolerance, chargeSmear, &
-         molReconstruct, &
+         rismnrespa, chargeSmear, molReconstruct, write_thermo, &
 #ifdef RISM_CRDINTERP
          fcestride, fcecut, fcenbasis, fcenbase, fcecrd, &
          fceweigh,fcetrans,fcesort,fceifreq,fcentfrcor, &
          fceenormsw, fcewrite, fceread, &
 #endif /*RISM_CRDINTERP*/
-         !output
-         write_thermo, &
          saveprogress, ntwrism, verbose, progress, volfmt, selftest
     
     call flush(0)
@@ -2746,7 +2717,6 @@ contains
     verbose= rismprm%verbose
     progress = rismprm%progress
     selftest = rismprm%selftest
-    asympKSpaceTolerance = rismprm%asympKSpaceTolerance
     chargeSmear = rismprm%chargeSmear
     write_thermo = rismprm%write_thermo
 
@@ -2812,7 +2782,6 @@ contains
     rismprm%verbose=verbose
     rismprm%progress=progress
     rismprm%selftest=selftest
-    rismprm%asympKSpaceTolerance = asympKSpaceTolerance
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
 
@@ -2918,11 +2887,6 @@ contains
           write(closurelist, fmt) "PSE", rismprm%closureOrder
        end if
     end do
-
-    ! long-range asymptotics error tolerance
-    if (rismprm%asympKSpaceTolerance .lt. 0d0 .and. rismprm%asympKSpaceTolerance .ne. -1d0) then
-       call rism_report_error('(a,e10.2)',"'asympKSpaceTolerance' must be >= 0 or -1. Got",rismprm%asympKSpaceTolerance)
-    end if
 
     ! charge smear
     if (rismprm%chargeSmear .lt. 0d0) then

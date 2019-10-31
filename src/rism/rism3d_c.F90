@@ -138,11 +138,6 @@ module rism3d_c
 
      !> long-range asymptotics k-space cut off tolerance.  Only grid
      !! points that have an approximate value greater than this will be computed.
-     !! -1 - cutoff selected from calculation tolerance
-     !! 0  - no cutoff applied
-     !! >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
-     _REAL_ :: asympKSpaceTolerance
-
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: NVec
@@ -267,12 +262,6 @@ contains
   !!   mdiis_nvec :: number of MDIIS vectors (previous iterations) to keep
   !!   mdiis_del :: scaling factor (step size) applied to estimated gradient (residual)
   !!   mdiis_method :: which implementation of the algorithm
-  !!   asympKSpaceTolerance :: long-range asymptotics k-space cut off
-  !!       tolerance.  Only grid points that have an approximate value
-  !!       greater than this will be computed.
-  !!       -1 - cutoff selected from calculation tolerance
-  !!       0  - no cutoff applied
-  !!       >0 - used as the tolerance.  Should be a small value.  E.g., 1e-7
   !!   chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
   !!   o_buffer :: (optional) shortest distance between solute and solvent box boundary
@@ -285,7 +274,7 @@ contains
 
   subroutine rism3d_new(this, solute, solvent, centering, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       asympKSpaceTolerance, chargeSmear, &
+       chargeSmear, &
        o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions, o_biasPotential)
     use rism3d_solute_c
@@ -310,7 +299,6 @@ contains
     character(len = *), optional, intent(in) :: o_periodic
     _REAL_, optional, intent(in) :: o_unitCellDimensions(6)
     _REAL_, optional, intent(in) :: o_biasPotential
-    _REAL_, intent(in) :: asympKSpaceTolerance
     _REAL_, intent(in) :: chargeSmear
     ! temporary copies
     character(len = len(closure)), pointer :: t_closure(:)
@@ -322,7 +310,6 @@ contains
     integer :: t_ng3(3)
     _REAL_ :: t_unitCellDimensions(6)
     integer :: t_mpicomm
-    _REAL_ :: t_asympKSpaceTolerance
     _REAL_ :: t_chargeSmear
     integer :: nclosure
     integer :: err
@@ -419,7 +406,6 @@ contains
        if (present(o_unitCellDimensions)) then
           t_unitCellDimensions = o_unitCellDimensions
        end if
-       t_asympKSpaceTolerance = asympKSpaceTolerance
        t_chargeSmear = chargeSmear
     end if
 #ifdef MPI
@@ -466,8 +452,6 @@ contains
        call mpi_bcast(t_unitCellDimensions, 6, mpi_double_precision, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast UNITCELLDIMENSIONS in constructor failed")
     end if
-    call mpi_bcast(t_asympKSpaceTolerance, 1, mpi_double, 0, this%mpicomm, err)
-    if (err /=0) call rism_report_error("RISM3D: broadcast asympKSpaceTolerance in constructor failed")
     call mpi_bcast(t_chargeSmear, 1, mpi_double, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast chargeSmear in constructor failed")
 #endif /*MPI*/
@@ -509,7 +493,6 @@ contains
     this%nsolutionNoChg = 0
     this%nsolution => this%nsolutionChg
 
-    this%asympKSpaceTolerance = t_asympKSpaceTolerance
     
     call rism3d_fft_global_init()
     this%fftw_planner = FFT_MEASURE
@@ -751,7 +734,6 @@ contains
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
 
-    _REAL_ :: asympKSpaceTolerance
     _REAL_ :: com(3)
     ! iclosure :: counter for closures
     integer :: iclosure
