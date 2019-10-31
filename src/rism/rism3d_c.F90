@@ -1560,8 +1560,8 @@ contains
     call rism_timer_start(this%single3DRISMsolutionTimer)
 
     ! --------------------------------------------------------------
-    ! Subtract short-range part from Cuv(r) (if not periodic);
     ! Cuv(r) is then loaded into the guv array.
+    ! DAC: why is the storage of cuv and guv different?
     ! --------------------------------------------------------------
 
 #if defined(MPI)
