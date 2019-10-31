@@ -277,9 +277,7 @@ contains
     if (err /= 0) call rism_report_error&
          ("MDIIS_BLAS2_UPDATE: could not reduce OVERLAP")
 #else
-    do ip = 1, this%np
-       this%ovlij(1, 1) = this%ovlij(1, 1) + this%ri(ip, 1)**2
-    end do
+       this%ovlij(1, 1) = this%ovlij(1, 1) + sum(this%ri(:, 1)**2)
 #endif /* defined(MPI) */
     call timer_stop(TIME_MDIIS_DATA)
     call rism_timer_stop(this%overlapTimer)
@@ -335,10 +333,8 @@ contains
        !................... restore vector to restart from ...................
        if (isirst /= 1)  then
           call timer_start(TIME_MDIIS_DATA)
-          do ip = 1, this%np
-             this%ri(ip, 1) = this%ri(ip, isirst)
-             this%xi(ip, 1) = this%xi(ip, isirst)
-          end do
+          this%ri(:, 1) = this%ri(:, isirst)
+          this%xi(:, 1) = this%xi(:, isirst)
           call timer_stop(TIME_MDIIS_DATA)
           this%ovlij(1, 1) = this%ovlij(isirst, isirst)
        end if
@@ -366,11 +362,10 @@ contains
        if (err /= 0) call rism_report_error&
             ("MDIIS_ORIG_UPDATE: could not reduce OVERLAP")
 #else
-       do ip = 1, this%np
-          this%ovlij(isi, 1) = this%ovlij(isi, 1) + this%ri(ip, isi) * this%ri(ip, 1)
-       end do
+       this%ovlij(isi, 1) = this%ovlij(isi, 1) + sum(this%ri(:, isi) &
+                                                   * this%ri(:, 1))
 #endif /* defined(MPI) */
-    call timer_stop(TIME_MDIIS_DATA)
+       call timer_stop(TIME_MDIIS_DATA)
        this%ovlij(1, isi) = this%ovlij(isi, 1)
     end do
     call rism_timer_stop(this%overlapTimer)
@@ -408,7 +403,7 @@ contains
     call timer_stop(TIME_MDIIS_LAPACK)
     call rism_timer_stop(this%lapackTimer)
 
-!    call timer_start(TIME_MDIIS_DATA)
+     call timer_start(TIME_MDIIS_DATA)
     !......... get DIIS minimum, MDIIS correction, and next point ..........
     call rism_timer_start(this%projectTimer)
     do ip = 1, this%np
@@ -423,7 +418,7 @@ contains
        this%ri(ip, isiupd) = this%ri(ip, 1)
        this%xi(ip, 1) = xs + this%delta * rs
     end do
-!    call timer_stop(TIME_MDIIS_DATA)
+     call timer_stop(TIME_MDIIS_DATA)
 
     !.................. reload overlaps of current point ...................
     do is = 1, this%nis
