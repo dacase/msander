@@ -60,7 +60,11 @@ done
 
 if [ "$requested_help" = "yes" ] ; then
 	printf " --verbose      give build details, otherwise be more silent\n"
-	printf " --parallel     prepare for parallel build\n"
+	printf " --mpi          prepare for mpi build\n"
+	printf " --openmp       prepare for OMP build\n"
+	printf " --intel        use Intel compilers; default is gnu\n"
+	printf " --no-netcdf    disable NetCDF support\n"
+	printf " --no-rism      disable 3D-RISM support\n"
     exit 0
 fi
 
