@@ -5,7 +5,7 @@
 #include "nfe-config.h"
 
 !  In vim, :set foldmethod=marker, then zo,zc, to open/close single folds
-!          zO,ZC to open close folds recursively
+!          zO,zC to open close folds recursively
 !          zM closes all folds; zR opens all folds
 
 !------------------------------------------------------------------------------
@@ -59,9 +59,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use nfe_sander_proxy, only : infe, nfe_real_mdstep, nfe_prt
 
   use commandline_module, only: cpein_specified
-  use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
-  use lscivr_vars, only: ilscivr, ndof_lsc, natom_lsc, mass_lsc, v2_lsc, &
-                         ilsc, x_lsc, f_lsc, dx_lsc
   use md_scheme, only: ischeme, thermostat_step
   use nose_hoover_module, only: thermo_lnv, x_lnv, x_lnv_old, v_lnv, &
                                 f_lnv_p, f_lnv_v, c2_lnv, mass_lnv, &
@@ -343,9 +340,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   character(len=4) prndiptest
 
   _REAL_,parameter :: pressure_constant = 6.85695d+4
-  ! variables used in constant pressure PIMD
-  _REAL_ :: Nkt,centvir,pressure, aa, arg2, poly, e2, e4, e6, e8
-  _REAL_ :: box_center(3)
 
   ! variables used in middle scheme
   _REAL_ :: xold(3*natom)       ! for constrained MD
@@ -407,7 +401,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekmh = 0.d0
 
   aqmmm_flag = 0
-  pressure = 0.d0
   etot_save = 0.d0
   E_nhc = 0.d0
   tktk = 0.d0
@@ -698,83 +691,21 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (init == 3 .or. nstlim == 0 .or. &
       (abfqmmm_param%abfqmmm == 1 .and. abfqmmm_param%system == 1)) then
 
-    ! Constant-pressure MD, when we are not als odealing with AMOEBA or PIMD:
-    ! Calculate the center of mass for each molecule, kinetic energy of the
-    ! molecule's center of mass, and coordinates of each molecule relative to
-    ! its center of mass in the simulation.
-    if (ntp > 0 .and. iamoeba == 0) then
-      xr(1:nr3) = x(1:nr3)
-      call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, 1, nr)
-    end if
-
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
     irespa = 0
     iprint = 1
 
-
 !------------------------------------------------------------------------------
-    ! for LSC-IVR:
+    ! Thermodynamic Integration (TI) decomposition
+    if (idecomp > 0 .and. ntpr > 0) then
+      decpr = .false.
+      if (mod(nstep+1, ntpr) == 0) decpr = .true.
+    end if
 
-    if (ilscivr == 1) then
-
-      ! Prepare the Hessian Matrix of the potential for the Linearized
-      ! Semi-Classical Initial Value Representation (LSC-IVR).  At this
-      ! point, x is the position of a bead at equilibrium.  Initialize
-      ! the LSC-IVR variables.
-      natom_lsc = natom
-      ndof_lsc = natom * 3
-      call lsc_init
-      do ilsc = 1, natom_lsc
-        mass_lsc(3*ilsc-2) = amass(ilsc)
-        mass_lsc(3*ilsc-1) = amass(ilsc)
-        mass_lsc(3*ilsc  ) = amass(ilsc)
-      end do
-      v2_lsc = 0.0d0
-      do ilsc = 1, ndof_lsc
-
-        ! ith vector of the Hessian matrix
-        x_lsc = 0.0d0
-        x_lsc(1:ndof_lsc) = x(1:ndof_lsc)
-        x_lsc(ilsc) = x(ilsc) + dx_lsc
-        call force(xx, ix, ih, ipairs, x_lsc, f_lsc, ener, ener%vir, xx(l96), &
-                   xx(l97), xx(l98), xx(l99), qsetup, do_list_update, nstep)
-#ifdef MPI
-        call xdist( f_lsc, xx(lfrctmp), natom )
-#endif /* MPI */
-        v2_lsc(1:ndof_lsc,ilsc) = f_lsc(1:ndof_lsc)
-      enddo
-
-      call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-                 xx(l98), xx(l99), qsetup, do_list_update, nstep)
-#ifdef MPI
-      call xdist(f, xx(lfrctmp), natom)
-#endif /* MPI */
-
-      ! Second derivative of the potential
-      do ilsc = 1, ndof_lsc
-        v2_lsc(1:ndof_lsc,ilsc) = &
-          (f(1:ndof_lsc) - v2_lsc(1:ndof_lsc,ilsc))/dx_lsc
-      end do
-
-      ! Get the initial position of the momentum
-      call lsc_xp(x, v)
-
-    else
-
-!------------------------------------------------------------------------------
-      ! Thermodynamic Integration (TI) decomposition
-      if (idecomp > 0 .and. ntpr > 0) then
-        decpr = .false.
-        if (mod(nstep+1, ntpr) == 0) decpr = .true.
-      end if
-
-!------------------------------------------------------------------------------
-      call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-                 xx(l98), xx(l99), qsetup, do_list_update, nstep)
-    endif
-    ! End branches into Normal Mode Path Integral MD, Centroid MD, Linearized
-    ! Semi-Classical Initial Value Representation
+!----------------------------------------------------------------------------
+    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
+               xx(l98), xx(l99), qsetup, do_list_update, nstep)
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -1129,26 +1060,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (ifcr > 0 .and. crprintcharges > 0) &
         call cr_print_charge(xx(l15), nstep)
 
-      ! Begin dipole printing code  {{{
-      call nmlsrc('dipoles', 5, prndipfind)
-      if (prndipfind /= 0) then
-        write(6,*) '------------------------------- DIPOLE &
-                    &INFO ----------------------------------'
-        write(6,9018) nstep, t
-        read (5,'(a)') prndiptest
-        call rgroup(natom, natc, nres, prndipngrp, ix(i02), ih(m02), &
-                    ih(m04), ih(m06), ih(m08), ix(icnstrgp), jgroup, indx, &
-                    irespw, npdec, xx(l60), 0, 0, 0, idecomp, 5, .false.)
-        rewind(5)
-        if (prndipngrp > 0) then
-          call printdip(prndipngrp, ix(icnstrgp), xx(lcrd), &
-                        xx(l15), xx(linddip), xx(Lmass), natom)
-        end if
-        write(6,*) '----------------------------- END DIPOLE &
-                    &INFO --------------------------------'
-      end if
-      !--- END DIPOLE PRINTING CODE --- }}}
-
       if (nmropt > 0) call nmrptx(6)
       if (infe == 1) call nfe_prt(6)
       call amflsh(7)
@@ -1453,30 +1364,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 1a: do some setup for pressure calculations: {{{
-  if (ntp > 0 .and. iamoeba == 0) then
-    ener%cmt(1:3) = 0.d0
-    xr(1:nr3) = x(1:nr3)
 
-    ! Calculate, for each molecule, the center of mass, kinetic energy
-    ! of the center of mass, and the coordinates of the molecule
-    ! relative to that center of mass.
-    call timer_start(TIME_EKCMR)
-    call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, istart, iend)
-#ifdef MPI
-    call trace_mpi('mpi_allreduce', 3, 'MPI_DOUBLE_PRECISION', mpi_sum)
-# ifdef USE_MPI_IN_PLACE
-    call mpi_allreduce(MPI_IN_PLACE, ener%cmt, 3, MPI_DOUBLE_PRECISION, &
-                       mpi_sum, commsander, ierr)
-# else
-    call mpi_allreduce(ener%cmt, mpitmp, 3, MPI_DOUBLE_PRECISION, mpi_sum, &
-                       commsander, ierr)
-    ener%cmt(1:3) = mpitmp(1:3)
-# endif
-#endif
-    call timer_stop(TIME_EKCMR)
-  end if
-
-  ! If we're using the MC barostat, go ahead and do the trial move now
+  ! If we're using the MC barostat, do the trial move now
   if (ntp > 0 .and. barostat == 2 .and. mod(total_nstep+1, mcbarint) == 0) &
     call mcbar_trial(xx, ix, ih, ipairs, x, xc, f, ener%vir, xx(l96), &
                      xx(l97), xx(l98), xx(l99), qsetup, do_list_update, &
@@ -3081,133 +2970,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end do
 
 !------------------------------------------------------------------------------
-  ! Step 7: scale coordinates if NPT with Berendsen barostat:
-  if (iamoeba == 0 .and. barostat == 1) then
-    !  next, for non-amoeba: {{{
-    if (ntp == 1) then
-
-      ! Isotropic pressure coupling
-      rmu(1) = (1.d0-dtcp*(pres0 - ener%pres(4)))**third
-      rmu(2) = rmu(1)
-      rmu(3) = rmu(1)
-    else if (ntp == 2) then
-
-      ! Anisotropic pressure scaling
-      if (csurften > 0) then
-
-        ! Constant surface tension adjusts the tangential pressures
-        ! See Zhang, Feller, Brooks, Pastor. J. Chem. Phys. 1995
-        if (csurften == 1) then
-
-          ! For surface tension in the x direction
-          pres0y = pres0x - gamma_ten_int * ten_conv / box(1)
-          pres0z = pres0y
-        else if (csurften == 2) then
-
-          ! For surface tension in the y direction
-          pres0x = pres0y - gamma_ten_int * ten_conv / box(2)
-          pres0z = pres0x
-        else
-
-          ! For surface tension in the z direction
-          pres0x = pres0z - gamma_ten_int * ten_conv / box(3)
-          pres0y = pres0x
-        end if
-        rmu(1) = (1.d0 - dtcp * (pres0x - ener%pres(1)))**third
-        rmu(2) = (1.d0 - dtcp * (pres0y - ener%pres(2)))**third
-        rmu(3) = (1.d0 - dtcp * (pres0z - ener%pres(3)))**third
-      else
-        rmu(1) = (1.d0-dtcp*(pres0-ener%pres(1)))**third
-        rmu(2) = (1.d0-dtcp*(pres0-ener%pres(2)))**third
-        rmu(3) = (1.d0-dtcp*(pres0-ener%pres(3)))**third
-      end if
-      ! End branch for anisotropic pressure scaling
-
-    else
-
-      ! This means ntp = 3, semi-isotropic pressure coupling.
-      ! Currently this only works with csurften > 0, constant
-      ! surface tension.  Semi-isotropic pressure scaling in
-      ! any direction with no constant surface tension has yet
-      ! to be implemented.
-      if (csurften > 0) then
-        if (csurften == 1) then
-
-          ! For surface tension in the x direction
-          pres0y = pres0x - gamma_ten_int * ten_conv / box(1)
-          pres0z = pres0y
-          press_tan_ave = (ener%pres(2) + ener%pres(3))/2
-          rmu(1) = (1.d0 - dtcp * (pres0x - ener%pres(1)))**third
-          rmu(2) = (1.d0 - dtcp * (pres0y - press_tan_ave))**third
-          rmu(3) = (1.d0 - dtcp * (pres0z - press_tan_ave))**third
-        else if (csurften == 2) then
-
-          ! For surface tension in the y direction
-          pres0x = pres0y - gamma_ten_int * ten_conv / box(2)
-          pres0z = pres0x
-          press_tan_ave = (ener%pres(1) + ener%pres(3))/2
-          rmu(1) = (1.d0 - dtcp * (pres0x - press_tan_ave))**third
-          rmu(2) = (1.d0 - dtcp * (pres0y - ener%pres(2)))**third
-          rmu(3) = (1.d0 - dtcp * (pres0z - press_tan_ave))**third
-        else
-
-          ! For surface tension in the z direction
-          pres0x = pres0z - gamma_ten_int * ten_conv / box(3)
-          pres0y = pres0x
-          press_tan_ave = (ener%pres(1) + ener%pres(2))/2
-          rmu(1) = (1.d0 - dtcp * (pres0x - press_tan_ave))**third
-          rmu(2) = (1.d0 - dtcp * (pres0y - press_tan_ave))**third
-          rmu(3) = (1.d0 - dtcp * (pres0z - ener%pres(3)))**third
-        end if
-      end if
-    end if
-    if (ntp > 0) then
-      box(1:3) = box(1:3)*rmu(1:3)
-      ener%box(1:3) = box(1:3)
-
-      ! WARNING!!   This is not correct for non-orthogonal boxes if
-      ! NTP > 1 (i.e. non-isotropic scaling).  Currently, general cell
-      ! updates which allow cell angles to change are not implemented.
-      ! The viral tensor computed for ewald is the general Nose Klein,
-      ! however the cell response needs a more general treatment.
-      call redo_ucell(rmu)
-
-      ! Keep tranvec up to date, rather than recomputing each MD step.
-      ! Tranvec is dependent on only ucell
-      call fill_tranvec()
-
-#ifdef MPI /* SOFT CORE */
-      ! If softcore potentials and the dual topology approach are used
-      ! C.O.M. scaling has to be changed to account for different masses
-      ! of the same molecule in V0 and V1. This is quite inefficient and is
-      ! therefore done in a separate routine in softcore.f
-      ! only both masters actually do the computation for ifsc==1
-      ! the scaled coordinates are then broadcast to the nodes
-      if (icfe .ne. 0 .and. ifsc == 1) then
-        if (master) call sc_pscale(x,amass,nspm,nsp,oldrecip,ucell)
-        call mpi_bcast(x,nr3,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-      else
-#endif /* MPI */
-      call ew_pscale(natom,x,amass,nspm,nsp,npscal)
-#ifdef MPI /* SOFT CORE */
-      end if
-#endif /* MPI */
-      if (ntr > 0 .and. nrc > 0) &
-        call ew_pscale(natom, xc, amass, nspm, nsp, npscal)
-    end if
-    ! }}}
-  else if (barostat == 1) then
-    ! finally, for amoeba: {{{
-    if (ntp > 0) then
-      ener%cmt(4) = eke      !  for printing in prntmd()
-      ener%vir(4) = ener%vir(1) + ener%vir(2) + ener%vir(3)
-      ener%pres(4) = (pressure_constant/volume) * &
-                     (2.d0*eke - ener%vir(4)) / 3.d0
-      call AM_RUNMD_scale_cell(natom, ener%pres(4), dt, pres0, taup, x)
-      call fill_tranvec()
-    end if
-    ! }}}
-  end if
+  ! Step 7: miscellaneous, get total energy
 
 #ifdef LES
   ener%kin%solt = eke
@@ -3347,68 +3110,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (numextra > 0) call zero_extra_pnts_vec(v, ix)
 
 !------------------------------------------------------------------------------
-      if (iwrap == 0) then
-        nr = nrp
+      nr = nrp
 #ifdef LES
-        call mdwrit(nstep,nr,ntxo,ntb,x,v,t,temp0les,solvph,solve)
+      call mdwrit(nstep,nr,ntxo,ntb,x,v,t,temp0les,solvph,solve)
 #else
-        call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
+      call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
 #endif /* LES */
 !------------------------------------------------------------------------------
-      else if (iwrap == 1) then
-
-        ! Use a temporary array to hold coordinates so that the master's
-        ! values are always identical to those on all other nodes:
-        call get_stack(l_temp, nr3, routine)
-        if (.not. rstack_ok) then
-          deallocate(r_stack)
-          allocate(r_stack(1:lastrst), stat=alloc_ier)
-          call reassign_rstack(routine)
-        end if
-        REQUIRE(rstack_ok)
-        do m = 1, nr3
-          r_stack(l_temp+m-1) = x(m)
-        end do
-        call wrap_molecules(nspm, nsp, r_stack(l_temp))
-        if (ifbox == 2) then
-          call wrap_to(nspm, nsp, r_stack(l_temp), box)
-        end if
-        nr = nrp
-#ifdef LES
-        call mdwrit(nstep, nr, ntxo, ntb, r_stack(l_temp), v, t, temp0les,solvph,solve)
-#else
-        call mdwrit(nstep, nr, ntxo, ntb, r_stack(l_temp), v, t, temp0,solvph,solve)
-#endif
-        call free_stack(l_temp, routine)
-!------------------------------------------------------------------------------
-      else if (iwrap == 2) then
-
-        ! Wrapping around a pre-determined mask: center the system on
-        ! the mask center of mass first, then wrap it normally as it
-        ! happens on the iwrap = 1 case.
-        call get_stack(l_temp, nr3, routine)
-        if (.not. rstack_ok) then
-          deallocate(r_stack)
-          allocate(r_stack(1:lastrst), stat=alloc_ier)
-          call reassign_rstack(routine)
-        endif
-        REQUIRE(rstack_ok)
-        do m = 1, nr3
-          r_stack(l_temp+m-1) = x(m)
-        end do
-        nr = nrp
-
-        ! Now, wrap the coordinates around the iwrap_mask:
-        call iwrap2(n_iwrap_mask_atoms, iwrap_mask_atoms, r_stack(l_temp), &
-                    box_center)
-#ifdef LES
-        call mdwrit(nstep, nr, ntxo, ntb, r_stack(l_temp), v, t, temp0les,solvph,solve)
-#else
-        call mdwrit(nstep, nr, ntxo, ntb, r_stack(l_temp), v, t, temp0,solvph,solve)
-#endif /* LES */
-        call free_stack(l_temp, routine)
-      end if
-      ! End branches for molecule wrapping in periodic boundary conditions
 
       if (igb == 0 .and. ipb == 0 .and. induced > 0 .and. indmeth == 3) then
         call wrt_dips(xx(linddip), xx(ldipvel), nr, t, title)
@@ -3442,48 +3150,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         end if
       end if
 #endif /* MPI */
-      if (iwrap == 0) then
-        call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
-        if (ntb > 0) call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
-      else if (iwrap == 1) then
-        call get_stack(l_temp, nr3, routine)
-        if (.not. rstack_ok) then
-          deallocate(r_stack)
-          allocate(r_stack(1:lastrst), stat=alloc_ier)
-          call reassign_rstack(routine)
-        end if
-        REQUIRE(rstack_ok)
-        do m = 1, nr3
-          r_stack(l_temp+m-1) = x(m)
-        end do
-        call wrap_molecules(nspm, nsp, r_stack(l_temp))
-        if (ifbox == 2) call wrap_to(nspm, nsp, r_stack(l_temp), box)
-        call corpac(r_stack(l_temp), 1, nrx, MDCRD_UNIT, loutfm)
-        call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
-        call free_stack(l_temp, routine)
-
-      else if (iwrap == 2) then
-
-        ! Wrapping around a pre-determined mask: center the system on
-        ! the mask center of mass first, then wrap it normally as it
-        ! happens on the iwrap = 1 case.
-        call get_stack(l_temp, nr3, routine)
-        if (.not. rstack_ok) then
-          deallocate(r_stack)
-          allocate(r_stack(1:lastrst), stat=alloc_ier)
-          call reassign_rstack(routine)
-        end if
-        REQUIRE(rstack_ok)
-        do m = 1, nr3
-          r_stack(l_temp+m-1) = x(m)
-        end do
-        call iwrap2(n_iwrap_mask_atoms, iwrap_mask_atoms, r_stack(l_temp), &
-                    box_center)
-        call corpac(r_stack(l_temp), 1, nrx, MDCRD_UNIT, loutfm)
-        call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
-        call free_stack(l_temp, routine)
-      end if
-      ! End branch for wrapping molecules (iwrap)
+      call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
+      if (ntb > 0) call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
 
       ! If using variable QM solvent, try to write a new pdb file
       ! with the QM coordinates for this step. This is done here
@@ -3555,7 +3223,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       endif
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
       if (ischeme > 0 .and. rem == 0 .and. master) then
-	 write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekph*onefac(1)
+         write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekph*onefac(1)
       endif
 
 #ifdef MPI
@@ -3614,46 +3282,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (qmmm_nml%printdipole .ne. 0) &
         call qmmm_dipole(x, xx(Lmass), ix(i02), ih(m02), nres)
 
-!------------------------------------------------------------------------------
-      ! Begin dipole printing.  Also output dipole information if
-      ! the dipoles namelist has been specified and corresponding
-      ! groups defined.  Check input unit 5 for namelist &dipoles.
-      ! We expect to find &dipoles followed by a group specification
-      ! of the dipoles to print.
-      call nmlsrc('dipoles', 5, prndipfind)
-      if (prndipfind .ne. 0) then
-        ! We calculate the dipoles
-        write(6,*) '------------------------------- DIPOLE INFO -&
-                    &---------------------------------'
-        write(6,9018) nstep, t
-        9018 format(/1x, 'NSTEP =', i7, 1x, 'TIME(PS) =', f10.3)
-
-        ! Get the groups for the dipoles - Ideally we only really want
-        ! to call this the once but for the time being I will call it
-        ! every time
-        read (5, '(a)') prndiptest
-        call rgroup(natom, natc, nres, prndipngrp, ix(i02), ih(m02), &
-                    ih(m04), ih(m06), ih(m08), ix(icnstrgp), jgroup, indx, &
-                    irespw, npdec, xx(l60), 0, 0, 0, idecomp, 5, .false.)
-
-        ! Need to rewind input file after rgroup
-        ! so it is available when we next loop through
-        rewind(5)
-        if (prndipngrp > 0) then
-          ! prndipngrp - holds number of groups specified + 1
-          ! ix(icnstrgp) - holds map of group membership for each atom
-          ! x(lcrd) - X,Y,Z coords of atoms - (3,*)
-          ! x(l15) - Partial Charges
-          ! x(linddip) - induced dipoles X,Y,Z for each atom (3,*)
-          ! x(Lmass) - Mass of each atom
-          call printdip(prndipngrp, ix(icnstrgp), xx(lcrd), &
-                        xx(l15), xx(linddip), xx(Lmass), natom)
-        end if
-        write(6,*) '----------------------------- END DIPOLE INFO -&
-                    &-------------------------------'
-      end if
-      ! End of dipole printing
-
       if (nmropt > 0) call nmrptx(6)
       if (infe > 0) call nfe_prt(6)
       if (itgtmd == 2) then
@@ -3664,7 +3292,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end if
       call amflsh(7)
     end if
-    ! end of giant "if (lout)" continengy related to data output }}}
+    ! end of giant "if (lout)" contingency related to data output }}}
 
 !------------------------------------------------------------------------------
     !    Output running averages: {{{
@@ -3797,28 +3425,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif /* DISABLE_NFE is NOT defined, but NFE_ENABLE_BBMD is */
 
-  !  RISM debug: {{{
-#if defined(RISMSANDER) && defined(RISM_DEBUG)
-  if (rismprm%rism == 1) then
-    angvel=0
-    do m = 1, natom
-      r = x((m-1)*3+1:(m-1)*3+3)-cm
-      call cross(r,v((m-1)*3+1:(m-1)*3+3),rxv)
-      angvel = angvel + rxv/sum(r**2)
-    end do
-    moi = 0
-    erot = 0
-    do m = 1, natom
-      r = x((m-1)*3+1:(m-1)*3+3)-cm
-      call cross(r, v((m-1)*3+1:(m-1)*3+3), rxv)
-      proj = angvel * (sum(r*angvel) / sum(angvel**2))
-      moi=moi+amass(m)*sum((r-proj)**2)
-      erot = erot + .5*amass(m)*sum((r-proj)**2)*sum((rxv/sum(r**2))**2)
-    end do
-  end if
-#endif /*RISMSANDER && RISM_DEBUG*/
-  ! }}}
-
   if (abfqmmm_param%abfqmmm == 1) then
 #ifdef MPI
     call xdist(v, xx(lfrctmp), natom)
@@ -3934,9 +3540,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       edvdl = edvdl/tspan
 
       if (ischeme > 0 .and. rem == 0 .and. master) then
-	 ekhf = ekhf / tspan
-	 ekhf2 = ekhf2/tspan - ekhf*ekhf
-	 ekhf2 = sqrt(ekhf2)
+         ekhf = ekhf / tspan
+         ekhf2 = ekhf2/tspan - ekhf*ekhf
+         ekhf2 = sqrt(ekhf2)
          write(fh_ek, *) '# average of EKIN and TEMP over ', nvalid, ' steps'
          write(fh_ek, '(2(1x,F14.4))') ekhf, ekhf*onefac(1)
          write(fh_ek, *) '# rms of EKIN and TEMP over ', nvalid, ' steps'
