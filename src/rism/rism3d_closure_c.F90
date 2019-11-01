@@ -421,13 +421,13 @@ contains
     _REAL_ :: dUlj_dr
     _REAL_ :: debugenergy, time0, time1
 #ifdef OPENMP
-    integer :: numtasks
-    character(len=5) omp_num_threads
+    integer :: numtasks,ier
+    character(len=5) :: omp_num_threads
 
     !  Following should not be necessary, but ifort doesn't seem to
     !  do the right thing with the OMP_NUM_THREADS environment variable here
     call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( status .eq. 1 ) then
+    if( ier .eq. 1 ) then
        numtasks = 1   ! OMP_NUM_THREADS not set
     else
        read( omp_num_threads, * ) numtasks
@@ -572,7 +572,7 @@ contains
     _REAL_ :: time0, time1
 #ifdef OPENMP
     integer :: numtasks, ier
-    character(len=50) omp_threads
+    character(len=5) :: omp_num_threads
 
     !  Following should not be necessary, but ifort doesn't seem to
     !  do the right thing with the OMP_NUM_THREADS environment variable here
