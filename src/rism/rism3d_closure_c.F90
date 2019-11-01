@@ -426,8 +426,12 @@ contains
 
     !  Following should not be necessary, but ifort doesn't seem to
     !  do the right thing with the OMP_NUM_THREADS environment variable here
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
-    read( omp_num_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( status .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
 #endif
     call wallclock(time0)
 
@@ -567,13 +571,17 @@ contains
 
     _REAL_ :: time0, time1
 #ifdef OPENMP
-    integer :: numtasks
+    integer :: numtasks, ier
     character(len=50) omp_threads
 
     !  Following should not be necessary, but ifort doesn't seem to
     !  do the right thing with the OMP_NUM_THREADS environment variable here
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads)
-    read( omp_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( ier .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
 #endif
     call wallclock(time0)
 

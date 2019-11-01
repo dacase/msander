@@ -459,11 +459,15 @@ contains
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
 #ifdef OPENMP
-    integer :: numtasks
+    integer :: numtasks, ier
     character(len=5) omp_num_threads
 
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
-    read( omp_num_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( ier .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
 #endif
 
     beta = 1.d0/this%chargeSmear

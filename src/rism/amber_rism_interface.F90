@@ -715,8 +715,12 @@ contains
     ier = fftw_init_threads()
     write(6,*) 'fftw_init_threads() returns ', ier
 
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads)
-    read( omp_num_threads, * ) numtasks
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( ier .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
     write(6,'(a,i3,a)') '| Running OpenMP with ',numtasks,' threads'
     call fftw_plan_with_nthreads(numtasks)
 #endif
