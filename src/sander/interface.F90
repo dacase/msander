@@ -490,7 +490,7 @@ subroutine api_mdread1(input_options, ierr)
          Sh,Sc,Sn,So,Ss,Sp, &
          lj1264, fswitch, &
          ifcr, cropt, crcut, crskin, crin, crprintcharges, &
-         csurften, ninterface, gamma_ten, infe, baroscalingdir, &
+         ninterface, gamma_ten, infe, baroscalingdir, &
 #ifdef MPI /* SOFT CORE */
          scalpha, scbeta, ifsc, scmask, logdvdl, dvdl_norest, dynlmb, &
          sceeorder, &
@@ -989,11 +989,6 @@ subroutine api_mdread1(input_options, ierr)
    emil_do_calc = 0
 #endif
 
-!  Constant Surface Tension
-   csurften = 0      !constant surface tension off (valid options are 0,1,2,3)
-   gamma_ten = 0.0d0 !0.0 dyne/cm - default used in charmm. Ignored for csurften=0
-   ninterface = 2   !Number of interfaces in the surface tension (Must be greater than 2)
-
 !  ntp = 2 anisotropic directional pressure scaling
    baroscalingdir = 0     !default=0, random direction pressure scaling per step
 
@@ -1271,37 +1266,6 @@ subroutine api_mdread1(input_options, ierr)
       write(6,'(/,a,/,a,/,a/)') 'Warning: timask2 is a pmemd variable.', &
             '  It is not supported in sander.', &
             '  Check the Thermodynamic Integration section in the manual.'
-   end if
-
-! Constant surface tension valid options
-   if (csurften > 0) then
-      if (csurften < 0 .or. csurften > 3) then
-         write(6,'(/2x,a)') &
-         'Invalid csurften value. csurften must be between 0 and 3'
-         FATAL_ERROR
-      end if
-      if (ntb /= 2) then
-         write(6,'(/2x,a)') &
-         'ntb invalid. ntb must be 2 for constant surface tension.'
-         FATAL_ERROR
-      end if
-      if (ntp < 2) then
-         write(6,'(/2x,a)') &
-         'ntp invalid. ntp must be 2 or 3 for constant surface tension.'
-         FATAL_ERROR
-      end if
-      if (ninterface < 2) then
-         write(6,'(/2x,a)') &
-         'ninterface must be greater than 2 for constant surface tension.'
-         FATAL_ERROR
-      end if
-
-      if (iamoeba > 0 ) then
-         write(6,'(/2x,a)') &
-         'Constant Surface Tension is not compatible with Amoeba Runs.'
-         FATAL_ERROR
-      end if
-
    end if
 
 ! baroscalingdir valid options
@@ -2139,12 +2103,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
          end if
-      end if
-
-      if (csurften /= 0) then
-         write(6,'(/a)') 'Constant surface tension:'
-         write(6,'(5x,a,i8)') 'csurften  =', csurften
-         write(6,'(5x,a,f10.5,a,i8)') 'gamma_ten =', gamma_ten, ' ninterface =', ninterface
       end if
 
       if (baroscalingdir /= 0) then
@@ -3587,10 +3545,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
-      DELAYED_ERROR
-   end if
-   if (ntp == 3 .and. csurften < 1) then
-      write(6,'(/2x,a)') 'csurften must be greater than 0 for ntp=3.'
       DELAYED_ERROR
    end if
    if (ntp > 0 .and. taup < dt .and. barostat == 1) then

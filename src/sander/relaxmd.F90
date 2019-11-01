@@ -260,31 +260,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     dtcp = comp * 1.0d-06 * dt / taup
   end if
 
-  ! Constant surface tension setup:
-  if (csurften > 0) then
-
-    ! Set pres0 in direction of surface tension.
-    ! The reference pressure is held constant in on direction dependent
-    ! on what the surface tension direction is set to.
-    if (csurften .eq. 1) then
-
-      ! pres0 in the x direction
-      pres0x = pres0
-    else if (csurften .eq. 2) then
-
-      ! pres0 in the y direction
-      pres0y = pres0
-
-    else
-
-      ! pres0 in the z direction
-      pres0z = pres0
-    end if
-
-    ! Multiply surface tension by the number of interfaces
-    gamma_ten_int = dble(ninterface) * gamma_ten
-  end if
-
   nrek = 4
   nrep = 15
   
@@ -394,28 +369,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end do
     ener%pres(4) = ener%pres(4)/3.d0
 
-    ! Constant surface tension output
-    if (csurften > 0) then
-      if (csurften == 1) then
-
-        ! Surface tension in the x direction
-        ener%surface_ten = box(1) * &
-          (ener%pres(1) - 0.5d0 * (ener%pres(2) + ener%pres(3))) / &
-          (ninterface * ten_conv)
-      else if (csurften .eq. 2) then
-
-        ! Surface tension in the y direction
-        ener%surface_ten = box(2) * &
-          (ener%pres(2) - 0.5d0 * (ener%pres(1) + ener%pres(3))) / &
-          (ninterface * ten_conv)
-      else
- 
-        ! Surface tension in the z direction
-        ener%surface_ten = box(3) * &
-          (ener%pres(3) - 0.5d0 * (ener%pres(1) + ener%pres(2))) / &
-          (ninterface * ten_conv)
-      end if
-    end if
   end if
 
   ! Step 1c: do randomization of velocities, if needed.
@@ -456,8 +409,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
   end if
   ! End contingency for resetting velocities based on Andersen thermocoupling
-
-  
 
   ! Step 2: Do the velocity update.
   ! Step 2a: apply quenched MD if needed.
@@ -725,99 +676,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   do im = 1, iscale
     vold(nr3+im) = v(nr3+im)
   end do
-
-  ! Step 7: scale coordinates if constant pressure run:
-  if (ntp == 1) then
-    rmu(1) = (1.d0 - dtcp*(pres0 - ener%pres(4)))**third
-    rmu(2) = rmu(1)
-    rmu(3) = rmu(1)
-  else if (ntp == 2) then
-    if (csurften > 0) then
-
-      ! Constant surface tension adjusts the tangential pressures
-      ! See Zhang, Feller, Brooks, Pastor. J. Chem. Phys. 1995
-      if (csurften == 1) then
-
-        ! For surface tension in the x direction
-        pres0y = pres0x - gamma_ten_int * ten_conv / box(1)
-        pres0z = pres0y
-      else if (csurften == 2) then
-
-        ! For surface tension in the y direction
-        pres0x = pres0y - gamma_ten_int * ten_conv / box(2)
-        pres0z = pres0x
-      else
-
-        ! For surface tension in the z !direction
-        pres0x = pres0z - gamma_ten_int * ten_conv / box(3)
-        pres0y = pres0x
-      end if
-      rmu(1) = (1.d0 - dtcp * (pres0x - ener%pres(1)))**third
-      rmu(2) = (1.d0 - dtcp * (pres0y - ener%pres(2)))**third
-      rmu(3) = (1.d0 - dtcp * (pres0z - ener%pres(3)))**third
-    else
-      rmu(1) = (1.d0-dtcp*(pres0-ener%pres(1)))**third
-      rmu(2) = (1.d0-dtcp*(pres0-ener%pres(2)))**third
-      rmu(3) = (1.d0-dtcp*(pres0-ener%pres(3)))**third
-    end if
-  else
-
-    ! This means ntp = 3, semi-isotropic pressure coupling.
-    ! Currently this only works with csurften > 0, constant
-    ! surface tension.  Semi-isotropic pressure scaling in
-    ! any direction with no constant surface tension has yet
-    ! to be implemented.
-    if (csurften > 0) then
-      if (csurften == 1) then
-
-        ! For surface tension in the x direction
-        pres0y = pres0x - gamma_ten_int * ten_conv / box(1)
-        pres0z = pres0y
-        press_tan_ave = (ener%pres(2) + ener%pres(3))/2
-        rmu(1) = (1.d0 - dtcp * (pres0x - ener%pres(1)))**third
-        rmu(2) = (1.d0 - dtcp * (pres0y - press_tan_ave))**third
-        rmu(3) = (1.d0 - dtcp * (pres0z - press_tan_ave))**third
-      else if (csurften == 2) then
-
-        ! For surface tension in the y direction
-        pres0x = pres0y - gamma_ten_int * ten_conv / box(2)
-        pres0z = pres0x
-        press_tan_ave = (ener%pres(1) + ener%pres(3))/2
-        rmu(1) = (1.d0 - dtcp * (pres0x - press_tan_ave))**third
-        rmu(2) = (1.d0 - dtcp * (pres0y - ener%pres(2)))**third
-        rmu(3) = (1.d0 - dtcp * (pres0z - press_tan_ave))**third
-      else
-
-        ! For surface tension in the z direction
-        pres0x = pres0z - gamma_ten_int * ten_conv / box(3)
-        pres0y = pres0x
-        press_tan_ave = (ener%pres(1) + ener%pres(2))/2
-        rmu(1) = (1.d0 - dtcp * (pres0x - press_tan_ave))**third
-        rmu(2) = (1.d0 - dtcp * (pres0y - press_tan_ave))**third
-        rmu(3) = (1.d0 - dtcp * (pres0z - ener%pres(3)))**third
-      end if
-    end if
-    ! End contingency for semi-isotropic or anisotropic pressure scaling
-  end if
-  if (ntp > 0) then
-    box(1:3) = box(1:3)*rmu(1:3)
-    ener%box(1:3) = box(1:3)
-         
-    ! WARNING!!   This is not correct for non-orthogonal boxes if
-    ! NTP > 1 (i.e. non-isotropic scaling).  Currently, general cell
-    ! updates which allow cell angles to change are not implemented.
-    ! The viral tensor computed for ewald is the general Nose Klein,
-    ! however the cell response needs a more general treatment.
-    call redo_ucell(rmu)
-
-    ! Keep tranvec up to date, rather than recomputing each MD step.
-    ! Tranvec is dependent on only ucell
-    call fill_tranvec()
-    call ew_pscale(natom,x,amass,nspm,nsp,npscal)
-    if (ntr > 0 .and. nrc > 0) then
-      call ew_pscale(natom, xc, amass, nspm, nsp, npscal)
-    end if
-  endif
 
   ! Pastor, Brooks, Szabo conserved quantity
   ! for harmonic oscillator: Eq. 4.7b of Mol.

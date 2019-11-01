@@ -613,28 +613,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Constant pH and constant Redox potential setup: {{{
   if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
   if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
-  if (ntt == 1) dttp = dt/tautp
-  if (ntp > 0) dtcp = comp * 1.0d-06 * dt / taup
   ! }}}
 
-!------------------------------------------------------------------------------
-  !    Constant surface tension setup: {{{
-  if (csurften > 0) then
-
-    ! Set pres0 in direction of surface tension.
-    ! The reference pressure is held constant in on direction dependent
-    ! on what the surface tension direction is set to.
-    if (csurften .eq. 1) then           ! pres0 in the x direction
-      pres0x = pres0
-    else if (csurften .eq. 2) then      ! pres0 in the y direction
-      pres0y = pres0
-    else                                ! pres0 in the z direction
-      pres0z = pres0
-    end if
-
-    ! Multiply surface tension by the number of interfaces
-    gamma_ten_int = dble(ninterface) * gamma_ten
-  end if
   ! }}}
 
   !   General initialization:  {{{
@@ -841,7 +821,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekin0 = fac(1) * temp0
 #endif
 
-    if (ntt == 1) dttp = dt / tautp
     if (ntp > 0) then
       ener%volume = volume
       ener%density = tmass / (0.602204d0*volume)
@@ -931,18 +910,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ener%tot = ener%kin%tot + ener%pot%tot
 #endif /* LES */
 
-    if (ntt == 1) then
-#ifdef LES
-      if (temp0les >= 0.d0) then
-        ekmh = max(ener%kin%solt, fac(2)*10.d0)
-        ekmhles = max(ener%kin%solv, fac(3)*10.d0)
-      else
-        ekmh = max(ener%kin%solt,fac(1)*10.d0)
-      end if
-#else
-      ekmh = max(ener%kin%solt,fac(1)*10.d0)
-#endif /* LES */
-    end if
   end if
   ! This ends a HUGE conditional branch in which init == 3, general startup
   ! when not continuing a previous dynamics run.  }}}
@@ -1082,7 +1049,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         if (ntwx>0) call corpac(x, 1, nrx, MDCRD_UNIT, loutfm)
         if (ntwv>0) call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
         if (ntwf>0) call corpac(f_or, 1, nrx, MDFRC_UNIT, loutfm)
-        if (ntwe>0) call mdeng(15, nstep, t, ener, onefac, ntp, csurften)
+        if (ntwe>0) call mdeng(15, nstep, t, ener, onefac, ntp)
       end if
       return
     end if
@@ -1568,7 +1535,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekins0 = fac(3)*temp0
   ekin0 = fac(1)*temp0
 #endif /* LES */
-  if (ntt == 1) dttp = dt/tautp
   ! }}}
 
   ! Constant pressure conditions: {{{
@@ -1588,28 +1554,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end do
       ener%pres(4) = ener%pres(4) / 3.d0
 
-      ! Constant surface tension output:
-      if (csurften > 0) then
-        if (csurften == 1) then
-
-          ! Surface tension in the x direction
-          ener%surface_ten = &
-            box(1) * (ener%pres(1) - 0.5d0 * &
-                      (ener%pres(2) + ener%pres(3))) / (ninterface * ten_conv)
-        else if (csurften .eq. 2) then
-
-          ! Surface tension in the y direction
-          ener%surface_ten = &
-            box(2) * (ener%pres(2) - 0.5d0 * &
-                      (ener%pres(1) + ener%pres(3))) / (ninterface * ten_conv)
-        else
-
-          ! Surface tension in the z direction
-          ener%surface_ten = &
-            box(3) * (ener%pres(3) - 0.5d0 * &
-                      (ener%pres(1) + ener%pres(2))) / (ninterface * ten_conv)
-        end if
-      end if
     end if
   end if
   ! End contingency for constant pressure conditions }}}
@@ -2488,7 +2432,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 
 !------------------------------------------------------------------------------
-  if (ntt == 1 .or. onstep) then
+  if (onstep) then
     ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
     eke = 0.d0
     ekph = 0.d0
@@ -2672,60 +2616,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekeles = ekeles * 0.5d0
     ekphles = ekphles * 0.5d0
 #endif /* LES */
-    if (ntt == 1) then
-#ifdef LES
-      if (temp0les < 0.d0) then
-        scaltp = sqrt(1.d0 + 2.d0*dttp*(ekin0-eke)/(ekmh+ekph))
-      else
-        scaltp = sqrt(1.d0 + 2.d0*dttp*(ekinp0-eke)/(ekmh+ekph))
-        scaltles = sqrt(1.d0 + 2.d0*dttp*(ekinles0-ekeles)/(ekmhles+ekphles))
-      end if
-#else
-      ! Following is from T.E. Cheatham, III and B.R. Brooks,
-      ! Theor. Chem. Acc. 99:279, 1998.
-      scaltp = sqrt(1.d0 + 2.d0*dttp*(ekin0-eke)/(ekmh+ekph))
-#endif /* LES */
-      ! }}}
-
-#ifdef MPI /* SOFT CORE */
-      if (icfe .ne. 0) then
-        if (ifsc == 1) then
-          if (master) then
-
-            ! Linearly combine the scaling factors from both processes
-            ! the combined factor is broadcast to all nodes
-            ! the subroutine also correctly scales the softcore atom v's
-            call mix_temp_scaling(scaltp, v)
-          end if
-          call mpi_bcast(scaltp, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-        end if
-      end if
-#endif /* MPI */
-      do j = istart, iend
-        i3 = (j-1)*3 + 1
-#ifdef LES
-        if (temp0les > 0.d0 .and. cnum(j) /= 0 ) then
-          v(i3) = v(i3)*scaltles
-          v(i3+1) = v(i3+1)*scaltles
-          v(i3+2) = v(i3+2)*scaltles
-        else
-          v(i3) = v(i3)*scaltp
-          v(i3+1) = v(i3+1)*scaltp
-          v(i3+2) = v(i3+2)*scaltp
-        end if
-#else
-        v(i3) = v(i3)*scaltp
-        v(i3+1) = v(i3+1)*scaltp
-        v(i3+2) = v(i3+2)*scaltp
-#endif
-      end do
-      do im=1,iscale
-        v(nr3+im) = v(nr3+im)*scaltp
-      end do
-    end if
-    ! End contingency for Berendsen thermostat (ntt == 1)
   end if
-  ! End contingency for Berendsen thermostat or onstep; end of step 4c
+  ! End contingency for onstep; end of step 4c
   !    (also: end of big section devoted to estimating the kinetic energy) }}}
 
 !------------------------------------------------------------------------------
@@ -2976,14 +2868,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ener%kin%solt = eke
   ener%kin%solv = ekeles
   ener%kin%tot  = ener%kin%solt + ener%kin%solv
-  if (ntt == 1 .and. onstep) then
-    if (temp0les < 0) then
-      ekmh = max(ekph, fac(1)*10.d0)
-    else
-      ekmh = max(ekph,fac(2)*10.d0)
-      ekmhles = max(ekphles,fac(3)*10.d0)
-    endif
-  end if
 
 #else
 
@@ -2993,7 +2877,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ener%kin%solv = ekpbs + ener%pot%tot
   ener%kin%solt = eke
   ener%kin%tot  = ener%kin%solt
-  if (ntt == 1 .and. onstep) ekmh = max(ekph,fac(1)*10.d0)
 #endif /* LES */
 
   ! If velocities were reset, the KE is not accurate; fudge it
@@ -3195,7 +3078,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Energy archive: (total_nstep set in Step 5.)
     if ( ntwe > 0 ) then
       if (mod(total_nstep,ntwe) == 0 .and. onstep) &
-        call mdeng(15,nstep,t,ener,onefac,ntp,csurften)
+        call mdeng(15,nstep,t,ener,onefac,ntp)
     end if
 
     if (ioutfm > 0) then

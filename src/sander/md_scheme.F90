@@ -80,6 +80,8 @@ contains
 
     dt = dtx / 20.455d0
     select case (ithermostat)
+    case (ENUM_NO_THERM)  ! no thermostating
+      ! nothing to do here
     case (ENUM_LGV_THERM) ! Langevin thermostat
       ! therm_par in ps^-1, dt in ps
       lgv_c1 = exp(-therm_par*dt) 

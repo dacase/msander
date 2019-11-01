@@ -154,11 +154,11 @@ subroutine mdread1()
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,iwrap,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          idecomp,temp0les,restraintmask,restraint_wt,bellymask, &
-         noshakemask,crgmask, iwrap_mask, &
+         noshakemask,crgmask, &
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
          ifqnt,ievb, profile_mpi, ilscivr, icorf_lsc, &
@@ -172,7 +172,7 @@ subroutine mdread1()
          Sh,Sc,Sn,So,Ss,Sp, &
          lj1264, fswitch, &
          ifcr, cropt, crcut, crskin, crin, crprintcharges, &
-         csurften, ninterface, gamma_ten, infe, baroscalingdir, &
+         infe, baroscalingdir, &
 #ifdef MPI /* SOFT CORE */
          scalpha, scbeta, ifsc, scmask, logdvdl, dvdl_norest, dynlmb, &
          sceeorder, &
@@ -344,7 +344,7 @@ subroutine mdread1()
    tautp = ONE
    ntp = 0
    fswitch = -1.d0
-   barostat = 1
+   barostat = 2
    mcbarint = 100
    pres0 = ONE
    comp = 44.6d0
@@ -566,7 +566,6 @@ subroutine mdread1()
    restraint_wt = ZERO
    bellymask=''
    noshakemask=''
-   iwrap_mask=''  ! GMS: mask to wrap around if iwrap == 2
    crgmask=''
 
    icnstph = 0
@@ -670,14 +669,6 @@ subroutine mdread1()
 #ifdef EMIL
    emil_do_calc = 0
 #endif
-
-!  Constant Surface Tension
-   csurften = 0      !constant surface tension off (valid options are 0,1,2,3)
-   gamma_ten = 0.0d0 !0.0 dyne/cm - default used in charmm. Ignored for csurften=0
-   ninterface = 2   !Number of interfaces in the surface tension (Must be greater than 2)
-
-!  ntp = 2 anisotropic directional pressure scaling
-   baroscalingdir = 0     !default=0, random direction pressure scaling per step
 
 #ifdef API
    igb = input_options%igb
@@ -789,9 +780,9 @@ subroutine mdread1()
 
    ! middle scheme is requested {
    if (ischeme == 1) then
-      if (ithermostat < 1 .or. ithermostat > 2) then
+      if (ithermostat < 0 .or. ithermostat > 2) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 1-2 for current version'
+            'Middle scheme: ithermostat is only available for 0-2 for current version'
          FATAL_ERROR
       end if
       if (therm_par < 0d0) then
@@ -955,37 +946,6 @@ subroutine mdread1()
             '  Check the Thermodynamic Integration section in the manual.'
    end if
 
-! Constant surface tension valid options
-   if (csurften > 0) then
-      if (csurften < 0 .or. csurften > 3) then
-         write(6,'(/2x,a)') &
-         'Invalid csurften value. csurften must be between 0 and 3'
-         FATAL_ERROR
-      end if
-      if (ntb /= 2) then
-         write(6,'(/2x,a)') &
-         'ntb invalid. ntb must be 2 for constant surface tension.'
-         FATAL_ERROR
-      end if
-      if (ntp < 2) then
-         write(6,'(/2x,a)') &
-         'ntp invalid. ntp must be 2 or 3 for constant surface tension.'
-         FATAL_ERROR
-      end if
-      if (ninterface < 2) then
-         write(6,'(/2x,a)') &
-         'ninterface must be greater than 2 for constant surface tension.'
-         FATAL_ERROR
-      end if
-
-      if (iamoeba > 0 ) then
-         write(6,'(/2x,a)') &
-         'Constant Surface Tension is not compatible with Amoeba Runs.'
-         FATAL_ERROR
-      end if
-
-   end if
-
 ! baroscalingdir valid options
    if (baroscalingdir > 0) then
       if (baroscalingdir < 0 .or. baroscalingdir > 3) then
@@ -1010,7 +970,7 @@ subroutine mdread1()
 
    if (ntp > 0 .and. barostat == 2) then
       inerr = 0
-      if (ievb /= 0) then
+      if (iamoeba /= 0) then
          write(6, '(/2x,a)') 'AMOEBA is not compatible with the MC Barostat'
          inerr = 1
       end if
@@ -1300,7 +1260,6 @@ subroutine mdread2(x,ix,ih)
 #  define DELAYED_ERROR inerr = 1
 #endif /* API */
 
-   use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
    use lmod_driver, only : LMOD_NTMIN_LMOD, LMOD_NTMIN_XMIN, write_lmod_namelist
    use decomp, only : jgroup, indx, irespw
    use findmask
@@ -1375,7 +1334,7 @@ subroutine mdread2(x,ix,ih)
    integer atomicnumber, hybridization
    integer ngrp,inerr,nr,ir,i,mxresat,j
    integer noshakegp( natom ), natnos
-   integer iwrap_maskgp( natom ) , ier
+   integer ier
    logical errFlag
    _REAL_ emtmd
 #ifndef LES
@@ -1768,13 +1727,6 @@ subroutine mdread2(x,ix,ih)
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ntt == 1 ) then
-         write(6,'(/a)') 'Berendsen (weak-coupling) temperature regulation:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', tautp   =', tautp
-#  ifdef LES
-         write(6,'(5x,3(a,f10.5))') 'temp0LES   =',temp0les
-#  endif
       else if( ntt == 2 ) then
          write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
          write(6,'(5x,4(a,i8))') 'ig      =',ig, ', vrand   =',vrand
@@ -1828,12 +1780,6 @@ subroutine mdread2(x,ix,ih)
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
          end if
-      end if
-
-      if (csurften /= 0) then
-         write(6,'(/a)') 'Constant surface tension:'
-         write(6,'(5x,a,i8)') 'csurften  =', csurften
-         write(6,'(5x,a,f10.5,a,i8)') 'gamma_ten =', gamma_ten, ' ninterface =', ninterface
       end if
 
       if (baroscalingdir /= 0) then
@@ -3188,17 +3134,9 @@ subroutine mdread2(x,ix,ih)
       write(6,'(/2x,a,i3,a)') 'NTB (',ntb,') must be 0, 1 or 2.'
       DELAYED_ERROR
    end if
-   if (ntb == 0 .and. iwrap > 0) then
-      write(6,'(/2x,a)') 'Error: IWRAP > 0 cannot be used without a periodic box.'
-      DELAYED_ERROR
-   end if
 
-   if (ntt < 0 .or. ntt > 10) then                                      ! APJ
-      write(6,'(/2x,a,i3,a)') 'NTT (',ntt,') must be between 0 and 10.' ! APJ
-      DELAYED_ERROR
-   end if
-   if (ntt == 1 .and. tautp < dt) then
-      write(6, '(/2x,a,f6.2,a)') 'TAUTP (',tautp,') < DT (step size)'
+   if (ntt < 0 .or. ntt > 10 .or. ntt == 1) then 
+      write(6,'(/2x,a,i3,a)') 'NTT (',ntt,') must be between 0 or 2-10.' 
       DELAYED_ERROR
    end if
    if( ntt < 3 .or. ntt > 10) then  ! APJ
@@ -3278,21 +3216,13 @@ subroutine mdread2(x,ix,ih)
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
       DELAYED_ERROR
    end if
-   if (ntp == 3 .and. csurften < 1) then
-      write(6,'(/2x,a)') 'csurften must be greater than 0 for ntp=3.'
-      DELAYED_ERROR
-   end if
-   if (ntp > 0 .and. taup < dt .and. barostat == 1) then
-      write(6, '(/2x,a,f6.2,a)') 'TAUP (',taup,') < DT (step size)'
-      DELAYED_ERROR
-   end if
    if (npscal < 0 .or. npscal > 1) then
       write(6,'(/2x,a,i3,a)') 'NPSCAL (',npscal,') must be 0 or 1.'
       DELAYED_ERROR
    end if
    if (ntp > 0) then
-      if (barostat /= 1 .and. barostat /= 2) then
-         write(6, '(/2x,a,i3,a)') 'BAROSTAT (', barostat, ') must be 1 or 2'
+      if (barostat /= 2) then
+         write(6, '(/2x,a,i3,a)') 'BAROSTAT (', barostat, ') must be 2'
          DELAYED_ERROR
       end if
       if (barostat == 2) then
@@ -3700,13 +3630,6 @@ subroutine mdread2(x,ix,ih)
 
    end if ! icnste
 
-#ifdef noVIRIAL
-   if( ntp > 0 .and. barostat == 1 ) then
-      write(6,'(/,a)') 'Error: Berendsen barostat is incompatible with noVIRIAL'
-      DELAYED_ERROR
-   end if
-#endif
-
    !-----------------------------------------------------
    !     ----sanity checks for Ewald
    !-----------------------------------------------------
@@ -4014,36 +3937,6 @@ subroutine mdread2(x,ix,ih)
          write(6,'(a)') '   Setting ntf to 1'
          ntf = 1
       end if
-   end if
-
-   ! GMS ------------------------------------
-   !  Check for 'iwrap_mask', and process it.
-   ! ----------------------------------------
-   n_iwrap_mask_atoms = 0
-   if( len_trim(iwrap_mask) > 0 .and. iwrap == 2) then
-      call atommask( natom, nres, 0, ih(m04), ih(m06), &
-         ix(i02), ih(m02), x(lcrd), iwrap_mask, iwrap_maskgp )
-      ! iwrap_maskgp is a natom long integer array, with elements:
-      ! 0 --> atom is not in iwrap_mask
-      ! 1 --> atom is in iwrap_mask
-      n_iwrap_mask_atoms = sum(iwrap_maskgp(1:natom))
-      write(6,*)
-      write(6,'(a,a,a,i5,a)') 'Wrap mask ', &
-         iwrap_mask(1:len_trim(iwrap_mask)), ' matches ',n_iwrap_mask_atoms,' atoms:'
-      ! Set an array to store the atom numbers of the atoms
-      ! in the iwrap_mask
-      allocate(iwrap_mask_atoms(n_iwrap_mask_atoms), stat=ier)
-      REQUIRE(ier == 0)
-
-      j = 0
-      do i=1,natom
-        if( iwrap_maskgp(i)>0 ) then
-          j = j+1
-          iwrap_mask_atoms(j) = i
-        end if
-      end do
-
-      write(6,'(10i5)') (iwrap_mask_atoms(i),i=1,n_iwrap_mask_atoms)
    end if
 
 #ifdef MPI /* SOFT CORE */

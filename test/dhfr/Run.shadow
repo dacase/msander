@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic, pedagogical
 #TEST-STATE   ok
 
-set sander = "${AMBERHOME}/bin/sander"
+set sander = "../../bin/msander"
 if( $?TESTsander ) then
    set sander = $TESTsander
 endif

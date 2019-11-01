@@ -553,9 +553,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
 #endif /* LES */
 
-  if (csurften > 0) then
-    write(6, 9072) ener%surface_ten
-  end if
   if (cmap_active .and. epol /= 0.0) then
     write(6, 9068) epol, ener%pot%cmap
   else
@@ -791,9 +788,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
 #endif
 
-  if (csurften .gt. 0) then
-    write(7, 9072) ener%surface_ten
-  end if
   if (cmap_active .and. epol /= 0.0) then
     write(7,9068) epol, ener%pot%cmap
   else
@@ -1023,13 +1017,12 @@ end subroutine setvel
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Energy output for mden file, in human-readable form.
-subroutine mdeng(nf,nstep,time,ener,onefac,ntp,csurften)
+subroutine mdeng(nf,nstep,time,ener,onefac,ntp)
    use state
    use constants, only : zero
    implicit none
 #  include "box.h"
    integer nf,nstep,ntp,i
-   integer, intent(in) :: csurften
    _REAL_ onefac(3),time
    type(state_rec), intent(in) :: ener
    logical first
@@ -1072,9 +1065,6 @@ subroutine mdeng(nf,nstep,time,ener,onefac,ntp,csurften)
       write(nf,1) 'L8 ', (labs(i),i=33,36)
       !       -- up to Density:
       write(nf,1) 'L9 ', (labs(i),i=37,41)
-      ! surface tension info if constant surface tension in use.
-      if (csurften > 0) &
-         write(nf, 1) 'L10 ', labs(42)
       1 format(a,10(1x,a))
       first = .false.
    end if
@@ -1108,10 +1098,6 @@ subroutine mdeng(nf,nstep,time,ener,onefac,ntp,csurften)
    !     -- up to dV/dlambda:
    write(nf, 3) 'L9 ', ener%aveper, ener%aveind, ener%avetot, &
                                     ener%density, ener%pot%dvdl
-
-   ! Constant surface tension info if running with constant surface tension
-   if (csurften > 0) &
-     write(nf, 3) 'L10 ', ener%surface_ten
 
    2 format(a, i8, 20(2x,e16.9))
    3 format(a, 20(e16.9,2x))

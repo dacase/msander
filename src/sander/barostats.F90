@@ -212,53 +212,6 @@ subroutine mcbar_trial(xx, ix, ih, ipairs, x, xc, f, vir, fs, rborn, reff, &
                dv(aniso_dim) = (randval - HALF) * dvmax
          end select
       end if
-   else if (ntp .eq. 3) then
-      ! Semi-isotropic -- pick one dimension to change (X,Y count as 1 dim)
-      call amrand_gen(mcbar_gen, randval)
-      aniso_dim = int(randval * 2.d0 * 0.99999999d0) + 1
-      call amrand_gen(mcbar_gen, randval)
-      if (aniso_dim .eq. 1) then
-         select case (csurften)
-            case(1)
-               dv(2) = (randval - HALF) * dvmax
-               dv(3) = dv(2)
-               dv(1) = 0.d0
-            case(2)
-               dv(1) = (randval - HALF) * dvmax
-               dv(3) = dv(1)
-               dv(2) = 0.d0
-            case(3)
-               dv(1) = (randval - HALF) * dvmax
-               dv(2) = dv(1)
-               dv(3) = 0.d0
-         end select
-      else
-         select case (csurften)
-            case(1)
-               dv(1) = (randval - HALF) * dvmax
-               dv(2) = 0.d0
-               dv(3) = 0.d0
-            case(2)
-               dv(2) = (randval - HALF) * dvmax
-               dv(1) = 0.d0
-               dv(3) = 0.d0
-            case(3)
-               dv(3) = (randval - HALF) * dvmax
-               dv(1) = 0.d0
-               dv(2) = 0.d0
-         end select
-      end if
-   end if
-
-   if (csurften .gt. 0) then
-      select case (csurften)
-         case(1)
-            delta_area = ucell(2,2) * ucell(3,3)
-         case(2)
-            delta_area = ucell(1,1) * ucell(3,3)
-         case(3)
-            delta_area = ucell(1,1) * ucell(2,2)
-      end select
    end if
 
    rmu(1) = (1.d0 + dv(1)) ** THIRD
@@ -276,18 +229,6 @@ subroutine mcbar_trial(xx, ix, ih, ipairs, x, xc, f, vir, fs, rborn, reff, &
 
    ! p*dV (6.02204d-2 / 4184.0d0 converts from bar*A^3/particle to kcal/mol)
    pv_work = pres0 * (volume - orig_vol) * AVOGADRO * TEN_TO_MINUS25 / JPKC
-
-   if (csurften .gt. 0) then
-      select case (csurften)
-         case(1)
-            delta_area = ucell(2,2) * ucell(3,3) - delta_area
-         case(2)
-            delta_area = ucell(1,1) * ucell(3,3) - delta_area
-         case(3)
-            delta_area = ucell(1,1) * ucell(2,2) - delta_area
-      end select
-      pv_work = pv_work - gamma_ten * ninterface * delta_area * TENSION_CONV
-   end if
 
    nbeta = - 1 / (temp0 * KB)
 
