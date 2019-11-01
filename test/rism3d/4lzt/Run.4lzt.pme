@@ -1,7 +1,7 @@
 #!/bin/csh -f
 
 echo "SANDER: 3D-RISM: PME potential - triclinic"
-if( ! $?TESTsander ) set TESTsander = "../../../bin/sander"
+if( ! $?TESTsander ) set TESTsander = "../../../bin/msander"
 
 if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "
