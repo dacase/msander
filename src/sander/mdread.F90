@@ -326,9 +326,9 @@ subroutine mdread1()
    nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ischeme = 0
+   ischeme = 1
    ithermostat = 0
-   therm_par = 0.0d0
+   therm_par = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0

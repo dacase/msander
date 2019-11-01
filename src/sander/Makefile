@@ -65,7 +65,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     rfree.o rgroup.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.o thermo_int.o \
-    matinv.o assert.o erfcfun.o sinr_t.o md_scheme.o \
+    matinv.o assert.o erfcfun.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
     $(AMOEBAOBJ) AmberNetcdf.o bintraj.o binrestart.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \
@@ -89,7 +89,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     sander_lib.o random.o \
     debug.o ew_recip_reg.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
-    erfcfun.o sinr_t.o md_scheme.LES.o \
+    erfcfun.o md_scheme.LES.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
     $(AMOEBAOBJ) les.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o xref.o dssp.o \

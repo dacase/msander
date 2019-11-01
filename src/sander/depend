@@ -1990,7 +1990,6 @@ mdread.o: \
                     tgtmd.h\
                     multitmd.h\
                     ew_erfc_spline.h\
-                    molecule.o\
                     decomp.o\
                     findmask.o\
                     egb.o\
@@ -2057,7 +2056,6 @@ mdread.LES.o: \
                     tgtmd.h\
                     multitmd.h\
                     ew_erfc_spline.h\
-                    molecule.o\
                     decomp.o\
                     findmask.o\
                     egb.LES.o\
@@ -2123,7 +2121,6 @@ mdread.PUPIL.o: \
                     tgtmd.h\
                     multitmd.h\
                     ew_erfc_spline.h\
-                    molecule.o\
                     decomp.o\
                     findmask.o\
                     egb.o\
@@ -3833,8 +3830,6 @@ runmd.o: \
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
                     mdfil.o\
-                    molecule.o\
-                    lscivr_vars.o\
                     md_scheme.o\
                     nose_hoover.o\
                     ../rism/amber_rism_interface.o\
@@ -3866,7 +3861,6 @@ runmd.o: \
                     abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
-                    sinr_t.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3898,8 +3892,6 @@ runmd.LES.o: \
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
                     mdfil.LES.o\
-                    molecule.o\
-                    lscivr_vars.o\
                     md_scheme.LES.o\
                     nose_hoover.o\
                     ../rism/amber_rism_interface.o\
@@ -3931,7 +3923,6 @@ runmd.LES.o: \
                     abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
-                    sinr_t.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
