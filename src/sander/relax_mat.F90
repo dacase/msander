@@ -6,6 +6,12 @@ module relax_mat
 
 public noeread, noecalc
 private caldis, calrate, dinten, drates, indexn, remarc
+#ifdef NMODE
+private corf
+#endif
+#ifdef ORIGDERIV
+private kmat
+#endif
 
 contains
 
@@ -661,6 +667,1786 @@ subroutine calrate(ddep,rate,trp)
    end do
    
    return
+end subroutine calrate 
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine corf here]
+#ifdef NMODE
+subroutine corf(x, khyd, lhyd, kreal, lreal, newf, amass)
+   implicit none
+   integer :: khyd, lhyd, kreal, lreal
+   logical :: newf
+   _REAL_ :: x, amass
+   
+   
+   !     ----- to calculate dipole-dipole correlation functions
+   !           from normal modes, using Henry-Szabo Eq. (45)
+   
+   !     ----  note that the "x" array is really xhyd, so that "khyd"
+   !           and "lhyd" are atom numbers in the nath scheme.
+   !           The "vect" array is indexed by absolute atom numbers, and
+   !           "kreal" and "lreal" are pointers to that.
+   
+   !           The first "iscale-1" frequencies will be the fitted values,
+   !           held at the end of the x array; the remainder will be the
+   !           "true" frequencies, held in "freq".
+   !           These "true" frequencies will in fact be scaled by xkappa,
+   !           which is held in x(3*natom + iscale).
+   
+   !           Input parameter "newf" is true if this is the first time
+   !           that corf has been called since the effective frequencies
+   !           have been changed.
+   
+   !     ----  returns:
+   !            gamma_nmr: motional correction factor to cross-relaxation rate
+   !            dgamma(1->3): dervative of gamma_nmr with respect to
+   !                         (xk-xl), (yk-yl), (zk-zl)
+   !            dgamma(4->iscale+2): derivative of gamma_nmr with respect to
+   !                         frq(n), expressed in wavenumbers.
+   !            dgamma(iscale+3): derivative of gamma_nmr with respect to
+   !                         scaling factor for fixed frequencies
+   
+   !    ---- notes on other variables:
+   !            dfac(n) is the frequency-dependent part of the formula to
+   !            get cartesian fluctations for the n-th mode, along the
+   !            khyd-lhyd direction.  The real cartesian fluctuation is
+   !            given by the product of dfac and vfac, as shown below.
+   
+   !            ddfac(n) is the log derivative of dfac(n) with respect to the
+   !            n-th scaling factor (which is the frequency for 1 -> iscale-1,
+   !            and is the global scaling factor for n=iscale. Hence,
+   !            to get the full derivative of the cartesian fluctuation
+   !            with respect to the n-th variable parameter, multiply
+   !            dfac * vfac * ddfac.  This product is stored in ddlijc.
+   
+   integer:: i, ia, ib, isnap, ivuse, j, k, ki, kj, l, li, lj, mu, n
+   _REAL_ :: amp, argq, consq, ddfac, ddlijc, del, delijc, dfac, e, &
+        fre, frq, hsfac1, hsfac2, hsfac3, one, qcorr, reff, req, suma, &
+        two, twopi, weff
+   _REAL_ kt
+   logical first
+#  include "nmr.h"
+#  include "../include/md.h"
+#  include "../include/memory.h"
+#  include "def_time.h"
+   _REAL_ amass(*)
+   _REAL_ xcopy( 3*natom )
+   dimension x(*), e(3), del(3,3)
+   dimension ddlijc(3,3,mxvect),dfac(mxvect),ddfac(mxvect)
+   save dfac,ddfac,first
+   data first /.true./
+   
+   !     functions
+   k(i) = 3*(khyd-1) + i
+   l(i) = 3*(lhyd-1) + i
+   !     end functions
+   
+   one = 1.d0
+   two = 2.d0
+   if (newf) then
+      kt = vtemp*0.002
+      !                  ----CONSQ = hc/2kT in cm
+      !                       (use for quantum, Bose statistics)
+      consq = 0.71942/vtemp
+      do n=1,iscale-1
+         frq = x(3*natom + n)
+         fre = frq*frq/11791.79
+         if (bose) then
+            argq = frq*consq
+            qcorr = argq/tanh(argq)
+            dfac(n) = kt*(qcorr/fre)
+            ddfac(n) = -(one/frq + consq*tanh(argq)/sinh(argq)**2)
+         else
+            dfac(n) = kt/fre
+            ddfac(n) = -two/frq
+         end if
+      end do
+      !     end if
+      !     if (first) then
+      
+      !   --- set up fluctuations for the "fixed" frequencies:
+      
+      ddfac(iscale) = 0.0
+      do n=iscale,nvect
+         if (freq(n) < omegax) then
+            frq = x(3*natom+iscale)*abs(freq(n))
+         else
+            frq = freq(n)
+         end if
+         fre = frq*frq/11791.79
+         if (bose) then
+            argq = frq*consq
+            qcorr = argq/tanh(argq)
+            ddfac(n) = -(one/x(3*natom+iscale) &
+                  + consq*freq(n)*tanh(argq)/sinh(argq)**2)
+         else
+            qcorr = 1.0
+            ddfac(n) = -two/x(3*natom+iscale)
+         end if
+         dfac(n) = kt*(qcorr/fre)
+         if( frq > 6000.d0 ) dfac(n) = 0.d0
+         write(6,*) n, frq, dfac(n)
+         if (freq(n) >= omegax) ddfac(n) = 0.0
+      end do
+      first = .false.
+      if( nmsnap > 0 ) then
+#ifdef DEBUG_NMR
+         
+         !       --- check orthogonality:
+         
+         dot77 = 0.0
+         dot78 = 0.0
+         dot89 = 0.0
+         n = 0
+         do i=1,3*natom
+            if( mod(i,3) == 1 ) n = n + 1
+            dot77 = dot77 + vect(i,7)*vect(i,7)*amass(n)
+            dot78 = dot78 + vect(i,7)*vect(i,8)*amass(n)
+            dot89 = dot89 + vect(i,8)*vect(i,9)*amass(n)
+         end do
+         write(6,*) 'orthog check: ', dot77, dot78, dot89
+         write(6,*) (amass(i),i=1,natom)
+#endif
+         
+         call amrset( 54185253 )
+         
+         !       ---output "snapshots" of structures averaged over the modes:
+         
+         isnap = 0
+         write(6,*) 'mode snapshot ',isnap
+         write(6,'(i5)') natom
+         write(6,'(6f12.7)') (x(i),i=1,3*natom)
+         twopi = 6.28318d0
+         do isnap = 1,nmsnap
+            do i=1,3*natom
+               xcopy(i) = x(i)
+            end do
+            do n = 1,nvect
+               
+               !    here is (possibly) quantum amplitude, but classical motion:
+               
+               !        call amrand(s)
+               !        amp = sqrt(2.d0*dfac(n))*cos(twopi*s)
+               
+               !        here is Gaussian with the quantum std. deviation:
+               
+               call gauss( 0.d0, sqrt(dfac(n)), amp )
+               
+               do i=1,3*natom
+                  xcopy(i) = xcopy(i) + amp*vect(i,n)
+               end do
+            end do
+            write(6,*) 'mode snapshot ',isnap
+            write(6,'(i5)') natom
+            write(6,'(6f12.7)') (xcopy(i),i=1,3*natom)
+         end do
+         call mexit(6,0)
+      end if
+   end if
+   
+   !    ---e(i) is the unit vector along the l-k bond:
+   
+   req = 0.0
+   do i = 1, 3
+      e(i) = x(k(i)) - x(l(i))
+      req = req + e(i)*e(i)
+   end do
+   req = sqrt(req)
+   do i = 1, 3
+      e(i) = e(i) / req
+   end do
+   
+   !     ----- calculate the correlation matrix for delta
+   !        as in Eq. 7.16 of lamm and szabo j. chem. phys. 85, 7334 (1986)
+   !        Note that the rhs of this eq. should be multiplied by kT
+   
+   ivuse = 1
+   43 continue
+   do i=1,3
+      ki = 3*(kreal-1) + i
+      li = 3*(lreal-1) + i
+      do j=1,3
+         kj = 3*(kreal-1) + j
+         lj = 3*(lreal-1) + j
+         del(i,j) = 0.0
+         ddlijc(i,j,iscale) = 0.0
+         
+         !  --- do fitted frequencies, for which we will need derivatives:
+         
+         do n=1,iscale-1
+            vfac=(vect(ki,n)-vect(li,n))*(vect(kj,n)-vect(lj,n))
+            delijc = dfac(n)*vfac
+            del(i,j) = del(i,j) + delijc
+            ddlijc(i,j,n) = delijc*ddfac(n)
+         end do
+         
+         ! --- now add in remaining fixed frequency modes:
+         
+         if( per_mode ) then
+            n = ivuse
+            vfac=(vect(ki,n)-vect(li,n))*(vect(kj,n)-vect(lj,n))
+            del(i,j) = del(i,j) + dfac(n)*vfac
+            ddlijc(i,j,iscale) = ddlijc(i,j,iscale) + &
+                  dfac(n)*vfac*ddfac(n)
+         else
+            do n=iscale,nvect
+               vfac=(vect(ki,n)-vect(li,n))*(vect(kj,n)-vect(lj,n))
+               del(i,j) = del(i,j) + dfac(n)*vfac
+               ddlijc(i,j,iscale) = ddlijc(i,j,iscale) + &
+                     dfac(n)*vfac*ddfac(n)
+            end do
+         end if
+      end do
+   end do
+   
+   !    ---- use eq. 45 of Henry & Szabo [JCP 82:4753(1985)]
+   !         to get motional correction for dipole-dipole correlation:
+   
+   !         (The code with ihsful=1 uses the full Henry-Szabo
+   !         formula; that without this defined leaves out the terms
+   !         dependent upon A1 and A2, i.e. the bond-length dependent
+   !         terms.)
+   
+   if (ihsful == 1) then
+      hsfac1 = 15.d0
+      hsfac2 =  5.d0
+      hsfac3 = 10.d0
+   else
+      hsfac1 = 3.d0
+      hsfac2 = 1.d0
+      hsfac3 = 2.d0
+   end if
+   suma = 0.0
+   reff = 0.0
+   do i = 1, 3
+      suma = suma - 3.0*del(i,i)
+      reff = reff + del(i,i)
+      do j = 1,3
+         suma = suma + hsfac1*del(i,j)*e(i)*e(j)
+         reff = reff - del(i,j)*e(i)*e(j)
+      end do
+   end do
+   weff =  1.0 + (0.5/req**2) * suma
+   gamma_nmr = weff**2
+   reff = 0.5 * reff/ req
+   if( per_mode ) then
+      write(6,*) 'ivuse, gamma:', ivuse, gamma_nmr
+      ivuse = ivuse + 1
+      if (ivuse <= nvect) goto 43
+      stop
+   else
+      write(6,*) 'gamma, reff:', gamma_nmr, reff
+   end if
+   
+   !   ---  now get dgamma = derivative of gamma_nmr with respect to
+   !          (xk-xl), (yk-yl), (zk-zl)
+   
+   do mu=1,3
+      dgamma(mu) = 0.0
+      do ib=1,3
+         dgamma(mu) = dgamma(mu) + hsfac2*e(ib)*del(mu,ib) &
+               + e(mu)*del(ib,ib)
+         do ia=1,3
+            dgamma(mu) = dgamma(mu) - hsfac3*e(ia)*e(ib)*e(mu)*del(ia,ib)
+         end do
+      end do
+      dgamma(mu) = weff*6.*dgamma(mu)/req**3
+   end do
+   
+   !  --- get more of dgamma: derivatives with respect to the weights
+   
+   do n=1,iscale
+      suma = 0.0
+      do i = 1, 3
+         suma = suma - 3.0*ddlijc(i,i,n)
+         do j = 1,3
+            suma = suma + hsfac1*ddlijc(i,j,n)*e(i)*e(j)
+         end do
+      end do
+      dgamma(n+3) = weff*suma/req**2
+   end do
+   
+   return
+end subroutine corf 
+#endif
+
+#ifdef ORIGDERIV
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine dinten here]
+subroutine dinten(vecs,facj,ii,jj,c,dint)
+#else
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine dinten here]
+subroutine dinten(amat,ii,jj,ddrat,dorat,dint,taum)
+#endif
+   
+   
+   ! Subroutine Derivatives of INTENsities:
+   
+   !     This is a subroutine to calculate the derivatives of the
+   !     intensites w.r.t the protons coordinates.  Dint contains
+   !     these derivatives (indexed in the natmet scheme); all the
+   !     remaining arguments are input variables.  The cross peak
+   !     labels are ii and jj.
+   
+   implicit none
+#  include "nmr.h"
+   
+   _REAL_    dint(3*ma+mxvar)
+   integer   ii, jj
+#ifdef ORIGDERIV
+   _REAL_    c(3*ma+mxvar,lst),facj(ma,ma),vecs(ma,ma)
+   integer   lm
+   integer   nath3
+   integer   r,u
+   _REAL_    temp
+   
+   ! ---- construct product of K matrix, facj and one L, then
+   !        multiply by other row of L(trans):
+   
+   nath3 = 3*nath + iscale
+   
+   ! --- (zeroing out of Dint is now handled in remarc!)
+   
+   !     do muk=1,nath3
+   !       Dint(muk) = 0.0
+   !     end do
+   lm = 0
+   do r=1,natmet
+      
+      ! ----  off diagonal terms:
+      
+      do u=1,r-1
+         lm = lm + 1
+         temp = facj(r,u) &
+               *(vecs(ii,r)*vecs(jj,u) + vecs(ii,u)*vecs(jj,r))
+         call D_OR_S()axpy(nath3,temp,c(1,lm),1,dint,1)
+      end do
+      
+      ! ---- diagonal terms:
+      
+      lm = lm + 1
+      temp = vecs(ii,r)*vecs(jj,r)*facj(r,r)
+      call D_OR_S()axpy(nath3,temp,c(1,lm),1,dint,1)
+   end do
+   
+#else
+   
+   !  --- here use Ping Yips "fast" derivative routine,  J. Biomol. NMR
+   !        3:361-365(1993):
+   
+   _REAL_    amat(ma,ma,5),w(5)
+   _REAL_    dorat(3*ma,ma),ddrat(3*ma,ma)
+   _REAL_    cutoff
+   parameter (cutoff=0.001d0)
+   integer   kk, ll, m
+   integer   muk, mm, mum
+   integer   nath3
+   _REAL_    ail1, ail2, ail3, ail4, ail5
+   _REAL_    ajl1, ajl2, ajl3, ajl4, ajl5
+   _REAL_    f1
+   _REAL_    taum
+   
+   !   --- five-point Gaussian quadrature:
+   
+   save w
+   data w/0.1184634425d0, 0.2393143352d0, 0.2844444444d0, &
+         0.2393143352d0, 0.1184634425d0/
+   
+   nath3 = 3*nath
+   
+   !   --- part arising from ddrat:
+   
+   do kk=1,natmet
+      if (amat(ii,kk,5) < cutoff .and. amat(jj,kk,5) < cutoff) &
+            cycle
+      f1 = -taum*(w(1)*(amat(ii,kk,1)*amat(jj,kk,5) &
+            + amat(ii,kk,5)*amat(jj,kk,1)) &
+            + w(2)*(amat(ii,kk,2)*amat(jj,kk,4) &
+            + amat(ii,kk,4)*amat(jj,kk,2)) &
+            + w(3)*(amat(ii,kk,3)*amat(jj,kk,3)))
+      do muk=1,nath3
+         dint(muk) = dint(muk) + f1*ddrat(muk,kk)
+      end do
+   end do
+   
+   !   --- part arising from dorat:
+   
+   do ll=1,natmet
+      ajl5 = amat(jj,ll,5)
+      ail5 = amat(ii,ll,5)
+      if (ajl5 < cutoff .and. ail5 < cutoff) cycle
+      ajl1 = amat(jj,ll,1)
+      ajl2 = amat(jj,ll,2)
+      ajl3 = amat(jj,ll,3)
+      ajl4 = amat(jj,ll,4)
+      ail1 = amat(ii,ll,1)
+      ail2 = amat(ii,ll,2)
+      ail3 = amat(ii,ll,3)
+      ail4 = amat(ii,ll,4)
+      mum = 0
+      do m=1,nath
+         mm = inn(m)
+         f1 = -taum*(w(1)*(amat(ii,mm,5)*ajl1 &
+               + ail5         *amat(jj,mm,1) &
+               + amat(ii,mm,1)*ajl5 &
+               + ail1         *amat(jj,mm,5)) &
+               + w(2)*(amat(ii,mm,4)*ajl2 &
+               + ail4         *amat(jj,mm,2) &
+               + amat(ii,mm,2)*ajl4 &
+               + ail2         *amat(jj,mm,4)) &
+               + w(3)*(amat(ii,mm,3)*ajl3 &
+               + ail3         *amat(jj,mm,3)))
+         
+         dint(mum+1) = dint(mum+1) + f1*dorat(mum+1,ll)
+         dint(mum+2) = dint(mum+2) + f1*dorat(mum+2,ll)
+         dint(mum+3) = dint(mum+3) + f1*dorat(mum+3,ll)
+         mum = mum + 3
+      end do
+   end do
+#endif
+   return
+end subroutine dinten 
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine drates here]
+subroutine drates( ddep, dddep, rate, trp, dorat, ddrat)
+   
+   
+   !  Subroutine Derivatives of RATES:
+   
+   !     This subroutine calculates the derivatives
+   !     of the transition rates with repect to the
+   !     cordinates of the individual protons. On
+   !     input, it needs the x, dsq2, rate, and trp
+   !     arrays.  The output derivatives are placed
+   !     in the ddrat and dorat arrays.
+   
+   implicit none
+   integer:: i, ii, jj, n
+   _REAL_ :: dddep, ddep, ddrat, dorat, rate, tii, trp
+#  include "nmr.h"
+   
+   dimension ddep(ma,ma),dddep(3,ma,ma)
+   dimension rate(ma,ma), trp(ma,ma)
+   dimension dorat(3,ma,ma), ddrat(3,ma,ma)
+   dimension tii(3)
+   
+   ! --- Now compute the derivatives: the diagonal elements
+   !       of grad R go into ddrat, the off-diagonal elements
+   !       (just a single column) into dorat.
+   !       Here "i" and "j" are indexing in the nath scheme,
+   !       "ii" and "jj" are the corresponding natmet indices.
+   !       Note that the second index of ddrat and dorat are
+   !       indexed by the nath scheme, while the third index
+   !       goes by the natmet scheme; cf. the way these arrays
+   !       are used in the kmat subroutine.
+   
+#ifdef DEBUG_NMR
+   write(6,*) 'drates:'
+#endif
+   do i=1, nath
+      ii = inn(i)
+      do n=1,3
+         tii(n) = 0.0d0
+      end do
+      do jj=1, natmet
+         if (ii == jj) cycle
+         do n=1,3
+            dorat(n,i,jj) = dddep(n,i,jj)*rate(ii,jj)/ddep(ii,jj)
+            ddrat(n,i,jj) = dddep(n,i,jj)*trp(jj,ii)/ddep(ii,jj)
+            tii(n) = tii(n) + dddep(n,i,jj)*trp(ii,jj)/ddep(ii,jj)
+         end do
+#ifdef DEBUG_NMR
+         write(6,*) 'do:',i,jj,(dorat(n,i,jj),n=1,3)
+         write(6,*) 'dd:',i,jj,(ddrat(n,i,jj),n=1,3)
+#endif
+      end do
+      
+      do n=1,3
+         dorat(n,i,ii) = 0.0d0
+         ddrat(n,i,ii) = tii(n)
+      end do
+#ifdef DEBUG_NMR
+      write(6,*) i,ii,(dorat(n,i,ii),n=1,3)
+      write(6,*) i,ii,(ddrat(n,i,ii),n=1,3)
+#endif
+   end do
+#ifdef NMODE
+   
+   !   --- get derivatives of rate matrix elements with respect to
+   !         normal mode frequencies:
+   
+   do ii=1,natmet
+      do jj=1,natmet
+         if (ii == jj) goto 40
+         do n=1,iscale
+            dratg(ii,ii,n) = dratg(ii,ii,n) + dratg(ii,jj,n)*trp(ii,jj)
+            dratg(ii,jj,n) = dratg(ii,jj,n)*rate(ii,jj)
+         end do
+      end do
+   end do
+   
+#endif
+   return
+end subroutine drates 
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine indexn here]
+subroutine indexn(ix,ih,iin)
+   
+   
+   !  Subroutine INDEX for Noe calculations:
+   
+   !   --- reads the tau and ihyd arrays that set up the sub-molecules,
+   !       and sets up all the parameters in the /methyl/ common
+   !       block that describes the molecule
+   
+   implicit none
+   integer:: i, id1, idummy, ie1, ie2, iin, ix, iz, k, mtyp, n, &
+        natomx, ngrp, nn
+   _REAL_ :: dummy, one, sqrt2, sqrt3, three, two
+#  include "nmr.h"
+#  include "../include/memory.h"
+#  include "box.h"
+   
+   dimension ix(*)
+   character(len=4) ih(*)
+   
+   character(len=3) rname
+   character(len=4) aname
+   parameter(three=3.0d0,one=1.0d0,two=2.0d0)
+   if (natom > matom ) then
+      write(6,*) 'MATOM is not big enough!'
+      call mexit(6, 1)
+   end if
+   sqrt2 = sqrt(two)
+   sqrt3 = sqrt(three)
+   natmet = 0
+   nath = 0
+   
+   !   ---- call the usual AMBER group identifiers to determine the
+   !        submolecule, then strip away all non-hydrogens
+   
+   natomx = natom
+   do i=1,natomx
+      ihyd(i)=0
+      inatom(i) = 0
+   end do
+   call rgroup(natomx,natc,nres,ngrp,ix(i02),ih(m02),ih(m04),ih(m06), &
+               ih(m08),ihyd,idummy,idummy,idummy,idummy,dummy, &
+               .false.,.false.,.false.,0,iin,.true.)
+   do i=1,natomx
+      if (ihyd(i) /= 1 .or. resat(i)(1:1) /= 'H') ihyd(i) = 0
+      if ((id2o == 1) .and. &
+            ((resat(i)(1:2) == 'H ') .or. &
+            (resat(i)(1:2) == 'HO'  .and. resat(i)(6:8) /= 'TYR') .or. &
+            (resat(i)(1:3) == 'H1 ' .and. resat(i)(6:8) == 'GUA') .or. &
+            (resat(i)(1:3) == 'H1 ' .and. resat(i)(6:7) == 'DG') .or. &
+            (resat(i)(1:3) == 'H21' .and. resat(i)(6:8) == 'GUA') .or. &
+            (resat(i)(1:3) == 'H21' .and. resat(i)(6:7) == 'DG') .or. &
+            (resat(i)(1:3) == 'H22' .and. resat(i)(6:8) == 'GUA') .or. &
+            (resat(i)(1:3) == 'H22' .and. resat(i)(6:7) == 'DG') .or. &
+            (resat(i)(1:3) == 'H41' .and. resat(i)(6:8) == 'CYT') .or. &
+            (resat(i)(1:3) == 'H41' .and. resat(i)(6:7) == 'DC') .or. &
+            (resat(i)(1:3) == 'H42' .and. resat(i)(6:8) == 'CYT') .or. &
+            (resat(i)(1:3) == 'H42' .and. resat(i)(6:7) == 'DC') .or. &
+            (resat(i)(1:3) == 'H3 ' .and. resat(i)(6:8) == 'THY') .or. &
+            (resat(i)(1:3) == 'H3 ' .and. resat(i)(6:7) == 'DT') .or. &
+            (resat(i)(1:3) == 'H61' .and. resat(i)(6:8) == 'ADE') .or. &
+            (resat(i)(1:3) == 'H61' .and. resat(i)(6:7) == 'DA') .or. &
+            (resat(i)(1:3) == 'H62' .and. resat(i)(6:7) == 'DA') .or. &
+            (resat(i)(1:3) == 'H62' .and. resat(i)(6:8) == 'ADE'))) &
+            ihyd(i) = 0
+#ifdef DEBUG_NMR
+      if (ihyd(i) /= 0) write(6,'(a14)') resat(i)
+#endif
+   end do
+   k=-3
+   do i=1,natomx
+      k=k+3
+      if(ihyd(i) == 0) cycle
+      nath = nath + 1
+      ihyp(nath)=i
+      
+      ! ---    use resat array to determine type of this proton; this
+      !        code is specific to the Amber all-atom IUPAC names
+      
+      mtyp = 2
+      rname = resat(i)(6:8)
+      aname = resat(i)(1:4)
+      if (aname == 'HD11' .or. aname == 'HD12' .or. &
+            aname == 'HG21' .or. aname == 'HG22' .or. &
+            aname == 'H71 ' .or. aname == 'H72 ' .or. &
+            aname == 'HNZ1' .or. aname == 'HNZ2' .or. &
+            aname == 'HD21' .or. aname == 'HD22') then
+         mtyp = 1
+      else if (aname == 'HD13' .or. aname == 'HD23' .or. &
+            aname == 'HNZ3' .or. &
+            aname == 'HG23' .or. aname == 'H73 ') then
+         mtyp = 3
+      else if (rname == 'ACE') then
+         if (aname == 'H1  ' .or. aname == 'H2  ') mtyp = 1
+         if (aname == 'H3  ') mtyp = 3
+      else if (rname == 'ALA') then
+         if (aname == 'HB1 ' .or. aname == 'HB2 ') mtyp = 1
+         if (aname == 'HB3 ') mtyp = 3
+      else if (rname == 'ILE') then
+         if (aname == 'HD1 ' .or. aname == 'HD2 ') mtyp = 1
+         if (aname == 'HD3 ') mtyp = 3
+      else if (rname == 'THR') then
+         if (aname == 'HG1 ' .or. aname == 'HG2 ') mtyp = 1
+         if (aname == 'HG3 ') mtyp = 3
+      else if (rname == 'VAL') then
+         if (aname == 'HG11' .or. aname == 'HG12') mtyp = 1
+         if (aname == 'HG13') mtyp = 3
+      else if (rname == 'MET') then
+         if (aname == 'HE1 ' .or. aname == 'HE2 ') mtyp = 1
+         if (aname == 'HE3 ') mtyp = 3
+      else if (rname == 'PHE' .or. rname == 'TYR') then
+         if (aname == 'HD1 ' .or. aname == 'HE1 ') mtyp = 4
+         if (aname == 'HE2 ') mtyp = 5
+         if (aname == 'HD2 ') mtyp = 6
+      end if
+      
+      if (mtyp == 1) then
+         m2(nath) = 1
+         pop(nath) = 0.0d0
+      else if (mtyp == 3) then
+         m2(nath) = 3
+         pop(nath) = sqrt3
+         natmet = natmet + 1
+         popn(natmet) = sqrt3
+      else if (mtyp == 4) then
+         m2(nath) = 4
+         pop(nath) = 0.0d0
+      else if (mtyp == 5 .or. mtyp == 6) then
+         m2(nath) = 5
+         pop(nath) = sqrt2
+         natmet = natmet + 1
+         popn(natmet) = sqrt2
+         
+         ! --- rearrange ring atoms to get HE1&HE2, HD1&HD2 next to each other:
+         
+         if (mtyp == 6) then
+            id1 = ihyp(nath-4)
+            ie1 = ihyp(nath-3)
+            iz  = ihyp(nath-2)
+            ie2 = ihyp(nath-1)
+            ihyp(nath-4) = iz
+            ihyp(nath-3) = ie1
+            ihyp(nath-2) = ie2
+            ihyp(nath-1) = id1
+            m2(nath-4) = 2
+            m2(nath-3) = 4
+            m2(nath-2) = 5
+            m2(nath-1) = 4
+            pop(nath-4) = 1.0d0
+            pop(nath-3) = 0.0d0
+            pop(nath-2) = sqrt2
+            pop(nath-1) = 0.0d0
+         end if
+         
+      else
+         natmet = natmet + 1
+         popn(natmet) = 1.0d0
+         pop(nath) = one
+         m2(nath) = 2
+      end if  ! (mtyp == 1)
+      inatom(i) = natmet
+#ifdef DEBUG_NMR
+      write(6,*) i,nath,natmet,resat(i),ihyp(nath),m2(nath), &
+            pop(nath),popn(natmet)
+#endif
+   end do
+#ifdef DEBUG_NMR
+   write(6,*) 'nath, natmet are: ',nath,natmet
+#endif
+   if (nath > ma) then
+      write(6,*) 'Maximum allowed value for nath is ',ma
+      call mexit(6, 1)
+   end if
+   
+   !  --- set up inn array that points from nath -> natmet scheme:
+   
+   nn = 1
+   do n=1,nath
+      inn(n) = nn
+      if (m2(n) == 2 .or. m2(n) == 3 .or. m2(n) == 5) nn=nn+1
+   end do
+#ifdef DEBUG_NMR
+   write(6,30) (m2(i),i=1,nath)
+   30 format(' m2:'/(10i5))
+   write(6,31) (pop(i),i=1,nath)
+   31 format(' pop:'/(5f10.5))
+   write(6,32) (ihyp(i),i=1,nath)
+   32 format(' ihyp:'/(10i5))
+   write(6,33) (popn(i),i=1,natmet)
+   33 format(' popn:'/(5f10.5))
+   write(6,34) (inatom(i),i=1,natomx)
+   34 format(' inatom:'/(10i5))
+#endif
+   return
+end subroutine indexn 
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine kmat here]
+#ifdef ORIGDERIV
+subroutine kmat(vecs,dorat,ddrat,c)
+   implicit none
+   _REAL_ :: vecs,dorat,ddrat,c
+   
+   !  Subroutine K MATrix:
+   
+   !   Subroutine kmat calculates the K matrix from the derivatives of
+   !     the rates given by drates. The output is the K matrix
+   !     which will be used in the derivatives of the NOEs.
+   !     N.B. K is called "C" here and elsewhere to conform
+   !     to standard fortran typing conventions.
+   
+   integer:: ip, k, kf, l, lm, m, muk, n, nath3
+   _REAL_ :: dol, rate, svecs1
+#  include "nmr.h"
+   
+   dimension vecs(ma,ma),c(3*ma+mxvar,lst),rate(ma,ma)
+   dimension dorat(3*ma,ma), ddrat(3*ma,ma)
+   dimension dol(3*ma,ma)
+   nath3 = 3*nath
+   
+   !-----the matrix K is constructed by the following do loops
+   
+   !   --- first, do some preliminary matrix multiplies:
+   
+   do m=1,natmet
+      do k=1,3*nath
+         dol(k,m) = 0.0
+      end do
+      do ip=1,natmet
+         do k=1,3*nath
+            dol(k,m) = dol(k,m) + dorat(k,ip)*vecs(ip,m)
+         end do
+      end do
+   end do
+   
+   !   --- now for the part that depends upon the diagonal rate elements:
+   
+   lm = 0
+   kf = 3*nath+1
+   do l=1,natmet
+      do m=1,l
+         lm = lm + 1
+         do muk = 1,3*nath+1
+            c(muk,lm) = 0.0
+         end do
+         do ip=1,natmet
+            svecs1=vecs(ip,l)*vecs(ip,m)
+            call D_OR_S()axpy(nath3,svecs1,ddrat(1,ip),1,c(1,lm),1)
+         end do
+         
+         !  --- now do the part that depends on the off-diagonal rate elements:
+         
+         k = 0
+         do n=1,nath
+            c(k+1,lm) = c(k+1,lm) + vecs(inn(n),l)*dol(k+1,m) &
+                  + vecs(inn(n),m)*dol(k+1,l)
+            c(k+2,lm) = c(k+2,lm) + vecs(inn(n),l)*dol(k+2,m) &
+                  + vecs(inn(n),m)*dol(k+2,l)
+            c(k+3,lm) = c(k+3,lm) + vecs(inn(n),l)*dol(k+3,m) &
+                  + vecs(inn(n),m)*dol(k+3,l)
+            k = k + 3
+         end do
+      end do
+   end do
+#  ifdef NMODE
+   
+   !   ---  add to the K matrix the derivatives with respect to
+   !         the normal mode frequencies:
+   
+   do n=1,iscale
+      do jj=1,natmet
+         do ii=1,natmet
+            dol(ii,jj) = 0.0
+         end do
+         do kk=1,natmet
+            do ii=1,natmet
+               dol(ii,jj) = dol(ii,jj) + dratg(ii,kk,n)*vecs(kk,jj)
+            end do
+         end do
+      end do
+      
+      lm = 0
+      do ii=1,natmet
+         do jj=1,ii
+            lm = lm + 1
+            sum = 0.0
+            do kk=1,natmet
+               sum = sum + vecs(kk,ii)*dol(kk,jj)
+            end do
+            c(3*nath+n,lm) = sum
+         end do
+      end do
+   end do
+#  endif
+   return
+end subroutine kmat 
+#endif
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine remarc here]
+subroutine remarc(ddep,dddep,f,ksub,dorat,ddrat, &
+      rate,trp,dint)
+   
+   
+   !   Subroutine RElaxation MAtrix Refinement Code:
+   
+   !       Calculates theoretical intensities from diagonalized rate matrix.
+   !       also calculates the derivatives of the intensities w.r.t the
+   !       proton cordinates.  This routine is called once for each submole-
+   !       cule, and mainly does the following:
+   
+   !       Call calrate(ddep,rate,trp)
+   !       Call LAPACK for diagonalization
+   !         [or: use perturbation estimates; see compilation flags, below]
+   
+   !       For the derivatives: calls drates, dinten, and kmat or amatg
+   
+   !       For mixing times less than tausw, the perturbation expansions are
+   !           used; for mixing times greater than tausw, the exact expressions
+   !           are used.
+   
+   !  Inputs:
+   
+   !     ddep     -- distance dependent portion of the rate matrix elements;
+   !                     computed in caldis.
+   !     dddep    -- derivative of ddep with respect to coordinates; also
+   !                     computed in caldis.
+   !     f        -- force vector, to be updated here
+   !     enoe     -- energy penalty for NOE volumes; to be updated here
+   !     ksub     -- number of the current submolecule; just for printing
+   !     dorat
+   !     ddrat    -- derivatives of the off-diagonal (dorat) and diagonal
+   !                     (ddrat) elements of the rate matrix; computed
+   !                     in drates (called below); included in the argument
+   !                     list here just for the sake of memory management.
+   !     rate     -- relaxation rate matrix; computed in calrate (called
+   !                     below; included in argument list for memory management
+   !     trp      -- work array
+   !     Dint     -- derivatives of the computed intensities with respect
+   !                     to variables (coordinates and other fitting variables)
+   
+   !  Outputs:
+   
+   !     enoe and f are updated.
+   
+   
+   !  --- conditional compilation flags:
+   
+   !      THIRDO  to add 3rd order terms to perturbation expansion
+   
+   !      ORIGDERIV  for exact derivatives, if this is set, use the
+   !                 original formulation given in Yip & Case, J.
+   !                 Magn. Reson. 83:643 (1989);  if not set, use the
+   !                 integral formulation given by Yip, J. Biomol. NMR
+   !                 3:361 (1993).
+
+   use constants, only : zero, one, two, half, third, fourth, sixth
+   !implicit none
+#  include "extra.h"
+#  include "nmr.h"
+#  include "../include/memory.h"
+#  include "../include/md.h"
+#  include "def_time.h"
+   
+   _REAL_    f(*)
+   integer   ksub
+   _REAL_    rate(ma,ma)
+   _REAL_    dorat(3*ma,ma),ddrat(3*ma,ma),dint(3*ma+mxvar)
+   _REAL_    trp(ma,ma),ddep(ma,ma),dddep(3,ma,ma)
+   _REAL_    ddisc(3*ma),dwijdx(3*ma),etp(ma)
+   character(len=1) uplo,jobz
+#ifdef THIRDO
+   _REAL_    delta(ma,ma)
+#endif
+#ifdef ORIGDERIV
+   _REAL_    facj(ma,ma),c(3*ma+mxvar,lst)
+#else
+   _REAL_    amat(ma,ma,5)
+   integer   iamat(ma)
+#endif
+   integer   muki(ma), mukj(ma),mukl(ma)
+#ifdef THIRDO
+   integer   mukm(ma)
+#endif
+   _REAL_    pr(lst),b(ma,9),eig(ma),et(ma),vecs(ma,ma)
+   
+   _REAL_    acalc
+   integer   muk
+   integer   k
+   integer   j
+   integer   i
+   integer   ier
+   integer   imix
+   _REAL_    taum
+   integer   n
+   integer   ipeak
+   _REAL_    acalc1
+   integer   ii
+   integer   jj
+   _REAL_    firsto
+   _REAL_    delij
+   _REAL_    disc
+   _REAL_    disci
+   integer   kk
+   _REAL_    secndo
+   integer   imuk
+   integer   jmuk
+   integer   imukmx
+   integer   jmukmx
+   integer   ll
+   _REAL_    fac
+   _REAL_    delil
+   _REAL_    deljl
+   _REAL_    secnda
+   _REAL_    secndb
+   _REAL_    secndc
+   _REAL_    scont
+   _REAL_    fac1
+   _REAL_    fac2
+   integer   lmuk
+   integer   lmukmx
+   _REAL_    facil
+   _REAL_    facjl
+   _REAL_    facij
+   _REAL_    thirdo
+   _REAL_    penalty
+   _REAL_    aexpn
+   _REAL_    arngen
+   _REAL_    ainv
+   _REAL_    weight
+   _REAL_    dpen
+   integer   i3real
+   integer   i3
+   _REAL_    fsx
+   parameter (fsx=-5.d0/6.d0)
+   data uplo,jobz / 'U','V' /
+   
+   !=======================================================================
+   
+   !    Section 1:  Compute rate matrix and its derivatives; diagonalize
+   !                this if "exact" volumes are needed.
+   
+   !=======================================================================
+   
+   !----initial zero-out, to allow for summing peaks together:
+   
+   acalc = zero
+   dpen = zero
+   delij = zero
+   do muk=1,3*nath+iscale
+      dint(muk) = zero
+   end do
+   
+   !----calculate the rate matrix
+   
+   call timer_start(TIME_CALRATE)
+   call calrate(ddep,rate,trp)
+   call timer_stop_start(TIME_CALRATE,TIME_DRATES)
+   
+   !-----calculate the derivatives of the rates w.r.t the H atoms coord.
+   
+   call drates(ddep, dddep,rate,trp,dorat,ddrat)
+   call timer_stop_start(TIME_DRATES,TIME_DSPEV)
+#ifdef THIRDO
+   do i=1,natmet
+      do j=i+1,natmet
+         delta(i,j) = one/(-rate(i,i)+rate(j,j))
+         delta(j,i) = -delta(i,j)
+      end do
+   end do
+#endif
+   if (tausw < 9.) then
+      !                            (we will be calculating exact volumes)
+      
+      !-----pack the upper triangular rate matrix by column
+      !      into an array pr
+      
+      k=1
+      do j=1,natmet
+         do i=1,j
+            pr(k)=rate(i,j)
+            k=k+1
+         end do
+      end do
+      
+      !-----calc eigenvalues and vectors
+      
+      call D_OR_S()spev(jobz,uplo,natmet,pr,eig,vecs,ma,b,ier)
+      call timer_stop(TIME_DSPEV)
+#ifdef ORIGDERIV
+      call timer_start(TIME_KMAT)
+      
+      !------calc the K_prime matrix from the derivatives of the rates and the
+      !      eigenvectors; this is essentially the scheme in the original
+      !      1989 Yip & Case paper.
+      
+      call kmat(vecs,dorat,ddrat,c)
+      call timer_stop(TIME_KMAT)
+#endif
+   end if
+   
+   !=======================================================================
+   
+   !   Section 2:  Grand loop over mixing times, then over peaks within
+   !               each mixing time.
+   
+   !=======================================================================
+   
+   ! --- loop over mixing times
+   
+   do imix=1,nummt
+      taum=emix(imix)
+      if (taum < tausw) then
+         !                              (set up preliminary stuff for perturbation)
+         
+         call timer_start(TIME_REMARC)
+         do n=1,natmet
+            if (rate(n,n)*taum < 50.) then
+               etp(n) = exp(-rate(n,n)*taum)
+            else
+               etp(n) = zero
+            end if
+         end do
+         call timer_stop(TIME_REMARC)
+      else
+         call timer_start(TIME_DINTEN)
+         !                              (set up preliminary stuff for exact calc.)
+         
+         do n=1,natmet
+            if (eig(n)*taum < 50.) then
+               et(n) = exp(-eig(n)*taum)
+            else
+               et(n) = zero
+            end if
+         end do
+#ifdef ORIGDERIV
+         
+         !   --- compute function of eigenvalues to be used later:
+         
+         do i=1,natmet
+            do j=i+1,natmet
+               facj(i,j) = (et(i)-et(j))/(eig(i)-eig(j))
+               facj(j,i) = facj(i,j)
+            end do
+            facj(i,i) = -taum*et(i)
+         end do
+#else
+         
+         !   --- compute intensity matrix at Gaussian quadrature points:
+         
+         
+         !   --- (get unique list of atoms referred to:)
+         
+         do i=1,natmet
+            iamat(i) = 0
+         end do
+         do ipeak=1,npeak(imix)
+            iamat(inatom(ihp(imix,ipeak))) = 1
+            iamat(inatom(jhp(imix,ipeak))) = 1
+         end do
+         
+         call amatg(vecs,eig,taum,amat,iamat)
+#endif
+         call timer_stop(TIME_DINTEN)
+      end if
+      
+      ! --- loop over all observed peaks with this mixing time
+      
+      
+      do ipeak=1,npeak(imix)
+         
+         !         acalc1 will be computed intensity for each peak, before summing
+         !         for overlaps:
+         
+         acalc1 = zero
+         
+         ii = inatom(ihp(imix,ipeak))
+         jj = inatom(jhp(imix,ipeak))
+         if (ii <= 0 .or. jj <= 0) then
+            write(6,*) 'Bad submolecule: ',imix,ipeak,ii,jj, &
+                  ihp(imix,ipeak),jhp(imix,ipeak)
+            call mexit(6, 1)
+         end if
+         if (taum < tausw) then
+            call timer_start(TIME_REMARC)
+            
+            !=======================================================================
+            
+            !   Section 2a:  For perturbation theory estimates, compute here
+            !                the peak intensities and derivatives, through
+            !                second or third order in the off-diagonal rate matrix
+            !                elements.
+            
+            !=======================================================================
+            
+            !  --- use P. Yips perturbation expansion to get an estimate
+            !       of the insensties:  see Chem. Phys. Lett. 161:50-54 (1989).
+            !       Diagonal peaks are expanded through second order, using
+            !       expressions derived by dac.
+            
+            !  --- the first order term:
+            
+            if (ii == jj) then
+               
+               !  ---     diagonal:
+               
+               firsto = etp(ii)
+               do muk=1,3*nath
+                  dint(muk) = dint(muk) - taum*firsto*ddrat(muk,ii)
+               end do
+            else
+               
+               !  ---      off-diagonal:
+               
+               delij = one/(rate(jj,jj) - rate(ii,ii))
+               disc = sqrt(fourth/(delij*delij) + rate(ii,jj)**2)
+               disci = one/disc
+               
+               !    ---- basic first order expression is:
+               !             firsto=-rate(ii,jj)
+               !    .          *exp(-Half*taum*(rate(ii,ii)+rate(jj,jj)))
+               !    .          *sinh(disc*taum)/disc
+               
+               !         here we break it down to avoid sinh evaluation if we can,
+               !            and to reduce exponential overflow:
+               
+               if (disc*taum < 0.2) then
+                  firsto=-rate(ii,jj)*sqrt(etp(ii)*etp(jj))*taum
+               else if (disc*taum < 4.0) then
+                  firsto=-rate(ii,jj)*sqrt(etp(ii)*etp(jj)) &
+                        *sinh(disc*taum)*disci
+               else if (disc*taum > 50.0) then
+                  write(0,*) 'remarc: ',ii,jj,rate(ii,ii),rate(jj,jj), &
+                        rate(ii,jj),disc
+                  write(0,*) ipeak,imix,ihp(imix,ipeak),jhp(imix,ipeak)
+                  firsto=zero
+               else
+                  firsto=-rate(ii,jj)*exp(taum*disc)*sqrt(etp(ii)*etp(jj)) &
+                        *disci*half
+               end if
+               
+               !      ---dwijdx(muk) will contain d(rate(ii,jj))/dx(muk):
+               
+               do muk=1,3*nath
+                  dwijdx(muk) = zero
+               end do
+               muk = -3
+               do k=1,nath
+                  muk = muk + 3
+                  kk = inn(k)
+                  if (kk == ii) then
+                     dwijdx(muk+1) = dorat(muk+1,jj)
+                     dwijdx(muk+2) = dorat(muk+2,jj)
+                     dwijdx(muk+3) = dorat(muk+3,jj)
+                  else if (kk == jj) then
+                     dwijdx(muk+1) = dorat(muk+1,ii)
+                     dwijdx(muk+2) = dorat(muk+2,ii)
+                     dwijdx(muk+3) = dorat(muk+3,ii)
+                  end if
+               end do
+               
+               !      --- ddsic(muk) will contain d(disc)/dx(muk):
+               
+               do muk=1,3*nath
+                  ddisc(muk) = (fourth*(ddrat(muk,jj)-ddrat(muk,ii))/delij + &
+                        rate(ii,jj)*dwijdx(muk))*disci
+               end do
+               
+               !      --- now for the final expression:
+               
+               do muk = 1,3*nath
+                  dint(muk) = dint(muk) + (dwijdx(muk)/rate(ii,jj) - &
+                        half*taum*(ddrat(muk,ii) + ddrat(muk,jj)) + &
+                        taum*ddisc(muk)/tanh(disc*taum) - &
+                        ddisc(muk)*disci)*firsto
+               end do
+            end if
+            
+            !  --- the second order term:
+            
+            secndo = zero
+            muk = -3
+            imuk = 0
+            jmuk = 0
+            do k=1,nath
+               muk = muk + 3
+               kk = inn(k)
+               if (kk == ii) then
+                  imuk = imuk + 1
+                  muki(imuk) = muk
+               else if (kk == jj) then
+                  jmuk = jmuk + 1
+                  mukj(jmuk) = muk
+               end if
+            end do
+            imukmx = imuk
+            jmukmx = jmuk
+            
+            do ll=1,natmet
+               if (ll == ii .or. ll == jj) cycle
+               fac = rate(ii,ll)*rate(ll,jj)
+               if (fac < 1.0e-3) cycle
+               delil = one/(rate(ll,ll) - rate(ii,ii))
+               deljl = one/(rate(ll,ll) - rate(jj,jj))
+               if (ii == jj) then
+                  secnda = fac*delil*taum*etp(ii)
+                  secndb = fac*delil*etp(ll)*delil
+                  secndc =-fac*delil*etp(ii)*delil
+                  scont = secnda + secndb + secndc
+                  secndo = secndo + scont
+               else
+                  
+                  !             secndo = secndo + rate(ii,ll)*rate(ll,jj)*
+                  !    .         (exp(-rate(ii,ii)*taum)*(delil*delij) +
+                  !    .          exp(-rate(ll,ll)*taum)*(delil*deljl) -
+                  !    .          exp(-rate(jj,jj)*taum)*(deljl*delij))
+                  
+                  secnda = fac*etp(ii)*(delil*delij)
+                  secndb = fac*etp(ll)*(delil*deljl)
+                  secndc =-fac*etp(jj)*(deljl*delij)
+                  scont = secnda + secndb + secndc
+                  secndo = secndo + scont
+               end if
+               
+               !  --- the second order derivative:
+               
+               fac1 = scont/rate(ii,ll)
+               !forcevector
+               do imuk = 1,imukmx
+                  muk = muki(imuk)
+                  dint(muk+1) = dint(muk+1) + fac1*dorat(muk+1,ll)
+                  dint(muk+2) = dint(muk+2) + fac1*dorat(muk+2,ll)
+                  dint(muk+3) = dint(muk+3) + fac1*dorat(muk+3,ll)
+               end do
+               fac2 = scont/rate(jj,ll)
+               !forcevector
+               do jmuk = 1,jmukmx
+                  muk = mukj(jmuk)
+                  dint(muk+1) = dint(muk+1) + fac2*dorat(muk+1,ll)
+                  dint(muk+2) = dint(muk+2) + fac2*dorat(muk+2,ll)
+                  dint(muk+3) = dint(muk+3) + fac2*dorat(muk+3,ll)
+               end do
+               muk = -3
+               lmuk = 0
+               do k=1,nath
+                  muk = muk + 3
+                  kk = inn(k)
+                  if (kk == ll) then
+                     lmuk = lmuk + 1
+                     mukl(lmuk) = muk
+                  end if
+               end do
+               lmukmx = lmuk
+               !forcevector
+               do lmuk = 1,lmukmx
+                  muk = mukl(lmuk)
+                  dint(muk+1) = dint(muk+1) + fac1*dorat(muk+1,ii) &
+                        + fac2*dorat(muk+1,jj)
+                  dint(muk+2) = dint(muk+2) + fac1*dorat(muk+2,ii) &
+                        + fac2*dorat(muk+2,jj)
+                  dint(muk+3) = dint(muk+3) + fac1*dorat(muk+3,ii) &
+                        + fac2*dorat(muk+3,jj)
+               end do
+               
+               if (ii == jj) then
+                  do muk=1,3*nath
+                     facil = (ddrat(muk,ii) - ddrat(muk,ll))*delil
+                     dint(muk) = dint(muk) &
+                           - secnda*(taum*ddrat(muk,ii) - facil) &
+                           - secndb*(taum*ddrat(muk,ll) - two*facil) &
+                           - secndc*(taum*ddrat(muk,ii) - two*facil)
+                  end do
+               else
+                  do muk=1,3*nath
+                     facil = (ddrat(muk,ii) - ddrat(muk,ll))*delil
+                     facjl = (ddrat(muk,jj) - ddrat(muk,ll))*deljl
+                     facij = (ddrat(muk,ii) - ddrat(muk,jj))*delij
+                     dint(muk) = dint(muk) &
+                           -  secnda*(taum*ddrat(muk,ii) - facij - facil) &
+                           -  secndb*(taum*ddrat(muk,ll) - facil - facjl) &
+                           -  secndc*(taum*ddrat(muk,jj) - facjl - facij)
+                  end do
+               end if
+            end do
+            
+            !   --- now work on the third-order expression:
+            
+            thirdo = zero
+#ifdef THIRDO
+            if (ii == jj) goto 290
+            do ll=1,natmet
+               if (ll == ii) cycle
+               muk = -3
+               lmuk = 0
+               do k=1,nath
+                  muk = muk + 3
+                  kk = inn(k)
+                  if (kk == ll) then
+                     lmuk = lmuk + 1
+                     mukl(lmuk) = muk
+                  end if
+               end do
+               lmukmx = lmuk
+               
+               do mm=1,natmet
+                  if (mm == jj .or. mm == ll) cycle
+                  if (ll == jj) then
+                     if (mm == ii) cycle
+                     thir = -rate(jj,mm)*rate(mm,jj)*rate(jj,ii)* &
+                           (etp(ii)*delta(ii,jj)*delta(ii,mm)*delta(ii,jj) + &
+                           etp(mm)*delta(mm,jj)*delta(mm,jj)*delta(mm,ii) + &
+                           etp(jj)*delta(ii,jj)*delta(mm,jj)* &
+                           (delta(ii,jj) + delta(mm,jj)) + &
+                           taum*etp(jj)*delta(jj,ii)*delta(jj,mm))
+                  else if (mm == ii) then
+                     thir = -rate(ii,ll)*rate(ll,ii)*rate(ii,jj)* &
+                           (etp(jj)*delta(jj,ii)*delta(jj,ll)*delta(jj,ii) + &
+                           etp(ll)*delta(ll,ii)*delta(ll,ii)*delta(ll,jj) + &
+                           etp(ii)*delta(jj,ii)*delta(ll,ii)* &
+                           (delta(jj,ii) + delta(ll,ii)) + &
+                           taum*etp(ii)*delta(ii,jj)*delta(ii,ll))
+                  else
+                     cycle
+                     
+                     !         --- to include the "four-body" terms, i.e. terms in the
+                     !             third-order expression where ii,jj,ll and mm are all
+                     !             different, remove the "go to 122" above, and uncomment
+                     !             the following statement:
+                     
+                     !               thir = -rate(ii,ll)*rate(ll,mm)*rate(mm,jj)*
+                     !    .            (etp(jj)*delta(jj,ii)*delta(jj,ll)*delta(jj,mm) +
+                     !    .             etp(ii)*delta(ii,jj)*delta(ii,ll)*delta(ii,mm) +
+                     !    .             etp(ll)*delta(ll,ii)*delta(ll,jj)*delta(ll,mm) +
+                     !    .             etp(mm)*delta(mm,ii)*delta(mm,jj)*delta(mm,ll))
+                  end if
+                  thirdo = thirdo + thir
+                  
+                  !  --- work on principal contribution of third order term to the
+                  !          derivatives:
+                  
+                  muk = -3
+                  mmuk = 0
+                  do k=1,nath
+                     muk = muk + 3
+                     kk = inn(k)
+                     if (kk == mm) then
+                        mmuk = mmuk + 1
+                        mukm(mmuk) = muk
+                     end if
+                  end do
+                  mmukmx = mmuk
+                  
+                  fac = thir/rate(ii,ll)
+                  !forcevector
+                  do imuk = 1,imukmx
+                     muk = muki(imuk)
+                     dint(muk+1) = dint(muk+1) + fac*dorat(muk+1,ll)
+                     dint(muk+2) = dint(muk+2) + fac*dorat(muk+2,ll)
+                     dint(muk+3) = dint(muk+3) + fac*dorat(muk+3,ll)
+                  end do
+                  
+                  fac1 = thir/rate(ii,ll)
+                  fac2 = thir/rate(ll,mm)
+                  !forcevector
+                  do lmuk = 1,lmukmx
+                     muk = mukl(lmuk)
+                     dint(muk+1) = dint(muk+1) + fac1*dorat(muk+1,ii) &
+                           + fac2*dorat(muk+1,mm)
+                     dint(muk+2) = dint(muk+2) + fac1*dorat(muk+2,ii) &
+                           + fac2*dorat(muk+2,mm)
+                     dint(muk+3) = dint(muk+3) + fac1*dorat(muk+3,ii) &
+                           + fac2*dorat(muk+3,mm)
+                  end do
+                  
+                  fac1 = thir/rate(ll,mm)
+                  fac2 = thir/rate(mm,jj)
+                  !forcevector
+                  do mmuk = 1,mmukmx
+                     muk = mukm(mmuk)
+                     dint(muk+1) = dint(muk+1) + fac1*dorat(muk+1,ll) &
+                           + fac2*dorat(muk+1,jj)
+                     dint(muk+2) = dint(muk+2) + fac1*dorat(muk+2,ll) &
+                           + fac2*dorat(muk+2,jj)
+                     dint(muk+3) = dint(muk+3) + fac1*dorat(muk+3,ll) &
+                           + fac2*dorat(muk+3,jj)
+                  end do
+                  
+                  fac = thir/rate(mm,jj)
+                  !forcevector
+                  do jmuk = 1,jmukmx
+                     muk = mukj(jmuk)
+                     dint(muk+1) = dint(muk+1) + fac*dorat(muk+1,mm)
+                     dint(muk+2) = dint(muk+2) + fac*dorat(muk+2,mm)
+                     dint(muk+3) = dint(muk+3) + fac*dorat(muk+3,mm)
+                  end do
+                  
+               end do
+            end do
+            290 continue
+#endif
+            acalc1 = acalc1 + firsto + secndo + thirdo
+            call timer_stop(TIME_REMARC)
+         else
+            call timer_start(TIME_DINTEN)
+            
+            !=======================================================================
+            
+            !   Section 2b: exact calculation for the derivatives of the NOEs
+            !       w.r.t. the proton coordinates
+            
+            !=======================================================================
+            
+#ifdef ORIGDERIV
+            call dinten(vecs,facj,ii,jj,c,dint)
+#else
+            call dinten(amat,ii,jj,ddrat,dorat,dint,taum)
+#endif
+            call timer_stop(TIME_DINTEN)
+            
+            ! --- get exact computed intensity
+            
+            do k=1,natmet
+               acalc1 = acalc1 + vecs(ii,k)*et(k)*vecs(jj,k)
+            end do
+         end if
+         acalc1 = acalc1*popn(ii)*popn(jj)
+         acalc = acalc + acalc1
+         
+         !=======================================================================
+         
+         !  Section 3:  compute penalty function and update force vector
+         
+         !=======================================================================
+         
+         ! --- if the peak intensity value is negative, then just go on to the next
+         !       peak, and keep summing until a positive weight is found:
+         
+         call timer_start(TIME_REMARC)
+         if (aexp(imix,ipeak) < zero) then
+            if (master .and. iprint /= 0 .and. penalty > pencut) &
+                  write(81,1001) ksub,imix,resat(ihp(imix,ipeak)), &
+                  resat(jhp(imix,ipeak)),acalc1,peakid(ipeak)
+            call timer_stop(TIME_REMARC)
+            cycle
+         end if
+         
+         ! --- we need to have the scaling factor in the same range as atomic
+         !      coordinates.  Hence, an overall scaling factor "oscale"
+         !      is applied
+         
+         aexpn = oscale*aexp(imix,ipeak)
+         arngen = oscale*arange(imix,ipeak)
+         
+         !  --- If the invwt1,invwt2 values are not both 1.0, then
+         !      set weights equal to inverse of normalized experimental
+         !      intensity, with minimum of "invwt1" and maximum of "invwt2":
+         
+         if( invwt1 /= one .or. invwt2 /= one ) then
+            if (aexpn /= zero) then
+               ainv = one/aexpn
+            else
+               ainv = invwt2
+            end if
+            awt(imix,ipeak) = max(min(ainv,invwt2),invwt1)
+         else
+            awt(imix,ipeak) = one
+         end if
+         
+         !  --- set up "exper" and "calc" arrays for later statistical analysis:
+         !       here we ignore "diagonal" peaks greater than 0.5:
+         
+         if (acalc < half) then
+            ntot = ntot + 1
+            if (ntot > mtot) then
+               write(6,*) 'Too many peaks for correlation analysis!'
+               call mexit(6, 1)
+            end if
+            calc(ntot) = acalc
+            exper(ntot) = aexpn
+            ipmix(ntot) = imix
+            
+            !  --- assign to intra or inter residue peak:
+            
+            if (resat(ihp(imix,ipeak))(11:13) ==  &
+                  resat(jhp(imix,ipeak))(11:13) ) then
+               ntota = ntota + 1
+               calca(ntota) = acalc
+               expera(ntota) = aexpn
+            else
+               ntotb = ntotb + 1
+               calcb(ntotb) = acalc
+               experb(ntotb) = aexpn
+            end if
+         end if
+         
+         weight = wnoesy*awt(imix,ipeak)
+         if (ipnlty == 1) then
+            
+            !   --- here the penalty is zero if the calculated volume is in
+            !       the range: aexpn - arngen < acalc < aexpn + arngen
+            !       Outside this range the penalty increases linearly.
+            
+            if (acalc > aexpn+arngen) then
+               penalty = weight*(acalc - (aexpn+arngen))
+            else if (acalc < aexpn-arngen) then
+               penalty = weight*((aexpn-arngen) - acalc)
+            else
+               penalty = zero
+            end if
+         else if (ipnlty == 2) then
+            
+            !   --- here the penalty is zero if the calculated volume is in
+            !       the range: aexpn - arngen < acalc < aexpn + arngen
+            !       Outside this range the penalty increases quadratically.
+            
+            if (acalc > aexpn+arngen) then
+               penalty = weight*(acalc - (aexpn+arngen))**2
+            else if (acalc < aexpn-arngen) then
+               penalty = weight*(acalc - (aexpn-arngen))**2
+            else
+               penalty = zero
+            end if
+         else if (ipnlty == 3) then
+            
+            !   --- here the penalty is zero if the calculated volume is in
+            !       the range: aexpn - arngen < acalc < aexpn + arngen
+            !       Outside this range the penalty increases quadratically,
+            !       but based on the Sixth-root of the observed intensities.
+            
+            if (acalc > aexpn+arngen) then
+               penalty = weight*(acalc**sixth - (aexpn+arngen)**sixth)**2
+            else if (acalc < aexpn-arngen) then
+               penalty = weight*(acalc**sixth - (aexpn-arngen)**sixth)**2
+            else
+               penalty = zero
+            end if
+         else
+            write(6,*) 'Bad value for ipnlty: ',ipnlty
+            call mexit(6, 1)
+         end if  ! (ipnlty == 1)
+         enoe = enoe + penalty
+         if (master .and. iprint /= 0 .and. penalty > pencut) then
+            if( acalc /= acalc1 ) then
+               write(81,1001) ksub,imix,resat(ihp(imix,ipeak)), &
+                     resat(jhp(imix,ipeak)),acalc1,peakid(ipeak)
+               write(81,1002) ksub,imix,resat(ihp(imix,ipeak)), &
+                     resat(jhp(imix,ipeak)),aexpn,acalc,penalty,peakid(ipeak)
+               write(81,'()')
+            else
+               write(81,1000) ksub,imix,resat(ihp(imix,ipeak)), &
+                     resat(jhp(imix,ipeak)),aexpn,acalc,penalty,peakid(ipeak)
+            end if
+         end if
+
+         ! --- set up overall factor for updating derivatives:
+
+         if (ipnlty == 1) then
+            if (acalc > aexpn+arngen) then
+               dpen = weight*popn(ii)*popn(jj)
+            else if (acalc < aexpn-arngen) then
+               dpen = -weight*popn(ii)*popn(jj)
+            else
+               dpen = zero
+            end if
+         else if (ipnlty == 2) then
+            if (acalc > aexpn+arngen) then
+               dpen = two*weight*(acalc-(aexpn+arngen))*popn(ii)*popn(jj)
+            else if (acalc < aexpn-arngen) then
+               dpen = two*weight*(acalc-(aexpn-arngen))*popn(ii)*popn(jj)
+            else
+               dpen = zero
+            end if
+         else if (ipnlty == 3) then
+            if (acalc > aexpn+arngen) then
+               dpen = third*weight*(acalc**sixth-(aexpn+arngen)**sixth)* &
+                     (acalc**fsx)*popn(ii)*popn(jj)
+            else if (acalc < aexpn-arngen) then
+               dpen = third*weight*(acalc**sixth-(aexpn-arngen)**sixth)* &
+                     (acalc**fsx)*popn(ii)*popn(jj)
+            else
+               dpen = zero
+            end if
+         end if
+#ifdef NMODE
+         
+         !    ---- accumulate forces relating to normal mode frequencies:
+         
+         do n=1,iscale
+            f(3*natom+n)=f(3*natom+n) - dpen*dint(3*nath+n)
+         end do
+#endif
+
+         do i=1,nath
+            i3real = 3*(ihyp(i)-1)
+            i3 = 3*(i-1)
+            f(i3real+1) = f(i3real+1) - dpen*dint(i3+1)
+            f(i3real+2) = f(i3real+2) - dpen*dint(i3+2)
+            f(i3real+3) = f(i3real+3) - dpen*dint(i3+3)
+            !           write(6,*) i,ihyp(i),Dint(i3+1),Dint(i3+2),Dint(i3+3)
+         end do
+         
+         !  --- zero out calculated intensity and Dint, for preparation
+         !        for next peak; this code arises from the possibility of
+         !        summing peaks together.
+         
+         acalc = zero
+         do muk=1,3*nath+1
+            dint(muk) = zero
+         end do
+         call timer_stop(TIME_REMARC)
+      end do
+   end do
+   
+   return
+   1000 format('noe:',i4,i3,2x,a13,3x,a13,3x,3f10.5,i5)
+   1001 format('ovl:',i4,i3,2x,a13,3x,a13,13x,f10.5,10x,i5)
+   1002 format('tot:',i4,i3,2x,a13,3x,a13,3x,3f10.5,i5)
+end subroutine remarc 
+
+#ifdef NMODE
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!+ [Enter a one-line description of subroutine remhet here]
+subroutine remhet(f,x,ksub,newf,amass)
+   use constants, only : zero, third, sixth
+   implicit none
+   _REAL_    f(*),x(*)
+   integer   ksub
+   logical   newf
+   _REAL_    amass(*)
+   
+   ! Subroutine RElaxation MAtrix for HETeronuclear relaxation (2-spin!)
+   
+   !     interprets input "aexp" from noecalc as a "gamma" correction
+   !        value, and sets up forces to minimize the differences between
+   !        calc. and exp. values.
+   
+#  include "nmr.h"
+#  include "../include/memory.h"
+   
+   integer    imix, ipeak
+   _REAL_     acalc, aexpn, arngen
+   _REAL_     weight, penalty, dpen
+   integer    n
+   _REAL_     fsx
+   parameter (fsx=-5.d0/6.d0)
+   
+   imix = 1
+   do ipeak=1,npeak(1)
+      call corf(x,ihp(1,ipeak),jhp(1,ipeak),ihp(1,ipeak),jhp(1,ipeak), &
+            newf,amass)
+      newf = .false.
+      acalc = gamma_nmr
+      
+      ! --- compute penalty function and update force vector
+      
+      aexpn = aexp(imix,ipeak)
+      arngen = arange(imix,ipeak)
+      
+      weight = wnoesy*awt(imix,ipeak)
+      if (ipnlty == 1) then
+         
+         !   --- here the penalty is zero if the calculated volume is in
+         !       the range: aexpn - arngen < acalc < aexpn + arngen
+         !       Outside this range the penalty increases linearly.
+         
+         if (acalc > aexpn+arngen) then
+            penalty = weight*(acalc - (aexpn+arngen))
+         else if (acalc < aexpn-arngen) then
+            penalty = weight*((aexpn-arngen) - acalc)
+         else
+            penalty = zero
+         end if
+      else if (ipnlty == 2) then
+         
+         !   --- here the penalty is zero if the calculated volume is in
+         !       the range: aexpn - arngen < acalc < aexpn + arngen
+         !       Outside this range the penalty increases quadratically.
+         
+         if (acalc > aexpn+arngen) then
+            penalty = weight*(acalc - (aexpn+arngen))**2
+         else if (acalc < aexpn-arngen) then
+            penalty = weight*(acalc - (aexpn-arngen))**2
+         else
+            penalty = zero
+         end if
+      else if (ipnlty == 3) then
+         
+         !   --- here the penalty is zero if the calculated volume is in
+         !       the range: aexpn - arngen < acalc < aexpn + arngen
+         !       Outside this range the penalty increases quadratically,
+         !       but based on the Sixth-root of the observed intensities.
+         
+         if (acalc > aexpn+arngen) then
+            penalty = weight*(acalc**sixth - (aexpn+arngen)**sixth)**2
+         else if (acalc < aexpn-arngen) then
+            penalty = weight*(acalc**sixth - (aexpn-arngen)**sixth)**2
+         else
+            penalty = zero
+         end if
+      else
+         write(6,*) 'Bad value for ipnlty: ',ipnlty
+         call mexit(6, 1)
+      end if  ! (ipnlty == 1)
+      enoe = enoe + penalty
+      1000 format('het:',i3,'  1  ',a13,3x,a13,3x,3f10.5)
+      if (master .and. iprint /= 0 .and. penalty > pencut) then
+         write(81,1000) ksub, &
+               resat(ihp(1,ipeak)), &
+               resat(jhp(1,ipeak)),aexpn,acalc,penalty
+      end if
+      
+      ! --- set up overall factor for updating derivatives:
+      
+      if (ipnlty == 1) then
+         if (acalc > aexpn+arngen) then
+            dpen = weight
+         else if (acalc < aexpn-arngen) then
+            dpen = -weight
+         else
+            dpen = zero
+         end if
+      else if (ipnlty == 2) then
+         if (acalc > aexpn+arngen) then
+            dpen = 2.*weight*(acalc-(aexpn+arngen))
+         else if (acalc < aexpn-arngen) then
+            dpen = 2.*weight*(acalc-(aexpn-arngen))
+         else
+            dpen = zero
+         end if
+      else if (ipnlty == 3) then
+         if (acalc > aexpn+arngen) then
+            dpen = third*weight*(acalc**sixth-(aexpn+arngen)**sixth)* &
+                  (acalc**fsx)
+         else if (acalc < aexpn-arngen) then
+            dpen = third*weight*(acalc**sixth-(aexpn-arngen)**sixth)* &
+                  (acalc**fsx)
+         else
+            dpen = zero
+         end if
+      end if
+      
+      !    ---- accumulate forces relating to normal mode frequencies:
+      
+      do n=1,iscale
+         f(3*natom+n)=f(3*natom+n) - dpen*dgamma(n+3)
+      end do
+      
+   end do
+   
+   return
+end subroutine remhet 
+#endif /* NMODE */
+#ifndef ORIGDERIV
+
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine amatg here]
 subroutine amatg(vecs,eig,taum,amat,iamat)
@@ -709,6 +2495,7 @@ subroutine amatg(vecs,eig,taum,amat,iamat)
    end do
    return
 end subroutine amatg 
+#endif
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine noecalc here]
