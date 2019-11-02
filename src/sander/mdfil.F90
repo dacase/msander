@@ -558,8 +558,6 @@ subroutine mdfil(VERSION, version_requested)
          end if
          iarg = iarg + 1
          call getarg_wrap(iarg, outfile_suffix)
-      else if (arg == '-cns') then
-         is_xref_on = .true.
       else if (arg == ' ') then
          continue
       else

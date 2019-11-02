@@ -648,7 +648,6 @@ dynlib.o: \
                     les.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
-                    xref.o\
                     xray_interface.o\
                     state.o\
                     charmm.o\
@@ -686,7 +685,6 @@ dynlib.LES.o: \
                     les.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
-                    xref.o\
                     xray_interface.o\
                     state.o\
                     charmm.o\
@@ -723,7 +721,6 @@ dynlib.PUPIL.o: \
                     les.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
-                    xref.o\
                     xray_interface.o\
                     state.o\
                     charmm.o\
@@ -1345,7 +1342,6 @@ force.o: \
                     emap.o\
                     pupildata.o\
                     linear_response.o\
-                    xref.o\
                     xray_interface.o\
                     xray_globals.o\
                     charmm.o\
@@ -1406,7 +1402,6 @@ force.LES.o: \
                     emap.o\
                     pupildata.o\
                     linear_response.o\
-                    xref.o\
                     xray_interface.o\
                     xray_globals.o\
                     charmm.o\
@@ -1466,7 +1461,6 @@ force.PUPIL.o: \
                     emap.o\
                     pupildata.o\
                     linear_response.o\
-                    xref.o\
                     xray_interface.o\
                     xray_globals.o\
                     charmm.o\
@@ -1901,7 +1895,6 @@ mdfil.o: \
                     copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
-                    xref.o\
                     ew_parallel.h\
                     parallel.h\
                     ../include/dprec.fh
@@ -1915,7 +1908,6 @@ mdfil.LES.o: \
                     copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
-                    xref.o\
                     ew_parallel.h\
                     parallel.h\
                     ../include/dprec.fh
@@ -1928,7 +1920,6 @@ mdfil.PUPIL.o: \
                     copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
-                    xref.o\
                     ew_parallel.h\
                     parallel.h\
                     ../include/dprec.fh
@@ -3212,7 +3203,6 @@ printe.o: \
                     constants.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
-                    xref.o\
                     charmm.o\
                     emap.o\
                     xray_interface.o\
@@ -3241,7 +3231,6 @@ printe.PUPIL.o: \
                     constants.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
-                    xref.o\
                     charmm.o\
                     emap.o\
                     xray_interface.o\
@@ -3689,13 +3678,12 @@ relax_mat.o: \
                     ../include/dprec.fh\
                     constants.o\
                     nmr.h\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    def_time.h\
-                    box.h\
-                    extra.h\
                     file_io_dat.o\
-                    parallel.h
+                    ../include/memory.h\
+                    ../include/md.h\
+                    def_time.h\
+                    parallel.h\
+                    extra.h
 
 
 relax_mat.o:   relax_mat.F90
@@ -4347,15 +4335,6 @@ short_ene.LES.o:   short_ene.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
 
-sinr_t.o: \
-                    ../include/dprec.fh\
-                    random.o
-
-
-sinr_t.o:   sinr_t.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sinr_t.F90
-
 softcore.o: \
                     copyright.h\
                     ../include/assert.fh\
@@ -4588,17 +4567,6 @@ xray_utils.o: \
 xray_utils.o:   xray_utils.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_utils.F90
-
-xref.o: \
-                    copyright.h\
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    state.o
-
-
-xref.o:   xref.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xref.F90
 
 yammpnb.o: \
                     copyright.h\
