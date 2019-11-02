@@ -1558,7 +1558,6 @@ interface.o: \
                     constante.o\
                     amoeba_mdin.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1812,40 +1811,6 @@ locmem.LES.o:   locmem.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
-lsc_init.o: \
-                    ../include/dprec.fh\
-                    lscivr_vars.o\
-                    constants.o\
-                    ../include/md.h\
-                    extra.h
-
-
-lsc_init.o:   lsc_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lsc_init.F90
-
-lsc_xp.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    lscivr_vars.o\
-                    constants.o\
-                    random.o\
-                    extra.h\
-                    parallel.h
-
-
-lsc_xp.o:   lsc_xp.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lsc_xp.F90
-
-lscivr_vars.o: \
-                    ../include/dprec.fh
-
-
-lscivr_vars.o:   lscivr_vars.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lscivr_vars.F90
-
 matinv.o: \
                     copyright.h\
                     ../include/dprec.fh
@@ -1949,7 +1914,6 @@ mdread.o: \
                     constante.o\
                     amoeba_mdin.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -2015,7 +1979,6 @@ mdread.LES.o: \
                     constante.o\
                     amoeba_mdin.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.LES.o\
                     les.o\
                     stack.o\
@@ -2080,7 +2043,6 @@ mdread.PUPIL.o: \
                     constante.o\
                     amoeba_mdin.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -3048,7 +3010,6 @@ parallel.o: \
                     nonbond_list.o\
                     file_io_dat.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.o\
                     spatial_fft.o\
                     softcore.o\
@@ -3098,7 +3059,6 @@ parallel.LES.o: \
                     nonbond_list.LES.o\
                     file_io_dat.o\
                     nose_hoover.o\
-                    lscivr_vars.o\
                     md_scheme.LES.o\
                     spatial_fft.o\
                     softcore.o\
@@ -3678,12 +3638,13 @@ relax_mat.o: \
                     ../include/dprec.fh\
                     constants.o\
                     nmr.h\
-                    file_io_dat.o\
-                    ../include/memory.h\
                     ../include/md.h\
+                    ../include/memory.h\
                     def_time.h\
-                    parallel.h\
-                    extra.h
+                    box.h\
+                    extra.h\
+                    file_io_dat.o\
+                    parallel.h
 
 
 relax_mat.o:   relax_mat.F90

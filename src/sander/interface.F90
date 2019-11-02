@@ -340,7 +340,6 @@ subroutine api_mdread1(input_options, ierr)
    use constante, only : mccycles_e
    use amoeba_mdin, only: AMOEBA_read_mdin, iamoeba
    use nose_hoover_module, only: nchain  ! APJ
-   use lscivr_vars, only: ilscivr, icorf_lsc
    use md_scheme, only: ischeme, ithermostat, therm_par
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
@@ -479,7 +478,7 @@ subroutine api_mdread1(input_options, ierr)
          noshakemask,crgmask, iwrap_mask, &
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
-         ifqnt,ievb, profile_mpi, ilscivr, icorf_lsc, &
+         ifqnt,ievb, profile_mpi, &
          ipb, inp, nkija, idistr, sinrtau, &
          gbneckscale, &
          gbalphaH,gbbetaH,gbgammaH, &

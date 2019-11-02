@@ -71,8 +71,6 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
-LSCIVROBJ = lscivr_vars.o lsc_init.o lsc_xp.o
-
 LESOBJ= memory_module.o stack.o file_io_dat.o \
     constants.o state.o nose_hoover.o nose_hoover_init_LES.o \
     trace.o rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
@@ -120,19 +118,19 @@ dummy:
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
-         $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
+         $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
          dummy
 	@echo "[SANDER]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
-	     $(FULLPIMDOBJ) $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
+	     $(FULLPIMDOBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
-         $(LSCIVROBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
+         $(NFE_OBJECTS) $(XRAY_OBJS) \
          $(PLUMED_DEPENDENCIES) dummy
 	@echo "[SANDER]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) $(LSCIVROBJ) \
+	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) \
 	     $(XRAY_OBJS) $(NFE_OBJECTS) -L$(LIBDIR) $(NETCDFLIBF) \
 	     $(FLIBS_RISMSANDER) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 

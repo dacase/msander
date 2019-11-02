@@ -45,7 +45,6 @@ subroutine startup(xx,ix,ih)
                      BC_DIRPARS,numnptrs
    use file_io_dat
    use nose_hoover_module, only: nchain      ! APJ
-   use lscivr_vars, only: ilscivr
    use md_scheme, only: ischeme, ithermostat, therm_par
    use fft,only:column_fft_flag
 ! SOFT CORE
@@ -162,8 +161,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(lesfac,BC_LESR,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
-
-   call mpi_bcast(ilscivr, 1, mpi_integer, 0, commsander, ierr)
 
    call mpi_bcast(ischeme, 1, MPI_INTEGER, 0, commsander, ierr)
    call mpi_bcast(ithermostat, 1, MPI_INTEGER, 0, commsander, ierr)
