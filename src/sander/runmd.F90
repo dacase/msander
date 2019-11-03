@@ -59,7 +59,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use nfe_sander_proxy, only : infe, nfe_real_mdstep, nfe_prt
 
   use commandline_module, only: cpein_specified
-  use md_scheme, only: ischeme, thermostat_step, ithermostat
+  use md_scheme, only: thermostat_step, ithermostat
 #ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
@@ -541,12 +541,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   !    Langevin dynamics setup  {{{
-  if (ischeme > 0 .and. rem == 0 .and. master) then
+  if (rem == 0 .and. master) then
      open(fh_ek, file=file_ek)
      write(fh_ek, *) '#     NSTEP   EKIN(kcal/mol)    TEMP(K)'
   endif
   ! middle scheme when nscm is enabled
-  if (nscm > 0 .and. ischeme > 0) then
+  if (nscm > 0) then
      if (ifbox == 0) then
         call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
 #ifdef MPI
@@ -598,10 +598,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ener%cmt(1:4) = 0.d0
   nitp = 0
   nits = 0
-  if (ischeme > 0) then
-     ekhf = 0.0d0
-     ekhf2 = 0.0d0
-  endif
+  ekhf = 0.0d0
+  ekhf2 = 0.0d0
 
 !------------------------------------------------------------------------------
   ! PLUMED initialization.  PLUMED is an open-source plugin that
@@ -830,7 +828,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ener%kin%solt = tempsu * 0.5d0
 
     ! middle scheme for constrain MD
-    if (ischeme == 1 .and. ntc /= 1) then
+    if (ntc /= 1) then
        qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
@@ -1338,7 +1336,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! of the dipoles is included in the epol energy.
   if (induced > 0 .and. indmeth == 3) call cp_dips(natom,xx(lpol),xx,dt)
 
-  if (ischeme == 1) then
+  if (isgld > 0) then
+    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
+               x, f, v)
+  else
   ! leap-frog middle scheme
   ! the 1st step for updating p
      i3 = 3*(istart - 1)
@@ -1362,9 +1363,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
      end if
 
-  else if (isgld > 0) then
-    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
-               x, f, v)
   end if
   !  }}}
 
@@ -1397,7 +1395,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
-  if (ischeme == 1) then
     ! the step for updating x-T-x
     do i3 = istart3, iend3
        f(i3) = x(i3)
@@ -1415,7 +1412,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5
     end do
-  end if
 
   ! position update for the "extra" variables"
   do i = 1,iscale
@@ -1430,7 +1426,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (ntc .ne. 1) then
   ! Step 4a: if shake is being used, update the positions {{{
     call timer_start(TIME_SHAKE)
-    if (ischeme == 1) xold(istart3:iend3) = x(istart3:iend3)
+    xold(istart3:iend3) = x(istart3:iend3)
     if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
     qspatial = .false.
     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
@@ -1470,17 +1466,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
     ! Step 4b: Now fix the velocities and calculate KE. {{{
     ! Re-estimate the velocities from differences in positions.
-    if (ischeme == 0) then
-      v(istart3:iend3) = (x(istart3:iend3) - f(istart3:iend3))*dtxinv
-    else
-      v(istart3:iend3) = v(istart3:iend3) &
+    v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
-    end if
     call timer_stop(TIME_SHAKE)
   end if
   call timer_start(TIME_VERLET)
 
-  if (ischeme == 1) then
     if (ntc /= 1) then
       qspatial = .false.
       ! RATTLE-V, correct velocities
@@ -1491,7 +1482,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
     end if
   ! }}}
-  end if
 
 !------------------------------------------------------------------------------
   ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
@@ -1505,7 +1495,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
 
     ! LF-Middle: use velocity v(t) for KE calculation {{{
-    if (ischeme == 1) then
       i3 = 3*(istart-1)
       do j = istart, iend
         aamass = amass(j)
@@ -1533,7 +1522,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
         end do
       end do
-    end if
     !}}}
 
     ! Sum up the partial kinetic energies: {{{
@@ -1867,10 +1855,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Update all elements of these sequence types
     enert  = enert + ener
     enert2 = enert2 + (ener*ener)
-    if (ischeme > 0) then
-       ekhf = ekhf + ekph
-       ekhf2 = ekhf2 + ekph*ekph
-    endif
+    ekhf = ekhf + ekph
+    ekhf2 = ekhf2 + ekph*ekph
 #ifdef MPI
     if (ifsc .ne. 0) then
       sc_ener_ave(1:ti_ene_cnt) = sc_ener_ave(1:ti_ene_cnt) + &
@@ -2054,7 +2040,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (facc .ne. 'A') rewind(7)
 
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
-      if (ischeme > 0 .and. rem == 0 .and. master) then
+      if (rem == 0 .and. master) then
          write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekph*onefac(1)
       endif
 
@@ -2369,7 +2355,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       enert2 = sqrt(enert2)
       edvdl = edvdl/tspan
 
-      if (ischeme > 0 .and. rem == 0 .and. master) then
+      if (rem == 0 .and. master) then
          ekhf = ekhf / tspan
          ekhf2 = ekhf2/tspan - ekhf*ekhf
          ekhf2 = sqrt(ekhf2)
@@ -2452,7 +2438,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
     ! End contingency for nvalid > 0, signifying that
     ! all energies must be calculated
-    if (ischeme > 0 .and. rem == 0 .and. master) close(fh_ek)
+    if (rem == 0 .and. master) close(fh_ek)
     if (ntp > 0 .and. barostat == 2) call mcbar_summary
   end if
   ! End of contingency for work on the master process;

@@ -45,7 +45,7 @@ subroutine startup(xx,ix,ih)
                      BC_DIRPARS,numnptrs
    use file_io_dat
    use nose_hoover_module, only: nchain      ! APJ
-   use md_scheme, only: ischeme, ithermostat, therm_par
+   use md_scheme, only: thermostat, therm_par
    use fft,only:column_fft_flag
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &
@@ -162,10 +162,8 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
 
-   call mpi_bcast(ischeme, 1, MPI_INTEGER, 0, commsander, ierr)
    call mpi_bcast(ithermostat, 1, MPI_INTEGER, 0, commsander, ierr)
    call mpi_bcast(therm_par, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-
 
    ! carlos: targeted MD
 

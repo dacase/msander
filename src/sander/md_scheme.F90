@@ -16,7 +16,6 @@
 module md_scheme
   implicit none
   ! the scheme for integration algorithm
-  integer :: ischeme     
   integer,parameter :: &
     ENUM_NO_SCHEME       = 0, & ! default AMBER
     ENUM_LFMIDDLE_SCHEME = 1    ! leap-frog middle scheme

@@ -22,7 +22,7 @@ subroutine mdread1()
    use constante, only : mccycles_e
    use amoeba_mdin, only: AMOEBA_read_mdin, iamoeba
    use nose_hoover_module, only: nchain  ! APJ
-   use md_scheme, only: ischeme, ithermostat, therm_par
+   use md_scheme, only: ithermostat, therm_par
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
@@ -143,7 +143,7 @@ subroutine mdread1()
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ischeme, ithermostat, therm_par, &
+         ithermostat, therm_par, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
@@ -325,7 +325,6 @@ subroutine mdread1()
    nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ischeme = 1
    ithermostat = 0
    therm_par = 5.0d0
 ! } 
@@ -778,7 +777,6 @@ subroutine mdread1()
    end if
 
    ! middle scheme is requested {
-   if (ischeme == 1) then
       if (ithermostat < 0 .or. ithermostat > 2) then
          write(6,'(1x,a,/)') &
             'Middle scheme: ithermostat is only available for 0-2 for current version'
@@ -796,20 +794,6 @@ subroutine mdread1()
          write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntp > 0'
          FATAL_ERROR
       endif
-   else if (ischeme == 0) then
-      if (ithermostat > 0) then
-         write(6,'(1x,a,/)') 'ithermostat should be used with ischeme > 0)'
-         FATAL_ERROR
-      endif
-      if (therm_par > 0) then
-         write(6,'(1x,a,/)') 'therm_par should be used with ischeme > 0)'
-         FATAL_ERROR
-      endif
-   else
-      write(6,'(1x,a,/)') &
-            'ischeme is only available for 0-1 for current version'
-      FATAL_ERROR
-   end if
    ! }
 
    ! Now that we've read the input file, set up the defaults for variables
@@ -1277,7 +1261,7 @@ subroutine mdread2(x,ix,ih)
    use amoeba_mdin, only : iamoeba,beeman_integrator
    use amoeba_runmd, only : AM_RUNMD_get_coords
    use nose_hoover_module, only: nchain  ! APJ
-   use md_scheme, only: ischeme, therm_par
+   use md_scheme, only: therm_par
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
    use file_io_dat
