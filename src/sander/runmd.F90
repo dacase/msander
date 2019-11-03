@@ -9,7 +9,7 @@
 !          zM closes all folds; zR opens all folds
 
 !------------------------------------------------------------------------------
-! runmd: main driver routine for molecular dynamics.  This is over 4000 lines
+! runmd: main driver routine for molecular dynamics.  This is over 2500 lines
 !        long and incorporates virtually every method that sander offers.
 !        Prior to calling this routine, the sander subroutine itself will take
 !        user input, read system specifications from coordinates and topology
@@ -59,10 +59,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use nfe_sander_proxy, only : infe, nfe_real_mdstep, nfe_prt
 
   use commandline_module, only: cpein_specified
-  use md_scheme, only: ischeme, thermostat_step
-  use nose_hoover_module, only: thermo_lnv, x_lnv, x_lnv_old, v_lnv, &
-                                f_lnv_p, f_lnv_v, c2_lnv, mass_lnv, &
-                                Thermostat_init
+  use md_scheme, only: ischeme, thermostat_step, ithermostat
 #ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
@@ -101,7 +98,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 #ifdef LES
   ! Self-Guided molecular/Langevin Dynamics (SGLD)
-  use les_data, only: cnum, temp0les, tempsules, sdfacles, scaltles, ekeles, &
+  use les_data, only: cnum, temp0les, tempsules, scaltles, ekeles, &
                       ekinles0, ekmhles, ekphles, rndfles
 #else
   use sgld, only: isgsta,isgend,sg_fix_degree_count
@@ -288,8 +285,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ fit, fiti, fit2
 
   ! Variables to control a Langevin dynamics simulation
-  logical is_langevin
-  _REAL_ gammai, c_implic, c_explic, c_ave, sdfac, ekins0
+  _REAL_ ekins0
   _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dtcp, dttp
   _REAL_ rndf, rndfs, rndfp, boltz2, pconv, tempsu
   _REAL_ xcm(3), acm(3), ocm(3), vcm(3), ekcm, ekrot
@@ -543,34 +539,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
   ! }}}
 
+!------------------------------------------------------------------------------
+  !    Langevin dynamics setup  {{{
   if (ischeme > 0 .and. rem == 0 .and. master) then
      open(fh_ek, file=file_ek)
      write(fh_ek, *) '#     NSTEP   EKIN(kcal/mol)    TEMP(K)'
   endif
-
-!------------------------------------------------------------------------------
-  !    Langevin dynamics setup  {{{
-  is_langevin = (gamma_ln > 0.0d0)
-  gammai = gamma_ln / 20.455d0
-  c_implic = 1.d0 / (1.d0 + gammai*dt5)
-  c_explic = 1.d0 - gammai*dt5
-  c_ave = 1.d0 + gammai*dt5
-  sdfac = sqrt(4.d0 * gammai * boltz2 * temp0 / dtx)
-#ifdef LES
-  if (temp0les < 0.d0) then
-    sdfacles = sqrt( 4.d0*gammai*boltz2*temp0/dtx )
-  else
-    sdfacles = sqrt( 4.d0*gammai*boltz2*temp0les/dtx )
-  endif
-#endif /* LES */
-  if (ischeme == 0 .and. is_langevin .and. ifbox==0) then
-    call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
-#ifdef MPI
-    ! Soft core position mixing
-    if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
-#endif /* MPI */
-  end if
-  ! }}}
   ! middle scheme when nscm is enabled
   if (nscm > 0 .and. ischeme > 0) then
      if (ifbox == 0) then
@@ -581,13 +555,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* MPI */
      end if ! ifbox==0: non-periodic
   end if ! middle scheme when nscm is enabled
+  ! }}}
 
 !------------------------------------------------------------------------------
   ! Constant pH and constant Redox potential setup: {{{
   if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
   if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
-  ! }}}
-
   ! }}}
 
   !   General initialization:  {{{
@@ -629,7 +602,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
      ekhf = 0.0d0
      ekhf2 = 0.0d0
   endif
-  ! }}}
 
 !------------------------------------------------------------------------------
   ! PLUMED initialization.  PLUMED is an open-source plugin that
@@ -637,6 +609,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (plumed == 1) then
 #   include "Plumed_init.inc"
   endif
+  ! }}}
 
 !------------------------------------------------------------------------------
   ! Make a first dynamics step. {{{
@@ -1046,6 +1019,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   260 continue
   onstep = mod(irespa,nrespa) == 0
 
+  ! Constant pH/redox setup  {{{
   ! Deciding if in the current step we are gonna perform a constant pH titration
   ! attempt and/or a constant Redox potential titration attempt
   if (icnstph .gt. 0 .or. (icnste .gt. 0 .and. cpein_specified)) then
@@ -1055,7 +1029,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     on_cestep = mod(irespa + nstlim*mdloop, ntcnste) == 0
   end if
 
-  ! Constant pH setup  {{{
   if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. &
       ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
     if (ntnb == 1) then ! rebuild pairlist
@@ -1071,11 +1044,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end if
     end if
   end if
-  ! }}}
 
-  ! If constant pH and constant Redox potential titration attempts are performed in the
-  ! same step for implicit solvent, then we need to compute gb_pot_ene here and finish
-  ! constant pH
+  ! If constant pH and constant Redox potential titration attempts 
+  ! are performed in the same step for implicit solvent, then we 
+  ! need to compute gb_pot_ene here and finish constant pH
   if (on_cpstep .and. icnstph == 1 .and. &
       on_cestep .and. icnste == 1 .and. .not. cpein_specified) then
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
@@ -1085,7 +1057,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (master) call cnstphwrite(rem,remd_types,replica_indexes)
   end if
 
-  ! Constant Redox potential setup {{{
+  ! Constant Redox potential setup 
   if (icnste /= 0 .and. .not. cpein_specified .and. &
       ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
     if (on_cestep) then
@@ -1111,7 +1083,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
-  ! Step 1b: prepare to get the forces for the system's current coordinates {{{
+  ! Step 1b: get the forces for the system's current coordinates {{{
   iprint = 0
   if (nstep == 0 .or. nstep+1 == nstlim) iprint = 1
   if (rem .eq. 0 .or. mdloop .gt. 0) nfe_real_mdstep = .True.
@@ -1123,24 +1095,17 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (mod(nstep+1, bar_intervall) == 0) do_mbar = .true.
   end if
 #endif
-  ! }}}
 
 !------------------------------------------------------------------------------
-  ! Step 1b': actually get the forces for the system's current coordinates {{{
-
-!------------------------------------------------------------------------------
-  ! Thermodynamic Integration decomposition {{{
   if (idecomp > 0 .and. ntpr > 0) then
     decpr = .false.
     if (mod(nstep+1, ntpr) == 0) decpr = .true.
   end if
-  ! }}}
 
 !------------------------------------------------------------------------------
   ! This(!) is where the force() routine mainly gets called:
   call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
              xx(l98), xx(l99), qsetup, do_list_update, nstep)
-  ! }}}
 
 !------------------------------------------------------------------------------
   ! distribute the forces:  (dac: what does f_or stand for?)
@@ -1160,9 +1125,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     f_or(1:nr3) = abfqmmm_param%f(1:nr3)
     f(1:nr3) = abfqmmm_param%f(1:nr3)
   end if
+  ! }}}
 
 !------------------------------------------------------------------------------
-  ! Constant pH transition evaluation for GB CpHMD (not explicit CpHMD)
+  ! Constant pH transition evaluation for GB CpHMD (not explicit CpHMD) {{{
   if ((icnstph == 1 .or. (icnste == 1 .and. cpein_specified)) .and. on_cpstep .and. &
       .not. on_cestep) then
     call cnstphendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solvph, solve)
@@ -1174,6 +1140,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call cnsteendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solve)
     if (master) call cnstewrite(rem,remd_types,replica_indexes)
   end if
+  ! }}}
 
 !------------------------------------------------------------------------------
   ! PLUMED force added
@@ -1278,7 +1245,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
   ! End contingency for free energies by Thermodynamic Integration }}}
 #endif /* MPI */
-
 #ifdef EMIL
   ! Call the EMIL absolute free energy calculation.
   if (emil_do_calc .gt. 0) &
@@ -1330,8 +1296,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! End contingency for constant pressure conditions }}}
 
 !------------------------------------------------------------------------------
+  ! Replica Exchange Molecular Dynamics {{{
 #ifdef MPI
-  ! Replica Exchange Molecular Dynamics: if rem /= 0 and mdloop == 0, this is
+  ! if rem /= 0 and mdloop == 0, this is
   ! the first sander call and we don't want to actually do any MD or change the
   ! initial coordinates.  Exit here since we only wanted to get the potential
   ! energy for the first subrem exchange probability calc.
@@ -1372,7 +1339,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (induced > 0 .and. indmeth == 3) call cp_dips(natom,xx(lpol),xx,dt)
 
   if (ischeme == 1) then
-  ! leap-frog middle scheme {{{
+  ! leap-frog middle scheme
   ! the 1st step for updating p
      i3 = 3*(istart - 1)
      do j = istart, iend
@@ -1394,14 +1361,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
        ! use SETTLE to deal with water model
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
      end if
-     !}}}
 
   else if (isgld > 0) then
     call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
                x, f, v)
   end if
   !  }}}
-  ! End case switch for various thermostats
 
 !------------------------------------------------------------------------------
   ! Update EMAP rigid domains
@@ -1431,15 +1396,14 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end do
 
 !------------------------------------------------------------------------------
-  ! Step 3: update the positions, putting the "old" positions into F: {{{
+  ! Step 3: update the positions, and apply the thermostat,  {{{
   if (ischeme == 1) then
-    ! middle scheme {{{
     ! the step for updating x-T-x
     do i3 = istart3, iend3
        f(i3) = x(i3)
        x(i3) = x(i3) + v(i3)*dt5
     end do
-    ! for random number, controled by ig, see ntt part
+    ! for random number, controled by ig
     if (no_ntt3_sync == 1) then
       iskip_start = 0
       iskip_end = 0
@@ -1451,12 +1415,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5
     end do
-    !}}}
   end if
-  !}}}
-  ! End case branching for updating positions
 
-!------------------------------------------------------------------------------
   ! position update for the "extra" variables"
   do i = 1,iscale
     f(nr3+i) = x(nr3+i)
@@ -1468,7 +1428,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   if (ntc .ne. 1) then
-    ! Step 4a: if shake is being used, update the positions {{{
+  ! Step 4a: if shake is being used, update the positions {{{
     call timer_start(TIME_SHAKE)
     if (ischeme == 1) xold(istart3:iend3) = x(istart3:iend3)
     if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
@@ -1505,9 +1465,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call timer_stop_start(TIME_DISTCRD, TIME_SHAKE)
     end if
 #endif  /* MPI */
+    ! }}}
 
 !------------------------------------------------------------------------------
-    ! Step 4b: Now fix the velocities and calculate KE.
+    ! Step 4b: Now fix the velocities and calculate KE. {{{
     ! Re-estimate the velocities from differences in positions.
     if (ischeme == 0) then
       v(istart3:iend3) = (x(istart3:iend3) - f(istart3:iend3))*dtxinv
@@ -1516,7 +1477,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
     end if
     call timer_stop(TIME_SHAKE)
-    ! }}}
   end if
   call timer_start(TIME_VERLET)
 
@@ -1530,11 +1490,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ! use SETTLE to deal with water model
       call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
     end if
+  ! }}}
   end if
 
 !------------------------------------------------------------------------------
+  ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
   if (onstep) then
-    ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
     eke = 0.d0
     ekph = 0.d0
     ekpbs = 0.d0
@@ -1543,8 +1504,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekphles = 0.d0
 #endif
 
-    if (ischeme == 1) then
     ! LF-Middle: use velocity v(t) for KE calculation {{{
+    if (ischeme == 1) then
       i3 = 3*(istart-1)
       do j = istart, iend
         aamass = amass(j)
@@ -1572,9 +1533,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
         end do
       end do
-
-      !}}}
     end if
+    !}}}
 
     ! Sum up the partial kinetic energies: {{{
 #ifdef MPI
@@ -1658,9 +1618,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekeles = ekeles * 0.5d0
     ekphles = ekphles * 0.5d0
 #endif /* LES */
-  end if
   ! End contingency for onstep; end of step 4c
   !    (also: end of big section devoted to estimating the kinetic energy) }}}
+  end if
+  ! }}}
 
 !------------------------------------------------------------------------------
   ! Step 5: several tasks related to dumping of trajectory information  {{{
@@ -1820,7 +1781,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (mod(nstep,nsnb) == 0) ntnb = 1
     end if
     if (ifbox == 0) then
-      if ((ischeme==0.and.is_langevin) .or. ischeme>0) then
+      if (ithermostat > 0) then
 
         ! Get current center of the system
         call get_position(nr, x, vcmx, vcmy, vcmz, sysrange, 0)
@@ -1846,7 +1807,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
     ! End of contingency for isolated, non-periodic systems (ifbox == 0)
   end if
-  ! End of contingency for zeroing system center of mass velocity  }}}
+  ! End of contingency for zeroing system center of mass velocity 
 
 !------------------------------------------------------------------------------
   !  Also zero out the non-moving velocities if a belly is active:
@@ -1858,9 +1819,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   do im = 1, iscale
     vold(nr3+im) = v(nr3+im)
   end do
+  ! }}}
 
 !------------------------------------------------------------------------------
-  ! Step 7: miscellaneous, get total energy
+  ! Step 7: miscellaneous, get total energy {{{
 
 #ifdef LES
   ener%kin%solt = eke
@@ -1888,6 +1850,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Total energy is sum of KE + PE:
   ener%tot = ener%kin%tot + ener%pot%tot
   etot_save = ener%tot
+  ! }}}
 
 !------------------------------------------------------------------------------
   ! Step 8: update the step counter and the integration time: {{{
@@ -2278,7 +2241,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   ! }}}
 !------------------------------------------------------------------------------
-  ! Major cycle back to new step unless we have reached our limit:
+  ! Miscellaneous stuff at the end of each step: {{{
   call trace_integer( 'end of step', nstep )
   call trace_output_mpi_tally( )
   call timer_stop(TIME_VERLET)
@@ -2304,6 +2267,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 
   if (plumed .ne. 0 .and. plumed_stopflag .ne. 0) goto 480
+  ! }}}
 
   ! This is where we actually cycle back to the next MD step
   if (nstep < nstlim) goto 260
@@ -2495,11 +2459,15 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! this started about 120 lines ago and the way it started
   ! depends on whether MPI is part of the compilation. }}}
 
+  ! deallocates: {{{
   if (icfe .ne. 0) then
     deallocate( frcti, stat = ierr )
     REQUIRE( ierr == 0 )
   end if
   if (plumed .ne. 0) call plumed_f_gfinalize()
+  ! }}}
+
+  ! format statements: {{{
 
   500 format(/,' NMR restraints on final step:'/)
   540 format(/5x,' A V E R A G E S   O V E R ',i7,' S T E P S',/)
@@ -2509,6 +2477,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   580 format('STATISTICS OF EFFECTIVE BORN RADII OVER ',i7,' STEPS')
   590 format('ATOMNUM     MAX RAD     MIN RAD     AVE RAD     FLUCT')
   600 format(i4,2x,4f12.4)
+  ! }}}
   call trace_exit( 'runmd' )
   return
 end subroutine runmd
