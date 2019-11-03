@@ -3,7 +3,7 @@
 include config.h
 
 install:
-	cd sander && $(MAKE) msander
+	cd msander && $(MAKE) msander
 
 clean:
 	-(cd arpack && $(MAKE) clean )
