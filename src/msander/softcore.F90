@@ -62,7 +62,6 @@ module softcore
   _REAL_,save :: dynlmb                             ! for dynamically rising lambda, the amount of increase
   integer,save :: sc_deg, sc_dof_shaked             ! degrees of freedom due to the softcore atoms
   integer,save :: res_ti_region                     ! used to define/decouple restraints (see ti_check_res)
-  integer,save :: emil_sc                           ! for EMIL calculations
   contains
 
 !===================================================================================================

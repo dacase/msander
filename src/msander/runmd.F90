@@ -131,10 +131,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use emap, only:temap,emap_move
   use barostats, only : mcbar_trial, mcbar_summary
 
-#ifdef EMIL
-  use emil_mod, only : emil_do_calc, emil_init, emil_step
-#endif /* EMIL */
-
   use memory_module, only: mass
   use random
 
@@ -909,14 +905,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   vold(1:nr3+iscale) = v(1:nr3+iscale)
 
-#ifdef EMIL
-  ! Setup the emil calculation if required.  EMIL is a
-  ! sort of thermodynamic integration tool.
-  if (emil_do_calc .gt. 0) &
-    call emil_init(natom, 1.0/(temp0 * 2 * boltz2 ), &
-                   mass, xx(lcrd), f, v, ener%box)
-#endif /* EMIL */
-
   ! Adjust the step count if Adaptive Buffered Force QM/MM is in effect
   if (abfqmmm_param%abfqmmm == 1) then
     nstep=abfqmmm_param%qmstep
@@ -1239,12 +1227,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
   ! End contingency for free energies by Thermodynamic Integration }}}
 #endif /* MPI */
-#ifdef EMIL
-  ! Call the EMIL absolute free energy calculation.
-  if (emil_do_calc .gt. 0) &
-    call emil_step(natom, nstep, 1.0 / (temp0*2*boltz2), &
-                   xx(lcrd), f, v, ener%pot, ener%pot, ener%box)
-#endif
 
 !------------------------------------------------------------------------------
   ! Reset quantities depending on TEMP0 and TAUTP  {{{

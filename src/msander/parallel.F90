@@ -30,7 +30,7 @@ subroutine startup(xx,ix,ih)
    use fft,only:column_fft_flag
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &
-                       sceeorder, tishake, emil_sc
+                       sceeorder, tishake
 ! end SOFT CORE
    use mbar, only : ifmbar, bar_intervall, bar_l_min, bar_l_max, bar_l_incr
    use linear_response, only : ilrt, lrt_interval, lrtmask
@@ -54,11 +54,6 @@ subroutine startup(xx,ix,ih)
    use commandline_module, only : commandline_bcast, cpein_specified
 ! crg_reloc
    use crg_reloc, only : ifcr
-
-#ifdef EMIL
-   use emil_mod, only: emil_do_calc
-#endif
-
 
    implicit none
 #  include "parallel.h"
@@ -151,11 +146,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(itgtmd,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(tgtrmsd,2,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    ! end targeted md
-
-#ifdef EMIL
-   ! josh: EMIL
-   call mpi_bcast(emil_do_calc,1,MPI_INTEGER,0,commsander,ier)
-#endif
 
    !  ew_pme_recip.h:
 
@@ -255,7 +245,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(scmask,256,MPI_CHARACTER,0,commsander,ierr)
    call mpi_bcast(dynlmb,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(tishake,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(emil_sc,1,MPI_INTEGER,0,commsander,ierr)
 ! end SOFT CORE
    call mpi_bcast(ifmbar,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(bar_intervall,1,MPI_INTEGER,0,commsander,ierr)

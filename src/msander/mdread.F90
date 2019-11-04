@@ -38,17 +38,12 @@ subroutine mdread1()
    use dssp, only: idssp
 #endif /* DSSP */
 
-#ifdef EMIL
-   use emil_mod,          only : emil_do_calc
-   use mdin_emil_dat_mod, only : error_hdr
-#endif
-
 #ifndef API
    use xray_interface_module, only: xray_active, xray_read_mdin
 #endif /* API */
 #ifdef MPI /* SOFT CORE */
    use softcore, only : scalpha,scbeta,ifsc,scmask,logdvdl,dvdl_norest,dynlmb, &
-                        sceeorder, tishake, emil_sc
+                        sceeorder, tishake
    use mbar, only : ifmbar, bar_intervall, bar_l_min, bar_l_max, bar_l_incr
    use remd, only  : rem
 #endif /* MPI */
@@ -96,9 +91,7 @@ subroutine mdread1()
    _REAL_      dxm  ! retired
    _REAL_      heat  ! retired
    _REAL_      timlim ! retired
-#ifndef EMIL
    character(11), parameter :: error_hdr =      '| ERROR:   '
-#endif
 
 ! pmemd functionality that is not supported in sander:
    character(len=256) :: scmask1, scmask2, timask1, timask2
@@ -175,7 +168,6 @@ subroutine mdread1()
          scalpha, scbeta, ifsc, scmask, logdvdl, dvdl_norest, dynlmb, &
          sceeorder, &
          ifmbar, bar_intervall, bar_l_min, bar_l_max, bar_l_incr, tishake, &
-         emil_sc, &
 #endif
          ilrt, lrt_interval, lrtmask, &
 #ifdef DSSP
@@ -184,9 +176,6 @@ subroutine mdread1()
 #ifdef RISMSANDER
          irism,&
 #endif /*RISMSANDER*/
-#ifdef EMIL
-         emil_do_calc, &
-#endif
          vdwmodel, & ! mjhsieh - the model used for van der Waals
          ! retired:
          dtemp, dxm, heat, timlim, &
@@ -654,16 +643,12 @@ subroutine mdread1()
    bar_l_max=0.9
    bar_l_incr=0.1
    tishake = 0
-   emil_sc = 0
 #endif
    ilrt = 0
    lrt_interval = 50
    lrtmask=''
 #ifdef DSSP
    idssp = 0
-#endif
-#ifdef EMIL
-   emil_do_calc = 0
 #endif
 
 #ifdef API
@@ -1157,23 +1142,6 @@ subroutine mdread1()
       !         CLOSE(31)
    end if
 
-   ! -------------------------------------------------------------------
-   ! If EMIL was requested, make sure it was compiled in, and validate.
-   ! -------------------------------------------------------------------
-#ifdef EMIL
-  if( emil_do_calc .gt. 0 ) then
-    if( ntc .ne. 1 ) then
-       write (6, '(a,a)') error_hdr, 'emil_do_calc == 1,'
-       write (6, '(a)') '      and ntc != 1.'
-       write (6, '(a)') '      Current thinking is that SHAKE and '
-       write (6, '(a)') '      EMIL do not mix well, consider setting ntc = 1, ntf = 1,'
-       write (6, '(a)') '      and dt = 0.001.'
-       FATAL_ERROR
-    end if
-  end if
-#endif
-
-
    ! Set the definition of the water molecule. The default definition is in
    ! WATDEF(4).
 
@@ -1255,9 +1223,6 @@ subroutine mdread2(x,ix,ih)
 #endif
 #ifndef API
    use emap, only : temap, emap_options
-#  ifdef EMIL
-   use emil_mod, only : emil_do_calc
-#  endif
    use qmmm_module, only : qmmm_nml, qmmm_vsolv, qmmm_struct
    use qmmm_vsolv_module, only : print
    use linear_response, only : lrt_interval
@@ -1271,9 +1236,6 @@ subroutine mdread2(x,ix,ih)
 #ifdef APBS
    use apbs
 #endif /* APBS */
-#ifdef EMIL
-   use mdin_emil_dat_mod, only : error_hdr, init_emil_dat
-#endif /* EMIL */
 #ifndef API
    use xray_interface_module, only: xray_active, xray_write_options
 #endif /* API */
@@ -1340,9 +1302,7 @@ subroutine mdread2(x,ix,ih)
 #  include "def_time.h"
 #  include "tgtmd.h"
 #  include "multitmd.h"
-#ifndef EMIL
    character(11), parameter :: error_hdr =      '| ERROR:   '
-#endif
 
    ! -------------------------------------------------------------------
    !      --- set up resat array, containing string identifying
@@ -2084,13 +2044,6 @@ subroutine mdread2(x,ix,ih)
 ! ----EMAP Options-----
    if(temap)call emap_options(5)
 ! ---------------------
-
-#  ifdef EMIL
-! ----EMIL Options-----
-   if(emil_do_calc.gt.0)call init_emil_dat(5, 6)
-! ---------------------
-#  endif
-
 
 #  ifdef MPI
 ! --- MPI TIMING OPTIONS ---
