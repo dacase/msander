@@ -56,7 +56,7 @@ for var in "$@"; do
             sfx=".MPI"
             /bin/rm -f src/fftw3_config.log;;
         *)
-            echo "Open $var not recognized"
+            echo "Option $var not recognized"
             exit 1
     esac
 done
