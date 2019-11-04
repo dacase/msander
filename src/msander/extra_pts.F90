@@ -1454,7 +1454,7 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
   use crg_reloc, only: ifcr, cropt, cr_charge, cr_add_dcdr_factor
   use file_io_dat
 #ifdef MPI /* SOFT CORE */
-  use softcore, only: ifsc, nsc, sc_ener, oneweight, emil_sc
+  use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
    implicit none
    _REAL_ charge(*),crd(3,*),frc(3,*), &
@@ -1588,7 +1588,7 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
       ! For dual-topology softcore runs, 1-4 interactions involving sc atoms are modified here
          if (ifsc /= 0) then
             ! Check if both i and j are softcore atoms
-            if ((nsc(i) == 1 .and. nsc(j) == 1) .and. emil_sc .eq. 0) then
+            if ((nsc(i) == 1 .and. nsc(j) == 1)) then
                ! These interactions need to 
                ! a) get their energies removed from the 1-4 energies
                ! b) get their force scaled up by 1/weight

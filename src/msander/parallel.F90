@@ -26,7 +26,7 @@ subroutine startup(xx,ix,ih)
                      BC_DIRPARS,numnptrs
    use file_io_dat
    use nose_hoover_module, only: nchain      ! APJ
-   use md_scheme, only: thermostat, therm_par
+   use md_scheme, only: ithermostat, therm_par
    use fft,only:column_fft_flag
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &

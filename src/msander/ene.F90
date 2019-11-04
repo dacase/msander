@@ -30,7 +30,7 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #  endif
 #endif
 #ifdef MPI /* SOFT CORE */
-   use softcore, only: ifsc, nsc, sc_ener, oneweight, emil_sc
+   use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
    implicit none
 #ifdef MPI
@@ -131,7 +131,7 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
          ! For dual-topology softcore runs, bonds involving sc atoms are modified here
          if (ifsc /= 0) then
             ! Check if a softcore atom is involved in this bond
-            if ((nsc(ii) == 1 .or. nsc(jj) == 1) .and. emil_sc .eq. 0) then
+            if ((nsc(ii) == 1 .or. nsc(jj) == 1)) then
                ! This bond needs to
                ! a) get its energy removed from Ebond
                ! b) get its force scaled up by 1/weight
@@ -233,7 +233,7 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #  endif
 #endif
 #ifdef MPI /* SOFT CORE */
-   use softcore, only: ifsc, nsc, sc_ener, oneweight, emil_sc
+   use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
    implicit none
 
@@ -352,7 +352,7 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
          jj = (jt(jn+ist) + 3)/3
          kk = (kt(jn+ist) + 3)/3
          ! Check if a softcore atom is involved in this angle
-         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1) .and. emil_sc .eq. 0) then
+         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1)) then
             ! This angle needs to
             ! a) get its energy removed from Eangle
             ! b) get its force scaled up by 1/weight
@@ -491,7 +491,7 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
 #  endif
 #endif
 #ifdef MPI /* SOFT CORE */
-   use softcore, only: ifsc, nsc, sc_ener, oneweight, emil_sc
+   use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
    implicit none
 
@@ -729,7 +729,7 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
          kk = (iabs(kp(jn+ist)) + 3)/3
          ll = (iabs(lp(jn+ist)) + 3)/3
          ! Check if a softcore atom is involved in this dihedral
-         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1 .or. nsc(ll) == 1) .and. emil_sc .eq. 0) then
+         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1 .or. nsc(ll) == 1)) then
             ! This dihedral needs to
             ! a) get its energy removed from Edihed
             ! b) get its force scaled up by 1/weight
@@ -1086,7 +1086,7 @@ end subroutine capwat
 !+
 subroutine xconst(natc,econ,igroup,x,f,xc,weit)
 #ifdef MPI
-   use softcore, only: ifsc, sc_ener, nsc, oneweight, emil_sc
+   use softcore, only: ifsc, sc_ener, nsc, oneweight
 #endif
    implicit none
    integer:: i, i3, igroup, ii, natc
@@ -1121,7 +1121,7 @@ subroutine xconst(natc,econ,igroup,x,f,xc,weit)
          eadd = wx*ax+wy*ay+wz*az
 #ifdef MPI /* SOFT CORE */
          if (ifsc .ne. 0) then
-            if (nsc(i) .ne. 0  .and. emil_sc .eq. 0) then
+            if (nsc(i) .ne. 0) then
                sc_ener(14) = sc_ener(14) + eadd
                wx = wx * oneweight
                wy = wy * oneweight
@@ -1572,7 +1572,7 @@ subroutine ephi_ene_amd(nphiin,ip,jp,kp,lp,icp,x,ep)
 !! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 #ifdef MPI /* SOFT CORE */
-   use softcore, only: ifsc, nsc, emil_sc
+   use softcore, only: ifsc, nsc
 #endif
    implicit none
 
@@ -1765,7 +1765,7 @@ subroutine ephi_ene_amd(nphiin,ip,jp,kp,lp,icp,x,ep)
          kk = (iabs(kp(jn+ist)) + 3)/3
          ll = (iabs(lp(jn+ist)) + 3)/3
          ! Check if a softcore atom is involved in this dihedral
-         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1 .or. nsc(ll) == 1) .and. emil_sc .eq. 0) then
+         if ((nsc(ii) == 1 .or. nsc(jj) == 1 .or. nsc(kk) == 1 .or. nsc(ll) == 1)) then
             ! This dihedral needs to
             ! a) get its energy removed from Edihed
             ! b) get its force scaled up by 1/weight

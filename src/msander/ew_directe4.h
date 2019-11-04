@@ -21,7 +21,7 @@ do im_new = 1,icount
       b1 = foureps(ic)
    end if
 
-   if ( nsc(i) == nsc(j) .and. emil_sc .eq. 0) then
+   if ( nsc(i) == nsc(j)) then
       !both atoms are softcore atoms and have normal 6-12 vdw
       denom = 1.0d0 / ( r6 * b0 )
       denom2 = denom * denom

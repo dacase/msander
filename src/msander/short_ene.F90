@@ -261,7 +261,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #ifdef MPI /* SOFT CORE */
   use softcore, only: scalpha, scbeta, sigma6, foureps, sc_dvdl, &
                       isProcessV1, sc_ener, nsc, oneweight, weight0, &
-                      weight1, sceeorder, sc_dvdl_ee, emil_sc
+                      weight1, sceeorder, sc_dvdl_ee
   use mbar, only: ifmbar, bar_i, bar_states, bar_lambda, bar_cont, do_mbar
 #endif
   use crg_reloc, only: ifcr, cr_add_dcdr_factor
@@ -599,7 +599,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       cgj = charge(j)
       comm1 = cgi * cgj
       delr2inv = delrinv * delrinv
-      if (nsc(i) == nsc(j) .and. emil_sc .eq. 0) then          
+      if (nsc(i) == nsc(j)) then          
 
         ! Both atoms are softcore and have normal Coulomb interactions.
         ! First remove the reciprocal contribution from the main energy array.

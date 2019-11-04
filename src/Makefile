@@ -1,4 +1,4 @@
-#   top-level Makefile for sandermini
+#   top-level Makefile for msander
 
 include config.h
 
@@ -9,7 +9,7 @@ clean:
 	-(cd arpack && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
 	-(cd rism && $(MAKE) clean )
-	-(cd sander && $(MAKE) clean )
+	-(cd msander && $(MAKE) clean )
 	-(cd lib && $(MAKE) clean )
 
 uninstall: clean

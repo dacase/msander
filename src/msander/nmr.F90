@@ -101,7 +101,7 @@ subroutine angnrg(x,f,dfr,thet,i1,i2,i3,e,r1,r2,r3,r4,k2,k3, &
    ! Date: 7/89
    use constants, only : DEG_TO_RAD, half
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, iave, iflag, iflg, incflg, ipower, irav, &
@@ -195,7 +195,7 @@ subroutine angnrg(x,f,dfr,thet,i1,i2,i3,e,r1,r2,r3,r4,k2,k3, &
    end if
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0 .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
@@ -674,7 +674,7 @@ subroutine disnrg(x,f,dfr,rij,i1,i2,e,r1,r2,r3,r4,k2,k3, &
    ! Author: David A. Pearlman
    ! Date: 7/89
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, ialtd, iave, iflag, iflg, incflg, ipower, irav, &
@@ -826,7 +826,7 @@ subroutine disnrg(x,f,dfr,rij,i1,i2,e,r1,r2,r3,r4,k2,k3, &
    df = dravdr*df/rij
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0  .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
@@ -1011,7 +1011,7 @@ subroutine gendisnrg(x,f,dfr,coord,i1,i2,i3,i4,i5,i6,i7,i8,rstwt,&
    ! Author:  Matthew Seetin 
    ! Date: 10/2007
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, i4, i5, i6, i7, i8, ialtd, iave, iflag, &
@@ -1156,7 +1156,7 @@ subroutine gendisnrg(x,f,dfr,coord,i1,i2,i3,i4,i5,i6,i7,i8,rstwt,&
    end if  ! ( ialtd == 1 )
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0  .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif   
@@ -1396,7 +1396,7 @@ subroutine jnrg  (x         ,f         ,ajval    ,i1        , &
    
    use constants, only : PI
 #if defined(MPI) && !defined(LES)
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, i4, iave, iflag, iflg, incflg, ipower, &
@@ -1562,7 +1562,7 @@ subroutine jnrg  (x         ,f         ,ajval    ,i1        , &
    end if
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0  .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
@@ -7403,7 +7403,7 @@ subroutine plnnrg(x,f,dfr,thet,i1,i2,i3,i4,i5,i6,i7,i8,e,r1,r2,r3,r4,k2,k3, &
    ! from 7/89.
    use constants, only : DEG_TO_RAD, half
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, i4, i5, i6, i7, i8, iave, iflag, iflg, &
@@ -7519,7 +7519,7 @@ subroutine plnnrg(x,f,dfr,thet,i1,i2,i3,i4,i5,i6,i7,i8,e,r1,r2,r3,r4,k2,k3, &
    end if
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0 .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
@@ -7716,7 +7716,7 @@ subroutine plptnrg(x,f,dfr,rimassplpt,thet,i1,i2,i3,i4,i5,e,r1,r2,r3,r4,k2,k3, &
    ! from 7/89.
    use constants, only : DEG_TO_RAD, half
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, i4, i5, iave, iflag, iflg, incflg, ipower, &
@@ -7846,7 +7846,7 @@ subroutine plptnrg(x,f,dfr,rimassplpt,thet,i1,i2,i3,i4,i5,e,r1,r2,r3,r4,k2,k3, &
    end if
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0 .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
@@ -8346,7 +8346,7 @@ subroutine tornrg(x,f,dfr,ap,i1,i2,i3,i4,e,r1,r2,r3,r4,k2,k3, &
    
    use constants, only : PI, DEG_TO_RAD, half, TWOPI
 #ifdef MPI
-   use softcore, only : res_ti_region, ifsc, oneweight, emil_sc
+   use softcore, only : res_ti_region, ifsc, oneweight
 #endif
    implicit none
    integer:: i1, i2, i3, i4, iave, iflag, iflg, incflg, ipower, &
@@ -8536,7 +8536,7 @@ subroutine tornrg(x,f,dfr,ap,i1,i2,i3,i4,e,r1,r2,r3,r4,k2,k3, &
    end if
 
 #ifdef MPI /* SOFT CORE */
-   if (ifsc .ne. 0 .and. emil_sc .eq. 0) then
+   if (ifsc .ne. 0) then
      if (res_ti_region .ne. 0) df = df * oneweight
    end if
 #endif
