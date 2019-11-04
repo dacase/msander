@@ -313,7 +313,7 @@ subroutine mdread1()
    nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 0
+   ithermostat = 1
    therm_par = 5.0d0
 ! } 
 ! PLUMED
@@ -1213,7 +1213,7 @@ subroutine mdread2(x,ix,ih)
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use bndpol, only: ew_bndpol
    use nose_hoover_module, only: nchain  ! APJ
-   use md_scheme, only: therm_par
+   use md_scheme, only: ithermostat
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
    use file_io_dat
@@ -1332,8 +1332,7 @@ subroutine mdread2(x,ix,ih)
    if (ifbox == 3) write(6, '(/5x,''BOX TYPE: GENERAL'')')
 #endif
 
-   if (ntr.eq.1) &
-      nscm = 0
+   if (ntr.eq.1 .or. ibelly.ne.0) nscm = 0
 
    nsolut =  nrp
    if ( nscm > 0 .and. ntb == 0 ) then
@@ -1345,21 +1344,9 @@ subroutine mdread2(x,ix,ih)
    else
       ndfmin = 0
    end if
-   if (ibelly > 0) then   ! No COM Motion Removal, ever.
-      nscm = 0
-      ndfmin = 0
-
-      !Do not allow ntt=3 with ibelly=1 - this does not make sense and will cause
-      !issues.
-      if (ntt==3) then
-        call sander_bomb("mdread2","ibelly=1 with ntt=3 is not a valid option.", &
-                         "Either use a different thermostat or avoid using ibelly.")
-      end if
-   end if
    if(nscm <= 0) nscm = 0
-   if (therm_par > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
-   if(gamma_ln > 0.0d0)ndfmin=0  ! No COM motion removal for LD simulation
-   if(ntt == 4)ndfmin=0  ! No COM motion removal for Nose'-Hoover simulation
+   if (ithermostat == 1) ndfmin = 0 ! No COM motion removal for Langevin
+
    init = 3
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
