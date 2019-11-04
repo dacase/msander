@@ -1,0 +1,13 @@
+MD: NVT simulation of liquid water
+&cntrl
+   nstlim = 10                   ! MD for 10 steps
+   ntx = 1, irest = 0            ! read coordinates
+   temp0 = 300, tempi = 300      ! temperature: target and initial
+   dt = 0.001                    ! time step in ps
+   cut = 7.0                     ! non-bond cut off
+   ithermostat = 1               !! Langevin thermostat
+   therm_par = 5.0               !! friction coefficient gamma = 5 ps^{-1}
+   ig = 1000                     ! given random seed for reproducing results
+   ntc = 1, ntf = 1              ! constrain bonds with H
+   ntpr = 1, ntwr = 0, ntwx = 0  ! output settings
+/

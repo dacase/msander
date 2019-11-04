@@ -1,0 +1,50 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?AMBERHOME ) then
+  echo "environment variable AMBERHOME is not set! exiting......"
+  exit(0)
+else
+  echo "AMBERHOME is $AMBERHOME"
+endif
+
+set sander = "$AMBERHOME/bin/sander.MPI"
+
+set numprocs = `echo $DO_PARALLEL | awk '{for(i=1;i<NF;i++){if($i=="-n"||$i=="-np")print $(i+1)}}'`
+
+if( ! -f $sander ) then
+  echo "No such file: $sander"
+  exit(0)
+endif
+
+if ( $numprocs > 28 ) then
+  echo "The test requires number of MPI threads < 29"
+  echo "otherwise result may differ from existing one"
+  exit(0)
+else
+  goto runtest
+endif
+
+runtest:
+  echo "Testing mpirun MD with Langevin thermostat"
+  /bin/rm -f md_LGV.out
+  $DO_PARALLEL $sander -O \
+          -i md_LGV.in \
+          -p qspcfw216.top \
+          -c nvt.rst \
+          -o md_LGV.out \
+          -r nvt.rst.1 \
+          -x lgv.crd \
+          -inf lgv.info \
+    || goto error
+  $AMBERHOME/bin/dacdif md_LGV.out.save md_LGV.out
+  /bin/rm -f nvt.rst.1 lgv.crd lgv.info
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
