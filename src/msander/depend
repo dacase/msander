@@ -55,195 +55,6 @@ amd.o:   amd.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amd.F90
 
-amoeba_adjust.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    amoeba_mpole_index.h\
-                    do_flag.h\
-                    extra.h\
-                    parallel.h\
-                    amoeba_multipoles.o\
-                    amoeba_induced.o\
-                    amoeba_mdin.o\
-                    ips.o\
-                    def_time.h\
-                    ew_erfc_spline.h\
-                    ew_pme_recip.h\
-                    constants.o\
-                    amoeba_vdw.o
-
-
-amoeba_adjust.o:   amoeba_adjust.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_adjust.F90
-
-amoeba_direct.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    amoeba_mpole_index.h\
-                    parallel.h\
-                    do_flag.h\
-                    nonbond_list.o\
-                    amoeba_multipoles.o\
-                    amoeba_induced.o\
-                    amoeba_mdin.o\
-                    ips.o\
-                    extra.h\
-                    def_time.h\
-                    ew_erfc_spline.h\
-                    ew_pme_recip.h\
-                    amoeba_vdw.o\
-                    constants.o
-
-
-amoeba_direct.o:   amoeba_direct.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_direct.F90
-
-amoeba_induced.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    do_flag.h\
-                    extra.h\
-                    parallel.h\
-                    ew_cntrl.h\
-                    ew_mpole.h\
-                    amoeba_mdin.o
-
-
-amoeba_induced.o:   amoeba_induced.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_induced.F90
-
-amoeba_interface.o: \
-                    ../include/dprec.fh\
-                    amoeba_multipoles.o\
-                    amoeba_adjust.o\
-                    amoeba_vdw.o\
-                    amoeba_induced.o\
-                    amoeba_recip.o\
-                    amoeba_runmd.o\
-                    ips.o\
-                    amoeba_valence.o\
-                    amoeba_mdin.o\
-                    extra.h\
-                    nonbond_list.o\
-                    amoeba_direct.o\
-                    amoeba_self.o\
-                    parallel.h\
-                    ew_parallel.h
-
-
-amoeba_interface.o:   amoeba_interface.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_interface.F90
-
-amoeba_mdin.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    file_io_dat.o
-
-
-amoeba_mdin.o:   amoeba_mdin.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_mdin.F90
-
-amoeba_multipoles.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    extra.h\
-                    parallel.h\
-                    do_flag.h\
-                    stack.o\
-                    constants.o
-
-
-amoeba_multipoles.o:   amoeba_multipoles.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_multipoles.F90
-
-amoeba_recip.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    amoeba_mpole_index.h\
-                    parallel.h\
-                    do_flag.h\
-                    ew_pme_recip.h\
-                    amoeba_multipoles.o\
-                    amoeba_induced.o\
-                    nonbond_list.o\
-                    stack.o\
-                    def_time.h\
-                    constants.o
-
-
-amoeba_recip.o:   amoeba_recip.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_recip.F90
-
-amoeba_runmd.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    amoeba_mdin.o\
-                    nonbond_list.o\
-                    file_io_dat.o\
-                    state.o\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    bintraj.o\
-                    box.h\
-                    constants.o
-
-
-amoeba_runmd.o:   amoeba_runmd.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_runmd.F90
-
-amoeba_self.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    amoeba_mpole_index.h\
-                    parallel.h\
-                    do_flag.h\
-                    amoeba_multipoles.o\
-                    constants.o\
-                    ips.o\
-                    ew_pme_recip.h
-
-
-amoeba_self.o:   amoeba_self.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_self.F90
-
-amoeba_valence.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    extra.h\
-                    do_flag.h\
-                    parallel.h\
-                    constants.o
-
-
-amoeba_valence.o:   amoeba_valence.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_valence.F90
-
-amoeba_vdw.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    do_flag.h\
-                    box.h\
-                    extra.h\
-                    parallel.h\
-                    amoeba_mdin.o\
-                    constants.o\
-                    nonbond_list.o
-
-
-amoeba_vdw.o:   amoeba_vdw.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amoeba_vdw.F90
-
 ang_bend.o: \
                     ../include/dprec.fh
 
@@ -441,7 +252,6 @@ cpparm.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
-                    amoeba_mdin.o\
                     charmm.o\
                     constants.o\
                     file_io_dat.o\
@@ -469,7 +279,6 @@ cpparm.LES.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
-                    amoeba_mdin.o\
                     charmm.o\
                     constants.o\
                     file_io_dat.o\
@@ -660,7 +469,6 @@ dynlib.o: \
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
-                    amoeba_mdin.o\
                     random.o\
                     ../include/memory.h\
                     parallel.h
@@ -697,7 +505,6 @@ dynlib.LES.o: \
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
-                    amoeba_mdin.o\
                     random.o\
                     ../include/memory.h\
                     parallel.h
@@ -733,7 +540,6 @@ dynlib.PUPIL.o: \
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
-                    amoeba_mdin.o\
                     random.o\
                     ../include/memory.h\
                     parallel.h
@@ -1185,7 +991,6 @@ ew_setup.o: \
                     qmmm_module.o\
                     def_time.h\
                     les.o\
-                    amoeba_runmd.o\
                     AmberNetcdf.o\
                     binrestart.o\
                     file_io_dat.o\
@@ -1221,7 +1026,6 @@ ew_setup.LES.o: \
                     qmmm_module.o\
                     def_time.h\
                     les.o\
-                    amoeba_runmd.o\
                     AmberNetcdf.o\
                     binrestart.LES.o\
                     file_io_dat.o\
@@ -1334,8 +1138,6 @@ force.o: \
                     parms.o\
                     nonbond_list.o\
                     dssp.o\
-                    amoeba_interface.o\
-                    amoeba_mdin.o\
                     amd.o\
                     scaledMD.o\
                     ips.o\
@@ -1394,8 +1196,6 @@ force.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     dssp.o\
-                    amoeba_interface.o\
-                    amoeba_mdin.o\
                     amd.o\
                     scaledMD.o\
                     ips.o\
@@ -1453,8 +1253,6 @@ force.PUPIL.o: \
                     parms.o\
                     nonbond_list.o\
                     dssp.o\
-                    amoeba_interface.o\
-                    amoeba_mdin.o\
                     amd.o\
                     scaledMD.o\
                     ips.o\
@@ -1493,7 +1291,6 @@ getcor.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     copyright.h\
-                    amoeba_mdin.o\
                     constants.o\
                     AmberNetcdf.o\
                     binrestart.o\
@@ -1511,7 +1308,6 @@ getcor.LES.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     copyright.h\
-                    amoeba_mdin.o\
                     constants.o\
                     AmberNetcdf.o\
                     binrestart.LES.o\
@@ -1556,7 +1352,6 @@ interface.o: \
                     lmod.o\
                     constantph.o\
                     constante.o\
-                    amoeba_mdin.o\
                     nose_hoover.o\
                     md_scheme.o\
                     les.o\
@@ -1596,7 +1391,6 @@ interface.o: \
                     parms.o\
                     nonbond_list.o\
                     ew_bndpol.o\
-                    amoeba_runmd.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
@@ -1634,9 +1428,6 @@ interface_setup.F90: \
                     molecule.o\
                     nonbond_list.o\
                     stack.o\
-                    amoeba_runmd.o\
-                    amoeba_mdin.o\
-                    amoeba_interface.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
@@ -1677,8 +1468,6 @@ ips.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     constants.o\
-                    amoeba_mdin.o\
-                    amoeba_multipoles.o\
                     extra.h\
                     nonbond_list.o\
                     parallel.h\
@@ -1772,7 +1561,6 @@ locmem.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     nonbond_list.o\
-                    amoeba_mdin.o\
                     linear_response.o\
                     box.h\
                     nmr.h\
@@ -1794,7 +1582,6 @@ locmem.LES.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     nonbond_list.LES.o\
-                    amoeba_mdin.o\
                     linear_response.o\
                     box.h\
                     nmr.h\
@@ -1912,7 +1699,6 @@ mdread.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    amoeba_mdin.o\
                     nose_hoover.o\
                     md_scheme.o\
                     les.o\
@@ -1951,7 +1737,6 @@ mdread.o: \
                     parms.o\
                     nonbond_list.o\
                     ew_bndpol.o\
-                    amoeba_runmd.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
@@ -1977,7 +1762,6 @@ mdread.LES.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    amoeba_mdin.o\
                     nose_hoover.o\
                     md_scheme.LES.o\
                     les.o\
@@ -2016,7 +1800,6 @@ mdread.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     ew_bndpol.o\
-                    amoeba_runmd.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.LES.o\
@@ -2041,7 +1824,6 @@ mdread.PUPIL.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    amoeba_mdin.o\
                     nose_hoover.o\
                     md_scheme.o\
                     les.o\
@@ -2080,7 +1862,6 @@ mdread.PUPIL.o: \
                     parms.o\
                     nonbond_list.o\
                     ew_bndpol.o\
-                    amoeba_runmd.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.PUPIL.o\
@@ -2918,7 +2699,6 @@ nonbond_list.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    amoeba_mdin.o\
                     trace.o\
                     extra.h\
                     ew_cntrl.h\
@@ -2942,7 +2722,6 @@ nonbond_list.LES.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    amoeba_mdin.o\
                     trace.o\
                     extra.h\
                     ew_cntrl.h\
@@ -3588,7 +3367,6 @@ rdparm.o: \
                     charmm.o\
                     file_io_dat.o\
                     constants.o\
-                    amoeba_mdin.o\
                     ../lib/nxtsec.h\
                     ../include/md.h\
                     ../include/memory.h\
@@ -3615,7 +3393,6 @@ rdparm.LES.o: \
                     charmm.o\
                     file_io_dat.o\
                     constants.o\
-                    amoeba_mdin.o\
                     ../lib/nxtsec.h\
                     ../include/md.h\
                     ../include/memory.h\
@@ -3780,7 +3557,6 @@ runmd.o: \
                     nfe-sander-proxy.o\
                     mdfil.o\
                     md_scheme.o\
-                    nose_hoover.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
@@ -3791,13 +3567,12 @@ runmd.o: \
                     fastwt.o\
                     bintraj.o\
                     nonbond_list.o\
+                    nose_hoover.o\
                     sglds.o\
                     les.o\
                     remd.o\
                     softcore.o\
                     mbar.o\
-                    amoeba_mdin.o\
-                    amoeba_runmd.o\
                     constantph.o\
                     constante.o\
                     emap.o\
@@ -3842,7 +3617,6 @@ runmd.LES.o: \
                     nfe-sander-proxy.o\
                     mdfil.LES.o\
                     md_scheme.LES.o\
-                    nose_hoover.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     file_io_dat.o\
@@ -3853,13 +3627,12 @@ runmd.LES.o: \
                     fastwt.o\
                     bintraj.LES.o\
                     nonbond_list.LES.o\
+                    nose_hoover.o\
                     sglds.o\
                     les.o\
                     remd.LES.o\
                     softcore.o\
                     mbar.o\
-                    amoeba_mdin.o\
-                    amoeba_runmd.o\
                     constantph.o\
                     constante.o\
                     emap.o\
@@ -3942,9 +3715,6 @@ sander.o: \
                     molecule.o\
                     nonbond_list.o\
                     stack.o\
-                    amoeba_runmd.o\
-                    amoeba_mdin.o\
-                    amoeba_interface.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
@@ -4016,9 +3786,6 @@ sander.LES.o: \
                     molecule.o\
                     nonbond_list.LES.o\
                     stack.o\
-                    amoeba_runmd.o\
-                    amoeba_mdin.o\
-                    amoeba_interface.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\
@@ -4089,9 +3856,6 @@ sander.PUPIL.o: \
                     molecule.o\
                     nonbond_list.o\
                     stack.o\
-                    amoeba_runmd.o\
-                    amoeba_mdin.o\
-                    amoeba_interface.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     apbs.o\

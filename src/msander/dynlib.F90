@@ -964,7 +964,6 @@ end subroutine prntmd
 !   scalm:   nmr restraint-related variable
 !------------------------------------------------------------------------------
 subroutine setvel(nr, v, winv, tempi, iscale, scalm)
-   use amoeba_mdin, only: iamoeba, beeman_integrator
    use random, only: gauss
    implicit none
 #  include "../include/memory.h"
@@ -1000,13 +999,6 @@ subroutine setvel(nr, v, winv, tempi, iscale, scalm)
     sd = sqrt(boltz/scalm)
     do j = 1, iscale
       call gauss(0.d0, sd, v(i+j))
-    end do
-  end if
-
-  ! The Beeman integrator uses time in ps units
-  if (iamoeba == 1 .and. beeman_integrator == 1) then
-    do j = 1, nr3
-      v(j) = 20.455d0*v(j)
     end do
   end if
 

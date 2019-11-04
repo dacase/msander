@@ -16,25 +16,6 @@ subroutine startup(xx,ix,ih)
    !************************************************************
 
    use trace
-!  use amoeba_mdin
-!  use amoeba_bonds, only : AM_BONDS_bcast
-!  use amoeba_ureyb, only : AM_UREYB_bcast
-!  use amoeba_reg_angles, only : AM_REG_ANGLES_bcast
-!  use amoeba_trig_angles, only : AM_TRIG_ANGLES_bcast
-!  use amoeba_opbend_angles, only : AM_OPBEND_ANGLES_bcast
-!  use amoeba_torsions, only : AM_TORSIONS_bcast
-!  use amoeba_stretch_torsions, only : AM_STRETCH_TORSIONS_bcast
-!  use amoeba_pitorsions, only : AM_PITORSIONS_bcast
-!  use amoeba_stretch_bend, only : AM_STRETCH_BEND_bcast
-!  use amoeba_torsion_torsion, only : AM_TOR_TOR_bcast
-!  use amoeba_multipoles, only : AM_MPOLE_bcast
-!  use amoeba_adjust, only : AM_ADJUST_bcast
-!  use amoeba_vdw, only : AM_VDW_bcast
-!  use amoeba_induced, only : AM_INDUCED_bcast
-!  use amoeba_self, only : AM_SELF_bcast
-!  use amoeba_recip, only : AM_RECIP_bcast,AM_RECIP_allocate
-!  use amoeba_runmd, only : AM_RUNMD_init
-!  use amoeba_direct, only : AM_DIRECT_bcast
    use parms, only : bcast_parms
    use charmm_mod, only : mpi_bcast_charmm_params
    use ff11_mod, only : mpi_bcast_cmap_params

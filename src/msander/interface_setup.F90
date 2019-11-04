@@ -32,9 +32,6 @@
    use molecule, only : mol_info, allocate_molecule, deallocate_molecule
    use nblist, only: first_list_flag
    use stack
-   use amoeba_runmd, only : AM_RUNMD_get_coords,AM_RUNMD
-   use amoeba_mdin, only : beeman_integrator,iamoeba,am_nbead
-   use amoeba_interface, only : AMOEBA_deallocate,AMOEBA_readparm
 #ifdef RISMSANDER
    use sander_rism_interface, only: rism_setparam, rism_init
 #endif /* RISMSANDER */
@@ -254,7 +251,6 @@
 
       if (ierr /= 0) goto ERROR1
 
-      call AMOEBA_readparm(8,ntf,ntc,natom,x(lmass))! ntf,ntc get reset if amoeba prmtop
       if( xray_active ) call xray_read_parm(8,6)
 
    end if
@@ -425,13 +421,6 @@
          call timer_start(TIME_RDCRD)
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
-         if (iamoeba > 0) then
-            natom = natom*am_nbead
-            nrp   = nrp*am_nbead
-            nr    = nr*am_nbead
-            nr3   = nr3*am_nbead
-            ncopy = am_nbead
-         end if
 
          ! M-WJ
          !if( igb == 0 .and. induced == 1 ) call get_dips(x,nr)

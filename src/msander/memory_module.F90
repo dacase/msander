@@ -169,7 +169,7 @@ contains
 ! by RL
       call set_rank2_pointer(polbnd,x(lpolbnd),3,natom)
 
-      !coor_ref?   x(l45:l45+3*natom*am_nbead+mxvar-1)
+      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       group_weight => x(l60:l60+natom-1)
 
       ! l65: polarization  DEAD??
@@ -301,7 +301,7 @@ contains
 ! by RL
       nullify(polbnd)
 
-      !coor_ref?   x(l45:l45+3*natom*am_nbead+mxvar-1)
+      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       nullify(group_weight)
 
       ! l65: polarization  DEAD??

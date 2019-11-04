@@ -54,7 +54,6 @@ subroutine rdparm1(nf)
    use ff11_mod, only : check_cmap
    use file_io_dat
    use constants, only : RETIRED_INPUT_OPTION
-   use amoeba_mdin,only:iamoeba
 
    implicit none
    
@@ -193,7 +192,6 @@ subroutine rdparm1(nf)
       mpoltype = 2 ! YD needs to confirm this
    end if
    induced  = ipol
-   if( iamoeba > 0 ) induced = 1
 
 #ifndef API
    ! Write implicit solvent radius and screening info to mdout
@@ -295,7 +293,6 @@ subroutine rdparm2(x,ix,ih,nf)
    use les_data, only : lestyp, lestmp, lesfac, lfac, nlesty, maxlestyp, &
                         cnum, maxles, ileslst, subsp, nlesadj, maxlesadj, &
                         jleslst
-   use amoeba_mdin,only: iamoeba
 #endif
    use file_io_dat
 #ifdef DSSP
@@ -841,7 +838,7 @@ subroutine rdparm2(x,ix,ih,nf)
 #endif
 #ifdef LES
 
-   if (nparm == 1.and.iamoeba.eq.0) then
+   if (nparm == 1) then
       fmtin = ifmt
       type = 'LES_NTYP'
       call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)

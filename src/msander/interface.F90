@@ -338,7 +338,6 @@ subroutine api_mdread1(input_options, ierr)
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
    use constantph, only : mccycles
    use constante, only : mccycles_e
-   use amoeba_mdin, only: AMOEBA_read_mdin, iamoeba
    use nose_hoover_module, only: nchain  ! APJ
    use md_scheme, only: ithermostat, therm_par
    use les_data, only : temp0les
@@ -465,7 +464,7 @@ subroutine api_mdread1(input_options, ierr)
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
-         jar, iamoeba, &
+         jar, &
          numexchg, repcrd, numwatkeep, hybridgb, reservoir_exchange_step, &
          ntwprt,tausw, &
          ntwr,iyammp,imcdo, &
@@ -959,8 +958,6 @@ subroutine api_mdread1(input_options, ierr)
    mdin_apbs = .false.
 #endif /* APBS */
    mdin_lmod=.false.
-   mdin_amoeba=.false.
-   iamoeba = 0
 #ifdef MPI /* SOFT CORE */
    scalpha=0.5
    scbeta=12.0
@@ -1045,10 +1042,6 @@ subroutine api_mdread1(input_options, ierr)
 
    call nmlsrc('lmod',5,ifind)
    if (ifind /= 0) mdin_lmod=.true.
-   rewind 5
-
-   call nmlsrc('amoeba',5,ifind)
-   if (ifind /= 0) mdin_amoeba=.true.
    rewind 5
 
    call nmlsrc('xray',5,ifind)
@@ -1275,10 +1268,6 @@ subroutine api_mdread1(input_options, ierr)
 
    if (ntp > 0 .and. barostat == 2) then
       inerr = 0
-      if (ievb /= 0) then
-         write(6, '(/2x,a)') 'AMOEBA is not compatible with the MC Barostat'
-         inerr = 1
-      end if
       if (icfe /= 0) then
          write(6, '(/2x,a)') 'TI is not compatible with the MC Barostat'
          inerr = 1
@@ -1459,14 +1448,6 @@ subroutine api_mdread1(input_options, ierr)
 #ifndef API
    call xray_read_mdin(mdin_lun=5)
 
-   if( iamoeba == 1 ) then
-      if( mdin_amoeba ) then
-         call AMOEBA_read_mdin(5)
-      else
-        write(6,*) ' iamoeba is set but the &amoeba namelist was not found'
-        FATAL_ERROR
-      end if
-   end if
 #endif /* API */
 
    ! -------------------------------------------------------------------
@@ -1574,8 +1555,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use bndpol, only: ew_bndpol
-   use amoeba_mdin, only : iamoeba,beeman_integrator
-   use amoeba_runmd, only : AM_RUNMD_get_coords
    use nose_hoover_module, only: nchain  ! APJ
    use md_scheme, only: therm_par
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
@@ -3290,10 +3269,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
      endif
     endif
    endif
-   if (iamd .gt. 0 .and. iamoeba ==1) then
-      write(6,*)'amoeba is incompatible with AMD for now'
-      inerr=1
-   end if
 
 !GAMD not supported
    if (igamd .gt. 0) then
@@ -4001,38 +3976,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
             eedtbdns,denslo,denshi)
    end if  ! ( igb == 0 .and. ipb == 0 )
 
-   if( iamoeba == 1 )then
-#ifdef LES
-      write(6,*)'amoeba is incompatible with LES'
-      inerr=1
-#endif
-
-      if( ntc > 1 ) then
-         write(6,*) 'SHAKE (ntc>1) and amoeba are incompatible options'
-         inerr=1
-      end if
-      if( ntp > 1 .and. beeman_integrator > 0 ) then
-         write(6,*) 'ntp>1 is not consistent with the beeman integrator'
-         inerr=1
-      end if
-      if ( igb /= 0 ) then
-         write (6,'(/,a)') 'amoeba (iamoeba=1) is incompatible with GB (igb>0)'
-         inerr=1
-      end if
-      if ( ipb /= 0 ) then
-         write (6,'(/,a)') 'amoeba (iamoeba=1) is incompatible with PB (ipb>0)'
-         inerr=1
-      end if
-#ifdef MPI
-      if (numtasks > 1) then
-         write(6, '(/,a)') 'amoeba (iamoeba=1) cannot be run in parallel in &
-                           &sander'
-         inerr=1
-      end if
-#endif
-
-   end if
-
    ! ---WARNINGS:
 
    if ( ibelly == 1 .and. igb == 0 .and. ipb == 0 .and. ntb /= 0 ) then
@@ -4079,20 +4022,11 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  endif
 #else
 #  ifndef API
-      call AMOEBA_check_newstyle_inpcrd(inpcrd,newstyle)
-      if ( newstyle )then
-         call AM_RUNMD_get_coords(natom,t,irest,ntb,x(lcrd),x(lvel))
-      else
-         if( irest == 1 .and. beeman_integrator > 0 ) then
-            write(6,*) 'Cannot do a beeman_integrator restart with old-style coordinates'
-            call mexit(6,1)
-         end if
 #  ifdef MPI
-         call getcor(nr,x(lcrd),x(lvel),x(lforce),ntx,box,irest,t,temp0,.FALSE.,solvph,solve)
+      call getcor(nr,x(lcrd),x(lvel),x(lforce),ntx,box,irest,t,temp0,.FALSE.,solvph,solve)
 #  else
-         call getcor(nr,x(lcrd),x(lvel),x(lforce),ntx,box,irest,t,.FALSE.)
+      call getcor(nr,x(lcrd),x(lvel),x(lforce),ntx,box,irest,t,.FALSE.)
 #  endif
-      endif
 #  endif /* API */
 #endif /* LES */
 
@@ -4399,7 +4333,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       end if
 #endif
 
-   if ( iamoeba /= 1 )then
       if( igb == 0 .and. ipb == 0 ) &
          call init_extra_pts( &
          ix(iibh),ix(ijbh),ix(iicbh), &
@@ -4410,7 +4343,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
          ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
          ih(m06),ix,x,ix(i08),ix(i10), &
          nspm,ix(i70),x(l75),tmass,tmassinv,x(lmass),x(lwinv),req)
-   endif
 
    !  DEBUG input; force checking
 #ifdef API
@@ -4552,7 +4484,6 @@ end subroutine energy_forces
 subroutine sander_cleanup()
 
    use qmmm_adaptive_module, only: adaptive_reset
-   use amoeba_runmd, only: AM_RUNMD_reset
    use charmm_mod, only : charmm_active, charmm_deallocate_arrays
    use decomp, only : deallocate_int_decomp, deallocate_real_decomp
 #ifdef LES

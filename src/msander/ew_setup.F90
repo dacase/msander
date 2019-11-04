@@ -1121,7 +1121,6 @@ subroutine load_ewald_info(inpcrd,ntp)
 #endif
    use nblist, only: a, b, c, alpha, beta, gamma, &
                      skinnb, nbflag, nbfilter,cutoffnb,cutlist
-   use amoeba_runmd, only: AM_RUNMD_get_ucell_info
    use AmberNetcdf_mod, only: NC_checkRestart
    use binrestart, only: read_nc_restart_box
    use file_io_dat, only: MAX_FN_LEN
@@ -1151,14 +1150,8 @@ subroutine load_ewald_info(inpcrd,ntp)
         call read_nc_restart_box(inpcrd,ax,bx,cx,alphax,betax,gammax)
       else
          write(6,'(a)') ' getting new box info from bottom of inpcrd'
-         call AMOEBA_check_newstyle_inpcrd(inpcrd,newstyle)
-         if ( newstyle )then
-            call AM_RUNMD_get_ucell_info(inpcrd,ax,bx,cx,alphax,betax,gammax)
-         else
-            call peek_ewald_inpcrd(inpcrd,ax,bx,cx,alphax,betax,gammax)
-         end if
+         call peek_ewald_inpcrd(inpcrd,ax,bx,cx,alphax,betax,gammax)
       endif
-
    end if
 #else
    ax = a

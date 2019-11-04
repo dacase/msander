@@ -59,9 +59,6 @@ subroutine sander()
                     nblist_allreal, nblist_allint, num_calls_nblist, &
                     first_list_flag
   use stack
-  use amoeba_runmd, only : AM_RUNMD_get_coords, AM_RUNMD
-  use amoeba_mdin, only : beeman_integrator, iamoeba, am_nbead
-  use amoeba_interface, only : AMOEBA_deallocate, AMOEBA_readparm
 
 #ifdef RISMSANDER
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
@@ -381,8 +378,6 @@ subroutine sander()
         ! Finish reading the prmtop file and other user input:
         call rdparm2(x, ix, ih, 8)
 
-        ! ntf and ntc get reset if this is an amoeba prmtop
-        call AMOEBA_readparm(8, ntf, ntc, natom, x(lmass))
         if( xray_active ) call xray_read_parm(8,6)
       end if
 
@@ -397,18 +392,13 @@ subroutine sander()
                              x(lmass), nbonh, nbona, ix(iibh), ix(ijbh), &
                              ix(iiba), ix(ijba))
           nr = natom
-          call AMOEBA_check_newstyle_inpcrd(inpcrd, newstyle)
-          if (newstyle) then
-            call AM_RUNMD_get_coords(natom, t, irest, ntb, x(lcrd), x(lvel))
-          else
 #ifdef MPI
-            call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
+          call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
                         box, irest, t, temp0, .FALSE., solvph, solve)
 #else
-            call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
+          call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
                         box, irest, t, .FALSE.)
 #endif
-          end if
           abfqmmm_param%maxqmstep = nstlim
         end if
         if (abfqmmm_param%abfqmmm == 1) then
@@ -610,26 +600,14 @@ subroutine sander()
                     .TRUE.)
 #  endif
 #else
-        call AMOEBA_check_newstyle_inpcrd(inpcrd, newstyle)
-        if (newstyle) then
-          call AM_RUNMD_get_coords(natom, t, irest, ntb, x(lcrd), x(lvel))
-        else
 #  ifdef MPI
-          call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, box, irest, &
+        call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, box, irest, &
                       t, temp0, .TRUE., solvph, solve)
 #  else
-          call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, box, irest, t, &
+        call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, box, irest, t, &
                       .TRUE.)
 #  endif
-        end if
 #endif /* LES */
-        if (iamoeba > 0) then
-          natom = natom*am_nbead
-          nrp = nrp*am_nbead
-          nr = nr*am_nbead
-          nr3 = nr3*am_nbead
-          ncopy = am_nbead
-        end if
 
         ! If this is a polarizable model, read input dipole information
         if (igb == 0 .and. ipb == 0 .and. induced > 0) then
@@ -1558,16 +1536,9 @@ subroutine sander()
           end if
 #endif /* DISABLE_NFE */
 
-          ! Branch for calling the Beeman integrator
-          if (beeman_integrator == 1) then
-            call AM_RUNMD(ix,ih,ipairs, x(lwinv), x(lmass), x, &
-                          x(lcrd), x(lvel), x(lforce), qsetup)
-          else
-            call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
+          call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
                        x(lforce), x(lvel), x(lvel2), x(l45), x(lcrdr), &
                        x(l50), x(l95), ix(i70), x(l75), erstop, qsetup)
-          end if
-          ! End branch for Beeman integrator
 
 #if !defined(DISABLE_NFE)
           if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1 .and. &
@@ -1891,7 +1862,6 @@ subroutine sander()
   if (ntb > 0 .and. ifbox == 1 .and. ew_type == 0 .and. mpoltype == 0) then
     call deallocate_m1m2m3()
   end if
-  call AMOEBA_deallocate
   call deallocate_molecule()
 
   if (abfqmmm_param%abfqmmm .ne. 1) then

@@ -55,6 +55,7 @@ module charmm_mod
   public :: charmm_nub, chm_ang_ub_struct, charmm_ang_ub
   public :: charmm_nimphi, chm_imp_struct, charmm_imp
   public :: cmap_term_count, cmap_index
+  public :: AM_VAL_GEOM_TORSION
 
 !------------- End Public variables and subroutines ---------
 
@@ -2704,6 +2705,7 @@ subroutine calc_cmap(crd,epl,frc)
 
     
   use constants, only : one,RAD_TO_DEG, DEG_TO_RAD 
+  use charmm_mod, only : AM_VAL_GEOM_TORSION
   implicit none
 
   ! Calculates CHARMM CMAP terms

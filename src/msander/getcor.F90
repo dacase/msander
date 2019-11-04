@@ -23,7 +23,6 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
    ! writeflag was introduced to avoid false failures in test.sander
    ! after atommask() dependency on getcor() was fixed by calling getcor()
    ! twice: once before atommask() calls and second time in its usual place.
-   use amoeba_mdin, only : am_nbead
    use constants, only : NO_INPUT_VALUE_FLOAT
    use AmberNetcdf_mod, only: NC_checkRestart
    use binrestart, only  : read_nc_restart, read_nc_remd_dimension, &
@@ -198,11 +197,6 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
       if (irest == 1) tt = input_time
       
       if(natom == nr) then
-         read(lun,9028,end=667,err=668) (x(i),i=1,natom*3)
-         do ibead=1,am_nbead-1
-            x(ibead*nr3+1:ibead*nr3+nr3)=x(1:nr3)
-         end do
-      else if(natom == nr*am_nbead) then
          read(lun,9028,end=667,err=668) (x(i),i=1,natom*3)
       else
          write(6,9118)

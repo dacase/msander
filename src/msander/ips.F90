@@ -89,8 +89,6 @@ contains
 !    Calculate system energy and force in 3D periodic systems
 !
       use constants
-      use amoeba_mdin, only : iamoeba,ee_dsum_cut
-      use amoeba_multipoles, only : coulomb_const_kcal_per_mole,global_multipole
 
       implicit none
 
@@ -125,37 +123,8 @@ contains
 
 !  IPS Radius:
 
-      if(iamoeba==0)then
-        RIPS2=cut
-        RIPS=SQRT(RIPS2)
-      else
-        RIPS=ee_dsum_cut
-        RIPS2=RIPS*RIPS
-        do_ele_ips=0
-        IF(TEAIPS.OR.TEIPS)do_ele_ips=1
-!
-        AMIPS0(0) = -315.0d0/128.0d0
-        AMIPS0(1) =  105.0d0/32.0d0
-        AMIPS0(2) = -189.0d0/64.0d0
-        AMIPS0(3) =  45.0d0/32.0d0
-        AMIPS0(4) =  -35.0d0/128.0d0
-        AMIPS0(5) =  0.0d0
-        AMIPS1(0) =  2.0d0*AMIPS0(1)
-        AMIPS1(1) =  4.0d0*AMIPS0(2)
-        AMIPS1(2) =  6.0d0*AMIPS0(3)
-        AMIPS1(3) =  8.0d0*AMIPS0(4)
-        AMIPS1(4) =  10.0d0*AMIPS0(5)
-        AMIPS2(0) =  2.0d0*AMIPS1(1)
-        AMIPS2(1) =  4.0d0*AMIPS1(2)
-        AMIPS2(2) =  6.0d0*AMIPS1(3)
-        AMIPS2(3) =  8.0d0*AMIPS1(4)
-        AMIPS3(0) =  2.0d0*AMIPS2(1)
-        AMIPS3(1) =  4.0d0*AMIPS2(2)
-        AMIPS3(2) =  6.0d0*AMIPS2(3)
-        AMIPS4(0) =  2.0d0*AMIPS3(1)
-        AMIPS4(1) =  4.0d0*AMIPS3(2)
-        AMIPS5(0) =  2.0d0*AMIPS4(1)
-      endif
+      RIPS2=cut
+      RIPS=SQRT(RIPS2)
       RIPS2R=one/RIPS2
       RIPS6R=RIPS2R*RIPS2R*RIPS2R
       RIPS12R=RIPS6R*RIPS6R
@@ -346,21 +315,6 @@ contains
          ENDIF
          IF(TVIPS)THEN
             WRITE(6,'("   Using IPS for L-J energy")')
-         ENDIF
-         IF(iamoeba==1)THEN
-            WRITE(6,'("   AMOEBA EIPS Parameters: ")')
-            WRITE(6,'("AMIPS0: ",9F10.4)')(AMIPS0(I),I=0,5)
-            WRITE(6,'("AMIPS1: ",8F10.4)')(AMIPS1(I),I=0,4)
-            WRITE(6,'("AMIPS2: ",8F10.4)')(AMIPS2(I),I=0,3)
-            WRITE(6,'("AMIPS3: ",8F10.4)')(AMIPS3(I),I=0,2)
-            WRITE(6,'("AMIPS4: ",8F10.4)')(AMIPS4(I),I=0,1)
-            WRITE(6,'("AMIPS5: ",8F10.4)')(AMIPS5(I),I=0,0)
-            ! debug fips function
-            !DO I=1,100
-            !    xij=i*rips/100.0
-            !    call Fipsmdq(xij,1.0d0,fips0,fips1,fips2,fips3,fips4,fips5)
-            !    WRITE(6,'("FIPS: ",F8.4,X,10E14.6)')i*rips/100.0,fips0,fips1,fips2,fips3,fips4,fips5
-            !ENDDO
          ENDIF
          WRITE(6,'(" ----------------------------------")')
       else 

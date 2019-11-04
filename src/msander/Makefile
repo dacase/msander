@@ -25,11 +25,6 @@ NFE_OBJECTS = \
     nfe-cv-PAIR_DIHEDRAL.o nfe-cv-PATTERN_DIHEDRAL.o nfe-cv-DF_COM_DISTANCE.o \
     nfe-smd-hooks.o nfe-umbrella.o nfe-utils.o nfe-value.o mt19937.o
 
-AMOEBAOBJ= \
-    amoeba_valence.o amoeba_multipoles.o amoeba_recip.o amoeba_interface.o\
-    amoeba_direct.o amoeba_mdin.o amoeba_adjust.o amoeba_self.o\
-    amoeba_vdw.o amoeba_induced.o amoeba_runmd.o
-
 QMOBJ= \
     abfqmmm_module.o qm_mm.o qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
@@ -67,7 +62,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     new_time.o extra_pts.o thermo_int.o \
     matinv.o assert.o erfcfun.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
-    $(AMOEBAOBJ) AmberNetcdf.o bintraj.o binrestart.o \
+    AmberNetcdf.o bintraj.o binrestart.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
@@ -89,7 +84,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     new_time.o extra_pts.LES.o thermo_int.o matinv.o assert.o \
     erfcfun.o md_scheme.LES.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
-    $(AMOEBAOBJ) les.o \
+    les.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o barostats.o \
     qm_ewald.o qmmm_vsolv.o \

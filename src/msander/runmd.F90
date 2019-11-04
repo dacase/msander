@@ -122,8 +122,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                    bar_collect_cont, do_mbar
 #endif /* MPI */
 
-  use amoeba_mdin, only: iamoeba
-  use amoeba_runmd, only: AM_RUNMD_scale_cell
   use constantph, only: cnstphinit, cnstphwrite, cnstphupdatepairs, &
                         cnstphbeginstep, cnstphendstep, chrgdat, &
                         cnstph_explicitmd, cnstphwriterestart, cphfirst_sol
@@ -768,19 +766,17 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (ntp > 0) then
       ener%volume = volume
       ener%density = tmass / (0.602204d0*volume)
-      if (iamoeba == 0) then
-        ener%cmt(4) = 0.d0
-        ener%vir(4) = 0.d0
-        ener%pres(4) = 0.d0
-        do m = 1,3
-          ener%cmt(m)  = ener%cmt(m) * 0.5d0
-          ener%cmt(4)  = ener%cmt(4) + ener%cmt(m)
-          ener%vir(4)  = ener%vir(4) + ener%vir(m)
-          ener%pres(m) = (pconv+pconv) * (ener%cmt(m)-ener%vir(m)) / volume
-          ener%pres(4) = ener%pres(4) + ener%pres(m)
-        end do
-        ener%pres(4) = ener%pres(4) / 3.d0
-      end if
+      ener%cmt(4) = 0.d0
+      ener%vir(4) = 0.d0
+      ener%pres(4) = 0.d0
+      do m = 1,3
+        ener%cmt(m)  = ener%cmt(m) * 0.5d0
+        ener%cmt(4)  = ener%cmt(4) + ener%cmt(m)
+        ener%vir(4)  = ener%vir(4) + ener%vir(m)
+        ener%pres(m) = (pconv+pconv) * (ener%cmt(m)-ener%vir(m)) / volume
+        ener%pres(4) = ener%pres(4) + ener%pres(m)
+      end do
+      ener%pres(4) = ener%pres(4) / 3.d0
     end if
     ntnb = 0
     i3 = 0
@@ -1276,20 +1272,17 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (ntp > 0) then
     ener%volume = volume
     ener%density = tmass / (0.602204d0*volume)
-    if (iamoeba == 0) then
-      ener%cmt(4) = 0.d0
-      ener%vir(4) = 0.d0
-      ener%pres(4) = 0.d0
-      do m = 1,3
-        ener%cmt(m)  = ener%cmt(m)*0.5d0
-        ener%cmt(4)  = ener%cmt(4) + ener%cmt(m)
-        ener%vir(4)  = ener%vir(4) + ener%vir(m)
-        ener%pres(m) = (pconv + pconv) * (ener%cmt(m) - ener%vir(m)) / volume
-        ener%pres(4) = ener%pres(4) + ener%pres(m)
-      end do
-      ener%pres(4) = ener%pres(4) / 3.d0
-
-    end if
+    ener%cmt(4) = 0.d0
+    ener%vir(4) = 0.d0
+    ener%pres(4) = 0.d0
+    do m = 1,3
+      ener%cmt(m)  = ener%cmt(m)*0.5d0
+      ener%cmt(4)  = ener%cmt(4) + ener%cmt(m)
+      ener%vir(4)  = ener%vir(4) + ener%vir(m)
+      ener%pres(m) = (pconv + pconv) * (ener%cmt(m) - ener%vir(m)) / volume
+      ener%pres(4) = ener%pres(4) + ener%pres(m)
+    end do
+    ener%pres(4) = ener%pres(4) / 3.d0
   end if
   ! End contingency for constant pressure conditions }}}
 

@@ -79,10 +79,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use dssp, only: fdssp, edssp, idssp
 #endif /* DSSP */
 
-  ! AMOEBA modifications
-  use amoeba_interface, only: AM_VAL_eval, AM_NonBond_eval
-  use amoeba_mdin, only : iamoeba,am_nbead
-
   use amd_mod
   use scaledMD_mod
   use nbips, only: ips, eexips
@@ -279,10 +275,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if 
   ! End QM/MM variable QM solvent scheme
 
-  if (iamoeba .eq. 1) then
-    REQUIRE(am_nbead .eq. ncopy)
-  end if
-
   ! Zero out the energies and forces
   enoe = 0.d0
   aveper = 0.d0
@@ -307,7 +299,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       qsetup = .true.
     end if
     call nonbond_list(x, ix(i04), ix(i06), ix(i08), ix(i10), ntypes, &
-                      natom/am_nbead, xx, ix, ipairs, ntnb, ix(ibellygp), &
+                      natom, xx, ix, ipairs, ntnb, ix(ibellygp), &
                       belly, newbalance, qsetup, do_list_update)
     call timer_stop(TIME_LIST)
     call timer_stop(TIME_NONBON)
@@ -426,8 +418,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
 #include "pupil_force.inc"
 
-  if (iamoeba .eq. 1) vir(1:4)=0.0
-
   ! Calculate the non-bonded contributions
   call timer_start(TIME_NONBON)
 
@@ -436,13 +426,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! the IPS parameters.
   call timer_start(TIME_EEXIPS)
   if (ips > 0) then
-    if (iamoeba == 0) then
-      call eexips(evdwex, eelex, istart, iend, ntb, ntypes, ix(i04), &
+    call eexips(evdwex, eelex, istart, iend, ntb, ntypes, ix(i04), &
                   ix(i06), ix(i08), ix(i10), xx(l15), cn1, cn2, f, x)
-    else
-      evdwex = 0.0d0
-      eelex = 0.0d0
-    endif
   endif
   call timer_stop(TIME_EEXIPS)
 
@@ -450,10 +435,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
     ! (for GB: do all nonbondeds together below)
     call timer_start(TIME_EWALD)
-    if (iamoeba == 1) then
-      call AM_NonBond_eval(natom, x, f, vir, xx, ipairs, evdw, eelt, epolar, &
-                           enb14, ee14, diprms, dipiter)
-    else
       if (induced > 0) then
         call handle_induced(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
                             cn6, eelt, epolar, f, xx, ix, ipairs, xx(lpol), &
@@ -530,7 +511,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif
         end if ! ilrt /= 0
       end if ! induced > 0
-    end if ! iamoeba == 1
 
     call timer_stop(TIME_EWALD)
 #ifdef MPI
@@ -728,14 +708,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if
   ! End computations for ntf < 7
 
-  ! AMOEBA valence terms: bond, angle, torsion
-  if (iamoeba == 1) then
-    call AM_VAL_eval(x, f, vir, ene(6), ene(8), ene(10))
-    pot%bond     = pot%bond + ene(6)
-    pot%angle    = pot%angle + ene(8)
-    pot%dihedral = pot%dihedral + ene(10)
-  end if
-
   ! End of valence contribution computations
   call timer_stop(TIME_BOND)
 
@@ -798,7 +770,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   !  (this seems very weird: we have already done an allreduce on molvir
   !  in ewald_force(); this just collects it on processor 0 (with zeroes
   !  on all slave nodes), then later does an allreduce...)
-  if (mytaskid == 0 .and. iamoeba == 0) then
+  if (mytaskid == 0) then
     vir(1) = vir(1)+0.5d0*molvir(1,1)
     vir(2) = vir(2)+0.5d0*molvir(2,2)
     vir(3) = vir(3)+0.5d0*molvir(3,3)

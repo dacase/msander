@@ -452,8 +452,7 @@ implicit none
    hybridwritetraj=.false.
    if (numwatkeep >= 0) then
       ! 1a- Allocate memory for temp. coord/force storage
-      ! Note: This should be the same as in locmem.F90 except am_nbead is
-      !  not known. amoeba may not work with hybrid remd.
+      ! Note: This should be the same as in locmem.F90 
       allocate( hybrid_coord(3*natom + mxvar), &
                 hybrid_force(3*natom + mxvar + 40), &
                 hybrid_refc(3*natom + mxvar), stat=ierror)

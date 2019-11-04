@@ -276,7 +276,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
                         ipairs, ntnb, ibelly, belly, newbalance, qsetup, &
                         do_list_update)
 #ifdef MPI
-   use amoeba_mdin,only:iamoeba
 #endif
    use trace
    implicit none
@@ -465,10 +464,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     ! of subcells must be made, thus "trial" is TRUE.  For a periodic system,
     ! the balance is assumed to be good for evenly dividing the subcells,
     ! meaning the variable "balance" is FALSE.
-    if (iamoeba .eq. 1) then
-      myindexlo = 1
-      myindexhi = nucgrd
-    else
       if (trial .or. .not. balance) then
         inddel = (nucgrd-1) / numtasks + 1
         if (inddel == 0) then
@@ -481,7 +476,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
         end if
         last_numlist = 0
       end if
-    end if
 #else
   ! For non parallel runs, do all the subcells
   myindexlo = 1

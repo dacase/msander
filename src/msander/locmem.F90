@@ -9,9 +9,7 @@ subroutine locmem()
    !     locmem:  partitions core array into storage for all
    !        the major arrays of the program.
    use nblist, only: cutoffnb,skinnb
-   use amoeba_mdin, only : am_nbead
 #ifdef MPI
-   use amoeba_mdin, only : iamoeba
 #endif
    use linear_response, only: ilrt
    implicit none
@@ -154,7 +152,7 @@ subroutine locmem()
 
    r_ptr = 1
    call adj_mem_ptr( r_ptr, l15, natom )
-   call adj_mem_ptr( r_ptr, lwinv, natom*am_nbead )
+   call adj_mem_ptr( r_ptr, lwinv, natom )
    if (ipol > 0) then
       call adj_mem_ptr( r_ptr, lpol, natom )
    else
@@ -170,16 +168,16 @@ subroutine locmem()
       call adj_mem_ptr( r_ptr, lpol2, 0 )
       call adj_mem_ptr( r_ptr, lpolbnd, 0 )
    end if
-   call adj_mem_ptr( r_ptr, lcrd, 3*natom*am_nbead + mxvar )
-   call adj_mem_ptr( r_ptr, lforce, 3*natom*am_nbead + mxvar + 40 )
+   call adj_mem_ptr( r_ptr, lcrd, 3*natom + mxvar )
+   call adj_mem_ptr( r_ptr, lforce, 3*natom + mxvar + 40 )
    if (imin == 0) then
-      call adj_mem_ptr( r_ptr, lvel,  3*natom*am_nbead + mxvar )
-      call adj_mem_ptr( r_ptr, lvel2, 3*natom*am_nbead + mxvar )
+      call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
+      call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
    else
-      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom*am_nbead + mxvar) )
+      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + mxvar) )
       call adj_mem_ptr( r_ptr, lvel2, 0 )
    end if
-   call adj_mem_ptr( r_ptr, l45, 3*natom*am_nbead + mxvar )
+   call adj_mem_ptr( r_ptr, l45, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, l50, ntbond )
    
    ! positional restraints or carlos added targeted MD
@@ -209,7 +207,7 @@ subroutine locmem()
    end if
    !     --- real array NMR restraints/weight changes:
    
-   call adj_mem_ptr( r_ptr, lmass, natom*am_nbead )
+   call adj_mem_ptr( r_ptr, lmass, natom )
    call adj_mem_ptr( r_ptr, lnmr01, irlreq )
    
    call adj_mem_ptr( r_ptr, l75, natom )
@@ -292,7 +290,7 @@ subroutine locmem()
    end if  ! ( igb /= 0 .or. ipb /= 0 )
 
 #ifdef MPI
-   call adj_mem_ptr( r_ptr, lfrctmp, 3*natom*am_nbead + 40 )
+   call adj_mem_ptr( r_ptr, lfrctmp, 3*natom + 40 )
 #endif
 
    if (nmropt >= 2) then
@@ -469,7 +467,7 @@ subroutine locmem()
          call mexit(6,1)
       end if
 # ifdef MPI
-      if(iamoeba.eq.0.and.periodic == 1) then
+      if(periodic == 1) then
          if( numtasks <= 8 ) maxpr = maxpr/numtasks
          !  allow for some load imbalance in list at high processor number:
          if( numtasks >  8 ) maxpr = 4*maxpr/(3*numtasks)

@@ -7,7 +7,6 @@
 !+ Read the pointers (ONLY) from the topology file
 subroutine cpparm1(parmdata, ierr)
 
-   use amoeba_mdin, only : iamoeba
    use charmm_mod, only : charmm_active
    use constants, only : RETIRED_INPUT_OPTION
    use file_io_dat
@@ -113,7 +112,6 @@ subroutine cpparm1(parmdata, ierr)
 ! These two are actually used in the code.
    mpoltype = ipol
    induced  = ipol
-   if( iamoeba > 0 ) induced = 1
 
    charmm_active = parmdata%is_chamber /= 0
 
@@ -135,7 +133,6 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
    use parms
    use prmtop_type, only : prmtop_struct
 #ifdef LES
-   use amoeba_mdin, only : iamoeba
    use les_data, only : lestyp, lesfac, cnum, subsp, nlesty, nlesadj, &
                         maxlestyp, maxles, lfac, lesfac, lestmp, ileslst, &
                         jleslst, maxlesadj
@@ -417,7 +414,7 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
 #endif
 #ifdef LES
 
-   if (nparm == 1.and.iamoeba.eq.0) then
+   if (nparm == 1) then
       nlesty = parmdata%nlesty
       lestmp=nlesty*nlesty
       
