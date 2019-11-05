@@ -1,12 +1,13 @@
 #!/bin/csh -f
 
 echo "SANDER: 3D-RISM: PME potential - triclinic"
-if( ! $?TESTsander ) set TESTsander = "../../../bin/msander"
+set sander = "../../../bin/msander"
 
 if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "
 else
-        echo "Running $DO_PARALLEL $TESTsander"
+        set sander = "../../../bin/msander.MPI"
+        echo "Running $DO_PARALLEL $sander"
 endif
 
 cat > mdin <<EOF
@@ -31,14 +32,14 @@ cat > mdin <<EOF
  /
 EOF
 
-$DO_PARALLEL $TESTsander -O -i mdin -o mdout \
+$DO_PARALLEL $sander -O -i mdin -o mdout \
     -p 4lzt.parm7 -c 4lzt.rst7 \
-    -xvv ../xvv/spc-nacl.kh.xvv \
+    -xvv ../xvv/spc-nacl.kh.xvv < /dev/null \
     || goto error
 
 grep -E "^rism_|^solutePotentialEnergy" mdout | grep -v "rism_DCFintegral" > erism.out
 ../../dacdif -r 1.e-3 erism.out.save erism.out
-/bin/rm -f mdin mdinfo restrt mdout
+#/bin/rm -f mdin mdinfo restrt mdout
 exit(0)
 
 error:

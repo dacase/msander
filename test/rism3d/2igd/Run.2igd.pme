@@ -4,29 +4,21 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander"
-
-if ! { ../checkrismunsupported.sh $TESTsander } exit 0
+set sander = "../../../bin/msander"
 
 if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "
 else
-        set numprocs=`echo $DO_PARALLEL | awk -f ../../numprocs.awk `
-        if ( $numprocs > 8 ) then
-            echo " DO_PARALLEL set to $DO_PARALLEL"
-            goto toomany
-        endif
-        set TESTsander = $TESTsander.MPI
-        echo "Running $DO_PARALLEL $TESTsander"
+        set sander = $sander.MPI
+        echo "Running $DO_PARALLEL $sander"
 endif
 
 cat > mdin <<EOF
 2igd crystal unit cell
  &cntrl
     ntx=1, ntpr=1, ntwx=0, ntwr=0
-    ioutfm=1
     imin=1, drms=1E-4
-    maxcyc=1, ntmin=1
+    maxcyc=3, ntmin=1
     ig=314159
     ntb=1
     irism=1
@@ -36,40 +28,26 @@ cat > mdin <<EOF
     periodic='pme'
     closure='kh'
     buffer=1, grdspc=0.5,0.5,0.5
-    solvcut=8.d0
+    solvcut=12.d0
     verbose=2
     write_thermo=1
     npropagate=5
-    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-6
-    apply_rism_force=0
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-12
+    apply_rism_force=1
  /
 EOF
 
-$DO_PARALLEL $TESTsander -O -i mdin -o 2igd.pme.out \
+$DO_PARALLEL $sander -O -i mdin -o 2igd.pme.out \
     -p 2igd.parm7 -c 2igd.rst7 \
-    -xvv ../../../AmberTools/test/rism1d/spc-kh/spc.xvv.save \
+    -xvv ../xvv/spc.kh.xvv \
     || goto error
 
-# grep ERISM 2igd.pme.out > erism.out
-# ../../dacdif -a 1.e-4 erism.out.save erism.out
+grep ERISM 2igd.pme.out > erism.out
+../../dacdif -a 1.e-4 erism.out.save erism.out
 /bin/rm -f mdin mdinfo restrt
 exit(0)
 
 error:
 echo "  ${0}:  Program error"
 exit(1)
-
-toomany:
-    echo " too many processors for this test, exiting"
-    echo "============================================================"
-    exit(0)
-
-
-
-
-
-
-
-
-
 

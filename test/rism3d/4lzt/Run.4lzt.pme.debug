@@ -3,13 +3,12 @@
 #TEST-DESCRIP Tests PME potential gradients vs. analytic forces
 #TEST-PURPOSE regression, basic
 
-if( ! $?TESTsander ) set TESTsander = "../../../bin/sander"
+set sander = "../../../bin/msander"
 
 cat > mdin <<EOF
 4lzt crystal unit cell
  &cntrl
-    ntx=1, ntpr=1, ntwx=0, ntwr=0
-    ioutfm=1
+    ntx=1, ntpr=1, ntwx=1, ntwr=0
     imin=1, drms=1E-4
     maxcyc=1, ntmin=1
     ig=314159
@@ -20,7 +19,7 @@ cat > mdin <<EOF
  &rism
     periodic='pme'
     closure='kh'
-    buffer=15, grdspc=0.5,0.5,0.5
+    buffer=15, grdspc=0.25,0.25,0.25
     solvcut=11.d0
     verbose=1
     npropagate=5
@@ -34,7 +33,7 @@ cat > mdin <<EOF
   ! differentiating; e.g. 4 means delta is 10^-4 Angstroms.
   neglgdel=4
   ! Number of random atoms to test.
-  nranatm=1
+  nranatm=3
   ! Check atomic and molecular virials.
   chkvir=0
   ! Dump energies, forces, and virials to forcedump.dat.
@@ -76,7 +75,7 @@ cat > mdin <<EOF
  /
 EOF
 
-$TESTsander -O -i mdin -o 4lzt.pme.debug.out \
+$sander -O -i mdin -o 4lzt.pme.debug.out \
     -p 4lzt.parm7 -c 4lzt.rst7 \
     -xvv ../xvv/spc-nacl.kh.xvv \
     || goto error
