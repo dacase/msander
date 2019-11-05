@@ -155,8 +155,8 @@ if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
    # for now, use the compiled versions;
    flibs_mkl="-lfftw3 -llapack -lblas"
-   lapack=install
-   blas=install
+   lapack=liblapack
+   blas=libblas
 
    mklinc="-I$msanderhome/include"
    if [ "$openmp" = "yes" ]; then

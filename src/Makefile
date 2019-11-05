@@ -15,5 +15,12 @@ clean:
 	-(cd lib && $(MAKE) clean )
 
 uninstall: clean
-	-(/bin/rm -rf $(BINDIR)/* $(LIBDIR)/* $(INCDIR)/* config.h)
+	-(/bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
+                 $(LIBDIR)/liblapack \
+                 $(LIBDIR)/libblas \
+                 $(LIBDIR)/libarpack \
+                 $(LIBDIR)/libsqm \
+                 $(LIBDIR)/librism \
+                 $(LIBDIR)/libsys \
+                 $(INCDIR)/* config.h)
 
