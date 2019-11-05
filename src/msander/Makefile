@@ -131,12 +131,12 @@ $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
 
 #---------------------------------------------------------------------------
 libs:
-	cd ../blas && $(MAKE) $(BLAS)
-	cd ../lapack && $(MAKE) $(LAPACK)
-	cd ../arpack && $(MAKE) libarpack
-	cd ../rism && $(MAKE) librism
-	cd ../sqm && $(MAKE) libsqm
-	cd ../lib && $(MAKE) libsys
+	$(VB)cd ../blas && $(MAKE) $(BLAS)
+	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
+	$(VB)cd ../arpack && $(MAKE) libarpack
+	$(VB)cd ../rism && $(MAKE) librism
+	$(VB)cd ../sqm && $(MAKE) libsqm
+	$(VB)cd ../lib && $(MAKE) libsys
     
 Plumed.o: Plumed.c
 	@echo "[SANDER]  CC $<"

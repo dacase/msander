@@ -376,7 +376,7 @@ AR=    ar rv
 RANLIB=ranlib
 MV=mv
 CP=cp
-MAKE=make
+MAKE=make --no-print-directory
 SFX=$sfx
 VB=$verbose
 

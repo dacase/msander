@@ -15,7 +15,7 @@ OBJS=    dasum.o daxpy.o dcabs1.o dcopy.o ddot.o \
          dtrmv.o dtrsm.o dtrsv.o dummy.o dzasum.o dznrm2.o \
          idamax.o isamax.o lsame.o xerbla.o 
 
-install: $(LIBDIR)/libblas.a
+libblas: $(LIBDIR)/libblas.a
 
 $(LIBDIR)/libblas.a: $(OBJS)
 	@echo "[BLAS]  AR $@"
