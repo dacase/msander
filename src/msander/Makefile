@@ -131,6 +131,8 @@ $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
 
 #---------------------------------------------------------------------------
 libs:
+	cd ../blas && $(MAKE) $(BLAS)
+	cd ../lapack && $(MAKE) $(LAPACK)
 	cd ../arpack && $(MAKE) libarpack
 	cd ../rism && $(MAKE) librism
 	cd ../sqm && $(MAKE) libsqm

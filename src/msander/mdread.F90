@@ -117,7 +117,7 @@ subroutine mdread1()
 
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
-         ntb,ntt,nchain,temp0,tautp, &
+         ntb,nchain,temp0,tautp, &
          ntp,pres0,comp,taup,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
@@ -309,7 +309,6 @@ subroutine mdread1()
    ig = 71277
    tempi = ZERO
    ntb = NO_INPUT_VALUE
-   ntt = 0
    nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
@@ -769,10 +768,6 @@ subroutine mdread1()
          write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
          FATAL_ERROR
       end if
-      if (ntt > 0) then
-         write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntt > 0'
-         FATAL_ERROR
-      endif
       if (ntp > 0) then
          write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntp > 0'
          FATAL_ERROR
@@ -1208,6 +1203,7 @@ subroutine mdread2(x,ix,ih)
    use constants, only : ZERO, ONE, TWO
    use parms, only: req
    use nbips, only: ips
+   use md_scheme, only: ithermostat, therm_par
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
@@ -1397,15 +1393,16 @@ subroutine mdread2(x,ix,ih)
    end if
 
 #ifdef MPI
-   !For some runs using multisander where the coordinates of the two 'replicas' need to be identical,
-   !for example TI, it is critical that the random number stream is synchronized between all replicas.
-   !Only use the IG value from worldrank=0. Ok to broadcast between the various sander masters since
-   !they all call mdread2.
-   !Also needs to be synchronized for adaptive QM/MM (qmmm_nml%vsolv > 1)
+   ! For some runs using multisander where the coordinates of the 
+   ! two 'replicas' need to be identical, for example TI, it is 
+   ! critical that the random number stream is synchronized between 
+   ! all replicas.  Only use the IG value from worldrank=0. Ok to 
+   ! broadcast between the various sander masters since
+   ! they all call mdread2.
+   ! Also needs to be synchronized for adaptive QM/MM (qmmm_nml%vsolv > 1)
    if ( (icfe > 0) .or. (qmmm_nml%vsolv > 1) ) then
       ! no_ntt3_sync currently does not work with softcore TI simulations
       ! see sc_lngdyn in softcore.F90
-      ! AWG: I think I also need to set no_ntt3_sync=0 ???
       if ( (ifsc > 0) .or. (qmmm_nml%vsolv > 1) ) no_ntt3_sync = 0
       call mpi_bcast(ig, 1, MPI_INTEGER, 0, commmaster, ierr)
    end if
@@ -1637,52 +1634,19 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
 
-      if ( ntt == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
+      if ( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ntt == 2 ) then
+      else if( ithermostat == 2 ) then
          write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
          write(6,'(5x,4(a,i8))') 'ig      =',ig, ', vrand   =',vrand
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
-      else if( ntt == 3 ) then
+      else if( ithermostat == 1) then
          write(6,'(/a)') 'Langevin dynamics temperature regulation:'
          write(6,'(5x,4(a,i8))') 'ig      =',ig
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-      else if( ntt == 4 ) then
-         write(6,'(/a)') 'Nose-Hoover chains'
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain
-      else if( ntt == 5 ) then                                       ! APJ
-         write(6,'(/a)') 'Nose-Hoover chains Langevin'               ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 6 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Langevin temperature regulation:' ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &             ! APJ
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln           ! APJ
-      else if( ntt == 7 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Nose-Hoover chains'               ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 8 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Nose-Hoover chains Langevin'      ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 9) then
-         write(6,'(/a)') 'Canonical-isokinetic ensemble regulation:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-         write(6,'(5x,2(a,i10),/)') 'nkija   =',nkija,', idistr  =',idistr
-      else if( ntt == 10) then
-         write(6,'(/a)') 'Stochastic Isokinetic Nose-Hoover RESPA (SINR) integration:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-         write(6,'(5x,a,i10,a,f12.5,/)') 'nkija   =',nkija,', sinrtau  =',sinrtau
+               ', tempi   =',tempi,', therm_par=', therm_par
       end if
 
       if( ntp /= 0 ) then
@@ -3038,82 +3002,10 @@ subroutine mdread2(x,ix,ih)
       DELAYED_ERROR
    end if
 
-   if (ntt < 0 .or. ntt > 10 .or. ntt == 1) then 
-      write(6,'(/2x,a,i3,a)') 'NTT (',ntt,') must be between 0 or 2-10.' 
-      DELAYED_ERROR
-   end if
-   if( ntt < 3 .or. ntt > 10) then  ! APJ
-      if( gamma_ln > 0.d0 ) then
-         write(6,'(a)') 'ntt must be 3 to 10 if gamma_ln > 0' ! APJ
-         DELAYED_ERROR
-      end if
-   end if
    if (infe /= 0 .and. infe /= 1) then
       write(6,'(/2x,a,i3,a)') 'IFE (',infe,') must be 0 or 1.'
       DELAYED_ERROR
    end if
-
-   if ( ntt==3 .or. ntt==6 ) nchain = 0 !APJ: Langevin, Adaptive-Langevin must have chain set to zero. ! APJ
-
-   if (ntt == 3 .or. ntt == 4) then
-      if ( ntb == 2) then
-        !Require gamma_ln > 0.0d0 for ntt=3 and ntb=2 - strange things happen
-        !if you run NPT with NTT=3 and gamma_ln = 0.
-        if ( gamma_ln <= 0.0d0 ) then
-          write(6,'(a)') 'gamma_ln must be > 0 for ntt=3 .or. 4 with ntb=2.'
-          DELAYED_ERROR
-        end if
-      end if
-   end if
-
-   ! Isokinetic ensemble checks
-
-   if (ntt == 9) then
-      if(gamma_ln <= 0.d0) then
-         write(6,'(a)') 'gamma_ln must be > 0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(nkija < 1) then
-         write(6,'(a)') 'nkija must be >= 1 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(idistr < 0) then
-         write(6,'(a)') 'idistr must be >= 0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(ntc /= 1 .or. ntf /= 1) then
-         write(6,'(a)') 'ntc and ntf must be = 1 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(tempi > temp0) then
-         write(6,'(a)') 'tempi must be <= temp0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-   end if
-
-   if (ntt == 10) then
-      write(6,*) ""
-      if(gamma_ln <= 0.d0) then
-         write(6,'(a)') 'gamma_ln must be > 0 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(nkija < 1) then
-         write(6,'(a)') 'nkija must be >= 1 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(ntc /= 1 .or. ntf /= 1) then
-         write(6,'(a)') 'ntc and ntf must be = 1 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(tempi > temp0) then
-         write(6,'(a)') 'tempi must be <= temp0 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(sinrtau < 0.5) then
-         write(6,'(a)') 'sinrtau must be >= 0.5 when ntt = 10'
-         DELAYED_ERROR
-      end if
-  end if
 
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'

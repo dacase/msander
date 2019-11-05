@@ -12,14 +12,20 @@ requested_help="no"
 bintraj="-DBINTRAJ"
 rism="-lrism"
 conda="no"
+
 compiler="gnu"
 cc="gcc"
+mpicc="mpicc"
+
 fc="gfortran"
-fc_fftw="gfortran"
+flibs_fftw="-lgfortran -w"
 flibs_mkl=""
+mpif90="mpif90"
+
 openmp='no'
 ompflag='-fopenmp -DOPENMP'
 fftw_flags=""
+mkl="yes"
 
 #  process command-line flags:
 for var in "$@"; do
@@ -44,15 +50,20 @@ for var in "$@"; do
         --intel)
             compiler="intel"
             cc="icc"
+            mpicc="mpiicc"
             fc="ifort"
+            mpif90="mpiifort"
+            flibs_fftw="-lifport -lifcore -lsvml"
             ompflag="-qopenmp -DOPENMP";;
         --no-rism)
             rism="";;
+        --no-mkl)
+            mkl="no";;
         --mpi)
             fftw_flags="--enable-mpi=yes"
             mpiflag="-DMPI"
             mpilibs="-lfftw3_mpi -lfftw3 -lmpi"
-            fc="mpif90"
+            fc="$mpif90"
             sfx=".MPI"
             /bin/rm -f src/fftw3_config.log;;
         *)
@@ -63,11 +74,12 @@ done
 
 if [ "$requested_help" = "yes" ] ; then
 	printf " --verbose      give build details, otherwise be more silent\n"
-	printf " --mpi          prepare for mpi build\n"
-	printf " --openmp       prepare for OMP build\n"
-	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --no-netcdf    disable NetCDF support\n"
 	printf " --no-rism      disable 3D-RISM support\n"
+	printf " --intel        use Intel compilers; default is gnu\n"
+	printf " --mpi          prepare for mpi build (must come after --intel)\n"
+	printf " --openmp       prepare for OMP build\n"
+	printf " --no-mkl       disable MKL, even for intel compilers\n"
     exit 0
 fi
 
@@ -136,10 +148,16 @@ elif [ ! -z "$MKL_HOME" ] ; then
     mklroot=$MKL_HOME
 fi
 
-if [ -z "$mklroot" ] ; then
+if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
-   echo "using OpenBLAS libraries in $GOTO"
-   flibs_mkl="-lfftw3 $GOTO -lpthread"
+   #echo "using OpenBLAS libraries in $GOTO"
+   #flibs_mkl="-lfftw3 $GOTO -lpthread"
+
+   # for now, use the compiled versions;
+   flibs_mkl="-lfftw3 -llapack -lblas"
+   lapack=install
+   blas=install
+
    mklinc="-I$msanderhome/include"
    if [ "$openmp" = "yes" ]; then
       flibs_mkl="-lfftw3_omp $flibs_mkl"
@@ -152,9 +170,9 @@ if [ -z "$mklroot" ] ; then
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $fftw_flags \
-           --enable-static --enable-sse2=yes \
-           CC="$cc" CFLAGS=""  F77="$fc_fftw" FFLAGS="" FLIBS="-lgfortran -w" \
-           > fftw3_config.log 2>&1
+           --enable-static --enable-sse2=yes MPICC="$mpicc" \
+           CC="$cc" CFLAGS="-O2"  F77="$fc" FFLAGS="-O2" \
+           FLIBS="$flibs_fftw"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
            echo "Error: FFTW configure returned $ncerror"
@@ -181,6 +199,8 @@ else
 
   echo "Using MKL for BLAS/LAPACK/FFTW in $mklroot"
   mklinc="-I$mklroot/include -I$mklroot/include/fftw"
+  lapack=skip
+  blas=skip
 
   # Determine how we are linking MKL
   link_type='mkl'
@@ -326,6 +346,9 @@ fi
 
 cat <<EOF >> src/config.h
 
+LAPACK=$lapack
+BLAS=$blas
+
 ###############################################################################
 
 #  (4)  C compiler
@@ -341,7 +364,7 @@ COPTFLAGS=-O3 -mtune=native
 
 FC=$fc
 FFLAGS=$bintraj $mklinc $ompflag $mpiflag
-FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag $mpilibs
+FLIBSF= $rism -lsqm -larpack -lsys $flibs_mkl $ompflag $mpilibs $flibs_fftw
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS= -O3 -g -mtune=native
 

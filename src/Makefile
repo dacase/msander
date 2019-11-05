@@ -6,6 +6,8 @@ install:
 	cd msander && $(MAKE) msander
 
 clean:
+	-(cd blas && $(MAKE) clean )
+	-(cd lapack && $(MAKE) clean )
 	-(cd arpack && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
 	-(cd rism && $(MAKE) clean )
