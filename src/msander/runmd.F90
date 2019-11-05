@@ -330,6 +330,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: x_centroid(3,natom) ! for PIMD
   ! Ek(t) is written in mden or mdout, as the default scheme does
   ! Ek(t+dt/2) is written in file_ek, as defined below
+  ! DAC: above comments don't seem to matche the code(?)
   integer,parameter :: fh_ek = 1024
   character(len=*),parameter :: file_ek = "eke.dat"
   _REAL_ :: ekhf, ekhf2
@@ -535,11 +536,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   !    Langevin dynamics setup  {{{
-  if (rem == 0 .and. master) then
+  if (rem == 0 .and. master .and. ithermostat == 0) then
      open(fh_ek, file=file_ek)
-     write(fh_ek, *) '#     NSTEP   EKIN(kcal/mol)    TEMP(K)'
+     write(fh_ek, *) '#  NSTEP      ekph          ekpbs'
   endif
-  ! middle scheme when nscm is enabled
   if (nscm > 0) then
      if (ifbox == 0) then
         call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
@@ -548,7 +548,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
 #endif /* MPI */
      end if ! ifbox==0: non-periodic
-  end if ! middle scheme when nscm is enabled
+  end if ! nscm is enabled
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -2015,8 +2015,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (facc .ne. 'A') rewind(7)
 
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
-      if (rem == 0 .and. master) then
-         write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekph*onefac(1)
+      if (rem == 0 .and. master .and. ithermostat == 0) then
+         write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekpbs
       endif
 
 #ifdef MPI
@@ -2334,10 +2334,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
          ekhf = ekhf / tspan
          ekhf2 = ekhf2/tspan - ekhf*ekhf
          ekhf2 = sqrt(ekhf2)
-         write(fh_ek, *) '# average of EKIN and TEMP over ', nvalid, ' steps'
-         write(fh_ek, '(2(1x,F14.4))') ekhf, ekhf*onefac(1)
-         write(fh_ek, *) '# rms of EKIN and TEMP over ', nvalid, ' steps'
-         write(fh_ek, '(2(1x,F14.4))') ekhf2, ekhf2*onefac(1)
       endif
 #ifdef MPI
       if (ifsc .ne. 0) then
@@ -2413,7 +2409,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
     ! End contingency for nvalid > 0, signifying that
     ! all energies must be calculated
-    if (rem == 0 .and. master) close(fh_ek)
+    if (rem == 0 .and. master .and. ithermostat == 0) close(fh_ek)
     if (ntp > 0 .and. barostat == 2) call mcbar_summary
   end if
   ! End of contingency for work on the master process;
