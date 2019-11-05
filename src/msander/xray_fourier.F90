@@ -36,6 +36,11 @@ module xray_fourier_module
    use xray_reciprocal_space_module
    use xray_real_space_module
    implicit none
+#ifdef MPI
+#include "parallel.h"
+#else
+   integer :: numtasks=1, mytaskid=0
+#endif
 
    !-------------------------------------------------------------------
 contains
@@ -79,8 +84,13 @@ contains
       ! REQUIRE(alloc_status==0)
 
       call wallclock( time0 )
+#ifdef MPI
+      Fcalc(:) = 0.d0
+      do ihkl = mytaskid+1, num_hkl, numtasks
+#else
 !$omp parallel do private(ihkl, i, atomic_scatter_factor, f, angle )
       do ihkl = 1, num_hkl
+#endif
          if (present(hkl_selected)) then
             if (hkl_selected(ihkl)==0) cycle
          end if
@@ -184,12 +194,17 @@ contains
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
       call wallclock( time0 )
+#ifdef MPI
+      dxyz(:) = 0.d0
+      REFLECTION: do ihkl = mytaskid+1,num_hkl,numtasks
+#else
 #ifdef USE_ISCALE
 !$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  reduction( +:d_tempFactor )
 #else
 !$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  
 #endif
       REFLECTION: do ihkl = 1,num_hkl
+#endif
          !if (present(hkl_selected)) then
          !   if (hkl_selected(ihkl)==0) cycle REFLECTION
          !end if
@@ -296,7 +311,7 @@ contains
 
       if (present(deriv)) then
          if (present(selected)) then
-            where (selected/=0)
+            where (selected/=0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
 #if 1
@@ -310,9 +325,11 @@ contains
 #endif
             end where
          else ! no selected (and no weight)
-            deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
-               ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
-               ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
+            where( abs_Fcalc > 1.d-3 )
+               deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
+                  ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
+                  ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
+            end where
          end if
       end if
 

@@ -877,6 +877,24 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! MuSiC - GAL17 force field
   call music_force(ipairs, music_vdisp, music_vang, music_vgauss, music_spohr89)
 
+  ! Built-in X-ray target function and gradient
+  xray_e = 0.d0
+  if( xray_active ) then
+#ifdef USE_ISCALE
+     if (first) then
+        ! set coordinates to current bfactors:
+        x(3*natom+1:4*natom) = atom_bfactor(1:natom)
+        first = .false.
+     else
+        ! get current bfactors from the end of the coordinate array:
+        atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+     endif
+     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+#else
+     call xray_get_derivative(x,f,xray_e)
+#endif
+  endif
+
 #ifdef MPI
   call timer_barrier( commsander )
   call timer_start(TIME_COLLFRC)
@@ -925,24 +943,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     edssp = 0.d0
   end if
 #endif
-
-  ! Built-in X-ray target function and gradient
-  xray_e = 0.d0
-  if( xray_active ) then
-#ifdef USE_ISCALE
-     if (first) then
-        ! set coordinates to current bfactors:
-        x(3*natom+1:4*natom) = atom_bfactor(1:natom)
-        first = .false.
-     else
-        ! get current bfactors from the end of the coordinate array:
-        atom_bfactor(1:natom) = x(3*natom+1:4*natom)
-     endif
-     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
-#else
-     call xray_get_derivative(x,f,xray_e)
-#endif
-  endif
 
     ! Calculate the total energy and group the components
 #ifndef LES
