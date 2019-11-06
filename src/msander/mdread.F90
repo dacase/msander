@@ -656,7 +656,6 @@ subroutine mdread1()
    ipb = input_options%ipb
    inp = input_options%inp
    vdwmeth = input_options%vdwmeth
-   ew_type = input_options%ew_type
    extdiel = input_options%extdiel
    intdiel = input_options%intdiel
    rgbmax = input_options%rgbmax
@@ -759,17 +758,13 @@ subroutine mdread1()
    ! middle scheme is requested {
       if (ithermostat < 0 .or. ithermostat > 2) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 0-2 for current version'
+            'Middle scheme: ithermostat is only available for 0-2'
          FATAL_ERROR
       end if
       if (therm_par < 0d0) then
          write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
          FATAL_ERROR
       end if
-      if (ntp > 0) then
-         write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntp > 0'
-         FATAL_ERROR
-      endif
    ! }
 
    ! Now that we've read the input file, set up the defaults for variables
@@ -1792,6 +1787,7 @@ subroutine mdread2(x,ix,ih)
 
    if( ntb > 0 ) then
       write(6,'(/a)') 'Ewald parameters:'
+      ew_type = 0   ! no longer an option
       write(6,'(5x,4(a,i8))') 'verbose =',verbose, &
             ', ew_type =',ew_type,', nbflag  =',nbflag, &
             ', use_pme =',use_pme
@@ -3457,7 +3453,6 @@ subroutine mdread2(x,ix,ih)
       call opt_legal_range('netfrc: ',netfrc,0,1)
       call opt_legal_range('nbflag: ',nbflag,0,1)
       call opt_legal_range('nbtell: ',nbtell,0,2)
-      call opt_legal_range('ew_type: ',ew_type,0,1)
       call opt_legal_range('vdwmeth: ',vdwmeth,0,2)
       call opt_legal_range('eedmeth: ',eedmeth,1,6)
       call opt_legal_range('ee_type: ',ee_type,1,2)

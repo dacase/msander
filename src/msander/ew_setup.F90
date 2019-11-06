@@ -1830,8 +1830,8 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
          skinnb,diptol,dipmass,diptau, &
          nfft1,nfft2,nfft3,order,opt_infl, &
          ischrgd,verbose,nbflag,nbtell,netfrc, &
-         ew_type,vdwmeth,eedmeth,ee_type, &
-         eedtbdns,rsum_tol,maxexp,mlimit,use_pme, &
+         vdwmeth,eedmeth,ee_type, &
+         eedtbdns,rsum_tol,use_pme, &
          maxiter,indmeth,irstdip,nquench, &
          frameon,chngmask,scaldip, &
          gridpointers,column_fft
@@ -1894,15 +1894,10 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
    opt_infl = 1
    verbose = 0
    netfrc = NO_INPUT_VALUE
-   ew_type = 0
    vdwmeth = 1
    ee_type = 1
    eedtbdns = 5000.d0
    rsum_tol = 5.d-5
-   maxexp = 0.d0
-   mlimit(1) = 0
-   mlimit(2) = 0
-   mlimit(3) = 0
    frameon = 1
    chngmask = 1
    scaldip = 1
@@ -2011,35 +2006,6 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
    call test_prime_factors('nfft1',nfft1)
    call test_prime_factors('nfft2',nfft2)
    call test_prime_factors('nfft3',nfft3)
-   if ( ew_type /= 0 )then
-#ifndef API
-      write(6,*)'-----------------------------------------'
-      write(6,*)'====== Running Regular Ewald code'
-#endif
-      maxmlim = max(mlimit(1),mlimit(2),mlimit(3))
-      if ( maxmlim > 0 )then
-         call maxexp_from_mlim(maxexp,mlimit,recip)
-#ifndef API
-         write(6,100)maxexp
-         100 format(1x,'maxexp calculated from mlimit: ',e10.3)
-#endif
-      else
-         call float_legal_range('rsum_tol: (Ewald recip sum tol) ', &
-               rsum_tol,tollo,tolhi)
-         if ( maxexp < 1.d-6 )then
-            call find_maxexp(ew_coeff,rsum_tol,maxexp)
-#ifndef API
-            write(6,101)maxexp
-            101 format(1x,'maxexp calculated from rsum_tol: ',e10.3)
-#endif
-         end if
-         
-         ! eigmin typically bigger than this (unless badly distorted cell)
-         
-         eigmin = 0.5d0
-         call get_mlim(maxexp,mlimit,eigmin,reclng,recip)
-      end if
-   end if
    if ( vdwmeth > 2 )then
       write(6,*)'pme vdw not supported yet'
       call mexit(6,1)

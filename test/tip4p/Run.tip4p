@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sander="../../../bin/msander"
+sander="../../bin/msander"
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -10,8 +10,9 @@ cat > mdin <<EOF
  equilibration, polarizable solute
  &cntrl
   irest  = 1, ntx    = 7,
-  cut    = 9.0,
+  cut    = 8.0,
   ntf=2, ntc=2, tol=0.000001,
+  ithermostat=0,
   nstlim=10, ntpr=1,
   dt=0.001, 
   jfastw=1, watnam='TP4', ig=71277,

@@ -1076,23 +1076,15 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    ! middle scheme is requested {
-      if (ithermostat < 1 .or. ithermostat > 2) then
+      if (ithermostat < 0 .or. ithermostat > 2) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 1-2 for current version'
+            'Middle scheme: ithermostat is only available for 0-2'
          FATAL_ERROR
       end if
       if (therm_par < 0d0) then
          write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
          FATAL_ERROR
       end if
-      if (ntt > 0) then
-         write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntt > 0'
-         FATAL_ERROR
-      endif
-      if (ntp > 0) then
-         write(6,'(1x,a,/)') 'Middle scheme: can not be used with ntp > 0'
-         FATAL_ERROR
-      endif
    ! }
 
    ! Now that we've read the input file, set up the defaults for variables

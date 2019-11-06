@@ -1859,7 +1859,7 @@ subroutine sander()
   REQUIRE(ier == 0)
   deallocate(x, stat=ier)
   REQUIRE(ier == 0)
-  if (ntb > 0 .and. ifbox == 1 .and. ew_type == 0 .and. mpoltype == 0) then
+  if (ntb > 0 .and. ifbox == 1 .and. mpoltype == 0) then
     call deallocate_m1m2m3()
   end if
   call deallocate_molecule()

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sander="../../../bin/msander"
+sander="../../bin/msander"
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -14,7 +14,6 @@ cat > mdin <<EOF
   cut    = 8.0,
   ntf=2, ntc=2, tol=0.000001,
   nstlim=50, ntpr=1,
-  ithermostat=1, therm_par=5.0,
   dt=0.001, 
   jfastw=1, watnam='TP4', barostat=2
   mcbarint=2, ig=71277,
