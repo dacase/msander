@@ -1,9 +1,8 @@
 #!/bin/sh
 
-if [ -n "$TESTsander" ]; then
-   sander=$TESTsander
-else
-   sander=../../../bin/sander
+sander=../../../bin/msander
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
 fi
 
 cat <<EOF > mdin
@@ -14,7 +13,7 @@ Test of MD with Xray restraints
   cut = 8.0,
   nstlim = 10, dt = 0.002,
   temp0 = 297.0, ig = 12345,
-  ntt = 3,  gamma_ln=5.0,
+  ithermostat = 1,  therm_par=5.0,
  /
  &xray
    spacegroup_name='P1',
@@ -26,8 +25,8 @@ Test of MD with Xray restraints
  /
 EOF
 
-$sander -O -i mdin -p 2wcu_uc.parm7 -c md1.x -o xray1_md.out 
-/bin/rm mdin mdinfo restrt first.fmtz
+$DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c md1.x -o xray1_md.out 
+/bin/rm -f mdin mdinfo restrt first.fmtz
 
 ../../dacdif xray1_md.out.save xray1_md.out
 

@@ -21,9 +21,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
    use parms , only: req, rk
    use file_io_dat
 
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-!! ;  EVB modules                                                     ;
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #ifdef LES
 #  ifdef MPI
       use remd, only : rem
@@ -56,13 +53,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
    _REAL_ da,df,xa,ya,za,rij0,ebl
    logical skip
    integer piece,start,end
-
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-!! ;  EVB variables                                                   ;
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#ifdef LES
-   integer :: ndx
-#endif
 
 #ifndef MPI
    integer numtasks,mytaskid
@@ -166,15 +156,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #  endif
 #endif
 
-!! Amber harmonic bond interaction for comparison with morsify ''''''''''''''''''''''
-!     if( jn == 1 ) then                                                    ! DEBUG ;
-!        write(6,'(A)') '|'                                                 ! DEBUG ;
-!        write(6,'(A)') '| ^^^ Amber harmonic energy ///////////////////'   ! DEBUG ;
-!        write(6,'(A)') '|'                                                 ! DEBUG ;
-!     endif                                                                 ! DEBUG ;
-!     write(6,'(A, I8,F14.8)') '| NRG_BND =  ', jn, eaw(jn)                 ! DEBUG ;
-!! Amber harmonic bond interaction for comparison with morsify ''''''''''''''''''''''
-
          dfw(jn) = (df+df)/rij0
       end do
 
@@ -270,12 +251,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #endif
    data pt999 /0.9990d0/
 
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-!! ;  EVB variables                                                   ;
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#ifdef LES
-   integer :: ndx
-#endif
    if ( do_angle == 0 .or. nbain == 0 )return
 
    nba=nbain
@@ -563,12 +538,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
 
    integer piece,start,end
 
-!! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-!! ;  EVB variables                                                   ;
-!! ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#ifdef LES
-   integer :: ndx
-#endif
    if ( do_ephi == 0 .or. nphiin == 0 )return
    if(numtasks > 1)then
       piece = nphiin/numtasks

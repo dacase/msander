@@ -444,6 +444,9 @@ contains
       ! local
       integer :: hkl_lun, i, alloc_status
       real(real_kind) :: phi
+#ifdef MPI
+#include "parallel.h"
+#endif
 
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
 
@@ -511,6 +514,17 @@ contains
                atom_selection_mask
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
+
+      ! set up reflection partitioning for MPI
+#ifdef MPI
+      ihkl1 = mytaskid*num_hkl/numtasks + 1
+      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
+      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
+      write(0,*) 'ihkl group: ', mytaskid, ihkl1, ihkl2
+#else
+      ihkl1 = 1
+      ihkl2 = num_hkl
+#endif
 
       return
       1 continue
@@ -609,6 +623,10 @@ contains
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i
       logical, save :: first=.true.
+#ifdef MPI
+      include 'mpif.h'    ! TODO: replace with use mpi??
+      integer :: ierr
+#endif
 
       allocate(sel_index(num_atoms),stat=alloc_status)
       REQUIRE(alloc_status==0)
@@ -620,6 +638,7 @@ contains
 
       frac_xyz=modulo(matmul(transpose(orth_to_frac),xyz(:,sel_index(1:num_selected))),1.0_rk_)
       
+!     This call uses MPI parallel to compute Fcalc:
       if( fft_method == 0 ) then
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4,test_flag, &
             num_selected,frac_xyz, &
@@ -636,25 +655,9 @@ contains
             num_scatter_types,scatter_ncoeffs,scatter_coefficients)
 #endif
       endif
-
-#if 0
-      abs_Fcalc(:) = abs(Fcalc(:))
-      data(1)%f => abs_Fobs
-      data(1)%sigma => sigFobs
-      data(1)%name = "Fobs"
-      data(1)%refine_bfactor = .false.
-
-      data(2)%f => abs_Fcalc
-      data(2)%name = "Fcalc"
-      data(2)%scale = -1
-      data(2)%refine_scale = .false.
-
-      call scale_data(num_hkl,hkl_index, & ! selection=ALL
-            num_sets=2,data=data, &
-            scale_min=1e-4_rk_, scale_max=1e+4_rk_, &
-            bfactor_min=1.0_rk_,bfactor_max=100.0_rk_, &
-            max_cycles=20,tolerance=1e-4_rk_, &
-            reference_set=2,status=status,print=.true.)
+#ifdef MPI
+      call mpi_allreduce( MPI_IN_PLACE, Fcalc, num_hkl, &
+           MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
 
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
@@ -669,7 +672,7 @@ contains
       abs_Fcalc(:) = abs(Fcalc(:))
 
 #if 1
-      if( first ) then
+      if(first .and. mytaskid==0) then
          write( 6,'(a,f15.5,e15.5)') 'At start: Fcalc_scale, norm_scale = ', &
               Fcalc_scale, norm_scale
          open(20,file='first.fmtz',action='write')
@@ -705,6 +708,7 @@ contains
       dF = xray_weight * dF
 
       if( fft_method == 0 ) then
+         ! This call uses MPI parallel to compute xray_dxyz:
          if( present(dB) ) then
             call fourier_dXYZBQ_dF(num_hkl,hkl_index,dF,mSS4,test_flag, &
             num_selected,frac_xyz, &
@@ -728,6 +732,10 @@ contains
             num_scatter_types,scatter_ncoeffs,scatter_coefficients,xray_dxyz)
 #endif
       endif
+#ifdef MPI
+      call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_atoms, &
+           MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
+#endif
 
       ! Convert xray_dxyz() back to orthogonal coordinates: 
       xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))

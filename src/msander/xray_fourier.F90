@@ -38,8 +38,6 @@ module xray_fourier_module
    implicit none
 #ifdef MPI
 #include "parallel.h"
-#else
-   integer :: numtasks=1, mytaskid=0
 #endif
 
    !-------------------------------------------------------------------
@@ -77,6 +75,9 @@ contains
       real(real_kind) :: atomic_scatter_factor(num_scatter_types)
       real(real_kind) :: f(num_atoms), angle(num_atoms)
       double precision :: time0, time1
+#ifdef MPI
+      integer hklgroup
+#endif
 
       ! Use the following if you expect num_atoms to change during a run:
       ! integer :: alloc_status
@@ -84,13 +85,8 @@ contains
       ! REQUIRE(alloc_status==0)
 
       call wallclock( time0 )
-#ifdef MPI
-      Fcalc(:) = 0.d0
-      do ihkl = mytaskid+1, num_hkl, numtasks
-#else
 !$omp parallel do private(ihkl, i, atomic_scatter_factor, f, angle )
-      do ihkl = 1, num_hkl
-#endif
+      do ihkl = ihkl1, ihkl2
          if (present(hkl_selected)) then
             if (hkl_selected(ihkl)==0) cycle
          end if
@@ -194,20 +190,15 @@ contains
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
       call wallclock( time0 )
-#ifdef MPI
-      dxyz(:) = 0.d0
-      REFLECTION: do ihkl = mytaskid+1,num_hkl,numtasks
-#else
 #ifdef USE_ISCALE
 !$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  reduction( +:d_tempFactor )
 #else
 !$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  
 #endif
-      REFLECTION: do ihkl = 1,num_hkl
-#endif
-         !if (present(hkl_selected)) then
-         !   if (hkl_selected(ihkl)==0) cycle REFLECTION
-         !end if
+      REFLECTION: do ihkl = ihkl1,ihkl2
+         ! if (present(hkl_selected)) then
+         !    if (hkl_selected(ihkl)==0) cycle REFLECTION
+         ! end if
 
          do i = 1,num_scatter_types
             atomic_scatter_factor(i) = &

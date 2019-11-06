@@ -1,42 +1,7 @@
-#
-#************************************************************************
-#                              AMBER                                   **
-#                                                                      **
-#               Copyright (c) 1986, 1991, 1995, 1997, 1999             **
-#                Regents of the University of California               **
-#                       All Rights Reserved.                           **
-#                                                                      **
-#  This software provided pursuant to a license agreement containing   **
-#  restrictions on its disclosure, duplication, and use. This software **
-#  contains confidential and proprietary information, and may not be   **
-#  extracted or distributed, in whole or in part, for any purpose      **
-#  whatsoever, without the express written permission of the authors.  **
-#  This notice, and the associated author list, must be attached to    **
-#  all copies, or extracts, of this software. Any additional           **
-#  restrictions set forth in the license agreement also apply to this  **
-#  software.                                                           **
-#************************************************************************
-#
-# Makefile for SQM (stand-alone quantum program)
-#
 include ../config.h
-
-# Sqm Fortran source files are free format
-LOCALFLAGS = $(FREEFORMAT_FLAG)
 
 SHELL=/bin/sh
 VPATH=
-
-#SQMOBJ = Objects specific to the standalone SQM
-SQMOBJ= file_io_dat.o constants.o findmask.o sqm.SQM.o \
-	xmin.o xminC.o \
-	amopen.o mexit.o assert.o \
-	timer_dummy.o nmlsrc.o \
-	qm_print_info.SQM.o \
-	qm2_energy.SQM.o \
-	qm2_read_nm_and_alloc.SQM.o \
-	qm2_scf.SQM.o \
-	qm2_dftb_scf.SQM.o
 
 #LIBQMOBJ = Objects specific to building as a library.
 LIBQMOBJ = qm_print_info.o \
@@ -80,19 +45,11 @@ QMOBJ = qm2_allocate_e_repul.o qm2_calc_charges.o qm2_calc_dipole.o \
 	qm2_dftb_get_dftb3_parameters.o qm2_dftb_gamma_dftb3.o
 
 
-install: sqm$(SFX)
-	mv sqm$(SFX) $(BINDIR)
-
-sqm$(SFX): $(SQMOBJ) $(QMOBJ) netlib sys
-	@echo "[SQM]  FC $@"
-	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o sqm$(SFX) $(SQMOBJ) $(QMOBJ) \
-		-L$(LIBDIR) $(FLIBSF) ../lib/sys.a $(LDFLAGS) $(AMBERLDFLAGS)
-
 #-----------LIBS
 
 xminC.o:  ../sff/xminC.c
 	@echo "[SQM]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o xminC.o ../sff/xminC.c
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o xminC.o ../sff/xminC.c
 
 libsqm: $(LIBDIR)/libsqm.a
 
@@ -102,20 +59,8 @@ $(LIBDIR)/libsqm.a: $(QMOBJ) $(LIBQMOBJ)
 	$(VB)$(RANLIB) libsqm.a
 	$(VB)mv libsqm.a $(LIBDIR)
 
-sys:
-	cd ../lib; $(MAKE) sys.a
-
-netlib:
-	cd ../lapack; $(MAKE) $(LAPACK)
-	cd ../blas; $(MAKE) $(BLAS)
-	cd ../arpack && $(MAKE) install
-
 clean:
 	/bin/rm -f *.o  *.mod *.d sqm$(SFX)
-
-uninstall:
-	-rm -f $(BINDIR)/sqm$(SFX)
-	-rm -f $(LIBDIR)/libsqm.a
 
 depend::
 	./makedepend > depend

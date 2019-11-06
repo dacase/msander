@@ -333,27 +333,6 @@ end subroutine startup
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine fdist here]
 subroutine fdist(f,forcetmp,pot,vir,newbalance)
-   !************************************************************
-   !   for the "original version", (when mpi_orig is set):
-
-   !     James Vincent 7/94
-   !     Gather all copies of the force array with ene and vir
-   !     arrays tacked onto the end, then extract ene and vir
-   !     arrays back out.
-   !     Input array f is current local PE copy, forcetmp is
-   !     scratch space, but results are put back into f, thus
-   !     overwriting what was there.
-   !     f: final force array - result of reduce operation
-   !     forcetmp: scratch space
-   !     ene: final ene array with sum of all ene values
-   !     vir: final vir array
-   !     MJW TODO Correct the above to match my changes
-
-   !   when mpi_orig is false, does a distributed sum of the forces,
-   !     so that each node ends up with only a piece of the total
-   !     force array; does a global sum on the energy and virial
-
-   !************************************************************
 
    use trace
    use qmmm_module, only : qmmm_nml
@@ -388,17 +367,14 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    if (numtasks == 1) return
    call trace_enter( 'fdist' )
 
-   !     Tack ene, and vir, onto end of f:
+   !     Tack vir onto end of f:
 
    j = 3*natom+iscale+1
    f(j)   = vir(1)
    f(j+1)   = vir(2)
    f(j+2)   = vir(3)
 
-   !f(j+32) = newbalance !what is this for?  !TODO mjw fix this
-
-   if( mpi_orig.or. ievb>0 .or. icfe>0 ) then
-
+   if( mpi_orig .or. ievb>0 .or. icfe>0 ) then
 
       !  ---Reduce the force array and energies back to the master node;
       !      (hence, the master will know all coordinates and all forces):
@@ -439,6 +415,7 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 
       ! ---Add all copies of virial and energy and put result back on ALL nodes:
 
+#if 0  /* no longer computer virials */
       call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mytaskid)
 #ifdef USE_MPI_IN_PLACE
       call mpi_allreduce(MPI_IN_PLACE,f(j),3,MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
@@ -451,12 +428,11 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
       call mpi_allreduce(f(j),forcetmp(j),3, &
             MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
 
-
-
       vir(1) = forcetmp(j)
       vir(2) = forcetmp(j+1)
       vir(3) = forcetmp(j+2)
-
+#endif
+#endif
       ! Reduce all values of potential to pot_tmp
       ! and then assign to pot
       call mpi_allreduce(pot,pot_tmp,potential_energy_rec_len, &
@@ -465,7 +441,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
       pot  = pot_tmp
       newbalance=0
       !if(forcetmp(j+32) > 0.d0)newbalance=1  !TODO mjw
-#endif
 
       if (init /= 3 .AND. qmmm_nml%vsolv < 2) then
          !  ---Do a distributed sum of the force array:

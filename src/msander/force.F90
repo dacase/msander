@@ -877,24 +877,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! MuSiC - GAL17 force field
   call music_force(ipairs, music_vdisp, music_vang, music_vgauss, music_spohr89)
 
-  ! Built-in X-ray target function and gradient
-  xray_e = 0.d0
-  if( xray_active ) then
-#ifdef USE_ISCALE
-     if (first) then
-        ! set coordinates to current bfactors:
-        x(3*natom+1:4*natom) = atom_bfactor(1:natom)
-        first = .false.
-     else
-        ! get current bfactors from the end of the coordinate array:
-        atom_bfactor(1:natom) = x(3*natom+1:4*natom)
-     endif
-     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
-#else
-     call xray_get_derivative(x,f,xray_e)
-#endif
-  endif
-
 #ifdef MPI
   call timer_barrier( commsander )
   call timer_start(TIME_COLLFRC)
@@ -944,6 +926,24 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if
 #endif
 
+  ! Built-in X-ray target function and gradient
+  xray_e = 0.d0
+  if( xray_active ) then
+#ifdef USE_ISCALE
+     if (first) then
+        ! set coordinates to current bfactors:
+        x(3*natom+1:4*natom) = atom_bfactor(1:natom)
+        first = .false.
+     else
+        ! get current bfactors from the end of the coordinate array:
+        atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+     endif
+     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+#else
+     call xray_get_derivative(x,f,xray_e)
+#endif
+  endif
+
     ! Calculate the total energy and group the components
 #ifndef LES
   if (igb == 0 .and. ipb == 0) then
@@ -990,31 +990,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ener%aveind = aveind
   ener%avetot = avetot
    
-  ! This is now historical; MJW Feb 2010
-  !
-  !    Here is a summary of how the ene array is used.  For parallel runs,
-  !    these values get summed then rebroadcast to all nodes (via
-  !    mpi_allreduce).
-
-  !    ene(1):      total energy
-  !    ene(2):      van der Waals
-  !    ene(3):      electrostatic energy
-  !    ene(4):      10-12 (hb) energy, or GB energy when igb.gt.0
-  !    ene(5):      bond energy
-  !    ene(6):      angle energy
-  !    ene(7):      torsion angle energy
-  !    ene(8):      1-4 nonbonds
-  !    ene(9):      1-4 electrostatics
-  !    ene(10):     constraint energy
-  !    ene(11-19):  used as scratch, but not needed further below
-  !    ene(20):     position constraint energy + cap energy
-  !    ene(21):     charging free energy result
-  !    ene(22):     noe volume penalty
-  !    ene(23):     surface-area dependent energy, or cavity energy
-  !    ene(24):     potential energy for a subset of atoms
-  !    ene(25):     SCF Energy when doing QMMM
-  !    ene(26):     implicit solvation dispersion energy
-
 #ifdef PUPIL_SUPPORT
   ! QM/MM structural considerations are now dealt with.
   ! Add the quantum forces from last QM calculation.

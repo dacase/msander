@@ -5,7 +5,7 @@ VPATH=
 
 .f.o:
 	@echo "[BLAS]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ $<
+	$(VB)$(FC) -c $(FOPTFLAGS) $(FFLAGS) -o $@ $<
 
 OBJS=    dasum.o daxpy.o dcabs1.o dcopy.o ddot.o \
          dgbmv.o dgemm.o dgemv.o dger.o dnrm2.o drot.o \

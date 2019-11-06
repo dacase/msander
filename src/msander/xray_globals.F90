@@ -174,4 +174,7 @@ module xray_globals_module
    integer, save :: fft3_max_threads = 2
 #endif
 
+   ! MPI distribution on reflections:
+   integer, save :: ihkl1, ihkl2
+
 end module xray_globals_module
