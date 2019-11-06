@@ -1282,54 +1282,6 @@ contains
     call interpolateSolventSusceptibility(this, this%solvent%xvv, this%xvva)
   end subroutine reallocateBox
 
-  !> Prints the maximum amount of memory allocated at any one time so
-  !! far in the run.
-  subroutine rism3d_max_memory(this)
-    use safemem
-    implicit none
-#ifdef MPI
-    include "mpif.h"
-#endif /*MPI*/
-    type(rism3d) :: this
-    integer * 8 :: memstats(10), tmemstats(10)
-    integer :: err, irank, outunit
-    outunit = rism_report_getMUnit()
-    memstats = memStatus()
-#ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
-    if (this%mpirank == 0) then
-       call MPI_REDUCE(MPI_IN_PLACE, memstats, ubound(memstats, 1), MPI_INTEGER8, &
-            MPI_SUM, 0,this%mpicomm, err)
-    else
-       call MPI_REDUCE(memstats, memstats, ubound(memstats, 1), MPI_INTEGER8, &
-            MPI_SUM, 0,this%mpicomm, err)
-    end if
-#  else /*USE_MPI_IN_PLACE*/
-    call MPI_REDUCE(memstats, tmemstats, ubound(memstats, 1), MPI_INTEGER8, &
-         MPI_SUM, 0,this%mpicomm, err)
-    memstats = tmemstats
-#  endif /*USE_MPI_IN_PLACE*/
-    if (err/=0) call rism_report_warn("RISM_MAX_MEMORY: MPI_REDUCE failed.")
-#endif
-    if (this%mpirank == 0) then
-       write(outunit, '(a)')
-       write(outunit, '(a)') "|3D-RISM memory allocation summary"
-       write(outunit, '(a)') "|Type          Maximum"
-       write(outunit, '(a,f12.5,a)') "|Integer  ", &
-            dble(memstats(1))/BYTES_PER_GB, " GB"
-       write(outunit, '(a,f12.5,a)') "|Real     ", &
-            dble(memstats(2))/BYTES_PER_GB, " GB"
-       write(outunit, '(a,f12.5,a)') "|Logical  ", &
-            dble(memstats(3))/BYTES_PER_GB, " GB"
-       write(outunit, '(a,f12.5,a)') "|Character", &
-            dble(memstats(4))/BYTES_PER_GB, " GB"
-       write(outunit, '(a)') "|------------------------"
-       write(outunit, '(a,f12.5,a)') "|Total    ", &
-            dble(memstats(5))/BYTES_PER_GB, " GB"
-    end if
-  end subroutine rism3d_max_memory
-
-
   !> Interpolate the solvent-solvent susceptibility, solved on the
   !! 1D-RISM grid, to the 3D-RISM grid.
   !! @param[in,out] this rism3d object.

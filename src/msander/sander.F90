@@ -1834,7 +1834,7 @@ subroutine sander()
   end if
 
 #ifdef RISMSANDER
-  call rism_finalize()
+   call rism_finalize()
 #endif
 
   if (ifcr .ne. 0) then

@@ -3876,13 +3876,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    end if ! icnste
 
-#ifdef noVIRIAL
-   if( ntp > 0 .and. barostat == 1 ) then
-      write(6,'(/,a)') 'Error: Berendsen barostat is incompatible with noVIRIAL'
-      DELAYED_ERROR
-   end if
-#endif
-
    !-----------------------------------------------------
    !     ----sanity checks for Ewald
    !-----------------------------------------------------

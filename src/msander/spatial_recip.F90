@@ -649,9 +649,6 @@ subroutine spatial_scalar_sumrc( &
    if ( 2*nf3 < nfft3 )nf3 = nf3+1
    energy = 0.d0
    k10 = 1
-#ifndef noVIRIAL
-   rec_vir(:,:) = ZERO
-#endif
    !........Insist that Q(1,1,1,1) is set to 0 (true already for neutral)
    
    if(master)then
@@ -693,20 +690,6 @@ subroutine spatial_scalar_sumrc( &
                   q(2,k3,k1-xgmin,k2q)*q(2,k3,k1-xgmin,k2q)
             tmp1 = eterm*struc2
             energy = energy + tmp1
-#ifndef noVIRIAL
-            vterm = 2.d0*(fac*msq + 1.d0)*msq_inv
-            tmp2 = tmp1*vterm
-            rec_vir(1,1) = rec_vir(1,1) + tmp1 * (vterm*mhat1*mhat1 - 1.d0)
-            rec_vir(1,2) = rec_vir(1,2) + tmp2*mhat1*mhat2
-            rec_vir(1,3) = rec_vir(1,3) + tmp2*mhat1*mhat3
-            rec_vir(2,1) = rec_vir(2,1) + tmp2*mhat2*mhat1
-            rec_vir(2,2) = rec_vir(2,2) + tmp1 * (vterm*mhat2*mhat2 - 1.d0)
-            rec_vir(2,3) = rec_vir(2,3) + tmp2*mhat2*mhat3
-            rec_vir(3,1) = rec_vir(3,1) + tmp2*mhat3*mhat1
-            rec_vir(3,2) = rec_vir(3,2) + tmp2*mhat3*mhat2
-            rec_vir(3,3) = rec_vir(3,3) + tmp1 * (vterm*mhat3*mhat3 - 1.d0)
-#endif
-            
             
             if( k1 > 1 .and. k1 <= nfft1 )then
                m1s = k1s - 1
@@ -724,19 +707,6 @@ subroutine spatial_scalar_sumrc( &
                      prefac3(k3s)*piv_inv*msq_inv
                tmp1 = eterms*struc2
                energy = energy + tmp1
-#ifndef noVIRIAL
-               vterms = 2.d0*(fac*msqs + 1.d0)*msq_inv
-               tmp2 = tmp1*vterms
-               rec_vir(1,1) = rec_vir(1,1) + tmp1*(vterms*mhat1s*mhat1s - 1.d0)
-               rec_vir(1,2) = rec_vir(1,2) + tmp2*mhat1s*mhat2s
-               rec_vir(1,3) = rec_vir(1,3) + tmp2*mhat1s*mhat3s
-               rec_vir(2,1) = rec_vir(2,1) + tmp2*mhat2s*mhat1s
-               rec_vir(2,2) = rec_vir(2,2) + tmp1*(vterms*mhat2s*mhat2s - 1.d0)
-               rec_vir(2,3) = rec_vir(2,3) + tmp2*mhat2s*mhat3s
-               rec_vir(3,1) = rec_vir(3,1) + tmp2*mhat3s*mhat1s
-               rec_vir(3,2) = rec_vir(3,2) + tmp2*mhat3s*mhat2s
-               rec_vir(3,3) = rec_vir(3,3) + tmp1*(vterms*mhat3s*mhat3s - 1.d0)
-#endif
             end if
 
             q(1,k3,k1-xgmin,k2q) = eterm * q(1,k3,k1-xgmin,k2q)
@@ -746,14 +716,6 @@ subroutine spatial_scalar_sumrc( &
    end do  !  k2q = 1, mxzslabs
 
    eer = HALF * energy
-
-#ifndef noVIRIAL
-   do m2 = 1,3
-      do m1 = 1,3
-         rec_vir(m1,m2) = 0.5d0*rec_vir(m1,m2)
-      end do
-   end do
-#endif
 
    return
 end subroutine spatial_scalar_sumrc 
@@ -858,9 +820,6 @@ subroutine spatial_scalar_sumrc_orthog( &
    end if
    energy = ZERO
    k10 = 1
-#ifndef noVIRIAL
-   rec_vir = ZERO
-#endif
    
    !........Insist that Q(1,1,1) is set to 0 (true already for neutral)
    
@@ -917,20 +876,6 @@ subroutine spatial_scalar_sumrc_orthog( &
                   aimag(q(k3,k1-xgmin,k2q))*aimag(q(k3,k1-xgmin,k2q))
             tmp1 = eterm*struc2
             energy = energy + tmp1
-#ifndef noVIRIAL
-            vterm = 2.d0*(fac*msq + 1.d0)*msq_inv
-            tmp2 = tmp1*vterm
-            rec_vir(1,1) = rec_vir(1,1) + tmp1 * (vterm*mhat1*mhat1 - 1.d0)
-            rec_vir(1,2) = rec_vir(1,2) + tmp2*mhat1*mhat2
-            rec_vir(1,3) = rec_vir(1,3) + tmp2*mhat1*mhat3
-            rec_vir(2,1) = rec_vir(2,1) + tmp2*mhat2*mhat1
-            rec_vir(2,2) = rec_vir(2,2) + tmp1 * (vterm*mhat2*mhat2 - 1.d0)
-            rec_vir(2,3) = rec_vir(2,3) + tmp2*mhat2*mhat3
-            rec_vir(3,1) = rec_vir(3,1) + tmp2*mhat3*mhat1
-            rec_vir(3,2) = rec_vir(3,2) + tmp2*mhat3*mhat2
-            rec_vir(3,3) = rec_vir(3,3) + tmp1 * (vterm*mhat3*mhat3 - 1.d0)
-#endif
-            
             
             if( k1 > 1 .and. k1 <= nfft1 )then
                m1s = k1s - 1
@@ -942,19 +887,6 @@ subroutine spatial_scalar_sumrc_orthog( &
                      prefac1(k1s) * msq_inv
                tmp1 = eterms*struc2
                energy = energy + tmp1
-#ifndef noVIRIAL
-               vterms = 2.d0*(fac*msqs + 1.d0)*msq_inv
-               tmp2 = tmp1*vterms
-               rec_vir(1,1) = rec_vir(1,1) + tmp1*(vterms*mhat1s*mhat1s - 1.d0)
-               rec_vir(1,2) = rec_vir(1,2) + tmp2*mhat1s*mhat2s
-               rec_vir(1,3) = rec_vir(1,3) + tmp2*mhat1s*mhat3s
-               rec_vir(2,1) = rec_vir(2,1) + tmp2*mhat2s*mhat1s
-               rec_vir(2,2) = rec_vir(2,2) + tmp1*(vterms*mhat2s*mhat2s - 1.d0)
-               rec_vir(2,3) = rec_vir(2,3) + tmp2*mhat2s*mhat3s
-               rec_vir(3,1) = rec_vir(3,1) + tmp2*mhat3s*mhat1s
-               rec_vir(3,2) = rec_vir(3,2) + tmp2*mhat3s*mhat2s
-               rec_vir(3,3) = rec_vir(3,3) + tmp1*(vterms*mhat3s*mhat3s - 1.d0)
-#endif
             end if
 
             q(k3,k1-xgmin,k2q) = eterm * q(k3,k1-xgmin,k2q)
@@ -963,9 +895,6 @@ subroutine spatial_scalar_sumrc_orthog( &
    end do  !  k2q = 1, nymax
 
    eer = HALF * energy
-#ifndef noVIRIAL
-   rec_vir = HALF*rec_vir
-#endif
 
    return
 

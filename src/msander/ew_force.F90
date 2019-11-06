@@ -219,18 +219,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
               call do_pme_recip(mpoltype,numatoms,crd,charge,frc,     &
                     X(linddip),x(lfield),x(lprefac1),x(lprefac2),    &
                     X(lprefac3),x(lfftable),qm_pot_only )
-           else if ( ew_type == 1 )then
-              call map_coords(crd,numatoms,recip)
-              if ( mpoltype == 0 )then
-                 call recip_reg(numatoms,charge,eer,rec_vir, &
-                       mlimit,volume,recip,frc, &
-                       ew_coeff,maxexp,commsander_mytaskid,commsander_numtasks)
-              else if ( mpoltype > 0 )then
-                 call recip_reg_dipole( &
-                           numatoms,charge,eer,rec_vir,mlimit,volume,recip, &
-                           frc,ew_coeff,maxexp,x(linddip),x(lfield), &
-                           commsander_mytaskid,commsander_numtasks)
-              end if
            else
               ASSERT( .false. )  ! ew_type input validation occurs in mdread.f
            end if
@@ -999,47 +987,6 @@ subroutine get_nonbond_virial(atvir,molvir, &
 
    integer i,j,n
 
-#ifndef noVIRIAL
-   !     The atomic virial needs to be corrected by terms from
-   !     bonds,angles etc.  Rather than getting the force due to
-   !     those terms alone without the nonbonds and computing the
-   !     force*crd tensor we will compute the full force*crd
-   !     tensor and then correct it with the atvir tensor which is the
-   !     force*crd tensor computed  with force given by the nonbond
-   !     terms.  Always compute atomic virial. Only compute molecular
-   !     virial if xr is valid, allowing a correction term to be
-   !     computed...
-
-   !     rec_vir()  == reciprocal virial, computed in scalar_sumrc()
-   !     rec_vird() == long-range vdw (dispersion) correction, computed in
-   !                   vdw_correction()
-   !     dir_vir()  == direct-space nonbond virial, computed in short_ene()
-   !     adj_vir()  == corrections for 1-2, 1-3, etc, computed in nb_adjust()
-   !     self_vir() == correction computed in self()
-   !     e14vir()   == 1-4 term (correction?), computed in get_14_cg()
-   !     framevir() == extra-point transfers, computed in orient_force()
-   
-   do j = 1,3
-      do i = 1,3
-         atvir(i,j) = rec_vir(i,j) + dir_vir(i,j) + adj_vir(i,j) + &
-               rec_vird(i,j) + self_vir(i,j) + e14vir(i,j) + framevir(i,j)
-#  ifdef LES
-         atvir(i,j) = atvir(i,j) + les_vir(i,j)
-#  endif
-         ! subvir(i,j) = 0.d0
-         molvir(i,j) = atvir(i,j)
-      end do
-   end do
-   do n = 1,numatoms
-      do j = 1,3
-         do i = 1,3
-            ! subvir(i,j) = subvir(i,j) - frc(i,n)*crd(j,n)
-            molvir(i,j) = molvir(i,j) + frc(i,n)*xr(j,n)
-         end do
-      end do
-   end do
-
-#endif /* noVirial */
    return
 end subroutine get_nonbond_virial 
 

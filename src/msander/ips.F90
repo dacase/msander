@@ -757,14 +757,6 @@ subroutine aipspbc( eerw,eerq,natom,crd,charge,frcx,frc,rec_vir)
             r_stack(l_q), r_stack(l_w),elearray,vdwarray,elexx,elexy, &
             elexz,eleyy,eleyz,elezz,vdwxx,vdwxy,vdwxz,vdwyy,vdwyz,vdwzz,&
             nfft1,nfft2,nfft3,nfftdim1,eeaips,evaips,aips_vir)
-#ifndef noVIRIAL
-   do m2 = 1,3
-      do m1 = 1,3
-         rec_vir(m1,m2) = rec_vir(m1,m2)+aips_vir(m1,m2)
-      end do
-   end do
-#endif
-
    call timer_stop_start(TIME_AIPS_SUM,TIME_AIPS_FFT)
    
    !           -----------FFT FORWARD--------------------
@@ -1598,13 +1590,6 @@ subroutine aips_sumrc( &
    if ( 2*nf3 < nfft3 )nf3 = nf3+1
    enq = 0.0d0
    enw = 0.0d0
-#ifndef noVIRIAL
-   do m2 = 1,3
-      do m1 = 1,3
-         rec_vir(m1,m2) = 0.d0
-      end do
-   end do
-#endif
 
    !======================================================================
    !        BIG LOOP
@@ -1655,15 +1640,6 @@ subroutine aips_sumrc( &
             struc2w = CFACT4*(WI*WI + WJ*WJ)
             tmp2 = PWI *struc2w
             enw = enw + tmp2
-#ifndef noVIRIAL
-            rec_vir(1,1) = rec_vir(1,1) + (qxx(1,k3,k1,k2q)*struc2q+wxx(1,k3,k1,k2q)*struc2w)
-            rec_vir(1,2) = rec_vir(1,2) + (qxy(1,k3,k1,k2q)*struc2q+wxy(1,k3,k1,k2q)*struc2w)
-            rec_vir(1,3) = rec_vir(1,3) + (qxz(1,k3,k1,k2q)*struc2q+wxz(1,k3,k1,k2q)*struc2w)
-            rec_vir(2,2) = rec_vir(2,2) + (qyy(1,k3,k1,k2q)*struc2q+wyy(1,k3,k1,k2q)*struc2w)
-            rec_vir(2,3) = rec_vir(2,3) + (qyz(1,k3,k1,k2q)*struc2q+wyz(1,k3,k1,k2q)*struc2w)
-            rec_vir(3,3) = rec_vir(3,3) + (qzz(1,k3,k1,k2q)*struc2q+wzz(1,k3,k1,k2q)*struc2w)
-#endif
-            
 
          end do  !  k1 = 1, nf1+1
       end do  !  k3 = 1,nfft3
@@ -1671,18 +1647,6 @@ subroutine aips_sumrc( &
 
    eerq = eipsael+cfact * enq
    eerw = eipsanb+cfact * enw
-
-#ifndef noVIRIAL
-   do m2 = 1,3
-      do m1 = 1,m2
-         rec_vir(m1,m2) = cfact*rec_vir(m1,m2)
-      end do
-      rec_vir(m2,m2) = rec_vir(m2,m2)+viraips
-   end do
-   rec_vir(2,1) = rec_vir(1,2)
-   rec_vir(3,1) = rec_vir(1,3)
-   rec_vir(3,2) = rec_vir(2,3)
-#endif
 
    return
 end subroutine aips_sumrc 

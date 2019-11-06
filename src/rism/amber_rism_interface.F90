@@ -1648,8 +1648,8 @@ contains
 
        if (safemem_dealloc(tolerancelist) /= 0) &
             call rism_report_error("Deallocation in Amber-RISM interface failed")
+       call rism_max_memory()
     end if
-    call rism_max_memory()
   end subroutine rism_finalize
 
   

@@ -939,21 +939,6 @@ ew_recip.LES.o:   ew_recip.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip.F90
 
-ew_recip_reg.o: \
-                    copyright.h\
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    nonbond_list.o\
-                    stack.o\
-                    flocntrl.h\
-                    constants.o\
-                    def_time.h
-
-
-ew_recip_reg.o:   ew_recip_reg.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip_reg.F90
-
 ew_setup.o: \
                     copyright.h\
                     ../include/assert.fh\
@@ -4192,7 +4177,8 @@ xray_fourier.o: \
                     xray_globals.o\
                     constants.o\
                     xray_reciprocal_space.o\
-                    xray_real_space.o
+                    xray_real_space.o\
+                    parallel.h
 
 
 xray_fourier.o:   xray_fourier.F90
@@ -4219,6 +4205,7 @@ xray_interface.o: \
                     nonbond_list.o\
                     xray_fourier.o\
                     findmask.o\
+                    parallel.h\
                     extra.h
 
 

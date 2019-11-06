@@ -328,10 +328,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! variables used in middle scheme
   _REAL_ :: xold(3*natom)       ! for constrained MD
   _REAL_ :: x_centroid(3,natom) ! for PIMD
-  ! Ek(t) is written in mden or mdout, as the default scheme does
-  ! Ek(t+dt/2) is written in file_ek, as defined below
-  ! DAC: above comments don't seem to matche the code(?)
-  integer,parameter :: fh_ek = 1024
+  ! Ek(t) used to be written to mdout
+  ! Ek(t+dt/2) is now written to mdout
+  ! DAC: need to figure out exactly how the above matches the code
   character(len=*),parameter :: file_ek = "eke.dat"
   _REAL_ :: ekhf, ekhf2
 
@@ -536,10 +535,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   !    Langevin dynamics setup  {{{
-  if (rem == 0 .and. master .and. ithermostat == 0) then
-     open(fh_ek, file=file_ek)
-     write(fh_ek, *) '#  NSTEP      ekph          ekpbs'
-  endif
   if (nscm > 0) then
      if (ifbox == 0) then
         call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
@@ -1774,7 +1769,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! for harmonic oscillator: Eq. 4.7b of Mol.
   ! Phys. 65:1409-1419, 1988
   ener%kin%solv = ekpbs + ener%pot%tot
-  ener%kin%solt = eke
+  if( ithermostat == 1 ) then
+     ener%kin%solt = ekph  ! seems to be what Jian Li really wants for LD
+  else
+     ener%kin%solt = eke   ! original sander, shows energy conservation
+  endif
   ener%kin%tot  = ener%kin%solt
 #endif /* LES */
 
@@ -1991,9 +1990,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (facc .ne. 'A') rewind(7)
 
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
-      if (rem == 0 .and. master .and. ithermostat == 0) then
-         write(fh_ek, '(I10,2(1x,F14.4))') nstep, ekph, ekpbs
-      endif
 
 #ifdef MPI
       ! AWG FIXME - this should be in a subroutine
@@ -2385,7 +2381,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
     ! End contingency for nvalid > 0, signifying that
     ! all energies must be calculated
-    if (rem == 0 .and. master .and. ithermostat == 0) close(fh_ek)
     if (ntp > 0 .and. barostat == 2) call mcbar_summary
   end if
   ! End of contingency for work on the master process;

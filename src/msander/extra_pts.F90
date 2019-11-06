@@ -788,16 +788,6 @@ subroutine do_orient_frc(crd,frc,framevir,frtype,atcenter,numep, &
          force(1:3) = force(1:3) + frc(1:3,j)
          rel(1:3)   = crd(1:3,j) - crd(1:3,i)
          
-#ifndef noVIRIAL
-         !         ---get transferred force component of virial
-         
-         do m = 1,3
-            do l = 1,3
-               framevir(l,m) = framevir(l,m) + frc(l,j)*rel(m)
-            end do
-         end do
-#endif
-         
          !---torque is rel x frc
          
          torque(1) = torque(1) + rel(2)*frc(3,j) - rel(3)*frc(2,j)
@@ -907,17 +897,6 @@ subroutine do_orient_frc(crd,frc,framevir,frtype,atcenter,numep, &
             frc(m,j2) = frc(m,j2) + dv(m) + du(m) + force(m)
          end do
          
-#ifndef noVIRIAL
-         !         ---get torque contribution to virial
-         
-         do m = 1,3
-            do l = 1,3
-               framevir(l,m) = framevir(l,m) + du(l)*(ap(m)-bp(m)) &
-                     + dv(l)*(cp(m) - bp(m))
-            end do
-         end do
-#endif
-         
       else if ( frtype(n) == 2 ) then
          
          !       ---need to transfer forces from midpoints to atoms
@@ -934,17 +913,6 @@ subroutine do_orient_frc(crd,frc,framevir,frtype,atcenter,numep, &
             frc(m,j2) = frc(m,j2) - 0.5d0*(du(m)+dv(m))
             frc(m,j4) = frc(m,j4) + dv(m) + du(m) + force(m)
          end do
-         
-#ifndef noVIRIAL
-         !         ---get torque contribution to virial
-         
-         do m = 1,3
-            do l = 1,3
-               framevir(l,m) = framevir(l,m) + du(l)*(ap(m)-bp(m)) &
-                     + dv(l)*(cp(m) - bp(m))
-            end do
-         end do
-#endif
          
       end if  ! ( frtype(n) == 1 )
       
@@ -1533,17 +1501,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          frc(1,i) = frc(1,i) - df*dx
          frc(2,i) = frc(2,i) - df*dy
          frc(3,i) = frc(3,i) - df*dz
-#ifndef noVIRIAL
-         e14vir(1,1) = e14vir(1,1) - df*dx*dx
-         e14vir(1,2) = e14vir(1,2) - df*dx*dy
-         e14vir(1,3) = e14vir(1,3) - df*dx*dz
-         e14vir(2,1) = e14vir(2,1) - df*dy*dx
-         e14vir(2,2) = e14vir(2,2) - df*dy*dy
-         e14vir(2,3) = e14vir(2,3) - df*dy*dz
-         e14vir(3,1) = e14vir(3,1) - df*dz*dx
-         e14vir(3,2) = e14vir(3,2) - df*dz*dy
-         e14vir(3,3) = e14vir(3,3) - df*dz*dz
-#endif
       end do  !  n = 1,numnb14
    else
 !      do n = 1,numnb14
@@ -1630,17 +1587,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          frc(1,i) = frc(1,i) - df*dx
          frc(2,i) = frc(2,i) - df*dy
          frc(3,i) = frc(3,i) - df*dz
-#ifndef noVIRIAL
-         e14vir(1,1) = e14vir(1,1) - df*dx*dx
-         e14vir(1,2) = e14vir(1,2) - df*dx*dy
-         e14vir(1,3) = e14vir(1,3) - df*dx*dz
-         e14vir(2,1) = e14vir(2,1) - df*dy*dx
-         e14vir(2,2) = e14vir(2,2) - df*dy*dy
-         e14vir(2,3) = e14vir(2,3) - df*dy*dz
-         e14vir(3,1) = e14vir(3,1) - df*dz*dx
-         e14vir(3,2) = e14vir(3,2) - df*dz*dy
-         e14vir(3,3) = e14vir(3,3) - df*dz*dz
-#endif
       end do  !  n = 1,numnb14
    end if  ! (eedmeth == 5)
    return
@@ -1857,17 +1803,6 @@ subroutine do_14_dipole(charge,crd,frc,dipole,field, &
       field(1,j) = field(1,j) - scdd0*dphij_dx
       field(2,j) = field(2,j) - scdd0*dphij_dy
       field(3,j) = field(3,j) - scdd0*dphij_dz
-#ifndef noVIRIAL
-      e14vir(1,1) = e14vir(1,1) - dfx*dx
-      e14vir(1,2) = e14vir(1,2) - dfx*dy
-      e14vir(1,3) = e14vir(1,3) - dfx*dz
-      e14vir(2,1) = e14vir(2,1) - dfy*dx
-      e14vir(2,2) = e14vir(2,2) - dfy*dy
-      e14vir(2,3) = e14vir(2,3) - dfy*dz
-      e14vir(3,1) = e14vir(3,1) - dfz*dx
-      e14vir(3,2) = e14vir(3,2) - dfz*dy
-      e14vir(3,3) = e14vir(3,3) - dfz*dz
-#endif
    end do  !  n = 1,numnb14
    return
 end subroutine do_14_dipole 

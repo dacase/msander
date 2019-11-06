@@ -367,13 +367,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    if (numtasks == 1) return
    call trace_enter( 'fdist' )
 
-   !     Tack vir onto end of f:
-
-   j = 3*natom+iscale+1
-   f(j)   = vir(1)
-   f(j+1)   = vir(2)
-   f(j+2)   = vir(3)
-
    if( mpi_orig .or. ievb>0 .or. icfe>0 ) then
 
       !  ---Reduce the force array and energies back to the master node;
@@ -382,28 +375,21 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
       call trace_mpi('mpi_reduce', &
             (3*natom+iscale+3),'MPI_DOUBLE_PRECISION',mytaskid)
       if (master) then
-        call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale+3), &
+        call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale), &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
         call mpi_reduce(MPI_IN_PLACE,pot,potential_energy_rec_len, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
       else
-        call mpi_reduce(f,0,(3*natom+iscale+3), &
+        call mpi_reduce(f,0,(3*natom+iscale), &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
         call mpi_reduce(pot,0,potential_energy_rec_len, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
       end if
-      vir(1) = f(j)
-      vir(2) = f(j+1)
-      vir(3) = f(j+2)
+
    else
 
-      ! ---Add all copies of virial and energy and put result back on ALL nodes:
+      ! ---Add all copies of energy and put result back on ALL nodes:
 
-      call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mytaskid)
-      call mpi_allreduce(MPI_IN_PLACE,f(j),3,MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-      vir(1) = f(j)
-      vir(2) = f(j+1)
-      vir(3) = f(j+2)
       newbalance=0
       !if(f(j+32) > 0.d0)newbalance=1 !MJW TO FIX
 

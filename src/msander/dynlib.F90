@@ -572,12 +572,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (ntp > 0.0 .or. volume /= 0.0) then
     write(6, 9079) densit
   end if
-#ifndef noVIRIAL
-  if (igb == 0 .and. ipb == 0 .and. iyammp == 0 .and. induced == 0 .and. &
-      use_pme == 1) then
-    write(6,9188) virvsene
-  end if
-#endif
 
   if (itgtmd == 1) then
     write (6,'(a,f8.3)') "Current RMSD from reference: ", rmsdvalue
@@ -805,12 +799,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (ntp > 0.0 .or. volume /= 0.0) then
     write(7, 9079) densit
   end if
-#ifndef noVIRIAL
-  if (igb == 0 .and. ipb == 0 .and. iyammp == 0 .and. induced == 0 .and. &
-      ips == 0 .and. use_pme == 1) then
-    write(7, 9188) virvsene
-  end if
-#endif
 
   ! Printout SGLD guiding information
   if (isgld > 0) then

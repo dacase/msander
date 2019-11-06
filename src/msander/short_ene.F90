@@ -459,9 +459,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #  include "ene_decomp.h"
 #endif
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee
-#endif
       delr2inv = delrinv*delrinv
       dfee = dfee*delr2inv
       cache_r2(im_new)=delr2inv
@@ -548,9 +545,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif
 
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee
-#endif
       delr2inv = delrinv*delrinv
       dfee = dfee*delr2inv
          
@@ -716,10 +710,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       ! The following ew_directe3.h or directe4.h needs r^2 in cache_r2
       cache_df(im_new) = dfee
 
-#  ifndef noVIRIAL
-      ! Include the softcore contribution to the ee virial
-      ee_vir_iso = ee_vir_iso - dfee * cache_r2(im_new)
-#  endif
     end do
     ! End epilogue loop
 
@@ -804,9 +794,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 # include "ene_decomp.h"
 #endif
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee*delr2
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -886,9 +873,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 # include "ene_decomp.h"
 #endif
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee*delr2
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -960,9 +944,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #  include "ene_decomp.h"
 #endif
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee*delr2
-#endif
       cache_r2(im_new)=delr2inv
       cache_df(im_new)=dfee
     end do
@@ -1038,9 +1019,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 # include "ene_decomp.h"
 #endif
 
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfee*delr2
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -1497,19 +1475,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   force(1,i) = force(1,i) - dumx
   force(2,i) = force(2,i) - dumy
   force(3,i) = force(3,i) - dumz
-#ifndef noVIRIAL
-  ! Accumulate the virial
-  dir_vir(1,1) = dir_vir(1,1) + vxx
-  dir_vir(1,2) = dir_vir(1,2) + vxy
-  dir_vir(2,1) = dir_vir(2,1) + vxy
-  dir_vir(1,3) = dir_vir(1,3) + vxz
-  dir_vir(3,1) = dir_vir(3,1) + vxz
-  dir_vir(2,2) = dir_vir(2,2) + vyy
-  dir_vir(2,3) = dir_vir(2,3) + vyz
-  dir_vir(3,2) = dir_vir(3,2) + vyz
-  dir_vir(3,3) = dir_vir(3,3) + vzz
-  eedvir = eedvir + ee_vir_iso
-#endif
 
   return
 
@@ -1749,9 +1714,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dfx = term1*delx + termi*dipole(1,j) - termj*dipole(1,i)
       dfy = term1*dely + termi*dipole(2,j) - termj*dipole(2,i)
       dfz = term1*delz + termi*dipole(3,j) - termj*dipole(3,i)
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfx*delx - dfy*dely - dfz*delz
-#endif
       ic = ico(iaci+iac(j))
       r6 = delr2inv * delr2inv * delr2inv
 #ifdef LES
@@ -1792,18 +1754,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
                                    dphij_dz_cor, eed_cub)
       end if
 
-#ifndef noVIRIAL
-      ! Contribute to the virial
-      dir_vir(1,1) = dir_vir(1,1) - dfx*delx
-      dir_vir(1,2) = dir_vir(1,2) - dfx*dely
-      dir_vir(1,3) = dir_vir(1,3) - dfx*delz
-      dir_vir(2,1) = dir_vir(2,1) - dfy*delx
-      dir_vir(2,2) = dir_vir(2,2) - dfy*dely
-      dir_vir(2,3) = dir_vir(2,3) - dfy*delz
-      dir_vir(3,1) = dir_vir(3,1) - dfz*delx
-      dir_vir(3,2) = dir_vir(3,2) - dfz*dely
-      dir_vir(3,3) = dir_vir(3,3) - dfz*delz
-#endif
       frc(1,j) = frc(1,j) + dfx
       frc(2,j) = frc(2,j) + dfy
       frc(3,j) = frc(3,j) + dfz
@@ -1953,9 +1903,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dfx = (term1)*delx + termi*dipole(1,j) - termj*dipole(1,i)
       dfy = (term1)*dely + termi*dipole(2,j) - termj*dipole(2,i)
       dfz = (term1)*delz + termi*dipole(3,j) - termj*dipole(3,i)
-#ifndef noVIRIAL
-      ee_vir_iso = ee_vir_iso - dfx*delx - dfy*dely - dfz*delz
-#endif
 #ifdef HAS_10_12
          
       ! This code allows 10-12 terms; in many (most?) (all?) cases, the
@@ -1978,17 +1925,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dfx = dfx + df*delx
       dfy = dfy + df*dely
       dfz = dfz + df*delz
-#ifndef noVIRIAL
-      dir_vir(1,1) = dir_vir(1,1) - dfx*delx
-      dir_vir(1,2) = dir_vir(1,2) - dfx*dely
-      dir_vir(1,3) = dir_vir(1,3) - dfx*delz
-      dir_vir(2,1) = dir_vir(2,1) - dfy*delx
-      dir_vir(2,2) = dir_vir(2,2) - dfy*dely
-      dir_vir(2,3) = dir_vir(2,3) - dfy*delz
-      dir_vir(3,1) = dir_vir(3,1) - dfz*delx
-      dir_vir(3,2) = dir_vir(3,2) - dfz*dely
-      dir_vir(3,3) = dir_vir(3,3) - dfz*delz
-#endif
       frc(1,j) = frc(1,j) + dfx
       frc(2,j) = frc(2,j) + dfy
       frc(3,j) = frc(3,j) + dfz
@@ -2017,9 +1953,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
   field(1,i) = field(1,i) - edx
   field(2,i) = field(2,i) - edy
   field(3,i) = field(3,i) - edz
-#ifndef noVIRIAL
-  eedvir = eedvir + ee_vir_iso
-#endif
   return
 
 end subroutine short_ene_dip 

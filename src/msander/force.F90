@@ -761,15 +761,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! No energy expression for ifcap == 5 given because only
   !    one step of minimization is allowed with this.
 
-  !  (this seems very weird: we have already done an allreduce on molvir
-  !  in ewald_force(); this just collects it on processor 0 (with zeroes
-  !  on all slave nodes), then later does an allreduce...)
-  if (mytaskid == 0) then
-    vir(1) = vir(1)+0.5d0*molvir(1,1)
-    vir(2) = vir(2)+0.5d0*molvir(2,2)
-    vir(3) = vir(3)+0.5d0*molvir(3,3)
-  end if
-
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
     ener%virvsene = virvsene
     ener%diprms = diprms
