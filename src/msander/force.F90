@@ -630,14 +630,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     endif
 #ifdef MPI 
     temp_amd_totdih = amd_dih_noH + amd_dih_H
-#  ifdef USE_MPI_IN_PLACE
-    call mpi_allreduce(MPI_IN_PLACE, temp_amd_totdih, 1, &
-                       MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
-    amd_totdih = temp_amd_totdih
-#  else
     call mpi_allreduce(temp_amd_totdih, amd_totdih, 1, MPI_DOUBLE_PRECISION, &
                        mpi_sum, commsander, ierr)
-#  endif /* USE_MPI_IN_PLACE */
 #else
     amd_totdih = amd_dih_noH + amd_dih_H
 #endif /* MPI */

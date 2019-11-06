@@ -91,13 +91,6 @@ module state
   !
   ! - Consolidate the passing of ener%vir with ener in force()
 
-  !===========================
-  !| TODO before release List |
-  !===========================
-  ! 
-  ! - Newbalance in fdist() is broken and USE_MPI_IN_PLACE may also be broken
-  !
-
   implicit none
   private 
 

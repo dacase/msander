@@ -583,14 +583,8 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    if(ntop > numatoms)ntop=numatoms
    call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mpi_sum)
 
-#  ifdef USE_MPI_IN_PLACE
    call mpi_allreduce(MPI_IN_PLACE,frcx,3,MPI_DOUBLE_PRECISION, &
          mpi_sum,commsander,ierr)
-#  else
-   call mpi_allreduce(frcx,rl_temp,3,MPI_DOUBLE_PRECISION, &
-         mpi_sum,commsander,ierr)
-   call putm_back(frcx,rl_temp,3)
-#  endif
 
 #else
 
@@ -664,24 +658,12 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    call trace_mpi('mpi_allreduce', &
          BC_EW_COMM3,'MPI_DOUBLE_PRECISION',mpi_sum)
-#  ifdef USE_MPI_IN_PLACE
    call mpi_allreduce(MPI_IN_PLACE,eer,BC_EW_COMM3, &
          MPI_DOUBLE_PRECISION, mpi_sum,commsander,ierr)
-#  else
-   call mpi_allreduce(eer,rl_temp,BC_EW_COMM3, &
-         MPI_DOUBLE_PRECISION, mpi_sum,commsander,ierr)
-   call putm_back(eer,rl_temp,BC_EW_COMM3)
-#  endif
 
 #  ifdef LES
-#   ifdef USE_MPI_IN_PLACE
    call mpi_allreduce(MPI_IN_PLACE,eeles,10,MPI_DOUBLE_PRECISION, &
          mpi_sum,commsander,ierr)
-#   else
-   call mpi_allreduce(eeles,rl_temp,10,MPI_DOUBLE_PRECISION, &
-         mpi_sum,commsander,ierr)
-   call putm_back(eeles,rl_temp,10)
-#   endif
 #  endif
 #endif /* MPI */
    
@@ -863,22 +845,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
    end if  ! mpoltype
 
 end subroutine do_pme_recip
-
-#ifdef MPI
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ [Enter a one-line description of subroutine putm_back here]
-subroutine putm_back(x,y,n)
-   implicit none
-   integer, intent(in) :: n
-   _REAL_, intent(out) :: x(n)
-   _REAL_, intent(in) :: y(n)
-
-   x(1:n) = y(1:n)
-   return
-end subroutine putm_back 
-#endif
-
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Emit verbose information about the PME calculation.

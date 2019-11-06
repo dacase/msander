@@ -2255,14 +2255,8 @@ subroutine emapforce(natom,enemap,amass,x,f)
 !  Combining all node results
 !
           TEMP1(1)=SCRIG
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,1,MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           ENRIGM=TEMP1(1)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,1, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          SCRIG=TEMP2(1)
-# endif
         ENDIF
 #endif
       ENRIGM=-CFACT*SCRIG
@@ -2456,7 +2450,6 @@ subroutine emapforce(natom,enemap,amass,x,f)
           TEMP1(5)=RTX
           TEMP1(6)=RTY
           TEMP1(7)=RTZ
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,7,MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           SCRIG=TEMP1(1)
           RFX=TEMP1(2)
@@ -2465,17 +2458,6 @@ subroutine emapforce(natom,enemap,amass,x,f)
           RTX=TEMP1(5)
           RTY=TEMP1(6)
           RTZ=TEMP1(7)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,7, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          SCRIG=TEMP2(1)
-          RFX=TEMP2(2)
-          RFY=TEMP2(3)
-          RFZ=TEMP2(4)
-          RTX=TEMP2(5)
-          RTY=TEMP2(6)
-          RTZ=TEMP2(7)
-# endif
         ENDIF
 #endif
       ENRIGM=-CFACT*SCRIG

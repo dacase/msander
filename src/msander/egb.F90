@@ -1170,14 +1170,8 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          k=natom
 #endif
          ! carlos changed this to use k as set above, not natom
-#ifdef USE_MPI_IN_PLACE
          call mpi_allreduce(MPI_IN_PLACE,sumdeijda,k, &
               MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-#else
-         call mpi_allreduce(sumdeijda,vectmp1,k, &
-              MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-         sumdeijda(1:k) = vectmp1(1:k)
-#endif
       end if
       call timer_stop(TIME_GBRADDIST)
 #endif
@@ -2291,23 +2285,11 @@ subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
    if( numtasks > 1 ) then
 #  ifdef LES
          ! LES has more reff
-#   ifdef USE_MPI_IN_PLACE
          call mpi_allreduce( MPI_IN_PLACE, onereff, ncopy*natom, &
             MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-#   else
-         call mpi_allreduce( onereff, vectmp1, ncopy*natom, &
-            MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-         onereff(1:ncopy*natom) = vectmp1(1:ncopy*natom)
-#   endif
 #  else
-#   ifdef USE_MPI_IN_PLACE
          call mpi_allreduce( MPI_IN_PLACE, onereff, natom, &
             MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-#   else
-         call mpi_allreduce( onereff, vectmp1, natom, &
-            MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-         onereff(1:natom) = vectmp1(1:natom)
-#   endif
 #  endif
 
    end if

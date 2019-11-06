@@ -376,9 +376,6 @@ contains
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
-# ifndef USE_MPI_IN_PLACE
-      _REAL_ :: temp2(20)
-# endif
 #endif
       INTEGER NATOM,ISTART,IEND,NTP
       _REAL_ DTX,TEMP0
@@ -475,7 +472,6 @@ contains
           TEMP1(9)=EKIN
           TEMP1(10)=EKINSG
           TEMP1(11)=EKINSGG
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,11,&
              MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           PV1=TEMP1(1)
@@ -489,21 +485,6 @@ contains
           EKIN=TEMP1(9)
           EKINSG=TEMP1(10)
           EKINSGG=TEMP1(11)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,11, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          PV1=TEMP2(1)
-          PV2=TEMP2(2)
-          PTOT(1)=TEMP2(3)
-          PTOT(2)=TEMP2(4)
-          PTOT(3)=TEMP2(5)
-          FTOT(1)=TEMP2(6)
-          FTOT(2)=TEMP2(7)
-          FTOT(3)=TEMP2(8)
-          EKIN=TEMP2(9)
-          EKINSG=TEMP2(10)
-          EKINSGG=TEMP2(11)
-# endif
         ENDIF
 #endif
         IF(FIXCOM>0)THEN
@@ -583,7 +564,6 @@ contains
           TEMP1(5)=SUMPP
           TEMP1(6)=SUMGP
           TEMP1(7)=VIRSG
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,7,&
              MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           SUMDD=TEMP1(1)
@@ -593,17 +573,6 @@ contains
           SUMPP=TEMP1(5)
           SUMGP=TEMP1(6)
           VIRSG=TEMP1(7)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,7, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          SUMDD=TEMP2(1)
-          SUMFF=TEMP2(2)
-          SUMGD=TEMP2(3)
-          SUMGF=TEMP2(4)
-          SUMPP=TEMP2(5)
-          SUMGP=TEMP2(6)
-          VIRSG=TEMP2(7)
-# endif
         ENDIF
 #endif
     ! Estimate low frequency temperatures
@@ -690,9 +659,6 @@ contains
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
-# ifndef USE_MPI_IN_PLACE
-      _REAL_ :: temp2(20)
-# endif
 #endif
       INTEGER NATOM,ISTART,IEND,NTP
       _REAL_ DTX
@@ -786,7 +752,6 @@ contains
           TEMP1(9)=EKIN
           TEMP1(10)=EKINSG
           TEMP1(11)=EKINSGG
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,11, &
             MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           PV1=TEMP1(1)
@@ -800,21 +765,6 @@ contains
           EKIN=TEMP1(9)
           EKINSG=TEMP1(10)
           EKINSGG=TEMP1(11)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,11, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          PV1=TEMP2(1)
-          PV2=TEMP2(2)
-          PTOT(1)=TEMP2(3)
-          PTOT(2)=TEMP2(4)
-          PTOT(3)=TEMP2(5)
-          FTOT(1)=TEMP2(6)
-          FTOT(2)=TEMP2(7)
-          FTOT(3)=TEMP2(8)
-          EKIN=TEMP2(9)
-          EKINSG=TEMP2(10)
-          EKINSGG=TEMP2(11)
-# endif
         ENDIF
 #endif
         IF(FIXCOM>0)THEN
@@ -887,7 +837,6 @@ contains
           TEMP1(3)=SUMGD
           TEMP1(4)=SUMGF
           TEMP1(5)=VIRSG
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,5, &
             MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
           SUMDD=TEMP1(1)
@@ -895,15 +844,6 @@ contains
           SUMGD=TEMP1(3)
           SUMGF=TEMP1(4)
           VIRSG=TEMP1(5)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,5, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
-          SUMDD=TEMP2(1)
-          SUMFF=TEMP2(2)
-          SUMGD=TEMP2(3)
-          SUMGF=TEMP2(4)
-          VIRSG=TEMP2(5)
-# endif
         ENDIF
 #endif
     ! Estimate low frequency temperatures
@@ -1113,21 +1053,12 @@ subroutine rxsgld_scale(stagid,nr,myscaling,amass,v)
           TEMP1(2)=ehf
           TEMP1(3)=elf
           TEMP1(4)=elh
-# ifdef USE_MPI_IN_PLACE
           call mpi_allreduce(MPI_IN_PLACE,temp1,4,&
              MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierror)
           ek=TEMP1(1)
           ehf=TEMP1(2)
           elf=TEMP1(3)
           elh=TEMP1(4)
-#else
-          CALL MPI_ALLREDUCE(TEMP1,TEMP2,4, &
-          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERROR)
-          ek=TEMP2(1)
-          ehf=TEMP2(2)
-          elf=TEMP2(3)
-          elh=TEMP2(4)
-# endif
         ENDIF
          ! solve high frequency scaling factor
          chk=elh*elh+ehf*(myscaling*myscaling*ek-myscalsg*myscalsg*elf)

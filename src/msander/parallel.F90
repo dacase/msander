@@ -381,64 +381,34 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 
       call trace_mpi('mpi_reduce', &
             (3*natom+iscale+3),'MPI_DOUBLE_PRECISION',mytaskid)
-#ifdef USE_MPI_IN_PLACE
       if (master) then
-        call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale+3),MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
-        call mpi_reduce(MPI_IN_PLACE,pot,potential_energy_rec_len,MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
+        call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale+3), &
+            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
+        call mpi_reduce(MPI_IN_PLACE,pot,potential_energy_rec_len, &
+            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
       else
-        call mpi_reduce(f,0,(3*natom+iscale+3),MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
-        call mpi_reduce(pot,0,potential_energy_rec_len,MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
+        call mpi_reduce(f,0,(3*natom+iscale+3), &
+            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
+        call mpi_reduce(pot,0,potential_energy_rec_len, &
+            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
       end if
       vir(1) = f(j)
       vir(2) = f(j+1)
       vir(3) = f(j+2)
-#else
-      call mpi_reduce(f,forcetmp,(3*natom+iscale+3), &
-            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
-
-      vir(1) = forcetmp(j)
-      vir(2) = forcetmp(j+1)
-      vir(3) = forcetmp(j+2)
-
-      ! 2nd call to reduce pot to master
-      call mpi_reduce(pot,pot_tmp,potential_energy_rec_len, &
-            MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
-
-      pot = pot_tmp
-
-      ! Empty out global forcetmp() to local thread
-      do i=1,3*natom
-         f(i) = forcetmp(i)
-      end do
-#endif
    else
 
       ! ---Add all copies of virial and energy and put result back on ALL nodes:
 
-#if 0  /* no longer computer virials */
       call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mytaskid)
-#ifdef USE_MPI_IN_PLACE
       call mpi_allreduce(MPI_IN_PLACE,f(j),3,MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
       vir(1) = f(j)
       vir(2) = f(j+1)
       vir(3) = f(j+2)
       newbalance=0
       !if(f(j+32) > 0.d0)newbalance=1 !MJW TO FIX
-#else
-      call mpi_allreduce(f(j),forcetmp(j),3, &
-            MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
 
-      vir(1) = forcetmp(j)
-      vir(2) = forcetmp(j+1)
-      vir(3) = forcetmp(j+2)
-#endif
-#endif
-      ! Reduce all values of potential to pot_tmp
-      ! and then assign to pot
-      call mpi_allreduce(pot,pot_tmp,potential_energy_rec_len, &
+      call mpi_allreduce(MPI_IN_PLACE,pot,potential_energy_rec_len, &
             MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-
-      pot  = pot_tmp
       newbalance=0
       !if(forcetmp(j+32) > 0.d0)newbalance=1  !TODO mjw
 
@@ -460,16 +430,8 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 
          call trace_mpi('mpi_allreduce', &
                3*natom,'MPI_DOUBLE_PRECISION',mytaskid)
-#ifdef USE_MPI_IN_PLACE
          call mpi_allreduce(MPI_IN_PLACE, f, 3*natom, &
                MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-#else
-         call mpi_allreduce(f, forcetmp, 3*natom, &
-               MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
-         do i=1, 3*natom
-            f(i) = forcetmp(i)
-         end do
-#endif
 
       end if
 

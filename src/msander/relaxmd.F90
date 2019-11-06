@@ -314,14 +314,8 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, istart, iend)
 #ifdef MPI
     call trace_mpi('mpi_allreduce', 3, 'MPI_DOUBLE_PRECISION', mpi_sum)
-#  ifdef USE_MPI_IN_PLACE
     call mpi_allreduce(MPI_IN_PLACE, ener%cmt, 3, MPI_DOUBLE_PRECISION, &
                        mpi_sum, commsander, ierr)
-#  else
-    call mpi_allreduce(ener%cmt, mpitmp, 3, MPI_DOUBLE_PRECISION, mpi_sum, &
-                       commsander, ierr)
-    ener%cmt(1:3) = mpitmp(1:3)
-#  endif
 #endif
     call timer_stop(TIME_EKCMR)
   end if
@@ -587,19 +581,11 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       mpitmp(1) = eke
       mpitmp(2) = ekph
       mpitmp(3) = ekpbs
-#  ifdef USE_MPI_IN_PLACE
     call mpi_allreduce(MPI_IN_PLACE,mpitmp, 3, MPI_DOUBLE_PRECISION, &
                        mpi_sum, commsander, ierr)
     eke = mpitmp(1)
     ekph = mpitmp(2)
     ekpbs = mpitmp(3)
-#  else
-      call mpi_allreduce(mpitmp,mpitmp(4), 3, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commsander, ierr)
-      eke = mpitmp(4)
-      ekph = mpitmp(5)
-      ekpbs = mpitmp(6)
-#  endif /* USE_MPI_IN_PLACE */
     end if
 #endif /* MPI */
       

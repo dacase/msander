@@ -1506,37 +1506,21 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (temp0les < 0) then
         mpitmp(1) = eke
         mpitmp(2) = ekph
-#    ifdef USE_MPI_IN_PLACE
         call mpi_allreduce(MPI_IN_PLACE, mpitmp, 2, MPI_DOUBLE_PRECISION, &
                            mpi_sum, commsander, ierr)
         eke = mpitmp(1)
         ekph = mpitmp(2)
-#    else
-        call mpi_allreduce(mpitmp, mpitmp(3), 2, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commsander, ierr)
-        eke = mpitmp(3)
-        ekph = mpitmp(4)
-#    endif
       else
         mpitmp(1) = eke
         mpitmp(2) = ekph
         mpitmp(3) = ekeles
         mpitmp(4) = ekphles
-#    ifdef USE_MPI_IN_PLACE
         call mpi_allreduce(MPI_IN_PLACE, mpitmp, 4, MPI_DOUBLE_PRECISION, &
                            mpi_sum, commsander, ierr)
         eke = mpitmp(1)
         ekph = mpitmp(2)
         ekeles = mpitmp(3)
         ekphles = mpitmp(4)
-#    else
-        call mpi_allreduce(mpitmp, mpitmp(5), 4, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commsander, ierr)
-        eke = mpitmp(5)
-        ekph = mpitmp(6)
-        ekeles = mpitmp(7)
-        ekphles = mpitmp(8)
-#    endif
       endif
     end if
 #  else
@@ -1545,19 +1529,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       mpitmp(1) = eke
       mpitmp(2) = ekph
       mpitmp(3) = ekpbs
-#    ifdef USE_MPI_IN_PLACE
       call mpi_allreduce(MPI_IN_PLACE, mpitmp, 3, MPI_DOUBLE_PRECISION, &
                          mpi_sum, commsander, ierr)
       eke = mpitmp(1)
       ekph = mpitmp(2)
       ekpbs = mpitmp(3)
-#    else
-      call mpi_allreduce(mpitmp, mpitmp(4), 3, MPI_DOUBLE_PRECISION, &
-                         mpi_sum, commsander, ierr)
-      eke = mpitmp(4)
-      ekph = mpitmp(5)
-      ekpbs = mpitmp(6)
-#    endif
     end if
 #  endif
 
