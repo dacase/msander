@@ -1,0 +1,49 @@
+#!/bin/csh -f
+#TEST-PROGRAM msander
+#TEST-DESCRIP Tests PME potential gradients vs. analytic forces
+
+set sander = "../../../bin/msander"
+
+if( ! $?DO_PARALLEL ) then
+   setenv DO_PARALLEL " "
+else
+   set sander = $sander.MPI
+endif
+
+cat > mdin <<EOF
+4lzt crystal unit cell
+ &cntrl
+    ntx=1, ntxo=1, ntpr=1, ntwx=0, ntwr=0,
+    imin=0, nstlim=0,
+    ig=314159,
+    ntb=1, irism=1, cut=8.0,
+ /
+ &rism
+    periodic='pme',
+    closure='kh','pse2',
+    grdspc=0.25,0.25,0.25,
+    solvcut=9.d0,
+    verbose=1,
+    npropagate=0,
+    mdiis_del=0.4, mdiis_nvec=10, tolerance=0.01,1e-11,
+    apply_rism_force=1,
+ /
+ &debugf
+  ! Enable debugging.
+  do_debugf=1,
+  neglgdel=4,
+  nranatm=3,
+ /
+EOF
+
+$DO_PARALLEL $sander -O -i mdin -o 4lztn.debug.out \
+    -p 4lztn.parm7 -c 4lztn.rst7 \
+    -xvv ../xvv/NaCl_0.1_pse3.xvv \
+    || goto error
+
+/bin/rm -f mdin mdinfo restrt
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)

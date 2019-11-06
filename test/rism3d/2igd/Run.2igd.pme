@@ -29,10 +29,10 @@ cat > mdin <<EOF
     closure='kh'
     buffer=1, grdspc=0.5,0.5,0.5
     solvcut=12.d0
-    verbose=2
+    verbose=1
     write_thermo=1
     npropagate=5
-    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-12
+    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10
     apply_rism_force=1
  /
 EOF

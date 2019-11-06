@@ -87,7 +87,7 @@ EOF
 
 $DO_PARALLEL $sander -O -i mdin -o 2igd.pme.debug.out \
     -p 2igd.parm7 -c 2igd.rst7 \
-    -xvv ../xvv/spc.kh.xvv \
+    -xvv ../xvv/spc-nacl.kh.xvv \
     || goto error
 
 # ../../../dacdif -a 1.e-6 2igd.pme.debug.out.save 2igd.pme.debug.out
