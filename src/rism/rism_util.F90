@@ -48,15 +48,9 @@ contains
          write (6,*) ff(id,1:numAtoms)
 #endif /*RISM_DEBUG*/
       end do
-#if defined(MPI) && defined(MPI)
-#  ifdef USE_MPI_IN_PLACE
+#if defined(MPI)
       call MPI_ALLREDUCE(MPI_IN_PLACE,totfrc,3,MPI_DOUBLE_PRECISION,&
            MPI_SUM,comm,err)
-#  else
-      call MPI_ALLREDUCE(totfrc,mpitmp,3,MPI_DOUBLE_PRECISION,&
-           MPI_SUM,comm,err)      
-      totfrc = mpitmp
-#  endif /*USE_MPI_IN_PLACE*/
       if (err /=0) call rism_report_error&
            ("RISM3D CORR_DRIFT: could not reduce TOTFRC")
 #endif /*defined(MPI)*/
@@ -88,14 +82,8 @@ contains
          totfrc(id) = sum(ff(id,1:numAtoms))
       end do      
 #  if defined(MPI)
-#    ifdef USE_MPI_IN_PLACE
       call MPI_ALLREDUCE(MPI_IN_PLACE,totfrc,3,MPI_DOUBLE_PRECISION,&
            MPI_SUM,comm,err)
-#    else
-      call MPI_ALLREDUCE(totfrc,mpitmp,3,MPI_DOUBLE_PRECISION,&
-           MPI_SUM,comm,err)      
-      totfrc = mpitmp
-#    endif /*USE_MPI_IN_PLACE*/
       if (err /=0) call rism_report_error&
            ("RISM3D CORR_DRIFT: could not reduce TOTFRC")
 #  endif /*defined(MPI)*/
@@ -1075,12 +1063,7 @@ function checksum(a,n,comm)
   integer :: err
   checksum = sum(a)
 #ifdef MPI
-#ifdef USE_MPI_IN_PLACE
     call mpi_allreduce(MPI_IN_PLACE,checksum,1,MPI_DOUBLE_PRECISION,mpi_sum,comm,err)
-#else
-    call mpi_allreduce(checksum,temp,1,MPI_DOUBLE_PRECISION,mpi_sum,comm,err)
-    checksum = temp
-#endif /*USE_MPI_IN_PLACE*/
     if (err /=0) call rism_report_error&
          ("RISM3D CHECKSUM: could not reduce CHECKSUM")
 #endif /*MPI*/

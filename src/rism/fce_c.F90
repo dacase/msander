@@ -438,9 +438,6 @@ contains
     !workspace for the case of MPI 1.1
 #ifdef MPI
     integer :: err
-#  ifndef USE_MPI_IN_PLACE
-    _REAL_, pointer :: tforce(:,:)=>NULL()
-#  endif /*ifdef USE_MPI_IN_PLACE*/
 #endif /*MPI*/
 
 #ifdef RISM_DEBUG
@@ -463,18 +460,9 @@ contains
     !reduce the atoms locally
     !
 #ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
     call mpi_allreduce(MPI_IN_PLACE,this%force(:,:,1),3*this%natom,MPI_DOUBLE_PRECISION,MPI_SUM,this%mpicomm,err)
     if(err /=0) call rism_report_error&
          ("FCE: could not reduce force")
-#  else /*ifdef USE_MPI_IN_PLACE*/
-    tforce => safemem_realloc(tforce,3,this%natom,.false.)
-    call mpi_allreduce(this%force(:,:,1),tforce,3*this%natom,MPI_DOUBLE_PRECISION,MPI_SUM,this%mpicomm,err)
-    if(err /=0) call rism_report_error&
-         ("FCE: could not reduce force")
-    this%force(:,:,1) = tforce
-    if(safemem_dealloc(tforce) /=0) call rism_report_error("FCE_UPDATE: deallocate TFORCE failed")
-#  endif /*ifdef USE_MPI_IN_PLACE*/
 #endif /*MPI*/
 
     this%nsample = min(this%nsample+1,this%nbasis)

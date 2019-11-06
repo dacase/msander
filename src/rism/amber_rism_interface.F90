@@ -73,9 +73,6 @@ module rismthermo_c
      !!         excessChemicalPotentialUC(1), solvationEnergyUC(1),
      !!         partialMolarVolume(1)
      _REAL_, private, pointer :: mpi_buffer(:) => NULL()
-#if ! defined( USE_MPI_IN_PLACE) && defined( MPI )
-     _REAL_, private, pointer :: tmpi_buffer(:) => NULL()
-#endif
   end type rismthermo_t
   
 contains
@@ -115,10 +112,6 @@ contains
     this%mpi_buffer => safemem_realloc(this%mpi_buffer, 13*nsite + 6)
     ! Initialize for case that some values are not calculated.
     call rismthermo_reset(this)
-#if !defined( USE_MPI_IN_PLACE) && defined( MPI )
-    this%tmpi_buffer => &
-         safemem_realloc(this%tmpi_buffer, ubound(this%mpi_buffer, 1))
-#endif
     this%excessChemicalPotential => this%mpi_buffer(1:nsite)
     this%excessChemicalPotentialGF => this%mpi_buffer(nsite + 1:2*nsite)
     this%solventPotentialEnergy => this%mpi_buffer(2*nsite + 1:3*nsite)
@@ -193,7 +186,6 @@ contains
     _REAL_ :: buffer_copy(ubound(this%mpi_buffer, 1))
     integer :: err
     buffer_copy = this%mpi_buffer
-#  ifdef USE_MPI_IN_PLACE
     if (this%mpirank == 0) then
        call mpi_reduce(MPI_IN_PLACE, this%mpi_buffer, &
             ubound(this%mpi_buffer, 1), MPI_DOUBLE_PRECISION, &
@@ -203,12 +195,6 @@ contains
             ubound(this%mpi_buffer, 1), MPI_DOUBLE_PRECISION, &
             MPI_SUM, 0, this%mpicomm, err)
     end if
-#  else
-    call mpi_reduce(this%mpi_buffer, this%tmpi_buffer, &
-         ubound(this%mpi_buffer, 1), MPI_DOUBLE_PRECISION, &
-         MPI_SUM, 0, this%mpicomm, err)
-    this%mpi_buffer = this%tmpi_buffer
-#  endif /*USE_MPI_IN_PLACE*/
     where(buffer_copy == huge(1d0))
        this%mpi_buffer = huge(1d0)
     end where
@@ -226,10 +212,6 @@ contains
     type(rismthermo_t), intent(inout) :: this
     if (safemem_dealloc(this%mpi_buffer) /= 0 ) &
          call rism_report_error("Dealloc failed in rism_thermo")
-#if !defined( USE_MPI_IN_PLACE) && defined( MPI )
-    if (safemem_dealloc(this%tmpi_buffer) /= 0 ) &
-         call rism_report_error("Dealloc failed in rism_thermo")
-#endif
     nullify(this%excessChemicalPotential)
     nullify(this%excessChemicalPotentialGF)
     nullify(this%excessChemicalPotentialPCPLUS)
@@ -1667,7 +1649,6 @@ contains
     outunit = rism_report_getMUnit()
     memstats = memStatus()
 #ifdef MPI
-#  ifdef USE_MPI_IN_PLACE
     if (mpirank==0) then
        call MPI_REDUCE(MPI_IN_PLACE, memstats, ubound(memstats, 1), MPI_INTEGER8, &
             MPI_SUM, 0, mpicomm, err)
@@ -1675,11 +1656,6 @@ contains
        call MPI_REDUCE(memstats, memstats, ubound(memstats, 1), MPI_INTEGER8, &
             MPI_SUM, 0, mpicomm, err)
     end if
-#  else /*USE_MPI_IN_PLACE*/
-    call MPI_REDUCE(memstats, tmemstats, ubound(memstats, 1), MPI_INTEGER8, &
-         MPI_SUM, 0, mpicomm, err)
-    memstats = tmemstats
-#  endif /*USE_MPI_IN_PLACE*/
     if (err/= 0) call rism_report_warn("RISM_MAX_MEMORY: MPI_REDUCE failed.")
 #endif
     if (mpirank==0) then
