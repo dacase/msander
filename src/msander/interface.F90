@@ -338,7 +338,6 @@ subroutine api_mdread1(input_options, ierr)
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
    use constantph, only : mccycles
    use constante, only : mccycles_e
-   use nose_hoover_module, only: nchain  ! APJ
    use md_scheme, only: ithermostat, therm_par
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
@@ -1523,7 +1522,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use bndpol, only: ew_bndpol
-   use nose_hoover_module, only: nchain  ! APJ
    use md_scheme, only: therm_par
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e

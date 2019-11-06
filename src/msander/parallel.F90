@@ -25,7 +25,6 @@ subroutine startup(xx,ix,ih)
    use nblist, only : ucell,bc_ewucr,bc_ewuci,nbflag, &
                      BC_DIRPARS,numnptrs
    use file_io_dat
-   use nose_hoover_module, only: nchain      ! APJ
    use md_scheme, only: ithermostat, therm_par
    use fft,only:column_fft_flag
 ! SOFT CORE
@@ -129,8 +128,6 @@ subroutine startup(xx,ix,ih)
 
    !  parms.f:
    call bcast_parms()
-
-   call mpi_bcast(nchain, 1,MPI_INTEGER, 0, commsander, ierr )
 
 #ifdef LES
    !   les.h:

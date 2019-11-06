@@ -46,7 +46,6 @@ QMAPIOBJ = \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
-    nose_hoover.o nose_hoover_init.o \
     trace.o rmsgrd.o lmod.o rand2.o lmodC.o xminC.o decomp.o \
     icosasurf.o egb.o remd.o findmask.o \
     relax_mat.o nmr.o multitmd.o \
@@ -67,7 +66,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
 LESOBJ= memory_module.o stack.o file_io_dat.o \
-    constants.o state.o nose_hoover.o nose_hoover_init_LES.o \
+    constants.o state.o \
     trace.o rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
     egb.LES.o remd.LES.o findmask.o \
     relax_mat.o nmr.LES.o multitmd.o \

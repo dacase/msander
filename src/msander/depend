@@ -1321,7 +1321,6 @@ interface.o: \
                     lmod.o\
                     constantph.o\
                     constante.o\
-                    nose_hoover.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1658,7 +1657,6 @@ mdread.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    nose_hoover.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1719,7 +1717,6 @@ mdread.LES.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    nose_hoover.o\
                     md_scheme.LES.o\
                     les.o\
                     stack.o\
@@ -1779,7 +1776,6 @@ mdread.PUPIL.o: \
                     constants.o\
                     constantph.o\
                     constante.o\
-                    nose_hoover.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -2693,45 +2689,6 @@ nonbond_list.LES.o:   nonbond_list.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
 
-nose_hoover.o: \
-                    ../include/dprec.fh\
-                    abfqmmm_module.o\
-                    random.o\
-                    parallel.h\
-                    ../include/md.h\
-                    ../include/memory.h
-
-
-nose_hoover.o:   nose_hoover.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nose_hoover.F90
-
-nose_hoover_init.o: \
-                    constants.o\
-                    nose_hoover.o\
-                    abfqmmm_module.o\
-                    ../include/memory.h\
-                    ../include/md.h\
-                    parallel.h
-
-
-nose_hoover_init.o:   nose_hoover_init.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nose_hoover_init.F90
-
-nose_hoover_init_LES.o: \
-                    les.o\
-                    constants.o\
-                    nose_hoover.o\
-                    ../include/memory.h\
-                    ../include/md.h\
-                    parallel.h
-
-
-nose_hoover_init_LES.o:   nose_hoover_init_LES.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nose_hoover_init_LES.F90
-
 parallel.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -2741,7 +2698,6 @@ parallel.o: \
                     les.o\
                     nonbond_list.o\
                     file_io_dat.o\
-                    nose_hoover.o\
                     md_scheme.o\
                     spatial_fft.o\
                     softcore.o\
@@ -2789,7 +2745,6 @@ parallel.LES.o: \
                     les.o\
                     nonbond_list.LES.o\
                     file_io_dat.o\
-                    nose_hoover.o\
                     md_scheme.LES.o\
                     spatial_fft.o\
                     softcore.o\
@@ -3518,7 +3473,6 @@ runmd.o: \
                     fastwt.o\
                     bintraj.o\
                     nonbond_list.o\
-                    nose_hoover.o\
                     sglds.o\
                     les.o\
                     remd.o\
@@ -3577,7 +3531,6 @@ runmd.LES.o: \
                     fastwt.o\
                     bintraj.LES.o\
                     nonbond_list.LES.o\
-                    nose_hoover.o\
                     sglds.o\
                     les.o\
                     remd.LES.o\
@@ -4243,17 +4196,6 @@ xray_utils.o: \
 xray_utils.o:   xray_utils.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_utils.F90
-
-yammpnb.o: \
-                    copyright.h\
-                    ../include/dprec.fh\
-                    parallel.h\
-                    ../include/md.h
-
-
-yammpnb.o:   yammpnb.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ yammpnb.F90
 
 netcdf.o:  $(NETCDF)
 	test -e $@ || touch netcdf.o

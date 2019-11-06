@@ -1,0 +1,54 @@
+#!/bin/sh
+
+sander="../../../bin/msander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+cat > mdin <<EOF
+ equilibration, polarizable solute
+ &cntrl
+  irest  = 1, ntx    = 7,
+  ntb    = 2, ntp    = 1, 
+  cut    = 8.0,
+  ntf=2, ntc=2, tol=0.000001,
+  nstlim=50, ntpr=1,
+  ithermostat=1, therm_par=5.0,
+  dt=0.001, 
+  jfastw=1, watnam='TP4', barostat=2
+  mcbarint=2, ig=71277,
+ /
+ &ewald
+   skinnb=1.0, nfft1=18, nfft2=18, nfft3=18, 
+ /
+EOF
+
+cat > mdin2 <<EOF
+ equilibration, anisotropic scaling
+ &cntrl
+  irest  = 1, ntx    = 7,
+  ntb    = 2, ntp    = 2,
+  cut    = 8.0,
+  ntf=2, ntc=2, tol=0.000001,
+  nstlim=50, ntpr=1,
+  dt=0.001, 
+  jfastw=1, watnam='TP4', barostat=2
+  mcbarint=2, ig=71277,
+ /
+ &ewald
+   skinnb=1.0, nfft1=18, nfft2=18, nfft3=18, 
+ /
+EOF
+
+$DO_PARALLEL $sander -O -i mdin -c eq12.x -o mdout.mcbar.tip4p \
+     < /dev/null || echo "  ${0}:  Program error"
+$DO_PARALLEL $sander -O -i mdin2 -c eq12.x -o mdout.mcbar_aniso.tip4p \
+     < /dev/null || echo "  ${0}:  Program error"
+
+../dacdif -r 1.e-06 mdout.mcbar.tip4p.save mdout.mcbar.tip4p
+../dacdif -r 1.e-06 mdout.mcbar_aniso.tip4p.save mdout.mcbar_aniso.tip4p
+
+/bin/rm -f mdin restrt mdinfo dummy mdin2
+exit 0 
+

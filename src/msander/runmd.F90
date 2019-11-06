@@ -88,12 +88,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
 
-  use nose_hoover_module, only: Thermostat_switch, Thermostat_integrate_1, &
-                                Thermostat_integrate_2, &
-                                Thermostat_hamiltonian, &
-                                Adaptive_Thermostat_integrate, &
-                                Adaptive_Thermostat_hamiltonian, &
-                                file_nhc, nchain, thermo, nthermo, Econserved
   use sgld, only: isgld, sgenergy, sgfshake, sgldw, sgmdw
 
 #ifdef LES
