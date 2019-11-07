@@ -98,7 +98,8 @@ c   down the file, rewind, or exit with an error (flag not found).
       integer  NNBCHR
 
       logical, save :: FIRST = .TRUE.
-      logical, save :: PRINTINFO = .TRUE.
+      !  logical, save :: PRINTINFO = .TRUE.
+      logical, save :: PRINTINFO = .FALSE.
 c
 c   MXNXFL is maximum number of %FLAG cards that can be specified
 c

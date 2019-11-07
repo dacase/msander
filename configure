@@ -26,6 +26,10 @@ openmp='no'
 ompflag='-fopenmp -DOPENMP'
 fftw_flags=""
 mkl="yes"
+useopenblas="yes"
+
+lapack="skip"
+blas="skip"
 
 #  process command-line flags:
 for var in "$@"; do
@@ -54,6 +58,7 @@ for var in "$@"; do
             fc="ifort"
             mpif90="mpiifort"
             flibs_fftw="-lifport -lifcore -lsvml"
+            useopenblas="no"
             ompflag="-qopenmp -DOPENMP";;
         --no-rism)
             rism="";;
@@ -150,13 +155,19 @@ fi
 
 if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
-   #echo "using OpenBLAS libraries in $GOTO"
-   #flibs_mkl="-lfftw3 $GOTO -lpthread"
+   if [ "$useopenblas" == "yes" ]; then
 
-   # for now, use the compiled versions;
-   flibs_mkl="-lfftw3 -llapack -lblas"
-   lapack=liblapack
-   blas=libblas
+      echo "using OpenBLAS libraries in $GOTO"
+      flibs_mkl="-lfftw3 $GOTO -lpthread"
+
+   else
+
+      # use the compiled versions;
+      flibs_mkl="-lfftw3 -llapack -lblas"
+      lapack=liblapack
+      blas=libblas
+
+   fi
 
    mklinc="-I$msanderhome/include"
    if [ "$openmp" = "yes" ]; then

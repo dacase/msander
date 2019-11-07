@@ -122,6 +122,13 @@ contains
       ! local
       character(len=32) :: fmt
       integer :: alloc_status, ierr
+      logical :: master
+#ifdef MPI
+#     include "parallel.h"
+#else
+      integer :: mytaskid = 0
+#endif
+      master = (mytaskid == 0)
 
       ! if (pdb_outfile /= '') then
          num_atoms = natom
@@ -178,7 +185,7 @@ contains
       read(prmtop_lun,fmt) scatter_coefficients
       call nxtsec(prmtop_lun,out_lun,1,'*','XRAY_SYMMETRY_TYPE',fmt,ierr)
       if (ierr==-2) then
-         write(STDOUT,*) &
+         if( master ) write(STDOUT,*) &
                'XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1'
          num_symmops = 1
          spacegroup_number = 1
@@ -208,6 +215,13 @@ contains
       character(len=80) :: line
       integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss
       real(real_kind), parameter :: MISSING = -999.0_rk_
+      logical :: master
+#ifdef MPI
+#     include "parallel.h"
+#else
+      integer :: mytaskid = 0
+#endif
+      master = (mytaskid == 0)
       ! begin
       atom_occupancy(:)=MISSING
       call amopen(allocate_lun(unit),filename,'O','F','R')
@@ -232,7 +246,7 @@ contains
             if (atom_occupancy(i) >= 0) then
                ndup=ndup+1
                if (ndup<10) then
-                  write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Duplicate ATOM:', &
+                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Duplicate ATOM:', &
                         name,resName,chainID(1:1),resSeq,iCode(1:1)
                end if
             end if
@@ -243,14 +257,14 @@ contains
       end do
       nmiss = count(atom_occupancy==MISSING)
       if (nmiss>0) then
-         write(stdout,'(A,I4,A)') 'PDB: missing data for ',nmiss,' atoms.'
+         if( master ) write(stdout,'(A,I4,A)') 'PDB: missing data for ',nmiss,' atoms.'
          j=0
          do i=1,num_atoms
             if (atom_occupancy(i)==MISSING) then
                atom_occupancy(i)=0
                j=j+1
                if (j<=10) then
-                  write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Missing ATOM:', &
+                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Missing ATOM:', &
                         atom_name(i),residue_label(i),residue_chainID(i)(1:1),&
                         residue_number(i),residue_iCode(i)(1:1)
                end if
@@ -258,7 +272,7 @@ contains
          end do
       end if
       if (nmiss==0 .and. ndup==0) then
-         write(stdout,'(A)') 'PDB: All atoms read successfully.'
+         if( master ) write(stdout,'(A)') 'PDB: All atoms read successfully.'
       end if
       close(unit)
       return
@@ -444,9 +458,13 @@ contains
       ! local
       integer :: hkl_lun, i, alloc_status
       real(real_kind) :: phi
+      logical :: master
 #ifdef MPI
-#include "parallel.h"
+#     include "parallel.h"
+#else
+      integer :: mytaskid = 0
 #endif
+      master = (mytaskid == 0)
 
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
 
@@ -458,7 +476,7 @@ contains
          return
       end if
 
-      write(stdout,'(A,3F9.3,3F7.2)') &
+      if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
             'XRAY: UNIT CELL= ',a, b, c, alpha, beta, gamma
       call derive_cell_info(a, b, c, alpha, beta, gamma)
       ! Ewald/X-ray equivalences:
@@ -510,21 +528,10 @@ contains
                igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
-         write(6,'(a,i6,a,a)') 'Found ',sum(atom_selection),' atoms in ', &
+         if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(atom_selection),' atoms in ', &
                atom_selection_mask
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
-
-      ! set up reflection partitioning for MPI
-#ifdef MPI
-      ihkl1 = mytaskid*num_hkl/numtasks + 1
-      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
-      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
-      write(0,*) 'ihkl group: ', mytaskid, ihkl1, ihkl2
-#else
-      ihkl1 = 1
-      ihkl2 = num_hkl
-#endif
 
       return
       1 continue
@@ -624,7 +631,7 @@ contains
       integer :: i
       logical, save :: first=.true.
 #ifdef MPI
-      include 'mpif.h'    ! TODO: replace with use mpi??
+      include 'mpif.h'
       integer :: ierr
 #else
       integer :: mytaskid = 0
@@ -735,7 +742,7 @@ contains
 #endif
       endif
 #ifdef MPI
-      call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_atoms, &
+      call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
            MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
 #endif
 

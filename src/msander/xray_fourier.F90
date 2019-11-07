@@ -70,7 +70,7 @@ contains
       integer, intent(in), target :: scatter_type_index(num_atoms) 
 
       ! locals
-      integer :: ihkl, i
+      integer :: ihkl, i, ier
       ! automatic
       real(real_kind) :: atomic_scatter_factor(num_scatter_types)
       real(real_kind) :: f(num_atoms), angle(num_atoms)
@@ -79,7 +79,7 @@ contains
       integer hklgroup
 #endif
 #ifdef OPENMP
-    integer :: numtasks, ier
+    integer :: numtasks
     character(len=5) omp_num_threads
 #endif
 
@@ -97,6 +97,19 @@ contains
     else
        read( omp_num_threads, * ) numtasks
     endif
+#endif
+      ! set up reflection partitioning for MPI
+#ifdef MPI
+      ihkl1 = mytaskid*num_hkl/numtasks + 1
+      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
+      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
+#else
+      ihkl1 = 1
+      ihkl2 = num_hkl
+#endif
+
+#ifdef MPI
+      Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
 !$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  &
@@ -209,6 +222,17 @@ contains
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
       call wallclock( time0 )
+
+      ! set up reflection partitioning for MPI
+#ifdef MPI
+      ihkl1 = mytaskid*num_hkl/numtasks + 1
+      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
+      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
+#else
+      ihkl1 = 1
+      ihkl2 = num_hkl
+#endif
+
 #ifdef OPENMP
     call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
     if( ier .eq. 1 ) then

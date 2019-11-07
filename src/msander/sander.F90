@@ -72,7 +72,8 @@ subroutine sander()
   use apbs
 #endif /* APBS */
 
-  use xray_interface_module, only: xray_active, xray_init, xray_read_parm, xray_fini
+  use xray_interface_module, only: xray_active, xray_init, xray_read_parm, &
+                                   xray_read_mdin, xray_fini
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -244,11 +245,6 @@ subroutine sander()
 
   ! Initialize the number of copies -- always assume 1 until we know otherwise
   ncopy = 1
-
-  ! BPR - original location of PUPIL interface. I moved it further down
-  ! because, if it's here, it can't print stuff; write(6,...) statements
-  ! assume mdread1() has already been invoked. However, moving this down
-  ! may break other things.
 
   ! Flag to tell list builder to print size of list on first call
   first_list_flag = .true.
@@ -858,9 +854,7 @@ subroutine sander()
         end if
 #endif
       end if
-      if (master) then
-        call amflsh(6)
-      end if
+      call amflsh(6)
 
     end if masterwork
     ! End of master process setup
@@ -1038,6 +1032,10 @@ subroutine sander()
     ! MPI_BCAST.
     call mpi_bcast(ievb , 1, MPI_INTEGER, 0, commworld, ier)
 
+    call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
+    call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
     call mpi_bcast (cnum(1:natom), natom, MPI_INTEGER, 0, commworld, ier)
@@ -1170,6 +1168,17 @@ subroutine sander()
                     nres, 'MPI ')
     end if
 
+    ! xray initialization on non-master nodes:
+    if( xray_active .and. .not.master ) then
+       call amopen(5,mdin,'O','F','R')
+       call xray_read_mdin(mdin_lun=5)
+       close(5)
+       call amopen(8,parm,'O','F','R')
+       call xray_read_parm(8,6)
+       close(8)
+       call xray_init()
+    end if
+
     ! Check that the system is neutral and print warning message
     ! if not.  Adjust charges for roundoff error.
     if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
@@ -1285,6 +1294,7 @@ subroutine sander()
     if (master) then
       call amflsh(6)
     end if
+
     ! End of AMBER/MPI work in this block
 
 #else
