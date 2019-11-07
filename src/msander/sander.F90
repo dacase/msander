@@ -308,9 +308,7 @@ subroutine sander()
     ! broadcast commandline info
     call commandline_bcast(ier)
 
-    write(0,*) 'mdin is ', mdin,mytaskid
-
-    ! masterwork: if (master) then
+    masterwork: if (master) then
       if (abfqmmm_param%abfqmmm == 0) then
 
         ! First, initial reads to determine memory sizes
@@ -869,7 +867,7 @@ subroutine sander()
       end if
       call amflsh(6)
 
-    ! end if masterwork
+    end if masterwork
 
 #  if defined(RISMSANDER)
     call rism_init(commsander)
@@ -896,8 +894,7 @@ subroutine sander()
     ! simply exit.
     !
 
-#if 0
-    ! Set up initial data and send all needed data to other nodes,
+    ! Set up initial data and send all needed data to other nodes, {{{
     ! now that the master has it
     !
     ! First, broadcast parameters in memory.h, so that all processors
@@ -978,8 +975,9 @@ subroutine sander()
     call mpi_bcast(mol_info%natom, 1, mpi_integer, 0, commsander, ier)
     call mpi_bcast(mol_info%nres, 1, mpi_integer, 0, commsander, ier)
     call mpi_barrier(commsander, ier)
+    ! }}}
 
-    ! Allocate memory on the non-master nodes
+    ! Allocate memory on the non-master nodes {{{
     if (.not. master) then
 
       if (abfqmmm_param%qmstep .ne. 1 .or. abfqmmm_param%system .ne. 1) then
@@ -1019,7 +1017,7 @@ subroutine sander()
         end if
       end if
     end if
-    ! End memory allocation on non-master nodes
+    ! End memory allocation on non-master nodes  }}}
 
     ! Broadcast arrays from module 'molecule'
     call mpi_bcast(mol_info%natom_res, mol_info%nres, MPI_INTEGER, &
@@ -1038,17 +1036,9 @@ subroutine sander()
     call startup_groups(ier)
     call startup(x, ix, ih)
 
-    ! Broadcast Path Integral MD inputs/parameters to
-    ! all PEs.  Note: the masters have all required PIMD inputs/parameters
-    ! via call to mdread2).  For PIMD,
-    ! all PEs need the inputs/parameters ... so we perform this initialization
-    ! again for all PEs besides the masters.  The alternative is to use
-    ! MPI_BCAST.
-    call mpi_bcast(ievb , 1, MPI_INTEGER, 0, commworld, ier)
-
     call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
-    call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
-    call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    ! call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    ! call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
 
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
@@ -1123,7 +1113,7 @@ subroutine sander()
     nr3 = 3 * nr
     belly = (ibelly > 0)
 
-    ! Do setup for QMMM in parallel if ifqnt is on - this is essentially
+    ! Do setup for QMMM in parallel if ifqnt is on {{{
     ! everything in the QMMM namelist and a few other bits and pieces.
     ! Note, currently only master node knows if qmmm_nml%ifqnt is
     ! on so we need to broadcast this first and then make decisions
@@ -1148,7 +1138,7 @@ subroutine sander()
         REQUIRE(ier == 0)
       end if
     end if
-    ! End of QM/MM MPI setup
+    ! End of QM/MM MPI setup }}}
 
     ! All nodes are calling this. amrset(ig) has already been called
     ! by the master node (twice if initial velocities are set, ntx <= 3).
@@ -1163,9 +1153,6 @@ subroutine sander()
         end if
       endif
       if (nmropt >= 1) then
-
-        ! Updated 9/2007 by Matthew Seetin to enable
-        ! plane-point and plane-plane restraints
         call nmrcal(x(lcrd), x(lforce), ih(m04), ih(m02), ix(i02), x(lwinv), &
                     enmr, devdis, devang, devtor, devplpt, devpln, devgendis, &
                     temp0, tautp, cut, x(lnmr01), ix(inmr02), x(l95), 5, 6, &
@@ -1182,7 +1169,7 @@ subroutine sander()
                     nres, 'MPI ')
     end if
 
-    ! xray initialization on non-master nodes:
+    ! xray initialization on non-master nodes: {{{
     if( xray_active .and. .not.master ) then
        call amopen(5,mdin,'O','F','R')
        call xray_read_mdin(mdin_lun=5)
@@ -1192,7 +1179,7 @@ subroutine sander()
        close(8)
        call xray_init()
     end if
-#endif  /* broadcasts to other nodes */
+    ! }}}
 
     ! Check that the system is neutral and print warning message
     ! if not.  Adjust charges for roundoff error.
@@ -1211,9 +1198,9 @@ subroutine sander()
     else
       mpi_orig = .false.
     end if
-    if (mpi_orig .and. .not. master) then
 
-      ! All nodes only do the force calculations.  Minimization
+    if (mpi_orig .and. .not. master) then
+      ! All nodes only do the force calculations.  Minimization  {{{
       ! so only master gets past the loop below
       ! hence need to zero QM charges on non-master threads here.
       if (qmmm_nml%ifqnt) then
@@ -1275,9 +1262,10 @@ subroutine sander()
 
       ! Deallocate and return
       goto 999
+      ! }}}
     end if
 
-    ! Report the parallel configuration
+    ! Report the parallel configuration {{{
     if (master) then
       if (abfqmmm_param%abfqmmm .ne. 1) then
         write(6, '(a,i4,a,/)') '|  Running AMBER/MPI version on ', &
@@ -1298,7 +1286,7 @@ subroutine sander()
         end if
       end if
     end if
-    ! End reporting of parallel configuration
+    ! End reporting of parallel configuration }}}
 
     if (master .and. numgroup > 1) then
       write(6, '(a,i4,a,i4,a,i4,a)') '|  MULTISANDER: ', numgroup, &
@@ -1346,16 +1334,6 @@ subroutine sander()
 #endif /* MPI */
 
 #ifdef OPENMP
-
-    ! If -openmp was specified to configure_amber then -DOPENMP is defined and
-    ! the threaded version of MKL will have been linked in. It is important
-    ! here that we set the default number of openmp threads for MKL to be 1 to
-    ! stop conflicts with threaded vectorization routines when running in
-    ! parallel etc.  Individual calls to MKL from routines that know what they
-    ! are doing - e.g. QMMM calls to diagonalizers etc can increase this limit
-    ! as long as they put it back afterwards.
-    call omp_set_num_threads(1)
-
     ! If we are using openmp for matrix diagonalization print some information.
     if (qmmm_nml%ifqnt .and. master) then
       call qm_print_omp_info()
@@ -1382,12 +1360,12 @@ subroutine sander()
     end if
 
     ! Now do the dynamics or minimization.
+
     if (igb == 7 .or. igb == 8 ) then
       call igb7_init(natom, x(l97)) !x(l97) is rborn()
-
-      ! Add igb = 8 here
     end if
 
+    !  some quantum setup  {{{
     if (qmmm_nml%ifqnt) then
 
       ! Apply charge correction if required.
@@ -1428,6 +1406,7 @@ subroutine sander()
                                            .true.)
       end if
     end if
+    ! }}}
 
     ! Use the debugf namelist to activate
     call debug_frc(x, ix, ih, ipairs, x(lcrd), x(lforce), cn1, cn2, qsetup)
@@ -1462,7 +1441,7 @@ subroutine sander()
     select case (imin)
       case (0)
 
-        ! Dynamics:
+        ! Dynamics:  {{{
         call timer_start(TIME_RUNMD)
 
         ! Set up Accelerated Molecular Dynamics
@@ -1596,9 +1575,12 @@ subroutine sander()
           end if
           call mexit(6,1)
         end if
+      ! }}}
+
       case (1)
 
-        ! Minimization: input flag ntmin determines the method of minimization
+        ! Minimization:  {{{
+        !    input flag ntmin determines the method of minimization
         select case (ntmin)
           case (0, 1, 2)
             call runmin(x, ix, ih, ipairs, x(lcrd), x(lforce), x(lvel), &
@@ -1652,9 +1634,11 @@ subroutine sander()
             ! invalid ntmin: input validation occurs in mdread.f
             ASSERT(.false.)
         end select
+      ! }}}
+
       case (5)
 
-        ! Modified for reading trajectories (trajene option)
+        ! Modified for reading trajectories (trajene option) {{{
         write (6,*) "POST-PROCESSING OF TRAJECTORY ENERGIES"
 
         ! Read trajectories and calculate energies for each frame
@@ -1663,6 +1647,8 @@ subroutine sander()
           write (6,*) 'error in trajene()'
           call mexit(6, 1)
         end if
+      ! }}}
+
       case default
 
         ! Invalid imin: input validation should be transferred to mdread.f
