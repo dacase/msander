@@ -11,9 +11,8 @@ Test of MD with Xray restraints
   ntx = 5, irest = 1, ntpr = 1,  
   ntc = 2, ntf = 2, tol = 0.000001,
   cut = 8.0,
-  nstlim = 10, dt = 0.002,
-  temp0 = 297.0, ig = 12345,
-  ithermostat = 1,  therm_par=5.0,
+  nstlim = 10, dt = 0.001,
+  ithermostat=0,
  /
  &xray
    spacegroup_name='P1',
@@ -25,10 +24,14 @@ Test of MD with Xray restraints
  /
 EOF
 
-$DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c md1.x -o xray1_md.out 
-/bin/rm -f mdin mdinfo restrt first.fmtz
+$DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c eq2.x -o xray1_md.out \
+    || (echo "  ${0}:  Program error"; exit 1)
+
+#/bin/rm -f mdin mdinfo restrt first.fmtz
 
 ../../dacdif xray1_md.out.save xray1_md.out
+
+exit 0
 
 
 

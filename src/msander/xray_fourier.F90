@@ -78,6 +78,10 @@ contains
 #ifdef MPI
       integer hklgroup
 #endif
+#ifdef OPENMP
+    integer :: numtasks, ier
+    character(len=5) omp_num_threads
+#endif
 
       ! Use the following if you expect num_atoms to change during a run:
       ! integer :: alloc_status
@@ -85,7 +89,18 @@ contains
       ! REQUIRE(alloc_status==0)
 
       call wallclock( time0 )
-!$omp parallel do private(ihkl, i, atomic_scatter_factor, f, angle )
+
+#ifdef OPENMP
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( ier .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
+#endif
+
+!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  &
+!$omp&  num_threads(numtasks)
       do ihkl = ihkl1, ihkl2
          if (present(hkl_selected)) then
             if (hkl_selected(ihkl)==0) cycle
@@ -185,15 +200,30 @@ contains
       complex(real_kind) :: f
       real(real_kind) :: phase
       double precision time0, time1
+#ifdef OPENMP
+    integer :: numtasks, ier
+    character(len=5) omp_num_threads
+#endif
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
       call wallclock( time0 )
+#ifdef OPENMP
+    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
+    if( ier .eq. 1 ) then
+       numtasks = 1   ! OMP_NUM_THREADS not set
+    else
+       read( omp_num_threads, * ) numtasks
+    endif
+#endif
+
 #ifdef USE_ISCALE
-!$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  reduction( +:d_tempFactor )
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
+!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor ) num_threads(numtasks)
 #else
-!$omp parallel do private(ihkl, atomic_scatter_factor, dhkl, iatom,  phase, f) reduction( +:dxyz )  
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
+!$omp&  reduction( +:dxyz )  num_threads(numtasks)
 #endif
       REFLECTION: do ihkl = ihkl1,ihkl2
          ! if (present(hkl_selected)) then
