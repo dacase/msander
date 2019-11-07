@@ -60,11 +60,18 @@ subroutine mdread1()
 #  endif /* API */
    use sander_rism_interface, only: rismprm
 #endif /*RISMSANDER*/
+
 #ifdef APBS
    use apbs
 #endif /* APBS */
+
    use nfe_sander_proxy, only: infe
    implicit none
+#ifdef MPI
+#  include "parallel.h"
+   logical master
+#endif
+
 #  include "box.h"
 #  include "def_time.h"
 #  include "ew_cntrl.h"
@@ -188,34 +195,34 @@ subroutine mdread1()
    !     ----- READ THE CONTROL DATA AND OPEN DIFFERENT FILES -----
 
 #ifndef API /* If this is NOT the API */
-   if (mdout /= "stdout" ) &
-         call amopen(6,mdout,owrite,'F','W')
+   master = (mytaskid == 0)
    call amopen(5,mdin,'O','F','R')
-   write(6,9308)
-   call date_and_time( DATE=date, TIME=time )
-   write(6,'(12(a))') '| Run on ', date(5:6), '/', date(7:8), '/',  &
+   if( master ) then
+      write(6,9308)
+      call date_and_time( DATE=date, TIME=time )
+      write(6,'(12(a))') '| Run on ', date(5:6), '/', date(7:8), '/',  &
         date(1:4), ' at ', time(1:2), ':', time(3:4), ':', time(5:6)
 
-   ! Write the path of the current executable and working directory
-   call get_command_argument(0, char_tmp_512)
-   write(6,'(/,a,a)') '|   Executable path: ', trim(char_tmp_512)
-   call getcwd(char_tmp_512)
-   write(6,'(a,a)') '| Working directory: ', trim(char_tmp_512)
+      ! Write the path of the current executable and working directory
+      call get_command_argument(0, char_tmp_512)
+      write(6,'(/,a,a)') '|   Executable path: ', trim(char_tmp_512)
+      call getcwd(char_tmp_512)
+      write(6,'(a,a)') '| Working directory: ', trim(char_tmp_512)
 ! Write the hostname if we can get it from environment variable
 ! Note: get_environment_variable is part of the F2003 standard but seems
 !       to be supported by GNU, Intel, IBM and Portland (2010+) compilers
-   call get_environment_variable("HOSTNAME", char_tmp_512, inerr)
-   if (inerr .eq. 0) then
-     write(6,'(a,a,/)') '|          Hostname: Unknown'
-   else
-     write(6,'(a,a,/)') '|          Hostname: ', trim(char_tmp_512)
-   end if
+      call get_environment_variable("HOSTNAME", char_tmp_512, inerr)
+      if (inerr .eq. 0) then
+        write(6,'(a,a,/)') '|          Hostname: Unknown'
+      else
+        write(6,'(a,a,/)') '|          Hostname: ', trim(char_tmp_512)
+      end if
 
-   if (owrite /= 'N') write(6, '(2x,a)') '[-O]verwriting output'
+      if (owrite /= 'N') write(6, '(2x,a)') '[-O]verwriting output'
 
-   ! Echo the file assignments to the user:
+      ! Echo the file assignments to the user:
 
-   write(6,9700) 'MDIN'   ,mdin(1:70)  , 'MDOUT' ,mdout(1:70) , &
+      write(6,9700) 'MDIN'   ,mdin(1:70)  , 'MDOUT' ,mdout(1:70) , &
          'INPCRD' ,inpcrd(1:70), 'PARM'  ,parm(1:70)  , &
          'RESTRT',restrt(1:70) , 'REFC'  ,refc(1:70)  , &
          'MDVEL' ,mdvel(1:70)  , 'MDFRC' ,mdfrc(1:70) , &
@@ -224,7 +231,7 @@ subroutine mdread1()
          'MTMD'  ,mtmd(1:70)   , 'INPDIP', inpdip(1:70), &
          'RSTDIP', rstdip(1:70), 'INPTRAJ', inptraj(1:70)
 #  ifdef MPI
-   write(6,9702) 'REMLOG',     trim(remlog), &
+      write(6,9702) 'REMLOG',     trim(remlog), &
                  'REMTYPE',    trim(remtype), &
                  'REMSTRIP',   trim(remstripcoord), &
                  'SAVEENE',    trim(saveenefile), &
@@ -233,54 +240,56 @@ subroutine mdread1()
                  'REMDDIM',    trim(remd_dimension_file)
 #  endif
 #ifdef RISMSANDER
-   if (len_trim(xvvfile) > 0) &
+      if (len_trim(xvvfile) > 0) &
         write(6,9701) 'Xvv', trim(xvvfile)
-   if (len_trim(guvfile) > 0) &
+      if (len_trim(guvfile) > 0) &
         write(6,9701) 'Guv', trim(Guvfile)
-   if (len_trim(huvfile) > 0) &
+      if (len_trim(huvfile) > 0) &
         write(6,9701) 'Huv', trim(Huvfile)
-   if (len_trim(cuvfile) > 0) &
+      if (len_trim(cuvfile) > 0) &
         write(6,9701) 'Cuv', trim(Cuvfile)
-   if (len_trim(uuvfile) > 0) &
+      if (len_trim(uuvfile) > 0) &
         write(6,9701) 'Uuv', trim(Uuvfile)
-   if (len_trim(asympfile) > 0) &
+      if (len_trim(asympfile) > 0) &
         write(6,9701) 'Asymptotics', trim(asympfile)
-   if (len_trim(quvfile) > 0) &
+      if (len_trim(quvfile) > 0) &
         write(6,9701) 'Quv', trim(Quvfile)
-   if (len_trim(chgDistfile) > 0) &
+      if (len_trim(chgDistfile) > 0) &
         write(6,9701) 'ChgDist', trim(chgDistfile)
-   if (len_trim(electronMapFile) > 0) &
+      if (len_trim(electronMapFile) > 0) &
         write(6,9701) 'ElectronMap', trim(electronMapFile)
-   if (len_trim(excessChemicalPotentialfile) > 0) &
+      if (len_trim(excessChemicalPotentialfile) > 0) &
         write(6,9701) 'ExChem', trim(excessChemicalPotentialfile)
-   if (len_trim(solvationEnergyfile) > 0) &
+      if (len_trim(solvationEnergyfile) > 0) &
         write(6,9701) 'SolvEne', trim(solvationEnergyfile)
-   if (len_trim(entropyfile) > 0) &
+      if (len_trim(entropyfile) > 0) &
         write(6,9701) 'Entropy', trim(entropyfile)
-   if (len_trim(excessChemicalPotentialGFfile) > 0) &
+      if (len_trim(excessChemicalPotentialGFfile) > 0) &
         write(6,9701) 'ExChGF', trim(excessChemicalPotentialGFfile)
-   if (len_trim(solvationEnergyGFfile) > 0) &
+      if (len_trim(solvationEnergyGFfile) > 0) &
         write(6,9701) 'SolvEneGF', trim(solvationEnergyGFfile)
-   if (len_trim(entropyGFfile) > 0) &
+      if (len_trim(entropyGFfile) > 0) &
         write(6,9701) '-TS_GF', trim(entropyGFfile)
-   if (len_trim(excessChemicalPotentialPCPLUSfile) > 0) &
+      if (len_trim(excessChemicalPotentialPCPLUSfile) > 0) &
         write(6,9701) 'exchemPCPLUS', trim(excessChemicalPotentialPCPLUSfile)
-   if (len_trim(solvationEnergyPCPLUSfile) > 0) &
+      if (len_trim(solvationEnergyPCPLUSfile) > 0) &
         write(6,9701) 'SolvEnePCPLUS', trim(solvationEnergyPCPLUSfile)
-   if (len_trim(entropyPCPLUSfile) > 0) &
+      if (len_trim(entropyPCPLUSfile) > 0) &
         write(6,9701) '-TS_PCPLUS', trim(entropyPCPLUSfile)
-   if (len_trim(excessChemicalPotentialUCfile) > 0) &
+      if (len_trim(excessChemicalPotentialUCfile) > 0) &
         write(6,9701) 'exchemUC', trim(excessChemicalPotentialUCfile)
-   if (len_trim(solvationEnergyUCfile) > 0) &
+      if (len_trim(solvationEnergyUCfile) > 0) &
         write(6,9701) 'SolvEneUC', trim(solvationEnergyUCfile)
-   if (len_trim(entropyUCfile) > 0) &
+      if (len_trim(entropyUCfile) > 0) &
         write(6,9701) '-TS_UC', trim(entropyUCfile)
-   if (len_trim(solventPotentialEnergyfile) > 0) &
+      if (len_trim(solventPotentialEnergyfile) > 0) &
         write(6,9701) 'PotUV', trim(solventPotentialEnergyfile)
 #endif /*RISMSANDER*/
 
-   ! Echo the input file to the user:
-   call echoin(5,6)
+      ! Echo the input file to the user:
+      call echoin(5,6)
+   end if
+
    !     ----- READ DATA CHARACTERIZING THE MD-RUN -----
    read(5,'(a80)') title
    !       ----read input in namelist format, first setting up defaults

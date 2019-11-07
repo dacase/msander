@@ -132,7 +132,8 @@ subroutine sander()
 
   use music_module, only: read_music_nml, print_music_settings
 
-  use commandline_module, only: cpein_specified
+  use commandline_module, only: cpein_specified, commandline_bcast
+
 
   implicit none
 
@@ -303,10 +304,18 @@ subroutine sander()
   ! regular MM or QM/MM MD simulations, we go through this loop only once.
   do while ((abfqmmm_param%qmstep <= abfqmmm_param%maxqmstep) .or. &
             (abfqmmm_param%maxqmstep == 0 .and. abfqmmm_param%system == 2))
-    masterwork: if (master) then
+
+    ! broadcast commandline info
+    call commandline_bcast(ier)
+
+    write(0,*) 'mdin is ', mdin,mytaskid
+
+    ! masterwork: if (master) then
       if (abfqmmm_param%abfqmmm == 0) then
 
         ! First, initial reads to determine memory sizes
+        if (master .and. mdout /= "stdout" ) &
+           call amopen(6,mdout,owrite,'F','W')
         call mdread1()
         call amopen(8,parm,'O','F','R')
         call rdparm1(8)
@@ -316,11 +325,13 @@ subroutine sander()
 
         ! Now, we can allocate memory
         call locmem()
+#if 0
         write(6,'(/,a,5x,a)') '|','Memory Use     Allocated'
         write(6,'(a,5x,a,i14)') '|', 'Real      ', lastr
         write(6,'(a,5x,a,i14)') '|', 'Hollerith ', lasth
         write(6,'(a,5x,a,i14)') '|', 'Integer   ', lasti
         write(6,'(a,5x,a,i14)') '|', 'Max Pairs ', lastpr
+#endif
 
         ! Dynamic memory allocation: allocate space for
         ! module molecule in the master node
@@ -364,12 +375,14 @@ subroutine sander()
           call allocate_int_decomp(1)
         end if
 
+#if 0
         write(6,'(a,5x,a,i14)'  ) '|', 'nblistReal', nblist_allreal
         write(6,'(a,5x,a,i14)'  ) '|', 'nblist Int', nblist_allint
         write(6,'(a,5x,a,i14,a)') '|', '  Total   ', &
               (8*(lastr+lastrst+nblist_allreal)  &
               + 4*(lasth+lasti+lastpr+lastist+nblist_allint))/1024, &
               ' kbytes'
+#endif
 
         ! Finish reading the prmtop file and other user input:
         call rdparm2(x, ix, ih, 8)
@@ -480,7 +493,7 @@ subroutine sander()
         call mexit(6, 1)
       end if
       pupactive = .true.
-      write(6,*) 'PUPIL CORBA interface initialized.'
+      ! write(6,*) 'PUPIL CORBA interface initialized.'
 
       ! Allocation of memory and initialization
       pupStep = 0
@@ -526,7 +539,7 @@ subroutine sander()
           qfpup(bs1+jPup) = 0.0d0
         end do
       end do
-      write(6,*) 'Got all atomic numbers.'
+      ! write(6,*) 'Got all atomic numbers.'
 
       ! Initialise the PUPIL cell
       do iPup = 1, 12
@@ -542,7 +555,7 @@ subroutine sander()
       end if
 
       ! Submit the Residue Pointer vector to PUPIL
-      write(6, "(a20,1x,i6,3x,a17,1x,i6)") 'Number of residues =', nres, &
+      ! write(6, "(a20,1x,i6,3x,a17,1x,i6)") 'Number of residues =', nres, &
                                            'Number of atoms =', natom
       puperror = 0
       call putresiduetypes(nres, puperror, pupres, keyres)
@@ -550,8 +563,8 @@ subroutine sander()
         write(6,*) 'Error sending MM residue types to PUPIL.'
         call mexit(6, 1)
       end if
-      write(6,*) 'Sent system data to PUPIL.'
-      write(*,*) 'PUPIL structure initialized.'
+      ! write(6,*) 'Sent system data to PUPIL.'
+      ! write(*,*) 'PUPIL structure initialized.'
 #endif
       ! End of PUPIL interface
 
@@ -856,8 +869,7 @@ subroutine sander()
       end if
       call amflsh(6)
 
-    end if masterwork
-    ! End of master process setup
+    ! end if masterwork
 
 #  if defined(RISMSANDER)
     call rism_init(commsander)
@@ -883,6 +895,8 @@ subroutine sander()
     ! the value from the master to decide whether to do the work or
     ! simply exit.
     !
+
+#if 0
     ! Set up initial data and send all needed data to other nodes,
     ! now that the master has it
     !
@@ -1178,6 +1192,7 @@ subroutine sander()
        close(8)
        call xray_init()
     end if
+#endif  /* broadcasts to other nodes */
 
     ! Check that the system is neutral and print warning message
     ! if not.  Adjust charges for roundoff error.

@@ -671,6 +671,7 @@ end subroutine mdfil
 !+ Broadcasts all commandline information to each thread
 subroutine commandline_bcast(ierr)
 
+   use file_io_dat
    implicit none
 #include "parallel.h"
  include 'mpif.h'
@@ -678,6 +679,9 @@ subroutine commandline_bcast(ierr)
 
    ! Broadcast everything
    call mpi_bcast(cpein_specified, 1, MPI_LOGICAL, 0, commsander, ierr)
+   call mpi_bcast(mdin, MAX_FN_LEN , MPI_CHARACTER, 0, commsander, ierr)
+   call mpi_bcast(parm, MAX_FN_LEN , MPI_CHARACTER, 0, commsander, ierr)
+   call mpi_bcast(inpcrd, MAX_FN_LEN , MPI_CHARACTER, 0, commsander, ierr)
 
 end subroutine commandline_bcast
 #endif /* MPI */
