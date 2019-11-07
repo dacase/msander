@@ -4220,7 +4220,7 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
    integer nmrst
    integer nres
    integer nstep0
-   integer ifconstr(1)       ! cuigl
+   integer ifconstr(*)
    integer ifxyz(*)
    integer ioutxyz(1)
    _REAL_  r1nmr
@@ -4235,7 +4235,7 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
    _REAL_  taufin
    _REAL_  wtnrg
    _REAL_  x
-   _REAL_  tgtvec(1)         ! cuigl
+   _REAL_  tgtvec(*)
    _REAL_  rstwt, rstwtpass
    _REAL_  rstwtarr
    _REAL_  rstwttol

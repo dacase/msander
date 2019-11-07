@@ -626,6 +626,8 @@ contains
 #ifdef MPI
       include 'mpif.h'    ! TODO: replace with use mpi??
       integer :: ierr
+#else
+      integer :: mytaskid = 0
 #endif
 
       allocate(sel_index(num_atoms),stat=alloc_status)

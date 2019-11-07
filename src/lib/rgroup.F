@@ -50,7 +50,7 @@ C           THE INPUT FOR THE GROUPS, OR BY READING IN ANOTHER "FIND"
 C
       character(len=4) jgraph,jresnm,jsymbl,jtree
       integer :: isrch
-      COMMON/PROPF/JGRAPH(11),JRESNM(11),JSYMBL(11),JTREE(11),ISRCH
+      COMMON/PROPF/JGRAPH(12),JRESNM(12),JSYMBL(12),JTREE(12),ISRCH
       character(len=4) ititl1(20)
       character(len=4) katn, ifind, nfind, iiend, ksear, ihol(20), ktypg
       character(len=4) igraph(*),isymbl(*),itree(*),lbres(*)
@@ -334,7 +334,7 @@ c     isymbl() dimensioned. (this was long-standing bug)
 C
       character(len=4) jgraph,jresnm,jsymbl,jtree
       integer :: isrch
-      COMMON/PROPF/JGRAPH(11),JRESNM(11),JSYMBL(11),JTREE(11),ISRCH
+      COMMON/PROPF/JGRAPH(12),JRESNM(12),JSYMBL(12),JTREE(12),ISRCH
       
       character(len=4), intent(in) :: igraph(*), isymbl(*), itree(*),
      +                                lbres(*)

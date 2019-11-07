@@ -41,73 +41,77 @@ C
       M(K) = K
       KK = NK+K
       BIGA = A(KK)
-      DO 20 J = K,N
-      IZ = N*(J-1)
-      DO 20 I = K,N
-      IJ = IZ+I
-      IF( ABS(BIGA)- ABS(A(IJ))) 15,20,20
-   15 BIGA = A(IJ)
-      L(K) = I
-      M(K) = J
-   20 CONTINUE
+      DO 25 J = K,N
+         IZ = N*(J-1)
+         DO 20 I = K,N
+            IJ = IZ+I
+            IF( ABS(BIGA)- ABS(A(IJ)) .ge. 0.d0) cycle
+   15       BIGA = A(IJ)
+            L(K) = I
+            M(K) = J
+   20    CONTINUE
+   25 CONTINUE
 C
 C     ----- INTERCHANGE ROWS -----
 C
       J = L(K)
-      IF(J-K) 35,35,25
-   25 KI = K-N
-      DO 30 I = 1,N
-      KI = KI+N
-      HOLD = -A(KI)
-      JI = KI-K+J
-      A(KI) = A(JI)
-   30 A(JI) = HOLD
+      IF(J-K .le. 0) go to 35
+      KI = K-N
+      DO I = 1,N
+         KI = KI+N
+         HOLD = -A(KI)
+         JI = KI-K+J
+         A(KI) = A(JI)
+         A(JI) = HOLD
+      END DO
 C
 C     ----- INTERCHANGE COLUMNS -----
 C
    35 I = M(K)
-      IF(I-K) 45,45,38
-   38 JP = N*(I-1)
-      DO 40 J = 1,N
-      JK = NK+J
-      JI = JP+J
-      HOLD = -A(JK)
-      A(JK) = A(JI)
-   40 A(JI) = HOLD
+      IF(I-K .le. 0) go to 45
+      JP = N*(I-1)
+      DO J = 1,N
+         JK = NK+J
+         JI = JP+J
+         HOLD = -A(JK)
+         A(JK) = A(JI)
+         A(JI) = HOLD
+      END DO
 C
 C     ----- DIVIDE COLUMN BY MINUS PIVOT -----
 C
-   45 IF(BIGA) 48,46,48
-   46 D = 0.0d0
+   45 IF(BIGA .ne. 0.d0) go to 48
+      D = 0.0d0
       GO TO 150
-   48 DO 55 I = 1,N
-      IF(I-K) 50,55,50
-   50 IK = NK+I
-      A(IK) = A(IK)/(-BIGA)
-   55 CONTINUE
+   48 DO I = 1,N
+         IF(I-K .eq. 0) cycle
+         IK = NK+I
+         A(IK) = A(IK)/(-BIGA)
+      END DO
 C
 C     ----- REDUCE MATRIX -----
 C
-      DO 65 I = 1,N
-      IK = NK+I
-      HOLD = A(IK)
-      IJ = I-N
-      DO 65 J = 1,N
-      IJ = IJ+N
-      IF(I-K) 60,65,60
-   60 IF(J-K) 62,65,62
-   62 KJ = IJ-I+K
-      A(IJ) = HOLD*A(KJ)+A(IJ)
-   65 CONTINUE
+      DO I = 1,N
+         IK = NK+I
+         HOLD = A(IK)
+         IJ = I-N
+         DO J = 1,N
+            IJ = IJ+N
+            IF(I-K .eq. 0) cycle
+            IF(J-K .eq. 0) cycle
+            KJ = IJ-I+K
+            A(IJ) = HOLD*A(KJ)+A(IJ)
+         END DO
+      END DO
 C
 C     ----- DIVIDE ROW BY PIVOT -----
 C
       KJ = K-N
-      DO 75 J = 1,N
-      KJ = KJ+N
-      IF(J-K) 70,75,70
-   70 A(KJ) = A(KJ)/BIGA
-   75 CONTINUE
+      DO J = 1,N
+         KJ = KJ+N
+         IF(J-K .eq. 0) cycle
+         A(KJ) = A(KJ)/BIGA
+      END DO
 C
 C     ----- PRODUCT OF PIVOTS -----
 C
@@ -122,26 +126,28 @@ C     ----- FINAL ROW AND COLUMN INTERCHANGE -----
 C
       K = N
   100 K = (K-1)
-      IF(K) 150,150,105
-  105 I = L(K)
-      IF(I-K) 120,120,108
-  108 JQ = N*(K-1)
+      IF(K .le. 0) go to 150
+      I = L(K)
+      IF(I-K .le. 0) go to 120
+      JQ = N*(K-1)
       JR = N*(I-1)
-      DO 110 J = 1,N
-      JK = JQ+J
-      HOLD = A(JK)
-      JI = JR+J
-      A(JK) = -A(JI)
-  110 A(JI) = HOLD
+      DO J = 1,N
+         JK = JQ+J
+         HOLD = A(JK)
+         JI = JR+J
+         A(JK) = -A(JI)
+         A(JI) = HOLD
+      END DO
   120 J = M(K)
-      IF(J-K) 100,100,125
-  125 KI = K-N
-      DO 130 I = 1,N
-      KI = KI+N
-      HOLD = A(KI)
-      JI = KI-K+J
-      A(KI) = -A(JI)
-  130 A(JI) = HOLD
+      IF(J-K .le. 0) go to 100
+      KI = K-N
+      DO I = 1,N
+         KI = KI+N
+         HOLD = A(KI)
+         JI = KI-K+J
+         A(KI) = -A(JI)
+         A(JI) = HOLD
+      END DO
       GOTO 100
   150 RETURN
       END

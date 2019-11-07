@@ -297,13 +297,13 @@ subroutine cffti1 (n,wa,ifac)
    nf = 0
    j = 0
    101 j = j+1
-   if (j-4) 102,102,103
+   if (j-4 > 0) go to 103
    102 ntry = ntryh(j)
    goto 104
    103 ntry = ntry+2
    104 nq = nl/ntry
    nr = nl-ntry*nq
-   if (nr) 101,105,101
+   if (nr .ne. 0) go to 101
    105 nf = nf+1
    ifac(nf+2) = dble(ntry)
    nl = nq
@@ -1153,8 +1153,10 @@ SUBROUTINE RADF2 (IDO,L1,CC,CH,WA1)
       CH(1,1,K) = CC(1,K,1)+CC(1,K,2)
          CH(IDO,2,K) = CC(1,K,1)-CC(1,K,2)
    101 end do
-   IF (IDO-2) 107,105,102
-   102 IDP2 = IDO+2
+   !  IF (IDO-2) 107,105,102
+   if (ido < 2) go to 107
+   if (ido == 2) go to 105
+   IDP2 = IDO+2
    DO 104 K=1,L1
       DO 103 I=3,IDO,2
          IC = IDP2-I
@@ -1228,8 +1230,10 @@ SUBROUTINE RADF4 (IDO,L1,CC,CH,WA1,WA2,WA3)
       CH(IDO,2,K) = CC(1,K,1)-CC(1,K,3)
       CH(1,3,K) = CC(1,K,4)-CC(1,K,2)
    101 end do
-   IF (IDO-2) 107,105,102
-   102 IDP2 = IDO+2
+   ! IF (IDO-2) 107,105,102
+   if (ido < 2 ) go to 107
+   if (ido == 2) go to 105
+   IDP2 = IDO+2
    DO 104 K=1,L1
       DO 103 I=3,IDO,2
          IC = IDP2-I
@@ -1600,14 +1604,16 @@ SUBROUTINE RFFTI1 (N,WA,IFAC)
    NF = 0
    J = 0
    101 J = J+1
-   IF (J-4) 102,102,103
-   102 NTRY = NTRYH(J)
+   !  IF (J-4) 102,102,103
+   if (j > 4) go to 103
+   NTRY = NTRYH(J)
    GO TO 104
    103 NTRY = NTRY+2
    104 NQ = NL/NTRY
    NR = NL-NTRY*NQ
-   IF (NR) 101,105,101
-   105 NF = NF+1
+   !  IF (NR) 101,105,101
+   if (nr .ne. 0) go to 101
+   NF = NF+1
    IFAC(NF+2) = DBLE(NTRY)
    NL = NQ
    IF (NTRY /= 2) GO TO 107
@@ -1679,8 +1685,10 @@ SUBROUTINE SINT1(N,WAR,WAS,XH,X,IFAC)
       XH(I) = WAR(I)
       WAR(I) = X(I)
    100 end do
-   IF (N-2) 101,102,103
-   101 XH(1) = XH(1)+XH(1)
+   !  IF (N-2) 101,102,103
+   if (N == 2) go to 102
+   if (N > 2) go to 103
+   XH(1) = XH(1)+XH(1)
    GO TO 106
    102 XHOLD = SQRT3*(XH(1)+XH(2))
    XH(2) = SQRT3*(XH(1)-XH(2))
