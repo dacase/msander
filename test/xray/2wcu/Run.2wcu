@@ -28,18 +28,7 @@ $DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c eq2.x -o xray1_md.out \
     < /dev/null || (echo "  ${0}:  Program error"; exit 1)
 
 /bin/rm -f mdin mdinfo restrt first.fmtz
-cp xray1_md.out xray1_md.out.2
 
 ../../dacdif xray1_md.out.save xray1_md.out
 
 exit 0
-
-
-
-
-
-
-
-
-
-
