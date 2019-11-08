@@ -214,6 +214,7 @@ else
   inc="-I$mklroot/include -I$mklroot/include/fftw"
   lapack=skip
   blas=skip
+  flibs_fftw=""
 
   # Determine how we are linking MKL
   link_type='mkl'
