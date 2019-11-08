@@ -1,27 +1,19 @@
-#!/bin/csh -f
-#TEST-PROGRAM sander
-#TEST-DESCRIP TO_BE_DEtermined
-#TEST-PURPOSE regression, basic
-#TEST-STATE   undocumented
+#!/bin/sh
 
-set sander = "../../../bin/msander"
+sander="../../../bin/msander"
 
-  echo "Testing MD with langevin dynamics"
-  /bin/rm -f md_LGV.out
-  $sander -O \
-          -i md_LGV.in \
-          -p qspcfw216.top \
-          -c nvt.rst \
-          -o md_LGV.out \
-          -r nvt.rst.1 \
-          -x lgv.crd \
-          -inf lgv.info \
-    || goto error
-  ../../dacdif md_LGV.out.save md_LGV.out
-  /bin/rm -f lgv.crd lgv.info nvt.rst.1
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
 
-exit(0)
+output=md_LGV.out
 
-error:
-echo "  ${0}:  Program error"
-exit(1)
+echo "Testing MD with langevin dynamics"
+$DO_PARALLEL $sander -O -i md_LGV.in -p qspcfw216.top \
+          -c nvt.rst -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif $output.save $output
+/bin/rm -f restrt mdinfo
+
+exit 0 

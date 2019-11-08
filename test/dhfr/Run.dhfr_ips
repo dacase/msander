@@ -22,8 +22,8 @@ EOF
 
 output=mdout.dhfr_ips
 
-$DO_PARALLEL $sander -O -i gbin -c md12.x -o $output < /dev/null\
-    || (echo "  ${0}:  Program error"; exit 1)
+$DO_PARALLEL $sander -O -i gbin -c md12.x -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../dacdif $output.save $output
 /bin/rm -f gbin restrt mdinfo dummy

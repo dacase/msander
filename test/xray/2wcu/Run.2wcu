@@ -25,7 +25,7 @@ Test of MD with Xray restraints
 EOF
 
 $DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c eq2.x -o xray1_md.out \
-    < /dev/null || (echo "  ${0}:  Program error"; exit 1)
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 /bin/rm -f mdin mdinfo restrt first.fmtz
 
