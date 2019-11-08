@@ -396,11 +396,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, cn6, &
                        eelt, epolar, f, xx, ix, ipairs, xx(l45), virvsene, &
                        xx(lpol), &
-#ifdef HAS_10_12
-                       xx(lpol2), .true., cn3, cn4, cn5, asol, bsol)
-#else
                        xx(lpol2), .true., cn3, cn4, cn5 )
-#endif
       call timer_stop(TIME_EWALD)
     endif
 
@@ -441,11 +437,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                             xx(lpol2), xx(lpolbnd), xx(l45), virvsene, &
                             ix(i02), ibgwat, nres, aveper, aveind, avetot, &
                             emtot, diprms, dipiter, dipole_temp, &
-#ifdef HAS_10_12
-                            cn3, cn4, cn5, asol, bsol)
-#else
                             cn3, cn4, cn5)
-#endif
       else
         if (ilrt /= 0) then
 
@@ -457,31 +449,19 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
             call ewald_force(x, natom, ix(i04), ix(i06), crg_m0, cn1, cn2, &
                              cn6, energy_m0, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
 
             ! call with water charges set to zero
             call ewald_force(x, natom, ix(i04), ix(i06), crg_w0, cn1, cn2, &
                              cn6, energy_w0, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
             ! call with full charges but no vdw interaction
             ! between solute and solvent
             call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1_lrt, &
                              cn2_lrt, cn6, eelt, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
             energy_vdw0 = evdw
             call lrt_solute_sasa(x,natom, xx(l165))
           end if
@@ -491,11 +471,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
           call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
                            cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
                            virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                           xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                            xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
           energy_vdw0 = evdw - energy_vdw0
 
           ! count call to ltr, maybe calculate Eee and print it
@@ -504,11 +480,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
           call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
                            cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
                            virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                           xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                            xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
         end if ! ilrt /= 0
       end if ! induced > 0
 

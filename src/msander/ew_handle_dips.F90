@@ -14,11 +14,7 @@ subroutine handle_induced(crd,numatoms,iac,ico,charge, &
       cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
       pol,pol2,polbnd,xr,virvsene,ipres,ibgwat,nres,aveper, &
       aveind,avetot,emtot, dipole_rms, dipiter,dipole_temp, &
-#ifdef HAS_10_12
-      cn3,cn4,cn5,asol,bsol)
-#else
       cn3,cn4,cn5)
-#endif
 
    implicit none
    integer numatoms,iac(*),ico(*),ibgwat,nres,ipres(*)
@@ -26,9 +22,6 @@ subroutine handle_induced(crd,numatoms,iac,ico,charge, &
           eelt,epol,frc(3,*),xr(3,*),pol(*),virvsene, &
           aveper,aveind,avetot,emtot, &
           dipole_rms, dipiter,dipole_temp
-#ifdef HAS_10_12
-   _REAL_ asol(*), bsol(*)
-#endif
    _REAL_ x(*),pol2(*),polbnd(3,*),cn3(*),cn4(*),cn5(*)
    integer ix(*),ipairs(*)
 #  include "ew_mpole.h"
@@ -79,11 +72,7 @@ subroutine handle_induced(crd,numatoms,iac,ico,charge, &
          call ewald_force(crd,numatoms,iac,ico,charge, &
                cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
                 xr,virvsene,pol, pol2, .false., &
-#ifdef HAS_10_12
-                cn3,cn4,cn5,asol,bsol)
-#else
                 cn3,cn4,cn5)
-#endif
          if ( verbose >= 1 ) write(6,66)iter,diprms,diptol
          66 format(1x,'Induced dipoles: iter = ',i3,' RMS = ', &
                e12.3, 'TOL = ',e12.3)
@@ -106,11 +95,7 @@ subroutine handle_induced(crd,numatoms,iac,ico,charge, &
       call ewald_force(crd,numatoms,iac,ico,charge, &
             cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
              xr,virvsene,pol,pol2,.false.&
-#ifdef HAS_10_12
-             ,cn3,cn4,cn5,asol,bsol)
-#else
              ,cn3,cn4,cn5)
-#endif
    end if  ! ( indmeth < 3 .or. initdip == 1 )
    if ( indmeth == 3 .and. nquench > 0 ) iquench = iquench + 1
    dipole_rms = diprms

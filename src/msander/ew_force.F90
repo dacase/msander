@@ -10,11 +10,7 @@
 subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
       xr,virvsene,pol,pol2,qm_pot_only, &
-#ifdef HAS_10_12
-      cn3,cn4,cn5,asol,bsol)
-#else
       cn3,cn4,cn5)
-#endif
    use trace
    use ew_recip
    use ew_dipole_recip
@@ -71,9 +67,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    integer numatoms,iac(*),ico(*)
    _REAL_ crd(3,*),charge(*),cn1(*),cn2(*),cn6(*), &
           eelt,epol,frc(3,*),xr(3,*),virvsene
-#ifdef HAS_10_12
-   _REAL_ asol(*), bsol(*)
-#endif
    _REAL_ pol(*), pol2(*)
    _REAL_ cn3(*), cn4(*), cn5(*)
 !!
@@ -471,12 +464,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
             maxnblst,eed,evdw,ehb,dir_vir,eedvir, &
             nbfilter,ee_type,eedmeth,dxdr, &
             pol, pol2, cn3, cn4, cn5, &
-#ifdef HAS_10_12
-            epold,x(linddip),x(lfield),mpoltype,asol,bsol)
-#else
             epold,x(linddip),x(lfield),mpoltype)
-#endif
-
 
 #ifdef MPI
        numtasks = commsander_numtasks

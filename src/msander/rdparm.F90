@@ -642,7 +642,6 @@ subroutine rdparm2(x,ix,ih,nf)
    CHECK_REQUIRED(iok, 'HBOND_ACOEF')
    read(nf,fmt) (asol(i),i=1,nphb)
    
-#ifndef HAS_10_12
    do i=1,nphb
       if( asol(i) /= 0.d0 ) then
          write(6,*) 'Found a non-zero 10-12 coefficient, but source', &
@@ -652,7 +651,6 @@ subroutine rdparm2(x,ix,ih,nf)
          call mexit(6,1)
       end if
    end do
-#endif
    
    fmtin = rfmt
    type = 'HBOND_BCOEF'

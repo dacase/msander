@@ -10,19 +10,11 @@
 ! Arguments:
 !
 !------------------------------------------------------------------------------
-#ifdef HAS_10_12
-subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
-                         numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
-                         eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
-                         filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
-                         cn4, cn5, epol, dipole, field, mpoltype, asol, bsol)
-#else
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                          numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
                          eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
                          filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
                          cn4, cn5, epol, dipole, field, mpoltype)
-#endif
 
   use nblist, only : imagcrds, bckptr, nlogrid, nhigrid, numvdw, numhbnd, &
                      myindexlo, myindexhi, numimg
@@ -46,9 +38,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   integer numatoms, maxnblst, mpoltype
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
-#ifdef HAS_10_12
-  _REAL_ asol(*), bsol(*)
-#endif
   _REAL_ ewaldcof, eedtbdns, dxdr, eed_cub(4,*), eed_lin(2,*), dir_vir(3,3)
   integer ipairs(maxnblst)
   _REAL_ force(3,numatoms), eelt, epol, evdw, ehb
@@ -126,16 +115,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
             endif
             REQUIRE(rstack_ok)
             REQUIRE(istack_ok)
-#ifdef HAS_10_12
-            call short_ene(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, nhbnd, &
-                           eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
-                           ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
-                           dir_vir, ee_type, eedmeth, dxdr, eedvir, &
-                           r_stack(l_real_df), r_stack(l_real_x), &
-                           r_stack(l_real_y), r_stack(l_real_z), &
-                           r_stack(l_real_r2), i_stack(l_int), cn3, cn4, cn5, &
-                           asol, bsol, ehb)
-#else
             call short_ene(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, nhbnd, &
                            eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
                            ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
@@ -143,7 +122,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                            r_stack(l_real_df), r_stack(l_real_x), &
                            r_stack(l_real_y), r_stack(l_real_z), &
                            r_stack(l_real_r2), i_stack(l_int), cn3, cn4, cn5)
-#endif
                         
             call free_stack(l_real_r2,routine)
             call free_stack(l_real_z,routine)
@@ -152,22 +130,12 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
             call free_stack(l_real_df,routine)
             call free_istack(l_int,routine)
           else if ( mpoltype > 0 ) then
-#ifdef HAS_10_12
-            call short_ene_dip(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, &
-                               ewaldcof, eedtbdns, eed_cub, eed_lin, charge, &
-                               dipole, ntypes, iac, ico, cn1, cn2, cn6, &
-                               filter_cut, eelt, epol, evdw, ehb, force, &
-                               field, pol, pol2, dir_vir, ee_type, eedmeth, &
-                               mpoltype, dxdr, eedvir, cn3, cn4, cn5, asol, &
-                               bsol)
-#else
             call short_ene_dip(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, &
                                ewaldcof, eedtbdns, eed_cub, eed_lin, charge, &
                                dipole, ntypes, iac, ico, cn1, cn2, cn6, &
                                filter_cut, eelt, epol, evdw, ehb, force, &
                                field, pol, pol2, dir_vir, ee_type, eedmeth, &
                                mpoltype, dxdr, eedvir, cn3, cn4, cn5)
-#endif
           end if
           numpack = numpack + ntot
         end if  ! ( ntot > 0 )
@@ -231,25 +199,13 @@ end subroutine get_nb_energy
 !   bsol:
 !   ehb:
 !------------------------------------------------------------------------------
-#ifdef HAS_10_12
-subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
-                     eed_cub, eed_lin, charge, ntypes, iac, ico, cn1, cn2, &
-                     cn6, filter_cut, eelt, evdw, force, dir_vir, ee_type, &
-                     eedmeth, dxdr, eedvir, cache_df, cache_x, cache_y, &
-                     cache_z, cache_r2, cache_bckptr, cn3, cn4, cn5, asol, &
-                     bsol, ehb)
-#else
 subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                      eed_cub, eed_lin, charge, ntypes, iac, ico, cn1, cn2, &
                      cn6, filter_cut, eelt, evdw, force, dir_vir, ee_type, &
                      eedmeth, dxdr, eedvir, cache_df, cache_x, cache_y, &
                      cache_z, cache_r2, cache_bckptr, cn3, cn4, cn5)
-#endif
   use nblist, only: imagcrds, bckptr, tranvec, cutoffnb, volume
   use constants, only: zero, one, two, half, third, TWOPI, six, twelve
-#ifdef HAS_10_12
-  use constants, only: ten
-#endif
   use file_io_dat
 #ifdef LES
   use les_data, only: cnum, lestyp, lestmp, lesfac, lfac, nlesty
@@ -301,9 +257,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   _REAL_ delx,dely,delz,delr, delr2, cgi, cgj, delr2inv, r6, f6, f12, df, &
          dfee, dx, x, dfx, vxx, vxy, vxz, dfy, vyy, vyz, dumy, dfz, vzz, &
          dumz, dumx
-#ifdef HAS_10_12
-  _REAL_ ehb, f10, r10, asol(*), bsol(*)
-#endif
 #ifdef MPI
   _REAL_ denom, denom_n, delr_n, switch_c, denom2, denom3, rfour
 #endif
@@ -544,13 +497,8 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #  include "ene_decomp.h"
 #endif
 
-
       delr2inv = delrinv*delrinv
       dfee = dfee*delr2inv
-         
-#ifdef HAS_10_12
-      cache_r2(im_new)=delr2inv
-#endif
       cache_df(im_new)=dfee
     end do
     ! End electrostatic loop
@@ -1460,9 +1408,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #   include "ene_decomp.h"
 #endif
 
-#ifdef HAS_10_12
-    cache_r2(im_new)=delr2inv
-#endif
     cache_df(im_new)=dfee
   end do
 
@@ -1492,20 +1437,11 @@ end subroutine short_ene
 !   pol2:
 !   dipole:    
 !------------------------------------------------------------------------------
-#ifdef HAS_10_12
-subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
-                         eedtbdns, eed_cub, eed_lin, charge, dipole, ntypes, &
-                         iac, ico, cn1, cn2, cn6, filter_cut, eelt, epol, &
-                         evdw, ehb, frc, field, pol, pol2, dir_vir, ee_type, &
-                         eedmeth, mpoltype, dxdr, eedvir, cn3, cn4, cn5, &
-                         asol, bsol)
-#else
 subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
                          eedtbdns, eed_cub, eed_lin, charge, dipole, ntypes, &
                          iac, ico, cn1, cn2, cn6, filter_cut, eelt, epol, &
                          evdw, ehb, frc, field, pol, pol2, dir_vir, ee_type, &
                          eedmeth, mpoltype, dxdr, eedvir, cn3, cn4, cn5)
-#endif
 
 #ifdef LES
   use les_data, only: lestmp, nlesty, lfac, lesfac, lestyp
@@ -1513,9 +1449,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
   use nblist, only: bckptr,imagcrds,tranvec
   use constants, only: zero, one, two, three, four, five, &
                         six, twelve, third, half
-#ifdef HAS_10_12
-  use constants, only: ten
-#endif
   use pol_gauss
 
   implicit none
@@ -1531,9 +1464,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
          field(3,*), pol(*)
   _REAL_ pol2(*)
   _REAL_ cn3(*), cn4(*), cn5(*)
-#ifdef HAS_10_12
-  _REAL_ asol(*), bsol(*)
-#endif
   integer ic,j,m,n,ind,iaci
   _REAL_ del
   _REAL_ switch, d_switch_dx
@@ -1903,24 +1833,10 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dfx = (term1)*delx + termi*dipole(1,j) - termj*dipole(1,i)
       dfy = (term1)*dely + termi*dipole(2,j) - termj*dipole(2,i)
       dfz = (term1)*delz + termi*dipole(3,j) - termj*dipole(3,i)
-#ifdef HAS_10_12
-         
-      ! This code allows 10-12 terms; in many (most?) (all?) cases, the
-      ! only "nominal" 10-12 terms are on waters, where the asol and bsol
-      ! parameters are always zero; hence we can skip the L-J part; note
-      ! that we still have to compute the electrostatic interactions
-      ic = -ico(iaci+iac(j))
-      r10 = delr2inv*delr2inv*delr2inv*delr2inv*delr2inv
-      f10 = bsol(ic)*r10
-      f12 = asol(ic)*(r10*delr2inv)
-      ehb = ehb + f12 - f10
-      df = (twelve*f12 - ten*f10)*delr2inv
-#else
       df = zero
       ehb = zero
       f10 = zero
       r10 = zero
-#endif
       ! Force related quantities
       dfx = dfx + df*delx
       dfy = dfy + df*dely
