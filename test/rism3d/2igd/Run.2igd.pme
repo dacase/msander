@@ -12,8 +12,7 @@ cat > mdin <<EOF
 2igd crystal unit cell
  &cntrl
     ntx=1, ntpr=1, ntwx=0, ntwr=0,
-    imin=1, drms=1E-4,
-    maxcyc=3, ntmin=1,
+    nstlim=3, irest=0, tempi=0.0,
     ig=314159,
     irism=1,
  /
@@ -25,7 +24,7 @@ cat > mdin <<EOF
     verbose=1,
     write_thermo=0,
     npropagate=5,
-    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-8,
+    mdiis_del=0.7, mdiis_nvec=10, tolerance=1e-8,
     apply_rism_force=1,
  /
 EOF
