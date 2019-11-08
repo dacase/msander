@@ -78,26 +78,9 @@ contains
 #ifdef MPI
       integer hklgroup
 #endif
-#ifdef OPENMP
-    integer :: numtasks
-    character(len=5) omp_num_threads
-#endif
-
-      ! Use the following if you expect num_atoms to change during a run:
-      ! integer :: alloc_status
-      ! allocate(angle(num_atoms), f(num_atoms), stat=alloc_status)
-      ! REQUIRE(alloc_status==0)
 
       call wallclock( time0 )
 
-#ifdef OPENMP
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
       ! set up reflection partitioning for MPI
 #ifdef MPI
       ihkl1 = mytaskid*num_hkl/numtasks + 1
@@ -112,8 +95,7 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  &
-!$omp&  num_threads(numtasks)
+!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
          if (present(hkl_selected)) then
             if (hkl_selected(ihkl)==0) cycle
@@ -213,10 +195,6 @@ contains
       complex(real_kind) :: f
       real(real_kind) :: phase
       double precision time0, time1
-#ifdef OPENMP
-    integer :: numtasks, ier
-    character(len=5) omp_num_threads
-#endif
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
@@ -233,21 +211,12 @@ contains
       ihkl2 = num_hkl
 #endif
 
-#ifdef OPENMP
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
-
 #ifdef USE_ISCALE
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor ) num_threads(numtasks)
+!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor )
 #else
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )  num_threads(numtasks)
+!$omp&  reduction( +:dxyz )
 #endif
       REFLECTION: do ihkl = ihkl1,ihkl2
          ! if (present(hkl_selected)) then

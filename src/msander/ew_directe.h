@@ -1,9 +1,6 @@
 
 ! epilogue: 12-6 LF terms
 
-!$omp parallel do  &
-!$omp&  private(im_new,j,dfee,delx,dely,delz,delr2inv,ic,r6,f6,f12,df,dfx,dfy,dfz)  &
-!$omp&  reduction(+:evdw,dumx,dumy,dumz)
 do im_new = 1,icount
    j = cache_bckptr(im_new)
 

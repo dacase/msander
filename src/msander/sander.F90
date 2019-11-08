@@ -177,6 +177,7 @@ subroutine sander()
 #  include "ew_mpole.h"
 #  include "ew_cntrl.h"
 #  include "def_time.h"
+   character(len=30) omp_num_threads
 
   type(state_rec) ::  ene
   integer native,nr3,nr
@@ -186,8 +187,6 @@ subroutine sander()
          devplpt(4), devpln(4), devgendis(4)
   _REAL_ ag(1), bg(1), cg(1)
 
-  ! Updated 9/2007 by Matthew Seetin to enable
-  ! plane-point and plane-plane restraints
   integer numphi, nhb
 
   ! runmin/trajene var
@@ -1323,9 +1322,20 @@ subroutine sander()
 #endif /* MPI */
 
 #ifdef OPENMP
-    ! If we are using openmp for matrix diagonalization print some information.
+    ! If we are using openmp print some information.
     if (qmmm_nml%ifqnt .and. master) then
-      call qm_print_omp_info()
+       call qm_print_omp_info()
+    else
+       call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, &
+           status=ier)
+       if( ier == 1 ) then
+          write(6,'(a)') &
+             '| Running OPENMP code, but OMP_NUM_THREADS is not defined'
+       else
+          write(6,'(a,a)') &
+             '| Running OPENMP code, with OMP_NUM_THREADS = ', &
+             trim(omp_num_threads)
+       end if
     end if
 #endif
 

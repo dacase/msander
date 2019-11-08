@@ -27,9 +27,6 @@ subroutine printflags()
 #ifdef NMODE
    call printflags2(' NMODE',6,n,line,.false.)
 #endif
-#ifdef HAS_10_12
-   call printflags2(' HAS_10_12',10,n,line,.false.)
-#endif
 
 #ifdef noVIRIAL
    call printflags2(' noVIRIAL',9,n,line,.false.)

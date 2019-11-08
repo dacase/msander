@@ -3922,7 +3922,8 @@ short_ene.o: \
                     ew_directe2.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    pol_gauss.o
+                    eedmeth2-6.h\
+                    short_ene_dip.h
 
 
 short_ene.o:   short_ene.F90
@@ -3956,7 +3957,8 @@ short_ene.LES.o: \
                     ew_directe2.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    pol_gauss.o
+                    eedmeth2-6.h\
+                    short_ene_dip.h
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[SANDER]  FC $<'
@@ -4154,11 +4156,11 @@ xray_interface.o: \
                     xray_FFT.o\
                     memory_module.o\
                     xray_reciprocal_space.o\
+                    parallel.h\
                     xray_utils.o\
                     nonbond_list.o\
                     xray_fourier.o\
                     findmask.o\
-                    parallel.h\
                     extra.h
 
 
