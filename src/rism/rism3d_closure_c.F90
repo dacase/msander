@@ -420,23 +420,10 @@ contains
     ! Lennard-Jones force between two particles.
     _REAL_ :: dUlj_dr
     _REAL_ :: debugenergy, time0, time1
-#ifdef OPENMP
-    integer :: numtasks,ier
-    character(len=5) :: omp_num_threads
-
-    !  Following should not be necessary, but ifort doesn't seem to
-    !  do the right thing with the OMP_NUM_THREADS environment variable here
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
     call wallclock(time0)
 
 !$omp parallel do private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,iv,ig) num_threads(numtasks)
+!$omp&   igx,igy,igz,iu,iv,ig) 
 
     do iu = 1, this%solute%numAtoms
        do igz = 1, this%grid%localDimsR(3)
@@ -570,19 +557,6 @@ contains
     _REAL_ :: qall
 
     _REAL_ :: time0, time1
-#ifdef OPENMP
-    integer :: numtasks, ier
-    character(len=5) :: omp_num_threads
-
-    !  Following should not be necessary, but ifort doesn't seem to
-    !  do the right thing with the OMP_NUM_THREADS environment variable here
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
     call wallclock(time0)
 
 
@@ -744,7 +718,7 @@ contains
     !
 
 !$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd, &
-!$omp&   igx,igy,igz,iu) num_threads(numtasks)
+!$omp&   igx,igy,igz,iu) 
 
     do iu =1, this%solute%numAtoms
         do igz = 1, this%grid%localDimsR(3)
