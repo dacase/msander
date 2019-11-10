@@ -2936,10 +2936,10 @@ end subroutine load_reservoir_files
 !+ Calculate pressure/volume correction to replica exchange delta.
 function pv_correction(ourtemp, nbrtemp, neighbor, comm_rep_master)
   ! USE STATEMENTS
-  use mpi
   use constants, only : KB
   ! ARGUMENTS
   implicit none
+  include 'mpif.h'
   _REAL_ pv_correction
   _REAL_, intent(in)  :: ourtemp, nbrtemp
   integer, intent(in) :: neighbor
@@ -2974,11 +2974,11 @@ end function pv_correction
 !+ Broadcast new unit cell information in box1 and update unit cell.
 subroutine remd_bcast_cell(box0, box1, commsander)
   ! USE STATEMENTS
-  use mpi
   !use nblist, only : alpha, beta, gamma
   use nblist, only : fill_tranvec
   ! ARGUMENTS
   implicit none
+  include 'mpif.h'
   _REAL_, intent(in), dimension(:) :: box0       ! Original box
   _REAL_, intent(in), dimension(:) :: box1       ! New box
   integer, intent(in)              :: commsander ! COMM for broadcast
