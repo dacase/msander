@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/08/2019 at 14:29:55
+| Run on 11/12/2019 at 14:55:44
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/middle-scheme/MD_Constr_Langevin_water
+| Working directory: /Users/case/msander/test/middle-scheme/MD_Constr_Langevin_water
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -15,13 +15,13 @@ File Assignments:
 | MDOUT: md_LGV.out                                                            
 |INPCRD: nvt.rst                                                               
 |  PARM: qspcfw216.top                                                         
-|RESTRT: nvt.rst.1                                                             
+|RESTRT: restrt                                                                
 |  REFC: refc                                                                  
 | MDVEL: mdvel                                                                 
 | MDFRC: mdfrc                                                                 
 |  MDEN: mden                                                                  
-| MDCRD: lgv.crd                                                               
-|MDINFO: lgv.info                                                              
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
 |  MTMD: mtmd                                                                  
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
@@ -91,9 +91,9 @@ Nature and format of input:
      ntx     =       1, irest   =       0, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =      10
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
 
 Potential function:
      ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
@@ -136,7 +136,7 @@ default_name
 
      Sum of charges from parm topology file =   0.00000000
      Forcing neutrality...
-| Running OPENMP code, with OMP_NUM_THREADS = 4
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -271,38 +271,37 @@ default_name
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 1.23% of Total)
+|    Read coords time           0.00 ( 1.12% of Total)
 |    Fast Water setup           0.00 ( 0.02% of Total)
-|                Build the list             0.01 (44.06% of List )
-|                Other                      0.01 (55.94% of List )
-|             List time                  0.02 (36.04% of Nonbo)
-|                   Short_ene time             0.03 (98.64% of Direc)
-|                   Other                      0.00 ( 1.36% of Direc)
-|                Direct Ewald time          0.03 (77.33% of Ewald)
-|                Adjust Ewald time          0.00 ( 0.75% of Ewald)
+|                Build the list             0.01 (55.01% of List )
+|                Other                      0.01 (44.99% of List )
+|             List time                  0.01 (32.25% of Nonbo)
+|                   Short_ene time             0.02 (98.65% of Direc)
+|                   Other                      0.00 ( 1.35% of Direc)
+|                Direct Ewald time          0.02 (76.33% of Ewald)
+|                Adjust Ewald time          0.00 ( 0.87% of Ewald)
 |                Self Ewald time            0.00 ( 0.03% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 9.82% of Recip)
-|                   Fill charge grid           0.00 (14.29% of Recip)
-|                   Scalar sum                 0.00 ( 4.47% of Recip)
-|                   Grad sum                   0.00 (28.79% of Recip)
-|                   FFT time                   0.00 (42.53% of Recip)
-|                   Other                      0.00 ( 0.09% of Recip)
-|                Recip Ewald time           0.01 (21.81% of Ewald)
-|                Force Adjust               0.00 ( 0.01% of Ewald)
-|                Virial junk                0.00 ( 0.01% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 9.93% of Recip)
+|                   Fill charge grid           0.00 (13.56% of Recip)
+|                   Scalar sum                 0.00 ( 5.05% of Recip)
+|                   Grad sum                   0.00 (25.66% of Recip)
+|                   FFT time                   0.00 (45.63% of Recip)
+|                   Other                      0.00 ( 0.17% of Recip)
+|                Recip Ewald time           0.01 (22.69% of Ewald)
+|                Force Adjust               0.00 ( 0.02% of Ewald)
 |                Other                      0.00 ( 0.05% of Ewald)
-|             Ewald time                 0.04 (63.95% of Nonbo)
+|             Ewald time                 0.02 (67.74% of Nonbo)
 |             Other                      0.00 ( 0.01% of Nonbo)
-|          Nonbond force              0.06 (99.56% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 0.39% of Force)
-|          Other                      0.00 ( 0.05% of Force)
-|       Force time                 0.06 (89.55% of Runmd)
-|       Shake time                 0.00 ( 0.55% of Runmd)
-|       Verlet update time         0.01 ( 9.53% of Runmd)
-|       Other                      0.00 ( 0.37% of Runmd)
-|    Runmd Time                 0.06 (60.16% of Total)
-|    Other                      0.04 (38.59% of Total)
-| Total time                 0.10 (100.0% of ALL  )
+|          Nonbond force              0.03 (99.53% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 0.40% of Force)
+|          Other                      0.00 ( 0.07% of Force)
+|       Force time                 0.03 (89.78% of Runmd)
+|       Shake time                 0.00 ( 0.54% of Runmd)
+|       Verlet update time         0.00 ( 8.95% of Runmd)
+|       Other                      0.00 ( 0.73% of Runmd)
+|    Runmd Time                 0.04 (82.55% of Total)
+|    Other                      0.01 (16.31% of Total)
+| Total time                 0.05 (99.89% of ALL  )
 
 | Number of list builds   :          2
 
@@ -312,11 +311,11 @@ default_name
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.06 Per Step(ms) =       6.20
-|         ns/day =      55.71   seconds/ns =    1550.85
+|     Elapsed(s) =       0.04 Per Step(ms) =       3.88
+|         ns/day =      89.00   seconds/ns =     970.77
 | -----------------------------------------------------
 
-|           Job began  at 14:29:55.671  on 11/08/2019
-|           Setup done at 14:29:55.712  on 11/08/2019
-|           Run   done at 14:29:55.774  on 11/08/2019
+|           Job began  at 14:55:44.854  on 11/12/2019
+|           Setup done at 14:55:44.863  on 11/12/2019
+|           Run   done at 14:55:44.902  on 11/12/2019
 |     wallclock() was called     505 times

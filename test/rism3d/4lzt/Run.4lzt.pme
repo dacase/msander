@@ -23,6 +23,7 @@ cat > mdin <<EOF
     grdspc=0.5,0.5,0.5,
     solvcut=9.0,
     verbose=1,
+    write_thermo=0,
     npropagate=0,
     mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-8,
     apply_rism_force=0,

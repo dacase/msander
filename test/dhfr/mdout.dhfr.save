@@ -3,12 +3,11 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/08/2019 at 09:21:30
+| Run on 11/12/2019 at 14:51:49
 
 |   Executable path: ../../bin/msander
-| Working directory: /cache/home/dacase/msander/test/dhfr
-|          Hostname: perceval1.perceval.rutgers.edu
-
+| Working directory: /Users/case/msander/test/dhfr
+|          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
@@ -28,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
  short md, nve ensemble                                                        
  &cntrl                                                                        
    ntx=7, irest=1,                                                             
@@ -92,9 +91,9 @@ Nature and format of input:
      ntx     =       7, irest   =       1, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =   10000
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =   10000
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
 
 Potential function:
      ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
@@ -133,6 +132,7 @@ Ewald parameters:
 
      Sum of charges from parm topology file =  -0.00000006
      Forcing neutrality...
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -339,35 +339,35 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.03 ( 0.35% of Total)
+|    Read coords time           0.02 ( 0.89% of Total)
 |    Fast Water setup           0.00 ( 0.01% of Total)
-|                Build the list             0.35 (96.47% of List )
-|                Other                      0.01 ( 3.53% of List )
-|             List time                  0.36 ( 4.47% of Nonbo)
-|                   Short_ene time             7.30 (99.52% of Direc)
-|                   Other                      0.04 ( 0.48% of Direc)
-|                Direct Ewald time          7.33 (93.96% of Ewald)
-|                Adjust Ewald time          0.03 ( 0.38% of Ewald)
-|                   Fill Bspline coeffs        0.03 ( 6.76% of Recip)
-|                   Fill charge grid           0.08 (17.41% of Recip)
-|                   Scalar sum                 0.02 ( 5.66% of Recip)
-|                   Grad sum                   0.15 (33.42% of Recip)
-|                   FFT time                   0.16 (36.75% of Recip)
+|                Build the list             0.25 (97.31% of List )
+|                Other                      0.01 ( 2.69% of List )
+|             List time                  0.25 (12.09% of Nonbo)
+|                   Short_ene time             1.52 (98.90% of Direc)
+|                   Other                      0.02 ( 1.10% of Direc)
+|                Direct Ewald time          1.54 (83.77% of Ewald)
+|                Adjust Ewald time          0.02 ( 1.01% of Ewald)
+|                   Fill Bspline coeffs        0.02 ( 6.86% of Recip)
+|                   Fill charge grid           0.05 (16.31% of Recip)
+|                   Scalar sum                 0.01 ( 4.12% of Recip)
+|                   Grad sum                   0.09 (32.07% of Recip)
+|                   FFT time                   0.11 (40.63% of Recip)
 |                   Other                      0.00 ( 0.01% of Recip)
-|                Recip Ewald time           0.44 ( 5.61% of Ewald)
-|                Force Adjust               0.00 ( 0.01% of Ewald)
-|                Other                      0.00 ( 0.04% of Ewald)
-|             Ewald time                 7.80 (95.53% of Nonbo)
-|          Nonbond force              8.17 (99.71% of Force)
-|          Bond/Angle/Dihedral        0.02 ( 0.28% of Force)
-|          Other                      0.00 ( 0.01% of Force)
-|       Force time                 8.19 (97.70% of Runmd)
-|       Shake time                 0.03 ( 0.31% of Runmd)
-|       Verlet update time         0.16 ( 1.95% of Runmd)
-|       Other                      0.00 ( 0.04% of Runmd)
-|    Runmd Time                 8.39 (97.47% of Total)
-|    Other                      0.19 ( 2.18% of Total)
-| Total time                 8.60 (100.0% of ALL  )
+|                Recip Ewald time           0.28 (15.10% of Ewald)
+|                Force Adjust               0.00 ( 0.02% of Ewald)
+|                Other                      0.00 ( 0.10% of Ewald)
+|             Ewald time                 1.84 (87.91% of Nonbo)
+|          Nonbond force              2.09 (98.99% of Force)
+|          Bond/Angle/Dihedral        0.02 ( 0.99% of Force)
+|          Other                      0.00 ( 0.02% of Force)
+|       Force time                 2.11 (96.29% of Runmd)
+|       Shake time                 0.02 ( 0.71% of Runmd)
+|       Verlet update time         0.06 ( 2.95% of Runmd)
+|       Other                      0.00 ( 0.06% of Runmd)
+|    Runmd Time                 2.20 (94.50% of Total)
+|    Other                      0.11 ( 4.60% of Total)
+| Total time                 2.32 (100.0% of ALL  )
 
 | Number of list builds   :          2
 
@@ -377,11 +377,11 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       8.39 Per Step(ms) =     419.32
-|         ns/day =       0.21   seconds/ns =  419319.25
+|     Elapsed(s) =       2.20 Per Step(ms) =     109.83
+|         ns/day =       0.79   seconds/ns =  109828.50
 | -----------------------------------------------------
 
-|           Job began  at 09:21:30.648  on 11/08/2019
-|           Setup done at 09:21:30.866  on 11/08/2019
-|           Run   done at 09:21:39.253  on 11/08/2019
-|     wallclock() was called  918117 times
+|           Job began  at 14:51:49.505  on 11/12/2019
+|           Setup done at 14:51:49.634  on 11/12/2019
+|           Run   done at 14:51:51.830  on 11/12/2019
+|     wallclock() was called     917 times

@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/06/2019 at 17:03:09
+| Run on 11/12/2019 at 14:51:55
 
-|   Executable path: ../../bin/msander.MPI
-| Working directory: /home/case/msander/test/tip4p
+|   Executable path: ../../bin/msander
+| Working directory: /Users/case/msander/test/tip4p
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -26,14 +26,6 @@ File Assignments:
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
-
-|    REMLOG: rem.log
-|   REMTYPE: rem.type
-|  REMSTRIP: 
-|   SAVEENE: saveene
-|CLUSTERINF: cluster.info
-| RESERVOIR: reserv/frame
-|   REMDDIM: 
 
 
  Here is the input file:
@@ -56,12 +48,10 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags: MPI USE_MPI_IN_PLACE                                                   
+| Flags:                                                                        
  getting new box info from bottom of inpcrd
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =     9.214
-| New format PARM file being parsed.
-| Version =    1.000 Date = 12/27/01 Time = 11:35:32
  NATOM  =     864 NTYPES =       2 NBONH =     648 MBONA  =     216
  NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
  NHPARM =       0 NPARM  =       0 NNB   =    1512 NRES   =     216
@@ -72,13 +62,13 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              381162
+|     Real              378530
 |     Hollerith           2810
 |     Integer            43337
 |     Max Pairs         251942
 |     nblistReal         10368
-|     nblist Int         37823
-|       Total             4370 kbytes
+|     nblist Int         40593
+|       Total             4361 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -103,9 +93,9 @@ Nature and format of input:
      ntx     =       7, irest   =       1, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =      10
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
 
 Potential function:
      ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
@@ -135,9 +125,6 @@ Ewald parameters:
      Cutoff=    8.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.34864
      Interpolation order =    4
-
-| MPI Timing options:
-|      profile_mpi =        0
 |      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =   648     0
 |      EXTRA_PTS, trim_bonds: num bonds AFTER  trim =   648     0
 |      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =   216     0
@@ -159,13 +146,10 @@ Ewald parameters:
  begin time read from input coords =    32.200 ps
 
  Number of triangulated 3-point waters found:      216
-|  Atom division among processors:
-|         0     432     864
 
      Sum of charges from parm topology file =   0.00000000
      Forcing neutrality...
-|  Running AMBER/MPI version on    2 nodes
-
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -179,10 +163,10 @@ Ewald parameters:
  APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
  using   5000.0 points per unit in tabled values
  TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
-| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
-| CHECK d/dx switch(x): max rel err =   0.8332E-11   at   2.782960
+| CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
+| CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =      84983
+| Local SIZE OF NONBOND LIST =     172813
 | TOTAL SIZE OF NONBOND LIST =     172813
 
  NSTEP =        1   TIME(PS) =      32.201  TEMP(K) =   293.17  PRESS =     0.0
@@ -292,57 +276,51 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
-|    Read coords time           0.00 ( 1.81% of Total)
-|    Fast Water setup           0.00 ( 0.01% of Total)
-|                Build the list             0.00 (24.69% of List )
-|                Other                      0.01 (75.31% of List )
-|             List time                  0.02 (30.96% of Nonbo)
-|                   Short_ene time             0.03 (98.58% of Direc)
-|                   Other                      0.00 ( 1.42% of Direc)
-|                Direct Ewald time          0.03 (81.12% of Ewald)
-|                Adjust Ewald time          0.00 ( 0.68% of Ewald)
-|                Self Ewald time            0.00 ( 0.02% of Ewald)
-|                   Fill Bspline coeffs        0.00 (13.40% of Recip)
-|                   Fill charge grid           0.00 (16.41% of Recip)
-|                   Scalar sum                 0.00 ( 3.09% of Recip)
-|                   Grad sum                   0.00 (26.83% of Recip)
-|                      FFT back comm time         0.00 ( 6.19% of FFT t)
-|                      Other                      0.00 (93.81% of FFT t)
-|                   FFT time                   0.00 (39.51% of Recip)
-|                   Other                      0.00 ( 0.75% of Recip)
-|                Recip Ewald time           0.01 (15.50% of Ewald)
-|                Force Adjust               0.00 ( 1.62% of Ewald)
-|                Virial junk                0.00 ( 0.08% of Ewald)
-|                Start synchronizatio       0.00 ( 0.01% of Ewald)
-|                Other                      0.00 ( 0.97% of Ewald)
-|             Ewald time                 0.04 (69.04% of Nonbo)
-|          Nonbond force              0.05 (99.69% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 0.01% of Force)
-|          FRC Collect time           0.00 ( 0.18% of Force)
-|          Other                      0.00 ( 0.12% of Force)
-|       Force time                 0.05 (94.77% of Runmd)
-|       Shake time                 0.00 ( 0.36% of Runmd)
-|       Verlet update time         0.00 ( 4.36% of Runmd)
-|       CRD distribute time        0.00 ( 0.06% of Runmd)
-|       Other                      0.00 ( 0.45% of Runmd)
-|    Runmd Time                 0.05 (78.95% of Total)
-|    Other                      0.01 (19.23% of Total)
-| Total time                 0.07 (100.0% of ALL  )
+|    Read coords time           0.00 ( 1.52% of Total)
+|    Fast Water setup           0.00 ( 0.02% of Total)
+|                Build the list             0.00 (45.62% of List )
+|                Other                      0.00 (54.38% of List )
+|             List time                  0.01 (18.49% of Nonbo)
+|                   Short_ene time             0.03 (99.26% of Direc)
+|                   Other                      0.00 ( 0.74% of Direc)
+|                Direct Ewald time          0.03 (85.87% of Ewald)
+|                Adjust Ewald time          0.00 ( 0.88% of Ewald)
+|                Self Ewald time            0.00 ( 0.01% of Ewald)
+|                   Fill Bspline coeffs        0.00 (11.19% of Recip)
+|                   Fill charge grid           0.00 (15.05% of Recip)
+|                   Scalar sum                 0.00 ( 4.06% of Recip)
+|                   Grad sum                   0.00 (28.96% of Recip)
+|                   FFT time                   0.00 (40.60% of Recip)
+|                   Other                      0.00 ( 0.13% of Recip)
+|                Recip Ewald time           0.01 (12.68% of Ewald)
+|                Force Adjust               0.00 ( 0.02% of Ewald)
+|                Other                      0.00 ( 0.53% of Ewald)
+|             Ewald time                 0.04 (81.50% of Nonbo)
+|             Other                      0.00 ( 0.01% of Nonbo)
+|          Nonbond force              0.05 (100.0% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 0.02% of Force)
+|          Other                      0.00 ( 0.05% of Force)
+|       Force time                 0.05 (94.16% of Runmd)
+|       Shake time                 0.00 ( 0.44% of Runmd)
+|       Verlet update time         0.00 ( 5.10% of Runmd)
+|       Other                      0.00 ( 0.30% of Runmd)
+|    Runmd Time                 0.05 (88.14% of Total)
+|    Other                      0.01 (10.33% of Total)
+| Total time                 0.06 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
-| Highest rstack allocated:      32130
-| Highest istack allocated:        768
+| Highest rstack allocated:      38902
+| Highest istack allocated:        864
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.06 Per Step(ms) =       5.61
-|         ns/day =      15.41   seconds/ns =    5607.50
+|     Elapsed(s) =       0.05 Per Step(ms) =       5.23
+|         ns/day =      16.52   seconds/ns =    5228.70
 | -----------------------------------------------------
 
-|           Job began  at 17:03:09.639  on 11/06/2019
-|           Setup done at 17:03:09.653  on 11/06/2019
-|           Run   done at 17:03:09.709  on 11/06/2019
-|     wallclock() was called     575 times
+|           Job began  at 14:51:55.603  on 11/12/2019
+|           Setup done at 14:51:55.611  on 11/12/2019
+|           Run   done at 14:51:55.663  on 11/12/2019
+|     wallclock() was called     465 times
