@@ -328,10 +328,6 @@ contains
     integer, intent(in) :: key !< key FWD-> 1 and BWD-> -1.
     integer :: iarray, ir, i, j, ix, iy, iz
     integer :: nr, nk, dim(3)
-#  ifdef RISM3D_DEBUG
-    integer :: irank, ierr
-    character(len = 20) :: label
-#  endif
     complex(kind(1d0)), pointer :: datak(:,:)
     datak => r2c_pointer(datar)
 
@@ -411,10 +407,6 @@ contains
     _REAL_, pointer :: datar(:,:)
     integer :: ngr_total, ngk_total, igx, igy, igz, iv, ig1
     integer :: ir, iarray, ix, iy, iz, dim(3)
-#  ifdef RISM3D_DEBUG
-    integer :: irank, ierr
-    character(len = 20) :: label
-#  endif
     complex(kind(1d0)), pointer :: datak(:,:)
     datak => r2c_pointer(datar)
     ! R-space data array size.
@@ -443,10 +435,6 @@ contains
        else
           call fftw_execute_dft_r2c(this%planfwd, datar, datak)
        end if
-#  ifdef RISM3D_DEBUG
-       write(label,"(a, i2)") "out", key
-       call rism3d_debug_print(datar,.true., label,.false.)
-#  endif
        do iarray = 1, this%narray
           ! Work with the knowledge that datar and datak are the same data.
           call tonr(this, datar(:, iarray), &
