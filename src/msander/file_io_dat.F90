@@ -125,7 +125,6 @@ character(len=80), save :: title1
 logical, save :: mdin_ewald
 logical, save :: mdin_pb
 logical, save :: mdin_amoeba
-logical, save :: mdin_pol_gauss
 #ifdef APBS
 logical, save :: mdin_apbs
 logical, save :: sp_apbs
