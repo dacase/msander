@@ -484,6 +484,6 @@ fi
 
 cd ..
 
-printf "\nThe next step is to type \n    'cd src && make install'\n\n"
+printf "\nThe next step is to type 'make install'\n\n"
 
 exit 0
