@@ -157,7 +157,7 @@ fi
 
 if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
-   if [ "$useopenblas" == "yes" ]; then
+   if [ ! -z "$GOTO" -a "$useopenblas" == "yes" ]; then
 
       echo "using OpenBLAS libraries in $GOTO"
       flibs_la="$GOTO -lpthread"

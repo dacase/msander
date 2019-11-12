@@ -797,7 +797,6 @@ ew_force.o: \
                     charmm.o\
                     parms.o\
                     ips.o\
-                    pol_gauss.o\
                     extra.h\
                     ew_cntrl.h\
                     def_time.h\
@@ -841,7 +840,6 @@ ew_force.LES.o: \
                     charmm.o\
                     parms.o\
                     ips.o\
-                    pol_gauss.o\
                     extra.h\
                     ew_cntrl.h\
                     def_time.h\
@@ -2818,18 +2816,6 @@ pearsn.o: \
 pearsn.o:   pearsn.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pearsn.F90
-
-pol_gauss.o: \
-                    copyright.h\
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    file_io_dat.o\
-                    ew_erfc_spline.h
-
-
-pol_gauss.o:   pol_gauss.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pol_gauss.F90
 
 printe.o: \
                     copyright.h\

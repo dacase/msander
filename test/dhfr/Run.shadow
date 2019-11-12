@@ -1,7 +1,7 @@
 #!/bin/sh
 
 sander="../../bin/msander"
-sander=/home/case/amber18/bin/pmemd
+sander="/home/case/amber18/bin/pmemd"
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -21,7 +21,7 @@ cat > gbin <<EOF
    dsum_tol=1.e-6,
  /
 EOF
-$DO_PARALLEL $sander -O -i gbin -c md12_noshake.x -o mdout.shadow.pmemd \
+$DO_PARALLEL $sander -O -i gbin -c md12_noshake.x -o mdout.shadow.4 \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 /bin/rm -f gbin restrt

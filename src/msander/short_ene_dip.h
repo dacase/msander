@@ -23,7 +23,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
   use nblist, only: bckptr,imagcrds,tranvec
   use constants, only: zero, one, two, three, four, five, &
                         six, twelve, third, half
-  use pol_gauss
 
   implicit none
 #include "../include/md.h"
@@ -247,17 +246,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dfy = dfy + df*dely
       dfz = dfz + df*delz
 
-      ! Inserting Gaussian correction to energy
-      if (ipolg == 1) then
-        call Calc_Dip_Gauss_Correc(i, j, delx, dely, delz, delr2inv, delr, &
-                                   delr2, eelt, epol, dfx, dfy, dfz, dotjr, &
-                                   dotir, dotij, dipole(1,j), dipole(2,j), &
-                                   dipole(3,j), dipole(1,i), dipole(2,i), &
-                                   dipole(3,i), dphii_dx_cor, dphii_dy_cor, &
-                                   dphii_dz_cor, dphij_dx_cor, dphij_dy_cor, &
-                                   dphij_dz_cor, eed_cub)
-      end if
-
       frc(1,j) = frc(1,j) + dfx
       frc(2,j) = frc(2,j) + dfy
       frc(3,j) = frc(3,j) + dfz
@@ -273,15 +261,6 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
       dphij_dy = -termi_o*dely + b1*dipole(2,i)
       dphij_dz = -termi_o*delz + b1*dipole(3,i)
 
-      ! Gaussian Correction to field
-      if (ipolg == 1) then
-        dphii_dx = dphii_dx + dphii_dx_cor
-        dphii_dy = dphii_dy + dphii_dy_cor
-        dphii_dz = dphii_dz + dphii_dz_cor
-        dphij_dx = dphij_dx + dphij_dx_cor
-        dphij_dy = dphij_dy + dphij_dy_cor
-        dphij_dz = dphij_dz + dphij_dz_cor
-      end if
       edx = edx + dphii_dx
       edy = edy + dphii_dy
       edz = edz + dphii_dz

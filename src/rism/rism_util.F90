@@ -124,7 +124,6 @@ subroutine findCenterOfMass(atomPosition, centerOfMass, mass, numAtoms)
 #endif /*RISM_DEBUG*/
 end subroutine findCenterOfMass
 
-
 !> Calculates the vector cross product of A and B and places it in C.
 !! It is assumed that A, B and C are of length three.
 !! @param[in] a Three element array.
@@ -150,324 +149,6 @@ function magnitude(a)
   _REAL_ :: magnitude
   magnitude = sqrt(abs(dot_product(a, a)))
 end function magnitude
-
-
-! Translate the system by the given translation vector.
-!IN:
-!   ratu   :: the x,y,z position of each solute atom.  This is modified.
-!   numAtoms   :: the number of solute atoms
-!   trans  :: translation vector
-subroutine translate(ratu, numAtoms, trans)
-  implicit none
-  integer, intent(in) :: numAtoms
-  _REAL_, intent(inout) :: ratu(3, numAtoms)
-  _REAL_, intent(in) :: trans(3)
-
-  integer :: iatu
-
-  do iatu = 1, numAtoms
-     ratu(1:3, iatu) = ratu(1:3, iatu) + trans
-  end do
-end subroutine translate
-
-
-! Calculates the rotational velocity using finite difference between
-! two frames.
-!IN:
-!   ratu1   :: the current x,y,z position of each solute atom.
-!   ratu0   :: the previous x,y,z position of each solute atom.
-!   mass    :: mass of each atom
-!   numAtoms    :: the number of solute atoms
-!   dt      :: difference in time between the two frames
-!OUT:
-!    three element array of the rotational velocity
-function rotationalVelocity(ratu1,ratu0,mass,numAtoms,dt)
-  implicit none
-  _REAL_,intent(in) :: ratu1(3,numAtoms),ratu0(3,numAtoms),mass(numAtoms),dt
-  integer,intent(in) :: numAtoms
-  _REAL_ :: rotationalVelocity(3)
-
-  _REAL_ :: cm0(3),cm1(3),angvel(3),r0(3),r1(3), erot,rxv(3), v(3,numAtoms), proj(3),dir(3)
-  _REAL_ :: moi(6)
-  integer :: iatu,id,info
-  integer :: ipiv(3)
-#ifdef RISM_DEBUG
-  write(6,*) "CALC_ROTATION",dt
-#endif /*RISM_DEBUG*/
-  call findCenterOfMass(ratu0,cm0,mass,numAtoms)
-  call findCenterOfMass(ratu1,cm1,mass,numAtoms)
-  ! Calculate the total angular momentum (place in angvel).
-  angvel=0d0
-  do iatu=1,numAtoms
-     r0 = ratu0(:,iatu)-cm0
-     r1 = ratu1(:,iatu)-cm1
-!!$     v(:,iatu)=(r1-r0)/(dt*20.455d0)
-     v(:,iatu)=(r1-r0)/(dt)
-     
-     rxv = cross(r1, v(:,iatu))
-!!$     angvel = angvel + mass(iatu)*rxv/sum(r1**2)
-     angvel = angvel + mass(iatu)*rxv
-  end do
-#ifdef RISM_DEBUG
-  write(6,*) "ANGULAR MOMENTUM", angvel
-  write(6,'(3(g16.3))') v
-#endif /*RISM_DEBUG*/
-  moi = momentOfInertia(ratu1,mass)
-#ifdef RISM_DEBUG
-  write(6,*) "MOI", moi
-#endif /*RISM_DEBUG*/
-  call DSPSV('U',3,1,moi,ipiv,angvel,3,info)
-#ifdef RISM_DEBUG
-  write(6,*) "ANGULAR VELOCITY", angvel
-#endif /*RISM_DEBUG*/
-
-  dir = angvel/sqrt(sum(angvel**2))
-  
-  ! Calculate moment of inertia w.r.t. the axis of rotation.
-  moi(1) = 0d0
-  do iatu=1,numAtoms
-     r1 = ratu1(:,iatu)-cm1
-     proj = sum(r1*dir)/sum(dir**2)*dir
-#ifdef RISM_DEBUG
-     write(6,*) "rxv",(r1-proj)*dir
-#endif /*RISM_DEBUG*/
-     moi(1) = moi(1) + sum((r1-proj)**2)*mass(iatu)
-  end do
-#ifdef RISM_DEBUG
-  write(6,*) "ANGULAR MOMENTUM", moi(1)*angvel
-#endif /*RISM_DEBUG*/
-  rotationalVelocity = angvel
-!!$  moi=0
-!!$  erot=0
-!!$  do iatu=1,numAtoms
-!!$     r0 = ratu0(:,iatu)-cm0
-!!$     call cross(r0,v(:,iatu),rxv)
-!!$     proj = sum(r0*angvel)/sum(angvel**2)*angvel
-!!$     moi=moi+mass(iatu)*sum((r0-proj)**2)
-!!$     erot = erot + .5*mass(iatu)*sum((r0-proj)**2)*sum((rxv/sum(r0**2))**2)
-!!$  end do
-!!$  write(6,*) moi
-!!$  do id=1,3
-!!$     write(6,*) id,sum(mass*v(id,:))
-!!$     write(6,*) id,angvel(id),sum(angvel**2)
-!!$  end do
-!!$  write(6,*) "EROT", 0.5*moi*sum(angvel**2), erot
-!!$  write(6,*) "EROT", erot
-
-end function rotationalVelocity
-
-
-! Calculate the principal axes of the atom distribution.  
-! This follows, in part, mofi() in nmode/thermo.f.
-!IN:
-!   ratu   :: the x,y,z position of each solute atom. (3,natom)
-!   mass   :: mass of each atom
-!   pa     :: the three prinicpal axes
-subroutine principalAxes(ratu,mass,pa)
-  implicit none
-  _REAL_,intent(in) :: ratu(:,:),mass(:)
-  _REAL_, intent(out) :: pa(3,3)
-  integer :: id,ier
-
-  !t        : moment of inertia tensor in 1-d, in upper triangular, 
-  !           column-major format (xx, xy, yy, xz, yz, zz)
-  !eigenval : This will be the moment of interia in each direction
-  !work     : temp space for the algorithm
-  _REAL_ :: t(6),eigenval(3),eigenvec(3,3),work(3*3)
-#ifdef RISM_DEBUG
-  write(6,*)"CALC PA"
-  call flush(6)
-#endif /*RISM_DEBUG*/
-  
-  call dspev('V','U',3,momentOfInertia(ratu,mass),eigenval,pa,3,work,ier)
-
-end subroutine principalAxes
-
-
-! Calculate the moment of inertia in upper triangular form.
-! Uses column-major format (xx, xy, yy, xz, yz, zz).
-! This follows, in part, mofi() in nmode/thermo.f.
-!IN:
-!   ratu   :: the x,y,z position of each solute atom. (3,numAtoms)
-!   mass   :: mass of each atom
-function momentOfInertia(ratu,mass)
-  implicit none
-  _REAL_,intent(in) :: ratu(:,:),mass(:)
-
-  !> Moment of inertia tensor in 1-d, in upper triangular form.
-  _REAL_ :: momentOfInertia(6)
-#ifdef RISM_DEBUG
-  write(6,*)"CALC momentOfInertia"
-  call flush(6)
-#endif /*RISM_DEBUG*/
-  momentOfInertia(1) = sum(mass * (ratu(2, :)**2 + ratu(3, :)**2))
-  momentOfInertia(3) = sum(mass * (ratu(1, :)**2 + ratu(3, :)**2))
-  momentOfInertia(6) = sum(mass * (ratu(1, :)**2 + ratu(2, :)**2))
-  momentOfInertia(2) = -sum(mass * (ratu(1, :) * ratu(2, :)))
-  momentOfInertia(4) = -sum(mass * (ratu(1, :) * ratu(3, :)))
-  momentOfInertia(5) = -sum(mass * (ratu(2, :) * ratu(3, :)))
-  
-end function momentOfInertia
-
-
-!> Assumes that the principal axes have been aligned to coincide with
-!! the x-, y- and z- axes for both structures. The structures are then
-!! compared to each other and the first rotated to best fit the second
-!! while maintaining the orientation of the PA.
-!! @param[in,out] ratu The x,y,z position of each solute atom.
-!! @param[in,out] ratu2 The x,y,z position of each solute atom.
-!! @param[in] numAtoms The number of solute atoms.
-subroutine alignorient(ratu, ratu2, numAtoms, backquat)
-  use constants, only : PI
-  use quaternion, only : rotate_quat, quat_mult
-  use rism_report_c
-  implicit none
-  integer,intent(in) :: numAtoms
-  _REAL_, intent(inout) :: ratu(3, numAtoms)
-  _REAL_, intent(in) :: ratu2(3, numAtoms)
-  _REAL_, intent(out) :: backquat(4)
-  _REAL_ :: rotaxis(3), quat(4)
-  integer :: axis(3)
-  integer :: id,iatu
-
-  ! Here we calculate the product of each coordinate of each atom in
-  ! the two structures.  If both have had their PA aligned to the
-  ! coordinate system there are zero to three 180 degree rotations
-  ! that will align the two molecules.  The rotation axes are those
-  ! with over all positive coordinate products (some atom movement may
-  ! distort the molecule).
-
-#ifdef RISM_DEBUG
-  write(6,*) "ALIGNORIENT"
-#endif /* RISM_DEBUG*/
-  do id = 1, 3
-     rotaxis(id) = sum(ratu(id, :) * ratu2(id, :))
-     if (rotaxis(id) < 0) then
-        axis(id) = 0
-     else
-        axis(id) = 1
-     end if
-  end do
-#ifdef RISM_DEBUG
-  write(6,*) "rotate axis", axis, rotaxis
-#endif /*RISM_DEBUG*/
-  if (sum(axis) == 0) then
-     call rism_report_error("ALIGNORIENT failed")
-  else if (sum(axis) == 3) then
-     ! Already aligned.
-     backquat = (/ 1d0, 0d0, 0d0, 0d0 /)
-     return
-  end if
-  backquat = 0d0
-  do id = 1, 3
-     if (axis(id) == 1) then
-        rotaxis = 0d0
-        rotaxis(id) = 1d0
-
-!! $        quat(2:4) = rotaxis * sin(PI / 2d0)
-!! $        quat(1) = cos(PI / 2d0)
-        quat = 0d0
-        quat(id + 1) = 1d0
-
-        do iatu = 1, numAtoms
-           call rotate_quat(ratu(1:3, iatu), quat)
-        end do
-#ifdef RISM_DEBUG
-        write(6,*) "QUAT", quat, backquat
-#endif /*RISM_DEBUG*/
-        if (sum(backquat) == 0d0) then
-           backquat(1) = quat(1)
-           backquat(2:4) = -1d0 * quat(2:4)
-!           backquat(2:4) = quat(2:4)
-        else
-           quat(2:4) = -1d0 * quat(2:4)
-           call quat_mult(quat, backquat, backquat)
-        end if
-#ifdef RISM_DEBUG
-        write(6,*) "QUAT", quat, backquat
-#endif /*RISM_DEBUG*/
-     end if
-  end do
-#ifdef RISM_DEBUG
-  write(6,*) ratu(:,1)
-#endif /*RISM_DEBUG*/
-end subroutine alignorient
-
-
-!Rotates the system such that the previously calculated pricipal axes
-!coincide with the x-,y- and z-axes.
-!IN:
-!   ratu   :: the x,y,z position of each solute atom.  (3,natom) This is modified.
-!   pa     :: the three prinicpal axes
-subroutine orientToPrincipalAxes(ratu, pa, backquat)
-  use constants, only : PI
-  use quaternion, only : quaternionFromEulerAxis, rotate_quat, quat_mult
-  implicit none
-  _REAL_,intent(inout) :: ratu(:,:)
-  _REAL_, intent(inout) :: pa(3,3)
-  _REAL_, intent(out) :: backquat(4)
-  _REAL_ :: angle, quat(4),dir(3),xaxis(3)=(/1d0,0d0,0d0/),yaxis(3)=(/0d0,1d0,0d0/),&
-       checkv(3)
-  integer :: numAtoms
-
-  integer :: iatu,ipa
-#ifdef RISM_DEBUG
-  write(6,*) "ORIENT_PA"
-#endif /*RISM_DEBUG*/
-  numAtoms=ubound(ratu,2)
-
-  ! Rotate first principal axis the x-axis.
-
-  ! Get the angle.  This is always positive.
-  angle = acos(min(1d0,max(-1d0,dot_product(pa(1:3,1),xaxis))))
-  if (angle < PI - 1d-6 .and. angle > -PI+1d-6) then
-     dir = cross(pa(1:3,1), xaxis)
-  else
-     dir = yaxis
-  end if
-  
-  ! Get the cross product between pa(:,1) and dir.  This will determine
-  ! if we should rotate using +ive or -ive angle.
-  checkv = cross(dir,pa(1:3,1))
-  if (dot_product(checkv,xaxis) < 0) then
-     angle = -angle
-  end if
-  quat = quaternionFromEulerAxis(angle,dir)
-  do iatu = 1 ,numAtoms
-     call rotate_quat(ratu(1:3,iatu),quat)
-  end do
-  do ipa = 1,3
-     call rotate_quat(pa(1:3,ipa),quat)
-  end do
-  backquat = quat
-
-  ! Next the second PA (this also places the third one as well)
-  ! max/min protects against round-off errors in normalized vectors.
-  angle = acos(min(1d0,max(-1d0,dot_product(pa(1:3,2),yaxis))))
-  dir = xaxis
-  checkv = cross(dir, pa(1:3,2))
-  
-  if (dot_product(checkv,yaxis) < 0) then
-     angle = -angle
-  end if
-
-  quat = quaternionFromEulerAxis(angle,dir)
-  do iatu = 1 ,numAtoms
-     call rotate_quat(ratu(1:3,iatu),quat)
-  end do
-  do ipa = 1,3
-     call rotate_quat(pa(1:3,ipa),quat)
-  end do
-
-  call quat_mult(quat,backquat,backquat)
-  backquat(2:4) = -1d0*backquat(2:4)
-
-#ifdef RISM_DEBUG
-  write(6,*) ratu(:,1)
-#endif /*RISM_DEBUG*/
-
-end subroutine orientToPrincipalAxes
-
 
 !! Tests if number is prime. Note: this is a slow algorithm.  It checks if 2 or
 !! any odd number (except 1) less than the square root of number is a factor.
@@ -611,6 +292,7 @@ subroutine siftDown(val, ptr, i, n, m)
   end do
 end subroutine siftDown
 
+#if 0
 subroutine linLeastSqFit(basis, xa, ya, coef, o_sig, o_chisq, o_varcoef)
   use safemem
   implicit none
@@ -698,6 +380,7 @@ subroutine linLeastSqFit(basis, xa, ya, coef, o_sig, o_chisq, o_varcoef)
   err = safemem_dealloc(work)
   err = safemem_dealloc(iwork)
 end subroutine linLeastSqFit
+#endif
 
 
 !! 'Progressive' polynomial interpolation using Neville's algorithm. Adds
@@ -779,7 +462,7 @@ subroutine polynomialInterpolation(xa, ya, n, x, y, error)
   error = (p(1) + p(2) - 2d0 * y) / 2d0
 end subroutine polynomialInterpolation
 
-
+#if 0
 !! Computes support abscissas (nodes) and weights for Gaussian quadrature with
 !! Legendre polynomials.  This is a drop in replacement for Numerical Recipes
 !! GAULEG.
@@ -966,8 +649,9 @@ subroutine laguerre(x,y,dy,n)
      y1=y
   end do
 end subroutine laguerre
+#endif
 
-
+#if 0
 !! Computes zeroth order spherical Bessel function.  Adapted from the GNU 
 !! Scientific library.
 !! IN:
@@ -1048,7 +732,7 @@ function spherical_bessel_j1(x,o_err) result(val)
      end if
   end if
 end function spherical_bessel_j1
-
+#endif
 
 !! Does a MPI sum
 
@@ -1181,29 +865,6 @@ elemental function rmExPrec(ep) result(rp)
      rp = ep
   end if
 end function rmExPrec
-
-
-!> Obtain a rotation matrix equivalent to the given Euler angles.
-!! Euler angles are given in order of rotations about the x, y and z
-!! axes respectively.
-function rotationMatrixFromEulerAngles(a, b, c) result(rotationMatrix)
-  implicit none
-  _REAL_, intent(in) :: a, b, c
-  _REAL_ :: rotationMatrix(3, 3)
-
-  rotationMatrix(1, :) = (/ &
-       cos(b) * cos(c), &
-       cos(a) * sin(c) + sin(a) * sin(b) * cos(c), &
-       sin(a) * sin(c) - cos(a) * sin(b) * cos(c) /)
-  rotationMatrix(2, :) = (/ &
-       -cos(b) * sin(c), &
-       cos(a) * cos(c) - sin(a) * sin(b) * sin(c), &
-       sin(a) * cos(c) + cos(a) * sin(b) * sin(c) /)
-  rotationMatrix(3, :) = (/ sin(b), -sin(a) * cos(b), cos(a) * cos(b) /)
-
-  ! rotationMatrix = transpose(rotationMatrix)
-end function rotationMatrixFromEulerAngles
-
 
 !> Approximate rounding a Fortran floating-point number to a certain
 !! number of decimals.

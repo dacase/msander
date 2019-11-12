@@ -55,7 +55,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     fastwt.o parallel.o shake.o rattle.o ene.o mdwrit.o minrit.o \
     set.o dynlib.o mdfil.o nmlsrc.o \
     force.o ew_force.o ew_setup.o ew_box.o ew_bspline.o\
-    ew_fft.o nonbond_list.o short_ene.o o ew_recip.o pcshift.o align.o csa.o \
+    ew_fft.o nonbond_list.o short_ene.o ew_recip.o pcshift.o align.o csa.o \
     rfree.o rgroup.o \
     debug.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.o thermo_int.o \

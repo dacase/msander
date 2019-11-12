@@ -32,7 +32,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use parms, only : one_scee, one_scnb
 #endif /* LES */
    use nbips, only : aipspbc,ips,teaips,tvaips,virexips
-   use pol_gauss
 
    implicit none
 #  include "extra.h"
@@ -535,12 +534,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
                          ee14,enb14,epol14,one_scee,one_scnb,e14vir,ix, &
                          commsander_mytaskid,commsander_numtasks)
 
-      !1-2, 1-3, 1-4 dip-dip and 1-4 chg-dip, chg-chg interactions
-      !get_14_dipole only calculates VDW 1-4 if ipolg == 1
-      if (ipolg == 1) then
-         call Get_Intra_Gauss_Dip (crd,frc,e14vir,ee14, epolg, &
-            x(linddip),x(lfield))
-      end if
    end if
 
    ! Now transfer force and torque from extra points:

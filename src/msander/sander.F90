@@ -1025,8 +1025,8 @@ subroutine sander()
     call startup(x, ix, ih)
 
     call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
-    ! call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
-    ! call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
 
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
