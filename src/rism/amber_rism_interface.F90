@@ -659,7 +659,7 @@ contains
 
     ! Initialize 3D-RISM solute and solvent.
 
-#ifdef OPENMP
+#if 0  /* right now, we are always using MKL for multithreaded FFTW */
     ier = fftw_init_threads()
     write(6,*) 'fftw_init_threads() returns ', ier
 
