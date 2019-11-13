@@ -12,6 +12,7 @@ enablempi=
 requested_help="no"
 bintraj="-DBINTRAJ"
 rism="-lrism"
+rismsander="-DRISMSANDER"
 conda="no"
 
 compiler="gnu"
@@ -62,16 +63,15 @@ for var in "$@"; do
             mpicc="mpiicc"
             fc="ifort"
             mpif90="mpiifort"
-            flibs_arch="-lifport -lifcore -lsvml"
-            ompflag="-qopenmp -DOPENMP";;
+            flibs_arch="-lifport -lifcore -lsvml";;
         --no-rism)
+            rismsander=""
             rism="";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
             mpiflag="-DMPI"
             flibs_fftw="-lfftw3_mpi -lfftw3 -lmpi"
-            fc="$mpif90"
             sfx=".MPI";;
         *)
             echo "Option $var not recognized"
@@ -84,9 +84,19 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --no-netcdf    disable NetCDF support\n"
 	printf " --no-rism      disable 3D-RISM support\n"
 	printf " --intel        use Intel compilers; default is gnu\n"
-	printf " --mpi          prepare for mpi build (must come after --intel)\n"
+	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
     exit 0
+fi
+
+#  extra logic related to command-line arguments: generally, things
+#      that need to be decided only after all arguments have been processed
+
+if [ "$compiler" == "intel" -a "$openmp" == "yes" ]; then
+  ompflag="-qopenmp -DOPENMP"
+fi
+if [ "$mpi" == "yes" ]; then
+  fc="$mpif90"
 fi
 
 #------------------------------------------------------------------------------
@@ -152,17 +162,13 @@ fi
 if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
    if [ ! -z "$GOTO" ]; then
-
       echo "using OpenBLAS libraries in $GOTO"
       flibs_la="$GOTO -lpthread"
-
    else
-
       # use the compiled versions;
       flibs_la="-llapack -lblas"
       lapack=liblapack
       blas=libblas
-
    fi
 
 else
@@ -181,9 +187,10 @@ else
   fi
 
   # Determine how we are linking MKL
-  link_type='line'    # always use this for now
   if  [ "$compiler" = 'gnu' ] ; then
     link_type='line'
+  else
+    link_type='mkl'   #assuming Intel
   fi
 
   # We generally link to the sequential version of MKL since typically
@@ -434,21 +441,8 @@ MAKE=make --no-print-directory
 SFX=$sfx
 VB=$verbose
 
-EOF
-
-if [ "$rism" == "-lrism" ]; then
-cat <<EOF >> src/config.h
 # RISM:
-RISMSANDER=-DRISMSANDER
-EOF
-else
-cat <<EOF >> src/config.h
-# RISM:
-RISMSANDER=
-EOF
-fi
-
-cat <<EOF >> src/config.h
+RISMSANDER=$rismsander
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
@@ -506,19 +500,7 @@ else
 fi
 /bin/rm -f testp.f testp.o testp
 
-
-#--------------------------------------------------------------------------
-#  Final Configuration steps
-#--------------------------------------------------------------------------
-
-cd src
-
-if [ "$conda" == "yes" ]; then
-   exit 0
+if [ "$conda" == "no" ]; then
+   printf "\nThe next step is to type 'make install'\n\n"
 fi
-
-cd ..
-
-printf "\nThe next step is to type 'make install'\n\n"
-
 exit 0
