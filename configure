@@ -6,6 +6,7 @@ printf "configure script for msander\n\n"
 command=`echo "$0 $*"`
 
 # set up defaults:
+msanderhome=`pwd`
 verbose="@"
 enablempi=
 requested_help="no"
@@ -30,6 +31,8 @@ mkl=""
 
 lapack="skip"
 blas="skip"
+inc="-I$msanderhome/include"
+netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 
 #  process command-line flags:
 for var in "$@"; do
@@ -47,6 +50,7 @@ for var in "$@"; do
             flibs_fftw="-lfftw3_omp -lfftw3"
             openmp="yes";;
         --no-netcdf)
+            netcdflibf=""
             bintraj="";;
         --mingw)
             cc="x86_64-w64-mingw32-gcc --static"
@@ -84,8 +88,6 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --openmp       prepare for OMP build\n"
     exit 0
 fi
-
-msanderhome=`pwd`
 
 #------------------------------------------------------------------------------
 #  Make some needed directories:
@@ -163,18 +165,16 @@ if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
    fi
 
-   inc="-I$msanderhome/include"
-
 else
 
   if [ "$mpi" == "yes" ]; then
      echo "Using MKL for BLAS/LAPACK in $mklroot"
-     inc="-I$mklroot/include -I$msanderhome/include"
+     inc="-I$mklroot/include $inc"
      lapack=skip
      blas=skip
   else
      echo "Using MKL for BLAS/LAPACK/FFTW in $mklroot"
-     inc="-I$mklroot/include -I$mklroot/include/fftw"
+     inc="-I$mklroot/include -I$mklroot/include/fftw $inc"
      lapack=skip
      blas=skip
      flibs_fftw=""
@@ -245,7 +245,7 @@ else
       flibs_la="-Wl,--start-group $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a -Wl,--end-group $mklomp -lpthread"
     else
       echo "Non-GNU linker assumed."
-      flibs_mkl="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a $mklomp -lpthread"
+      flibs_la="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a $mklomp -lpthread"
     fi
     # GNU compilers with MKL requires -ldl
     if [ "$compiler" = 'gnu' ]; then
@@ -378,7 +378,6 @@ cat <<EOF > src/config.h
 # (1)  Location of the installation
 
 AMBERTOOLS=msander
-AMBER_PREFIX=$msanderhome
 BASEDIR=$msanderhome
 BINDIR=\$(BASEDIR)/bin
 LIBDIR=\$(BASEDIR)/lib
@@ -392,7 +391,6 @@ LOGDIR=\$(BASEDIR)/logs
 
 SHARED_SUFFIX=$shared_suffix
 MAKE_SHARED=$make_shared
-LIBGFORTRAN=$libgfortran
 LM=$lm
 LDFLAGS=$ldflags
 
@@ -400,26 +398,7 @@ LDFLAGS=$ldflags
 
 #  (3) allow for the use of netcdf
 
-EOF
-
-if [ "$bintraj" == "-DBINTRAJ" ]; then
-NETCDF_HOME=$msanderhome
-cat <<EOF >> src/config.h
-NETCDF=$NETCDF_HOME/include/netcdf.mod
-NETCDFLIB=$NETCDF_HOME/lib/libnetcdf.a
-NETCDFLIBF=$NETCDF_HOME/lib/libnetcdff.a $NETCDF_HOME/lib/libnetcdf.a
-NETCDFINC=-I$NETCDF_HOME/include
-EOF
-else
-cat <<EOF >> src/config.h
-NETCDF=
-NETCDFLIB=
-NETCDFLIBF=
-NETCDFINC=
-EOF
-fi
-
-cat <<EOF >> src/config.h
+NETCDFLIBF=$netcdflibf
 
 LAPACK=$lapack
 BLAS=$blas
