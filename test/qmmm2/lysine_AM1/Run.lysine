@@ -1,0 +1,28 @@
+#!/bin/sh
+
+sander="../../../bin/msander"
+
+cat > mdin <<EOF
+Lysine: 5 cycles minimization, one methylene group QM, has link atoms
+ &cntrl
+        imin =1, maxcyc = 5, drms=0.005,
+        ntpr=1, ntb=0, cut=99.,
+        ifqnt=1,igb=6
+ /
+ &qmmm
+        iqmatoms = 8,9,10,
+        qm_theory='AM1',
+        qmcharge=0, adjust_q=0
+ /   
+EOF
+
+output=lysine.out
+
+$sander -O -c lysine.crd -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif -t 1 $output.save $output
+
+/bin/rm -f restrt mdin mdinfo dummy
+exit 0 
+
