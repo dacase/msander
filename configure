@@ -269,7 +269,7 @@ fi
 if [ "$bintraj" == "-DBINTRAJ" ] && \
    [ ! -s "lib/libnetcdf.a" ]; then
    cd src/netcdf-c-4.7.2
-   printf "Configuring the NetCDF C interface...\n"
+   printf "Configuring the NetCDF C interface..."
    make clean > /dev/null 2>&1
    ./configure CC="$cc" CFLAGS="" LDFLAGS="" \
       --prefix=$msanderhome --disable-netcdf-4 --disable-dap \
@@ -283,7 +283,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    fi
    # The NetCDF C interface MUST be present prior to configuring the
    # Fortran interface, so build it now.
-   printf "Compiling the NetCDF C interface...\n"
+   printf "Compiling the NetCDF C interface..."
    make install > ../netcdf_c.compile.log 2>&1
    if [ $? -ne 0 ]; then
        echo "Error: NetCDF compile failed!  Check netcdf_c.compile.log"
@@ -295,7 +295,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    cd ../netcdf-fortran-4.5.2
    # The NetCDF Fortran config script will need access to the C library.
    export LD_LIBRARY_PATH="$msanderhome/lib:$LD_LIBRARY_PATH"
-   printf "Configuring the NetCDF Fortran interface...\n"
+   printf "Configuring the NetCDF Fortran interface..."
    make clean > /dev/null 2>&1
    ./configure  CC="$cc" CFLAGS="" \
                   LDFLAGS="-L$msanderhome/lib $ldflags" \
@@ -311,7 +311,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
        echo "OK"
    fi
    # Build the fortran interface
-   printf "Compiling the NetCDF Fortran interface...\n"
+   printf "Compiling the NetCDF Fortran interface..."
    make install > ../netcdf_f.compile.log 2>&1
    if [ $? -ne 0 ]; then
      echo "Error: NetCDF Fortran compile failed!  Check netcdf_f.compile.log"
