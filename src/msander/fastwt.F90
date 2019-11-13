@@ -59,9 +59,6 @@ subroutine fastwat(igraph,nres,ipres,lbres, &
    !         will be 0.
    ! IORWAT: The position of the oxygen in each residue (1, 2, or 3).
    use qmmm_module, only : qmmm_nml, qmmm_struct 
-#ifndef API
-   use abfqmmm_module, only: abfqmmm_param
-#endif
    implicit none
    character(len=4) igraph,lbres,iwtnm,iowtnm,ihwtnm
    integer nres,ipres
@@ -112,7 +109,7 @@ subroutine fastwat(igraph,nres,ipres,lbres, &
 
    if (jfastw == 4) then
 #ifndef API
-      if(abfqmmm_param%abfqmmm /= 1) write(iout,9001) numfst
+      write(iout,9001) numfst
 #endif
       return
    end if
@@ -251,7 +248,7 @@ subroutine fastwat(igraph,nres,ipres,lbres, &
    end do nres_loop
    if ( .not. all3point ) ienwat = 0
 #ifndef API
-   if (abfqmmm_param%abfqmmm /= 1) write(iout,9001) numfst
+   write(iout,9001) numfst
 #endif
    
    if(ibgwat /= 0 .and. ienwat /= 0) then

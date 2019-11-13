@@ -1487,8 +1487,6 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    use les_data, only : lfac, lesfac, lestyp, nlesty, cnum
 #endif
 
-   use abfqmmm_module, only: abfqmmm_param
-
    implicit none
 #  include "../include/memory.h"
    integer numatoms
@@ -1503,13 +1501,13 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    save sumq,sumq2
    data sumq,sumq2/0.d0,0.d0/
    
-   if (do_self == 0 .and. ilrt == 0 .and. (abfqmmm_param%abfqmmm /= 1)) return
+   if (do_self == 0 .and. ilrt == 0 ) return
    !     ---only compute sumq and sumq2 at beginning. They don't change
    ! if LIE module is in use, this is called repeatedly with different charge arrays, so recompute
 
    d0 = -ewaldcof*INVSQRTPI
    
-   if (first .or. abfqmmm_param%abfqmmm == 1) then
+   if (first) then
       sumq = 0.d0
       sumq2 = 0.d0
       factor = sqrt(pi/(ewaldcof*ewaldcof*volume))*sqrt(0.5d0)

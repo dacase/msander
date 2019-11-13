@@ -51,9 +51,6 @@ subroutine qm_ewald_setup(totkq,kappa, kmaxqx,kmaxqy,kmaxqz,ksqmaxq, natom,nquan
 !Also allocates memory
 
       use qmmm_module, only : qmewald, qmmm_nml, qmmm_mpi
-#ifdef MPI
-      use abfqmmm_module, only: abfqmmm_param
-#endif
       use nblist, only : volume
 
       implicit none
@@ -116,7 +113,7 @@ subroutine qm_ewald_setup(totkq,kappa, kmaxqx,kmaxqy,kmaxqz,ksqmaxq, natom,nquan
       qmmm_mpi%totkq_count = qmmm_mpi%kvec_end-qmmm_mpi%kvec_start+1
 
 #ifdef MPI
-      if (qmmm_mpi%commqmmm_master .and. abfqmmm_param%abfqmmm /= 1) then
+      if (qmmm_mpi%commqmmm_master) then
          write (6,'(/a)') '|QMMM: KVector division among threads:'
          write (6,'(a)') '|QMMM:                  Start       End      Count'
 
@@ -150,7 +147,7 @@ subroutine qm_ewald_setup(totkq,kappa, kmaxqx,kmaxqy,kmaxqz,ksqmaxq, natom,nquan
 
       call mpi_gather(istartend, 2, MPI_INTEGER, gather_array, 2, MPI_INTEGER, 0, qmmm_mpi%commqmmm, ier)
       
-      if (qmmm_mpi%commqmmm_master .and. abfqmmm_param%abfqmmm /= 1) then
+      if (qmmm_mpi%commqmmm_master) then
          do i = 1, qmmm_mpi%numthreads
             write(6,'(a,i4,a,i8,a,i8,a,i8,a)') &
                 '|QMMM: Thread(',i-1,'): ',gather_array(2*i-1),'->',gather_array(2*i), &

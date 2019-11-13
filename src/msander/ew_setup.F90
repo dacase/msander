@@ -34,7 +34,6 @@ end subroutine assign_ind
 subroutine check_neutral(charge,natom)
 
    use constants, only : INV_AMBER_ELECTROSTATIC, TEN_TO_MINUS2, ZERO
-   use abfqmmm_module, only: abfqmmm_param
    implicit none
    _REAL_  charge(*), sum
    integer natom, i
@@ -48,15 +47,9 @@ subroutine check_neutral(charge,natom)
       sum = sum + charge(i)
    end do
 
-   if(abfqmmm_param%abfqmmm == 1 .and. &
-       abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) &
-      abfqmmm_param%class_charge = nint(sum * INV_AMBER_ELECTROSTATIC)
-
 #ifndef API
    if (master) then
-      if(abfqmmm_param%abfqmmm /=1 .or. &
-          (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1)) &
-         write(6,'(/,5x,a,f12.8)') 'Sum of charges from parm topology file = ',&
+      write(6,'(/,5x,a,f12.8)') 'Sum of charges from parm topology file = ',&
                 sum * INV_AMBER_ELECTROSTATIC
    end if
 #endif
@@ -74,8 +67,7 @@ subroutine check_neutral(charge,natom)
          ! Periodic simulation
          if ( use_pme /= 0 ) then
             ! Both direct and reciprocal Ewald
-            if (master .and. (abfqmmm_param%abfqmmm /= 1 .or. &
-                 (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1))) &
+            if (master) &
                write(6, '(5x,a)') 'Assuming uniform neutralizing plasma'
          else
             ! No reciprocal Ewald
@@ -89,9 +81,7 @@ subroutine check_neutral(charge,natom)
 #endif /* API */
       ! Insignificant nonzero net charge, assuming due to roundoff error
 #ifndef API
-      if (master .and. (abfqmmm_param%abfqmmm /= 1 .or. &
-               (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1))) &
-         write(6, '(5x,a)') 'Forcing neutrality...'
+      if (master) write(6, '(5x,a)') 'Forcing neutrality...'
 #endif
       sum = sum/natom
       do i = 1,natom
@@ -112,7 +102,6 @@ subroutine init_coulomb_switch(cutoffnb,dxdr,eed_cub,eed_lin, &
       eedtbdns,eedmeth,ee_type)
 
    use constants, only : zero, one, half, third, tenth, TEN_TO_MINUS4
-   use abfqmmm_module, only: abfqmmm_param
    implicit none
    _REAL_  eed_lin(2,*),eed_cub(4,*), cutoffnb,dxdr,eedtbdns
    integer eedmeth,ee_type
@@ -129,12 +118,9 @@ subroutine init_coulomb_switch(cutoffnb,dxdr,eed_cub,eed_lin, &
    ad_switch_dx = 0.d0
 
 #ifdef API
-   if ( abfqmmm_param%abfqmmm /= 1 ) then
-      if (eedmeth == 3 .or. eedmeth == 4 .or. eedmeth == 5 .or. eedmeth == 6) &
+   if (eedmeth == 3 .or. eedmeth == 4 .or. eedmeth == 5 .or. eedmeth == 6) &
          return
-   end if
 #else /* NOT API */
-   if ( abfqmmm_param%abfqmmm /=1 ) then
       if ( master )then
          write(6,'(a)') &
                ' ---------------------------------------------------'
@@ -176,7 +162,6 @@ subroutine init_coulomb_switch(cutoffnb,dxdr,eed_cub,eed_lin, &
          end if
          return
       end if
-   end if
 #endif /* API */
    if (eedmeth >= 3) return
    small = TEN_TO_MINUS4
@@ -191,15 +176,15 @@ subroutine init_coulomb_switch(cutoffnb,dxdr,eed_cub,eed_lin, &
 
 #ifndef API
    if ( master )then
-      if ( eedmeth == 1 )then
-         if(abfqmmm_param%abfqmmm /= 1) write(6,1000)
+      if ( eedmeth == 1 ) then
+         write(6,1000)
       else if ( eedmeth == 2 ) then 
-         if(abfqmmm_param%abfqmmm /= 1) write(6,1100)
+         write(6,1100)
       else
          ASSERT( .false. )  ! eedmeth input validation occurs in mdread.f
       end if
-      if(abfqmmm_param%abfqmmm /= 1) write(6,1001) eedtbdns
-      if(abfqmmm_param%abfqmmm /= 1) write(6,1002)
+      write(6,1001) eedtbdns
+      write(6,1002)
    end if
    1000 format(1x,'APPROXIMATING switch and d/dx switch', &
          ' using CUBIC SPLINE INTERPOLATION')
@@ -259,9 +244,9 @@ subroutine init_coulomb_switch(cutoffnb,dxdr,eed_cub,eed_lin, &
 
 #ifndef API
    if ( master )then
-      if(abfqmmm_param%abfqmmm /= 1) write(6,1003)maxerr,xerr
-      if(abfqmmm_param%abfqmmm /= 1) write(6,1004)maxderr,dxerr
-      if(abfqmmm_param%abfqmmm /= 1) write(6,'(a)') &
+      write(6,1003)maxerr,xerr
+      write(6,1004)maxderr,dxerr
+      write(6,'(a)') &
             ' ---------------------------------------------------'
    end if
    1003 format('| CHECK switch(x): max rel err = ',e12.4, &

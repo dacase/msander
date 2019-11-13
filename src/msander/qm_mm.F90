@@ -59,7 +59,6 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   use parms, only : cn1, cn2, nttyp
   use nblist,only: alpha,beta,gamma
   use qm2_extern_module, only: qm2_extern_get_qm_forces
-  use abfqmmm_module, only: abfqmmm_param
 
   implicit none
 
@@ -105,9 +104,6 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
 
   ! If this is the first call to the routine, do some initial allocation
   ! that has not been done elsewhere.
-  if (abfqmmm_param%abfqmmm == 1) then
-    qmmm_struct%qm_mm_first_call = .true.
-  endif
   if (qmmm_struct%qm_mm_first_call) then
 
     ! Stores the REAL and link atom qm coordinates.  qm_coords is
@@ -234,9 +230,7 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   if(qmmm_struct%qm_mm_first_call) then
     if (qmmm_mpi%commqmmm_master) then
       call qm_print_coords(nstep,.true.)
-      if (abfqmmm_param%abfqmmm /= 1) then
-         write(6,'(/80("-")/"  3.1 QM CALCULATION INFO",/80("-"))')
-      end if
+      write(6,'(/80("-")/"  3.1 QM CALCULATION INFO",/80("-"))')
     end if
   end if
 
@@ -513,14 +507,9 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   call timer_stop(TIME_QMMMCOLLATEF)
 
   ! This is no longer the first call, and Ewald startup
-  ! should be done if it is needed at all.  Still, there is
-  ! the issue of whether this is part of abfqmmm.
+  ! should be done if it is needed at all.
   qmmm_struct%qm_mm_first_call = .false.
   qmewald%ewald_startup = .false.
-  if (abfqmmm_param%abfqmmm == 1) then
-    qmmm_struct%qm_mm_first_call = .true.
-    qmewald%ewald_startup = .true.
-  end if
 
 end subroutine qm_mm
 
@@ -945,7 +934,6 @@ subroutine get_qm2_forces(master, calc_mchg_scf, natom, born_radii, &
   use qmmm_struct_module, only : qmmm_struct_type
   use qmmm_module, only : qmmm_scratch_structure, qmmm_opnq
   use constants, only : zero, EV_TO_KCAL
-  use abfqmmm_module, only: abfqmmm_param
 
   implicit none
 
@@ -965,12 +953,9 @@ subroutine get_qm2_forces(master, calc_mchg_scf, natom, born_radii, &
   logical, save :: first_call = .true.
 
   ! Setup is needed if this is the first call to get_qm2_forces().  The
-  ! first_call condition is turned off, but back on again if abfqmmm is
-  ! active.  This ensures that the setup is always done for every step
-  ! of abfqmmm.
+  ! first_call condition is turned off.
   if (first_call) then
     first_call = .false.
-    if (abfqmmm_param%abfqmmm == 1) first_call = .true.
     call timer_start(TIME_QMMMSETUP)
 
     ! Load semiempirical parameters.  This Also does a lot of memory
@@ -991,10 +976,7 @@ subroutine get_qm2_forces(master, calc_mchg_scf, natom, born_radii, &
       call qm_print_dyn_mem(natom,qmmm_struct%qm_mm_pairs)
 
       ! Finally print the result header that was skipped in sander.
-      if (abfqmmm_param%abfqmmm /= 1 .or. &
-          (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1)) then
-        write(6,'(/80("-")/"   4.  RESULTS",/80("-")/)')
-      end if
+      write(6,'(/80("-")/"   4.  RESULTS",/80("-")/)')
     end if
 #endif
   end if

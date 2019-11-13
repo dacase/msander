@@ -2,22 +2,6 @@
 #   Please do not edit the "depend" file directly, since it is created by the
 #   "makedepend" script.  If changes are needed, edit "makedepend" itself.
 #
-abfqmmm_module.o: \
-                    copyright.h\
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    charmm.o\
-                    qmmm_module.o\
-                    box.h\
-                    ../include/md.h\
-                    molecule.o\
-                    constants.o
-
-
-abfqmmm_module.o:   abfqmmm_module.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ abfqmmm_module.F90
-
 align.o: \
                     copyright.h\
                     ../include/dprec.fh\
@@ -465,7 +449,6 @@ dynlib.o: \
                     ips.o\
                     emap.o\
                     amd.o\
-                    abfqmmm_module.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -501,7 +484,6 @@ dynlib.LES.o: \
                     ips.o\
                     emap.o\
                     amd.o\
-                    abfqmmm_module.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -536,7 +518,6 @@ dynlib.PUPIL.o: \
                     ips.o\
                     emap.o\
                     amd.o\
-                    abfqmmm_module.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -815,8 +796,7 @@ ew_force.o: \
                     spatial_fft.o\
                     crg_reloc.o\
                     flocntrl.h\
-                    linear_response.o\
-                    abfqmmm_module.o
+                    linear_response.o
 
 
 ew_force.o:   ew_force.F90
@@ -858,8 +838,7 @@ ew_force.LES.o: \
                     spatial_fft.o\
                     crg_reloc.o\
                     flocntrl.h\
-                    linear_response.o\
-                    abfqmmm_module.o
+                    linear_response.o
 
 ew_force.LES.o:   ew_force.F90
 	@echo '[SANDER]  FC $<'
@@ -942,7 +921,6 @@ ew_setup.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
-                    abfqmmm_module.o\
                     box.h\
                     ew_cntrl.h\
                     extra.h\
@@ -977,7 +955,6 @@ ew_setup.LES.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
-                    abfqmmm_module.o\
                     box.h\
                     ew_cntrl.h\
                     extra.h\
@@ -1051,7 +1028,6 @@ fastwt.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
-                    abfqmmm_module.o\
                     parallel.h\
                     ../include/md.h\
                     constants.o
@@ -1117,7 +1093,6 @@ force.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
                     ew_frc.h\
@@ -1175,7 +1150,6 @@ force.LES.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
                     ew_frc.h\
@@ -1232,7 +1206,6 @@ force.PUPIL.o: \
                     decomp.o\
                     state.o\
                     crg_reloc.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     def_time.h\
                     ew_frc.h\
@@ -1409,7 +1382,6 @@ interface_setup.F90: \
                     random.o\
                     amd.o\
                     scaledMD.o\
-                    abfqmmm_module.o\
                     prmtop_type.o\
                     ../include/memory.h\
                     nmr.h\
@@ -3149,7 +3121,6 @@ qm_ewald.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     qmmm_module.o\
-                    abfqmmm_module.o\
                     nonbond_list.o\
                     constants.o\
                     qm2_array_locations.h\
@@ -3169,7 +3140,6 @@ qm_mm.o: \
                     parms.o\
                     nonbond_list.o\
                     qm2_extern_module.o\
-                    abfqmmm_module.o\
                     ../include/assert.fh\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
@@ -3188,7 +3158,6 @@ qm_mm.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     qm2_extern_module.LES.o\
-                    abfqmmm_module.o\
                     ../include/assert.fh\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
@@ -3472,7 +3441,6 @@ runmd.o: \
                     random.o\
                     qmmm_adaptive_module.o\
                     crg_reloc.o\
-                    abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
                     parallel.h\
@@ -3530,7 +3498,6 @@ runmd.LES.o: \
                     random.o\
                     qmmm_adaptive_module.o\
                     crg_reloc.o\
-                    abfqmmm_module.o\
                     amd.o\
                     scaledMD.o\
                     parallel.h\
@@ -3626,7 +3593,6 @@ sander.o: \
                     random.o\
                     amd.o\
                     scaledMD.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     mdfil.o\
                     nmr.h\
@@ -3697,7 +3663,6 @@ sander.LES.o: \
                     random.o\
                     amd.o\
                     scaledMD.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     mdfil.LES.o\
                     nmr.h\
@@ -3767,7 +3732,6 @@ sander.PUPIL.o: \
                     random.o\
                     amd.o\
                     scaledMD.o\
-                    abfqmmm_module.o\
                     music_module.o\
                     mdfil.PUPIL.o\
                     nmr.h\
@@ -3820,7 +3784,6 @@ set.o: \
                     binrestart.o\
                     remd.o\
                     ../include/md.h\
-                    abfqmmm_module.o\
                     ../include/memory.h\
                     parallel.h\
                     extra.h\
@@ -3844,7 +3807,6 @@ set.LES.o: \
                     binrestart.LES.o\
                     remd.LES.o\
                     ../include/md.h\
-                    abfqmmm_module.o\
                     ../include/memory.h\
                     parallel.h\
                     extra.h\

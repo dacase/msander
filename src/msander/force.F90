@@ -109,7 +109,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif /* MPI */
   use state
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
-  use abfqmmm_module
   use les_data, only: temp0les
   use music_module, only : music_force
 
@@ -295,9 +294,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     ! For GB: do all nonbondeds together below
     call timer_start(TIME_NONBON)
     call timer_start(TIME_LIST)
-    if (abfqmmm_param%abfqmmm == 1) then
-      qsetup = .true.
-    end if
     call nonbond_list(x, ix(i04), ix(i06), ix(i08), ix(i10), ntypes, &
                       natom, xx, ix, ipairs, ntnb, ix(ibellygp), &
                       belly, newbalance, qsetup, do_list_update)

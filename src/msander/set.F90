@@ -511,7 +511,6 @@ end subroutine setgms
 !+ Distribute atoms to processors using molecule boundaries
 subroutine setpar(nspm, nsp, ntp, ipres, amass)
    
-   use abfqmmm_module, only: abfqmmm_param
    implicit none
    integer nspm, nsp(*), ntp, ipres(*)
    _REAL_ amass(*)
@@ -641,10 +640,8 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
       end do
 #ifndef API
       if (master) then
-         if(abfqmmm_param%abfqmmm /= 1) &
-             write(6,'(a)') '|  Atom division among processors:'
-         if(abfqmmm_param%abfqmmm /= 1) &
-             write(6,'("|  ", 8i8)') (iparpt(j),j=0,numtasks)
+         write(6,'(a)') '|  Atom division among processors:'
+         write(6,'("|  ", 8i8)') (iparpt(j),j=0,numtasks)
       end if
 #endif
    end if  

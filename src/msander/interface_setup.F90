@@ -70,7 +70,6 @@
 !scaledMD
    use scaledMD_mod
 
-   use abfqmmm_module
 #ifndef USE_PRMTOP_FILE
    use prmtop_type, only : prmtop_struct
 #endif
@@ -172,11 +171,7 @@
 
    call timer_start(TIME_TOTAL)
 
-   call abfqmmm_init_param()
-
    masterwork: if (master) then
-
-   if (abfqmmm_param%abfqmmm == 0) then
 
       ! ---- first, initial reads to determine memory sizes:
       call fill_ucell(inbox(1),inbox(2),inbox(3),inbox(4),inbox(5),inbox(6))
@@ -253,45 +248,13 @@
 
       if( xray_active ) call xray_read_parm(8,6)
 
-   end if
-
-   if (qmmm_nml%ifqnt .or. abfqmmm_param%abfqmmm == 1) then
-      if(abfqmmm_param%abfqmmm == 0) then
-         call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
+   if (qmmm_nml%ifqnt) then
+      call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
                                      dummy, 0, .false., qmmm_options)
-      end if
-      if(qmmm_struct%abfqmmm == 1 .and. abfqmmm_param%abfqmmm == 0) then
-         call abfqmmm_setup(natom,nres,ix(i02),ih(m04),ih(m02),x(lmass), &
-                            nbonh,nbona,ix(iibh),ix(ijbh),ix(iiba),ix(ijba))
-         nr=natom
-         x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
-         x(lvel:lvel+natom*3-1) = 0.d0
-         abfqmmm_param%maxqmstep = nstlim
-      end if
-      if(abfqmmm_param%abfqmmm == 1) then
-         if(abfqmmm_param%system == 1) then
-            call abfqmmm_update_qmatoms(x(lcrd))
-            if(abfqmmm_param%ntwpdb < 0) then
-               call abfqmmm_write_pdb(x(lcrd),ix(i70))
-               close(6)
-               call mexit(6,1)
-            end if
-         end if
-         call abfqmmm_select_system_qmatoms(natom)
-         if(qmmm_nml%ifqnt) then
-            call read_qmmm_nm_and_alloc(igb,ih,ix,x,cut,use_pme,ntb,&
-                                        abfqmmm_param%qmstep, &
-                                        abfqmmm_param%isqm, &
-                                        abfqmmm_param%abfcharge,.false., &
-                                        qmmm_options)
-         endif
-      endif
    endif
 
-   if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call api_mdread2(x,ix,ih, ierr)
-      if (ierr /= 0) goto ERROR2
-   endif
+   call api_mdread2(x,ix,ih, ierr)
+   if (ierr /= 0) goto ERROR2
 
 #if defined(RISMSANDER) 
       call rism_setparam(mdin,&
@@ -406,17 +369,13 @@
       ! --- seed the random number generator ---
 
       ! DAN ROE: Note master node only here
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
          call amrset(ig)
          if (ntp > 0.and.iabs(ntb) /= 2) then
             write(6,*) 'Input of NTP/NTB inconsistent'
             goto ERROR3
          end if
-      end if
 
       ! ----- READ COORDINATES AND VELOCITIES -----
-
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then   ! <<< QMSTEP=1 BLOCK >>>
 
          call timer_start(TIME_RDCRD)
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
@@ -453,11 +412,6 @@
          if (belly) call bellyf(natom,ix(ibellygp),x(lvel))
          call timer_stop(TIME_RDCRD)
 
-         if(abfqmmm_param%abfqmmm == 1 .and. ntb > 0) then
-            call iwrap2(abfqmmm_param%n_user_qm, abfqmmm_param%user_qm, &
-                        x(lcrd), box_center)
-         end if
-
          ! --- If we are reading NMR restraints/weight changes,
          !     read them now:
 
@@ -485,8 +439,6 @@
          if (iredir(4) > 0) call noeread(x,ix,ih)
          if (iredir(8) > 0) call alignread(natom, x(lcrd))
          if (iredir(9) > 0) call csaread
-
-      end if ! <<< QMSTEP=1 BLOCK >>>
 
       !---------------------------------------------------------------
       ! --- Call FASTWAT, which will tag those bonds which are part
@@ -528,42 +480,6 @@
                  ix(i32), ix(i34), ix(i36), ix(i38), &
                  ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
                  ix(i50), ix(i52), ix(i54), ix(i56), ix(i58))
-         end if
-
-         if( abfqmmm_param%abfqmmm == 1 ) then
-            if(abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-               call abfqmmm_allocate_arrays_of_parameters(numbnd, nbonh, &
-                              nbona, ntheth, ntheta, nphih, nphia)
-               call abfqmmm_store_parameters(&
-                                 ix(iibh), ix(ijbh), ix(iicbh), &
-                                 ix(iiba), ix(ijba), ix(iicba), &
-                                 ix(i24), ix(i26), ix(i28), ix(i30), &
-                                 ix(i32), ix(i34), ix(i36), ix(i38), &
-                                 ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
-                                 ix(i50), ix(i52), ix(i54), ix(i56), ix(i58), &
-                                 x(l15), rk, req)
-            else
-               call abfqmmm_set_parameters(&
-                                 numbnd, nbonh, nbona, ntheth, ntheta, nphih, &
-                                 nphia, ix(iibh), ix(ijbh), ix(iicbh), &
-                                 ix(iiba), ix(ijba), ix(iicba), &
-                                 ix(i24), ix(i26), ix(i28), ix(i30), &
-                                 ix(i32), ix(i34), ix(i36), ix(i38), &
-                                 ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
-                                 ix(i50), ix(i52), ix(i54), ix(i56), ix(i58), &
-                                 x(l15), rk, req)
-
-               call init_extra_pts(ix(iibh),ix(ijbh),ix(iicbh), &
-                                 ix(iiba),ix(ijba),ix(iicba), &
-                                 ix(i24),ix(i26),ix(i28),ix(i30), &
-                                 ix(i32),ix(i34),ix(i36),ix(i38), &
-                                 ix(i40),ix(i42),ix(i44),ix(i46),ix(i48), &
-                                 ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
-                                 ih(m06),ix,x,ix(i08),ix(i10), &
-                                 nspm,ix(i70),x(l75),tmass,tmassinv,&
-                                 x(lmass),x(lwinv),req)
-
-            end if
          end if
 
          ! Remove bonds between QM atoms from list (Hydrogen)
@@ -629,28 +545,6 @@
          allocate( qmmm_struct%dxyzqm(3, qmmm_struct%nquant_nlink), stat = ier )
          REQUIRE(ier == 0) ! Deallocated in deallocate qmmm
 
-      else if(abfqmmm_param%abfqmmm == 1) then
-      
-         call abfqmmm_set_parameters(&
-                        numbnd, nbonh, nbona, ntheth, ntheta, nphih, nphia, &
-                        ix(iibh), ix(ijbh), ix(iicbh), &
-                        ix(iiba), ix(ijba), ix(iicba), &
-                        ix(i24), ix(i26), ix(i28), ix(i30), &
-                        ix(i32), ix(i34), ix(i36), ix(i38), &
-                        ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
-                        ix(i50), ix(i52), ix(i54), ix(i56), ix(i58), &
-                        x(l15), rk, req)
-
-         call init_extra_pts(ix(iibh),ix(ijbh),ix(iicbh), &
-                           ix(iiba),ix(ijba),ix(iicba), &
-                           ix(i24),ix(i26),ix(i28),ix(i30), &
-                           ix(i32),ix(i34),ix(i36),ix(i38), &
-                           ix(i40),ix(i42),ix(i44),ix(i46),ix(i48), &
-                           ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
-                           ih(m06),ix,x,ix(i08),ix(i10), &
-                           nspm,ix(i70),x(l75),tmass,tmassinv,&
-                           x(lmass),x(lwinv),req)
-
       end if !if (qmmm_nml%ifqnt)
 
       ! --- Open the data dumping files and position it depending
@@ -663,34 +557,14 @@
    call rism_init(commsander)
 #  endif /* RISMSANDER */
 
-   if(abfqmmm_param%abfqmmm == 1) then
-      if(abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-         allocate(abfqmmm_param%v(3*natom+iscale), stat=ier)
-         REQUIRE(ier==0)
-         allocate(abfqmmm_param%f(3*natom+iscale), stat=ier)
-         REQUIRE(ier==0)
-         allocate(abfqmmm_param%f1(3*natom+iscale), stat=ier)
-         REQUIRE(ier==0)
-         allocate(abfqmmm_param%f2(3*natom+iscale), stat=ier)
-         REQUIRE(ier==0)
-      end if
-   end if
-
    !   debug needs to copy charges at start and they can't change later
    !   ---------------- Check system is neutral and print warning message ------
    !   ---------------- adjust charges for roundoff error.                ------
    if( igb == 0 .and. ipb == 0 .and. iyammp == 0 ) call check_neutral(x(l15),natom)
 
-   if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call amrset(ig+1)
-   end if
+   call amrset(ig+1)
 
-   if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call stack_setup()
-   else
-      call deallocate_stacks             
-      call stack_setup()
-   end if
+   call stack_setup()
 
 #ifdef OPENMP
 

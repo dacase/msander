@@ -281,7 +281,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use nbips, only: ips
   use emap,only: temap
   use amd_mod, only: iamd
-  use abfqmmm_module, only: abfqmmm_param
 
   implicit none
 
@@ -409,28 +408,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   erism   = ener%pot%rism
 #endif /*RISMSANDER*/
   ect     = ener%pot%ct
-
-  if (abfqmmm_param%abfqmmm == 1) then
-    write(6,*) "--------------------------------------------------------&
-               &----------------------"
-    if (abfqmmm_param%system == 1) then
-      write(6,'(1x,a33,i4,5x,a12,i2)') 'System = Extended    N(QM atoms) = ', &
-                                       qmmm_struct%nquant, 'QM Charge = ', &
-                                       qmmm_nml%qmcharge
-      write(6,'(1x,a10,i4,7x,a8,i4,6x,a12,i4)') 'N(core) = ', &
-            abfqmmm_param%n_core, 'N(qm) = ', &
-            abfqmmm_param%n_qm - abfqmmm_param%n_core, &
-            'N(buffer) = ', abfqmmm_param%n_buffer
-    end if
-    if (abfqmmm_param%system == 2) then
-      if (.not. qmmm_nml%ifqnt) then
-        qmmm_struct%nquant = 0
-        qmmm_nml%qmcharge = 0
-      end if
-      write(6,'(1x,a33,i4,5x,a12,i2)') 'System = Reduced     N(QM atoms) = ', &
-            qmmm_struct%nquant, 'QM Charge = ', qmmm_nml%qmcharge
-    end if
-  end if
 
   write(6, 9018) nstep,time,temp,press
   write(6, 9028) etot,ektot,epot
@@ -619,25 +596,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (iout7 == 0) return
 
   ! Output the info file if requested
-  if (abfqmmm_param%abfqmmm == 1) then
-    if (abfqmmm_param%system == 1) then
-      write(7, '(1x,a33,i4,5x,a12,i2)') &
-            'System = Extended    N(QM atoms) = ', qmmm_struct%nquant, &
-            'QM Charge = ', qmmm_nml%qmcharge
-      write(7,'(1x,a10,i4,7x,a8,i4,6x,a12,i4)') 'N(core) = ', &
-            abfqmmm_param%n_core, 'N(qm) = ', &
-            abfqmmm_param%n_qm - abfqmmm_param%n_core, &
-            'N(buffer) = ', abfqmmm_param%n_buffer
-    end if
-    if (abfqmmm_param%system == 2) then
-      if (.not. qmmm_nml%ifqnt) then
-        qmmm_struct%nquant = 0
-        qmmm_nml%qmcharge = 0
-      end if
-      write(7,'(1x,a33,i4,5x,a12,i2)') 'System = Reduced     N(QM atoms) = ', &
-            qmmm_struct%nquant, 'QM Charge = ', qmmm_nml%qmcharge
-    end if
-  end if
   write(7, 9018) nstep, time, temp, press
   write(7, 9028) etot, ektot, epot
   write(7, 9038) ebond, eangle, edihed

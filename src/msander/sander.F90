@@ -127,9 +127,6 @@ subroutine sander()
   ! scaledMD
   use scaledMD_mod
 
-  ! Adaptive Buffered Force QM/MM
-  use abfqmmm_module
-
   use music_module, only: read_music_nml, print_music_settings
 
   use commandline_module, only: cpein_specified
@@ -293,17 +290,8 @@ subroutine sander()
   ! Only the master node (only node when single-process)
   ! performs the initial setup and reading/writing
   call timer_start(TIME_TOTAL)
-  call abfqmmm_init_param()
 
-  ! abfqmmm master do loop: this will finally end on or about line 1710.
-  ! In abfQM/MM simulations the QM region changes dynamically, which
-  ! requires re-initialization of related data structures.  This is
-  ! implemented by running multiple MD simulations in sequence.  For
-  ! regular MM or QM/MM MD simulations, we go through this loop only once.
-  do while ((abfqmmm_param%qmstep <= abfqmmm_param%maxqmstep) .or. &
-            (abfqmmm_param%maxqmstep == 0 .and. abfqmmm_param%system == 2))
     masterwork: if (master) then
-      if (abfqmmm_param%abfqmmm == 0) then
 
         ! First, initial reads to determine memory sizes
         call mdread1()
@@ -374,18 +362,12 @@ subroutine sander()
         call rdparm2(x, ix, ih, 8)
 
         if( xray_active ) call xray_read_parm(8,6)
-      end if
 
       ! Branch for QM/MM systems
-      if (qmmm_nml%ifqnt .or. abfqmmm_param%abfqmmm == 1) then
-        if (abfqmmm_param%abfqmmm == 0) then
-          call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
+      if (qmmm_nml%ifqnt) then
+        call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
                                       dummy, 0, .true.)
-        end if
-        if (qmmm_struct%abfqmmm == 1 .and. abfqmmm_param%abfqmmm == 0) then
-          call abfqmmm_setup(natom, nres, ix(i02), ih(m04), ih(m02), &
-                             x(lmass), nbonh, nbona, ix(iibh), ix(ijbh), &
-                             ix(iiba), ix(ijba))
+#if 0  /* not clear if this block is supposed to be called or not */
           nr = natom
 #ifdef MPI
           call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
@@ -394,32 +376,12 @@ subroutine sander()
           call getcor(nr, x(lcrd), x(lvel), x(lforce), ntx, &
                         box, irest, t, .FALSE.)
 #endif
-          abfqmmm_param%maxqmstep = nstlim
-        end if
-        if (abfqmmm_param%abfqmmm == 1) then
-          if (abfqmmm_param%system == 1) then
-            call abfqmmm_update_qmatoms(x(lcrd))
-            if (abfqmmm_param%ntwpdb < 0) then
-              call abfqmmm_write_pdb(x(lcrd), ix(i70))
-              close(6)
-              call mexit(6, 1)
-            end if
-          end if
-          call abfqmmm_select_system_qmatoms(natom)
-          if (qmmm_nml%ifqnt) then
-            call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, &
-                                        abfqmmm_param%qmstep, &
-                                        abfqmmm_param%isqm, &
-                                        abfqmmm_param%abfcharge, .true.)
-          endif
-        endif
+#endif
       endif
 
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-        call mdread2(x, ix, ih)
-        call read_music_nml()
-        call print_music_settings()
-      endif
+      call mdread2(x, ix, ih)
+      call read_music_nml()
+      call print_music_settings()
 #ifdef MPI
       if (ifmbar .ne. 0) then
         call setup_mbar(nstlim)
@@ -555,7 +517,6 @@ subroutine sander()
       ! End of PUPIL interface
 
       ! Seed the random number generator (master node only)
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
 #ifdef MPI
         if (rem == 0) then
           call amrset(ig)
@@ -581,10 +542,8 @@ subroutine sander()
           write(6,*) 'Input of NTP/NTB inconsistent'
           call mexit(6, 1)
         end if
-      end if
 
       ! Read coordinates and velocities.  This begins the qmstep = 1 block
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
         call timer_start(TIME_RDCRD)
 #ifdef LES
 #  ifdef MPI
@@ -639,10 +598,6 @@ subroutine sander()
           call bellyf(natom, ix(ibellygp), x(lvel))
         end if
         call timer_stop(TIME_RDCRD)
-        if (abfqmmm_param%abfqmmm == 1 .and. ntb > 0) then
-          call iwrap2(abfqmmm_param%n_user_qm, abfqmmm_param%user_qm, &
-                      x(lcrd), box_center)
-        end if
 
         ! If we are reading NMR restraints/weight changes, read them now:
         if (nmropt >= 1) then
@@ -673,8 +628,6 @@ subroutine sander()
         if (iredir(9) > 0) then
           call csaread
         end if
-      end if
-      ! End of the qmstep = 1 block
 
       ! Call the fastwat subroutine to tag those bonds which are part
       ! of 3-point water molecules. Constraints will be performed for
@@ -693,9 +646,7 @@ subroutine sander()
       ! atoms if quantum atoms are present.  After assigning the link atoms,
       ! delete all connectivity between the QM atoms.
       if (qmmm_nml%ifqnt) then
-        if (abfqmmm_param%abfqmmm .ne. 1) then
-          call identify_link_atoms(nbona, ix(iiba), ix(ijba))
-        end if
+        call identify_link_atoms(nbona, ix(iiba), ix(ijba))
 
         ! Variable QM solvent:
         ! Store the original bond parameters since we will need to rebuild
@@ -711,39 +662,6 @@ subroutine sander()
                                            ix(i44), ix(i46), ix(i48), &
                                            ix(i50), ix(i52), ix(i54), &
                                            ix(i56), ix(i58))
-        end if
-        if (abfqmmm_param%abfqmmm == 1) then
-          if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-            call abfqmmm_allocate_arrays_of_parameters(numbnd, nbonh, nbona, &
-                                                       ntheth, ntheta, nphih, &
-                                                       nphia)
-            call abfqmmm_store_parameters(ix(iibh), ix(ijbh), ix(iicbh), &
-                                          ix(iiba), ix(ijba), ix(iicba), &
-                                          ix(i24), ix(i26), ix(i28), ix(i30), &
-                                          ix(i32), ix(i34), ix(i36), ix(i38), &
-                                          ix(i40), ix(i42), ix(i44), ix(i46), &
-                                          ix(i48), ix(i50), ix(i52), ix(i54), &
-                                          ix(i56), ix(i58), x(l15), rk, req)
-          else
-            call abfqmmm_set_parameters(numbnd, nbonh, nbona, ntheth, ntheta, &
-                                        nphih, nphia, ix(iibh), ix(ijbh), &
-                                        ix(iicbh), ix(iiba), ix(ijba), &
-                                        ix(iicba), ix(i24), ix(i26), ix(i28), &
-                                        ix(i30), ix(i32), ix(i34), ix(i36), &
-                                        ix(i38), ix(i40), ix(i42), ix(i44), &
-                                        ix(i46), ix(i48), ix(i50), ix(i52), &
-                                        ix(i54), ix(i56), ix(i58), x(l15), &
-                                        rk, req)
-            call init_extra_pts(ix(iibh), ix(ijbh), ix(iicbh), ix(iiba), &
-                                ix(ijba), ix(iicba), ix(i24), ix(i26), &
-                                ix(i28), ix(i30), ix(i32), ix(i34), ix(i36), &
-                                ix(i38), ix(i40), ix(i42), ix(i44), ix(i46), &
-                                ix(i48), ix(i50), ix(i52), ix(i54), ix(i56), &
-                                ix(i58), ih(m06), ix, x, ix(i08), ix(i10), &
-                                nspm, ix(i70), x(l75), tmass, tmassinv, &
-                                x(lmass), x(lwinv), req)
-          end if
-          call identify_link_atoms(nbona, ix(iiba), ix(ijba))
         end if
 
         ! Remove bonds between QM atoms from list (Hydrogen)
@@ -818,22 +736,6 @@ subroutine sander()
 
         ! Again, qmmm_struct%dxyzqm will be deallocated in deallocate qmmm
         REQUIRE(ier == 0)
-      else if(abfqmmm_param%abfqmmm == 1) then
-        call abfqmmm_set_parameters(numbnd, nbonh, nbona, ntheth, ntheta, &
-                                    nphih, nphia, ix(iibh), ix(ijbh), &
-                                    ix(iicbh), ix(iiba), ix(ijba), ix(iicba), &
-                                    ix(i24), ix(i26), ix(i28), ix(i30), &
-                                    ix(i32), ix(i34), ix(i36), ix(i38), &
-                                    ix(i40), ix(i42), ix(i44), ix(i46), &
-                                    ix(i48), ix(i50), ix(i52), ix(i54), &
-                                    ix(i56), ix(i58), x(l15), rk, req)
-        call init_extra_pts(ix(iibh), ix(ijbh), ix(iicbh), ix(iiba), &
-                            ix(ijba), ix(iicba), ix(i24), ix(i26), ix(i28), &
-                            ix(i30), ix(i32), ix(i34), ix(i36), ix(i38), &
-                            ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
-                            ix(i50), ix(i52), ix(i54), ix(i56), ix(i58), &
-                            ih(m06), ix, x, ix(i08), ix(i10), nspm, ix(i70), &
-                            x(l75), tmass, tmassinv, x(lmass), x(lwinv), req)
       end if
       ! End if branch based on the presence of quantum atoms.  This block
       ! assigned link atoms and replaced MM interactions along the QM/MM
@@ -841,7 +743,6 @@ subroutine sander()
 
       ! Open the data dumping files and position them
       ! depending on the type of run:
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
 #ifdef MPI
         ! Adaptive QM/MM (qmmm_nml%vsolv=2) via multisander.
         ! All groups have identical coords and velocities.
@@ -852,7 +753,6 @@ subroutine sander()
 #ifdef MPI
         end if
 #endif
-      end if
       call amflsh(6)
 
     end if masterwork
@@ -899,63 +799,8 @@ subroutine sander()
     call mpi_bcast(lastrst, 1, mpi_integer, 0, commsander, ier)
 
     call mpi_bcast(qmmm_struct%abfqmmm, 1, mpi_integer, 0, commsander, ier)
-    call mpi_bcast(abfqmmm_param%abfqmmm, 1, mpi_integer, 0, commsander, ier)
-    if (abfqmmm_param%abfqmmm == 1) then
-      call mpi_bcast(abfqmmm_param%natom, 1, mpi_integer, 0, commsander, ier)
-      call mpi_bcast(abfqmmm_param%qmstep, 1, mpi_integer, 0, commsander, ier)
-      call mpi_bcast(abfqmmm_param%maxqmstep, 1, mpi_integer, 0, &
-                     commsander, ier)
-      call mpi_bcast(abfqmmm_param%system, 1, mpi_integer, 0, commsander,ier)
-    end if
 
-    if (abfqmmm_param%abfqmmm == 1) then
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-        call mpi_bcast(abfqmmm_param%r_core_in, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%r_core_out, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%r_qm_in, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%r_qm_out, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%r_buffer_in, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%r_buffer_out, 1, mpi_double_precision, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%mom_cons_type, 1, mpi_integer, &
-                       0, commsander, ier)
-        call mpi_bcast(abfqmmm_param%mom_cons_region, 1, mpi_integer, &
-                       0, commsander, ier)
-        if (.not. master) then
-          allocate(abfqmmm_param%x(3*natom), stat=ier)
-          REQUIRE(ier == 0)
-          allocate(abfqmmm_param%id(natom), stat=ier)
-          REQUIRE(ier == 0)
-          allocate(abfqmmm_param%mass(natom), stat=ier)
-          REQUIRE(ier == 0)
-        end if
-        allocate(abfqmmm_param%v(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f1(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f2(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-      end if
-      call mpi_bcast(abfqmmm_param%x, 3*natom, mpi_double_precision, &
-                     0, commsander, ier)
-      call mpi_bcast(abfqmmm_param%id, natom, mpi_integer, &
-                     0, commsander, ier)
-      call mpi_bcast(abfqmmm_param%mass, natom, mpi_double_precision, &
-                     0, commsander, ier)
-    end if
-    if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call stack_setup()
-    else
-      call deallocate_stacks
-      call stack_setup()
-    end if
+    call stack_setup()
     call mpi_bcast(plumed, 1, MPI_INTEGER, 0, commsander, ier)
     call mpi_bcast(plumedfile, MAX_FN_LEN, MPI_CHARACTER, 0, commsander, ier)
 
@@ -967,10 +812,6 @@ subroutine sander()
 
     ! Allocate memory on the non-master nodes {{{
     if (.not. master) then
-
-      if (abfqmmm_param%qmstep .ne. 1 .or. abfqmmm_param%system .ne. 1) then
-        deallocate(x, ix, ipairs, ih)
-      end if
 
       allocate(x(1:lastr), stat=ier)
       REQUIRE(ier == 0)
@@ -988,12 +829,7 @@ subroutine sander()
       call memory_init()
 
       ! Allocate space for molecule module arrays in the other nodes
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-        call allocate_molecule()
-      else
-        call deallocate_molecule()
-        call allocate_molecule()
-      end if
+      call allocate_molecule()
 
       ! Thermodynamic Integration decomposition
       if (idecomp > 0) then
@@ -1075,24 +911,14 @@ subroutine sander()
       extra_atoms=0
     end if
     if (.not. master .and. igb == 0 .and. ipb == 0) then
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-        call nblist_allocate(natom,ntypes,num_direct,numtasks)
-      else
-        call nblist_deallocate
-        call nblist_allocate(natom, ntypes, num_direct, numtasks)
-      end if
+      call nblist_allocate(natom,ntypes,num_direct,numtasks)
     end if
 
     ! Allocate memory for GB on the non-master nodes:
     if (.not. master) then
       if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
           hybridgb > 0 .or. icnstph.gt.1 .or. icnste.gt.1) then
-        if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
           call allocate_gb( natom, ncopy )
-        else
-          call deallocate_gb
-          call allocate_gb(natom, ncopy)
-        end if
       end if
     end if
     ! End non-msater process GB memory allocation
@@ -1132,7 +958,6 @@ subroutine sander()
     ! by the master node (twice if initial velocities are set, ntx <= 3).
     ! Replica Exchange MD now requires need to call amrset on all child
     ! threads, masters have called it above before initial coord read.
-    if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
       if (rem == 0) then
         call amrset(ig+1)
       else
@@ -1148,7 +973,6 @@ subroutine sander()
                     nimprp, nhb, natom, natom, ntypes, nres, rad, wel, radhb, &
                     welhb, rwell, tgtrmsd, temp0les, -1, 'MPI ')
       end if
-    end if
     call mpi_bcast(lmtmd01, 1, mpi_integer, 0, commsander, ier)
     call mpi_bcast(imtmd02, 1, mpi_integer, 0, commsander, ier)
     if (itgtmd == 2) then
@@ -1255,23 +1079,17 @@ subroutine sander()
 
     ! Report the parallel configuration {{{
     if (master) then
-      if (abfqmmm_param%abfqmmm .ne. 1) then
-        write(6, '(a,i4,a,/)') '|  Running AMBER/MPI version on ', &
+      write(6, '(a,i4,a,/)') '|  Running AMBER/MPI version on ', &
                                numtasks, ' nodes'
-      end if
 
       ! BTREE is selected by default if cpu is a power of two.
       ! The number of processes is required to be a power of two for Btree
       ! Print a warning about inefficiency with cpus not being a power of 2.
       if (numtasks > 1 .and. logtwo(numtasks) <= 0) then
-        if (abfqmmm_param%abfqmmm .ne. 1) then
           write(6, '(a,i4,a,/)') &
                 '|  WARNING: The number of processors is not a power of 2'
-        end if
-        if (abfqmmm_param%abfqmmm /=1) then
           write(6, '(a,i4,a,/)') &
                 '|           this may be inefficient on some systems.'
-        end if
       end if
     end if
     ! End reporting of parallel configuration }}}
@@ -1289,18 +1107,6 @@ subroutine sander()
     ! End of AMBER/MPI work in this block
 
 #else
-    if (abfqmmm_param%abfqmmm == 1) then
-      if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-        allocate(abfqmmm_param%v(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f1(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-        allocate(abfqmmm_param%f2(3*natom+iscale), stat=ier)
-        REQUIRE(ier == 0)
-      end if
-    end if
 
     ! For debugging, the charges must be copied at the start so that
     ! they can't change later.  Check that the system is neutral and
@@ -1308,16 +1114,8 @@ subroutine sander()
     if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
       call check_neutral(x(l15),natom)
     end if
-    if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call amrset(ig+1)
-    end if
-
-    if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1) then
-      call stack_setup()
-    else
-      call deallocate_stacks
-      call stack_setup()
-    end if
+    call amrset(ig+1)
+    call stack_setup()
 
 #endif /* MPI */
 
@@ -1426,8 +1224,7 @@ subroutine sander()
                   ix(i06), x(lcrd))
     end if
 
-    if (master .and. (.not. qmmm_nml%ifqnt) .and. &
-        (abfqmmm_param%abfqmmm .ne. 1)) then
+    if (master .and. (.not. qmmm_nml%ifqnt)) then
       write(6,'(/80(''-'')/,''   4.  RESULTS'',/80(''-'')/)')
     end if
 
@@ -1533,10 +1330,8 @@ subroutine sander()
 #ifdef MPI
           call mpi_bcast(infe, 1, mpi_integer, 0, commsander, ier)
 #endif
-          if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1 .and. &
-              infe == 1) then
+          if ( infe == 1) &
             call nfe_on_sander_init(ih, x(lmass), x(lcrd), rem)
-          end if
 #endif /* DISABLE_NFE */
 
           call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
@@ -1544,10 +1339,7 @@ subroutine sander()
                        x(l50), x(l95), ix(i70), x(l75), erstop, qsetup)
 
 #if !defined(DISABLE_NFE)
-          if (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1 .and. &
-              infe == 1) then
-            call nfe_on_sander_exit()
-          end if
+          if (infe == 1) call nfe_on_sander_exit()
 #endif /* DISABLE_NFE */
           ! End of Replica Exchange MD block
 
@@ -1663,56 +1455,22 @@ subroutine sander()
 #endif
 
     ! Finish up EMAP
-    if (temap) then
-      call qemap()
-    end if
-    if (abfqmmm_param%abfqmmm .ne. 1) then
-      exit
-    else
+    if (temap) call qemap()
 #ifdef MPI
     call mpi_barrier(commsander,ier)
-      if (.not. master) then
-        if (charmm_active) then
-          call charmm_deallocate_arrays()
-        end if
-        if (cmap_active) then
-          call deallocate_cmap_arrays()
-        end if
+    if (.not. master) then
+      if (charmm_active) then
+        call charmm_deallocate_arrays()
       end if
-#endif /* MPI */
-      if (abfqmmm_param%qmstep .ne. abfqmmm_param%maxqmstep .or. &
-          abfqmmm_param%system .ne. 2) then
-        if (qmmm_nml%ifqnt) then
-          call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
-        end if
+      if (cmap_active) then
+        call deallocate_cmap_arrays()
       end if
-      call deallocate_m1m2m3()
-      if (abfqmmm_param%system == 2 .and. master) then
-        call abfqmmm_write_idrst()
-        call abfqmmm_write_pdb(x(lcrd),ix(i70))
-      end if
-      call abfqmmm_next_step()
     end if
-  end do
-  ! End of abfqmmm master do loop (starts WAY up near the top,
-  ! at or about line 317)
-
-  if (abfqmmm_param%abfqmmm == 1) then
-    deallocate(abfqmmm_param%id, stat=ier)
-    REQUIRE(ier == 0)
-    deallocate(abfqmmm_param%v, stat=ier)
-    REQUIRE(ier == 0)
-    deallocate(abfqmmm_param%f, stat=ier)
-    REQUIRE(ier == 0)
-    deallocate(abfqmmm_param%f1, stat=ier)
-    REQUIRE(ier == 0)
-    deallocate(abfqmmm_param%f2, stat=ier)
-    REQUIRE(ier == 0)
-    if (master) then
-      deallocate(abfqmmm_param%isqm, stat=ier)
-      REQUIRE(ier == 0)
-    endif
-  end if
+#endif /* MPI */
+    if (qmmm_nml%ifqnt) then
+      call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
+    end if
+    call deallocate_m1m2m3()
 
   ! Calc time spent running vs setup
   call timer_stop(TIME_TOTAL)
@@ -1817,7 +1575,7 @@ subroutine sander()
 
     ! If first_call is still true, this thread never really
     ! called the QMMM routine. E.g. more threads than PIMD replicates
-    call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
+    ! call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
   end if
 
   if (idecomp > 0) then
@@ -1873,14 +1631,6 @@ subroutine sander()
   end if
   call deallocate_molecule()
 
-  if (abfqmmm_param%abfqmmm .ne. 1) then
-    if (charmm_active) then
-      call charmm_deallocate_arrays()
-    end if
-    if (cmap_active) then
-      call deallocate_cmap_arrays()
-    end if
-  end if
   if (master .and. mdout .ne. 'stdout') then
     close(6)
   end if

@@ -58,13 +58,10 @@
 #  else
   if (master) then
 #  endif /* MPI */
-    if (abfqmmm_param%abfqmmm /= 1 .or. &
-        (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1)) then
-      write (6,'(a,f8.0)') "|  # of SOLUTE  degrees of freedom (RNDFP): ", &
+    write (6,'(a,f8.0)') "|  # of SOLUTE  degrees of freedom (RNDFP): ", &
         rndfp
-      write (6,'(a,f8.0)') "|  # of SOLVENT degrees of freedom (RNDFS): ", &
+    write (6,'(a,f8.0)') "|  # of SOLVENT degrees of freedom (RNDFS): ", &
         rndfs
-    end if
   end if
 
   ! qtw - substract the number of overlapping noshake QM atoms in noshakemask
@@ -78,16 +75,13 @@
 #  else
   if (master) then
 #  endif /* MPI */
-    if (abfqmmm_param%abfqmmm /= 1 .or. &
-        (abfqmmm_param%qmstep == 1 .and. abfqmmm_param%system == 1)) then
-      if (qmmm_nml%ifqnt) then
-        write (6,'(a,i6)') "|  QMSHAKE_NOSHAKEMASK_OVERLAP = ", &
-          qmmm_struct%noshake_overlap
-      end if
-      write (6,'(a,f8.0,a,i6,a,f8.0)') "|  NDFMIN = ", rndfp, &
-        "     NUM_NOSHAKE = ", num_noshake, "     CORRECTED RNDFP = ", rndfp
-      write (6,'(a,f8.0)') "|  TOTAL # of degrees of freedom (RNDF) = ", rndf
+    if (qmmm_nml%ifqnt) then
+      write (6,'(a,i6)') "|  QMSHAKE_NOSHAKEMASK_OVERLAP = ", &
+        qmmm_struct%noshake_overlap
     end if
+    write (6,'(a,f8.0,a,i6,a,f8.0)') "|  NDFMIN = ", rndfp, &
+      "     NUM_NOSHAKE = ", num_noshake, "     CORRECTED RNDFP = ", rndfp
+    write (6,'(a,f8.0)') "|  TOTAL # of degrees of freedom (RNDF) = ", rndf
   end if
 #endif /* LES */
   ! Correct the degree of freedom count for extra points.  Note

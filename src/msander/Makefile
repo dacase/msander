@@ -26,7 +26,7 @@ NFE_OBJECTS = \
     nfe-smd-hooks.o nfe-umbrella.o nfe-utils.o nfe-value.o mt19937.o
 
 QMOBJ= \
-    abfqmmm_module.o qm_mm.o qm_ewald.o qmmm_vsolv.o \
+    qm_mm.o qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
     qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
@@ -36,7 +36,7 @@ QMOBJ= \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 QMAPIOBJ = \
-    abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
+    qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
     qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
@@ -93,7 +93,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
     qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
     qm2_extern_genmpi_module.o \
-    qmmm_adaptive_module.o abfqmmm_module.o prn_qmmm_dipole.o \
+    qmmm_adaptive_module.o prn_qmmm_dipole.o \
     AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o mdwrit.LES.o \
     lmod.LES.o trajene.o ew_box.LES.o minrit.LES.o set.LES.o qm_mm.LES.o amd.o scaledMD.o \
     music_module.o
