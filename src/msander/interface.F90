@@ -42,7 +42,7 @@ module sander_api
 !    character(len=12) :: qm_theory
 ! end type qmmm_input_options
 
-! potenetial_energy_rec is a data structure defined in state.F90, shown below:
+! potential_energy_rec is a data structure defined in state.F90, shown below:
 
 ! type potential_energy_rec
 !   sequence

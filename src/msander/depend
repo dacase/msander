@@ -3,7 +3,6 @@
 #   "makedepend" script.  If changes are needed, edit "makedepend" itself.
 #
 align.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     nmr.h\
@@ -27,7 +26,6 @@ ambmask.o:   ambmask.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ambmask.F90
 
 amd.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     file_io_dat.o\
@@ -38,14 +36,6 @@ amd.o: \
 amd.o:   amd.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amd.F90
-
-ang_bend.o: \
-                    ../include/dprec.fh
-
-
-ang_bend.o:   ang_bend.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ang_bend.F90
 
 apbs.o: \
                     ../include/dprec.fh\
@@ -67,7 +57,6 @@ apbs_vars.o:   apbs_vars.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ apbs_vars.F90
 
 assert.o: \
-                    copyright.h\
                     ../include/assert.fh
 
 
@@ -76,7 +65,6 @@ assert.o:   assert.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ assert.F90
 
 barostats.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     random.o\
@@ -97,7 +85,6 @@ barostats.o:   barostats.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ barostats.F90
 
 binrestart.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     AmberNetcdf.o\
@@ -112,7 +99,6 @@ binrestart.o:   binrestart.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ binrestart.F90
 
 binrestart.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     AmberNetcdf.o\
@@ -126,7 +112,6 @@ binrestart.LES.o:   binrestart.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ binrestart.F90
 
 bintraj.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     AmberNetcdf.o\
                     file_io_dat.o\
@@ -144,7 +129,6 @@ bintraj.o:   bintraj.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
 bintraj.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     AmberNetcdf.o\
                     file_io_dat.o\
@@ -160,16 +144,7 @@ bintraj.LES.o:   bintraj.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
-bmat_inv_debug.o: \
-                    ../include/dprec.fh
-
-
-bmat_inv_debug.o:   bmat_inv_debug.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bmat_inv_debug.F90
-
 charmm.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ew_cntrl.h\
@@ -185,7 +160,6 @@ charmm.o:   charmm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
 
 constante.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     random.o\
@@ -209,7 +183,6 @@ constante.o:   constante.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constante.F90
 
 constantph.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     random.o\
@@ -233,7 +206,6 @@ constantph.o:   constantph.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constantph.F90
 
 cpparm.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     charmm.o\
@@ -260,7 +232,6 @@ cpparm.o:   cpparm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cpparm.F90
 
 cpparm.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     charmm.o\
@@ -286,7 +257,6 @@ cpparm.LES.o:   cpparm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cpparm.F90
 
 crg_reloc.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     parallel.h\
@@ -299,17 +269,7 @@ crg_reloc.o:   crg_reloc.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ crg_reloc.F90
 
-crossv.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh
-
-
-crossv.o:   crossv.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ crossv.F90
-
 csa.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     nmr.h\
@@ -322,7 +282,6 @@ csa.o:   csa.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ csa.F90
 
 cshf.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     nmr.h\
@@ -335,7 +294,6 @@ cshf.o:   cshf.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cshf.F90
 
 debug.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     parms.o\
@@ -362,7 +320,6 @@ debug.o:   debug.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ debug.F90
 
 decnvh.o: \
-                    copyright.h\
                     ../include/dprec.fh
 
 
@@ -371,7 +328,6 @@ decnvh.o:   decnvh.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ decnvh.F90
 
 decomp.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     softcore.o\
@@ -385,7 +341,6 @@ decomp.o:   decomp.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ decomp.F90
 
 degcnt.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     softcore.o
@@ -396,7 +351,6 @@ degcnt.o:   degcnt.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ degcnt.F90
 
 degcnt.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     softcore.o
@@ -404,14 +358,6 @@ degcnt.LES.o: \
 degcnt.LES.o:   degcnt.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ degcnt.F90
-
-dihed_tors.o: \
-                    ../include/dprec.fh
-
-
-dihed_tors.o:   dihed_tors.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dihed_tors.F90
 
 dssp.o: \
                     ../include/dprec.fh
@@ -421,13 +367,7 @@ dssp.o:   dssp.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dssp.F90
 
-
-dsvdc.o:   dsvdc.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dsvdc.F90
-
 dynlib.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
@@ -462,7 +402,6 @@ dynlib.o:   dynlib.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
 
 dynlib.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.LES.o\
@@ -496,7 +435,6 @@ dynlib.LES.o:   dynlib.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
 
 dynlib.PUPIL.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
@@ -530,7 +468,6 @@ dynlib.PUPIL.o:   dynlib.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
 
 egb.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     icosasurf.o\
@@ -554,7 +491,6 @@ egb.o:   egb.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ egb.F90
 
 egb.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     icosasurf.o\
@@ -578,7 +514,6 @@ egb.LES.o:   egb.F90
 
 emap.o: \
                     ../include/assert.fh\
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o\
                     findmask.o\
@@ -594,7 +529,6 @@ emap.o:   emap.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ emap.F90
 
 ene.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     les.o\
                     decomp.o\
@@ -625,7 +559,6 @@ ene.o:   ene.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ene.F90
 
 ene.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     les.o\
                     decomp.o\
@@ -655,7 +588,6 @@ ene.LES.o:   ene.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ene.F90
 
 erfcfun.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o
 
@@ -665,7 +597,6 @@ erfcfun.o:   erfcfun.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ erfcfun.F90
 
 ew_bndpol.o: \
-                    copyright.h\
                     ../include/dprec.fh
 
 
@@ -674,7 +605,6 @@ ew_bndpol.o:   ew_bndpol.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_bndpol.F90
 
 ew_box.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.o\
@@ -695,7 +625,6 @@ ew_box.o:   ew_box.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
 
 ew_box.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.LES.o\
@@ -715,7 +644,6 @@ ew_box.LES.o:   ew_box.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
 
 ew_bspline.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     parallel.h\
                     ew_parallel.h\
@@ -727,7 +655,6 @@ ew_bspline.o:   ew_bspline.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_bspline.F90
 
 ew_dipole_recip.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     ew_bspline.o\
@@ -746,7 +673,6 @@ ew_dipole_recip.o:   ew_dipole_recip.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_dipole_recip.F90
 
 ew_fft.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     parallel.h\
@@ -761,7 +687,6 @@ ew_fft.o:   ew_fft.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_fft.F90
 
 ew_force.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ew_recip.o\
@@ -802,7 +727,6 @@ ew_force.o:   ew_force.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_force.F90
 
 ew_force.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ew_recip.LES.o\
@@ -842,7 +766,6 @@ ew_force.LES.o:   ew_force.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_force.F90
 
 ew_handle_dips.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     ew_mpole.h\
@@ -861,7 +784,6 @@ ew_handle_dips.o:   ew_handle_dips.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_handle_dips.F90
 
 ew_recip.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.o\
@@ -888,7 +810,6 @@ ew_recip.o:   ew_recip.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip.F90
 
 ew_recip.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.LES.o\
@@ -914,7 +835,6 @@ ew_recip.LES.o:   ew_recip.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip.F90
 
 ew_setup.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
@@ -948,7 +868,6 @@ ew_setup.o:   ew_setup.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
 
 ew_setup.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
@@ -981,7 +900,6 @@ ew_setup.LES.o:   ew_setup.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
 
 extra_pts.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     ../include/memory.h\
@@ -1002,7 +920,6 @@ extra_pts.o:   extra_pts.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
 
 extra_pts.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     ../include/memory.h\
@@ -1022,7 +939,6 @@ extra_pts.LES.o:   extra_pts.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
 
 fastwt.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     parallel.h\
@@ -1056,7 +972,6 @@ fixport.o:   fixport.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fixport.F90
 
 force.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -1112,7 +1027,6 @@ force.o:   force.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ force.F90
 
 force.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -1167,7 +1081,6 @@ force.LES.o:   force.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ force.F90
 
 force.PUPIL.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -1224,7 +1137,6 @@ force.PUPIL.o:   force.F90
 getcor.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
-                    copyright.h\
                     constants.o\
                     AmberNetcdf.o\
                     binrestart.o\
@@ -1241,7 +1153,6 @@ getcor.o:   getcor.F90
 getcor.LES.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
-                    copyright.h\
                     constants.o\
                     AmberNetcdf.o\
                     binrestart.LES.o\
@@ -1255,7 +1166,6 @@ getcor.LES.o:   getcor.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ getcor.F90
 
 icosasurf.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     decomp.o\
@@ -1265,15 +1175,6 @@ icosasurf.o: \
 icosasurf.o:   icosasurf.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ icosasurf.F90
-
-interactmask.o: \
-                    ../include/dprec.fh\
-                    parms.o
-
-
-interactmask.o:   interactmask.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ interactmask.F90
 
 interface.o: \
                     ../include/assert.fh\
@@ -1394,7 +1295,6 @@ interface_setup.F90: \
                     def_time.h
 
 ips.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     constants.o\
@@ -1418,7 +1318,6 @@ ips.o:   ips.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ips.F90
 
 iwrap2.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     molecule.o\
                     box.h
@@ -1437,7 +1336,6 @@ les.o:   les.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ les.F90
 
 linear_response.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     findmask.o\
@@ -1488,7 +1386,6 @@ lmod.LES.o:   lmod.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lmod.F90
 
 locmem.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nonbond_list.o\
                     linear_response.o\
@@ -1509,7 +1406,6 @@ locmem.o:   locmem.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
 locmem.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nonbond_list.LES.o\
                     linear_response.o\
@@ -1529,7 +1425,6 @@ locmem.LES.o:   locmem.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
 matinv.o: \
-                    copyright.h\
                     ../include/dprec.fh
 
 
@@ -1538,7 +1433,6 @@ matinv.o:   matinv.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
 
 mbar.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     parallel.h
@@ -1574,7 +1468,6 @@ md_scheme.LES.o:   md_scheme.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ md_scheme.F90
 
 mdfil.o: \
-                    copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
                     ew_parallel.h\
@@ -1587,7 +1480,6 @@ mdfil.o:   mdfil.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
 
 mdfil.LES.o: \
-                    copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
                     ew_parallel.h\
@@ -1599,7 +1491,6 @@ mdfil.LES.o:   mdfil.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
 
 mdfil.PUPIL.o: \
-                    copyright.h\
                     file_io_dat.o\
                     ../rism/amber_rism_interface.o\
                     ew_parallel.h\
@@ -1611,7 +1502,6 @@ mdfil.PUPIL.o:   mdfil.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
 
 mdread.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nfe-config.h\
                     ../include/assert.fh\
@@ -1671,7 +1561,6 @@ mdread.o:   mdread.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
 
 mdread.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nfe-config.h\
                     ../include/assert.fh\
@@ -1730,7 +1619,6 @@ mdread.LES.o:   mdread.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
 
 mdread.PUPIL.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nfe-config.h\
                     ../include/assert.fh\
@@ -1789,7 +1677,6 @@ mdread.PUPIL.o:   mdread.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
 
 mdwrit.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nfe-config.h\
                     file_io_dat.o\
@@ -1806,7 +1693,6 @@ mdwrit.o:   mdwrit.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdwrit.F90
 
 mdwrit.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nfe-config.h\
                     file_io_dat.o\
@@ -1834,7 +1720,6 @@ memory_module.o:   memory_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ memory_module.F90
 
 minrit.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     binrestart.o\
@@ -1847,7 +1732,6 @@ minrit.o:   minrit.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
 minrit.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     binrestart.LES.o\
@@ -1859,7 +1743,6 @@ minrit.LES.o:   minrit.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
 molecule.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh
 
@@ -1883,7 +1766,6 @@ mt19937.o:   mt19937.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mt19937.F90
 
 mtmdcall.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     multitmd.o\
                     file_io_dat.o\
@@ -1896,7 +1778,6 @@ mtmdcall.o:   mtmdcall.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mtmdcall.F90
 
 multisander.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -1917,7 +1798,6 @@ multisander.o:   multisander.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ multisander.F90
 
 multisander.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -1938,7 +1818,6 @@ multisander.LES.o:   multisander.F90
 
 multitmd.o: \
                     ../include/assert.fh\
-                    copyright.h\
                     ../include/dprec.fh\
                     findmask.o\
                     file_io_dat.o
@@ -1963,7 +1842,6 @@ music_module.o:   music_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ music_module.F90
 
 new_time.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     def_time.h\
                     new_time.h\
@@ -2546,9 +2424,6 @@ nfe-value.o:   nfe-value.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-value.F90
 
-nmlsrc.o: \
-                    copyright.h
-
 
 nmlsrc.o:   nmlsrc.F90
 	@echo '[SANDER]  FC $<'
@@ -2556,7 +2431,6 @@ nmlsrc.o:   nmlsrc.F90
 
 nmr.o: \
                     ../include/assert.fh\
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o\
                     softcore.o\
@@ -2577,7 +2451,6 @@ nmr.o:   nmr.F90
 
 nmr.LES.o: \
                     ../include/assert.fh\
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o\
                     softcore.o\
@@ -2596,7 +2469,6 @@ nmr.LES.o:   nmr.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmr.F90
 
 nmrcal.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     nmr.o\
                     file_io_dat.o\
@@ -2609,7 +2481,6 @@ nmrcal.o:   nmrcal.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmrcal.F90
 
 nonbond_list.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     extra.h\
@@ -2631,7 +2502,6 @@ nonbond_list.o:   nonbond_list.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
 
 nonbond_list.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     extra.h\
@@ -2652,7 +2522,6 @@ nonbond_list.LES.o:   nonbond_list.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
 
 parallel.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     parms.o\
                     charmm.o\
@@ -2698,7 +2567,6 @@ parallel.o:   parallel.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parallel.F90
 
 parallel.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     parms.o\
                     charmm.o\
@@ -2743,7 +2611,6 @@ parallel.LES.o:   parallel.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parallel.F90
 
 parms.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     memory_module.o\
                     extra.h\
@@ -2755,7 +2622,6 @@ parms.o:   parms.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parms.F90
 
 pcshift.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     file_io_dat.o\
                     nmr.h\
@@ -2770,7 +2636,6 @@ pcshift.o:   pcshift.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pcshift.F90
 
 pearsn.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o
 
@@ -2780,7 +2645,6 @@ pearsn.o:   pearsn.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pearsn.F90
 
 printe.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     state.o\
                     decomp.o\
@@ -2808,7 +2672,6 @@ printe.o:   printe.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ printe.F90
 
 printe.PUPIL.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     state.o\
                     decomp.o\
@@ -2840,7 +2703,6 @@ prmtop_type.o:   prmtop_type.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prmtop_type.F90
 
 prn_dipoles.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o\
                     qmmm_module.o
@@ -2851,7 +2713,6 @@ prn_dipoles.o:   prn_dipoles.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prn_dipoles.F90
 
 prn_qmmm_dipole.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     constants.o
@@ -2862,7 +2723,6 @@ prn_qmmm_dipole.o:   prn_qmmm_dipole.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prn_qmmm_dipole.F90
 
 pubfft.o: \
-                    copyright.h\
                     ../include/dprec.fh
 
 
@@ -3096,7 +2956,6 @@ qm2_extern_util_module.o:   qm2_extern_util_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_util_module.F90
 
 qm_div.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     ../include/memory.h
@@ -3107,7 +2966,6 @@ qm_div.o:   qm_div.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_div.F90
 
 qm_ewald.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     qmmm_module.o\
@@ -3122,7 +2980,6 @@ qm_ewald.o:   qm_ewald.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_ewald.F90
 
 qm_mm.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     def_time.h\
                     qmmm_module.o\
@@ -3140,7 +2997,6 @@ qm_mm.o:   qm_mm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
 
 qm_mm.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     def_time.h\
                     qmmm_module.o\
@@ -3173,7 +3029,6 @@ qmmm_adaptive_module.o:   qmmm_adaptive_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qmmm_adaptive_module.F90
 
 qmmm_vsolv.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     qmmm_module.o\
@@ -3188,7 +3043,6 @@ qmmm_vsolv.o:   qmmm_vsolv.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qmmm_vsolv.F90
 
 quench.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     ../include/md.h\
@@ -3200,7 +3054,6 @@ quench.o:   quench.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ quench.F90
 
 rattle.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     parallel.h\
                     ../include/md.h
@@ -3211,7 +3064,6 @@ rattle.o:   rattle.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rattle.F90
 
 rdparm.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     parms.o\
@@ -3237,7 +3089,6 @@ rdparm.o:   rdparm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
 
 rdparm.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     parms.o\
@@ -3262,7 +3113,6 @@ rdparm.LES.o:   rdparm.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
 
 relax_mat.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     constants.o\
                     nmr.h\
@@ -3280,7 +3130,6 @@ relax_mat.o:   relax_mat.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ relax_mat.F90
 
 relaxmd.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
@@ -3311,7 +3160,6 @@ relaxmd.o:   relaxmd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ relaxmd.F90
 
 remd.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     file_io_dat.o\
@@ -3338,7 +3186,6 @@ remd.o:   remd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ remd.F90
 
 remd.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     file_io_dat.o\
@@ -3364,7 +3211,6 @@ remd.LES.o:   remd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ remd.F90
 
 rfree.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     rgroup.h
 
@@ -3374,7 +3220,6 @@ rfree.o:   rfree.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rfree.F90
 
 rgroup.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     rgroup.h
 
@@ -3384,7 +3229,6 @@ rgroup.o:   rgroup.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rgroup.F90
 
 rmsgrd.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     constants.o\
@@ -3398,7 +3242,6 @@ rmsgrd.o:   rmsgrd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rmsgrd.F90
 
 runmd.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -3454,7 +3297,6 @@ runmd.o:   runmd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmd.F90
 
 runmd.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -3509,7 +3351,6 @@ runmd.LES.o:   runmd.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmd.F90
 
 runmin.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     fastwt.o\
@@ -3533,7 +3374,6 @@ runmin.o:   runmin.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmin.F90
 
 sander.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -3603,7 +3443,6 @@ sander.o:   sander.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
 
 sander.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -3672,7 +3511,6 @@ sander.LES.o:   sander.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
 
 sander.PUPIL.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nfe-config.h\
@@ -3740,16 +3578,12 @@ sander.PUPIL.o:   sander.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
 
-sander_lib.o: \
-                    copyright.h
-
 
 sander_lib.o:   sander_lib.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander_lib.F90
 
 scaledMD.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     file_io_dat.o\
@@ -3761,7 +3595,6 @@ scaledMD.o:   scaledMD.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ scaledMD.F90
 
 set.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     parms.o\
@@ -3784,7 +3617,6 @@ set.o:   set.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
 
 set.LES.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     qmmm_module.o\
                     parms.o\
@@ -3806,7 +3638,6 @@ set.LES.o:   set.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
 
 sglds.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ../include/md.h\
@@ -3820,7 +3651,6 @@ sglds.o:   sglds.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sglds.F90
 
 shake.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     parallel.h\
                     ../include/md.h
@@ -3831,7 +3661,6 @@ shake.o:   shake.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ shake.F90
 
 short_ene.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     nonbond_list.o\
@@ -3866,7 +3695,6 @@ short_ene.o:   short_ene.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
 
 short_ene.LES.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     nonbond_list.LES.o\
@@ -3900,7 +3728,6 @@ short_ene.LES.o:   short_ene.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
 
 softcore.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     findmask.o\
@@ -3932,7 +3759,6 @@ spatial_fft.o:   spatial_fft.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ spatial_fft.F90
 
 spatial_recip.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.o\
@@ -3958,7 +3784,6 @@ spatial_recip.o:   spatial_recip.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ spatial_recip.F90
 
 stack.o: \
-                    copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh
 
@@ -3968,7 +3793,6 @@ stack.o:   stack.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ stack.F90
 
 state.o: \
-                    copyright.h\
                     ../include/dprec.fh
 
 
@@ -3977,7 +3801,6 @@ state.o:   state.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ state.F90
 
 thermo_int.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     state.o\
@@ -3988,16 +3811,7 @@ thermo_int.o:   thermo_int.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ thermo_int.F90
 
-torinternal.o: \
-                    ../include/dprec.fh
-
-
-torinternal.o:   torinternal.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ torinternal.F90
-
 trajene.o: \
-                    copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     nonbond_list.o\
@@ -4017,15 +3831,6 @@ trajene.o: \
 trajene.o:   trajene.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ trajene.F90
-
-unitv.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh
-
-
-unitv.o:   unitv.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ unitv.F90
 
 xray_FFT.o: \
                     ../include/assert.fh\

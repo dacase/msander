@@ -1,5 +1,4 @@
 !<compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 #include "nfe-config.h"

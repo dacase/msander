@@ -2,7 +2,6 @@
 
 module ew_bspline
 
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 integer,parameter :: bspl_maxorder=20, BSPL_MAX_ATOMS=50000, &

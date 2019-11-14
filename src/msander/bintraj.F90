@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 !! Module for generating binary trajectory-type output in NetCDF format

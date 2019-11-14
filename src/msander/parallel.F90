@@ -1,4 +1,3 @@
-#include "copyright.h"
 #ifdef MPI
 #include "../include/dprec.fh"
 

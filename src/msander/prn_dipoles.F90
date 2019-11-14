@@ -2,7 +2,6 @@
 !+ Routines by Ross Walker for dipole manipulation and printing
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ []
-#include "copyright.h"
 #include "../include/dprec.fh"
 subroutine printdip(numgroups,ipres,coord,q,inddip,mass,natom)
    

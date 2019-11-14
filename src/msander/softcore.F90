@@ -1,4 +1,3 @@
-#include "copyright.h"
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 

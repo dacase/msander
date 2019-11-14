@@ -1,4 +1,3 @@
-#include "copyright.h"
 
 module commandline_module
 

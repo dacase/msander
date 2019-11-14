@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ A collection of useful (but difficult-to-place) subroutines.

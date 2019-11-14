@@ -1,4 +1,3 @@
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "nfe-config.h"
 #include "../include/assert.fh"

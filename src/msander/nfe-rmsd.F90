@@ -1,29 +1,4 @@
 ! <compile=optimized>
-!----------------------------------------------------------------------
-! Copyright (C) 2004, 2005 Chaok Seok, Evangelos Coutsias and Ken Dill
-!      UCSF, Univeristy of New Mexico, Seoul National University
-! Witten by Chaok Seok and Evangelos Coutsias 2004.
-! modified by Mahmoud Moradi and Volodymyr Babin at NFE, 2007
-! The original version is at http://www.dillgroup.ucsf.edu/rmsd
-
-! This library is free software; you can redistribute it and/or
-! modify it under the terms of the GNU Lesser General Public
-! License as published by the Free Software Foundation; either
-! version 2.1 of the License, or (at your option) any later version.
-!
-
-! This library is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! Lesser General Public License for more details.
-!
-
-! You should have received a copy of the GNU Lesser General Public
-! License along with this library; if not, write to the Free Software
-! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-! MA  02110-1301  USA
-!-----------------------------------------------------------------------
-
 !
 ! make up by Mahmoud Moradi and Volodymyr Babin at NFE, Cox 308
 !
