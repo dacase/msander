@@ -635,7 +635,7 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     write(6, '(a,i10)') '| Local SIZE OF NONBOND LIST = ', listtot
     write(6, '(a,i10)') '| TOTAL SIZE OF NONBOND LIST = ', listtotall
   end if
-  call amflsh(6)
+  call flush(6)
 #endif /* API */
   first_list_flag = .false.
   call timer_stop(TIME_BLDLST)

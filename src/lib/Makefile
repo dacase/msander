@@ -5,7 +5,7 @@ include ../config.h
 .SUFFIXES: .F .F90 .c .o
 
 OBJ=  \
-sys.o wallclock.o veclib.o amopen.o mexit.o nxtsec.o rgroup.o \
+wallclock.o veclib.o amopen.o mexit.o nxtsec.o rgroup.o \
 rfree.o matinv.o
 
 #  default rules for Fortran and C compilation:

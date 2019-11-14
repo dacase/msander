@@ -591,7 +591,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   write(6, 8088)
 
   ! Flush i/o buffer
-  call amflsh(6)
+  call flush(6)
   if (iout7 == 0) return
 
   ! Output the info file if requested
@@ -1202,7 +1202,7 @@ subroutine cenmas(natom,x,v,amass,ekcm,xcm,vcm,acm,ekrot,ocm,icm)
    if (master.AND.icm.NE.5) then
       write(6,'(/3x,a,f11.4,3x,a,f11.4,3x,a,f12.6)') 'KE Trans =', &
             ekcm, 'KE Rot =', ekrot,'C.O.M. Vel =',comvel
-      call amflsh(6)
+      call flush(6)
    end if
    return
 end subroutine cenmas

@@ -899,7 +899,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
       if (nmropt > 0) call nmrptx(6)
       if (infe == 1) call nfe_prt(6)
-      call amflsh(7)
+      call flush(7)
     end if
     if (nstlim == 0) then
 #ifdef MPI
@@ -1974,7 +1974,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                       ih(m02), ix(i02), ih(m06), xx(lmass), natom, &
                       nres, 'PRNT')
       end if
-      call amflsh(7)
+      call flush(7)
     end if
     ! end of giant "if (lout)" contingency related to data output }}}
 

@@ -1270,7 +1270,7 @@ subroutine mdread2(x,ix,ih)
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
    integer crggp( natom )
-   _REAL_ val
+   _REAL_ val, wallc
    _REAL_, allocatable :: repvals(:)
 #  ifdef CRAY_PVP
 #     define MPI_DOUBLE_PRECISION MPI_REAL8
@@ -1368,7 +1368,9 @@ subroutine mdread2(x,ix,ih)
      !longer synchronized the random numbers between streams when
      !running in parallel giving better scaling.
      no_ntt3_sync = 1
-     call microsec(ig)
+     !  old: call microsec(ig)
+     call wallclock( wallc )
+     ig = wallc*1.d6
 #ifdef MPI
      write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"

@@ -29,7 +29,7 @@ subroutine mexit(output_unit, status)
   ! Some MPI's have an environmental sledge hammer that kills
   ! every MPI process if one dies: mpiexec -kill   
   if (status /= 0) then
-    call amflsh(output_unit)
+    call flush(output_unit)
     call mpi_abort(MPI_COMM_WORLD, status, ierr)
   else
     call mpi_finalize(ierr)

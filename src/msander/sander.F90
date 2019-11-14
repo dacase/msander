@@ -752,7 +752,7 @@ subroutine sander()
 #ifdef MPI
         end if
 #endif
-      call amflsh(6)
+      call flush(6)
 
     end if masterwork
     ! End of master process setup
@@ -1100,7 +1100,7 @@ subroutine sander()
     end if
 
     if (master) then
-      call amflsh(6)
+      call flush(6)
     end if
 
     ! End of AMBER/MPI work in this block
@@ -1353,7 +1353,7 @@ subroutine sander()
 #endif
         call timer_stop(TIME_RUNMD)
         if (master) then
-          call amflsh(6)
+          call flush(6)
         end if
 
         ! The erstop error condition stems from subroutine shake;
@@ -1505,7 +1505,7 @@ subroutine sander()
 
   ! Finalize X-ray refinement work
   call xray_fini()
-  call amflsh(6)
+  call flush(6)
 
   if (master) then
 #ifdef MPI
@@ -1554,13 +1554,13 @@ subroutine sander()
           final_date(5:6), '/', final_date(7:8), '/', final_date(1:4)
     call nwallclock( ncalls )
     write(6, '(''|'',5x,''wallclock() was called'',I8,'' times'')') ncalls
-    call amflsh(6)
+    call flush(6)
 
     if (iesp > 0) then
       call esp(natom, x(lcrd) ,x(linddip))
     end if
   end if
-  call amflsh(6)
+  call flush(6)
 
 #ifdef MPI
    ! --- dynamic memory deallocation:

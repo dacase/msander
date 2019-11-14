@@ -65,7 +65,7 @@ subroutine report_min_results( nstep, gradient_rms, coordinates, &
         call mtmdcall(emtmd,xx(lmtmd01),ix(imtmd02),coordinates,forces,ih(m04),ih(m02),ix(i02),&
                                       ih(m06),xx(lmass),natom,nres,'PRNT')
       end if
-      if (imin /= 5) call amflsh(MDINFO_UNIT)
+      if (imin /= 5) call flush(MDINFO_UNIT)
    end if
 
    return
@@ -117,7 +117,7 @@ subroutine report_min_progress( nstep, gradient_rms, forces, energies, &
       if ( ifcr > 0 .and. crprintcharges > 0 ) then
          call cr_print_charge( charge, nstep ) 
       end if
-      if (imin /= 5) call amflsh(MDINFO_UNIT)
+      if (imin /= 5) call flush(MDINFO_UNIT)
    end if
 
    return
@@ -350,7 +350,7 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    end if
    if (xray_active) call xray_write_min_state(6)
 
-   call amflsh(6)
+   call flush(6)
 
    !     ----- SEND IT TO THE INFO FILE -----
 

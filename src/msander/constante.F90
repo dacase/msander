@@ -647,7 +647,7 @@ subroutine cnstewriterestart(inchrgdat_e)
    close(CNSTE_UNIT)
 
    ! flush all ceout data
-   call amflsh(CEOUT_UNIT)
+   call flush(CEOUT_UNIT)
 
 end subroutine cnstewriterestart
 
