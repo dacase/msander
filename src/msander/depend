@@ -45,6 +45,11 @@ amd.o:   amd.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amd.F90
 
+
+amopen.o:   amopen.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amopen.F90
+
 apbs.o: \
                     ../include/dprec.fh\
                     apbs_vars.o\
@@ -1734,6 +1739,23 @@ memory_module.o: \
 memory_module.o:   memory_module.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ memory_module.F90
+
+mexit.o: \
+                    pupildata.o\
+                    parallel.h
+
+
+mexit.o:   mexit.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
+
+mexit.PUPIL.o: \
+                    pupildata.o\
+                    parallel.h
+
+mexit.PUPIL.o:   mexit.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
 
 minrit.o: \
                     ../include/dprec.fh\
@@ -3855,6 +3877,22 @@ trajene.o: \
 trajene.o:   trajene.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ trajene.F90
+
+veclib.o: \
+                    ../include/dprec.fh
+
+
+veclib.o:   veclib.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ veclib.F90
+
+wallclock.o: \
+                    ../include/dprec.fh
+
+
+wallclock.o:   wallclock.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ wallclock.F90
 
 xray_FFT.o: \
                     ../include/assert.fh\

@@ -2,24 +2,16 @@ SHELL=/bin/sh
 VPATH=
 PREC=DPREC
 include ../config.h
-.SUFFIXES: .F .F90 .c .o
+.SUFFIXES: .F .o
 
 OBJ=  \
-wallclock.o veclib.o amopen.o mexit.o nxtsec.o rgroup.o rfree.o 
+nxtsec.o rgroup.o rfree.o 
 
 #  default rules for Fortran and C compilation:
 
 .F.o:   $<
 	@echo "[LIB]  FC $<"
 	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
-
-.F90.o:   $<
-	@echo "[LIB]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
-
-.c.o:
-	@echo "[LIB]  CC $<"
-	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
 
 libsys:  $(LIBDIR)/libsys.a
 
