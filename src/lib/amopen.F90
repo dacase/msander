@@ -1,4 +1,3 @@
-#include "copyright.h"
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine amopen here]

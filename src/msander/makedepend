@@ -84,6 +84,8 @@ foreach $file ( <*.F90> ){
 foreach $file ( <*.F90> ){
 
 	next if $file =~ /^_/;
+    
+#   printf STDERR "working on $fileroot\n";
 
 	$deps = $depsLES = $depsPUPIL = $depsAPBS = $depsAPI = $depsLESAPI = "";
 

@@ -277,7 +277,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
                         do_list_update)
 #ifdef MPI
 #endif
-   use trace
    implicit none
 
    integer :: natom, ntnb, newbalance
@@ -329,7 +328,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #endif
    
    ! Code starts here
-   call trace_enter( 'nonbond_list' )
 #ifndef MPI
    mytaskid=0
    numtasks=1
@@ -368,7 +366,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     ! In these cases such a list is undoubtedly required or its
     ! contents are easily seen to be all pairs in the system.
     if (nocutoff) then
-      call trace_exit('nonbond_list')
       return
     end if
 
@@ -379,7 +376,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
         if(master)write(6,'(1x,A,I2)') 'OLD LIST LOGIC; ntnb = ',ntnb
       end if
       if (ntnb == 0) then
-        call trace_exit( 'nonbond_list' )
         return
       end if
     else
@@ -387,7 +383,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
       if (do_list_update) then
         call save_crds(natom,crd)
       else
-        call trace_exit( 'nonbond_list' )
         return
       end if
     end if
@@ -543,7 +538,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     ! Attempt load balancing in parallel simulations
     if (trial) then
       ASSERT(periodic == 0)
-      call trace_mpi('mpi_allreduce', nucgrd, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(gridpairs, gridpairs(1+nucgrd), nucgrd, &
                          mpi_integer, mpi_sum, commsander, ierr)
       call fix_grid_balance(gridpairs(1+nucgrd), nucgrd, numtasks, mytaskid, &
@@ -596,7 +590,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
         tmplist(i) = 0
       end do
       tmplist(mytaskid) = listtot
-      call trace_mpi('mpi_allreduce', numtasks, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(tmplist(0), alllist(0), numtasks, mpi_integer, &
                          mpi_sum, commsander, ierr)
       if (master) then
@@ -626,7 +619,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
   listtotall = listtot
 #ifdef MPI
     if (first_list_flag .or. (nbtell >= 1)) then
-      call trace_mpi('mpi_allreduce', 1, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(listtot, listtotall, 1, mpi_integer, &
                          mpi_sum, commsander, ierr)
     end if
@@ -648,7 +640,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #endif /* API */
   first_list_flag = .false.
   call timer_stop(TIME_BLDLST)
-  call trace_exit( 'nonbond_list' )
 
   return
 
@@ -2080,7 +2071,6 @@ end subroutine fix_grid_balance
 !------------------------------------------------------------------------------
 subroutine adjust_imagcrds(crd, natom)
 
-   use trace
    use constants, only : half
    implicit none
    integer, intent(in) :: natom
@@ -2320,7 +2310,6 @@ end subroutine save_crds
 !------------------------------------------------------------------------------
 subroutine check_skin(crd,do_list_update)
 
-  use trace
   use constants, only : zero, fourth
   implicit none
   _REAL_, intent(in) :: crd(3,natom)
@@ -2336,7 +2325,6 @@ subroutine check_skin(crd,do_list_update)
   _REAL_ dx, dy, dz, dis2
   _REAL_ maxdis2
 
-  call trace_enter( 'check_skin' )
   steps_since_list_build = steps_since_list_build + 1
   first_atom = 1
   last_atom  = natom
@@ -2375,9 +2363,6 @@ subroutine check_skin(crd,do_list_update)
       end if
     end if
   end if
-
-  call trace_logical('do_list_update = ', do_list_update)
-  call trace_exit( 'check_skin' )
 
   return
 

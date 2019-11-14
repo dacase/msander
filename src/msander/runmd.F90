@@ -74,7 +74,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use file_io_dat
   use constants, only: third, ten_to_minus3
-  use trace
   use stack
 
 #ifdef MPI
@@ -347,8 +346,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
-
-  call trace_enter( 'runmd' )
 
   ! Initialize some variables {{{
 #ifdef MPI
@@ -1453,7 +1450,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 #  else
     if (.not. mpi_orig .and. numtasks > 1) then
-      call trace_mpi('mpi_allreduce', 1, 'MPI_DOUBLE_PRECISION', mpi_sum)
       mpitmp(1) = eke
       mpitmp(2) = ekph
       mpitmp(3) = ekpbs
@@ -2099,8 +2095,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 !------------------------------------------------------------------------------
   ! Miscellaneous stuff at the end of each step: {{{
-  call trace_integer( 'end of step', nstep )
-  call trace_output_mpi_tally( )
   call timer_stop(TIME_VERLET)
 #if !defined(DISABLE_NFE) && defined(NFE_ENABLE_BBMD)
   if (infe == 1) then
@@ -2321,6 +2315,5 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   590 format('ATOMNUM     MAX RAD     MIN RAD     AVE RAD     FLUCT')
   600 format(i4,2x,4f12.4)
   ! }}}
-  call trace_exit( 'runmd' )
   return
 end subroutine runmd

@@ -46,7 +46,7 @@ QMAPIOBJ = \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
-    trace.o rmsgrd.o lmod.o rand2.o lmodC.o xminC.o decomp.o \
+    rmsgrd.o lmod.o rand2.o lmodC.o xminC.o decomp.o \
     icosasurf.o egb.o remd.o findmask.o \
     relax_mat.o nmr.o multitmd.o \
     multisander.o sander.o trajene.o cshf.o nmrcal.o mtmdcall.o pearsn.o \
@@ -67,7 +67,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
 
 LESOBJ= memory_module.o stack.o file_io_dat.o \
     constants.o state.o \
-    trace.o rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
+    rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
     egb.LES.o remd.LES.o findmask.o \
     relax_mat.o nmr.LES.o multitmd.o \
     multisander.LES.o sander.LES.o  cshf.o nmrcal.o mtmdcall.o pearsn.o \
@@ -139,23 +139,20 @@ libs:
     
 Plumed.o: Plumed.c
 	@echo "[SANDER]  CC $<"
-	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) \
+	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) \
 	        -o Plumed.o Plumed.c
 
-rand2.o:  ../sff/rand2.c
+rand2.o:  rand2.c
 	@echo "[SANDER]  CC $<"
-	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) \
-		-o rand2.o ../sff/rand2.c
+	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) -o $@ $<
 
-lmodC.o:  ../sff/lmodC.c
+lmodC.o:  lmodC.c
 	@echo "[SANDER]  CC $<"
-	$(VB)$(CC) -c -DSQM $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) \
-		-o lmodC.o ../sff/lmodC.c
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
-xminC.o:  ../sff/xminC.c
+xminC.o:  xminC.c
 	@echo "[SANDER]  CC $<"
-	$(VB)$(CC) -c -DSQM $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) \
-		-o xminC.o ../sff/xminC.c
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 clean:
 	/bin/rm -f sander.PUPIL$(SFX)

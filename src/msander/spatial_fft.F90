@@ -217,7 +217,6 @@ Subroutine backward_rc_fft( data )
   ! 3D Backward FFT with Real to Complex transform in x direction.
   !
   !------------------------------------------------------------------
-  use trace
   implicit none
 #  include "def_time.h"
 #include "parallel.h"
@@ -254,7 +253,6 @@ Subroutine fft_init( nfft1, nfft2, nfft3 )
   ! This will be merged into ew_setup.f which will be reorganized.
   !
   !------------------------------------------------------------------
-  use trace
   use constants, only: TWOPI
   Implicit none
   Integer,intent(in) :: nfft1,nfft2,nfft3
@@ -273,7 +271,6 @@ Subroutine fft_init( nfft1, nfft2, nfft3 )
   integer i
   _REAL_ theta,pi2n
   
-    call trace_enter( 'fft_init' )
  if ( mod( nfft1, 2 ) /= 0 ) then
      call sander_bomb("fft_init in ew_fft.f", &
            "For RealComplex FFT","nfft1 must be even")
@@ -304,7 +301,6 @@ Subroutine fft_init( nfft1, nfft2, nfft3 )
   ! Refer to a number theory or group theory text for the additive analog.
   
   bisections = int(log( real( numtasks  ) ) / log( 2.0 ) / 2)
-  call Trace_integer( 'bisections is ',bisections )
   ygrades = 2 ** bisections
   zgrades = 2 ** bisections
   if ( mod( log( real( numtasks ) ) / log( 2.0 ), 2.0 ) /= 0 ) then
@@ -315,8 +311,6 @@ Subroutine fft_init( nfft1, nfft2, nfft3 )
         zgrades = 2 * zgrades
      endif
   endif
-  call Trace_integer( 'ygrades is ',ygrades )
-  call Trace_integer( 'zgrades is ',zgrades )
 
   ! The communication groups depend on only the number of interval divisions,
   ! here denoted grades to keep name lengths short, in the 2D data decomposition.
@@ -404,9 +398,6 @@ Subroutine fft_init( nfft1, nfft2, nfft3 )
      beta_rcfft(i)  = sin(theta)
   end do
   
-  call trace_exit( 'fft_init' )
-  
-  
 End subroutine fft_init
 
 
@@ -418,7 +409,6 @@ Subroutine forward_rc_fft( data )
   ! 3D Forward FFT with Real to Complex transform in x direction.
   !
   !------------------------------------------------------------------
-  use trace
   implicit none
 #  include "def_time.h"
   
@@ -559,7 +549,6 @@ Subroutine divide_interval( npoints, ngrades, inf, sup )
   ! Apportion grid points in one direction into closed intervals.
   !
   !------------------------------------------------------------------
-  use trace
   Implicit none
   
   integer npoints ! number of grid points in 1 direction, intent(in)
@@ -570,8 +559,6 @@ Subroutine divide_interval( npoints, ngrades, inf, sup )
   integer i
   integer increment
   integer residue
-  
-  call Trace_enter( 'divide_interval' )
   
   increment = npoints / ngrades
   residue   = mod( npoints, ngrades )
@@ -598,7 +585,6 @@ Subroutine divide_interval( npoints, ngrades, inf, sup )
   inf(1) = sup(1) - increment + 1
   ASSERT( inf(1) == 0 )  ! first grade starts at first grid point.
   
-  call Trace_exit( 'divide_interval' )
 End subroutine divide_interval
 
 
@@ -749,7 +735,6 @@ Subroutine transpose( data, from_partition, transposed_data, &
   ! single transpose subroutine.
   !
   !------------------------------------------------------------------
-  use trace
   Implicit none
 #include "ew_parallel.h"
    include 'mpif.h'
@@ -862,7 +847,6 @@ Subroutine transpose( data, from_partition, transposed_data, &
         size = alt_to_len * pre_from_len *  & ! alt_s_from_len 
               ( decomposed_sup(alt_c, sender, from_partition) - &
               decomposed_inf(alt_c, sender, from_partition) + 1 )
-        call Trace_mpi( 'mpi_irecv', size, TRACE_DPREC, sender )
         call MPI_IRECV( recv_buffer( recv_offset( sender ) ), &
              size, &
              AMBER_MPI_DATATYPE, &
@@ -910,7 +894,6 @@ Subroutine transpose( data, from_partition, transposed_data, &
         enddo
         send_counter = send_counter + 1
         size = pre_from_len * alt_from_len * alt_r_to_len
-        call Trace_mpi( 'mpi_isend', size, TRACE_DPREC, receiver )
         call MPI_ISEND( send_buffer( proc_offset ), size, &
               AMBER_MPI_DATATYPE, receiver, TRANSPOSE_TAG, recip_comm, &
               send_request( send_counter ), mpi_ierr )
@@ -918,10 +901,8 @@ Subroutine transpose( data, from_partition, transposed_data, &
         proc_offset = proc_offset + size
      endif
   enddo
-  call Trace_integer( 'Send Buffer on Processor ',p )
   
   ! Transpose local data
-  call Trace_integer( 'Local Transpose on Processor ',p )
   do k = pre_from_inf, pre_from_sup
      kto   = (k - pre_from_inf)*con_to_len
      kfrom = (k - pre_from_inf)*alt_from_len*con_from_len
@@ -999,7 +980,6 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
   ! single transpose subroutine.
   !
   !------------------------------------------------------------------
-  use trace
   Implicit none
 #include "ew_parallel.h"
    include 'mpif.h'
@@ -1082,8 +1062,6 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
   call mpi_type_commit( mpi_data_type, mpi_ierr )
 #define AMBER_MPI_DATATYPE mpi_data_type
   
-  call Trace_integer( 'Processor is ',p )  ! testing
-
   ! abbreviations for shorter line lengths.
   alt_c        = altered_coor( comm_group )
   alt_from_inf = decomposed_inf(alt_c, mytaskid, from_partition)
@@ -1122,7 +1100,6 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
         size = alt_to_len * pre_from_len * & ! alt_s_from_len 
               ( decomposed_sup(alt_c, sender, from_partition) - &
               decomposed_inf(alt_c, sender, from_partition) + 1 )
-        call Trace_mpi( 'mpi_irecv', size, TRACE_DPREC, sender )
         call MPI_IRECV( recv_buffer( recv_offset( sender ) ), size, &
               AMBER_MPI_DATATYPE, sender, TRANSPOSE_TAG, recip_comm, &
               recv_request( recv_counter ), mpi_ierr )
@@ -1169,7 +1146,6 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
         size = pre_from_len * alt_from_len * alt_r_to_len
         call timer_stop(packsend_timer)
         call timer_start(send_timer)
-        call Trace_mpi( 'mpi_isend', size, TRACE_DPREC, receiver )
         call MPI_ISEND( send_buffer( proc_offset ), size, &
               AMBER_MPI_DATATYPE, receiver, TRANSPOSE_TAG, recip_comm, &
               send_request( send_counter ), mpi_ierr )
@@ -1177,11 +1153,9 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
         call timer_stop(send_timer)
      endif
   enddo
-  call Trace_integer( 'Send Buffer on Processor ',p )
   
   ! Transpose local data
   call timer_start(trans_timer)
-  call Trace_integer( 'Local Transpose on Processor ',p )
   do j = alt_from_inf, alt_from_sup
      jto   = j-con_to_inf
      jfrom = (j-alt_from_inf)*pre_from_len*con_from_len
@@ -1205,7 +1179,6 @@ Subroutine ftranspose( data, from_partition, transposed_data, &
      enddo
   enddo
   
-   call Trace_integer( 'Global Transpose on Processor ',p )
    do irecv=1,recv_counter 
       call mpi_waitany(recv_counter,recv_request,i,recv_status,mpi_ierr)
       sender=pe_list(i)

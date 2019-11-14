@@ -62,7 +62,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #ifdef APBS
   use apbs
 #endif /* APBS */
-  use trace
   use stack
   use qmmm_module, only : qmmm_nml
   use constants, only: zero, one
@@ -210,7 +209,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ect = 0.0
 
-  call trace_enter( 'force' )
 
   call timer_start(TIME_FORCE)
   if ( idecomp /= 0 .and. icfe == 0) then
@@ -1011,7 +1009,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! End force computations and exit
   call timer_stop(TIME_FORCE)
-  call trace_exit('force')
   return
 
 end subroutine force

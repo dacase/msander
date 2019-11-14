@@ -58,7 +58,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use random
   use stack
   use state
-  use trace
 
   ! Local variables
   !  factt       : degree-of-freedom correction factor for temperature scaling
@@ -150,7 +149,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   data small/1.0d-7/
   _REAL_, parameter :: pressure_constant = 6.85695d+4
 
-  call trace_enter( 'relaxmd' )
   vlim = vlimit > small
   ntcmt = 0
   izero = 0
@@ -313,7 +311,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call timer_start(TIME_EKCMR)
     call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, istart, iend)
 #ifdef MPI
-    call trace_mpi('mpi_allreduce', 3, 'MPI_DOUBLE_PRECISION', mpi_sum)
     call mpi_allreduce(MPI_IN_PLACE, ener%cmt, 3, MPI_DOUBLE_PRECISION, &
                        mpi_sum, commsander, ierr)
 #endif
@@ -382,7 +379,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 
 #ifdef MPI
-    call trace_mpi('mpi_bcast', 3*natom, 'MPI_DOUBLE_PRECISION', 0)
     call mpi_bcast(v, 3*natom, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
 #endif /* MPI */
     ! At this point in the code, the velocities lag the positions by half
@@ -577,7 +573,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #ifdef MPI
     ! Sum up the partial kinetic energies:
     if (numtasks > 1) then
-      call trace_mpi('mpi_allreduce', 1, 'MPI_DOUBLE_PRECISION', mpi_sum)
       mpitmp(1) = eke
       mpitmp(2) = ekph
       mpitmp(3) = ekpbs
@@ -742,8 +737,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* RELAXATION_TRAJ */
 
   ! Major cycle back to new step unless we have reached our limit:
-  call trace_integer( 'end of step', nstep )
-  call trace_output_mpi_tally( )
   call timer_stop(TIME_VERLET)
   if (nstep < relax_nstlim) then
     goto 260

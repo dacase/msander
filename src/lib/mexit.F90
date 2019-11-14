@@ -1,4 +1,3 @@
-#include "copyright.h"
 
 !------------------------------------------------------------------------------
 ! mexit: Platform independent exit, designed to produce the same behavior and

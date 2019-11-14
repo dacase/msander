@@ -749,7 +749,6 @@ ew_fft.o: \
                     copyright.h\
                     ../include/dprec.fh\
                     ../include/assert.fh\
-                    trace.o\
                     parallel.h\
                     ew_parallel.h\
                     constants.o\
@@ -765,7 +764,6 @@ ew_force.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    trace.o\
                     ew_recip.o\
                     ew_dipole_recip.o\
                     stack.o\
@@ -807,7 +805,6 @@ ew_force.LES.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    trace.o\
                     ew_recip.LES.o\
                     ew_dipole_recip.o\
                     stack.o\
@@ -1073,7 +1070,6 @@ force.o: \
                     remd.o\
                     ../rism/amber_rism_interface.o\
                     apbs.o\
-                    trace.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -1130,7 +1126,6 @@ force.LES.o: \
                     remd.LES.o\
                     ../rism/amber_rism_interface.o\
                     apbs.o\
-                    trace.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -1186,7 +1181,6 @@ force.PUPIL.o: \
                     remd.o\
                     ../rism/amber_rism_interface.o\
                     apbs.o\
-                    trace.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -2618,7 +2612,6 @@ nonbond_list.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    trace.o\
                     extra.h\
                     ew_cntrl.h\
                     ew_mpole.h\
@@ -2641,7 +2634,6 @@ nonbond_list.LES.o: \
                     copyright.h\
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    trace.o\
                     extra.h\
                     ew_cntrl.h\
                     ew_mpole.h\
@@ -2662,7 +2654,6 @@ nonbond_list.LES.o:   nonbond_list.F90
 parallel.o: \
                     copyright.h\
                     ../include/dprec.fh\
-                    trace.o\
                     parms.o\
                     charmm.o\
                     les.o\
@@ -2709,7 +2700,6 @@ parallel.o:   parallel.F90
 parallel.LES.o: \
                     copyright.h\
                     ../include/dprec.fh\
-                    trace.o\
                     parms.o\
                     charmm.o\
                     les.o\
@@ -3303,7 +3293,6 @@ relaxmd.o: \
                     random.o\
                     stack.o\
                     state.o\
-                    trace.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3422,7 +3411,6 @@ runmd.o: \
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
-                    trace.o\
                     stack.o\
                     decomp.o\
                     fastwt.o\
@@ -3479,7 +3467,6 @@ runmd.LES.o: \
                     qmmm_module.o\
                     file_io_dat.o\
                     constants.o\
-                    trace.o\
                     stack.o\
                     decomp.o\
                     fastwt.o\
@@ -3934,7 +3921,6 @@ softcore.o:   softcore.F90
 spatial_fft.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
-                    trace.o\
                     def_time.h\
                     parallel.h\
                     constants.o\
@@ -4009,17 +3995,6 @@ torinternal.o: \
 torinternal.o:   torinternal.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ torinternal.F90
-
-trace.o: \
-                    copyright.h\
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    parallel.h
-
-
-trace.o:   trace.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ trace.F90
 
 trajene.o: \
                     copyright.h\

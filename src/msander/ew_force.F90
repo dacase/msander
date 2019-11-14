@@ -11,7 +11,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
       xr,virvsene,pol,pol2,qm_pot_only, &
       cn3,cn4,cn5)
-   use trace
    use ew_recip
    use ew_dipole_recip
    use stack
@@ -112,7 +111,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    integer i,commsander_mytaskid,commsander_numtasks, qm_temp_count
 
-   call trace_enter( 'ewald_force' )
 #ifdef MPI
    commsander_mytaskid = mytaskid
    commsander_numtasks = numtasks
@@ -550,8 +548,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    nstart = ndel*mytaskid+1
    ntop = nstart+ndel-1
    if(ntop > numatoms)ntop=numatoms
-   call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mpi_sum)
-
    call mpi_allreduce(MPI_IN_PLACE,frcx,3,MPI_DOUBLE_PRECISION, &
          mpi_sum,commsander,ierr)
 
@@ -625,8 +621,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    !     Accumulate the virials and energies
    
-   call trace_mpi('mpi_allreduce', &
-         BC_EW_COMM3,'MPI_DOUBLE_PRECISION',mpi_sum)
    call mpi_allreduce(MPI_IN_PLACE,eer,BC_EW_COMM3, &
          MPI_DOUBLE_PRECISION, mpi_sum,commsander,ierr)
 
@@ -708,7 +702,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
          rec_vird,atvir,subvir,verbose)
 
    call timer_stop(TIME_EWVIRIAL)  
-   call trace_exit( 'ewald_force' )
 
    return
 end subroutine ewald_force 

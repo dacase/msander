@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 ! Several vendors have vectorized math libraries.
