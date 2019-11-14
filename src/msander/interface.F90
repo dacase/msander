@@ -378,9 +378,6 @@ subroutine api_mdread1(input_options, ierr)
 #  endif /* API */
    use sander_rism_interface, only: rismprm
 #endif /*RISMSANDER*/
-#ifdef APBS
-   use apbs
-#endif /* APBS */
    use nfe_sander_proxy, only: infe
    implicit none
 #  include "box.h"
@@ -942,9 +939,6 @@ subroutine api_mdread1(input_options, ierr)
    mdin_qmmm = .false.
    mdin_ewald=.false.
    mdin_pb=.false.
-#ifdef APBS
-   mdin_apbs = .false.
-#endif /* APBS */
    mdin_lmod=.false.
 #ifdef MPI /* SOFT CORE */
    scalpha=0.5
@@ -1017,12 +1011,6 @@ subroutine api_mdread1(input_options, ierr)
    call nmlsrc('qmmm', 5, ifind)
    if (ifind /= 0) mdin_qmmm = .true.
    rewind 5
-
-#  ifdef APBS
-   call nmlsrc('apbs',5,ifind)
-   if (ifind /= 0) mdin_apbs=.true.
-   rewind 5
-#  endif /* APBS */
 
    call nmlsrc('lmod',5,ifind)
    if (ifind /= 0) mdin_lmod=.true.
@@ -1415,12 +1403,6 @@ subroutine api_mdread1(input_options, ierr)
       gbalpha = 1.09511284d0
    end if
 
-#ifdef APBS
-   if ( mdin_apbs ) then
-      call apbs_read
-   end if
-#endif /* APBS */
-
 #ifndef API
    call xray_read_mdin(mdin_lun=5)
 
@@ -1534,9 +1516,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  endif
 #endif /* API */
    use qmmm_module, only: get_atomic_number, qm_gb
-#ifdef APBS
-   use apbs
-#endif /* APBS */
 #ifndef API
    use xray_interface_module, only: xray_active, xray_write_options
 #endif /* API */
@@ -2392,11 +2371,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(0,*) 'GBSA=3 only works for pmemd, not sander'
       FATAL_ERROR
    end if
-#ifdef APBS
-   if( igb /= 0 .and. igb /= 10 .and. ipb == 0 .and. .not. mdin_apbs) then
-#else
    if (( igb /= 0 .and. igb /= 10 .and. ipb == 0 ).or.hybridgb>0.or.icnstph>1.or.icnste>1) then
-#endif /* APBS */
 #if defined (LES) && !defined (API)
       write(6,*) 'igb=1,5,7 are working with LES, no SA term included'
 #endif
@@ -3679,13 +3654,8 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(6,'(/,a)') ' igb>0 is only compatible with ntb=0'
       DELAYED_ERROR
    end if
-#ifdef APBS
-   if ( ntb == 0 .and. sqrt(cut) < 8.05 .and. igb /= 10 .and. ipb == 0 .and. &
-        igb /= 6 .and. .not. mdin_apbs ) then
-#else
    if ( ntb == 0 .and. sqrt(cut) < 8.05 .and. igb /= 10 .and. ipb == 0 .and. &
         igb /= 6 ) then
-#endif /* APBS */
       write(6,'(/,a,f8.2)') ' unreasonably small cut for non-periodic run: ', &
          sqrt(cut)
       DELAYED_ERROR

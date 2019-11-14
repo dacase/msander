@@ -58,9 +58,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, rism_force
 #endif /* RISMSANDER */
-#ifdef APBS
-  use apbs
-#endif /* APBS */
   use stack
   use qmmm_module, only : qmmm_nml
   use constants, only: zero, one
@@ -187,9 +184,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   integer i
   _REAL_  virvsene, eelt, epol, esurf, edisp
-#ifdef APBS
-  _REAL_ enpol
-#endif /* APBS */
 #ifdef RISMSANDER
   _REAL_ erism
 #endif /*RISMSANDER*/
@@ -780,31 +774,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     call timer_stop(TIME_RISM)
   endif
 #endif
-
-#ifdef APBS
-  ! Force computations from the Adaptive Poisson Boltzmann solver
-  if (mdin_apbs) then
-    if (igb /= 6) then
-      write(6, '(a)') '&apbs keyword requires igb=6.'
-      call mexit(6,1)
-    end if
-    call timer_start(TIME_PBFORCE)
-
-    ! Input:  coordinates, radii, charges
-    ! Output: updated forces (via apbs_params) and solvation energy
-    !         (pol + apolar)
-    if (sp_apbs) then
-      call apbs_spenergy(natom, x, f, eelt, enpol)
-    else
-      call apbs_force(natom, x, f, pot%vdw, eelt, enpol)
-    end if
-    pot%pb   = eelt 
-    pot%surf = enpol
-    call timer_stop(TIME_PBFORCE)
-
-  end if
-  ! End APBS force computations
-#endif /* APBS */
 
   if (master) then
     !  These parts of the NMR energies are not parallelized, so only

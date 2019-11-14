@@ -125,10 +125,6 @@ character(len=80), save :: title1
 logical, save :: mdin_ewald
 logical, save :: mdin_pb
 logical, save :: mdin_amoeba
-#ifdef APBS
-logical, save :: mdin_apbs
-logical, save :: sp_apbs
-#endif /* APBS */
 
 ! Constant pH or constant Redox potential variables
 logical, save :: on_cpstep = .false.

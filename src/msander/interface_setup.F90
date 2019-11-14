@@ -38,9 +38,6 @@
 #ifdef PUPIL_SUPPORT
    use pupildata
 #endif /* PUPIL */
-#ifdef APBS
-   use apbs
-#endif /* APBS */
    use xray_interface_module, only: xray_active, xray_init, xray_read_parm, xray_init_globals
    ! for LIE calculations
    use linear_response, only: ilrt, setup_linear_response, &
@@ -385,15 +382,6 @@
          !if( igb == 0 .and. induced == 1 ) call get_dips(x,nr)
 ! WJM  if is a polarizable model, reading input dipole information
          if (igb == 0 .and. ipb == 0 .and. induced > 0) call get_dips(x,nr)
-
-#ifdef APBS
-         ! APBS initialization
-         if (mdin_apbs) then
-            ! in: natom, coords, charge and radii (from prmtop)
-            ! out: pb charges and pb radii (via apbs_vars module)
-            call apbs_init(natom, x(lcrd), x(l15), x(l97))
-         end if
-#endif /* APBS */
 
          call xray_init()
 

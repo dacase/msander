@@ -67,10 +67,6 @@ subroutine sander()
   use pupildata
 #endif /* PUPIL */
 
-#ifdef APBS
-  use apbs
-#endif /* APBS */
-
   use xray_interface_module, only: xray_active, xray_init, xray_read_parm, &
                                    xray_read_mdin, xray_fini
 
@@ -567,15 +563,6 @@ subroutine sander()
           call get_dips(x, nr)
         end if
 
-#ifdef APBS
-        ! APBS initialization
-        if (mdin_apbs) then
-
-          ! IN: natom, coords, charge and radii (from prmtop)
-          ! OUT: pb charges and pb radii (via apbs_vars module)
-          call apbs_init(natom, x(lcrd), x(l15), x(l97))
-        end if
-#endif /* APBS */
         call xray_init()
 
         ! Set the initial velocities

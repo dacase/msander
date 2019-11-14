@@ -424,10 +424,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(6, 9058) eel, ehbond, econst
   else if (igb == 10 .or. ipb /= 0) then
     write(6, 9060) eel, epb, econst
-#ifdef APBS
-  else if (igb == 6 .and. mdin_apbs) then
-    write(6, 9060) eel, epb, econst
-#endif /* APBS */
 #ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(6, 9061) eel, erism, econst
@@ -500,11 +496,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (igb == 10 .or. ipb /= 0) then
     write(6, 9074) esurf, edisp
   end if
-#ifdef APBS
-  if (igb == 6 .and. mdin_apbs ) then
-    write(6, 9097) esurf
-  end if
-#endif /* APBS */
   if (econst /= 0.0) then
     write(6, 9076) epot-econst
   end if
@@ -612,10 +603,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(7, 9058) eel, ehbond, econst
   else if ( igb == 10 .or. ipb /= 0) then
     write(7, 9060) eel, epb, econst
-#ifdef APBS
-  else if (igb == 6 .and. mdin_apbs) then
-    write(7, 9060) eel, epb, econst
-#endif /* APBS */
 #ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(7, 9061) eel, erism, econst
@@ -710,11 +697,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
    if (igb == 10 .or. ipb /= 0) then
      write(7, 9074) esurf, edisp
    end if
-#ifdef APBS
-   if (igb == 6 .and. mdin_apbs) then
-     write(7, 9097) esurf
-   end if
-#endif /* APBS */
    if (econst /= 0.0) then
      write(7, 9076) epot-econst
    end if
@@ -868,9 +850,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   9092 format (1x,'EXTERNESCF= ',f14.4)
   9093 format (1x,'PM3MAISESCF= ',f14.4)
   9096 format (1x,'PM3MMX2ESCF= ',f14.4)
-#ifdef APBS
-  9097 format (1x,'ENPOLAR= ',f14.4)
-#endif
   9099 format (1x,'ECRG   = ',f14.4)
 
 #ifdef LES

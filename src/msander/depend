@@ -50,25 +50,6 @@ amopen.o:   amopen.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amopen.F90
 
-apbs.o: \
-                    ../include/dprec.fh\
-                    apbs_vars.o\
-                    file_io_dat.o
-
-
-apbs.o:   apbs.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ apbs.F90
-
-apbs_vars.o: \
-                    ../include/dprec.fh\
-                    file_io_dat.o
-
-
-apbs_vars.o:   apbs_vars.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ apbs_vars.F90
-
 assert.o: \
                     ../include/assert.fh
 
@@ -1005,7 +986,6 @@ force.o: \
                     softcore.o\
                     remd.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -1060,7 +1040,6 @@ force.LES.o: \
                     softcore.o\
                     remd.LES.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -1114,7 +1093,6 @@ force.PUPIL.o: \
                     softcore.o\
                     remd.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     stack.o\
                     constants.o\
                     relax_mat.o\
@@ -1225,7 +1203,6 @@ interface.o: \
                     remd.o\
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -1283,7 +1260,6 @@ interface_setup.F90: \
                     stack.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
-                    apbs.o\
                     xray_interface.o\
                     linear_response.o\
                     charmm.o\
@@ -1549,7 +1525,6 @@ mdread.o: \
                     remd.o\
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -1608,7 +1583,6 @@ mdread.LES.o: \
                     remd.LES.o\
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -1666,7 +1640,6 @@ mdread.PUPIL.o: \
                     remd.o\
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
-                    apbs.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -3445,7 +3418,6 @@ sander.o: \
                     stack.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
-                    apbs.o\
                     xray_interface.o\
                     softcore.o\
                     mbar.o\
@@ -3514,7 +3486,6 @@ sander.LES.o: \
                     stack.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
-                    apbs.o\
                     xray_interface.o\
                     softcore.o\
                     mbar.o\
@@ -3582,7 +3553,6 @@ sander.PUPIL.o: \
                     stack.o\
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
-                    apbs.o\
                     xray_interface.o\
                     softcore.o\
                     mbar.o\
