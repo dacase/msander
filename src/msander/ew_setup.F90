@@ -756,13 +756,7 @@ subroutine ew_startup(natom_local,iblo,inb,x,ix)
 #ifdef MPI
 #  include "parallel.h"
 #  include "ew_parallel.h"
-#  ifdef MPI_DOUBLE_PRECISION
-#     undef MPI_DOUBLE_PRECISION
-#  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer ierr
 #endif /* MPI */
 
@@ -2201,19 +2195,12 @@ subroutine startup_groups(err)
 #  include "ew_parallel.h"
    integer ranks(MPI_MAX_PROCESSORS)
 
-#ifdef MPI_DOUBLE_PRECISION
-#undef MPI_DOUBLE_PRECISION
-#endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 
    err = 0
    call mpi_bcast(num_recip,1,mpi_integer,0,commsander,ierr)
    if (ierr /= 0) err = ierr
-# ifndef EWGRPS
 #  ifndef API
    if(num_recip < numtasks .and. master) &
          write(6,*) "Groups not compiled, cannot use nrecip"
@@ -2230,56 +2217,6 @@ subroutine startup_groups(err)
    do i=1,numtasks
       ranks(i)=i-1
    end do
-# else
-   world_comm=commsander
-   call mpi_comm_group(commsander,world_group,ierr)
-   if (ierr /= 0) err = ierr
-
-   if(num_recip > numtasks)then
-#ifndef API
-      write(6,*) num_recip, &
-            'NUM_RECIP exceeds number of available PEs',numtasks
-#endif
-      num_recip = numtasks
-   end if
-
-   do i=1,num_recip
-      ranks(i)=i-1
-   end do
-   if(mytaskid < num_recip)then
-      i_do_recip = .true.
-   else
-      i_do_recip = .false.
-   end if
-   call mpi_group_incl(world_group,num_recip,ranks,recip_group,err)
-   call mpi_barrier(commsander,ierr)
-   if (ierr /= 0) err = ierr
-   call mpi_comm_create(commsander,recip_group,recip_comm,err)
-   call mpi_barrier(commsander,ierr)
-   if (ierr /= 0) err = ierr
-
-   if(num_recip == numtasks)then
-      i_do_direct = .true.
-      num_direct = numtasks
-      do i=1,numtasks
-         ranks(i)=i-1
-      end do
-   else
-      i_do_direct = .false.
-      num_direct = numtasks-num_recip
-      do i=1,numtasks-num_recip
-         ranks(i)=num_recip-1+i
-         if(mytaskid == num_recip-1+i)i_do_direct = .true.
-      end do
-   end if
-   call mpi_group_incl(world_group,num_direct,ranks,direct_group,err)
-   call mpi_barrier(commsander,ierr)
-   if (ierr /= 0) err = ierr
-   call mpi_comm_create(commsander,direct_group,direct_comm,err)
-   call mpi_barrier(commsander,ierr)
-   if (ierr /= 0) err = ierr
-
-# endif
    return
 end subroutine startup_groups 
 

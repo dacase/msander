@@ -311,9 +311,6 @@ subroutine nmrcal(x,f,name,irsnam,ipres,rimass,enmr,devdis,devang, &
 #undef MPI_DOUBLE_PRECISION
 #endif
    include 'mpif.h'
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
    
    ! On first non-initialization call to this routine, initialize NSTEPL and set

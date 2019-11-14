@@ -36,9 +36,6 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
 #  endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#  define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
    integer ist(MPI_STATUS_SIZE), partner
 #endif
 #include "../include/md.h"

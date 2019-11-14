@@ -273,31 +273,6 @@ typedef	struct	bounds_t	{
     INT_T padding; 
   } RismData;
 
-#ifdef RISMSFF
-  void rism_force_( REAL_T*, REAL_T*, REAL_T*, INT_T*, INT_T* );
-  void rism_setparam_( RismData*, INT_T*, REAL_T*,
-                       INT_T*, INT_T*, STRING_T[10][8] ,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,  INT_T*, STRING_T*,  INT_T*, STRING_T*,
-                       INT_T*, STRING_T*,
-                       INT_T*, INT_T*, INT_T*,
-                       REAL_T*, REAL_T*, REAL_T*, REAL_T*,
-                       INT_T*, INT_T*);
-  void rism_init_( INT_T*);
-  void rism_list_param_();
-  void rism_writesolvdist_(INT_T*);
-  void rism_solvdist_thermo_calc_(INT_T*,INT_T*);
-  void rism_thermo_print_(INT_T*,REAL_T*);
-  void rism_printtimer_();
-  void rism_max_memory_();
-#endif /*RISMSFF*/
-
 #ifdef __cplusplus
 }
 #endif

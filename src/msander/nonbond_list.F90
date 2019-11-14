@@ -300,9 +300,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #    undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer tmplist(0:MPI_MAX_PROCESSORS), alllist(0:MPI_MAX_PROCESSORS)
 #else   /* not parallel needs numtasks and mytaskid */
    integer numtasks, mytaskid
@@ -1556,9 +1553,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
 
   integer jtran
   _REAL_ x_tran, y_tran, z_tran, tranvec(3,*)
-#ifdef CRAY_X1
-  integer m2, mm, mlist(numlist)
-#endif
 
   num = 0
   m = maskptr(i)
@@ -1586,55 +1580,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
 
   deadi = .false.
   deadi = ((ibelly(i) == 0) .and. belly)
-
-#ifdef CRAY_X1
-  m2 = 0
-  do m = kk+1, numlist
-    jtran = itran(m)
-    x_tran = tranvec(1,itran(m))
-    y_tran = tranvec(2,itran(m))
-    z_tran = tranvec(3,itran(m))
-    n = atmlist(m)
-    k = bckptr(n)
-    deadik = ((ibelly(k) == 0) .and. deadi)
-    dx = imagcrds(1,n) - xk + x_tran
-    dy = imagcrds(2,n) - yk + y_tran
-    dz = imagcrds(3,n) - zk + z_tran
-    r2 = dx*dx + dy*dy + dz*dz
-    if (r2 < cutoffsq) then
-#ifdef TEST_CLOSEATOMS
-      if (r2 < .5) then
-        write(6,190) i, k, r2
-      end if
- 190  format("<pack_nb_list> Atoms close:",2i8,"  r**2 ",f10.6)
-#endif
-      if ((exclude(k) /= i) .and. .not. deadik) then
-        mygrdlist(n) = ior(mygrdlist(n), 1)
-        num = num + 1
-        m2 = m2 + 1
-        mlist(m2) = m
-      endif
-    endif
-  enddo
-  do mm = 1, m2
-    m = mlist(mm)
-    jtran = itran(m)
-    x_tran = tranvec(1,itran(m))
-    y_tran = tranvec(2,itran(m))
-    z_tran = tranvec(3,itran(m))
-    n = atmlist(m)
-    k = bckptr(n)
-    index = iaci + iac(k)
-    ic = ico(index)
-    if (ic >= 0) then
-      lpr = lpr+1
-      iwa(lpr) = ior(n,ishft(itran(m),27)) ! bitwise optimization
-    else
-      lhb = lhb+1
-      iwh(lhb) = ior(n,ishft(itran(m),27)) ! bitwise optimization
-    end if
-  enddo
-#else /* Generic (Not cray_x1) follows */
 
 #ifdef MPI /* SOFT CORE */
   softcore_on: if (ifsc .ne. 0) then
@@ -1756,7 +1701,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
   ! the indentation of the loop above.
   end if softcore_on
 # endif 
-#endif /* cray X1 */
   if (num + numpack > maxnblst) then
 #ifdef MPI
     write(6, '(/,a,i12,i12,a,i12,a,i4)') ' * NB pairs ', num, numpack, &

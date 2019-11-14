@@ -140,9 +140,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #  ifdef LES
   _REAL_ :: vel0_nrg_sum
 #  endif /* LES */
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif /* MPI */
 
   logical belly

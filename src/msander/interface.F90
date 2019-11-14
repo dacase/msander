@@ -1565,9 +1565,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
    integer crggp( natom )
    _REAL_ val
    _REAL_, allocatable :: repvals(:)
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    !     ========================= END AMBER/MPI =========================
 #endif /* MPI */
 #  include "../include/md.h"

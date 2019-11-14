@@ -750,9 +750,6 @@ subroutine profile_time(all,num_calls_nblist)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer ist(mpi_status_size),i,j,ierr,profile_mpi
    _REAL_ tim(maxtime),to(maxtime),to2(maxtime),minto(maxtime), &
           maxto(maxtime), tim2(maxtime),mint(maxtime),maxt(maxtime), &

@@ -340,25 +340,16 @@ subroutine xy_zx_transpose(targ,src,ldx,n3,tmp,tmp1)
             end do
          end do
 
-#   ifdef MPI_BUFFER_SIZE
-         call mpi_bsend( &
-               tmp(1), numval, MPI_DOUBLE_PRECISION, &
-               jtask, 11, &
-               recip_comm, ierr )
-#   else
          call mpi_isend( &
                tmp(1), numval, MPI_DOUBLE_PRECISION, &
                jtask, 11, &
                recip_comm, ireq, ierr  )
-#   endif
 
          rtask = rtask - 1
          if ( rtask < 0 ) rtask = rtask + numtasks
          call xy_zx_trans_recv(targ,ldx,n3,tmp1,rtask)
       end if
-#   ifndef MPI_BUFFER_SIZE
       call mpi_wait(ireq, isnd_stat,ierr)
-#   endif
    end do  !  jjtask = mytaskid+1, mytaskid+numtasks-1
 
    !-----------------------------------------------------------------------
@@ -448,25 +439,16 @@ subroutine zx_xy_transpose(targ,src,ldx,n3,tmp,tmp1)
             end do
          end do
 
-#   ifdef MPI_BUFFER_SIZE
-         call mpi_bsend( &
-               tmp(1), numval, MPI_DOUBLE_PRECISION, &
-               jtask, 11, &
-               recip_comm, ierr )
-#   else
          call mpi_isend( &
                tmp(1), numval, MPI_DOUBLE_PRECISION, &
                jtask, 11, &
                recip_comm, ireq, ierr )
-#   endif
 
          rtask = rtask - 1
          if ( rtask < 0 ) rtask = rtask + numtasks
          call zx_trans_recv(targ,ldx,tmp1,rtask)
       end if
-#   ifndef MPI_BUFFER_SIZE
       call mpi_wait(ireq, isnd_stat,ierr)
-#   endif
    end do  !  jjtask = mytaskid+1, mytaskid+numtasks-1
 
    return

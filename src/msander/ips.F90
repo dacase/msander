@@ -564,9 +564,6 @@ subroutine aipspbc( eerw,eerq,natom,crd,charge,frcx,frc,rec_vir)
 #undef MPI_DOUBLE_PRECISION
 #endif
     include "mpif.h"
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
 
@@ -1415,9 +1412,6 @@ subroutine aips_grad_sumrc( &
 #    undef MPI_DOUBLE_PRECISION
 #  endif
    include "mpif.h"
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    !     _REAL_ Q(nfftdim1*2,nfftdim2,mxyslabs)
    _REAL_ q(*),w(*)
 #else

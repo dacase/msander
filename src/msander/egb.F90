@@ -206,9 +206,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 #    undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif
 #  include "../include/md.h"
 #  include "def_time.h"

@@ -1,7 +1,6 @@
 #include "../include/dprec.fh"
 #include "nfe-config.h"
 #include "../include/assert.fh"
-#ifndef PBSA
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Open input files and read cntrl namelist.
 subroutine mdread1()
@@ -536,7 +535,7 @@ subroutine mdread1()
    ievb = 0
    rbornstat = 0
    idecomp = 0
-   ! added a flag to control output of BDC/SDC synonymous with MMPBSA.py's
+   ! added a flag to control output of BDC/SDC synonymous with mmpbsa.py's
    ! version of the same variable.
    dec_verbose = 3
    lastrst = 1
@@ -1147,9 +1146,7 @@ subroutine mdread1()
 
 #undef FATAL_ERROR
 end subroutine mdread1 
-#endif /*ifndef PBSA*/
 
-#ifndef PBSA
 !======================================================================
 !          MDREAD2
 !======================================================================
@@ -1251,9 +1248,6 @@ subroutine mdread2(x,ix,ih)
    integer crggp( natom )
    _REAL_ val, wallc
    _REAL_, allocatable :: repvals(:)
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    !     ========================= END AMBER/MPI =========================
 #endif /* MPI */
 #  include "../include/md.h"
@@ -3795,7 +3789,6 @@ subroutine mdread2(x,ix,ih)
 #undef FATAL_ERROR
 #undef DELAYED_ERROR
 end subroutine mdread2 
-#endif /* ifndef PBSA */
 
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -1,6 +1,5 @@
 #include "../include/dprec.fh"
 
-#ifndef PBSA
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Emit the final minimization report 
 !-----------------------------------------------------------------------
@@ -122,7 +121,6 @@ subroutine report_min_progress( nstep, gradient_rms, forces, energies, &
 
    return
 end subroutine report_min_progress
-#endif /*ifndef PBSA*/
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Compute the maximum gradient component and the corresponding atom

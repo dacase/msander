@@ -239,7 +239,6 @@ subroutine close_dump_files
   return
 end subroutine close_dump_files
 
-#ifndef PBSA
 !------------------------------------------------------------------------------
 ! prntmd: energy output for md, in human-readable form.
 !
@@ -873,7 +872,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   return
 end subroutine prntmd
-#endif /*ifndef PBSA*/
 
 !------------------------------------------------------------------------------
 ! setvel: assign velocities from a Maxwellian distribution for initialization

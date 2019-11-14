@@ -17,9 +17,6 @@ subroutine printflags()
 #endif
 #ifdef MPI
    call printflags2(' MPI',4,n,line,.false.)
-# ifdef USE_MPI_IN_PLACE
-   call printflags2(' USE_MPI_IN_PLACE',17,n,line,.false.)
-# endif
 #endif
 #ifdef LES
    call printflags2(' LES',4,n,line,.false.)
@@ -28,10 +25,6 @@ subroutine printflags()
    call printflags2(' NMODE',6,n,line,.false.)
 #endif
 
-#ifdef noVIRIAL
-   call printflags2(' noVIRIAL',9,n,line,.false.)
-#endif
-   
    call printflags2(' ',1,n,line,.true.)
    return
 end subroutine printflags 

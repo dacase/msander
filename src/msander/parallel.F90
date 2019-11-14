@@ -60,9 +60,6 @@ subroutine startup(xx,ix,ih)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #  include "extra.h"
 #  include "../include/md.h"
 #  include "../include/memory.h"
@@ -336,9 +333,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #  include "../include/md.h"
 #  include "extra.h"
 #  include "nmr.h"
@@ -431,9 +425,6 @@ subroutine fsum(f,tmp)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#  define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 
    !Used for Binary Tree
    integer other,ncyclesm1,k,bit,cs,cr,ns,nr,istart,iend
@@ -476,21 +467,9 @@ subroutine fsum(f,tmp)
    else
 
      ! We don't have a power of two - do things the old fashioned way.
-#ifdef RED_SCAT_INPLACE
      call mpi_reduce_scatter(f, f(iparpt3(mytaskid)+1), &
            rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
            commsander, ierr)
-#else
-     ! Reduce scaller used to work with most MPI installations even if the send
-     ! and receive buffers aliased each other but now it seems that newer
-     ! mpi installations are checking this and quiting with an error. The standard
-     ! does not allow this in MPI v1.0. For now we will make the non-inplace version
-     ! the default.
-     call mpi_reduce_scatter(f, tmp(iparpt3(mytaskid)+1), &
-           rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
-           commsander, ierr)
-     f(iparpt3(mytaskid)+1:iparpt3(mytaskid+1)) = tmp(iparpt3(mytaskid)+1:iparpt3(mytaskid+1))
-#endif
    end if !Power of two cpus.
    return
 end subroutine fsum
@@ -510,9 +489,6 @@ subroutine xdist(x, tmp, natom)
 #    endif
    include 'mpif.h'
    integer ierr
-#    ifdef CRAY_PVP
-#      define MPI_DOUBLE_PRECISION MPI_REAL8
-#    endif
 
    !Used for Binary Tree
    integer other,ncyclesm1,k,bit,cs,cr,ns,nr

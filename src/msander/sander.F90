@@ -147,12 +147,6 @@ subroutine sander()
 #    undef MPI_DOUBLE_PRECISION
 #  endif
   include 'mpif.h'
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
-#  ifdef MPI_BUFFER_SIZE
-  integer*4 mpibuf(mpi_buffer_size)
-#  endif
 !  REMD: loop is the current exchange. runmd is called numexchg times.
   integer loop
 
@@ -265,9 +259,6 @@ subroutine sander()
          MPI_MAX_PROCESSORS, ', but is ', numtasks
     call mexit(6,1)
   end if
-#  ifdef MPI_BUFFER_SIZE
-  call mpi_buffer_attach(mpibuf, mpi_buffer_size*4, ier)
-#  endif
 #else /* not MPI follows */
   ! In the single-threaded version, the one process is master
   master = .true.

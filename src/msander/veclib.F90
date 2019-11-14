@@ -18,11 +18,7 @@ subroutine vdsqrt( n, x, y )
    integer  n
    _REAL_   x(n), y(n)
 
-#ifdef MASSLIB   
-   call vsqrt ( y, x, n )
-#else
    y(1:n) = sqrt(x(1:n))
-#endif
    
    return
 end subroutine vdsqrt 
@@ -36,11 +32,7 @@ subroutine vdexp( n, x, y )
    integer  n
    _REAL_   x(n), y(n)
    
-#  ifdef MASSLIB
-      call vexp ( y, x, n )
-#  else
       y(1:n) = exp(x(1:n))
-#  endif
    
    return
 end subroutine vdexp 
@@ -54,11 +46,7 @@ subroutine vdln( n, x, y )
    integer  n
    _REAL_   x(n), y(n)
    
-#  ifdef MASSLIB
-      call vlog ( y, x, n )
-#  else
       y(1:n) = log(x(1:n))
-#  endif
    
    return
 end subroutine vdln 
@@ -71,11 +59,7 @@ subroutine vdinvsqrt( n, x, y )
    integer  n
    _REAL_   x(n), y(n)
   
-#  ifdef MASSLIB
-      call vrsqrt ( y, x, n )
-#  else
       y(1:n) = 1.d0/sqrt( x(1:n) )
-#  endif
 
    return
 end subroutine vdinvsqrt 
@@ -88,11 +72,7 @@ subroutine vdinv( n, x, y )
    integer  n
    _REAL_   x(n), y(n)
    
-#  ifdef MASSLIB
-      call vrec ( y, x, n )
-#  else
       y(1:n) = 1.d0/x(1:n)
-#  endif
    
    return
 end subroutine vdinv 
@@ -103,11 +83,8 @@ subroutine vdcos( n, x, y )
   implicit none
   integer n
   _REAL_  x(n), y(n)
-# ifdef MASSLIB
-    call vcos ( y, x, n )
-# else
+
     y(1:n) = cos(x(1:n))
-# endif
 
   return
 end subroutine vdcos
@@ -119,11 +96,8 @@ subroutine vdtanh( n, x, y )
   implicit none
   integer n
   _REAL_  x(n), y(n)
-# ifdef MASSLIB
-    call vtanh ( y, x, n )
-# else
+
     y(1:n) = tanh(x(1:n))
-# endif
 
   return
 end subroutine vdtanh

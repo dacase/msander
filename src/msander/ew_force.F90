@@ -56,9 +56,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numatoms,iac(*),ico(*)
@@ -1006,9 +1003,6 @@ subroutine nb_adjust(charge,eea,crd, &
 #undef MPI_DOUBLE_PRECISION
 #endif
    include 'mpif.h'
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numlo,numhi
@@ -1298,9 +1292,6 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
 #undef MPI_DOUBLE_PRECISION
 #endif
    include 'mpif.h'
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numlo,numhi
@@ -1678,9 +1669,6 @@ subroutine nb_adjust_les(charge,ene,crd, &
 #     undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer numleft,numdel
 #endif /* MPI */
    !-------------------------------------------------------------------
