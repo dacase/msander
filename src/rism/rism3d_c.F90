@@ -856,14 +856,11 @@ contains
   !> Calculate the excess chemical potential for each solvent species
   !! IN:
   !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
   !! OUT:
   !!    excess chemical potential of solvation for each solvent species
-  function rism3d_excessChemicalPotential(this, o_lr) result(excessChemicalPotential)
+  function rism3d_excessChemicalPotential(this) result(excessChemicalPotential)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: excessChemicalPotential(this%solvent%numAtomTypes)
 
     call rism_timer_start(this%excessChemicalPotentialTimer)
@@ -876,21 +873,16 @@ contains
   !> Calculate the total excess chemical potential of solvation
   !! IN:
   !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
   !! OUT:
   !!    total excess chemical potential of solvation
-  function rism3d_excessChemicalPotential_tot(this, o_lr) result(excessChemicalPotential)
+  function rism3d_excessChemicalPotential_tot(this) result(excessChemicalPotential)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: excessChemicalPotential
     call rism_timer_start(this%excessChemicalPotentialTimer)
 
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
     call rism_timer_stop(this%excessChemicalPotentialTimer)
-    excessChemicalPotential = sum(rism3d_excessChemicalPotential(this, o_lr))
+    excessChemicalPotential = sum(rism3d_excessChemicalPotential(this))
   end function rism3d_excessChemicalPotential_tot
 
   !> Calculate the solvation interaction energy: de = density sum g*u for
@@ -944,14 +936,10 @@ contains
   !> Calculating excess number of each solvent type associated with
   !! the solute.
   !! @param[in,out] this rism3d object with computed solution.
-  !! @param[in] o_lr (optional) (default = .true.)
-  !!                 Apply asymptotic long range correction.
   !! @return Excess number of each solvent type associated with the solute.
-  function rism3d_excessParticles(this, o_lr) result(num)
+  function rism3d_excessParticles(this) result(num)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: num(this%solvent%numAtomTypes)
 
     call rism_timer_start(this%thermoTimer)
@@ -966,14 +954,11 @@ contains
   !! J. G. Kirkwood; F. P. Buff. J. Chem. Phys. 1951, 19, 774-777
   !! IN:
   !!    this :: rism3d object with computed solution
-  !!    o_lr :: (optional) (default = .true.) Apply asymptotic long range
-  !!            correction
   !! OUT:
   !!    Kirkwood-Buff integeral for each solvent site
-  function rism3d_kirkwoodBuff(this, o_lr) result(kb)
+  function rism3d_kirkwoodBuff(this) result(kb)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
     _REAL_ :: kb(this%solvent%numAtomTypes)
 
     call rism_timer_start(this%thermoTimer)

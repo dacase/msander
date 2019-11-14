@@ -970,11 +970,7 @@ contains
 
        ! Get the excess chemical potential.
        call timer_start(TIME_EXCESSCHEMICALPOTENTIAL)
-       epol = rism3d_excessChemicalPotential_tot(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-#if 0
-       ! TODO: figure out when we need to see a detail like this:
-       write(6,'(a,f15.5)') 'excessChemicalPotential: ', epol
-#endif
+       epol = rism3d_excessChemicalPotential_tot(rism_3d)*KB*rism_3d%solvent%temperature
        call timer_stop(TIME_EXCESSCHEMICALPOTENTIAL)
 
        ! if (rismnrespa >1) then
@@ -1032,15 +1028,15 @@ contains
     ! Calculate thermodynamics.
     call rism_timer_stop(timer_write)
     rismthermo%excessChemicalPotential = &
-         rism3d_excessChemicalPotential(rism_3d, rismprm%asympCorr)* KB * rism_3d%solvent%temperature
+         rism3d_excessChemicalPotential(rism_3d)* KB * rism_3d%solvent%temperature
     rismthermo%solventPotentialEnergy = rism3d_solventPotEne(rism_3d) * KB * rism_3d%solvent%temperature
     rismthermo%partialMolarVolume = rism3d_partialMolarVolume(rism_3d)
-    rismthermo%excessParticlesBox = rism3d_excessParticles(rism_3d, .false.)
+    rismthermo%excessParticlesBox = rism3d_excessParticles(rism_3d)
     rismthermo%totalParticlesBox = rismthermo%excessParticlesBox &
          + rism_3d%grid%voxelVolume &
          * rism_3d%grid%totalLocalPointsR * rism_3d%solvent%density
          ! this is the local volume for the MPI process.
-    rismthermo%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d, rismprm%asympCorr)
+    rismthermo%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d)
     rismthermo%DCFintegral = rism3d_DCFintegral(rism_3d)
 
     ! Output distributions.

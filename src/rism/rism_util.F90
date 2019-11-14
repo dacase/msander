@@ -8,7 +8,6 @@ module rism_util
   use rism_report_c
   ! use, intrinsic :: iso_c_binding
 
-  !TODO: Move this to rism_util.
   interface r2c_pointer
      module procedure r2c_pointer_1d
      module procedure r2c_pointer_2d
@@ -18,7 +17,7 @@ module rism_util
   
 contains
 
-  !> TODO: Document me!
+  !> use to remove any overall force component
   subroutine corr_drift(ff,mass,numAtoms &
 #ifdef MPI
          ,rank,size,comm &
@@ -95,35 +94,6 @@ contains
 #endif /*RISM_DEBUG*/
     end subroutine corr_drift
 
-
-!> Calculate the center of mass.
-!! @param[in] atomPosition The x,y,z position of each solute atom.
-!! @param[out] centerOfMass Will hold the center of mass.
-!! @param[in] mass Mass of each atom.
-!! @param[in] numAtoms The number of solute atoms.
-subroutine findCenterOfMass(atomPosition, centerOfMass, mass, numAtoms)
-  implicit none
-  integer, intent(in) :: numAtoms
-  _REAL_, intent(in) :: atomPosition(3, numAtoms), mass(numAtoms)
-  _REAL_, intent(out) :: centerOfMass(3)
-  integer :: id
-#ifdef RISM_DEBUG
-  write(6,*)"CALC CM", numAtoms
-  ! write(6,*)"ATOMPOSITION", atomPosition
-  ! write(6,*)"MASS", mass
-  call flush(6)
-#endif /*RISM_DEBUG*/
-  centerOfMass = 0
-  do id = 1, 3
-     centerOfMass(id) = sum(atomPosition(id, 1:numAtoms) * mass(1:numAtoms))
-  end do
-  centerOfMass = centerOfMass / sum(mass)
-#ifdef RISM_DEBUG
-  write(6,*)"centerOfMass", centerOfMass
-  call flush(6)
-#endif /*RISM_DEBUG*/
-end subroutine findCenterOfMass
-
 !> Calculates the vector cross product of A and B and places it in C.
 !! It is assumed that A, B and C are of length three.
 !! @param[in] a Three element array.
@@ -138,7 +108,6 @@ function cross(a, b) result(c)
   c(2) = -a(1) * b(3) + a(3) * b(1)
   c(3) =  a(1) * b(2) - a(2) * b(1)  
 end function cross
-
 
 !> Calculates the magnitude of a 3D vector.
 !! @param[in] a Three element array.
@@ -199,7 +168,6 @@ function isFactorable(number, factor)
   if (num == 1) isFactorable=.true.
 end function isFactorable
 
-
 !> Find the largest prime factor of a number.
 !! @param[in] number Number to test.
 !! @return Largest prime factor of number.
@@ -213,7 +181,6 @@ function largestPrimeFactor(number)
      end if
   end do
 end function largestPrimeFactor
-
 
 !! Fills PTR with indices of VAL to give the values of VAL in accending order.
 !! I.e.  VAL(PTR) will be in accending order.  The reproduces the functionality
@@ -291,96 +258,6 @@ subroutine siftDown(val, ptr, i, n, m)
      end if
   end do
 end subroutine siftDown
-
-#if 0
-subroutine linLeastSqFit(basis, xa, ya, coef, o_sig, o_chisq, o_varcoef)
-  use safemem
-  implicit none
-  interface 
-     subroutine basis(x,xn,n)
-       implicit none
-       _REAL_, intent(in) :: x
-       _REAL_, intent(out) :: xn(n)
-       integer, intent(in) ::n
-     end subroutine basis
-  end interface
-  _REAL_,intent(in) :: xa(:), ya(:)
-  _REAL_,intent(out) :: coef(:)
-  _REAL_,optional,intent(in) :: o_sig(:)
-  _REAL_,optional,intent(out) :: o_chisq, o_varcoef(:)
-  
-  _REAL_ :: sig(size(ya)), A(size(xa),size(coef))
-  !B : working vector for DGELSD.  On input it contains ya(), on
-  !    output it contains coef
-  !SV : singular values of A from DGELSD
-  _REAL_ :: B(size(ya),1), SV(size(coef))
-  !work : work space for DGELSD
-  _REAL_, pointer :: work(:)=>NULL()
-  !info : return value of DGELSD
-  !rank : effective rank of A determined by DGELSD
-  integer :: info, rank
-  integer, pointer :: iwork(:)=>NULL()
-  integer :: i, j, nrow,ncol
-  integer :: err
-  sig = 1d0
-  if (present(o_sig)) sig = o_sig
-
-  !prepare input array
-  ncol=size(coef)
-  nrow=size(xa)
-!  write(0,*) "nrow, ncol", nrow, ncol
-!  A(:,1) = 1d0
-!  A(:,1) = xa**2
-!  do j = 2, ncol
-!     do i = 1, nrow
-!        A(i,j) = A(i,j-1)*xa(i)
-!     end do
-!  end do
-  do i = 1, nrow
-     call basis(xa(i),A(i,:),ncol)
-  end do
-  do i = 1,nrow
-!     write(0,*) A(i,:)
-  end do
-  B(:,1) = ya
-  !get work memory requirement
-!  write(0,*) "B",B
-  iwork=>safemem_realloc(iwork,1)
-  work=>safemem_realloc(work,1)
-  call DGELSD(nrow,ncol,1,A,nrow,B,nrow,SV,-1d0,rank,work,-1,iwork,info)
-  work=>safemem_realloc(work,int(work(1)))
-  iwork=>safemem_realloc(iwork,iwork(1))
-  call DGELSD(nrow,ncol,1,A,nrow,B,nrow,SV,-1d0,rank,work,size(work),iwork,info)
-  if (info/=0)&
-       call rism_report_error("(a,i4)","POLYFIT: DGELSD failed: ",info)
-  if (safemem_dealloc(work) /=0) &
-       call rism_report_error("POLYFIT: Failed to deallocate workspace")
-  if (safemem_dealloc(iwork) /=0) &
-       call rism_report_error("POLYFIT: Failed to deallocate workspace")
-  coef = B(1:ncol,1)
-
-  !get chisq
-  if (present(o_chisq)) then
-     o_chisq = 0d0
-     !recompute A
-!!$      A(:,1) = xa*2
-!!$     do j = 2, ncol
-!!$        do i = 1, nrow
-!!$           A(i,j) = A(i,j-1)*xa(i)
-!!$        end do
-!!$     end do
-     do i = 1, nrow
-        call basis(xa(i),A(i,:),ncol)
-     end do
-     !reuse B to get ya - A*coef
-     B(:,1) = ya
-     call DGEMV('N',nrow,ncol,-1d0,A,nrow,coef,1,1d0,B,1)
-     o_chisq = sum(B(:,1)**2/sig)
-  end if
-  err = safemem_dealloc(work)
-  err = safemem_dealloc(iwork)
-end subroutine linLeastSqFit
-#endif
 
 
 !! 'Progressive' polynomial interpolation using Neville's algorithm. Adds
@@ -461,278 +338,6 @@ subroutine polynomialInterpolation(xa, ya, n, x, y, error)
   y = ((x - xa(n)) * p(1) - (x - xa(1)) * p(2)) / (xa(1) - xa(n))
   error = (p(1) + p(2) - 2d0 * y) / 2d0
 end subroutine polynomialInterpolation
-
-#if 0
-!! Computes support abscissas (nodes) and weights for Gaussian quadrature with
-!! Legendre polynomials.  This is a drop in replacement for Numerical Recipes
-!! GAULEG.
-!! IN:
-!!    a :: lower integration bound
-!!    b :: upper integration bound
-!!    x :: abscissas
-!!    weight :: weights
-!!    n :: number of points
-subroutine gaussquad_legendre (a,b,x,weight,n)
-  use constants, only : PI
-  implicit none
-  _REAL_,intent(in) :: a, b
-  _REAL_,intent(out) :: x(n), weight(n)
-  integer, intent(in) :: n
-  
-  !nroot :: roots are symmetric about zero we only need to find one half
-  integer :: nroot
-
-  integer :: iroot
-  
-  _REAL_ :: root0, root,p,dp
-  !eps :: convergence criterion for roots
-  _REAL_ :: eps=1d-14
-
-  nroot = (n+1)/2
-  do iroot = 1, nroot
-     !compute roots
-     !initial guess
-     root0 = cos(PI*(iroot-0.25d0)/(n+0.5d0))
-     do while(.true.) !Newton-Rhapson.  Very well behaved so we risk the infinite loop
-        call legendre(root0,p,dp,n)
-        root = root0-p/dp
-        if (abs(root-root0) < eps) exit
-        root0=root
-     end do
-     !scale roots
-     x(iroot) = a+(1d0-root)*(b-a)/2d0
-     x(n-iroot+1) = b-(1d0-root)*(b-a)/2d0
-     !compute scaled integral
-     weight(iroot) = (b-a)/ ((1d0-root*root)*dp*dp)
-     weight(n-iroot+1) = weight(iroot)
-  end do
-end subroutine gaussquad_legendre
-
-
-!! Calculates the value of the Nth order Lengendre polynomial at X and its first
-!! derivative.
-!! IN:
-!!    x :: -1 < x < 1
-!!    y :: P_n(x)
-!!    dy :: P'_n(x)
-!!    n :: order of the polynomial
-
-subroutine legendre(x,y,dy,n)
-  implicit none
-  _REAL_, intent(in) :: x
-  _REAL_, intent(out) :: y,dy
-  integer, intent(in) :: n
-  _REAL_ :: y0,y1
-  integer :: i
-  y0 = 1d0
-  y = 1d0
-  dy = 0d0
-  if (n==0) return
-  y1 = x
-  y = x
-  dy = 1d0
-  if (n==1) return
-  do i = 2,n
-     y = ((2d0*i-1d0)*x*y1 -(i-1d0)*y0)/(i)
-     dy = (x*y-y1)*i/(x*x-1d0)
-     y0=y1
-     y1=y
-  end do
-end subroutine legendre
-
-
-!! Computes support abscissas (nodes) and weights for Gaussian quadrature with
-!! Laguerre polynomials.  The domain of integration is always [0,infinity).  For
-!! double precission n=180 seems to be the largest order that is reasonable. 
-!! Stroud and Secrest suggest n=42 as the largest to avoid floating point overflow.
-!! This may be due single precision.
-!! 
-!! This also differs from traditional Gauss-Laguerre in that weight(i) include
-!! a factor of exp(x(i)) so this may be applied much like Gauss-Legendre.  However,
-!! to achieve suitable results the integrated function should converge faster exp(-x).
-!! IN:
-!!    x :: abscissas
-!!    weight :: weights
-!!    n :: number of points
-
-subroutine gaussquad_laguerre (x,weight,n)
-  use constants, only : PI
-  implicit none
-  _REAL_,intent(out) :: x(n), weight(n)
-  integer, intent(in) :: n
-
-  !alpha : used for the associate Laguerre polynomial.  0 gives the standard polynomial
-  integer,parameter ::  alpha = 0
-
-  !Root guesses
-  !root0   : current guess
-  !root00  : guess from last iteration
-  !root000 : guess from two iterations ago
-  !root    : solved root
-  !p       : value of polynomial
-  !dp      : derivative of polynomial
-  _REAL_ :: root0=0, root00=0, root000=0, root,p,dp
-
-  !eps :: convergence criterion for roots
-  _REAL_ :: eps=1d-12
-
-  integer :: iroot, icount
-
-  !Root guesses are from A. H. Stroud and D. Secrest. Gaussian Quadrature Formulas. Prentice-Hall. (1966)
-  !these are slightly modified in that we use the previous real roots to seed our next guess and not
-  !the previous guesses.
-  do iroot = 1, n
-     !compute roots
-     !initial guess
-     if (iroot==1) then
-        root0=(1d0+alpha)*(3d0+0.92d0*alpha)/(1d0+2.4d0*n+1.8d0*alpha)
-     else if (iroot==2) then
-        root0 = root00 + (15d0+6.25d0*alpha)/(1d0+0.9*alpha + 2.5d0*n)
-     else
-        root0 = root00 +(root00-root000)/(1d0+0.3*alpha) * ((1+2.55d0*iroot)/(1.9d0*iroot)&
-             +1.26d0*iroot*alpha/(1d0+3.5d0*iroot))
-     end if
-     icount = 0
-     do while(.true.) !Newton-Rhapson.
-        call laguerre(root0,p,dp,n)
-        root = root0-p/dp
-        if (abs(root-root0)/root < eps) exit
-        icount = icount+1
-        if (icount >1000) then
-           write(0,'(a,i4,e24.16,e24.16)') "ERROR: gaussquad_laguerre: Newton-Rhapson failed.  Try a lower order.",&
-                iroot, root0, root
-           stop
-        end if
-        root0=root
-     end do
-     root000 = root00
-     root00 = root0
-     root0 = root
-     x(iroot) = root
-     call laguerre(root,p,dp,n+1)
-     weight(iroot) = x(iroot)/(dble(n+1)*p)**2*exp(x(iroot))
-     if (iroot > 1 .and. x(iroot) <= x(iroot-1)) then
-        write(0,'(a,i4)') "ERROR: gaussquad_laguerre failed to find unique roots for order", n
-        stop
-     end if
-  end do
-end subroutine gaussquad_laguerre
-
-
-!! Calculates the value of the Nth order Laguerre polynomial at X and its first
-!! derivative.
-!! IN:
-!!    x :: 0 < x < infinity
-!!    y :: P_n(x)
-!!    dy :: P'_n(x)
-!!    n :: order of the polynomial
-
-subroutine laguerre(x,y,dy,n)
-  implicit none
-  _REAL_, intent(in) :: x
-  _REAL_, intent(out) :: y,dy
-  integer, intent(in) :: n
-  _REAL_ :: y0,y1
-  integer :: i
-  y0 = 1d0
-  y = 1d0
-  dy = 0d0
-  if (n==0) return
-  y1 = -x+1d0
-  y = -x+1d0
-  dy = -1d0
-  if (n==1) return
-  do i = 2,n
-     y = ((2d0*i-1d0 -x)*y1-dble(i-1)*y0)/dble(i)
-     dy = i*(y-y1)/x
-     y0=y1
-     y1=y
-  end do
-end subroutine laguerre
-#endif
-
-#if 0
-!! Computes zeroth order spherical Bessel function.  Adapted from the GNU 
-!! Scientific library.
-!! IN:
-!!    x :: calculate the spherical Bessel function a x
-!!    o_err :: (optional) absolute error in the result.  For abs(x)>0.5d0 this is
-!!             an approximation of the GSL version since we don't know the error
-!!             for the intrinsic sin(x)
-!! OUT:
-!!     the value of the zeroth spherical Bessel function at x
-
-function spherical_bessel_j0(x,o_err) result(val)
-  implicit none
-  _REAL_, intent(in) :: x
-  _REAL_, optional, intent(out) :: o_err
-  _REAL_ :: val
-  _REAL_ :: ax
-  _REAL_, parameter :: c1 = -1d0/6d0, &
-       c2 =  1d0/120d0,&
-       c3 = -1d0/5040d0,&
-       c4 =  1d0/362880d0,&
-       c5 = -1d0/39916800d0,&
-       c6 =  1d0/6227020800d0
-  ax = abs(x)
-  if (ax < 0.5d0) then
-     ax = ax*ax
-     val = 1d0 + ax*(c1 + ax*(c2 + ax*(c3 + ax*(c4 + ax*(c5 + ax*c6)))))
-     if (present(o_err)) o_err = 2d0 * epsilon(1d0) * abs(val)
-  else
-     val  = sin(x)/x;
-     if (present(o_err)) then
-        !we don't know what the error is for intrinsic sin(x)!
-        o_err  = abs(epsilon(1d0)/x)  + 2.0 * epsilon(1d0) * abs(val)
-     end if
-  end if
-end function spherical_bessel_j0
-
-
-!! Computes first order spherical Bessel function.  Adapted from the GNU 
-!! Scientific library.
-!! IN:
-!!    x :: calculate the spherical Bessel function a x
-!!    o_err :: (optional) absolute error in the result.  For abs(x)>0.25d0 this is
-!!             an approximation of the GSL version since we don't know the error
-!!             for the intrinsics sin(x) and cos(x)
-!! OUT:
-!!     the value of the first spherical Bessel function at x
-
-function spherical_bessel_j1(x,o_err) result(val)
-  implicit none
-  _REAL_, intent(in) :: x
-  _REAL_, optional, intent(out) :: o_err
-  _REAL_ :: val
-  _REAL_ :: ax
-  _REAL_, parameter :: c1 = -1d0/10d0,&
-       c2 =  1d0/280d0,&
-       c3 = -1d0/15120d0,&
-       c4 =  1d0/1330560d0,&
-       c5 = -1d0/172972800d0
-
-  ax = abs(x)
-  if (x==0) then
-     val=0d0
-     if (present(o_err)) o_err=0d0
-  else if (ax < 3.1d0*tiny(1d0)) then
-     !GSL  gives an underflow error here.  We'll just approximate it as zero
-     val=0d0
-     if (present(o_err)) o_err=0d0
-  else if (ax < 0.25d0) then
-     ax = ax*ax
-     val = x/3d0*(1d0 + ax*(c1 + ax*(c2 + ax*(c3 + ax*(c4 + ax*c5)))))
-     if (present(o_err)) o_err = 2d0 * epsilon(1d0) * abs(val)
-  else
-     val  = (sin(x)/x - cos(x))/x;
-     if (present(o_err)) then
-        !we don't know what the error is for intrinsic sin(x)!
-        o_err  = (abs(epsilon(1d0)/x)+epsilon(1d0))/abs(x)  + 2.0 * epsilon(1d0) * abs(val)
-        o_err = o_err+ 2.0 * epsilon(1d0)*(abs(sin(x)/(x*x)) + abs(cos(x)/x))
-     end if
-  end if
-end function spherical_bessel_j1
-#endif
 
 !! Does a MPI sum
 
@@ -928,36 +533,4 @@ elemental _REAL_ function heaviside(x,offset)
   end if
 end function heaviside
   
-!> Calculate the root of a function using Newton-Rhapson method
-!! @param[in] func (function) the function to find the root of.
-!! @param[in] deriv (function) the derivative of the function
-!! @param[in] guess (_REAL_) initial guess of the root
-!! @param[in] tolerannce (_REAL_) relative error tolerance for the root
-function root_newton(func, deriv, guess, tolerance) result (root)
-  implicit none
-  interface
-     function func(x)
-       _REAL_ :: func
-       _REAL_, intent(in) :: x
-     end function func
-     function deriv(x)
-       _REAL_ ::deriv
-       _REAL_, intent(in) :: x
-     end function deriv
-  end interface
-  _REAL_, intent(in) :: guess, tolerance
-  _REAL_ :: root, root0
-  integer :: i
-  
-  root0 = guess
-  root = root0 - func(root0)/deriv(root0)
-  do i=1,1000
-     if (abs((root-root0)/root) < tolerance) then
-        exit
-     end if
-     root0=root
-     root = root0 - func(root0)/deriv(root0)
-  end do
-end function root_newton
-
 end module rism_util
