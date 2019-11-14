@@ -182,16 +182,6 @@ printf "netcdf.o:  \$(NETCDF)\n\ttest -e \$\@ || touch netcdf.o\n\n";
 # special "compilation rule" for omp_lib.o
 printf "omp_lib.o:\n\ttest -e \$\@ || touch omp_lib.o\n\n";
 
-# special compilation rule for AmberNetcdf.o, random.o, and constants.o
-printf "AmberNetcdf.o: ../lib/AmberNetcdf.F90\n";
-printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o AmberNetcdf.o ../lib/AmberNetcdf.F90\n\n";
-
-printf "random.o: ../lib/random.F90 ../lib/random.h\n";
-printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o random.o ../lib/random.F90\n\n";
-
-printf "constants.o: ../lib/constants.F90\n";
-printf "\t\@echo '[SANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FREEFORMAT_FLAG) \$(FOPTFLAGS) \$(FFLAGS) -o constants.o ../lib/constants.F90\n\n";
-
 #  special "compilation" rule for module object files in ../sqm
 print "qmmm_module.o: \n\ttest -e \$\@ || touch \$\@\n\n";
 print "qmmm_nml_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";

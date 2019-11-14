@@ -14,6 +14,14 @@ align.o:   align.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ align.F90
 
+AmberNetcdf.o: \
+                    netcdf.o
+
+
+AmberNetcdf.o:   AmberNetcdf.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ AmberNetcdf.F90
+
 ambmask.o: \
                     ../include/dprec.fh\
                     findmask.o\
@@ -204,6 +212,14 @@ constantph.o: \
 constantph.o:   constantph.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constantph.F90
+
+constants.o: \
+                    ../include/dprec.fh
+
+
+constants.o:   constants.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constants.F90
 
 cpparm.o: \
                     ../include/dprec.fh\
@@ -3053,6 +3069,14 @@ quench.o:   quench.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ quench.F90
 
+random.o: \
+                    random.h
+
+
+random.o:   random.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ random.F90
+
 rattle.o: \
                     ../include/dprec.fh\
                     parallel.h\
@@ -3932,18 +3956,6 @@ netcdf.o:  $(NETCDF)
 
 omp_lib.o:
 	test -e $@ || touch omp_lib.o
-
-AmberNetcdf.o: ../lib/AmberNetcdf.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o AmberNetcdf.o ../lib/AmberNetcdf.F90
-
-random.o: ../lib/random.F90 ../lib/random.h
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o random.o ../lib/random.F90
-
-constants.o: ../lib/constants.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FOPTFLAGS) $(FFLAGS) -o constants.o ../lib/constants.F90
 
 qmmm_module.o: 
 	test -e $@ || touch $@
