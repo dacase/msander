@@ -3898,7 +3898,8 @@ xray_fourier.o: \
                     constants.o\
                     xray_reciprocal_space.o\
                     xray_real_space.o\
-                    parallel.h
+                    parallel.h\
+                    ml.o
 
 
 xray_fourier.o:   xray_fourier.F90

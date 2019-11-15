@@ -1,5 +1,5 @@
 ! <compile=optimized>
-module sf_mod
+module ml_mod
 
   use file_io_dat
   ! use mdin_xray_dat_mod
@@ -445,9 +445,9 @@ contains
   end subroutine init_sf
 
   !--------------------------------------------------------------------------------------------
-  ! finalize_sf_mod:  clean up the structure factors computation before termination of pmemd
+  ! finalize_ml_mod:  clean up the structure factors computation before termination of pmemd
   !--------------------------------------------------------------------------------------------
-  subroutine finalize_sf_mod()
+  subroutine finalize_ml_mod()
 
     implicit none
 
@@ -479,7 +479,7 @@ contains
     write (sf_weight, *) starting_N_step + N_steps, total_N_steps
     close (sf_weight)
 
-  end subroutine finalize_sf_mod
+  end subroutine finalize_ml_mod
 
   !--------------------------------------------------------------------------------------------
   ! file_line_count:  calculate the number of structure factors in the input file, stored in
@@ -1483,6 +1483,8 @@ contains
                             mask_grid_size(3)
     ! END CHECK
 
+#if 0
+    ! FIXME: need to work on the fft integration
     do i = 1, mask_grid_size(4)
       mask_bs_grid_3d(i) = mask_bs_grid(i)
     end do
@@ -1491,7 +1493,7 @@ contains
     do i = 1, mask_grid_size(4)
       mask_bs_grid_t_c(i) = mask_bs_grid_3d_fft(i)
     end do
-#if 0
+
     call dfftw_plan_dft_r2c_3d(plan_forward, mask_grid_size(3), mask_grid_size(2), &
                                mask_grid_size(1), mask_bs_grid_3d, mask_bs_grid_3d_fft, &
                                FFTW_ESTIMATE)
@@ -1516,13 +1518,14 @@ contains
   !   exay:      xray restraint energy
   !   nstep:     the number of steps, passed down all the way from runmd
   !--------------------------------------------------------------------------------------------
-  subroutine estimate_ml_parameters(f_calc, exray, nstep)
+  subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
         
     !  xxx state_info_mod
 
-    integer :: nstep, i
+    integer :: nstep, i, NRF
     double precision :: mean_delta
     complex(8)       :: f_calc(NRF)
+    double precision :: f_obs(NRF)
     double precision :: k_scale(NRF)
     double precision :: r_work_factor_numerator, r_free_factor_numerator
     double precision :: exray
@@ -1647,7 +1650,7 @@ contains
                               Uaniso(5)*hk   + Uaniso(6)*hl   + Uaniso(7)*kl)
     f_calc = f_calc * k_scale
 
-    call estimate_ml_parameters(f_calc, exray, nstep)
+    call estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
 
     do j_k = 1, NAT_for_mask
       frc_sf(:, j_k) = zero
@@ -1676,4 +1679,4 @@ contains
 
   end subroutine get_sf_force
 
-end module sf_mod
+end module ml_mod

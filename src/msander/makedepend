@@ -58,6 +58,7 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
+$modulefile{"ml_mod"} = "ml";
 
 foreach $file ( <*.F90> ){
 	next if $file =~ /^_/;

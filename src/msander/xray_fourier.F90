@@ -12,7 +12,7 @@ module xray_fourier_module
 !
 !  fourier_dXYZBQ_dF  --  Calculate the derivative of the coordinate,
 !                              B, or occupancy versus the structure factor.
-!                              This one uses the direct (exact) Fourier.
+!                              This uses a simple least-squares target function.
 !
 !  dTarget_dF         --  Calculate a structure-factor restraint force
 !                              from the scalar difference of |Fobs| and |Fcalc|.
@@ -21,6 +21,8 @@ module xray_fourier_module
 !                              from the vector (complex) difference of Fobs 
 !                              and Fcalc.  (For use when phases are available,
 !                              as in cryoEM.
+!
+!  dTargetML_dF       --   Use the phenix maximum=-likelihood target function.
 !
 ! FUNCTIONS:
 !
@@ -385,7 +387,7 @@ contains
       implicit none
       integer, intent(in) :: num_hkl
       complex(real_kind), intent(in) :: Fobs(:)
-      complex(real_kind), intent(inout) :: Fcalc(:)
+      complex(real_kind), intent(in) :: Fcalc(:)
       complex(real_kind), intent(out) :: deriv(:)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
@@ -414,6 +416,34 @@ contains
       residual = sum (abs(vecdif)) / sum(abs_Fobs)
 
    end subroutine dTargetV_dF
+
+   ! This routine computes the force gradient on Fcalc, using the
+   ! phenix maximum likelihood function
+
+   subroutine dTargetML_dF(num_hkl,abs_Fobs,Fcalc,deriv, &
+         residual,xray_energy)
+      use ml_mod, only : estimate_ml_parameters
+      implicit none
+      integer, intent(in) :: num_hkl
+      real(real_kind), intent(in) :: abs_Fobs(:)
+      complex(real_kind), intent(inout) :: Fcalc(:)
+      complex(real_kind), intent(out) :: deriv(:)
+      real(real_kind), intent(out) :: residual
+      real(real_kind), intent(out) :: xray_energy
+
+      integer :: nstep = 0
+
+      write(6,*) 'dTargetML_dF() was called, but is not yet implemented!'
+      call mexit(6,1)
+
+      ! call things like estimate_ml_parameters() here
+      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep, num_hkl )
+
+      ! xray_energy = ???
+      ! deriv(:) = ???
+      ! residual = ???
+
+   end subroutine dTargetML_dF
 
    function atom_scatter_factor_mss4(coeffs,mss4) result(sfac)
       real(real_kind) :: sfac
