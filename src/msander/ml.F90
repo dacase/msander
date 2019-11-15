@@ -9,7 +9,12 @@ module sf_mod
   
   implicit none
 
-#include "fftw3.f"
+  integer :: sfactors_unit = 31, sf_weight = 32
+  character(len=50) :: sfactors_name = ''
+
+#if 0
+#  include "fftw3.f"
+#endif
 
   ! This is written out with nine lines of five entries, but really just one big line full
   ! of 45 entries.  The data is immediately reshaped into the requisite 9 col x 5 row array.
@@ -364,7 +369,6 @@ contains
 
   end function adjust_gridding
 
-#if 0
   !--------------------------------------------------------------------------------------------
   ! init_sf: gateway to structure factor computations.  Fires off open_sf_file and orders up
   !          reading for lots of parameters in the calculation.
@@ -381,16 +385,14 @@ contains
     character(4) :: name
     integer :: i, n_atom, nstlim
     
-    ! Return immediately if there are no structure factor computations    
-    if (ixray .eq. 0) then
-      return
-    end if
-
     N_steps = nstlim
     allocate(atom_types(n_atom))
     allocate(mask_cutoffs(n_atom))
     do i = 1, n_atom
-      name = atm_igraph(i)
+
+      ! FIXME: need to get atom names visible to this routine
+      ! name = atm_igraph(i)
+
       if (name(1:1) == 'C') then
         if (name == 'Cl-') then
           atom_types(i) = 0
@@ -428,7 +430,7 @@ contains
     allocate(frc_sf(3, NAT_for_mask))
     allocate(frc_adp(NAT_for_mask))
     allocate(frc_adp_a_priori(NAT_for_mask))
-    call open_sf_file(sfactors, sfactors_name)
+    call open_sf_file(sfactors_unit, sfactors_name)
     write(mdout, *) "Parsed structure factors file"
     if (BFactors_len == NAT_for_mask) then
       write(mdout, *) "All good, Bfactors are read"
@@ -478,7 +480,6 @@ contains
     close (sf_weight)
 
   end subroutine finalize_sf_mod
-#endif
 
   !--------------------------------------------------------------------------------------------
   ! file_line_count:  calculate the number of structure factors in the input file, stored in
@@ -708,7 +709,6 @@ contains
     end do
   end subroutine bubble_sort
 
-#if 0
   !--------------------------------------------------------------------------------------------
   ! open_sf_file: open and read, unpack parameters, B-factors, and structure factors from a
   !               file.
@@ -995,9 +995,12 @@ contains
       nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
       nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
 #endif
-      na = nfft1
-      nb = nfft2
-      nc = nfft3
+
+      ! FIXME: need to make nfft1,nfft2,nfft3 visible here:
+      ! na = nfft1
+      ! nb = nfft2
+      ! nc = nfft3
+
       grid_stepX = a / na
       grid_stepY = vb(2) / nb
       grid_stepZ = vc(3) / nc
@@ -1118,7 +1121,6 @@ contains
 
     return
   end subroutine open_sf_file
-#endif
 
   !--------------------------------------------------------------------------------------------
   ! A_B_C_D_omega:  start alpha and beta estimation according to
