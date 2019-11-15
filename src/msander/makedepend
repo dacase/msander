@@ -62,8 +62,6 @@ $modulefile{"SANDER_API_MOD"} = "interface";
 foreach $file ( <*.F90> ){
 	next if $file =~ /^_/;
 	($fileroot) = $file =~ /(.+)\.F90$/;
-    next if $fileroot eq "sf";
-    next if $fileroot eq "mdin_xray_dat";
 	$optimized{$fileroot} = 0;
 	open( F, "$file" ) || die "unable to open $file\n";
 	while( <F> ){
@@ -92,8 +90,6 @@ foreach $file ( <*.F90> ){
 	$deps = $depsLES = $depsPUPIL = $depsAPBS = $depsAPI = $depsLESAPI = "";
 
 	($fileroot) = $file =~ /(.+)\.F90$/;
-    next if $fileroot eq "sf";
-    next if $fileroot eq "mdin_xray_dat";
 
 	#  construct the header and module dependency rules:
 
@@ -134,6 +130,7 @@ foreach $file ( <*.F90> ){
 			($head,$included) = /(# *include) +"(.*)"/;
 			next if $included eq "mpif.h";
 			next if $included eq "timer.h";
+            next if $included eq "fftw3.f";
 			if( !defined $used{ $fileroot,$included } ){
 				$deps .= "\\\n                    " . $included ;
 				$depsLES .= "\\\n                    " . $included ;

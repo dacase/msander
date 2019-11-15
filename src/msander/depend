@@ -1750,6 +1750,14 @@ minrit.LES.o:   minrit.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
+ml.o: \
+                    file_io_dat.o
+
+
+ml.o:   ml.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ml.F90
+
 molecule.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh

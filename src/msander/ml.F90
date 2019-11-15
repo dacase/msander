@@ -1,14 +1,15 @@
+! <compile=optimized>
 module sf_mod
 
-  use file_io_dat_mod
-  use mdin_xray_dat_mod
-  use mdin_ctrl_dat_mod
-  use mdin_ewald_dat_mod
-  use pme_slab_fft_mod
+  use file_io_dat
+  ! use mdin_xray_dat_mod
+  ! use mdin_ctrl_dat_mod
+  ! use mdin_ewald_dat_mod
+  ! use pme_slab_fft_mod
   
   implicit none
 
-#include <fftw3.f>
+#include "fftw3.f"
 
   ! This is written out with nine lines of five entries, but really just one big line full
   ! of 45 entries.  The data is immediately reshaped into the requisite 9 col x 5 row array.
@@ -363,6 +364,7 @@ contains
 
   end function adjust_gridding
 
+#if 0
   !--------------------------------------------------------------------------------------------
   ! init_sf: gateway to structure factor computations.  Fires off open_sf_file and orders up
   !          reading for lots of parameters in the calculation.
@@ -371,8 +373,8 @@ contains
   !   crd:    
   !--------------------------------------------------------------------------------------------
   subroutine init_sf(n_atom, nstlim)
-    use prmtop_dat_mod
-    use state_info_mod
+    ! xxx prmtop_dat_mod
+    ! xxx state_info_mod
 
     implicit none
 
@@ -476,6 +478,7 @@ contains
     close (sf_weight)
 
   end subroutine finalize_sf_mod
+#endif
 
   !--------------------------------------------------------------------------------------------
   ! file_line_count:  calculate the number of structure factors in the input file, stored in
@@ -705,6 +708,7 @@ contains
     end do
   end subroutine bubble_sort
 
+#if 0
   !--------------------------------------------------------------------------------------------
   ! open_sf_file: open and read, unpack parameters, B-factors, and structure factors from a
   !               file.
@@ -1114,6 +1118,7 @@ contains
 
     return
   end subroutine open_sf_file
+#endif
 
   !--------------------------------------------------------------------------------------------
   ! A_B_C_D_omega:  start alpha and beta estimation according to
@@ -1506,20 +1511,19 @@ contains
   ! Arguments:
   !   f_calc:    the initial computed structure factors (these will be modified with results
   !              from this routine)
-  !   pot_ene:   potential energies (this is geared towards PME only)
+  !   exay:      xray restraint energy
   !   nstep:     the number of steps, passed down all the way from runmd
   !--------------------------------------------------------------------------------------------
-  subroutine estimate_ml_parameters(f_calc, pot_ene, nstep)
+  subroutine estimate_ml_parameters(f_calc, exray, nstep)
         
-    use state_info_mod
-    use energy_records_mod, only : pme_pot_ene_rec
+    !  xxx state_info_mod
 
     integer :: nstep, i
     double precision :: mean_delta
     complex(8)       :: f_calc(NRF)
     double precision :: k_scale(NRF)
     double precision :: r_work_factor_numerator, r_free_factor_numerator
-    type(pme_pot_ene_rec) :: pot_ene
+    double precision :: exray
     
     if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc)
@@ -1537,7 +1541,7 @@ contains
     pseudo_energy_weight = pseudo_energy_weight + pseudo_energy_weight_incr
 
     ! ML target function
-    pot_ene%restraint = pot_ene%restraint + pseudo_energy_weight * &
+    exray = exray + pseudo_energy_weight * &
                         sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
                             f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
                             ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
@@ -1545,51 +1549,7 @@ contains
 
   end subroutine estimate_ml_parameters
 
-  !--------------------------------------------------------------------------------------------
-  ! estimate_ml_parameters: currently this is only implemented on the CPU.  It is not all that
-  !                         much time to pull down the array of structure factors and compute
-  !                         these things on the CPU, but a GPU implementation of this
-  !                         algorithm, looping over all reflections multiple times, would be
-  !                         helpful.
-  !
-  ! Arguments:
-  !   f_calc:    the initial computed structure factors (these will be modified with results
-  !              from this routine)
-  !   pot_ene:   potential energies (this is geared towards GB only)
-  !   nstep:     the number of steps, passed down all the way from runmd  
-  !--------------------------------------------------------------------------------------------
-  subroutine estimate_ml_parameters_gb(f_calc, pot_ene, nstep)
-
-    use state_info_mod
-    use energy_records_mod, only : gb_pot_ene_rec
-
-    integer :: nstep
-    complex(8)       :: f_calc(NRF)
-    double precision :: k_scale(NRF)
-    double precision :: r_work_factor_numerator, r_free_factor_numerator
-    type(gb_pot_ene_rec) :: pot_ene
-
-    if (mod(nstep, mask_update_frequency) == 0) then
-      call estimate_alpha_beta(f_calc)
-      delta_array = alpha_array / beta_array
-    endif
-
-    f_calc_abs = abs(f_calc)
-    r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
-    r_free_factor_numerator = sum(abs(f_calc_abs(NRF_work + 1:NRF) - f_obs(NRF_work + 1:NRF)))
-    write(mdout, *) 'R_WORK = ', r_work_factor_numerator / r_work_factor_denominator
-    write(mdout, *) 'R_FREE = ', r_free_factor_numerator / r_free_factor_denominator
-    pseudo_energy_weight = pseudo_energy_weight + pseudo_energy_weight_incr
-
-    ! ML target function
-    pot_ene%restraint = pot_ene%restraint + pseudo_energy_weight * &
-                        sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
-                        f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
-                        ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
-                        f_obs(1:NRF_work)))
-
-  end subroutine estimate_ml_parameters_gb
-
+#if 0
   !--------------------------------------------------------------------------------------------
   ! estimate_weight: currently not in use.
   !                  Handles the X-ray weight ramping if selected by the user
@@ -1600,7 +1560,7 @@ contains
   !--------------------------------------------------------------------------------------------
   subroutine estimate_weight(n_atom, current_step)
 
-    use state_info_mod
+    ! xxx state_info_mod
 
     implicit none
 
@@ -1625,6 +1585,7 @@ contains
     call_est = call_est + 1
 
   end subroutine
+#endif
 
   !--------------------------------------------------------------------------------------------
   ! get_sf_force: CPU routine to encapsulate the subroutines for computing forces based on
@@ -1634,13 +1595,12 @@ contains
   !   n_atom:   the number of atoms in the simulation (passed down from runmd)
   !   crd:      atomic coordinates for the whole system
   !   frc:      forces on all atoms in the system
-  !   pot_ene:  potential energies record, serves PME only
+  !   exray:    potential energies record, serves PME only
   !   nstep:    the step number (passed down from runmd)
   !--------------------------------------------------------------------------------------------
-  subroutine get_sf_force(n_atom, crd, frc, pot_ene, nstep)
+  subroutine get_sf_force(n_atom, crd, frc, exray, nstep)
 
-    use state_info_mod
-    use energy_records_mod, only : pme_pot_ene_rec
+    ! xxx state_info_mod
 
     implicit none
 
@@ -1650,7 +1610,7 @@ contains
     double precision :: term, b(7), Uaniso(7)
     complex(8)       :: exp_of_rn_x_s_dot_product
     integer :: i, j, j_k, n_atom, nstep
-    type(pme_pot_ene_rec) :: pot_ene
+    double precision :: exray
 
     call init_bulk_solvent()
     call grid_bulk_solvent(n_atom, crd)
@@ -1685,7 +1645,7 @@ contains
                               Uaniso(5)*hk   + Uaniso(6)*hl   + Uaniso(7)*kl)
     f_calc = f_calc * k_scale
 
-    call estimate_ml_parameters(f_calc, pot_ene, nstep)
+    call estimate_ml_parameters(f_calc, exray, nstep)
 
     do j_k = 1, NAT_for_mask
       frc_sf(:, j_k) = zero
