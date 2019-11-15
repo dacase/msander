@@ -3960,32 +3960,32 @@ xray_utils.o:   xray_utils.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_utils.F90
 
 netcdf.o:  $(NETCDF)
-	test -e $@ || touch netcdf.o
+	@(test -e $@ || touch netcdf.o)
 
 omp_lib.o:
-	test -e $@ || touch omp_lib.o
+	@(test -e $@ || touch omp_lib.o)
 
 qmmm_module.o: 
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 qmmm_nml_module.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 qmmm_qmtheorymodule.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 qmmm_struct_module.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 qmmm_vsolv_module.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 qm2_read_nm_and_alloc.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 elementOrbitalIndex.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 
 utilitiesmodule.o:  
-	test -e $@ || touch $@
+	@(test -e $@ || touch $@)
 

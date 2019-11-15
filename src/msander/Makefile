@@ -61,7 +61,7 @@ MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     new_time.o extra_pts.o thermo_int.o \
     assert.o erfcfun.o md_scheme.o \
     constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
-    AmberNetcdf.o bintraj.o binrestart.o \
+    AmberNetcdf.o bintraj.o binrestart.o mexit.o matinv.o amopen.o wallclock.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
     charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
 
@@ -78,7 +78,7 @@ LESOBJ= memory_module.o stack.o file_io_dat.o \
     ew_force.LES.o ew_setup.LES.o ew_bspline.o\
     ew_fft.o short_ene.LES.o ew_recip.LES.o pcshift.o \
     align.o csa.o rfree.o rgroup.o \
-    sander_lib.o random.o \
+    sander_lib.o random.o mexit.o matinv.o amopen.o wallclock.o \
     debug.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
     new_time.o extra_pts.LES.o thermo_int.o assert.o \
     erfcfun.o md_scheme.LES.o \
@@ -137,6 +137,7 @@ libs:
 	$(VB)cd ../sqm && $(MAKE) libsqm
 	$(VB)cd ../lib && $(MAKE) libsys
     
+#---------------------------------------------------------------------------
 Plumed.o: Plumed.c
 	@echo "[SANDER]  CC $<"
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) \
@@ -154,15 +155,25 @@ xminC.o:  xminC.c
 	@echo "[SANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
+ArrayList.o:  ArrayList.c
+	@echo "[SANDER]  CC $<"
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
+
+KFReader.o:  KFReader.c
+	@echo "[SANDER]  CC $<"
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
+
+qm2_read_adf_results.o:  qm2_read_adf_results.c
+	@echo "[SANDER]  CC $<"
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
+
+#---------------------------------------------------------------------------
 clean:
-	/bin/rm -f sander.PUPIL$(SFX)
-	/bin/rm -f sander.APBS$(SFX)
 	/bin/rm -f *.o
 	/bin/rm -f *.mod
-	/bin/rm -f *.d
-	/bin/rm -f *nbflag
 	/bin/rm -f *__genmod.f90  # intel compiler-generated interface modules
 
+#---------------------------------------------------------------------------
 depend::
 	./makedepend > depend
 

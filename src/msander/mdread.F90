@@ -1228,7 +1228,7 @@ subroutine mdread2(x,ix,ih)
    integer noshakegp( natom ), natnos
    integer ier
    logical errFlag
-   _REAL_ emtmd
+   _REAL_ emtmd, wallc
 #ifndef LES
    logical newstyle
 #endif /* LES */

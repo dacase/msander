@@ -177,17 +177,17 @@ foreach $file ( <*.F90> ){
 }
 
 # special "compilation rule" for netcdf.o
-printf "netcdf.o:  \$(NETCDF)\n\ttest -e \$\@ || touch netcdf.o\n\n";
+printf "netcdf.o:  \$(NETCDF)\n\t@(test -e \$\@ || touch netcdf.o)\n\n";
 
 # special "compilation rule" for omp_lib.o
-printf "omp_lib.o:\n\ttest -e \$\@ || touch omp_lib.o\n\n";
+printf "omp_lib.o:\n\t@(test -e \$\@ || touch omp_lib.o)\n\n";
 
 #  special "compilation" rule for module object files in ../sqm
-print "qmmm_module.o: \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_nml_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_qmtheorymodule.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_struct_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qmmm_vsolv_module.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "qm2_read_nm_and_alloc.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "elementOrbitalIndex.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
-print "utilitiesmodule.o:  \n\ttest -e \$\@ || touch \$\@\n\n";
+print "qmmm_module.o: \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "qmmm_nml_module.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "qmmm_qmtheorymodule.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "qmmm_struct_module.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "qmmm_vsolv_module.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "qm2_read_nm_and_alloc.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "elementOrbitalIndex.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";
+print "utilitiesmodule.o:  \n\t@(test -e \$\@ || touch \$\@)\n\n";

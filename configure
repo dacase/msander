@@ -501,6 +501,6 @@ fi
 /bin/rm -f testp.f testp.o testp
 
 if [ "$conda" == "no" ]; then
-   printf "\nThe next step is to type 'make install'\n\n"
+   printf "\nThe next step is to type 'make clean && make install'\n\n"
 fi
 exit 0
