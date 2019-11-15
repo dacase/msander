@@ -32,12 +32,6 @@ module rism3d_potential_c
      !> Cutoff**2 for RISM LJ potential calculations.
      _REAL_ :: cutoff2
      _REAL_, pointer :: ljCutoffs2(:,:) => NULL()
-     !> Cutoff for long range asymptotics of the total correlation function.
-     _REAL_ :: cut_hlr
-     !> Cutoff for long range asymptotics of the direct correlation function.
-     _REAL_ :: cut_clr
-     !> Cutoff for k-space long range asymptotics of the direct and total correlation functions.
-     _REAL_ :: cut2_chlk
 
      !> Pointer to grid object.
      type(rism3d_grid), pointer :: grid => NULL()
@@ -47,7 +41,7 @@ module rism3d_potential_c
      !> Pointer to solvent object.
      type(rism3d_solvent), pointer :: solvent => NULL()
 
-     !> Total time for potential and asymptotics.
+     !> Total time for potential
      type(rism_timer) :: timer
      !> Timer for LJ potential.
      type(rism_timer) :: ljTimer
@@ -57,14 +51,6 @@ module rism3d_potential_c
      type(rism_timer) :: coulombLongRangeTimer
      !> Timer for short range portion of Coulomb potential.
      type(rism_timer) :: coulombShortRangeTimer
-     !> Timer for long range asymptotics.
-     type(rism_timer) :: asympTimer
-     !> Timer for long range asymptotics: TCF r-space.
-     type(rism_timer) :: asympTcfRTimer
-     !> Timer for long range asymptotics Dcf & TCF k-space.
-     type(rism_timer) :: asympDcfTcfKTimer
-     !> Timer for long range asymptotics DCF r-space.
-     type(rism_timer) :: asympDcfRTimer
 
      !> Potential energy of the solvent about the solute.  This is
      !! recalculated for each solution but we want to reserve the
@@ -93,15 +79,6 @@ module rism3d_potential_c
      !> Solute-solvent LJ B coefficient
      _REAL_, pointer :: ljBUV(:,:) => NULL()
 
-     !> Supercell real space asymptotics for direct correlation function.
-     _REAL_, pointer :: dcfLongRangeAsympR(:) => NULL()
-     !> Supercell k-space asymptotics for direct correlation function.
-     _REAL_, pointer :: dcfLongRangeAsympK(:) => NULL()
-     !> Supercell real space asymptotics for total correlation function.
-     _REAL_, pointer :: tcfLongRangeAsympR(:) => NULL()
-     !> Supercell k-space asymptotics for total correlation function.
-     _REAL_, pointer :: tcfLongRangeAsympK(:) => NULL()
-
      !> Long-range part of Huv(k) at k = 0 (2, solv%natom).
      _REAL_, pointer :: huvk0(:,:) => NULL()
      !> Long-range part of temperature derivative Huv(k) at k = 0 (2, solv%natom).
@@ -124,7 +101,7 @@ module rism3d_potential_c
      !! sites.
      _REAL_ :: biasPotential
      _REAL_, pointer :: phineut(:) => NULL()
-     ! potential energy and long-range asymptotics options
+     ! potential energy
      
      !> Charge smearing parameter for long-range
      !! asymtotics and Ewald, typically eta in the literature
@@ -194,14 +171,6 @@ contains
        call rism_timer_new(this%coulombShortRangeTimer, "Short-Range Coulomb")
        call rism_timer_setParent(this%coulombShortRangeTimer, this%coulombTimer)
     end if
-    call rism_timer_new(this%asympTimer, "Asymptotics")
-    call rism_timer_setParent(this%asympTimer, this%timer)
-    call rism_timer_new(this%asympTcfRTimer, "Asymptotics TCF-R")
-    call rism_timer_setParent(this%asympTcfRTimer, this%asympTimer)
-    call rism_timer_new(this%asympDcfTcfKTimer, "Asymptotics Dcf/TCF-K")
-    call rism_timer_setParent(this%asympDcfTcfKTimer, this%asympTimer)
-    call rism_timer_new(this%asympDcfRTimer, "Asymptotics DCF-R")
-    call rism_timer_setParent(this%asympDcfRTimer, this%asympTimer)
     
   end subroutine rism3d_potential_new
 
@@ -304,7 +273,6 @@ contains
        call rism_timer_destroy(this%coulombLongRangeTimer)
        call rism_timer_destroy(this%coulombShortRangeTimer)
     end if
-    call rism_timer_destroy(this%asympTimer)
     call rism_timer_destroy(this%timer)
     nullify(this%grid)
     nullify(this%solvent)
@@ -324,14 +292,6 @@ contains
          call rism_report_error("ljBUV deallocation failed")
     if (safemem_dealloc(this%ljCutoffs2) /= 0) &
          call rism_report_error("ljCutoffs2 deallocation failed")
-    if (safemem_dealloc(this%dcfLongRangeAsympR) /= 0) &
-         call rism_report_error("asympcr deallocation failed")
-    if (safemem_dealloc(this%dcfLongRangeAsympK) /= 0) &
-         call rism_report_error("dcfLongRangeAsympK deallocation failed")
-    if (safemem_dealloc(this%tcfLongRangeAsympR) /= 0) &
-         call rism_report_error("tcfLongRangeAsympR deallocation failed")
-    if (safemem_dealloc(this%tcfLongRangeAsympK) /= 0) &
-         call rism_report_error("tcfLongRangeAsympK deallocation failed")
     if (safemem_dealloc(this%huvk0) /= 0) &
          call rism_report_error("huvk0 deallocation failed")
     if (safemem_dealloc(this%huvk0_dT) /= 0) &

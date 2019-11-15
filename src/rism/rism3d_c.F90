@@ -11,7 +11,6 @@
 !! o Temperature derivative expressed as T*d/dT
 !! o MDIIS accelerated solutions
 !! o Optional cutoffs
-!! o Supercell method for long range asymptotics
 !! o Analytic forces
 !! o Variable grid size and dynamic memory allocation
 !! o MPI support
@@ -136,8 +135,6 @@ module rism3d_c
      !> Variable box size.
      logical :: varbox = .true.
 
-     !> long-range asymptotics k-space cut off tolerance.  Only grid
-     !! points that have an approximate value greater than this will be computed.
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: NVec

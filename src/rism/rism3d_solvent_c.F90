@@ -132,9 +132,6 @@ contains
   !! @param[in] density_sp Solvent density by molecular species [#/A^3].
   !! @param[in] ljSigma Solvent LJ-sigma by atom type [A].
   !! @param[in] eps Solvent LJ-epsilon by atom type [kT].
-  !! @param[in] delhv0 Long range asymptotics of the solute-solvent TCF
-  !!    at k = 0 (not yet multiplied by solute-specific coefficients - see
-  !!    eq. 20 in Kovalenko 2000).
   !! @param[in] o_mpicomm (optional) MPI communicator.
   subroutine rism3d_solvent_new_all(this, dr, dt, temperature, dielconst, xappa, &
        xikt, xikt_dT, smear, natom, nspecies, numAtomSpecies, nr, mult, atomName, &

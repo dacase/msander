@@ -49,7 +49,7 @@ subroutine mdread1()
 #ifdef RISMSANDER
 #  ifndef API
    use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
-        uuvfile, asympfile, quvFile, chgDistFile, electronMapFile, &
+        uuvfile, quvFile, chgDistFile, electronMapFile, &
         excessChemicalPotentialfile, solvationEnergyfile, entropyfile, &
         excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
         excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile,&
@@ -238,8 +238,6 @@ subroutine mdread1()
         write(6,9701) 'Cuv', trim(Cuvfile)
    if (len_trim(uuvfile) > 0) &
         write(6,9701) 'Uuv', trim(Uuvfile)
-   if (len_trim(asympfile) > 0) &
-        write(6,9701) 'Asymptotics', trim(asympfile)
    if (len_trim(quvfile) > 0) &
         write(6,9701) 'Quv', trim(Quvfile)
    if (len_trim(chgDistfile) > 0) &

@@ -1421,13 +1421,10 @@ locmem.LES.o:   locmem.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
-matinv.o: \
-                    ../include/dprec.fh
-
 
 matinv.o:   matinv.F90
 	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
 
 mbar.o: \
                     ../include/assert.fh\

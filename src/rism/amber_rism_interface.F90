@@ -324,8 +324,6 @@ module amber_rism_interface
      integer :: ng3(3)
      !> Use 3D-RISM.
      integer :: rism
-     !> Use long range asymptotic corrections for thermodynamic calculations.
-     logical*4 :: asympcorr
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: mdiis_nvec
@@ -446,7 +444,6 @@ module amber_rism_interface
   !huvfile       : (output) total correlation function.  Volumetric file.
   !cuvfile       : (output) direct correlation function.  Volumetric file.
   !uuvfile       : (output) solute-solvent potential.  Volumetric file.
-  !asympfile     : (output) long range asymptotics function.  Volumetric file.
   !quvfile       : (output) charge density distribution.  Volumetric file.
   !chgDistFile   : (output) charge distribution. Volumetric file.
   !excessChemicalPotentialfile    : (output) excess chemical potential map [kcal/mol/A^3]. Volumetric file.
@@ -467,7 +464,7 @@ module amber_rism_interface
   !                    Either 'ewald' or 'pme' or 'pmekh'.
   !volfmt        : either 'ccp4', 'dx', or 'xyzv'
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
-       uuvfile='', asympfile='', quvFile='', chgDistFile='', &
+       uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
        excessChemicalPotentialGFfile='', solvationEnergyGFfile='', entropyGFfile='', &
        excessChemicalPotentialPCPLUSfile='', solvationEnergyPCPLUSfile='', entropyPCPLUSfile='', &
@@ -518,8 +515,6 @@ contains
   !! @param[in] cuvchar Character array for Cuv output file name.
   !! @param[in] uuvlen Length of uuvchar array.
   !! @param[in] uuvchar Character array for Uuv output file name.
-  !! @param[in] asymplen Length of asympchar array.
-  !! @param[in] asympchar Character array for asymptotics output file name.
   !! @param[in] quvlen Length of quvchar array.
   !! @param[in] quvchar Character array for Quv output file name.
   !! @param[in] chgDistlen Length of chgDistchar array.
@@ -715,9 +710,8 @@ contains
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'centering'//whtspc, rismprm%centering, &
                ', zerofrc'//whtspc, rismprm%zerofrc
-          write(outunit, '(5x, a10, "=", i10, a11, "=", l10)') &
-               'apply_rism_force'//whtspc, rismprm%apply_rism_force, &
-               ', asympcorr'//whtspc, rismprm%asympcorr
+          write(outunit, '(5x, a10, "=", i10)') &
+               'apply_rism_force'//whtspc, rismprm%apply_rism_force
           write(outunit, '(5x, a10, "=", i10)') &
                'rismnrespa'//whtspc, rismprm%rismnrespa
           write(outunit, '(5x, 2(a20, "= ", a8))') &
@@ -1277,9 +1271,6 @@ contains
     implicit none
     integer :: err
     integer*8 :: memstats(10)
-    call rism_timer_destroy(timer_write)
-    call rism_timer_destroy(timer_init)
-    call rism_timer_destroy(timer)
     if (rismprm%rism == 1) then
        call rism3d_destroy(rism_3d)
        call rismthermo_destroy(rismthermo)
@@ -1295,7 +1286,11 @@ contains
        if (safemem_dealloc(tolerancelist) /= 0) &
             call rism_report_error("Deallocation in Amber-RISM interface failed")
        call rism_max_memory()
+       ! call rism_printTimer()
     end if
+    call rism_timer_destroy(timer_write)
+    call rism_timer_destroy(timer_init)
+    call rism_timer_destroy(timer)
   end subroutine rism_finalize
 
   
@@ -1413,7 +1408,6 @@ contains
     end if
 
     call rism_writePdfTcfDcf(this, writeVolume, step, extension)
-    call rism_writePotentialAsymptotics(this, writeVolume, step, extension)
     call rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
     call rism_writeSmearElectronMap(this, writeVolume, step, extension)
     
@@ -1505,9 +1499,7 @@ contains
                 do i = 1, this%grid%globalDimsR(1)
                    ig = i + (j - 1) * this%grid%localDimsR(1) + &
                         (k - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   work(i, j, k) = &
-                        this%cuv(i,j,k, iv)&
-                        -this%potential%solvent%charge(iv)*this%potential%dcfLongRangeAsympR(ig)
+                   work(i, j, k) = this%cuv(i,j,k, iv)
                 end do
              end do
           end do
@@ -1633,30 +1625,6 @@ contains
 
           call writeVolume(trim(uuvfile)//suffix, this%potential%uuv(:, :, :, iv), &
                this%grid, this%solute, mpirank, mpisize, mpicomm)
-       endif
-       ! Asymptotics files.  There are four but it is a simple loop.
-       if (len_trim(asympfile) /= 0 .and. this%solute%charged) then
-          write(cstep, '(i16)') step
-          cstep = adjustl(cstep)
-          suffix = '.'//trim(cstep)
-          suffix = trim(suffix)//extension
-          ! h(r)
-          if (this%solvent%ionic) then
-             call writeVolume(trim(asympfile)//"hr"//suffix, &
-                  & this%potential%tcfLongRangeAsympR, &
-                  & this%grid, this%solute, mpirank, mpisize, mpicomm)
-          else if(.not. warned_h) then
-             call rism_report_warn("Not writing long-range asymptotics of h(r); not used for non-ionic solvent.")
-             warned_h = .true.
-          end if
-          ! c(r)
-          call writeVolume(trim(asympfile)//"cr"//suffix, &
-               & this%potential%dcfLongRangeAsympR, &
-               & this%grid, this%solute, mpirank, mpisize, mpicomm)
-
-       else if (.not.this%solute%charged .and. .not. warned_all) then
-          call rism_report_warn("Not writing long-range asymptotics; not used for uncharged solute.")
-          warned_all = .true.
        endif
     end do
   end subroutine rism_writePotentialAsymptotics
@@ -1846,9 +1814,6 @@ contains
        call mpi_bcast(rismprm%biasPotential, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast BIASPOTENTIAL")
-       call mpi_bcast(rismprm%asympCorr, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ASYMPCORR")
        call mpi_bcast(rismprm%maxstep, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MAXSTEP")
@@ -1926,9 +1891,6 @@ contains
        call mpi_bcast(uuvfile, len(uuvfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast UUVFILE")
-       call mpi_bcast(asympfile, len(asympfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ASYMPFILE")
        call mpi_bcast(quvfile, len(quvfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast QUVFILE")
@@ -2002,7 +1964,6 @@ contains
     closurelist(2:)           = ''
     closurelist(1)            = 'KH'
     rismprm%closureOrder      = 1
-    rismprm%asympCorr         = .true.
     rismprm%uccoeff           = 0d0
     rismprm%biasPotential     = 0
     rismprm%polarDecomp       = 0
@@ -2052,8 +2013,6 @@ contains
     ! molecular reconstruction
     rismprm%molReconstruct = .false.
     
-    !long-range asymptotics k-space tolerance
-    !Lennard-Jones tolerance
     !charge smear
     rismprm%chargeSmear = 1d0
     rismprm%write_thermo=1
@@ -2068,7 +2027,6 @@ contains
     _REAL_ :: tolerance(nclosuredefault)
     integer :: closureOrder
     integer, intent(in) :: mdin_unit
-    logical :: asympCorr
     integer :: entropicDecomp
     integer :: polarDecomp
     integer :: gfCorrection
@@ -2113,7 +2071,6 @@ contains
     closure = closurelist
     tolerance = tolerancelist
     closureOrder = rismprm%closureOrder
-    asympCorr = rismprm%asympCorr
     entropicDecomp = rismprm%entropicDecomp
     polarDecomp = rismprm%polarDecomp
     gfCorrection = rismprm%gfCorrection
@@ -2155,7 +2112,6 @@ contains
     closurelist = closure
     tolerancelist = tolerance
     rismprm%closureOrder = closureOrder
-    rismprm%asympCorr=asympCorr
     rismprm%entropicDecomp = entropicDecomp
     rismprm%polarDecomp = polarDecomp
     rismprm%gfCorrection = gfCorrection
@@ -2220,10 +2176,6 @@ contains
           call rism_report_error( &
           "Only 'ewald', 'ewaldn', 'pme' and 'pmen' periodic potentials are supported.")
        end if 
-       ! Do not apply asymptotic corrections for periodic 3D-RISM.
-       rismprm%asympcorr = .false.
-       !if (rismprm%apply_rism_force /= 0 ) call rism_report_error( &
-       !   "RISM forces are not yet correct for periodic systems")
     end if
 
     ! Ensure that solvbox and ng3 have been set if buffer < 0.
