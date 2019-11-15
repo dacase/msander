@@ -1,15 +1,10 @@
 
 include ../config.h
 
-CONFIG_FILE=../config.h
-CONFIG_COMMAND=configure
-PARALLEL_TOKEN=DMPI
-
 SHELL=/bin/sh
 VPATH=
 
-# Sander Fortran source files are free format
-# Add also search paths for .mod files
+# Add search paths for .mod files
 LOCALFLAGS = -I../sqm -I../rism 
 
 NFE_OBJECTS = \
@@ -26,7 +21,7 @@ NFE_OBJECTS = \
     nfe-smd-hooks.o nfe-umbrella.o nfe-utils.o nfe-value.o mt19937.o
 
 QMOBJ= \
-    qm_mm.o qm_ewald.o qmmm_vsolv.o \
+    qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
     qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
@@ -45,58 +40,52 @@ QMAPIOBJ = \
     qm2_extern_genmpi_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
-MMOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
-    rmsgrd.o lmod.o rand2.o lmodC.o xminC.o decomp.o \
-    icosasurf.o egb.o remd.o findmask.o \
-    relax_mat.o nmr.o multitmd.o \
-    multisander.o sander.o trajene.o cshf.o nmrcal.o mtmdcall.o pearsn.o \
-    printe.o runmin.o rdparm.o sander_lib.o \
-    mdread.o locmem.o runmd.o relaxmd.o quench.o getcor.o degcnt.o decnvh.o \
-    fastwt.o parallel.o shake.o rattle.o ene.o mdwrit.o minrit.o \
-    set.o dynlib.o mdfil.o nmlsrc.o \
-    force.o ew_force.o ew_setup.o ew_box.o ew_bspline.o\
-    ew_fft.o nonbond_list.o short_ene.o ew_recip.o pcshift.o align.o csa.o \
-    rfree.o rgroup.o \
-    debug.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
-    new_time.o extra_pts.o thermo_int.o \
-    assert.o erfcfun.o md_scheme.o \
-    constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o\
-    AmberNetcdf.o bintraj.o binrestart.o mexit.o matinv.o amopen.o wallclock.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
-    charmm.o crg_reloc.o amd.o scaledMD.o barostats.o random.o les.o music_module.o
+MMOBJ = \
+    align.o AmberNetcdf.o amd.o amopen.o assert.o \
+    barostats.o binrestart.o bintraj.o charmm.o constante.o \
+    constantph.o constants.o crg_reloc.o csa.o cshf.o \
+    debug.o decnvh.o decomp.o degcnt.o dssp.o \
+    dynlib.o egb.o emap.o ene.o erfcfun.o \
+    ew_bndpol.o ew_box.o ew_bspline.o ew_dipole_recip.o ew_fft.o \
+    ew_force.o ew_handle_dips.o ew_recip.o ew_setup.o extra_pts.o \
+    fastwt.o file_io_dat.o findmask.o force.o getcor.o \
+    icosasurf.o ips.o iwrap2.o les.o linear_response.o \
+    lmodC.o lmod.o locmem.o matinv.o mbar.o \
+    mdfil.o mdread.o md_scheme.o mdwrit.o memory_module.o \
+    mexit.o minrit.o molecule.o mtmdcall.o multisander.o \
+    multitmd.o music_module.o new_time.o nmlsrc.o nmrcal.o \
+    nmr.o nonbond_list.o parallel.o parms.o pcshift.o \
+    pearsn.o printe.o prn_dipoles.o qm_mm.o quench.o rand2.o \
+    random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
+    remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
+    runmin.o sander_lib.o sander.o scaledMD.o set.o \
+    sglds.o shake.o short_ene.o softcore.o spatial_fft.o \
+    spatial_recip.o stack.o state.o thermo_int.o trajene.o \
+    wallclock.o xminC.o
 
-LESOBJ= memory_module.o stack.o file_io_dat.o \
-    constants.o state.o \
-    rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
-    egb.LES.o remd.LES.o findmask.o \
-    relax_mat.o nmr.LES.o multitmd.o \
-    multisander.LES.o sander.LES.o  cshf.o nmrcal.o mtmdcall.o pearsn.o \
-    printe.o runmin.o nonbond_list.LES.o force.LES.o rdparm.LES.o \
-    mdread.LES.o locmem.LES.o runmd.LES.o relaxmd.o quench.o degcnt.LES.o decnvh.o \
-    fastwt.o parallel.LES.o shake.o rattle.o ene.LES.o \
-    dynlib.LES.o nmlsrc.o \
-    ew_force.LES.o ew_setup.LES.o ew_bspline.o\
-    ew_fft.o short_ene.LES.o ew_recip.LES.o pcshift.o \
-    align.o csa.o rfree.o rgroup.o \
-    sander_lib.o random.o mexit.o matinv.o amopen.o wallclock.o \
-    debug.o ew_handle_dips.o ew_bndpol.o ew_dipole_recip.o \
-    new_time.o extra_pts.LES.o thermo_int.o assert.o \
-    erfcfun.o md_scheme.LES.o \
-    constantph.o constante.o prn_dipoles.o ips.o sglds.o iwrap2.o emap.o \
-    les.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o molecule.o dssp.o \
-    charmm.o crg_reloc.o barostats.o \
-    qm_ewald.o qmmm_vsolv.o \
-    qm2_extern_util_module.o qm2_extern_module.o \
-    qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
-    ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
-    qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
-    qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
-    qmmm_adaptive_module.o prn_qmmm_dipole.o \
-    AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o mdwrit.LES.o \
-    lmod.LES.o trajene.o ew_box.LES.o minrit.LES.o set.LES.o qm_mm.LES.o amd.o scaledMD.o \
-    music_module.o
+LESOBJ= \
+    align.o AmberNetcdf.o amd.o amopen.o ArrayList.o \
+    assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
+    constante.o constantph.o constants.o crg_reloc.o csa.o \
+    cshf.o debug.o decnvh.o decomp.o degcnt.LES.o \
+    dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
+    erfcfun.o ew_bndpol.o ew_box.LES.o ew_bspline.oew_dipole_recip.o \
+    ew_fft.o ew_force.LES.o ew_handle_dips.o ew_recip.LES.o ew_setup.LES.o \
+    extra_pts.LES.o fastwt.o file_io_dat.o findmask.o force.LES.o \
+    getcor.LES.o icosasurf.o ips.o iwrap2.o KFReader.o \
+    les.o linear_response.o lmodC.o lmod.LES.o locmem.LES.o \
+    matinv.o mbar.o mdfil.LES.o mdread.LES.o md_scheme.LES.o \
+    mdwrit.LES.o memory_module.o mexit.o minrit.LES.o molecule.o \
+    mtmdcall.o multisander.LES.o multitmd.o music_module.o new_time.o \
+    nmlsrc.o nmrcal.o nmr.LES.o nonbond_list.LES.o parallel.LES.o \
+    parms.o pcshift.o pearsn.o printe.o prn_dipoles.o \
+    prn_qmmm_dipole.o qm_mm.LES.o quench.o rand2.o random.o \
+    rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
+    rfree.o rgroup.o rmsgrd.o runmd.LES.o runmin.o \
+    sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
+    shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
+    stack.o state.o thermo_int.o trajene.o wallclock.o \
+    xminC.o 
 
 XRAY_OBJS = \
    xray_fftpack.o xray_FFT.o xray_fourier.o xray_globals.o xray_interface.o \
