@@ -10,12 +10,15 @@ module xray_fourier_module
 !
 !  SUBROUTINES:
 !
-!  fourier_dXYZBQ_dF  --  Calculate the derivative of the coordinate,
-!                              B, or occupancy versus the structure factor.
-!                              This uses a simple least-squares target function.
+!  fourier_dXYZBQ_dF  --  Calculate the derivative of the xray restraint
+!                         energy with respect to coordinate, B, or occupancy.
+!                         Uses chain rule to combine dTarget/dF (passed
+!                         from that routine in array dF) and dF/dXYZ or
+!                         dF/dB or dF/dQ (computed in this routine).
 !
 !  dTarget_dF         --  Calculate a structure-factor restraint force
 !                              from the scalar difference of |Fobs| and |Fcalc|.
+!                              This uses a simple least-squares target function.
 !
 !  dTargetV_dF        --  Calculate a structure-factor restraint force
 !                              from the vector (complex) difference of Fobs 
@@ -152,8 +155,13 @@ contains
    end subroutine fourier_Fcalc
 
    ! -------------------------------------------------------------------------
-   ! Calculate dXYZ, dTempFactor and/or dOccupancy with respect to dF,
-   ! using the direct Fourier sum.
+   ! Combine dFcalc with respect to dXYZ, dB and/or dQ, 
+   !    with dTarget/dFcalc (passed in as dF) to get dTarget/DXYZ,
+   !    dTarget/dB or dTarget/dQ.
+
+   ! Note the here XYZ is in the fractional coordinate system; conversion
+   ! to Cartesian coordinates is done by the calling program in 
+   ! xray_get_derivative() in xray_interface.F90
 
    ! Note Q is short for occupancy; B is short for tempFactor (aka B - factor).
    ! Small molecule software uses a U parameter in place of B - factor.
@@ -437,10 +445,12 @@ contains
       call mexit(6,1)
 
       ! call things like estimate_ml_parameters() here
+      !   (note: Fcalc needs to be scaled to Fobs before this call)
       call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep, num_hkl )
 
-      ! xray_energy = ???
-      ! deriv(:) = ???
+      ! xray_energy = comes from call above
+      ! deriv(:) = something like step 4 in get_sf_force(), but using 
+      !            info from fourier_dXYZBQ_dF.
       ! residual = ???
 
    end subroutine dTargetML_dF

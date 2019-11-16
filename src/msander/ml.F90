@@ -9,12 +9,17 @@ module ml_mod
   
   implicit none
 
-  integer :: sfactors_unit = 31, sf_weight = 32
+  integer :: sfactors_unit = 31
   character(len=50) :: sfactors_name = ''
 
 #if 0
 #  include "fftw3.f"
 #endif
+
+#if 0
+  ! DAC: following seems odd: only a few elements are recorded here(?)
+  !      we will probably use the xray implementation, but does require
+  !      using add_xray to the prmtop file....
 
   ! This is written out with nine lines of five entries, but really just one big line full
   ! of 45 entries.  The data is immediately reshaped into the requisite 9 col x 5 row array.
@@ -30,6 +35,7 @@ module ml_mod
                             0.250800,   6.905300,   5.203400,   1.437900,   1.586300, &
                             1.467900,  22.215100,   0.253600,  56.172000,   0.866900 /), &
                          shape(scat_factors)) ! H, C, N, O, S scattering factors, it1992 scattering table
+#endif
 
   ! Space group, currently read in from the structure factors file.
   ! Not really used, since we use the expanded-to-P1 structure factors.
@@ -61,7 +67,7 @@ module ml_mod
   ! to experimental
   double precision, dimension(7, 7) :: Ucryst, MUcryst_inv
 
-  ! Arrays used in the computation of structure factors
+  ! Arrays used in the computation of structure factors and ML parameters
   double precision, dimension(:), allocatable :: f_obs, f_obs_weight, f_obs_sigmas, &
                                                  f_calc_abs, s_squared, BFactors, k_mask, &
                                                  k_scale, alpha_array, &
@@ -128,17 +134,15 @@ module ml_mod
                                         bins_free_start_indices, reflection_bin
 
   ! hkl:                      N columns by 3 rows array containing HKL indices of reflections
+  !                             (transpose of hkl_index in xray3)
   ! bins_work_reflections:    Used to re-sort work reflections into the original order based on
   !                           resolution bin and relative position in it
   ! bins_free_reflections:    Used to re-sort free reflections into the original order based on
   !                           resolution bin and relative position in it
-  integer, dimension(:,:), allocatable :: hkl, bins_work_reflections, bins_free_reflections
+  integer, dimension(:,:), allocatable :: bins_work_reflections, bins_free_reflections
 
   ! Size of the mask grid (number of grid points)
   integer, dimension(4) :: mask_grid_size
-
-  ! FFTW encoding... con this go away?
-  !integer*8 plan_forward(1)
 
 contains
 
@@ -391,7 +395,7 @@ contains
     do i = 1, n_atom
 
       ! FIXME: need to get atom names visible to this routine
-      ! name = atm_igraph(i)
+      ! name = atm_igraph(i) -- looks like the atomic number would work
 
       if (name(1:1) == 'C') then
         if (name == 'Cl-') then
@@ -472,12 +476,14 @@ contains
       end do
     end do
 
+#if 0
     open (unit=sf_weight, file="structure_factors.txt", status='replace', action='write')
     write (sf_weight, *) f_calc_tmp
     close (sf_weight)
     open (unit=sf_weight, file="final_weight.txt", status='replace', action='write')
     write (sf_weight, *) starting_N_step + N_steps, total_N_steps
     close (sf_weight)
+#endif
 
   end subroutine finalize_ml_mod
 
@@ -752,7 +758,7 @@ contains
       allocate(r_free_flag_array(NRF))
       allocate(d_star_sq(NRF))
       allocate(reflection_bin(NRF))
-      allocate(hkl(NRF, 3))
+      ! allocate(hkl(NRF, 3))
       allocate(hkl_indexing_bs_mask(NRF))
       allocate(hkl_tmp(NRF, 3))
       allocate(h_sq(NRF))
@@ -782,6 +788,7 @@ contains
       r_free_factor_denominator = zero
       r_free_counter = 0
       NRF_work = 0
+#if 0
       read(sfactors_unit, '(a)') space_group
       write(mdout, *) '| Original space group is ',space_group
       read(sfactors_unit, *) a, b, c, alpha, beta, gamma
@@ -791,6 +798,7 @@ contains
                                       pseudo_energy_weight_incr
       read(sfactors_unit, *) mask_update_frequency
       write(mdout, *) '| Mask update frequency = ', mask_update_frequency
+#endif
       alpha = alpha * pi / 180
       beta = beta * pi / 180
       gamma = gamma * pi / 180
@@ -809,12 +817,15 @@ contains
       vbs(1:3) = vbs(1:3) / V
       vcs(1:3) = vcs(1:3) / V
       cell_volume = V
+#if 0
       read(sfactors_unit, *) BFactors_len
       allocate(BFactors(BFactors_len))
       read(sfactors_unit, *) BFactors
+#endif
 
       resolution = 50.0
       do i = 1, NRF
+        ! following is the same as the xray3 file format:
         read(sfactors_unit, *) hkl_tmp(i,:), f_obs_tmp(i), f_obs_sigma_tmp(i), r_free_flag
         d_star =  (square(hkl_tmp(i, 1) * norm2(vas)) + square(hkl_tmp(i, 2) * norm2(vbs)) + &
                    square(hkl_tmp(i, 3) * norm2(vcs)) + &
@@ -1622,6 +1633,7 @@ contains
     call shrink_bulk_solvent()
     call fft_bs_mask()
     
+    ! step 1: get fcalc, including solvent mask contribution:
     do i = 1, NRF
       f_calc(i) = 0
       do j_k = 1, NAT_for_mask
@@ -1635,6 +1647,7 @@ contains
     f_calc = f_calc + k_mask * f_mask
     f_calc_abs = abs(f_calc)
 
+    ! step 2: scaling fcalc:
     b_vector_base = log(f_obs(1:NRF_work) / f_calc_abs(1:NRF_work)) / NRF_work_sq
     b(1) = sum(b_vector_base)
     b(2) = sum(b_vector_base * h_sq(1:NRF_work))
@@ -1650,8 +1663,10 @@ contains
                               Uaniso(5)*hk   + Uaniso(6)*hl   + Uaniso(7)*kl)
     f_calc = f_calc * k_scale
 
+    ! step 3: get ml parameters and xray restraint energy:
     call estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
 
+    ! step 4: get forces on the atoms:
     do j_k = 1, NAT_for_mask
       frc_sf(:, j_k) = zero
       do i = 1, NRF_work
@@ -1659,10 +1674,6 @@ contains
                                     scat_factors_precalc(atom_types(j_k), i) * &
                                     exp(imaginary_i * dot_product(s(:, i), crd(:, j_k)))
 
-        ! CHECK (uncomment code below when this placeholder is no longer needed)
-        !term = 0.0
-        ! END CHECK
-        
         term = k_scale(i) * (aimag(f_calc(i)) * real(exp_of_rn_x_s_dot_product) - &
                               real(f_calc(i)) * aimag(exp_of_rn_x_s_dot_product)) * &
                f_obs_weight(i) * &

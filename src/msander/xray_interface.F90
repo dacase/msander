@@ -677,6 +677,9 @@ contains
       else
          call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag,deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
+      ! else
+      !  logic here to call dTargetML_dF(); note: has to also compute
+      !      dF as well as the energy
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
