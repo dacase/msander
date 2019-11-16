@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/13/2019 at 10:19:13
+| Run on 11/15/2019 at 17:13:36
 
 |   Executable path: ../../../bin/msander
 | Working directory: /Users/case/msander/test/rism3d/4lzt
@@ -141,7 +141,7 @@ Ewald parameters:
      mdiis_meth=         2, mdiis_re=  1.00E+01
      maxstep   =     10000, npropaga=         0
      centering =         1, zerofrc =         1
-     apply_rism=         0, asympcorr=         F
+     apply_rism=         0
      rismnrespa=         1
      periodic            = pme     
      write_ther=         0, volfmt  =  dx      
@@ -202,54 +202,42 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (72.08% of List )
-|                Other                      0.00 (27.92% of List )
+|                Build the list             0.01 (69.23% of List )
+|                Other                      0.00 (30.77% of List )
 |             List time                  0.01 ( 0.03% of Nonbo)
-|                   Short_ene time             0.01 (97.48% of Direc)
-|                   Other                      0.00 ( 2.52% of Direc)
-|                Direct Ewald time          0.01 (74.19% of Ewald)
-|                Adjust Ewald time          0.00 ( 2.27% of Ewald)
-|                Self Ewald time            0.00 ( 0.05% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 7.33% of Recip)
-|                   Fill charge grid           0.00 (10.02% of Recip)
-|                   Scalar sum                 0.00 (17.84% of Recip)
-|                   Grad sum                   0.00 (14.13% of Recip)
-|                   FFT time                   0.00 (50.60% of Recip)
-|                   Other                      0.00 ( 0.08% of Recip)
-|                Recip Ewald time           0.00 (22.82% of Ewald)
-|                Force Adjust               0.00 ( 0.01% of Ewald)
-|                Virial junk                0.00 ( 0.02% of Ewald)
-|                Start synchronizatio       0.00 ( 0.01% of Ewald)
-|                Other                      0.00 ( 0.63% of Ewald)
+|                   Short_ene time             0.01 (100.0% of Direc)
+|                Direct Ewald time          0.01 (66.67% of Ewald)
+|                   Fill Bspline coeffs        0.00 (33.33% of Recip)
+|                   FFT time                   0.00 (66.67% of Recip)
+|                Recip Ewald time           0.00 (33.33% of Ewald)
 |             Ewald time                 0.01 ( 0.02% of Nonbo)
-|                LJ Grid time               9.67 (18.78% of 3D-RI)
+|                LJ Grid time               9.64 (18.73% of 3D-RI)
 |                Ewald Grid time            0.01 ( 0.02% of 3D-RI)
-|                      FFT time                  19.82 (47.83% of R1RIS)
-|                         LAPACK time                0.00 ( 0.05% of MDIIS)
-|                         DATA time                  1.78 (24.78% of MDIIS)
-|                         Other                      5.41 (75.17% of MDIIS)
-|                      MDIIS time                 7.19 (17.35% of R1RIS)
-|                      Other                     14.43 (34.82% of R1RIS)
-|                   R1RISM time               41.45 (100.0% of RXRIS)
+|                      FFT time                  20.29 (48.94% of R1RIS)
+|                         LAPACK time                0.00 ( 0.04% of MDIIS)
+|                         DATA time                  1.80 (25.11% of MDIIS)
+|                         Other                      5.38 (74.85% of MDIIS)
+|                      MDIIS time                 7.19 (17.34% of R1RIS)
+|                      Other                     13.98 (33.72% of R1RIS)
+|                   R1RISM time               41.46 (100.0% of RXRIS)
 |                   Other                      0.00 ( 0.01% of RXRIS)
-|                RXRISM time               41.45 (80.48% of 3D-RI)
+|                RXRISM time               41.47 (80.54% of 3D-RI)
 |                EXCESSCHEMICALPOTENT       0.00 ( 0.01% of 3D-RI)
 |                Resize Solvent Box t       0.36 ( 0.70% of 3D-RI)
-|                Other                      0.00 ( 0.01% of 3D-RI)
-|             3D-RISM time              51.51 (100.0% of Nonbo)
-|          Nonbond force             51.53 (100.0% of Force)
-|       Force time                51.54 (100.0% of Runmd)
-|    Runmd Time                51.54 (98.75% of Total)
-|    Other                      0.65 ( 1.24% of Total)
-| Total time                52.19 (100.0% of ALL  )
+|             3D-RISM time              51.48 (100.0% of Nonbo)
+|          Nonbond force             51.51 (100.0% of Force)
+|       Force time                51.51 (100.0% of Runmd)
+|    Runmd Time                51.51 (98.71% of Total)
+|    Other                      0.67 ( 1.28% of Total)
+| Total time                52.18 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     135646
 | Highest istack allocated:       1984
-|           Job began  at 10:19:13.922  on 11/13/2019
-|           Setup done at 10:19:14.574  on 11/13/2019
-|           Run   done at 10:20:06.110  on 11/13/2019
+|           Job began  at 17:13:36.215  on 11/15/2019
+|           Setup done at 17:13:36.886  on 11/15/2019
+|           Run   done at 17:14:28.395  on 11/15/2019
 |     wallclock() was called    8469 times
 
 |3D-RISM memory allocation summary
