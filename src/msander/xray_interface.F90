@@ -669,6 +669,12 @@ contains
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
 
+      ! initial logic here:
+
+      ! if( xray2 ) then
+      !    call get_sf_force()
+      ! else
+
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 
       if( vector_target ) then
@@ -677,9 +683,6 @@ contains
       else
          call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag,deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
-      ! else
-      !  logic here to call dTargetML_dF(); note: has to also compute
-      !      dF as well as the energy
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
@@ -756,11 +759,15 @@ contains
           - xray_dxyz(:,:)
       if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
 
+      ! DAC: why not allocate/deallocate just once, or make these
+      !    automatic variables?  Or is this not important?
       deallocate(frac_xyz,dF,Fcalc, &
             abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
       REQUIRE(dealloc_status==0)
       deallocate(sel_index,stat=dealloc_status)
       REQUIRE(dealloc_status==0)
+
+      ! end if  ! from the xray logic
 
    end subroutine xray_get_derivative
 
