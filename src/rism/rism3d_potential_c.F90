@@ -20,7 +20,6 @@ module rism3d_potential_c
   use rism3d_solute_c
   use rism3d_solvent_c
   use rism3d_grid_c
-  use rism_timer_c
   use rism3d_fft_c ! Only used for periodic code.
 #include "def_time.h"
   type rism3d_potential
@@ -40,17 +39,6 @@ module rism3d_potential_c
      type(rism3d_solute), pointer :: solute => NULL()
      !> Pointer to solvent object.
      type(rism3d_solvent), pointer :: solvent => NULL()
-
-     !> Total time for potential
-     type(rism_timer) :: timer
-     !> Timer for LJ potential.
-     type(rism_timer) :: ljTimer
-     !> Timer for Coulomb potential.
-     type(rism_timer) :: coulombTimer
-     !> Timer for long range portion Coulomb potential.
-     type(rism_timer) :: coulombLongRangeTimer
-     !> Timer for short range portion of Coulomb potential.
-     type(rism_timer) :: coulombShortRangeTimer
 
      !> Potential energy of the solvent about the solute.  This is
      !! recalculated for each solution but we want to reserve the
@@ -160,32 +148,8 @@ contains
     this%ljBUV => safemem_realloc(this%ljBUV, this%solute%numAtoms, this%solvent%numAtomTypes, .false.)
     call rism3d_potential_setCut_ljdistance(this, cut)
     call mixSoluteSolventLJParameters(this)
-    call rism_timer_new(this%timer, "Potential")
-    call rism_timer_new(this%ljTimer, "Lennard-Jones")
-    call rism_timer_setParent(this%ljTimer, this%timer)
-    call rism_timer_new(this%coulombTimer, "Coulomb")
-    call rism_timer_setParent(this%coulombTimer, this%timer)
-    if (this%periodic) then
-       call rism_timer_new(this%coulombLongRangeTimer, "Long-Range Coulomb")
-       call rism_timer_setParent(this%coulombLongRangeTimer, this%coulombTimer)
-       call rism_timer_new(this%coulombShortRangeTimer, "Short-Range Coulomb")
-       call rism_timer_setParent(this%coulombShortRangeTimer, this%coulombTimer)
-    end if
     
   end subroutine rism3d_potential_new
-
-
-  !> Set parent for this timer
-  !! @param[in,out] this rism3d_potential object.
-  !! @param[in,out] parent Parent timer object.
-  subroutine rism3d_potential_setTimerParent(this, parent)
-    implicit none
-    type(rism3d_potential), intent(inout) :: this
-    type(rism_timer), intent(inout) :: parent
-    call rism_timer_start(this%timer)
-    call rism_timer_setParent(this%timer, parent)
-    call rism_timer_stop(this%timer)
-  end subroutine rism3d_potential_setTimerParent
 
   !> Directly a distance cut off for potential and force.
   !! @param[in,out] this potential object.
@@ -222,7 +186,6 @@ contains
     integer :: ix, iy, iz, ierr
     character(len=30) :: filename
     integer :: iu 
-    call rism_timer_start(this%timer)
     ! Ensure a grid size has been set.
     if (.not. associated(this%grid%waveVectors)) then
        call rism_report_error("rism3d_potential_calc: grid size not set")
@@ -243,21 +206,16 @@ contains
     this%uuv = 0
 
     call timer_start(TIME_UCOULU)
-    call rism_timer_start(this%coulombTimer)
     if (this%solute%charged) &
         call uvParticleMeshRecipEwaldPotential(this, this%uuv)
-    call rism_timer_stop(this%coulombTimer)
     call timer_stop(TIME_UCOULU)
 
     call timer_start(TIME_ULJUV)
-    call rism_timer_start(this%ljTimer)
     call uvLJrEwaldPotentialWithMinimumImage(this, this%uuv)
-    call rism_timer_stop(this%ljTimer)
     call timer_stop(TIME_ULJUV)
 
     ! TODO: this routine should only need to be called once at the beginning:
     call getnojellywt(this)
-    call rism_timer_stop(this%timer)
 
   end subroutine rism3d_potential_calc
 
@@ -266,14 +224,6 @@ contains
   subroutine rism3d_potential_destroy(this)
     implicit none
     type(rism3d_potential), intent(inout) :: this
-    call rism_timer_destroy(this%timer)
-    call rism_timer_destroy(this%ljTimer)
-    call rism_timer_destroy(this%coulombTimer)
-    if (this%periodic) then
-       call rism_timer_destroy(this%coulombLongRangeTimer)
-       call rism_timer_destroy(this%coulombShortRangeTimer)
-    end if
-    call rism_timer_destroy(this%timer)
     nullify(this%grid)
     nullify(this%solvent)
     nullify(this%solute)
@@ -614,7 +564,6 @@ contains
     N = this%grid%globalDimsR(3)
 
 !    call timer_start(TIME_UCOULULR)
-!    call rism_timer_start(this%coulombLongRangeTimer)
 
     gridDimX_k = this%grid%localDimsR(1) / 2 + 1
     kxi => safemem_realloc(kxi,  gridDimX_k, 3, .false.)
@@ -890,7 +839,6 @@ contains
        end do
     end do
 
-!    call rism_timer_stop(this%coulombLongRangeTimer)
 !    call timer_stop(TIME_UCOULULR)
 
     ! Deallocate the FFT plans.

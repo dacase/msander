@@ -10,7 +10,7 @@ module xray_fourier_module
 !
 !  SUBROUTINES:
 !
-!  fourier_dXYZBQ_dF  --  Calculate the derivative of the xray restraint
+!  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
 !                         from that routine in array dF) and dF/dXYZ or
@@ -170,7 +170,7 @@ contains
    !     isotropic B - factor = 8 * pi ** 2 * isotropic - U
    !     isotropic U = [U(1,1) + U(2,2) + U(3,3)]/3.0
 
-   subroutine fourier_dXYZBQ_dF( &
+   subroutine fourier_dTarget_dXYZBQ( &
             num_hkl,hkl,dF,mSS4,hkl_selected, & ! reflections
             num_atoms,xyz,tempFactor,scatter_type_index, & ! atoms
             occupancy, &  ! (put optional args after all non-optional ones)
@@ -279,7 +279,7 @@ contains
       dhkl_duration = dhkl_duration + time1 - time0
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
 
-   end subroutine fourier_dXYZBQ_dF
+   end subroutine fourier_dTarget_dXYZBQ
 
    ! -------------------------------------------------------------------------
    ! R - factor = sum(abs(Fobs - Fcalc)) / sum(Fobs)
@@ -450,7 +450,7 @@ contains
 
       ! xray_energy = comes from call above
       ! deriv(:) = something like step 4 in get_sf_force(), but using 
-      !            info from fourier_dXYZBQ_dF.
+      !            info from fourier_dTarget_dXYZBQ.
       ! residual = ???
 
    end subroutine dTargetML_dF

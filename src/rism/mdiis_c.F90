@@ -32,7 +32,6 @@ module mdiis_c
   use mdiis_orig_c
   use mdiis_blas_c
   use mdiis_blas2_c
-  use rism_timer_c
   implicit none
 
   type mdiis
@@ -40,7 +39,6 @@ module mdiis_c
      type(mdiis_orig),pointer :: orig => null()
      type(mdiis_blas),pointer :: blas => null()
      type(mdiis_blas2),pointer :: blas2 => null()
-     type(rism_timer) :: advanceTimer, initTimer
   end type mdiis
 
 contains
@@ -66,24 +64,17 @@ contains
 
     _REAL_ :: rms
     logical :: con
-    call rism_timer_new(this%initTimer, "MDIIS Setup")
-    call rism_timer_start(this%initTimer)
-    call rism_timer_new(this%advanceTimer, "MDIIS Advance")
 
     if (method == this%KOVALENKO) then
        allocate(this%orig)
-       call mdiis_orig_new_serial(this%orig, delta, tol, restart, &
-            this%advanceTimer)
+       call mdiis_orig_new_serial(this%orig, delta, tol, restart)
     else if (method == this%KOVALENKO_OPT) then
        allocate(this%blas)
-       call mdiis_blas_new_serial(this%blas, delta, tol, restart, &
-            this%advanceTimer)
+       call mdiis_blas_new_serial(this%blas, delta, tol, restart)
     else if (method == this%KOVALENKO_OPT2) then
        allocate(this%blas2)
-       call mdiis_blas2_new_serial(this%blas2, delta, tol, restart, &
-            this%advanceTimer)
+       call mdiis_blas2_new_serial(this%blas2, delta, tol, restart)
     end if
-    call rism_timer_stop(this%initTimer)
   end subroutine mdiis_new
 
   
@@ -111,24 +102,20 @@ contains
     integer, intent(in) :: method
     _REAL_, intent(in) :: delta, tol, restart
     integer, intent(in) :: rank, size, comm
-    call rism_timer_new(this%initTimer, "MDIIS Setup")
-    call rism_timer_start(this%initTimer)
-    call rism_timer_new(this%advanceTimer, "MDIIS Advance")
 
     if (method == this%KOVALENKO) then
        allocate(this%orig)
        call mdiis_orig_new_mpi(this%orig, delta, tol, restart, &
-            this%advanceTimer, rank, size, comm)
+            rank, size, comm)
     else if (method == this%KOVALENKO_OPT) then
        allocate(this%blas)
        call mdiis_blas_new_mpi(this%blas, delta, tol, restart, &
-            this%advanceTimer, rank, size, comm)
+            rank, size, comm)
     else if (method == this%KOVALENKO_OPT2) then
        allocate(this%blas2)
        call mdiis_blas2_new_mpi(this%blas2, delta, tol, restart, &
-            this%advanceTimer, rank, size, comm)
+            rank, size, comm)
     end if
-    call rism_timer_stop(this%initTimer)
   end subroutine mdiis_new_mpi
 
 
@@ -152,8 +139,6 @@ contains
        call mdiis_blas2_destroy(this%blas2)
        deallocate(this%blas2)
     end if
-    call rism_timer_destroy(this%initTimer)
-    call rism_timer_destroy(this%advanceTimer)
   end subroutine mdiis_destroy
 
 
@@ -225,26 +210,6 @@ contains
     end if
   end subroutine mdiis_resize
 
-
-  !! Set parent(s) for this timer
-  !! IN:
-  !!    this : rism1d object
-  !!    parentAdvance : parent for the advance subroutine timer
-  !!    parentOther   : (optional) parent for everything else
-  subroutine mdiis_setTimerParent(this, parentAdvance, parentOther)
-    implicit none
-    type(mdiis), intent(inout) :: this
-    type(rism_timer), intent(inout) :: parentAdvance
-    type(rism_timer), optional, intent(inout) :: parentOther
-    call rism_timer_start(this%initTimer)
-    call rism_timer_setParent(this%advanceTimer, parentAdvance)
-    if (present(parentOther)) then
-       call rism_timer_setParent(this%initTimer, parentOther)
-    end if
-    call rism_timer_stop(this%initTimer)
-  end subroutine mdiis_setTimerParent
-
-
   !! Returns the number of vector currently used as a basis by the MDIIS object
   !! IN:
   !!    this :: mdiis object
@@ -254,7 +219,6 @@ contains
     implicit none
     type(mdiis), intent(inout) :: this
     integer :: nVec
-    call rism_timer_start(this%initTimer)
     if (associated(this%orig)) then
        nVec = mdiis_orig_getCurrentNVec(this%orig)
     else if (associated(this%blas)) then
@@ -262,7 +226,6 @@ contains
     else if (associated(this%blas2)) then
        nVec = mdiis_blas2_getCurrentNVec(this%blas2)
     end if
-    call rism_timer_stop(this%initTimer)
   end function getCurrentNVec
 
 
@@ -275,7 +238,6 @@ contains
     implicit none
     type(mdiis), intent(inout) :: this
     integer :: index
-    call rism_timer_start(this%initTimer)
     if (associated(this%orig)) then
        index = mdiis_orig_getWorkVector(this%orig)
     else if (associated(this%blas)) then
@@ -283,7 +245,6 @@ contains
     else if (associated(this%blas2)) then
        index = mdiis_blas2_getWorkVector(this%blas2)
     end if
-    call rism_timer_stop(this%initTimer)
   end function mdiis_getWorkVector
 
 
@@ -299,7 +260,6 @@ contains
     _REAL_, intent(out) ::  rms1
     logical, intent(inout) ::  conver
     _REAL_, optional, intent(in) ::  tolerance_o
-    call rism_timer_start(this%advanceTimer)
 #ifdef RISM_DEBUG
     write(6, * )"MDIIS_advance generic", rms1, conver
 #endif
@@ -323,7 +283,6 @@ contains
           call mdiis_blas2_advance(this%blas2, rms1, conver)
        end if
     end if
-    call rism_timer_stop(this%advanceTimer)
   end subroutine mdiis_advance
 
 end module mdiis_c

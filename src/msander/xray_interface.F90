@@ -725,13 +725,13 @@ contains
       if( fft_method == 0 ) then
          ! This call uses MPI parallel to compute xray_dxyz:
          if( present(dB) ) then
-            call fourier_dXYZBQ_dF(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
             dxyz=xray_dxyz, d_tempFactor=xray_dB )
          else
-            call fourier_dXYZBQ_dF(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &

@@ -6,7 +6,6 @@ amber_rism_interface.o: \
                     ../include/dprec.fh\
                     safemem.o\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     rism3d_c.o\
                     rism3d_solvent_c.o\
                     rism3d_solute_c.o\
@@ -69,7 +68,6 @@ fftw3.o:   fftw3.F90
 mdiis_blas2_c.o: \
                     ../include/dprec.fh\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     safemem.o\
                     def_time.h
 
@@ -82,7 +80,6 @@ mdiis_blas2_c.o:   mdiis_blas2_c.F90
 mdiis_blas_c.o: \
                     ../include/dprec.fh\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     safemem.o\
                     def_time.h
 
@@ -96,8 +93,7 @@ mdiis_c.o: \
                     ../include/dprec.fh\
                     mdiis_orig_c.o\
                     mdiis_blas_c.o\
-                    mdiis_blas2_c.o\
-                    rism_timer_c.o
+                    mdiis_blas2_c.o
 
 
 mdiis_c.o:   mdiis_c.F90
@@ -108,7 +104,6 @@ mdiis_c.o:   mdiis_c.F90
 mdiis_orig_c.o: \
                     ../include/dprec.fh\
                     safemem.o\
-                    rism_timer_c.o\
                     rism_util.o\
                     def_time.h
 
@@ -126,7 +121,6 @@ rism3d_c.o: \
                     rism3d_grid_c.o\
                     rism3d_closure_c.o\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     mdiis_c.o\
                     rism3d_fft.o\
                     rism3d_opendx.o\
@@ -257,7 +251,6 @@ rism3d_potential_c.o: \
                     rism3d_solute_c.o\
                     rism3d_solvent_c.o\
                     rism3d_grid_c.o\
-                    rism_timer_c.o\
                     rism3d_fft.o\
                     def_time.h\
                     rism_util.o\
@@ -364,21 +357,9 @@ rism_report_c.o:   rism_report_c.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ rism_report_c.F90
 
-rism_timer_c.o: \
-                    ../include/dprec.fh\
-                    rism_report_c.o
-
-
-rism_timer_c.o:   rism_timer_c.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ rism_timer_c.F90
-
 rism_util.o: \
                     ../include/dprec.fh\
-                    rism_report_c.o\
-                    safemem.o\
-                    constants.o
+                    rism_report_c.o
 
 
 rism_util.o:   rism_util.F90

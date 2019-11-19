@@ -16,7 +16,7 @@ module ml_mod
 #  include "fftw3.f"
 #endif
 
-#if 0
+#if 1
   ! DAC: following seems odd: only a few elements are recorded here(?)
   !      we will probably use the xray implementation, but does require
   !      using add_xray to the prmtop file....
@@ -734,7 +734,7 @@ contains
     integer :: d_i, i, j, k, na, nb, nc
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer :: sfactors_unit
-    integer, dimension(:,:), allocatable :: hkl_tmp
+    integer, dimension(:,:), allocatable :: hkl, hkl_tmp
     
     call file_line_count(sfactors_unit, sfactors_name, NRF)
     write(mdout, '(A,I6,A)') 'Counted a total of', NRF, 'file lines'
@@ -758,7 +758,7 @@ contains
       allocate(r_free_flag_array(NRF))
       allocate(d_star_sq(NRF))
       allocate(reflection_bin(NRF))
-      ! allocate(hkl(NRF, 3))
+      allocate(hkl(NRF, 3))
       allocate(hkl_indexing_bs_mask(NRF))
       allocate(hkl_tmp(NRF, 3))
       allocate(h_sq(NRF))

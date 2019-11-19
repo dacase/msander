@@ -14,7 +14,6 @@
 module rismthermo_c
   use safemem
   use rism_report_c
-  use rism_timer_c
 
   !> Derived type to store thermodynamic results.  To facilitate MPI
   !! communication, many values are stored in a common array.
@@ -286,7 +285,6 @@ module amber_rism_interface
   use rism3d_solvent_c
   use rism3d_solute_c
   use rism_report_c
-  use rism_timer_c
   use safemem
   use rismthermo_c
 
@@ -401,9 +399,6 @@ module amber_rism_interface
   type(rism3d), save :: rism_3d
   type(rism3d_solvent), save :: solvent
   type(rism3d_solute), save :: solute
-  type(rism_timer), save :: timer
-  type(rism_timer), save :: timer_write
-  type(rism_timer), save :: timer_init
   integer :: pa_orient, rmsd_orient
   _REAL_ :: centerOfMass(3)
   ! Read from prmtop file during parameter processing and passed to
@@ -604,16 +599,6 @@ contains
     integer :: numtasks, ier
     character(len=5) omp_num_threads
 
-    ! In case this is not the first time init has been called (i.e.,
-    ! multiple runs) destroy timers and re-create them.
-    call rism_timer_destroy(timer_write)
-    call rism_timer_destroy(timer_init)
-    call rism_timer_destroy(timer)
-    call rism_timer_new(timer, "3D-RISM Total")
-    call rism_timer_new(timer_init, "3D-RISM initialization", timer)
-    call rism_timer_start(timer_init)
-    call rism_timer_new(timer_write, "3D-RISM Output", timer)
-
     write(whtspc, '(a16)')" "
 
 #ifdef MPI
@@ -629,16 +614,10 @@ contains
 #endif /*MPI*/
 
     ! If this is not a RISM run, we're done.
-    if (rismprm%rism == 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
+    if (rismprm%rism == 0) return
 
     ! Rank 0 only.
-    if (mpirank /= 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
+    if (mpirank /= 0) return
 
     outunit = rism_report_getMUnit()
     call defaults()
@@ -735,7 +714,6 @@ contains
        call flush(outunit)
     end if
 
-    call rism_timer_stop(timer_init)
   end subroutine rism_setparam
 
   !> Performs all of the initialization required for 3D-RISM
@@ -753,17 +731,6 @@ contains
     integer, intent(in) :: comm
 
     integer :: err
-
-    
-    ! Ensure that timers have been created incase RISM_SETPARAM was
-    ! only called by the master node.
-    if (trim(timer%name) .ne. "3D-RISM Total") &
-         call rism_timer_new(timer, "3D-RISM Total")
-    if (trim(timer_init%name) .ne. "3D-RISM initialization") &
-         call rism_timer_new(timer_init, "3D-RISM initialization", timer)
-    call rism_timer_start(timer_init)
-    if (trim(timer_write%name) .ne. "3D-RISM Output") &
-         call rism_timer_new(timer_write, "3D-RISM Output", timer)
 
     call rism_report_setMUnit(6)
     call rism_report_setWUnit(6)
@@ -783,10 +750,7 @@ contains
 #endif /*MPI*/
 
     ! STOP HERE IF THIS IS NOT A RISM RUN.
-    if (rismprm%rism == 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
+    if (rismprm%rism == 0) return
 
     ! 3D-RISM may have already been initialized. In the absence of a
     ! subroutine to set all of these parameters individually, we
@@ -812,7 +776,6 @@ contains
             o_biasPotential=rismprm%biasPotential)
     end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
-    call rism3d_setTimerParent(rism_3d, timer)
 
     call rismthermo_new(rismthermo, rism_3d%solvent%numAtomTypes, mpicomm)
     if (rismprm%polarDecomp == 1) then
@@ -828,7 +791,6 @@ contains
     call rism3d_solute_destroy(solute)
 
     call flush(outunit)
-    call rism_timer_stop(timer_init)
 
   end subroutine rism_init
 
@@ -919,7 +881,6 @@ contains
       jrespa=jrespa+1
    end if
 
-   call rism_timer_start(timer)
    epol = 0
    ff=0
 
@@ -978,7 +939,6 @@ contains
     if (rismprm%apply_rism_force==1) frc = frc + ff
 
     call flush(outunit)
-    call rism_timer_stop(timer)
   end subroutine rism_force
 
   
@@ -1012,7 +972,6 @@ contains
     logical*4, intent(in) :: writedist
     integer, intent(in) :: step
     integer :: err
-    call rism_timer_start(timer_write)
     call rismthermo_reset(rismthermo)
     if (associated(rismthermo_pol%excessChemicalPotential)) &
          call rismthermo_reset(rismthermo_pol)
@@ -1020,7 +979,6 @@ contains
          call rismthermo_reset(rismthermo_apol)
 
     ! Calculate thermodynamics.
-    call rism_timer_stop(timer_write)
     rismthermo%excessChemicalPotential = &
          rism3d_excessChemicalPotential(rism_3d)* KB * rism_3d%solvent%temperature
     rismthermo%solventPotentialEnergy = rism3d_solventPotEne(rism_3d) * KB * rism_3d%solvent%temperature
@@ -1036,10 +994,8 @@ contains
     ! Output distributions.
     if (writedist .and. step >= 0) &
          call rism_writeVolumetricData(rism_3d, step)
-    call rism_timer_start(timer_write)
 
     call rismthermo_mpireduce(rismthermo)
-    call rism_timer_stop(timer_write)
   end subroutine rism_solvdist_thermo_calc
 
   
@@ -1064,8 +1020,6 @@ contains
     
     integer :: iv, iu, ig, il, err
     integer :: ix, iy, iz
-
-    call rism_timer_start(timer_write)
 
     if (description) then
        if (mpirank==0) then
@@ -1162,7 +1116,6 @@ contains
        end if
     end if
     call flush(outunit)
-    call rism_timer_stop(timer_write)
   end subroutine rism_thermo_print
   
   !> Prints out a description line for thermodynamics output.
@@ -1252,16 +1205,6 @@ contains
   end subroutine thermo_print_results_line
 
   
-  !> Prints out the heirarchical timer summary.
-  subroutine rism_printTimer()
-    use amber_rism_interface
-    implicit none
-    call rism_timer_start(timer)
-    call rism_timer_summary(timer, '|', outunit, mpicomm)
-    call rism_timer_stop(timer)
-  end subroutine rism_printTimer
-
-  
   !> Finalizes all of the 3D-RISM objects and frees memory.
   subroutine rism_finalize()
     use amber_rism_interface
@@ -1286,11 +1229,7 @@ contains
        if (safemem_dealloc(tolerancelist) /= 0) &
             call rism_report_error("Deallocation in Amber-RISM interface failed")
        call rism_max_memory()
-       ! call rism_printTimer()
     end if
-    call rism_timer_destroy(timer_write)
-    call rism_timer_destroy(timer_init)
-    call rism_timer_destroy(timer)
   end subroutine rism_finalize
 
   
@@ -1389,8 +1328,6 @@ contains
 
     procedure (writeVolumeInterface), pointer :: writeVolume => NULL()
 
-    call rism_timer_start(timer_write)
-
     if (volfmt .eq. 'ccp4') then
        extension = '.ccp4'
        writeVolume => rism3d_ccp4_map_write
@@ -1411,7 +1348,6 @@ contains
     call rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
     call rism_writeSmearElectronMap(this, writeVolume, step, extension)
     
-   call rism_timer_stop(timer_write)
   end subroutine rism_writeVolumetricData
 
   !> Outputs PDF, TCF, and DCF. Each distribution
