@@ -1603,6 +1603,10 @@ contains
   end subroutine
 #endif
 
+#if 0
+  ! this routine will not be used as such, but pieces of it will go into
+  ! the dTargetML/dF() routine.
+
   !--------------------------------------------------------------------------------------------
   ! get_sf_force: CPU routine to encapsulate the subroutines for computing forces based on
   !               structure factor restraints.
@@ -1689,5 +1693,6 @@ contains
     return
 
   end subroutine get_sf_force
+#endif
 
 end module ml_mod

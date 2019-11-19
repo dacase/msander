@@ -35,7 +35,7 @@ module xray_interface_module
          resolution_low, &
          resolution_high, &
          xray_weight, &
-         vector_target, &
+         target, &
          solvent_mask_probe_radius, &
          solvent_mask_expand, &
          solvent_mask_outfile, &
@@ -93,7 +93,7 @@ contains
       !write(stdout,'(5X,A)') reflection_sigFobs
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
-      write(stdout,'(5X,A,L1)') 'Use vector target: ',vector_target
+      write(stdout,'(5X,A,A4)') 'Use target: ',target
       write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
       write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
       write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
@@ -498,8 +498,8 @@ contains
       REQUIRE(alloc_status==0)
 
       !  each line contains h,k,l and two reals
-      !  if vector_target == .false., these are Fobs, sigFobs (for diffraction)
-      !  if vector_target == .true.,  these are Fobs, phiFobs (for cryoEM)
+      !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
+      !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
       do i = 1,num_hkl
          read(hkl_lun,*,end=1,err=1) hkl_index(1:3,i),abs_Fobs(i),sigFobs(i)
@@ -509,7 +509,7 @@ contains
       test_flag(:) = 1
 
       ! set up complex Fobs(:), if vector target is requested
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          allocate(Fobs(num_hkl),stat=alloc_status)
          REQUIRE(alloc_status==0)
          do i = 1,num_hkl
@@ -545,7 +545,7 @@ contains
       pdb_read_coordinates = .false.
       pdb_use_segid = .false.
       pdb_wrap_names = .false.
-      vector_target = .false.
+      target = 'ls  '
       spacegroup_name = 'P 1'
       reflection_infile = ''
       reflection_infile_format = 'raw'
@@ -595,7 +595,7 @@ contains
             hkl_index,abs_Fobs,sigFobs,mSS4,test_flag, &
             stat=dealloc_status)
       REQUIRE(dealloc_status==0)
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          deallocate(Fobs,stat=dealloc_status)
          REQUIRE(dealloc_status==0)
       endif
@@ -677,12 +677,18 @@ contains
 
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
+      else if( target(1:2) == 'ls' ) then
+         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
+             deriv=dF, residual=r_work, xray_energy=xray_energy)
+      else if(target(1:2) == 'ml' ) then
+         call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
+             deriv=dF, residual=r_work, xray_energy=xray_energy)
       else
-         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag,deriv=dF, &
-            residual=r_work, xray_energy=xray_energy)
+         write(6,*) 'Bad target: ', target
+         call mexit(6,1)
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
@@ -691,7 +697,7 @@ contains
          write( 6,'(a,f15.5,e15.5)') 'At start: Fcalc_scale, norm_scale = ', &
               Fcalc_scale, norm_scale
          open(20,file='first.fmtz',action='write')
-         if( vector_target ) then
+         if( target(1:3) == 'vls' ) then
             do i=1,num_hkl
 #  if 1
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &

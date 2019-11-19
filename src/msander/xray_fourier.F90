@@ -10,6 +10,9 @@ module xray_fourier_module
 !
 !  SUBROUTINES:
 !
+!  fourier_Fcalc     --   Caclulate structure factors using a direct
+!                         method.
+!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -17,13 +20,13 @@ module xray_fourier_module
 !                         dF/dB or dF/dQ (computed in this routine).
 !
 !  dTarget_dF         --  Calculate a structure-factor restraint force
-!                              from the scalar difference of |Fobs| and |Fcalc|.
-!                              This uses a simple least-squares target function.
+!                         from the scalar difference of |Fobs| and |Fcalc|.
+!                         This uses a simple least-squares target function.
 !
 !  dTargetV_dF        --  Calculate a structure-factor restraint force
-!                              from the vector (complex) difference of Fobs 
-!                              and Fcalc.  (For use when phases are available,
-!                              as in cryoEM.
+!                         from the vector (complex) difference of Fobs 
+!                         and Fcalc.  (For use when phases are available,
+!                         as in cryoEM.
 !
 !  dTargetML_dF       --   Use the phenix maximum=-likelihood target function.
 !
@@ -371,12 +374,12 @@ contains
             end if
          else
             if (present(selected)) then
-               residual = sum(abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
+               residual = sum( abs_Fobs - Fcalc_scale * abs_Fcalc, &
                   selected/=0) / sum(abs_Fobs, selected/=0)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
             else
-               residual = sum (abs(abs_Fobs - Fcalc_scale*abs_Fcalc)) &
+               residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc) &
                     / sum(abs_Fobs)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2)
@@ -439,19 +442,51 @@ contains
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
 
+      real(real_kind) :: abs_Fcalc(num_hkl)
       integer :: nstep = 0
 
       write(6,*) 'dTargetML_dF() was called, but is not yet implemented!'
       call mexit(6,1)
 
-      ! call things like estimate_ml_parameters() here
-      !   (note: Fcalc needs to be scaled to Fobs before this call)
-      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep, num_hkl )
+      abs_Fcalc(:) = abs(Fcalc(:))
 
-      ! xray_energy = comes from call above
-      ! deriv(:) = something like step 4 in get_sf_force(), but using 
-      !            info from fourier_dTarget_dXYZBQ.
-      ! residual = ???
+      ! step 1: get fcalc, including solvent mask contribution:
+      !  (already done in fourier_Fcalc, and passed in here.
+
+      ! step 2: scaling fcalc:
+#if 0
+      b_vector_base = log(f_obs(1:NRF_work) / f_calc_abs(1:NRF_work)) / NRF_work_sq
+      b(1) = sum(b_vector_base)
+      b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+      b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+      b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+      b(5) = sum(b_vector_base * hk(1:NRF_work))
+      b(6) = sum(b_vector_base * hl(1:NRF_work))
+      b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+      Uaniso = matmul(MUcryst_inv, b)
+
+      k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+                Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+      f_calc = f_calc * k_scale
+#endif
+
+
+      ! step 3: get ml parameters and xray restraint energy:
+      !         note that this routine needs xray2-type initialization;
+      !         also, will probably only be active on selected nstep values
+      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
+                                   nstep, num_hkl )
+
+      ! step 4: put dTargetML/dF into deriv(:)  : (needs work)
+#if 0
+      deriv(:) = (delta_array(i) * (alpha_array(i) - &
+                 f_obs(i) * i1_over_i0(2 * delta_array(i) * &
+                 f_calc_abs(i) * f_obs(i)) / &
+#endif
+
+      ! residual = r_work, as in dTarget/dF
+      residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc ) / sum(abs_Fobs)
 
    end subroutine dTargetML_dF
 
