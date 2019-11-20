@@ -435,7 +435,10 @@ contains
          residual,xray_energy)
       use ml_mod, only : estimate_ml_parameters, b_vector_base, k_scale, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
-           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0,  &
+           f_mask, mask_bs_grid_t_c, hkl_indexing_bs_mask, mask_cell_params, &
+           mask_grid_size, k_mask, init_bulk_solvent, fft_bs_mask, &
+           shrink_bulk_solvent
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)
@@ -449,12 +452,24 @@ contains
       integer :: i
       double precision :: term, b(7), Uaniso(7)
 
+      ! step 1: get fcalc, including solvent mask contribution:
+      !  (atomic part already done in fourier_Fcalc, and passed in here.)
+      !  need to add the bulk-solvent mask --could/should we use RISM?
+      
+      call init_bulk_solvent()
+      ! need to get coordinates, natom here:
+      ! call grid_bulk_solvent(n_atom, crd)
+      call shrink_bulk_solvent()
+      call fft_bs_mask()
+
+      do i=1,num_hkl
+         f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
+                        mask_cell_params(16) / mask_grid_size(4)
+      end do
+      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
       abs_Fcalc(:) = abs(Fcalc(:))
 
-      ! step 1: get fcalc, including solvent mask contribution:
-      !  (already done in fourier_Fcalc, and passed in here.
-
-      ! step 2: scaling fcalc:
+      ! step 2: scaling Fcalc:
       b_vector_base = log(abs_Fobs(1:NRF_work) / abs_Fcalc(1:NRF_work)) / NRF_work_sq
       b(1) = sum(b_vector_base)
       b(2) = sum(b_vector_base * h_sq(1:NRF_work))

@@ -12,25 +12,13 @@ module ml_mod
   integer :: sfactors_unit = 31
   character(len=50) :: sfactors_name = ''
 
-#if 0
-#  include "fftw3.f"
-#endif
-
-  ! Space group, currently read in from the structure factors file.
-  ! Not really used, since we use the expanded-to-P1 structure factors.
-  character(len = 16) :: space_group
-
-  ! Arrays to hold calculated structure factors and the bulk solvent mask
+  ! Arrays to hold the bulk solvent mask
   complex(8), dimension(:), allocatable :: f_mask, f_mask_tmp, mask_bs_grid_t_c, &
                                            mask_bs_grid_t_c_tmp
 
-  ! Square root of -1 to calculate complex exponents
-  complex(8), parameter :: imaginary_i = cmplx(0., 1.)
-
   ! Parameters for the structure factor computation, many of them supplied by the user
   ! Potentially, they can be used if we want to restrain B-factors
-  double precision :: pseudo_energy_weight, pseudo_energy_weight_incr, scale_xray, &
-                      F_obs_sq_sum_work, F_obs_sq_sum_free, r_work_factor_denominator, &
+  double precision :: F_obs_sq_sum_work, F_obs_sq_sum_free, r_work_factor_denominator, &
                       r_free_factor_denominator, &
                       cell_volume, xray_r_work, xray_r_free
 
@@ -425,9 +413,6 @@ contains
     r_free_counter = 0
     NRF_work = 0
 #if 0
-      read(sfactors_unit, *) pseudo_energy_weight, pseudo_energy_weight_incr
-      write(mdout, '(a,f9.4,a,f9.4)') '| Initial weights = ', pseudo_energy_weight, ' ', &
-                                      pseudo_energy_weight_incr
       read(sfactors_unit, *) mask_update_frequency
       write(mdout, *) '| Mask update frequency = ', mask_update_frequency
 #endif
@@ -490,9 +475,6 @@ contains
       d_star_sq(i) = d_star
       f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
     enddo
-    ! TODO: need to initialize these variables from the xray namelist
-    pseudo_energy_weight = pseudo_energy_weight / sqrt(maxval(f_obs_weight))
-    pseudo_energy_weight_incr = pseudo_energy_weight_incr / sqrt(maxval(f_obs_weight))
 
     NRF_free = NRF - NRF_work
     if (NRF_free /= r_free_counter) then
@@ -1344,6 +1326,9 @@ contains
   !--------------------------------------------------------------------------------------------
   subroutine fft_bs_mask()
 
+    use iso_c_binding
+    implicit none
+    include 'fftw3.f03'
     double precision :: mask_bs_grid_3d(mask_grid_size(1) * mask_grid_size(2) * mask_grid_size(3))
     double precision :: mask_bs_grid_3d_fft(mask_grid_size(1) * mask_grid_size(2) * mask_grid_size(3))
     integer :: i, j, k
@@ -1354,16 +1339,6 @@ contains
     ! END CHECK
 
 #if 0
-    ! FIXME: need to work on the fft integration
-    do i = 1, mask_grid_size(4)
-      mask_bs_grid_3d(i) = mask_bs_grid(i)
-    end do
-    call slab_fft3drc_forward(mask_bs_grid_3d, mask_bs_grid_3d_fft, mask_grid_size(1), &
-                              mask_grid_size(2), mask_grid_size(3))
-    do i = 1, mask_grid_size(4)
-      mask_bs_grid_t_c(i) = mask_bs_grid_3d_fft(i)
-    end do
-
     call dfftw_plan_dft_r2c_3d(plan_forward, mask_grid_size(3), mask_grid_size(2), &
                                mask_grid_size(1), mask_bs_grid_3d, mask_bs_grid_3d_fft, &
                                FFTW_ESTIMATE)
@@ -1390,6 +1365,8 @@ contains
   !--------------------------------------------------------------------------------------------
   subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
         
+    use xray_globals_module, only: xray_weight
+    implicit none
     integer, intent(in) :: nstep, NRF
     complex(8), intent(in)   :: f_calc(NRF)
     double precision, intent(in) :: f_obs(NRF)
@@ -1413,146 +1390,14 @@ contains
       xray_r_work = r_work_factor_numerator / r_work_factor_denominator
       xray_r_free = r_free_factor_numerator / r_free_factor_denominator
     end if
-    pseudo_energy_weight = pseudo_energy_weight + pseudo_energy_weight_incr
 
     ! ML target function
-    exray = exray + pseudo_energy_weight * &
+    exray = exray + xray_weight * &
                         sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
                             f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
                             ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
                             f_obs(1:NRF_work)))
 
   end subroutine estimate_ml_parameters
-
-#if 0
-  !--------------------------------------------------------------------------------------------
-  ! estimate_weight: currently not in use.
-  !                  Handles the X-ray weight ramping if selected by the user
-  !
-  ! Arguments:
-  !   n_atom:
-  !   current_step:
-  !--------------------------------------------------------------------------------------------
-  subroutine estimate_weight(n_atom, current_step)
-
-    ! xxx state_info_mod
-
-    implicit none
-
-    integer :: n_atom, current_step
-
-    open (unit=sf_weight, file="final_weight.txt", status='old', action='read')
-    read (sf_weight, *) starting_N_step, total_N_steps
-    write(mdout, *) 'starting and final steps = ', starting_N_step, total_N_steps
-    close (sf_weight)
-
-    if (call_est == 1) then
-      if (pseudo_energy_weight_incr > 0.0) then
-        pseudo_energy_weight_incr = pseudo_energy_weight / total_N_steps
-        pseudo_energy_weight = (1.d0 * starting_N_step) / total_N_steps + &
-                               pseudo_energy_weight_incr
-        write(mdout, *) 'starting weight and step = ', pseudo_energy_weight, &
-                        pseudo_energy_weight_incr
-      end if
-    end if
-    write(mdout, *) 'starting and final weights = ', scale_xray * pseudo_energy_weight, &
-                    scale_xray * pseudo_energy_weight_incr * total_N_steps
-    call_est = call_est + 1
-
-  end subroutine
-#endif
-
-#if 0
-  ! this routine will not be used as such, but pieces of it will go into
-  ! the dTargetML/dF() routine.
-
-  !--------------------------------------------------------------------------------------------
-  ! get_sf_force: CPU routine to encapsulate the subroutines for computing forces based on
-  !               structure factor restraints.
-  !
-  ! Arguments:
-  !   n_atom:   the number of atoms in the simulation (passed down from runmd)
-  !   crd:      atomic coordinates for the whole system
-  !   frc:      forces on all atoms in the system
-  !   exray:    potential energies record, serves PME only
-  !   nstep:    the step number (passed down from runmd)
-  !--------------------------------------------------------------------------------------------
-  subroutine get_sf_force(n_atom, crd, frc, exray, nstep)
-
-    ! xxx state_info_mod
-
-    implicit none
-
-    double precision :: crd(3, n_atom)
-    double precision :: frc(3, n_atom)
-
-    double precision :: term, b(7), Uaniso(7)
-    complex(8)       :: exp_of_rn_x_s_dot_product
-    integer :: i, j, j_k, n_atom, nstep
-    double precision :: exray
-
-    call init_bulk_solvent()
-    call grid_bulk_solvent(n_atom, crd)
-    call shrink_bulk_solvent()
-    call fft_bs_mask()
-    
-    ! step 1: get fcalc, including solvent mask contribution:
-    do i = 1, NRF
-      f_calc(i) = 0
-      !  pass these in from fourier_Fcalc()
-      do j_k = 1, NAT_for_mask
-        f_calc(i) = f_calc(i) + exp(BFactors(j_k) * s_squared(i)) * &
-                    scat_factors_precalc(atom_types(j_k), i) * &
-                    exp(imaginary_i * dot_product(s(:, i), crd(:, j_k)))
-      end do
-      f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
-                        mask_cell_params(16) / mask_grid_size(4)
-    end do
-    f_calc = f_calc + k_mask * f_mask
-    f_calc_abs = abs(f_calc)
-
-    ! step 2: scaling fcalc:
-    b_vector_base = log(f_obs(1:NRF_work) / f_calc_abs(1:NRF_work)) / NRF_work_sq
-    b(1) = sum(b_vector_base)
-    b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-    b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-    b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-    b(5) = sum(b_vector_base * hk(1:NRF_work))
-    b(6) = sum(b_vector_base * hl(1:NRF_work))
-    b(7) = sum(b_vector_base * kl(1:NRF_work))
-
-    Uaniso = matmul(MUcryst_inv, b)
-
-    k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + Uaniso(4)*l_sq + &
-                              Uaniso(5)*hk   + Uaniso(6)*hl   + Uaniso(7)*kl)
-    f_calc = f_calc * k_scale
-
-    ! step 3: get ml parameters and xray restraint energy:
-    call estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
-
-    ! step 4: get forces on the atoms:
-    do j_k = 1, NAT_for_mask
-      frc_sf(:, j_k) = zero
-      do i = 1, NRF_work
-        exp_of_rn_x_s_dot_product = exp(BFactors(j_k) * s_squared(i)) * &
-                                    scat_factors_precalc(atom_types(j_k), i) * &
-                                    exp(imaginary_i * dot_product(s(:, i), crd(:, j_k)))
-
-        term = k_scale(i) * (aimag(f_calc(i)) * real(exp_of_rn_x_s_dot_product) - &
-                              real(f_calc(i)) * aimag(exp_of_rn_x_s_dot_product)) * &
-               f_obs_weight(i) * &
-               (delta_array(i) * (alpha_array(i) - &
-                                  f_obs(i) * i1_over_i0(2 * delta_array(i) * &
-                                                        f_calc_abs(i) * f_obs(i)) / &
-                                  f_calc_abs(i)))
-        frc_sf(:, j_k) = frc_sf(:, j_k) + s(:, i) * term
-      end do
-      frc(:, j_k) = frc(:, j_k) + scale_xray * pseudo_energy_weight * frc_sf(:, j_k)
-    end do
-
-    return
-
-  end subroutine get_sf_force
-#endif
 
 end module ml_mod
