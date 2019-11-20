@@ -511,9 +511,9 @@ contains
       a = unit_cell(1)
       b = unit_cell(2)
       c = unit_cell(3)
-      alpha = 3.14159*unit_cell(4)/180.
-      beta = 3.14159*unit_cell(5)/180.
-      gamma = 3.14159*unit_cell(6)/180.
+      alpha = 3.1415926536d0*unit_cell(4)/180.
+      beta = 3.1415926536d0*unit_cell(5)/180.
+      gamma = 3.1415926536d0*unit_cell(6)/180.
       sina = sin(alpha)
       cosa = cos(alpha)
       sinb = sin(beta)

@@ -456,7 +456,7 @@ contains
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       implicit none
       ! local
-      integer :: hkl_lun, i, alloc_status
+      integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
       real(real_kind) :: phi
       logical :: master
 #ifdef MPI
@@ -502,11 +502,9 @@ contains
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
       do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) hkl_index(1:3,i),abs_Fobs(i),sigFobs(i)
+         read(hkl_lun,*,end=1,err=1) &
+            hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
       end do
-
-      ! for now, use all reflections:
-      test_flag(:) = 1
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
@@ -518,8 +516,6 @@ contains
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi) )
          end do
       endif
-      
-      close(hkl_lun)
 
       ! if( fft_method > 0 ) call FFT_setup()
 
@@ -528,10 +524,14 @@ contains
                igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
-         if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(atom_selection),' atoms in ', &
+         NAT_for_mask = sum(atom_selection)
+         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask,' atoms in ', &
                atom_selection_mask
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
+
+      if( target(1:2) == 'ml' ) call init_sf(natom, nstlim, NAT_for_mask, num_hkl, &
+           hkl_index, abs_fobs, sig_fobs, test_flag)
 
       return
       1 continue

@@ -16,44 +16,22 @@ module ml_mod
 #  include "fftw3.f"
 #endif
 
-#if 1
-  ! DAC: following seems odd: only a few elements are recorded here(?)
-  !      we will probably use the xray implementation, but does require
-  !      using add_xray to the prmtop file....
-
-  ! This is written out with nine lines of five entries, but really just one big line full
-  ! of 45 entries.  The data is immediately reshaped into the requisite 9 col x 5 row array.
-  double precision, dimension(9, 5), save :: &
-  scat_factors = reshape((/ &
-                            0.493002,   0.322912,   0.140191,   0.040810,  10.510900, &
-                           26.125700,   3.142360,  57.799700,   0.003038,   2.310000, &
-                            1.020000,   1.588600,   0.865000,  20.843900,  10.207500, &
-                            0.568700,  51.651200,   0.215600,  12.212600,   3.132200, &
-                            2.012500,   1.166300,   0.005700,   9.893300,  28.997500, &
-                            0.582600, -11.529000,   3.048500,   2.286800,   1.546300, &
-                            0.867000,  13.277100,   5.701100,   0.323900,  32.908900, &
-                            0.250800,   6.905300,   5.203400,   1.437900,   1.586300, &
-                            1.467900,  22.215100,   0.253600,  56.172000,   0.866900 /), &
-                         shape(scat_factors)) ! H, C, N, O, S scattering factors, it1992 scattering table
-#endif
-
   ! Space group, currently read in from the structure factors file.
   ! Not really used, since we use the expanded-to-P1 structure factors.
   character(len = 16) :: space_group
 
   ! Arrays to hold calculated structure factors and the bulk solvent mask
-  complex(8), dimension(:), allocatable :: f_calc, f_mask, f_mask_tmp, mask_bs_grid_t_c, &
+  complex(8), dimension(:), allocatable :: f_mask, f_mask_tmp, mask_bs_grid_t_c, &
                                            mask_bs_grid_t_c_tmp
 
   ! Square root of -1 to calculate complex exponents
   complex(8), parameter :: imaginary_i = cmplx(0., 1.)
 
   ! Parameters for the structure factor computation, many of them supplied by the user
-  ! adp_energy_weight, adp_energy_weight_incr are not used currently.
   ! Potentially, they can be used if we want to restrain B-factors
   double precision :: pseudo_energy_weight, pseudo_energy_weight_incr, scale_xray, &
                       F_obs_sq_sum_work, F_obs_sq_sum_free, r_work_factor_denominator, &
-                      r_free_factor_denominator, adp_energy_weight, adp_energy_weight_incr, &
+                      r_free_factor_denominator, &
                       cell_volume, xray_r_work, xray_r_free
 
   ! Unit cell dimensions
@@ -69,12 +47,12 @@ module ml_mod
 
   ! Arrays used in the computation of structure factors and ML parameters
   double precision, dimension(:), allocatable :: f_obs, f_obs_weight, f_obs_sigmas, &
-                                                 f_calc_abs, s_squared, BFactors, k_mask, &
+                                                 s_squared, k_mask, &
                                                  k_scale, alpha_array, &
-                                                 beta_array, delta_array, frc_adp, &
-                                                 frc_adp_a_priori, mask_cutoffs, &
+                                                 beta_array, delta_array, &
+                                                 mask_cutoffs, &
                                                  b_vector_base
-  double precision, dimension(:,:), allocatable ::  s, scat_factors_precalc
+  double precision, dimension(:,:), allocatable ::  s
 
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
@@ -83,20 +61,15 @@ module ml_mod
                                                  alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
                                                  t_optimal, alpha_in_zones, beta_in_zones
 
-  ! Structure factor force computation scratch arrays
-  double precision, dimension(:,:), allocatable :: frc_sf
-
   ! Convenient numerical constants
   double precision, parameter :: pi = 3.14159265359, zero = 0.0, k_sol = 0.35, &
                                  b_sol = 46.0, mask_r_shrink = 0.9, &
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
 
-  ! NRF:                    The number of reflections
+  ! NRF:                    The number of reflections (passed in from xray3 reads)
   ! NRF_work, NRF_work_sq:  Number of work reflections, and square thereof
   ! NRF_free:               Number of free reflections
   ! NAT_for_mask:           Number of mask atoms
-  ! BFactors_len:           Number of B factors (given in the structure factors file),
-  !                         has to be equal to NAT_for_mask, otherwise warning is thrown
   ! call_est:               Tracking counter for pseudo-energy weight estimation
   ! N_steps:                The total number of simulation steps (N_steps is set directly to
   !                         nstlim). Used to potentially control the restraints weight
@@ -105,7 +78,7 @@ module ml_mod
   ! mask_update_frequency:  Solvent mask update freuency
   ! grid_neighbors_size:    Number of grid neighbors that are within the shrunken mask cutoff
   ! n_bins:                 Number of reflections per resolution bin
-  integer :: NRF, NRF_work, NRF_work_sq, NRF_free, NAT_for_mask, BFactors_len, &
+  integer :: NRF,NRF_work, NRF_work_sq, NRF_free, NAT_for_mask, &
              call_est, N_steps, starting_N_step, total_N_steps, &
              mask_update_frequency, grid_neighbors_size, n_bins
 
@@ -159,33 +132,6 @@ contains
     cross_product(3) = a(1) * b(2) - a(2) * b(1)
 
   end function cross
-
-  
-  !--------------------------------------------------------------------------------------------
-  ! get_scat_factor:  get the scattering factor associated with an atom
-  !
-  ! Arguments:
-  !   atom_type:    the type of the atom (indexed according to SF-specific array, not the
-  !                 original topology numerical condification of atom types)
-  !   s_i:          the atom index for which to get a scattering factor
-  !--------------------------------------------------------------------------------------------
-  function get_scat_factor(atom_type, s_i) result(scat_factor)
-
-    double precision :: scat_factor
-    integer :: i
-    integer, intent(in) :: atom_type, s_i
-
-    scat_factor = 0.0
-    if (atom_type > h_threshold) then
-      do i = 1, 4
-        scat_factor = scat_factor + &
-                      (scat_factors(i, atom_type) * exp(scat_factors(i + 4, atom_type) * &
-                       s_squared(s_i)))
-      end do
-      scat_factor = scat_factor + scat_factors(9, atom_type)
-    endif
-
-  end function get_scat_factor
 
   !--------------------------------------------------------------------------------------------
   ! i1_over_i0:   approximation of modified Bessel functions of the first kind:
@@ -374,22 +320,38 @@ contains
   end function adjust_gridding
 
   !--------------------------------------------------------------------------------------------
-  ! init_sf: gateway to structure factor computations.  Fires off open_sf_file and orders up
-  !          reading for lots of parameters in the calculation.
+  ! init_sf: gateway to structure factor computations. 
   !
   ! Arguments:
   !   crd:    
   !--------------------------------------------------------------------------------------------
-  subroutine init_sf(n_atom, nstlim)
-    ! xxx prmtop_dat_mod
-    ! xxx state_info_mod
+  subroutine init_sf(n_atom, nstlim, nat_mask, NRF, hkl_tmp, &
+                     f_obs_tmp, f_obs_sigma_tmp, test_flag)
 
+    use xray_globals_module, only: unit_cell
     implicit none
 
+    integer, intent(in) :: n_atom, nstlim, nat_mask, NRF
+    integer, dimension(3,NRF), intent(in) :: hkl_tmp
+    double precision, dimension(NRF), intent(in) :: f_obs_tmp, f_obs_sigma_tmp
+    integer, dimension(NRF), intent(in) :: test_flag
+
+    double precision :: a, b, c, alpha, beta, gamma, V, grid_stepX, grid_stepY, grid_stepZ, &
+                        temp_grid, resolution, d, d_star, reflections_per_bin, fo_fo
+    double precision :: cosa, sina, cosb, sinb, cosg, sing
+    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
+    double precision, dimension(:), allocatable :: d_star_sq, &
+                                                   d_star_sq_sorted, bin_limits
+    integer, dimension(:), allocatable :: r_free_flag_array, counter_w, counter_f
+    integer (kind = 4) :: file_status
+    integer :: d_i, i, j, k, na, nb, nc
+    integer :: r_free_counter, r_free_flag, counter_sort, index_sort
+    integer, dimension(:,:), allocatable :: hkl
+
     character(4) :: name
-    integer :: i, n_atom, nstlim
     
     N_steps = nstlim
+    NAT_for_mask =nat_mask
     allocate(atom_types(n_atom))
     allocate(mask_cutoffs(n_atom))
     do i = 1, n_atom
@@ -431,23 +393,387 @@ contains
       endif
     end do
 
-    allocate(frc_sf(3, NAT_for_mask))
-    allocate(frc_adp(NAT_for_mask))
-    allocate(frc_adp_a_priori(NAT_for_mask))
-    call open_sf_file(sfactors_unit, sfactors_name)
-    write(mdout, *) "Parsed structure factors file"
-    if (BFactors_len == NAT_for_mask) then
-      write(mdout, *) "All good, Bfactors are read"
-    else
-      write(mdout, *) "Warning, not enough Bfactors"
+    allocate(f_mask(NRF))
+    allocate(f_mask_tmp(NRF))
+    allocate(f_obs(NRF))
+    allocate(f_obs_weight(NRF))
+    allocate(f_obs_sigmas(NRF))
+    allocate(r_free_flag_array(NRF))
+    allocate(d_star_sq(NRF))
+    allocate(reflection_bin(NRF))
+    allocate(hkl(3, NRF))
+    allocate(hkl_indexing_bs_mask(NRF))
+    allocate(h_sq(NRF))
+    allocate(k_sq(NRF))
+    allocate(l_sq(NRF))
+    allocate(hk(NRF))
+    allocate(hl(NRF))
+    allocate(kl(NRF))
+    allocate(k_mask(NRF))
+    allocate(k_scale(NRF))
+    allocate(delta_array(NRF))
+    allocate(alpha_array(NRF))
+    alpha_array = 1.0
+    allocate(beta_array(NRF))
+    beta_array = 1.0
+    allocate(s(3, NRF))
+    allocate(s_squared(NRF))
+    do i = 1, 7
+      do j = 1, 7
+        Ucryst(i, j) = zero
+      end do
+    end do
+    F_obs_sq_sum_work = zero
+    F_obs_sq_sum_free = zero
+    r_work_factor_denominator = zero
+    r_free_factor_denominator = zero
+    r_free_counter = 0
+    NRF_work = 0
+#if 0
+      read(sfactors_unit, *) pseudo_energy_weight, pseudo_energy_weight_incr
+      write(mdout, '(a,f9.4,a,f9.4)') '| Initial weights = ', pseudo_energy_weight, ' ', &
+                                      pseudo_energy_weight_incr
+      read(sfactors_unit, *) mask_update_frequency
+      write(mdout, *) '| Mask update frequency = ', mask_update_frequency
+#endif
+
+    a = unit_cell(1)
+    b = unit_cell(2)
+    c = unit_cell(3)
+    alpha = 3.1415926536d0*unit_cell(4)/180.d0
+    beta = 3.1415926536d0*unit_cell(5)/180.d0
+    gamma = 3.1415926536d0*unit_cell(6)/180.d0
+    sina = sin(alpha)
+    cosa = cos(alpha)
+    sinb = sin(beta)
+    cosb = cos(beta)
+    sing = sin(gamma)
+    cosg = cos(gamma)
+    V = a*b*c*sqrt( 1.d0 - cosa**2 - cosb**2 -cosg**2 &
+        + 2.d0*cosa*cosb*cosg )
+
+    va = (/ a, zero, zero/)
+    vb = (/cosg * b, sing * b, zero/)
+    vc = (/cosb * c, (cosa - cosb * cosg)/sing * c, &
+    sqrt(1.0 - cosa * cosa - cosb * cosb - cosg * cosg + &
+         2.0 * cosa * cosb * cosg)/sing * c/)
+    vas = cross(vb, vc)
+    vbs = cross(vc, va)
+    vcs = cross(va, vb)
+    vas(1:3) = vas(1:3) / V
+    vbs(1:3) = vbs(1:3) / V
+    vcs(1:3) = vcs(1:3) / V
+    cell_volume = V
+
+    resolution = 50.0
+    do i = 1, NRF
+      ! following is the same as the xray3 file format:
+      !read(hkl_lun, *) hkl_tmp(:,i), f_obs_tmp(i), f_obs_sigma_tmp(i), r_free_flag
+      r_free_flag = test_flag(i)
+      d_star =  (square(hkl_tmp(1,i) * norm2(vas)) + square(hkl_tmp(2,i) * norm2(vbs)) + &
+                 square(hkl_tmp(3,i) * norm2(vcs)) + &
+                 2 * hkl_tmp(2,i) * hkl_tmp(3,i) * dot_product(vbs, vcs) + &
+                 2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vas, vcs) + &
+                 2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vbs, vas))
+      d = sqrt(1.0 / d_star)
+      if (d < resolution) then
+        resolution = d
+        ! write(mdout, *) 'highest resolution', d, i
+      end if
+      if (r_free_flag == 0) then
+        NRF_work = NRF_work + 1
+        k = NRF_work
+        r_work_factor_denominator = r_work_factor_denominator + f_obs_tmp(i)
+        F_obs_sq_sum_work = F_obs_sq_sum_work + f_obs_tmp(i) * f_obs_tmp(i) !* &
+        ! (1.0/f_obs_sigma_tmp(i))**2
+      else
+        k = NRF - r_free_counter
+        r_free_counter = r_free_counter + 1
+        r_free_factor_denominator = r_free_factor_denominator + f_obs_tmp(i)
+        F_obs_sq_sum_free = F_obs_sq_sum_free + f_obs_tmp(i) * f_obs_tmp(i) !* &
+        ! (1.0/f_obs_sigma_tmp(i))**2
+      endif
+      r_free_flag_array(i) = r_free_flag
+      d_star_sq(i) = d_star
+      f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
+    enddo
+    pseudo_energy_weight = pseudo_energy_weight / sqrt(maxval(f_obs_weight))
+    pseudo_energy_weight_incr = pseudo_energy_weight_incr / sqrt(maxval(f_obs_weight))
+    scale_xray = -2.0
+    NRF_free = NRF - NRF_work
+    if (NRF_free /= r_free_counter) then
+      write(mdout, *) 'STOP!!!!!!'
     endif
+    write(mdout, *) 'NRFs', NRF_work, NRF_free, NRF
+
+    ! Sort reflections for binning
+    allocate(d_star_sq_sorted(NRF_free))
+    r_free_counter = 0
+    do i = 1, NRF
+      if (r_free_flag_array(i) == 1) then
+        r_free_counter = r_free_counter + 1
+        d_star_sq_sorted(r_free_counter) = d_star_sq(i)
+      end if
+    end do
+    call bubble_sort(d_star_sq_sorted)
+    reflections_per_bin = 140.0
+    if (reflections_per_bin > NRF_free) then
+      reflections_per_bin = 1.0 * NRF_free
+    end if
+    n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
+    reflections_per_bin = 1.0 * NRF_free / n_bins
+    write(mdout, *) "adjusted reflections per bin", reflections_per_bin
+    allocate(bin_limits(n_bins + 1))
+    bin_limits(1) = max(zero, d_star_sq_sorted(1) * (1 - d_tolerance))
+    do i = 2, n_bins
+      d_i = int((i-1) * reflections_per_bin + 0.5) + 1
+      bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
+      if (d_i == NRF_free) then
+        write(mdout, *) "check your reflections file"
+        stop
+      end if
+    end do
+    bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
+    write(mdout, *) "resolution bins"
+    do i = 1, n_bins + 1
+      write(mdout, *) 1.0/sqrt(bin_limits(i))
+    end do
+    reflection_bin = n_bins
+    allocate(A_in_zones(n_bins))
+    allocate(B_in_zones(n_bins))
+    allocate(q_in_zones(n_bins))
+    allocate(C_in_zones(n_bins))
+    allocate(t_optimal(n_bins))
+    allocate(alpha_beta_OmegaI(n_bins))
+    allocate(alpha_beta_wi(n_bins))
+    allocate(alpha_in_zones(n_bins))
+    allocate(beta_in_zones(n_bins))
+    allocate(alpha_beta_bj(NRF))
+    A_in_zones = 0.0
+    B_in_zones = 0.0
+    q_in_zones = 0.0
+    C_in_zones = 0.0
+    t_optimal = 0.0
+    alpha_beta_OmegaI = 0.0
+    alpha_beta_wi = 0.0
+    alpha_in_zones = 0.0
+    beta_in_zones = 1.0
+    alpha_beta_bj = 0.0
+
+    allocate(bins_work_population(n_bins))
+    allocate(bins_free_population(n_bins))
+    bins_work_population = 0
+    bins_free_population = 0
+    do i = 1, NRF
+       
+      ! Reverse order is to compare with cctbx output
+      do j = n_bins, 2, -1
+        if (d_star_sq(i) < bin_limits(j)) then
+          reflection_bin(i) = j - 1
+        end if
+      end do
+      if (r_free_flag_array(i) == 0) then
+        bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
+      else
+        bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
+      end if
+    end do
+    allocate(bins_work_reflections(n_bins, maxval(bins_work_population)))
+    allocate(bins_free_reflections(n_bins, maxval(bins_free_population)))
+    allocate(counter_w(n_bins))
+    allocate(counter_f(n_bins))
+    bins_work_reflections = 0
+    bins_free_reflections = 0
+    counter_w = 1
+    counter_f = 1
+    do i = 1, NRF
+      if (r_free_flag_array(i) == 0) then
+        if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
+          write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
+        end if
+        bins_work_reflections(reflection_bin(i), counter_w(reflection_bin(i))) = i
+        counter_w(reflection_bin(i)) = counter_w(reflection_bin(i)) + 1
+      else
+        if (counter_f(reflection_bin(i)) > bins_free_population(reflection_bin(i))) then
+          write(mdout, *) reflection_bin(i), "something weird during resorting free happened"
+        end if
+        bins_free_reflections(reflection_bin(i), counter_f(reflection_bin(i))) = i
+        counter_f(reflection_bin(i)) = counter_f(reflection_bin(i)) + 1
+      end if
+    end do
+    counter_sort = 0
+    do i = 1, n_bins
+      do j = 1, bins_work_population(i)
+        counter_sort = counter_sort + 1
+        index_sort = bins_work_reflections(i, j)
+        f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
+        f_obs(counter_sort) = f_obs_tmp(index_sort)
+        hkl(counter_sort,:) = hkl_tmp(:,index_sort)
+      end do
+    end do
+    allocate(bins_free_start_indices(n_bins))
+    do i = 1, n_bins
+      bins_free_start_indices(i) = counter_sort + 1
+      write(mdout, *) i, bins_free_start_indices(i), bins_free_population(i)
+      do j = 1, bins_free_population(i)
+        counter_sort = counter_sort + 1
+        index_sort = bins_free_reflections(i, j)
+        f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
+        f_obs(counter_sort) = f_obs_tmp(index_sort)
+        hkl(counter_sort,:) = hkl_tmp(:,index_sort)
+      end do
+    end do
+    if (counter_sort .ne. NRF) then
+
+      ! Might be an error in the code?
+      write(mdout, *) "Binning went wrong. Check the reflections file"
+      stop
+    end if
+
+    do i = 1, n_bins
+      do j = bins_free_start_indices(i) + bins_free_population(i) - 1, &
+             bins_free_start_indices(i), -1
+        fo_fo = f_obs(j) * f_obs(j) ! / 2
+        B_in_zones(i) = B_in_zones(i) + 2 * fo_fo ! / coef_norm
+        q_in_zones(i) = q_in_zones(i) + 2 * fo_fo * fo_fo ! / coef_norm
+      end do
+      B_in_zones(i) = B_in_zones(i) / (2 * bins_free_population(i))
+      q_in_zones(i) = q_in_zones(i) / (2 * bins_free_population(i))
+    end do
+
+    ! Re-sort due to binning ended
+
+    temp_grid = resolution / 4.0
+#if 0
+      na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
+      nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
+      nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
+#endif
+
+    ! FIXME: need to make nfft1,nfft2,nfft3 visible here:
+    ! na = nfft1
+    ! nb = nfft2
+    ! nc = nfft3
+
+    grid_stepX = a / na
+    grid_stepY = vb(2) / nb
+    grid_stepZ = vc(3) / nc
+
+    ! Metric matrix (1:6), reciprocal cell lengths (7:9), cart-to-frac matrix (10:15),
+    ! cell volume (16)
+    mask_cell_params = (/a*a, b*b, c*c, 2*a*b*cos(gamma), 2*a*c*cos(beta), &
+                        2*b*c*cos(alpha), norm2(vas), norm2(vbs), norm2(vcs), &
+                        1.0 / a, -cos(gamma) / (sin(gamma)* a), &
+                        (cos(alpha) * cos(gamma) - cos(beta)) / (V * sin(gamma)) * b * c, &
+                        1 / (sin(gamma) * b), &
+                        (cos(beta) * cos(gamma) - cos(alpha)) / (V * sin(gamma)) * a * c, &
+                        a * b * sin(gamma) / V, V/)
+    mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
+    mask_grid_size = (/na, nb, nc, na*nb*nc/)
+    write(mdout, *) 'resolution', resolution
+    write(mdout, *) 'mask_cell_params', mask_cell_params
+    write(mdout, *) 'mask_grid_steps', mask_grid_steps
+    write(mdout, *) 'mask_grid_size', mask_grid_size
+    allocate(mask_bs_grid(mask_grid_size(4)))
+    allocate(mask_bs_grid_tmp(mask_grid_size(4)))
+    allocate(mask_bs_grid_t_c(mask_grid_size(1) * mask_grid_size(2) * &
+                              (mask_grid_size(3)/2 + 1)))
+    allocate(mask_bs_grid_t_c_tmp(mask_grid_size(1) * mask_grid_size(2) * &
+                                  (mask_grid_size(3) /2 + 1)))
+    allocate(b_vector_base(NRF_work))
+    do i = 1, NRF
+      hkl_indexing_bs_mask(i) = h_as_ih(hkl(i, 1), hkl(i, 2), hkl(i, 3), na, nb, nc)
+      if (hkl_indexing_bs_mask(i) == -1) then
+        stop 'Miller indices indexing failed'
+      end if
+      k_mask(i) = k_sol * exp(b_sol * s_squared(i))
+      h_sq(i) = hkl(i, 1) * hkl(i, 1)
+      k_sq(i) = hkl(i, 2) * hkl(i, 2)
+      l_sq(i) = hkl(i, 3) * hkl(i, 3)
+      hk(i) = hkl(i, 1) * hkl(i, 2)
+      hl(i) = hkl(i, 1) * hkl(i, 3)
+      kl(i) = hkl(i, 2) * hkl(i, 3)
+    end do
+    NRF_work_sq = NRF_work * NRF_work
+    Ucryst(1, 1) = 1.0 / NRF_work
+    Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(1, 4) = sum(1.0 * l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(1, 5) = sum(1.0 *   hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
+
+    ! In case if one needs only anisotropic scaling
+    ! Ucryst(1, 1) = 1.0
+    ! Ucryst(1, 2) = 0.0
+    ! Ucryst(1, 3) = 0.0
+    ! Ucryst(1, 4) = 0.0
+    ! Ucryst(1, 5) = 0.0
+    ! Ucryst(1, 6) = 0.0
+    ! Ucryst(1, 7) = 0.0
+
+    Ucryst(2, 1) = Ucryst(1, 2)
+    Ucryst(3, 1) = Ucryst(1, 3)
+    Ucryst(4, 1) = Ucryst(1, 4)
+    Ucryst(5, 1) = Ucryst(1, 5)
+    Ucryst(6, 1) = Ucryst(1, 6)
+    Ucryst(7, 1) = Ucryst(1, 7)
+
+    Ucryst(2, 2) = sum(1.0 * h_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(2, 3) = sum(1.0 * k_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(2, 4) = sum(1.0 * l_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(2, 5) = sum(1.0 *   hk(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(2, 6) = sum(1.0 *   hl(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(2, 7) = sum(1.0 *   kl(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
+
+    Ucryst(3, 2) = sum(1.0 * h_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(3, 3) = sum(1.0 * k_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(3, 4) = sum(1.0 * l_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(3, 5) = sum(1.0 *   hk(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(3, 6) = sum(1.0 *   hl(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(3, 7) = sum(1.0 *   kl(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
+
+    Ucryst(4, 2) = sum(1.0 * h_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(4, 3) = sum(1.0 * k_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(4, 4) = sum(1.0 * l_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(4, 5) = sum(1.0 *   hk(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(4, 6) = sum(1.0 *   hl(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+    Ucryst(4, 7) = sum(1.0 *   kl(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
+
+    Ucryst(5, 2) = sum(1.0 * h_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(5, 3) = sum(1.0 * k_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(5, 4) = sum(1.0 * l_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(5, 5) = sum(1.0 *   hk(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(5, 6) = sum(1.0 *   hl(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+    Ucryst(5, 7) = sum(1.0 *   kl(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
+
+    Ucryst(6, 2) = sum(1.0 * h_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(6, 3) = sum(1.0 * k_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(6, 4) = sum(1.0 * l_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(6, 5) = sum(1.0 *   hk(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(6, 6) = sum(1.0 *   hl(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+    Ucryst(6, 7) = sum(1.0 *   kl(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
+
+    Ucryst(7, 2) = sum(1.0 * h_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+    Ucryst(7, 3) = sum(1.0 * k_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+    Ucryst(7, 4) = sum(1.0 * l_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+    Ucryst(7, 5) = sum(1.0 *   hk(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+    Ucryst(7, 6) = sum(1.0 *   hl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+    Ucryst(7, 7) = sum(1.0 *   kl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
+
+    call inverse(Ucryst, MUcryst_inv, 7)
+    call calc_grid_neighbors()
+
 
     call_est = 1
+
+    ! DAC: need some deallocates here(?)
     
     return
 
   end subroutine init_sf
 
+#if 0
   !--------------------------------------------------------------------------------------------
   ! finalize_ml_mod:  clean up the structure factors computation before termination of pmemd
   !--------------------------------------------------------------------------------------------
@@ -476,52 +802,15 @@ contains
       end do
     end do
 
-#if 0
     open (unit=sf_weight, file="structure_factors.txt", status='replace', action='write')
     write (sf_weight, *) f_calc_tmp
     close (sf_weight)
     open (unit=sf_weight, file="final_weight.txt", status='replace', action='write')
     write (sf_weight, *) starting_N_step + N_steps, total_N_steps
     close (sf_weight)
-#endif
 
   end subroutine finalize_ml_mod
-
-  !--------------------------------------------------------------------------------------------
-  ! file_line_count:  calculate the number of structure factors in the input file, stored in
-  !                   line_num
-  !--------------------------------------------------------------------------------------------
-  subroutine file_line_count(input_unit, file_name, line_num)
-
-    implicit none
-
-    character(len = *) :: file_name
-    character(len = 1023) :: line
-    integer(kind = 4) :: ierror, input_status, input_unit, line_num
-    
-    write(mdout, *) "Opening structure factors file"
-
-    open(unit = input_unit, file = file_name, status = 'old', iostat = input_status)
-    if (input_status /= 0) then
-      write ( *, '(a)') 'Fatal error! Cannot read structure factors file.'
-      stop
-    end if
-    line_num = 0
-    do
-      read(input_unit, '(a)', iostat = input_status) line
-      if (input_status /= 0) then
-        ierror = line_num
-        exit
-      end if
-      line_num = line_num + 1
-    end do
-    close(unit = input_unit)
-    line_num = line_num - 6 ! gap for space group, dimensions, k-constants,
-                            ! mask update frequency, BFactors_len, and Bfactors
-
-    return
-
-  end subroutine file_line_count
+#endif
 
   !--------------------------------------------------------------------------------------------
   ! square:  compute the square of a number
@@ -714,424 +1003,6 @@ contains
       if (.NOT. swapped) exit
     end do
   end subroutine bubble_sort
-
-  !--------------------------------------------------------------------------------------------
-  ! open_sf_file: open and read, unpack parameters, B-factors, and structure factors from a
-  !               file.
-  !--------------------------------------------------------------------------------------------
-  subroutine open_sf_file(sfactors_unit, sfactors_name)
-
-    implicit none
-
-    character(*) :: sfactors_name
-    double precision :: a, b, c, alpha, beta, gamma, V, grid_stepX, grid_stepY, grid_stepZ, &
-                        temp_grid, resolution, d, d_star, reflections_per_bin, fo_fo
-    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
-    double precision, dimension(:), allocatable :: f_obs_tmp, f_obs_sigma_tmp, d_star_sq, &
-                                                   d_star_sq_sorted, bin_limits
-    integer, dimension(:), allocatable :: r_free_flag_array, counter_w, counter_f
-    integer (kind = 4) :: file_status
-    integer :: d_i, i, j, k, na, nb, nc
-    integer :: r_free_counter, r_free_flag, counter_sort, index_sort
-    integer :: sfactors_unit
-    integer, dimension(:,:), allocatable :: hkl, hkl_tmp
-    
-    call file_line_count(sfactors_unit, sfactors_name, NRF)
-    write(mdout, '(A,I6,A)') 'Counted a total of', NRF, 'file lines'
-
-    open(unit = sfactors_unit, file = sfactors_name, status = 'old', iostat = file_status)
-
-    if (file_status /= 0) then
-      write ( *, '(a)') 'Fatal error with structure factors file.'
-      sfactors_unit = -1
-      stop
-    else
-      allocate(f_calc(NRF))
-      allocate(f_calc_abs(NRF))
-      allocate(f_mask(NRF))
-      allocate(f_mask_tmp(NRF))
-      allocate(f_obs(NRF))
-      allocate(f_obs_tmp(NRF))
-      allocate(f_obs_weight(NRF))
-      allocate(f_obs_sigmas(NRF))
-      allocate(f_obs_sigma_tmp(NRF))
-      allocate(r_free_flag_array(NRF))
-      allocate(d_star_sq(NRF))
-      allocate(reflection_bin(NRF))
-      allocate(hkl(NRF, 3))
-      allocate(hkl_indexing_bs_mask(NRF))
-      allocate(hkl_tmp(NRF, 3))
-      allocate(h_sq(NRF))
-      allocate(k_sq(NRF))
-      allocate(l_sq(NRF))
-      allocate(hk(NRF))
-      allocate(hl(NRF))
-      allocate(kl(NRF))
-      allocate(k_mask(NRF))
-      allocate(k_scale(NRF))
-      allocate(delta_array(NRF))
-      allocate(alpha_array(NRF))
-      alpha_array = 1.0
-      allocate(beta_array(NRF))
-      beta_array = 1.0
-      allocate(s(3, NRF))
-      allocate(s_squared(NRF))
-      allocate(scat_factors_precalc(5, NRF))
-      do i = 1, 7
-        do j = 1, 7
-          Ucryst(i, j) = zero
-        end do
-      end do
-      F_obs_sq_sum_work = zero
-      F_obs_sq_sum_free = zero
-      r_work_factor_denominator = zero
-      r_free_factor_denominator = zero
-      r_free_counter = 0
-      NRF_work = 0
-#if 0
-      read(sfactors_unit, '(a)') space_group
-      write(mdout, *) '| Original space group is ',space_group
-      read(sfactors_unit, *) a, b, c, alpha, beta, gamma
-      uc_dimensions = (/ a, b, c, alpha, beta, gamma /)
-      read(sfactors_unit, *) pseudo_energy_weight, pseudo_energy_weight_incr
-      write(mdout, '(a,f9.4,a,f9.4)') '| Initial weights = ', pseudo_energy_weight, ' ', &
-                                      pseudo_energy_weight_incr
-      read(sfactors_unit, *) mask_update_frequency
-      write(mdout, *) '| Mask update frequency = ', mask_update_frequency
-#endif
-      alpha = alpha * pi / 180
-      beta = beta * pi / 180
-      gamma = gamma * pi / 180
-      V = a * b * c * &
-      sqrt(1.0 - cos(alpha) * cos(alpha) - cos(beta) * cos(beta) - cos(gamma) * cos(gamma) + &
-           2.0 * cos(alpha) * cos(beta) * cos(gamma))
-      va = (/ a, zero, zero/)
-      vb = (/cos(gamma) * b, sin(gamma) * b, zero/)
-      vc = (/cos(beta) * c, (cos(alpha) - cos(beta) * cos(gamma))/sin(gamma) * c, &
-      sqrt(1.0 - cos(alpha) * cos(alpha) - cos(beta) * cos(beta) - cos(gamma) * cos(gamma) + &
-           2.0 * cos(alpha) * cos(beta) * cos(gamma))/sin(gamma) * c/)
-      vas = cross(vb, vc)
-      vbs = cross(vc, va)
-      vcs = cross(va, vb)
-      vas(1:3) = vas(1:3) / V
-      vbs(1:3) = vbs(1:3) / V
-      vcs(1:3) = vcs(1:3) / V
-      cell_volume = V
-#if 0
-      read(sfactors_unit, *) BFactors_len
-      allocate(BFactors(BFactors_len))
-      read(sfactors_unit, *) BFactors
-#endif
-
-      resolution = 50.0
-      do i = 1, NRF
-        ! following is the same as the xray3 file format:
-        read(sfactors_unit, *) hkl_tmp(i,:), f_obs_tmp(i), f_obs_sigma_tmp(i), r_free_flag
-        d_star =  (square(hkl_tmp(i, 1) * norm2(vas)) + square(hkl_tmp(i, 2) * norm2(vbs)) + &
-                   square(hkl_tmp(i, 3) * norm2(vcs)) + &
-                   2 * hkl_tmp(i, 2) * hkl_tmp(i, 3) * dot_product(vbs, vcs) + &
-                   2 * hkl_tmp(i, 1) * hkl_tmp(i, 3) * dot_product(vas, vcs) + &
-                   2 * hkl_tmp(i, 1) * hkl_tmp(i, 2) * dot_product(vbs, vas))
-        d = sqrt(1.0 / d_star)
-        if (d < resolution) then
-          resolution = d
-!         write(mdout, *) 'highest resolution', d, i
-        end if
-        if (r_free_flag == 0) then
-          NRF_work = NRF_work + 1
-          k = NRF_work
-          r_work_factor_denominator = r_work_factor_denominator + f_obs_tmp(i)
-          F_obs_sq_sum_work = F_obs_sq_sum_work + f_obs_tmp(i) * f_obs_tmp(i) !* &
-          ! (1.0/f_obs_sigma_tmp(i))**2
-        else
-          k = NRF - r_free_counter
-          r_free_counter = r_free_counter + 1
-          r_free_factor_denominator = r_free_factor_denominator + f_obs_tmp(i)
-          F_obs_sq_sum_free = F_obs_sq_sum_free + f_obs_tmp(i) * f_obs_tmp(i) !* &
-          ! (1.0/f_obs_sigma_tmp(i))**2
-        endif
-        r_free_flag_array(i) = r_free_flag
-        d_star_sq(i) = d_star
-        f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
-      enddo
-      pseudo_energy_weight = pseudo_energy_weight / sqrt(maxval(f_obs_weight))
-      pseudo_energy_weight_incr = pseudo_energy_weight_incr / sqrt(maxval(f_obs_weight))
-      scale_xray = -2.0
-      write(mdout, *) 'scaling coefficient = ', scale_xray
-      NRF_free = NRF - NRF_work
-      if (NRF_free /= r_free_counter) then
-        write(mdout, *) 'STOP!!!!!!'
-      endif
-      write(mdout, *) 'NRFs', NRF_work, NRF_free, NRF
-
-      ! Sort reflections for binning
-      allocate(d_star_sq_sorted(NRF_free))
-      r_free_counter = 0
-      do i = 1, NRF
-        if (r_free_flag_array(i) == 1) then
-          r_free_counter = r_free_counter + 1
-          d_star_sq_sorted(r_free_counter) = d_star_sq(i)
-        end if
-      end do
-      call bubble_sort(d_star_sq_sorted)
-      reflections_per_bin = 140.0
-      if (reflections_per_bin > NRF_free) then
-        reflections_per_bin = 1.0 * NRF_free
-      end if
-      n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
-      reflections_per_bin = 1.0 * NRF_free / n_bins
-      write(mdout, *) "adjusted reflections per bin", reflections_per_bin
-      allocate(bin_limits(n_bins + 1))
-      bin_limits(1) = max(zero, d_star_sq_sorted(1) * (1 - d_tolerance))
-      do i = 2, n_bins
-        d_i = int((i-1) * reflections_per_bin + 0.5) + 1
-        bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
-        if (d_i == NRF_free) then
-          write(mdout, *) "check your reflections file"
-          stop
-        end if
-      end do
-      bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
-      write(mdout, *) "resolution bins"
-      do i = 1, n_bins + 1
-        write(mdout, *) 1.0/sqrt(bin_limits(i))
-      end do
-      reflection_bin = n_bins
-      allocate(A_in_zones(n_bins))
-      allocate(B_in_zones(n_bins))
-      allocate(q_in_zones(n_bins))
-      allocate(C_in_zones(n_bins))
-      allocate(t_optimal(n_bins))
-      allocate(alpha_beta_OmegaI(n_bins))
-      allocate(alpha_beta_wi(n_bins))
-      allocate(alpha_in_zones(n_bins))
-      allocate(beta_in_zones(n_bins))
-      allocate(alpha_beta_bj(NRF))
-      A_in_zones = 0.0
-      B_in_zones = 0.0
-      q_in_zones = 0.0
-      C_in_zones = 0.0
-      t_optimal = 0.0
-      alpha_beta_OmegaI = 0.0
-      alpha_beta_wi = 0.0
-      alpha_in_zones = 0.0
-      beta_in_zones = 1.0
-      alpha_beta_bj = 0.0
-
-      allocate(bins_work_population(n_bins))
-      allocate(bins_free_population(n_bins))
-      bins_work_population = 0
-      bins_free_population = 0
-      do i = 1, NRF
-         
-        ! Reverse order is to compare with cctbx output
-        do j = n_bins, 2, -1
-          if (d_star_sq(i) < bin_limits(j)) then
-            reflection_bin(i) = j - 1
-          end if
-        end do
-        if (r_free_flag_array(i) == 0) then
-          bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
-        else
-          bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
-        end if
-      end do
-      allocate(bins_work_reflections(n_bins, maxval(bins_work_population)))
-      allocate(bins_free_reflections(n_bins, maxval(bins_free_population)))
-      allocate(counter_w(n_bins))
-      allocate(counter_f(n_bins))
-      bins_work_reflections = 0
-      bins_free_reflections = 0
-      counter_w = 1
-      counter_f = 1
-      do i = 1, NRF
-        if (r_free_flag_array(i) == 0) then
-          if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
-            write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
-          end if
-          bins_work_reflections(reflection_bin(i), counter_w(reflection_bin(i))) = i
-          counter_w(reflection_bin(i)) = counter_w(reflection_bin(i)) + 1
-        else
-          if (counter_f(reflection_bin(i)) > bins_free_population(reflection_bin(i))) then
-            write(mdout, *) reflection_bin(i), "something weird during resorting free happened"
-          end if
-          bins_free_reflections(reflection_bin(i), counter_f(reflection_bin(i))) = i
-          counter_f(reflection_bin(i)) = counter_f(reflection_bin(i)) + 1
-        end if
-      end do
-      counter_sort = 0
-      do i = 1, n_bins
-        do j = 1, bins_work_population(i)
-          counter_sort = counter_sort + 1
-          index_sort = bins_work_reflections(i, j)
-          f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
-          f_obs(counter_sort) = f_obs_tmp(index_sort)
-          hkl(counter_sort,:) = hkl_tmp(index_sort,:)
-        end do
-      end do
-      allocate(bins_free_start_indices(n_bins))
-      do i = 1, n_bins
-        bins_free_start_indices(i) = counter_sort + 1
-        write(mdout, *) i, bins_free_start_indices(i), bins_free_population(i)
-        do j = 1, bins_free_population(i)
-          counter_sort = counter_sort + 1
-          index_sort = bins_free_reflections(i, j)
-          f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
-          f_obs(counter_sort) = f_obs_tmp(index_sort)
-          hkl(counter_sort,:) = hkl_tmp(index_sort,:)
-        end do
-      end do
-      if (counter_sort .ne. NRF) then
-
-        ! Might be an error in the code?
-        write(mdout, *) "Binning went wrong. Check the reflections file"
-        stop
-      end if
-
-      do i = 1, n_bins
-        do j = bins_free_start_indices(i) + bins_free_population(i) - 1, &
-               bins_free_start_indices(i), -1
-          fo_fo = f_obs(j) * f_obs(j) ! / 2
-          B_in_zones(i) = B_in_zones(i) + 2 * fo_fo ! / coef_norm
-          q_in_zones(i) = q_in_zones(i) + 2 * fo_fo * fo_fo ! / coef_norm
-        end do
-        B_in_zones(i) = B_in_zones(i) / (2 * bins_free_population(i))
-        q_in_zones(i) = q_in_zones(i) / (2 * bins_free_population(i))
-      end do
-
-      ! Re-sort due to binning ended
-      temp_grid = resolution / 4.0
-#if 0
-      na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
-      nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
-      nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
-#endif
-
-      ! FIXME: need to make nfft1,nfft2,nfft3 visible here:
-      ! na = nfft1
-      ! nb = nfft2
-      ! nc = nfft3
-
-      grid_stepX = a / na
-      grid_stepY = vb(2) / nb
-      grid_stepZ = vc(3) / nc
-
-      ! Metric matrix (1:6), reciprocal cell lengths (7:9), cart-to-frac matrix (10:15),
-      ! cell volume (16)
-      mask_cell_params = (/a*a, b*b, c*c, 2*a*b*cos(gamma), 2*a*c*cos(beta), &
-                          2*b*c*cos(alpha), norm2(vas), norm2(vbs), norm2(vcs), &
-                          1.0 / a, -cos(gamma) / (sin(gamma)* a), &
-                          (cos(alpha) * cos(gamma) - cos(beta)) / (V * sin(gamma)) * b * c, &
-                          1 / (sin(gamma) * b), &
-                          (cos(beta) * cos(gamma) - cos(alpha)) / (V * sin(gamma)) * a * c, &
-                          a * b * sin(gamma) / V, V/)
-      mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
-      mask_grid_size = (/na, nb, nc, na*nb*nc/)
-      write(mdout, *) 'resolution', resolution
-      write(mdout, *) 'mask_cell_params', mask_cell_params
-      write(mdout, *) 'mask_grid_steps', mask_grid_steps
-      write(mdout, *) 'mask_grid_size', mask_grid_size
-      allocate(mask_bs_grid(mask_grid_size(4)))
-      allocate(mask_bs_grid_tmp(mask_grid_size(4)))
-      allocate(mask_bs_grid_t_c(mask_grid_size(1) * mask_grid_size(2) * &
-                                (mask_grid_size(3)/2 + 1)))
-      allocate(mask_bs_grid_t_c_tmp(mask_grid_size(1) * mask_grid_size(2) * &
-                                    (mask_grid_size(3) /2 + 1)))
-      allocate(b_vector_base(NRF_work))
-      do i = 1, NRF
-        s(:, i) = hkl(i, 1) * vas(:) + hkl(i, 2) * vbs(:) + hkl(i, 3) * vcs(:)
-        s_squared(i) = -0.25 * (s(1, i) ** 2 + s(2, i) ** 2 + s(3, i) ** 2)
-        s(:, i) = 2 * pi * s(:, i)
-        do j = 1, 5
-          scat_factors_precalc(j, i) = get_scat_factor(j, i)
-        end do
-        hkl_indexing_bs_mask(i) = h_as_ih(hkl(i, 1), hkl(i, 2), hkl(i, 3), na, nb, nc)
-        if (hkl_indexing_bs_mask(i) == -1) then
-          stop 'Miller indices indexing failed'
-        end if
-        k_mask(i) = k_sol * exp(b_sol * s_squared(i))
-        h_sq(i) = hkl(i, 1) * hkl(i, 1)
-        k_sq(i) = hkl(i, 2) * hkl(i, 2)
-        l_sq(i) = hkl(i, 3) * hkl(i, 3)
-        hk(i) = hkl(i, 1) * hkl(i, 2)
-        hl(i) = hkl(i, 1) * hkl(i, 3)
-        kl(i) = hkl(i, 2) * hkl(i, 3)
-      end do
-      NRF_work_sq = NRF_work * NRF_work
-      Ucryst(1, 1) = 1.0 / NRF_work
-      Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(1, 4) = sum(1.0 * l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(1, 5) = sum(1.0 *   hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
-
-      ! In case if one needs only anisotropic scaling
-!     Ucryst(1, 1) = 1.0
-!     Ucryst(1, 2) = 0.0
-!     Ucryst(1, 3) = 0.0
-!     Ucryst(1, 4) = 0.0
-!     Ucryst(1, 5) = 0.0
-!     Ucryst(1, 6) = 0.0
-!     Ucryst(1, 7) = 0.0
-
-      Ucryst(2, 1) = Ucryst(1, 2)
-      Ucryst(3, 1) = Ucryst(1, 3)
-      Ucryst(4, 1) = Ucryst(1, 4)
-      Ucryst(5, 1) = Ucryst(1, 5)
-      Ucryst(6, 1) = Ucryst(1, 6)
-      Ucryst(7, 1) = Ucryst(1, 7)
-
-      Ucryst(2, 2) = sum(1.0 * h_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(2, 3) = sum(1.0 * k_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(2, 4) = sum(1.0 * l_sq(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(2, 5) = sum(1.0 *   hk(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(2, 6) = sum(1.0 *   hl(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(2, 7) = sum(1.0 *   kl(1:NRF_work)*h_sq(1:NRF_work) / NRF_work_sq)
-
-      Ucryst(3, 2) = sum(1.0 * h_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(3, 3) = sum(1.0 * k_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(3, 4) = sum(1.0 * l_sq(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(3, 5) = sum(1.0 *   hk(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(3, 6) = sum(1.0 *   hl(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(3, 7) = sum(1.0 *   kl(1:NRF_work)*k_sq(1:NRF_work) / NRF_work_sq)
-
-      Ucryst(4, 2) = sum(1.0 * h_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(4, 3) = sum(1.0 * k_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(4, 4) = sum(1.0 * l_sq(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(4, 5) = sum(1.0 *   hk(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(4, 6) = sum(1.0 *   hl(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-      Ucryst(4, 7) = sum(1.0 *   kl(1:NRF_work)*l_sq(1:NRF_work) / NRF_work_sq)
-
-      Ucryst(5, 2) = sum(1.0 * h_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(5, 3) = sum(1.0 * k_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(5, 4) = sum(1.0 * l_sq(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(5, 5) = sum(1.0 *   hk(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(5, 6) = sum(1.0 *   hl(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-      Ucryst(5, 7) = sum(1.0 *   kl(1:NRF_work)*hk(1:NRF_work) / NRF_work_sq)
-
-      Ucryst(6, 2) = sum(1.0 * h_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(6, 3) = sum(1.0 * k_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(6, 4) = sum(1.0 * l_sq(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(6, 5) = sum(1.0 *   hk(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(6, 6) = sum(1.0 *   hl(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-      Ucryst(6, 7) = sum(1.0 *   kl(1:NRF_work)*hl(1:NRF_work) / NRF_work_sq)
-
-      Ucryst(7, 2) = sum(1.0 * h_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-      Ucryst(7, 3) = sum(1.0 * k_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-      Ucryst(7, 4) = sum(1.0 * l_sq(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-      Ucryst(7, 5) = sum(1.0 *   hk(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-      Ucryst(7, 6) = sum(1.0 *   hl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-      Ucryst(7, 7) = sum(1.0 *   kl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
-
-      call inverse(Ucryst, MUcryst_inv, 7)
-      call calc_grid_neighbors()
-    endif
-
-    close(unit = sfactors_unit)
-
-    return
-  end subroutine open_sf_file
 
   !--------------------------------------------------------------------------------------------
   ! A_B_C_D_omega:  start alpha and beta estimation according to
@@ -1531,15 +1402,15 @@ contains
   !--------------------------------------------------------------------------------------------
   subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
         
-    !  xxx state_info_mod
-
-    integer :: nstep, i, NRF
-    double precision :: mean_delta
-    complex(8)       :: f_calc(NRF)
-    double precision :: f_obs(NRF)
+    integer, intent(in) :: nstep, NRF
+    complex(8), intent(in)   :: f_calc(NRF)
+    double precision, intent(in) :: f_obs(NRF)
+    double precision, intent(inout) :: exray
     double precision :: k_scale(NRF)
     double precision :: r_work_factor_numerator, r_free_factor_numerator
-    double precision :: exray
+    double precision :: mean_delta
+    integer :: i
+    double precision :: f_calc_abs(NRF)
     
     if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc)
@@ -1640,6 +1511,7 @@ contains
     ! step 1: get fcalc, including solvent mask contribution:
     do i = 1, NRF
       f_calc(i) = 0
+      !  pass these in from fourier_Fcalc()
       do j_k = 1, NAT_for_mask
         f_calc(i) = f_calc(i) + exp(BFactors(j_k) * s_squared(i)) * &
                     scat_factors_precalc(atom_types(j_k), i) * &
