@@ -1751,7 +1751,9 @@ minrit.LES.o:   minrit.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
 ml.o: \
-                    file_io_dat.o
+                    file_io_dat.o\
+                    xray_globals.o\
+                    memory_module.o
 
 
 ml.o:   ml.F90
@@ -3927,6 +3929,7 @@ xray_interface.o: \
                     nonbond_list.o\
                     xray_fourier.o\
                     findmask.o\
+                    ml.o\
                     extra.h
 
 

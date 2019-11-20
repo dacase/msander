@@ -454,6 +454,7 @@ contains
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
+      use ml_mod, only: init_ml
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
@@ -530,8 +531,8 @@ contains
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
-      if( target(1:2) == 'ml' ) call init_sf(natom, nstlim, NAT_for_mask, num_hkl, &
-           hkl_index, abs_fobs, sig_fobs, test_flag)
+      if( target(1:2) == 'ml' ) call init_ml(natom, nstlim, NAT_for_mask, num_hkl, &
+           hkl_index, abs_Fobs, sigFobs, test_flag)
 
       return
       1 continue
@@ -586,6 +587,7 @@ contains
          call xray_write_pdb(trim(pdb_outfile))
       end if
 
+      ! if (target(1:2) == 'ml') call finalize_ml_mod()
       if (.not.xray_active) return
 
       deallocate(atom_bfactor,atom_occupancy,atom_scatter_type, &
@@ -668,12 +670,6 @@ contains
       call mpi_allreduce( MPI_IN_PLACE, Fcalc, num_hkl, &
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
-
-      ! initial logic here:
-
-      ! if( xray2 ) then
-      !    call get_sf_force()
-      ! else
 
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 

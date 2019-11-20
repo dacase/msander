@@ -320,15 +320,14 @@ contains
   end function adjust_gridding
 
   !--------------------------------------------------------------------------------------------
-  ! init_sf: gateway to structure factor computations. 
+  ! init_ml: gateway to the maximum-likelihood target function
   !
-  ! Arguments:
-  !   crd:    
   !--------------------------------------------------------------------------------------------
-  subroutine init_sf(n_atom, nstlim, nat_mask, NRF, hkl_tmp, &
+  subroutine init_ml(n_atom, nstlim, nat_mask, NRF, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag)
 
     use xray_globals_module, only: unit_cell
+    use memory_module, only: i100, ix
     implicit none
 
     integer, intent(in) :: n_atom, nstlim, nat_mask, NRF
@@ -344,7 +343,7 @@ contains
                                                    d_star_sq_sorted, bin_limits
     integer, dimension(:), allocatable :: r_free_flag_array, counter_w, counter_f
     integer (kind = 4) :: file_status
-    integer :: d_i, i, j, k, na, nb, nc
+    integer :: d_i, i, j, k, na, nb, nc, atomic_number
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer, dimension(:,:), allocatable :: hkl
 
@@ -356,40 +355,36 @@ contains
     allocate(mask_cutoffs(n_atom))
     do i = 1, n_atom
 
-      ! FIXME: need to get atom names visible to this routine
-      ! name = atm_igraph(i) -- looks like the atomic number would work
+      atomic_number = ix(i100+i)
 
-      if (name(1:1) == 'C') then
-        if (name == 'Cl-') then
-          atom_types(i) = 0
-          mask_cutoffs(i) = 1.75 + mask_r_probe
-          write(mdout, *) "Found CL atom"
-        else
+      if( atomic_number == 6 ) then
           atom_types(i) = 2
           mask_cutoffs(i) = 1.775 + mask_r_probe
-        endif
-      elseif (name(1:1) == 'N') then
-        if (name == 'Na+') then
+
+      elseif( atomic_number == 17 ) then
           atom_types(i) = 0
-          mask_cutoffs(i) = 2.27 + mask_r_probe
-          write(mdout, *) "Found NA atom"
-        else
+          mask_cutoffs(i) = 1.75 + mask_r_probe
+      
+      elseif ( atomic_number == 7 ) then
           atom_types(i) = 3
           mask_cutoffs(i) = 1.5 + mask_r_probe
-        endif
-      elseif (name(1:1) == 'O') then
+
+      elseif( atomic_number == 11 ) then
+          atom_types(i) = 0
+          mask_cutoffs(i) = 2.27 + mask_r_probe
+
+      elseif ( atomic_number == 8 ) then
         atom_types(i) = 4
         mask_cutoffs(i) = 1.45 + mask_r_probe
-      elseif (name(1:1) == 'S') then
+
+      elseif ( atomic_number == 16 ) then
         atom_types(i) = 5
         mask_cutoffs(i) = 1.8 + mask_r_probe
+
       else
         atom_types(i) = 1
         mask_cutoffs(i) = 1.2 + mask_r_probe
-      endif
-      if (name == 'OXT') then ! Restrain protein only
-        NAT_for_mask = i
-        write(mdout, *) "NAT_for_mask = ", NAT_for_mask
+
       endif
     end do
 
@@ -467,8 +462,6 @@ contains
 
     resolution = 50.0
     do i = 1, NRF
-      ! following is the same as the xray3 file format:
-      !read(hkl_lun, *) hkl_tmp(:,i), f_obs_tmp(i), f_obs_sigma_tmp(i), r_free_flag
       r_free_flag = test_flag(i)
       d_star =  (square(hkl_tmp(1,i) * norm2(vas)) + square(hkl_tmp(2,i) * norm2(vbs)) + &
                  square(hkl_tmp(3,i) * norm2(vcs)) + &
@@ -497,9 +490,10 @@ contains
       d_star_sq(i) = d_star
       f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
     enddo
+    ! TODO: need to initialize these variables from the xray namelist
     pseudo_energy_weight = pseudo_energy_weight / sqrt(maxval(f_obs_weight))
     pseudo_energy_weight_incr = pseudo_energy_weight_incr / sqrt(maxval(f_obs_weight))
-    scale_xray = -2.0
+
     NRF_free = NRF - NRF_work
     if (NRF_free /= r_free_counter) then
       write(mdout, *) 'STOP!!!!!!'
@@ -644,16 +638,9 @@ contains
     ! Re-sort due to binning ended
 
     temp_grid = resolution / 4.0
-#if 0
-      na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
-      nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
-      nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
-#endif
-
-    ! FIXME: need to make nfft1,nfft2,nfft3 visible here:
-    ! na = nfft1
-    ! nb = nfft2
-    ! nc = nfft3
+    na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
+    nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
+    nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
 
     grid_stepX = a / na
     grid_stepY = vb(2) / nb
@@ -771,7 +758,7 @@ contains
     
     return
 
-  end subroutine init_sf
+  end subroutine init_ml
 
 #if 0
   !--------------------------------------------------------------------------------------------
@@ -783,6 +770,7 @@ contains
 
     complex(8), dimension(:), allocatable :: f_calc_tmp
     integer :: i, j, counter_sort, index_sort
+    integer :: sf_weight = 41
         
     allocate(f_calc_tmp(NRF))
     
@@ -790,14 +778,14 @@ contains
     do i = 1, n_bins
       do j = 1, bins_work_population(i)
         index_sort = bins_work_reflections(i, j)
-        f_calc_tmp(index_sort) = f_calc(counter_sort)
+        f_calc_tmp(index_sort) = Fcalc(counter_sort)
         counter_sort = counter_sort + 1
       end do
     end do
     do i = 1, n_bins
       do j = 1, bins_free_population(i)
         index_sort = bins_free_reflections(i, j)
-        f_calc_tmp(index_sort) = f_calc(counter_sort)
+        f_calc_tmp(index_sort) = Fcalc(counter_sort)
         counter_sort = counter_sort + 1
       end do
     end do

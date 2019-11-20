@@ -2,13 +2,9 @@
 This directory tree contains "msander", a "modern" version of parts of
 sander.
 
-This project is generally licensed under the GNU General Public License,
-version 3 (GPL v3).  Some components use different, but compatible, open
-source licenses.  See the LICENSE file for more information.
-
 # Design goals:
 
-* This project is a fork of the sander code in AmberTools.  It tries to
+* This project is a fork of the `sander` code in `AmberTools`.  It tries to
 (greatly) simplify the code base, choosing the best and most useful parts of
 the code, and to serve as a test bed for how modern Fortran coding techniques
 can be used.  Key application areas are expected to be in structure
@@ -44,12 +40,19 @@ simulations
 # Building the code:
 
 *Conda build:
-
+```
    conda build recipe  [N.B: not yet tested!]
+```
 
 *Non-conda build:  (MacOSX, Linux)
-
+```
    ./configure --help   #  then choose the options you want
    make install
    make test
+```
+
+# License
+This project is generally licensed under the GNU General Public License,
+version 3 (GPL v3).  Some components use different, but compatible, open
+source licenses.  See the LICENSE file for more information.
 

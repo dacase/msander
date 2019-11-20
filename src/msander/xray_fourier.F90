@@ -433,7 +433,9 @@ contains
 
    subroutine dTargetML_dF(num_hkl,abs_Fobs,Fcalc,deriv, &
          residual,xray_energy)
-      use ml_mod, only : estimate_ml_parameters
+      use ml_mod, only : estimate_ml_parameters, b_vector_base, k_scale, &
+           alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)
@@ -444,9 +446,8 @@ contains
 
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer :: nstep = 0
-
-      write(6,*) 'dTargetML_dF() was called, but is not yet implemented!'
-      call mexit(6,1)
+      integer :: i
+      double precision :: term, b(7), Uaniso(7)
 
       abs_Fcalc(:) = abs(Fcalc(:))
 
@@ -454,8 +455,7 @@ contains
       !  (already done in fourier_Fcalc, and passed in here.
 
       ! step 2: scaling fcalc:
-#if 0
-      b_vector_base = log(f_obs(1:NRF_work) / f_calc_abs(1:NRF_work)) / NRF_work_sq
+      b_vector_base = log(abs_Fobs(1:NRF_work) / abs_Fcalc(1:NRF_work)) / NRF_work_sq
       b(1) = sum(b_vector_base)
       b(2) = sum(b_vector_base * h_sq(1:NRF_work))
       b(3) = sum(b_vector_base * k_sq(1:NRF_work))
@@ -468,9 +468,7 @@ contains
 
       k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-      f_calc = f_calc * k_scale
-#endif
-
+      Fcalc = Fcalc * k_scale
 
       ! step 3: get ml parameters and xray restraint energy:
       !         note that this routine needs xray2-type initialization;
@@ -478,12 +476,13 @@ contains
       call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
                                    nstep, num_hkl )
 
-      ! step 4: put dTargetML/dF into deriv(:)  : (needs work)
-#if 0
-      deriv(:) = (delta_array(i) * (alpha_array(i) - &
-                 f_obs(i) * i1_over_i0(2 * delta_array(i) * &
-                 f_calc_abs(i) * f_obs(i)) / &
-#endif
+      ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
+      do i=1,num_hkl
+         deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
+              ( alpha_array(i) - abs_Fobs(i) * &
+              i1_over_i0(2.d0 * delta_array(i) *  abs_Fcalc(i) * abs_Fobs(i))) / &
+              abs_Fcalc(i)
+      end do
 
       ! residual = r_work, as in dTarget/dF
       residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc ) / sum(abs_Fobs)
