@@ -467,9 +467,21 @@ subroutine fsum(f,tmp)
    else
 
      ! We don't have a power of two - do things the old fashioned way.
+#ifdef RED_SCAT_INPLACE
      call mpi_reduce_scatter(f, f(iparpt3(mytaskid)+1), &
            rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
            commsander, ierr)
+#else
+     ! Reduce scaller used to work with most MPI installations even if the send
+     ! and receive buffers aliased each other but now it seems that newer
+     ! mpi installations are checking this and quiting with an error. The
+     ! standard does not allow this in MPI v1.0. For now we will make the 
+     ! non-inplace version the default.
+     call mpi_reduce_scatter(f, tmp(iparpt3(mytaskid)+1), &
+           rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
+           commsander, ierr)
+     f(iparpt3(mytaskid)+1:iparpt3(mytaskid+1)) = tmp(iparpt3(mytaskid)+1:iparpt3(mytaskid+1))
+#endif
    end if !Power of two cpus.
    return
 end subroutine fsum
