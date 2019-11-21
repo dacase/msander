@@ -341,7 +341,6 @@ contains
        err = err * ( - 1)
        call rism_report_error("Linear equation solver failed.")
     end if
-    call timer_stop(TIME_MDIIS_LAPACK)
 
     !......... get DIIS minimum, MDIIS correction, and next point ..........
     !update vecMap so we know which will be the new active vector.  If
@@ -393,6 +392,8 @@ contains
     !      bi(1,1),1,1d0,this%xi(1,this%vecMap(1)),1)
     call DAXPY (this%np, this%delta, this%ri(1, this%vecMap(1)), 1, &
          this%xi(1,this%vecMap(1)), 1)
+    call timer_stop(TIME_MDIIS_LAPACK)
+
   end subroutine mdiis_blas2_advance
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
