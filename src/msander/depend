@@ -138,6 +138,17 @@ bintraj.LES.o:   bintraj.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
+bulk_solvent.o: \
+                    xray_globals.o\
+                    memory_module.o\
+                    ml.o\
+                    iso_c_binding.o
+
+
+bulk_solvent.o:   bulk_solvent.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bulk_solvent.F90
+
 charmm.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
@@ -1752,9 +1763,7 @@ minrit.LES.o:   minrit.F90
 
 ml.o: \
                     file_io_dat.o\
-                    xray_globals.o\
-                    memory_module.o\
-                    iso_c_binding.o
+                    xray_globals.o
 
 
 ml.o:   ml.F90
@@ -3902,7 +3911,8 @@ xray_fourier.o: \
                     xray_reciprocal_space.o\
                     xray_real_space.o\
                     parallel.h\
-                    ml.o
+                    ml.o\
+                    bulk_solvent.o
 
 
 xray_fourier.o:   xray_fourier.F90
@@ -3931,6 +3941,7 @@ xray_interface.o: \
                     xray_fourier.o\
                     findmask.o\
                     ml.o\
+                    bulk_solvent.o\
                     extra.h
 
 

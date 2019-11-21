@@ -89,7 +89,8 @@ LESOBJ= \
 
 XRAY_OBJS = \
    xray_fftpack.o xray_FFT.o xray_fourier.o xray_globals.o xray_interface.o \
-   xray_real_space.o xray_reciprocal_space.o xray_utils.o ml.o
+   xray_real_space.o xray_reciprocal_space.o xray_utils.o ml.o \
+   bulk_solvent.o
 
 .PHONY: dummy
 

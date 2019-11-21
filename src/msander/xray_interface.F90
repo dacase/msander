@@ -455,6 +455,7 @@ contains
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       use ml_mod, only: init_ml
+      use bulk_solvent_mod, only: init_bulk_solvent
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
@@ -531,8 +532,11 @@ contains
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
-      if( target(1:2) == 'ml' ) call init_ml(natom, nstlim, NAT_for_mask, num_hkl, &
-           hkl_index, abs_Fobs, sigFobs, test_flag)
+      if( target(1:2) == 'ml' ) then
+         call init_ml(natom, nstlim, NAT_for_mask, num_hkl, &
+              hkl_index, abs_Fobs, sigFobs, test_flag)
+         ! call init_bulk_solvent(n_atom, NRF, resolution)
+      end if
 
       return
       1 continue
