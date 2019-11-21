@@ -1345,7 +1345,7 @@ contains
     end if
 
     call rism_writePdfTcfDcf(this, writeVolume, step, extension)
-    call rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
+    call rism_writeThermo(this, writeVolume, step, extension)
     call rism_writeSmearElectronMap(this, writeVolume, step, extension)
     
   end subroutine rism_writeVolumetricData
@@ -1570,7 +1570,7 @@ contains
   !! suffix. 
   !! @param[in,out] this 3D-RISM object.
   !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
+  subroutine rism_writeThermo(this, writeVolume, step, extension)
     use constants, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
@@ -1669,7 +1669,7 @@ contains
               this%solute, mpirank, mpisize, mpicomm)
       end do
     end subroutine writeThermo
-   end subroutine rism_writeThermodynamicsDistributions
+   end subroutine rism_writeThermo
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PRIVATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

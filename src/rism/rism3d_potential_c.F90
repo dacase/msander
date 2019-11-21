@@ -103,7 +103,7 @@ module rism3d_potential_c
   private mixSoluteSolventLJParameters
   private uvCoulombicPotential
   private uvLennardJonesPotentialWithCutoff 
-  private getnojellywt, uvLJrEwaldPotentialWithMinimumImage, uvParticleMeshRecipEwaldPotential
+  private getnojellywt, uvLJrEwaldMinImage, uvPMErecip
 contains
 
 
@@ -207,11 +207,11 @@ contains
 
     call timer_start(TIME_UCOULU)
     if (this%solute%charged) &
-        call uvParticleMeshRecipEwaldPotential(this, this%uuv)
+        call uvPMErecip(this, this%uuv)
     call timer_stop(TIME_UCOULU)
 
     call timer_start(TIME_ULJUV)
-    call uvLJrEwaldPotentialWithMinimumImage(this, this%uuv)
+    call uvLJrEwaldMinImage(this, this%uuv)
     call timer_stop(TIME_ULJUV)
 
     ! TODO: this routine should only need to be called once at the beginning:
@@ -350,7 +350,7 @@ contains
   !! box subject to the minimum image convention.
   !! @param[in] this potential object
   !! @param[in,out] ulj grid to add potential to
-  subroutine uvLJrEwaldPotentialWithMinimumImage(this, ulj)
+  subroutine uvLJrEwaldMinImage(this, ulj)
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -419,7 +419,7 @@ contains
        end do
     end do
 !$omp end parallel do
-  end subroutine uvLJrEwaldPotentialWithMinimumImage
+  end subroutine uvLJrEwaldMinImage
 
   !> Short-range portion of the Ewald sum electric potential.
   subroutine uvEwaldSumShortRangePotential(this, ucu)
@@ -484,7 +484,7 @@ contains
 
 
   !> Long-range portion of the Particle Mesh Ewald (PME) electric potential.
-  subroutine uvParticleMeshRecipEwaldPotential(this, ucu)
+  subroutine uvPMErecip(this, ucu)
     use, intrinsic :: iso_c_binding
     use bspline
     use constants, only : pi
@@ -855,28 +855,28 @@ contains
     !TODO: Still causes crashes in rare circumstances. Need to debug
     ! more thoroughly.
     if (safemem_dealloc(kxi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(kyi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(kzi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     ! if (safemem_dealloc(k2i) /= 0) then
-    !    call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+    !    call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     ! end if
     if (safemem_dealloc(bsplineFourierCoeffX) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(bsplineFourierCoeffY) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(bsplineFourierCoeffZ) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(gaussianFourierCoeff) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
     call fftw_free(uuv1d_r_cptr)
     call fftw_free(uuv1d_c_cptr)
@@ -886,9 +886,9 @@ contains
     end if
 #endif
     if (safemem_dealloc(kernel) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("uvPMErecip: Failed to deallocate arrays.")
     end if
-  end subroutine uvParticleMeshRecipEwaldPotential
+  end subroutine uvPMErecip
 
   !> Applying minimum-image convention to find distance from grid
   !! point to nearest solute atom image, which may be in an adjacent

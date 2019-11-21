@@ -1753,7 +1753,8 @@ minrit.LES.o:   minrit.F90
 ml.o: \
                     file_io_dat.o\
                     xray_globals.o\
-                    memory_module.o
+                    memory_module.o\
+                    iso_c_binding.o
 
 
 ml.o:   ml.F90
@@ -3973,6 +3974,9 @@ netcdf.o:  $(NETCDF)
 
 omp_lib.o:
 	@(test -e $@ || touch omp_lib.o)
+
+iso_c_binding.o:
+	@(test -e $@ || touch iso_c_binding.o)
 
 qmmm_module.o: 
 	@(test -e $@ || touch $@)

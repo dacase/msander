@@ -42,6 +42,7 @@ $PUPIL{"sander"} = $PUPIL{"force"} = $PUPIL{"mexit"} = $PUPIL{"mdfil"} =
 #  (check also below  (end of this file) for "compilation" rules)
 $modulefile{"netcdf"} = "netcdf";
 $modulefile{"omp_lib"} = "omp_lib";
+$modulefile{"iso_c_binding"} = "iso_c_binding";
 $modulefile{"AmberNetcdf_mod"} = "AmberNetcdf";
 $modulefile{"ElementOrbitalIndex"} = "elementOrbitalIndex";
 $modulefile{"qmmm_module"} = "qmmm_module";
@@ -183,6 +184,9 @@ printf "netcdf.o:  \$(NETCDF)\n\t@(test -e \$\@ || touch netcdf.o)\n\n";
 
 # special "compilation rule" for omp_lib.o
 printf "omp_lib.o:\n\t@(test -e \$\@ || touch omp_lib.o)\n\n";
+
+# special "compilation rule" for iso_c_binding.o
+printf "iso_c_binding.o:\n\t@(test -e \$\@ || touch iso_c_binding.o)\n\n";
 
 #  special "compilation" rule for module object files in ../sqm
 print "qmmm_module.o: \n\t@(test -e \$\@ || touch \$\@)\n\n";

@@ -1244,7 +1244,7 @@ subroutine mdread2(x,ix,ih)
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
    integer crggp( natom )
-   _REAL_ val, wallc
+   _REAL_ val
    _REAL_, allocatable :: repvals(:)
    !     ========================= END AMBER/MPI =========================
 #endif /* MPI */
