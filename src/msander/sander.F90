@@ -1433,21 +1433,6 @@ subroutine sander()
 
     ! Finish up EMAP
     if (temap) call qemap()
-#ifdef MPI
-    call mpi_barrier(commsander,ier)
-    if (.not. master) then
-      if (charmm_active) then
-        call charmm_deallocate_arrays()
-      end if
-      if (cmap_active) then
-        call deallocate_cmap_arrays()
-      end if
-    end if
-#endif /* MPI */
-    if (qmmm_nml%ifqnt) then
-      call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
-    end if
-    call deallocate_m1m2m3()
 
   ! Calc time spent running vs setup
   call timer_stop(TIME_TOTAL)
