@@ -374,12 +374,12 @@ contains
             end if
          else
             if (present(selected)) then
-               residual = sum( abs_Fobs - Fcalc_scale * abs_Fcalc, &
+               residual = sum( abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
                   selected/=0) / sum(abs_Fobs, selected/=0)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
             else
-               residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc) &
+               residual = sum (abs( abs_Fobs - Fcalc_scale*abs_Fcalc) ) &
                     / sum(abs_Fobs)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2)

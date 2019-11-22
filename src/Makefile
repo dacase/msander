@@ -4,6 +4,7 @@ include config.h
 
 install:
 	cd msander && $(MAKE) msander
+	@(if [ -z "$(SFX)" ] ; then cd xray && $(MAKE) xray; fi );
 
 clean:
 	-(cd blas && $(MAKE) clean )
@@ -13,9 +14,11 @@ clean:
 	-(cd rism && $(MAKE) clean )
 	-(cd msander && $(MAKE) clean )
 	-(cd lib && $(MAKE) clean )
+	-(cd xray && $(MAKE) clean )
 
 uninstall: clean
 	-(/bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
+	             $(BINDIR)/add_pdb $(BINDIR)/add_xray \
                  $(LIBDIR)/liblapack \
                  $(LIBDIR)/libblas \
                  $(LIBDIR)/libarpack \

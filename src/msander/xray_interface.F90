@@ -238,9 +238,8 @@ contains
                   xyz,occupancy,tempFactor,segID,element
             i = find_atom(name,resName,chainID,resSeq,iCode)
             if (i<0) then
-               write(stdout,'(2A)') 'Atom not found: ',trim(line)
-               write(stdout,'(A4,1x,A4,1x,A4,1x,I4,A4)') &
-                      name,resName,chainID,resSeq,iCode
+               write(stdout,'(A)') 'Atom not found:'
+               write(stdout,'(A)') trim(line)
                stop
             end if
             if (atom_occupancy(i) >= 0) then
@@ -289,10 +288,6 @@ contains
       integer, save :: ires = 1
       integer :: i,j
       lname = adjustl(name)
-      ! Unwrap PDB v2 hydrogen names
-      if (name(1:1)>='0' .and. name(2:2)<='9') then
-         lname = trim(lname(2:))//lname(1:1)
-      end if
       ! first find the matching residue:
       do i=1,num_residues
          if (resSeq==residue_number(ires) &
@@ -716,7 +711,7 @@ contains
             do i=1,num_hkl
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fobs(i), achar(9), abs_Fcalc(i)
+                abs_Fobs(i), achar(9), Fcalc_scale*abs_Fcalc(i)
             end do
          endif
          close(20)
