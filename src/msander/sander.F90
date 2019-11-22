@@ -124,8 +124,7 @@ subroutine sander()
 
   use music_module, only: read_music_nml, print_music_settings
 
-  use commandline_module, only: cpein_specified, commandline_bcast
-
+  use commandline_module, only: cpein_specified
 
   implicit none
 
@@ -281,8 +280,6 @@ subroutine sander()
     masterwork: if (master) then
 
         ! First, initial reads to determine memory sizes
-        if (master .and. mdout /= "stdout" ) &
-           call amopen(6,mdout,owrite,'F','W')
         call mdread1()
         call amopen(8,parm,'O','F','R')
         call rdparm1(8)
@@ -292,13 +289,11 @@ subroutine sander()
 
         ! Now, we can allocate memory
         call locmem()
-#if 0
         write(6,'(/,a,5x,a)') '|','Memory Use     Allocated'
         write(6,'(a,5x,a,i14)') '|', 'Real      ', lastr
         write(6,'(a,5x,a,i14)') '|', 'Hollerith ', lasth
         write(6,'(a,5x,a,i14)') '|', 'Integer   ', lasti
         write(6,'(a,5x,a,i14)') '|', 'Max Pairs ', lastpr
-#endif
 
         ! Dynamic memory allocation: allocate space for
         ! module molecule in the master node
@@ -342,14 +337,12 @@ subroutine sander()
           call allocate_int_decomp(1)
         end if
 
-#if 0
         write(6,'(a,5x,a,i14)'  ) '|', 'nblistReal', nblist_allreal
         write(6,'(a,5x,a,i14)'  ) '|', 'nblist Int', nblist_allint
         write(6,'(a,5x,a,i14,a)') '|', '  Total   ', &
               (8*(lastr+lastrst+nblist_allreal)  &
               + 4*(lasth+lasti+lastpr+lastist+nblist_allint))/1024, &
               ' kbytes'
-#endif
 
         ! Finish reading the prmtop file and other user input:
         call rdparm2(x, ix, ih, 8)
@@ -434,7 +427,7 @@ subroutine sander()
         call mexit(6, 1)
       end if
       pupactive = .true.
-      ! write(6,*) 'PUPIL CORBA interface initialized.'
+      write(6,*) 'PUPIL CORBA interface initialized.'
 
       ! Allocation of memory and initialization
       pupStep = 0
@@ -480,7 +473,7 @@ subroutine sander()
           qfpup(bs1+jPup) = 0.0d0
         end do
       end do
-      ! write(6,*) 'Got all atomic numbers.'
+      write(6,*) 'Got all atomic numbers.'
 
       ! Initialise the PUPIL cell
       do iPup = 1, 12
@@ -496,7 +489,7 @@ subroutine sander()
       end if
 
       ! Submit the Residue Pointer vector to PUPIL
-      ! write(6, "(a20,1x,i6,3x,a17,1x,i6)") 'Number of residues =', nres, &
+      write(6, "(a20,1x,i6,3x,a17,1x,i6)") 'Number of residues =', nres, &
                                            'Number of atoms =', natom
       puperror = 0
       call putresiduetypes(nres, puperror, pupres, keyres)
@@ -504,8 +497,8 @@ subroutine sander()
         write(6,*) 'Error sending MM residue types to PUPIL.'
         call mexit(6, 1)
       end if
-      ! write(6,*) 'Sent system data to PUPIL.'
-      ! write(*,*) 'PUPIL structure initialized.'
+      write(6,*) 'Sent system data to PUPIL.'
+      write(*,*) 'PUPIL structure initialized.'
 #endif
       ! End of PUPIL interface
 
@@ -740,6 +733,7 @@ subroutine sander()
       call flush(6)
 
     end if masterwork
+    ! End of master process setup
 
 #  if defined(RISMSANDER)
     call rism_init(commsander)
@@ -764,6 +758,7 @@ subroutine sander()
     ! in the mpi_orig case, an initial broadcast is done to receive
     ! the value from the master to decide whether to do the work or
     ! simply exit.
+    
     ! Set up initial data and send all needed data to other nodes, {{{
     ! now that the master has it
     !
@@ -843,8 +838,8 @@ subroutine sander()
     call startup(x, ix, ih)
 
     call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
-    ! call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
-    ! call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
+    call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
 
 #  if defined(LES)
     call mpi_bcast (ncopy, 1, MPI_INTEGER, 0, commworld, ier)
