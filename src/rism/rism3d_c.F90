@@ -222,11 +222,6 @@ contains
   !> Constructor - precalculates the solute solvent terms that are not
   !! configuration dependent and sets box parameters.
   !!
-  !! The solvation box may be fixed size or variable.  For fixed size,
-  !! define o_boxlen and o_ng3.  For variable box size, define buffer
-  !! and grdspc.  Do not mix these parameters as this will cause the
-  !! program to halt.
-  !!
   !! For periodic simulations, buffer can be set but will be ignored;
   !! (this should get fixed).  The unit cell parameters give the size of
   !! the box, and the grdspc(1:3) array gives an approximate grid
