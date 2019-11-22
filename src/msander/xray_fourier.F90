@@ -435,11 +435,11 @@ contains
          residual,xray_energy)
       use ml_mod, only : estimate_ml_parameters, b_vector_base, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
-           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0,  &
-           hkl_indexing_bs_mask
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0
       use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
            mask_cell_params, mask_grid_size, k_mask, &
-           init_bulk_solvent, fft_bs_mask, shrink_bulk_solvent
+           init_bulk_solvent, fft_bs_mask, shrink_bulk_solvent, &
+           hkl_indexing_bs_mask
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)

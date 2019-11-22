@@ -1,4 +1,6 @@
 ! <compile=optimized>
+#include "../include/assert.fh"
+
 module ml_mod
 
   use file_io_dat
@@ -20,9 +22,10 @@ module ml_mod
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
   double precision, dimension(:), allocatable :: A_in_zones, B_in_zones, &
-                                                 C_in_zones, q_in_zones, &
-                                                 alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
-                                                 t_optimal, alpha_in_zones, beta_in_zones
+                                           C_in_zones, q_in_zones, &
+                                           alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
+                                           t_optimal, alpha_in_zones, beta_in_zones, &
+                                           b_vector_base
 
   ! Convenient numerical constants
   double precision, parameter :: pi = 3.14159265359, zero = 0.0, d_tolerance = 1.e-10
@@ -281,6 +284,7 @@ contains
     write(mdout, *) 'NRFs', NRF_work, NRF_free, NRF
 
     ! Sort reflections for binning
+    allocate(b_vector_base(NRF_work))
     allocate(d_star_sq_sorted(NRF_free))
     r_free_counter = 0
     do i = 1, NRF
@@ -424,10 +428,6 @@ contains
     allocate(kl(NRF))
 
     do i = 1, NRF
-      hkl_indexing_bs_mask(i) = h_as_ih(hkl(i, 1), hkl(i, 2), hkl(i, 3), na, nb, nc)
-      if (hkl_indexing_bs_mask(i) == -1) then
-        stop 'Miller indices indexing failed'
-      end if
       h_sq(i) = hkl(i, 1) * hkl(i, 1)
       k_sq(i) = hkl(i, 2) * hkl(i, 2)
       l_sq(i) = hkl(i, 3) * hkl(i, 3)

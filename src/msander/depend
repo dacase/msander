@@ -1534,6 +1534,7 @@ mdread.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
+                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1553,7 +1554,6 @@ mdread.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
-                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1592,6 +1592,7 @@ mdread.LES.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
+                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1611,7 +1612,6 @@ mdread.LES.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.LES.o\
-                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1649,6 +1649,7 @@ mdread.PUPIL.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
+                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1668,7 +1669,6 @@ mdread.PUPIL.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.PUPIL.o\
-                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1762,6 +1762,7 @@ minrit.LES.o:   minrit.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
 
 ml.o: \
+                    ../include/assert.fh\
                     file_io_dat.o\
                     xray_globals.o
 

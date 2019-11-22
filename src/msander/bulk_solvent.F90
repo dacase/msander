@@ -202,7 +202,6 @@ contains
     allocate(k_scale(NRF))
     allocate(s_squared(NRF))
     allocate(hkl_indexing_bs_mask(NRF))
-    allocate(b_vector_base(NRF_work))
 
     allocate(atom_types(n_atom))
     allocate(mask_cutoffs(n_atom))
@@ -334,7 +333,6 @@ contains
   !--------------------------------------------------------------------------------------------
   subroutine grid_bulk_solvent(n_atom, crd)
 
-    use ml_mod, only: NAT_for_mask
     implicit none
     integer :: tid, n_atom
     double precision :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
@@ -343,7 +341,7 @@ contains
     double precision :: frac(3)
     double precision :: crd(3, n_atom)
 
-    do tid = 1, NAT_for_mask
+    do tid = 1, n_atom
 
       ! Cartesian to fractional coordinates
       atomX = mask_cell_params(10) * crd(1, tid) + &
