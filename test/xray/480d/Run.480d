@@ -1,0 +1,29 @@
+
+cat > mdin.rism <<eof
+  single-point 3D-RISM calculation using the sander interface
+ &cntrl
+    ntx=1, nstlim=0, irism=1,
+ /
+ &rism
+    periodic='pme',
+    closure='kh','pse2',
+    grdspc=0.4,0.4,0.4, centering=0,
+    mdiis_del=0.50, mdiis_nvec=10, tolerance=0.01,0.000000001,
+    solvcut=9.0,
+    verbose=2, npropagate=0,
+    apply_rism_force=0,
+    volfmt='ccp4', ntwrism=1,
+ /
+eof
+
+id=480d
+xvv=NaCl1M_pse2.xvv
+
+../../../bin/msander -O -i mdin.rism -o $id.pse2.r3d \
+    -p $id.parm7 -c $id.rst7 -xvv $xvv < /dev/null
+
+/bin/rm -f mdin.rism restrt mdinfo 
+
+EOF
+
+sbatch $JOB.pbs

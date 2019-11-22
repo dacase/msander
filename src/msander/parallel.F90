@@ -1,4 +1,3 @@
-#include "copyright.h"
 #ifdef MPI
 #include "../include/dprec.fh"
 
@@ -15,7 +14,6 @@ subroutine startup(xx,ix,ih)
    !     after master has read in all data
    !************************************************************
 
-   use trace
    use parms, only : bcast_parms
    use charmm_mod, only : mpi_bcast_charmm_params
    use ff11_mod, only : mpi_bcast_cmap_params
@@ -62,9 +60,6 @@ subroutine startup(xx,ix,ih)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #  include "extra.h"
 #  include "../include/md.h"
 #  include "../include/memory.h"
@@ -84,8 +79,6 @@ subroutine startup(xx,ix,ih)
    integer ix(*), ier
    character(len=4) ih(*)
    integer i_column_fft
-
-   call trace_enter( 'startup' )
 
    !     Send and receive common blocks from the master node:
 
@@ -322,7 +315,6 @@ subroutine startup(xx,ix,ih)
      ig = ig+mytaskid
    end if
 
-   call trace_exit( 'startup' )
    return
 end subroutine startup
 !----------------------------------------------------------------------
@@ -331,7 +323,6 @@ end subroutine startup
 !+ [Enter a one-line description of subroutine fdist here]
 subroutine fdist(f,forcetmp,pot,vir,newbalance)
 
-   use trace
    use qmmm_module, only : qmmm_nml
    use state
    implicit none
@@ -342,9 +333,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #  include "../include/md.h"
 #  include "extra.h"
 #  include "nmr.h"
@@ -362,15 +350,12 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    integer i,j
 
    if (numtasks == 1) return
-   call trace_enter( 'fdist' )
 
    if( mpi_orig .or. ievb>0 .or. icfe>0 ) then
 
       !  ---Reduce the force array and energies back to the master node;
       !      (hence, the master will know all coordinates and all forces):
 
-      call trace_mpi('mpi_reduce', &
-            (3*natom+iscale+3),'MPI_DOUBLE_PRECISION',mytaskid)
       if (master) then
         call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale), &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
@@ -411,8 +396,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
          !   CARLOS: ONLY MASTER NEEDS FORCES FOR NEB
          !   AWG: adaptive QM/MM needs the complete force arrays for force mixing
 
-         call trace_mpi('mpi_allreduce', &
-               3*natom,'MPI_DOUBLE_PRECISION',mytaskid)
          call mpi_allreduce(MPI_IN_PLACE, f, 3*natom, &
                MPI_DOUBLE_PRECISION,mpi_sum,commsander,ierr)
 
@@ -420,7 +403,6 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
 
    end if  ! mpi
 
-   call trace_exit( 'fdist' )
    return
 end subroutine fdist
 
@@ -432,7 +414,6 @@ subroutine fsum(f,tmp)
    !       to f, and the appropriate part of the result winds up on each
    !       processor
 
-   use trace
    implicit none
    _REAL_ f(*),tmp(*)
 
@@ -444,17 +425,12 @@ subroutine fsum(f,tmp)
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#  define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 
    !Used for Binary Tree
    integer other,ncyclesm1,k,bit,cs,cr,ns,nr,istart,iend
    integer ist(mpi_status_size)
 
    if (numtasks <= 1) return
-
-   call trace_enter( 'fsum' )
 
    ! If we have a power of two cpus do a binary tree:
 
@@ -478,9 +454,6 @@ subroutine fsum(f,tmp)
         iend = iparpt3(cr+bit)
         nr = iend-istart
 
-
-        call trace_mpi('mpi_sendrecv', &
-              (ns+nr),'MPI_DOUBLE_PRECISION', other)
         call mpi_sendrecv( &
               f(iparpt3(cs)+1),ns,MPI_DOUBLE_PRECISION,other,5, &
               tmp(iparpt3(cr)+1),nr,MPI_DOUBLE_PRECISION,other,5, &
@@ -494,8 +467,6 @@ subroutine fsum(f,tmp)
    else
 
      ! We don't have a power of two - do things the old fashioned way.
-     call trace_mpi('mpi_reduce_scatter', &
-           rcvcnt3(mytaskid),'MPI_DOUBLE_PRECISION', mytaskid)
 #ifdef RED_SCAT_INPLACE
      call mpi_reduce_scatter(f, f(iparpt3(mytaskid)+1), &
            rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
@@ -503,16 +474,15 @@ subroutine fsum(f,tmp)
 #else
      ! Reduce scaller used to work with most MPI installations even if the send
      ! and receive buffers aliased each other but now it seems that newer
-     ! mpi installations are checking this and quiting with an error. The standard
-     ! does not allow this in MPI v1.0. For now we will make the non-inplace version
-     ! the default.
+     ! mpi installations are checking this and quiting with an error. The
+     ! standard does not allow this in MPI v1.0. For now we will make the 
+     ! non-inplace version the default.
      call mpi_reduce_scatter(f, tmp(iparpt3(mytaskid)+1), &
            rcvcnt3, MPI_DOUBLE_PRECISION, mpi_sum, &
            commsander, ierr)
      f(iparpt3(mytaskid)+1:iparpt3(mytaskid+1)) = tmp(iparpt3(mytaskid)+1:iparpt3(mytaskid+1))
 #endif
    end if !Power of two cpus.
-   call trace_exit( 'fsum' )
    return
 end subroutine fsum
 
@@ -520,7 +490,6 @@ end subroutine fsum
 !+ Distribute the coordinates to all processors.
 subroutine xdist(x, tmp, natom)
 
-   use trace
    implicit none
 
    integer, intent(in) :: natom
@@ -532,16 +501,12 @@ subroutine xdist(x, tmp, natom)
 #    endif
    include 'mpif.h'
    integer ierr
-#    ifdef CRAY_PVP
-#      define MPI_DOUBLE_PRECISION MPI_REAL8
-#    endif
 
    !Used for Binary Tree
    integer other,ncyclesm1,k,bit,cs,cr,ns,nr
    integer ist(mpi_status_size)
 
    if (numtasks <= 1) return
-   call trace_enter( 'xdist' )
 
    ! If we have a power of two cpus do a binary tree:
 
@@ -554,8 +519,6 @@ subroutine xdist(x, tmp, natom)
       cr = ishft(other,-k)*bit
       ns = iparpt3(cs+bit)-iparpt3(cs)
       nr = iparpt3(cr+bit)-iparpt3(cr)
-      call trace_mpi('mpi_sendrecv', &
-            (ns+nr),'MPI_DOUBLE_PRECISION', other)
       call mpi_sendrecv( &
             x(iparpt3(cs)+1),ns,MPI_DOUBLE_PRECISION,other,5, &
             x(iparpt3(cr)+1),nr,MPI_DOUBLE_PRECISION,other,5, &
@@ -574,8 +537,6 @@ subroutine xdist(x, tmp, natom)
      ! The inplace allgatherv is not legal and modern version of mpi - e.g.
      ! mpich2-1.4 check for it and quit with an error.
 
-     call trace_mpi('mpi_allgatherv', &
-           rcvcnt3(mytaskid),'MPI_DOUBLE_PRECISION', mytaskid)
      !call mpi_allgatherv( &
      !      x(iparpt3(mytaskid)+1),rcvcnt3(mytaskid), &
      !      MPI_DOUBLE_PRECISION,x,rcvcnt3,iparpt3, &
@@ -586,7 +547,6 @@ subroutine xdist(x, tmp, natom)
            MPI_DOUBLE_PRECISION,commsander, ierr)
      x(1:3*natom) = tmp(1:3*natom)
    endif
-   call trace_exit( 'xdist' )
    return
 end subroutine xdist
 

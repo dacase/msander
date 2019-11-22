@@ -122,5 +122,5 @@ foreach $file ( <*.F90> ){
 	}
 }
 
-printf "constants.o: ../lib/constants.F90\n";
-printf "\t\@echo '[SQM]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) -o constants.o ../lib/constants.F90\n\n";
+printf "constants.o: ../msander/constants.F90\n";
+printf "\t\@echo '[SQM]  FC \$<'\n\t\$(VB)\$(FC) \$(FWARNFLAGS) \$(FPPFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) \$(AMBERFFLAGS) -o constants.o ../msander/constants.F90\n\n";

@@ -1,5 +1,4 @@
 !<compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 #include "nfe-config.h"
@@ -74,7 +73,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use file_io_dat
   use constants, only: third, ten_to_minus3
-  use trace
   use stack
 
 #ifdef MPI
@@ -135,7 +133,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Andreas Goetz's adaptive QM/MM
   use qmmm_adaptive_module, only: adaptive_qmmm
   use crg_reloc, only: ifcr, crprintcharges, cr_print_charge
-  use abfqmmm_module, only: abfqmmm_param, abfqmmm_combine_forces
 
   ! Accelerated Mmolecular Dynamics (aMD)
   use amd_mod
@@ -251,7 +248,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   logical do_list_update
   logical skip(*), belly, lout, loutfm, erstop, vlim, onstep
   ! Fortran does not guarantee short circuit logical expressions:
-  logical is_remainder0
   _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), xr(*), xc(*), conp(*)
   type(state_rec) :: ener   ! energy values per time step
   type(state_rec) :: enert  ! energy values tallied over the time steps
@@ -350,8 +346,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
 
-  call trace_enter( 'runmd' )
-
   ! Initialize some variables {{{
 #ifdef MPI
   if (master) then
@@ -430,23 +424,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   nrx = nr3
   if (ntwprt > 0) nrx = ntwprt*3
   if (.not. allocated(f_or)) allocate(f_or(nr3))
-  if (abfqmmm_param%abfqmmm == 1) then
-#ifdef MPI
-    call xdist(v, xx(lfrctmp), natom)
-#endif
-    if (abfqmmm_param%system == 1) then
-      if (abfqmmm_param%qmstep == 1) then
-        abfqmmm_param%v(1:nr3+iscale) = v(1:nr3+iscale)
-      end if
-      v(1:nr3+iscale) = 0.d0
-      t = t+dt
-      if (abfqmmm_param%maxqmstep == 0) then
-        t = 0
-      end if
-    else
-      v(1:nr3+iscale) = abfqmmm_param%v(1:nr3+iscale)
-    endif
-  endif
 
   ! Cleanup the velocity if belly run
   if (belly) call bellyf(nr,ix(ibellygp),v)
@@ -595,8 +572,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Make a first dynamics step. {{{
   ! init = 3: general startup if not continuing a previous run
-  if (init == 3 .or. nstlim == 0 .or. &
-      (abfqmmm_param%abfqmmm == 1 .and. abfqmmm_param%system == 1)) then
+  if (init == 3 .or. nstlim == 0) then
 
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
@@ -635,17 +611,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #ifdef MPI
     call xdist(f_or, xx(lfrctmp), natom)
 #endif /* MPI */
-    if (abfqmmm_param%abfqmmm == 1) then
-      if (abfqmmm_param%system == 1) then
-        abfqmmm_param%f1(1:nr3) = f_or(1:nr3)
-      end if
-      if (abfqmmm_param%system == 2) then
-        abfqmmm_param%f2(1:nr3) = f_or(1:nr3)
-        call abfqmmm_combine_forces()
-        f_or(1:nr3) = abfqmmm_param%f(1:nr3)
-        f(1:nr3) = abfqmmm_param%f(1:nr3)
-      end if
-    end if
 
     ! This force call does not count as a "step". CALL NMRDCP to decrement
     ! local NMR step counter and MTMDUNSTEP to decrease the local MTMD step
@@ -894,17 +859,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   vold(1:nr3+iscale) = v(1:nr3+iscale)
 
-  ! Adjust the step count if Adaptive Buffered Force QM/MM is in effect
-  if (abfqmmm_param%abfqmmm == 1) then
-    nstep=abfqmmm_param%qmstep
-    if (abfqmmm_param%maxqmstep == 0) nstep = 0
-  end if
   ! }}}
 
 !------------------------------------------------------------------------------
   ! If init .ne. 4, or only one step, or ABF QM/MM {{{
-  if (init .ne. 4 .or. nstlim == 0 .or. &
-      (abfqmmm_param%abfqmmm == 1 .and. abfqmmm_param%system == 1)) then
+  if (init .ne. 4 .or. nstlim == 0) then
 
     ! Print the initial energies and temperatures
 #ifdef RISMSANDER
@@ -920,10 +879,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end if
     end if
 #endif /* RISMSANDER */
-    is_remainder0 = .false.
-    if ( ntpr > 0 ) is_remainder0 = mod(abfqmmm_param%qmstep,ntpr) == 0
-    if ( (nstep <= 0 .and. master .and. facc .ne. 'A') .or. &
-        (master .and. abfqmmm_param%abfqmmm == 1 .and. is_remainder0) ) then
+    if (nstep <= 0 .and. master .and. facc .ne. 'A') then
       if (isgld > 0) call sgenergy(ener)
       rewind(7)
 
@@ -931,10 +887,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ener%tot = ener%kin%tot+ener%pot%tot
 #endif /* LES */
 
-      if (abfqmmm_param%abfqmmm /= 1 .or. &
-          abfqmmm_param%system == 1 .or. nstep == 0) then
-        call prntmd(nstep, t, ener, onefac, 7, .false.)
-      end if
+      call prntmd(nstep, t, ener, onefac, 7, .false.)
 
 #ifdef MPI /* SOFT CORE */
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener)
@@ -946,17 +899,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
       if (nmropt > 0) call nmrptx(6)
       if (infe == 1) call nfe_prt(6)
-      call amflsh(7)
-    end if
-    if (abfqmmm_param%abfqmmm == 1 .and. abfqmmm_param%system == 1) then
-      deallocate(f_or, stat=ierr)
-      REQUIRE(ierr == 0)
-      return
+      call flush(7)
     end if
     if (nstlim == 0) then
-      if (abfqmmm_param%abfqmmm == 1) then
-        v(1:nr3) = abfqmmm_param%v(1:nr3)
-      end if
 #ifdef MPI
       call xdist(x, xx(lfrctmp), natom)
       call xdist(v, xx(lfrctmp), natom)
@@ -1086,16 +1031,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   call xdist(f_or, xx(lfrctmp), natom)
 #endif
 
-  if (abfqmmm_param%abfqmmm == 1) then
-    abfqmmm_param%f2(1:nr3) = f_or(1:nr3)
-    call abfqmmm_combine_forces()
-#ifdef MPI
-    call mpi_bcast(abfqmmm_param%f, 3*natom, mpi_double_precision, 0, &
-                   commsander, ierr)
-#endif
-    f_or(1:nr3) = abfqmmm_param%f(1:nr3)
-    f(1:nr3) = abfqmmm_param%f(1:nr3)
-  end if
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -1514,7 +1449,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 #  else
     if (.not. mpi_orig .and. numtasks > 1) then
-      call trace_mpi('mpi_allreduce', 1, 'MPI_DOUBLE_PRECISION', mpi_sum)
       mpitmp(1) = eke
       mpitmp(2) = ekph
       mpitmp(3) = ekpbs
@@ -1570,9 +1504,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! is the maximum number of REMD steps.
   total_nstep = nstep + 1
   total_nstlim = nstlim
-  if (abfqmmm_param%abfqmmm == 1) then
-    total_nstep = abfqmmm_param%qmstep
-  end if
 
 #ifdef MPI
   if (rem .ne. 0) then
@@ -1786,10 +1717,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
   ! Step 8: update the step counter and the integration time: {{{
-  if (abfqmmm_param%abfqmmm .ne. 1) then
-    nstep = nstep + 1
-    t = t + dt
-  end if
+  nstep = nstep + 1
+  t = t + dt
 
   ! Full energies are only calculated every nrespa steps.
   ! nvalid is the number of steps where all energies are calculated.
@@ -1962,10 +1891,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! }}}
 
 !------------------------------------------------------------------------------
-    ! Force archive lam81
-    if (ifdump .and. (abfqmmm_param%abfqmmm == 1)) &
-      call corpac(f_or,1,nrx,MDFRC_UNIT,loutfm)
-
     ! Energy archive: (total_nstep set in Step 5.)
     if ( ntwe > 0 ) then
       if (mod(total_nstep,ntwe) == 0 .and. onstep) &
@@ -2049,7 +1974,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                       ih(m02), ix(i02), ih(m06), xx(lmass), natom, &
                       nres, 'PRNT')
       end if
-      call amflsh(7)
+      call flush(7)
     end if
     ! end of giant "if (lout)" contingency related to data output }}}
 
@@ -2169,8 +2094,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 !------------------------------------------------------------------------------
   ! Miscellaneous stuff at the end of each step: {{{
-  call trace_integer( 'end of step', nstep )
-  call trace_output_mpi_tally( )
   call timer_stop(TIME_VERLET)
 #if !defined(DISABLE_NFE) && defined(NFE_ENABLE_BBMD)
   if (infe == 1) then
@@ -2183,15 +2106,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end do
   end if
 #endif /* DISABLE_NFE is NOT defined, but NFE_ENABLE_BBMD is */
-
-  if (abfqmmm_param%abfqmmm == 1) then
-#ifdef MPI
-    call xdist(v, xx(lfrctmp), natom)
-#endif
-    abfqmmm_param%v(1:nr3+iscale) = v(1:nr3+iscale)
-    deallocate(f_or, stat=ierr)
-    return
-  end if
 
   if (plumed .ne. 0 .and. plumed_stopflag .ne. 0) goto 480
   ! }}}
@@ -2400,6 +2314,5 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   590 format('ATOMNUM     MAX RAD     MIN RAD     AVE RAD     FLUCT')
   600 format(i4,2x,4f12.4)
   ! }}}
-  call trace_exit( 'runmd' )
   return
 end subroutine runmd

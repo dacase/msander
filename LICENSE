@@ -4,6 +4,7 @@ later in this file.
 
 * The arpack code is released under a BSD license.  See the src/arpack/LICENSE
   file for more information.
+* The BLAS and LAPACK libaries are in the public domain.
 
 Note especially the following, from the GPL:
 

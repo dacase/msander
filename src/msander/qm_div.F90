@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 !Interface module to provide option for doing QM/MM with divcon.

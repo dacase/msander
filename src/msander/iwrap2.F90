@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 ! 2008-10-03

@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 module icosasurf
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

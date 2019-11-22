@@ -1,0 +1,29 @@
+#!/bin/sh
+
+cat<<eof >mdin
+md for triclinic lysozyme
+ &cntrl
+  ntpr=1, ntwx=0, ntwr=0, ioutfm=1, ntxo=1,
+  ntx=1, irest=0, tempi=0., temp0=1.,
+  thermostat=0, 
+  ntb=1, ntp=0, ntc=2, ntf=2,  tol=0.0000001, 
+  nstlim=5, dt=.002, ig=-1, 
+  igb=8, cut=20.0, rgbmax=15.0,
+ /
+ &xray
+   spacegroup_name='P1',
+   pdb_infile = '4phenix_3j9d_box2.pdb',
+   pdb_outfile = 'test2.pdb',
+   reflection_infile = '3j9d_noH-sf.directi.dat',
+   atom_selection_mask = '!@H=',
+   xray_weight = 200000.,
+   fft_method = 0,
+   vector_target = .true.,
+ /
+eof
+
+
+../../../bin/msander -O -i mdin -p 3j9d_nobox.parm7 \
+    -c 4amber -o vectort.out < /dev/null
+
+

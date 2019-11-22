@@ -14,7 +14,6 @@
 module rismthermo_c
   use safemem
   use rism_report_c
-  use rism_timer_c
 
   !> Derived type to store thermodynamic results.  To facilitate MPI
   !! communication, many values are stored in a common array.
@@ -285,9 +284,7 @@ module amber_rism_interface
   use rism3d_c
   use rism3d_solvent_c
   use rism3d_solute_c
-  use fce_c
   use rism_report_c
-  use rism_timer_c
   use safemem
   use rismthermo_c
 
@@ -309,10 +306,6 @@ module amber_rism_interface
      !> Restart threshold factor. Ratio of the current residual to the
      !! minimum residual in the basis that causes a restart.
      _REAL_ :: mdiis_restart
-     !> Fce cutoff distance.
-     _REAL_ :: fcecut
-     !> ???
-     _REAL_ :: fceenormsw
      !> Coefficients for the temperature dependent universal correction.
      !! a,b,a1,b1
      _REAL_ :: uccoeff(4)
@@ -329,8 +322,6 @@ module amber_rism_interface
      integer :: ng3(3)
      !> Use 3D-RISM.
      integer :: rism
-     !> Use long range asymptotic corrections for thermodynamic calculations.
-     logical*4 :: asympcorr
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: mdiis_nvec
@@ -365,31 +356,7 @@ module amber_rism_interface
      integer :: pcplusCorrection
      !> Size of rism multiple timestep.
      integer :: rismnrespa
-     !> Fce MTS stride length.
-     integer :: fcestride
-     !> Number of allFCE basis vectors.
-     integer :: fcenbasis
-     !> Number of leading FCE basis vectors.
-     integer :: fcenbase
-     !> Fce coordinate basis type.
-     integer :: fcecrd
-     !> ???
-     integer :: fceweigh
-     !> Type of the force extrapolation.
-     integer :: fcetrans
-     !> Sorting of coordinate-force pairs.
-     integer :: fcesort
 
-     ! New FCE parameters, for GSFE (Generalized Solvent Force Extrapolation)
-
-     !fceifreq :: updating frequency of the extended to basic mapping list
-     integer :: fceifreq
-     !fcentfrcor :: net force correction due to individual extrapolation
-     integer :: fcentfrcor
-     !fcewrite :: write FCE basis set at each full 3D-RISM solution (1=yes)
-     integer :: fcewrite
-     !fcewrite :: read in FCE basis set from files 'fcecoord.rst' & 'fceforce.rst' (1=yes)
-     integer :: fceread
      !> Save itermediate results every saveprogress interations (0
      !! means no saves).
      integer :: saveprogress
@@ -430,12 +397,8 @@ module amber_rism_interface
   type(rismthermo_t), save :: rismthermo_pol
   type(rismthermo_t), save :: rismthermo_apol
   type(rism3d), save :: rism_3d
-  type(fce), save :: fce_o
   type(rism3d_solvent), save :: solvent
   type(rism3d_solute), save :: solute
-  type(rism_timer), save :: timer
-  type(rism_timer), save :: timer_write
-  type(rism_timer), save :: timer_init
   integer :: pa_orient, rmsd_orient
   _REAL_ :: centerOfMass(3)
   ! Read from prmtop file during parameter processing and passed to
@@ -476,7 +439,6 @@ module amber_rism_interface
   !huvfile       : (output) total correlation function.  Volumetric file.
   !cuvfile       : (output) direct correlation function.  Volumetric file.
   !uuvfile       : (output) solute-solvent potential.  Volumetric file.
-  !asympfile     : (output) long range asymptotics function.  Volumetric file.
   !quvfile       : (output) charge density distribution.  Volumetric file.
   !chgDistFile   : (output) charge distribution. Volumetric file.
   !excessChemicalPotentialfile    : (output) excess chemical potential map [kcal/mol/A^3]. Volumetric file.
@@ -497,7 +459,7 @@ module amber_rism_interface
   !                    Either 'ewald' or 'pme' or 'pmekh'.
   !volfmt        : either 'ccp4', 'dx', or 'xyzv'
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
-       uuvfile='', asympfile='', quvFile='', chgDistFile='', &
+       uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
        excessChemicalPotentialGFfile='', solvationEnergyGFfile='', entropyGFfile='', &
        excessChemicalPotentialPCPLUSfile='', solvationEnergyPCPLUSfile='', entropyPCPLUSfile='', &
@@ -509,11 +471,7 @@ module amber_rism_interface
 
   !working memory for rism_force() so it is not reallocated every time
   !ff :: forces
-  !atomPositions_fce :: coordinates for FCE
   _REAL_, pointer :: ff(:, :) => NULL()
-#if defined(RISM_CRDINTERP)
-  _REAL_, pointer :: atomPositions_fce(:, :) => NULL()
-#endif /*RISM_CRDINTER*/
 
   private :: rism_mpi_bcast
 
@@ -552,8 +510,6 @@ contains
   !! @param[in] cuvchar Character array for Cuv output file name.
   !! @param[in] uuvlen Length of uuvchar array.
   !! @param[in] uuvchar Character array for Uuv output file name.
-  !! @param[in] asymplen Length of asympchar array.
-  !! @param[in] asympchar Character array for asymptotics output file name.
   !! @param[in] quvlen Length of quvchar array.
   !! @param[in] quvchar Character array for Quv output file name.
   !! @param[in] chgDistlen Length of chgDistchar array.
@@ -643,16 +599,6 @@ contains
     integer :: numtasks, ier
     character(len=5) omp_num_threads
 
-    ! In case this is not the first time init has been called (i.e.,
-    ! multiple runs) destroy timers and re-create them.
-    call rism_timer_destroy(timer_write)
-    call rism_timer_destroy(timer_init)
-    call rism_timer_destroy(timer)
-    call rism_timer_new(timer, "3D-RISM Total")
-    call rism_timer_new(timer_init, "3D-RISM initialization", timer)
-    call rism_timer_start(timer_init)
-    call rism_timer_new(timer_write, "3D-RISM Output", timer)
-
     write(whtspc, '(a16)')" "
 
 #ifdef MPI
@@ -668,16 +614,10 @@ contains
 #endif /*MPI*/
 
     ! If this is not a RISM run, we're done.
-    if (rismprm%rism == 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
+    if (rismprm%rism == 0) return
 
     ! Rank 0 only.
-    if (mpirank /= 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
+    if (mpirank /= 0) return
 
     outunit = rism_report_getMUnit()
     call defaults()
@@ -693,7 +633,7 @@ contains
 
     ! Initialize 3D-RISM solute and solvent.
 
-#ifdef OPENMP
+#if 0  /* right now, we are always using MKL for multithreaded FFTW */
     ier = fftw_init_threads()
     write(6,*) 'fftw_init_threads() returns ', ier
 
@@ -749,30 +689,10 @@ contains
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'centering'//whtspc, rismprm%centering, &
                ', zerofrc'//whtspc, rismprm%zerofrc
-          write(outunit, '(5x, a10, "=", i10, a11, "=", l10)') &
-               'apply_rism_force'//whtspc, rismprm%apply_rism_force, &
-               ', asympcorr'//whtspc, rismprm%asympcorr
-          write(outunit, '(5x, 2(a10, "=", i10), a10, "=", f10.5)') &
-               'rismnrespa'//whtspc, rismprm%rismnrespa, &
-               ', fcestride'//whtspc, rismprm%fcestride, &
-               ', fcecut'//whtspc, rismprm%fcecut
-          write(outunit, '(5x, 3(a10, "=", i10))') &
-               'fcenbasis'//whtspc, rismprm%fcenbasis, &
-               ', fcenbase'//whtspc, rismprm%fcenbase, &
-               ', fcecrd'//whtspc, rismprm%fcecrd
-          write(outunit,'(3(a15,"=",i10))') '|     fceweigh ', rismprm%fceweigh, &
-               ', fcetrans      ', rismprm%fcetrans,   ', fcesort    ', rismprm%fcesort
-          write(outunit,'(a15,"=",i10,a12,"=",d10.2,a12,"=",i10)') '|     fceifreq ', &
-             rismprm%fceifreq,      ', fceenormsw', rismprm%fceenormsw, &
-             ', fcentfrcor', rismprm%fcentfrcor
-          write(outunit,'(a15,"=",i5, a20,"=",i5)') '|     fcewrite ', rismprm%fcewrite, &
-               ', fceread  ', rismprm%fceread
-          write(outunit, '(5x, 2(a20, "=", i10))') &
-               'polarDecomp'//whtspc, rismprm%polardecomp, &
-               ', entropicDecomp'//whtspc, rismprm%entropicDecomp
-          write(outunit, '(5x, 2(a20, "=", i10))') &
-               'gfCorrection'//whtspc, rismprm%gfCorrection, &
-               ', pcplusCorrection'//whtspc, rismprm%pcplusCorrection
+          write(outunit, '(5x, a10, "=", i10)') &
+               'apply_rism_force'//whtspc, rismprm%apply_rism_force
+          write(outunit, '(5x, a10, "=", i10)') &
+               'rismnrespa'//whtspc, rismprm%rismnrespa
           write(outunit, '(5x, 2(a20, "= ", a8))') &
                'periodic'//whtspc, periodicPotential
           write(outunit, '(5x, 1(a10, "=", i10), a10, "=  ", a8)') &
@@ -789,59 +709,11 @@ contains
                'chargeSmear'//whtspc, rismprm%chargeSmear
           write(outunit, '(5x, a10, "=", f10.5)') &
                'biasPotential'//whtspc, rismprm%biasPotential
-          !!!! Extrapolation method warnings
-          if(rismprm%fcetrans/=0.and.rismprm%fcetrans/=1.and.rismprm%fcetrans/= &
-               2.and.rismprm%fcetrans/=3.and.rismprm%fcetrans/=4.and.rismprm%fcetrans/=5 & 
-            .and.rismprm%fcetrans/=6) then
-             write(6,'(/,a)') 'trans must be equal to 0, 1, 2, 3, 4, 5, or 6'
-             stop
-          end if
-          if(rismprm%fcenbasis < rismprm%fcenbase) then
-             write(6,'(/,a)') 'nbasis must be equal or larger than nbase'
-             stop
-          end if
-          if(rismprm%fceenormsw < 0 .and. rismprm%fcetrans == 2) then
-             write(6,'(/,a)') 'enormsw must be positive if fcetrans = 2'
-             stop
-          end if
-          if(rismprm%fceenormsw < 0 .and. rismprm%fcetrans == 3) then
-             write(6,'(/,a)') 'enormsw must be positive if fcetrans = 3'
-             stop
-          end if
-          if(rismprm%fceenormsw < 0 .and. rismprm%fcetrans == 5) then
-             write(6,'(/,a)') 'enormsw must be positive if fcetrans = 5'
-             stop
-          end if
-          if(rismprm%fceenormsw < 0 .and. rismprm%fcetrans == 6) then
-             write(6,'(/,a)') 'enormsw must be positive if fcetrans = 6'
-             stop
-          end if
-          if(rismprm%fceifreq <= 0 .and. rismprm%fcetrans == 2) then
-             write(6,'(/,a)') 'ifreq must be larger than 0 if fcetrans = 2'
-             stop
-          end if
-          if(rismprm%fceifreq <= 0 .and. rismprm%fcetrans == 3) then
-             write(6,'(/,a)') 'ifreq must be larger than 0 if fcetrans = 3'
-             stop
-          end if
-          if(rismprm%fceifreq <= 0 .and. rismprm%fcetrans == 5) then
-             write(6,'(/,a)') 'ifreq must be larger than 0 if fcetrans = 5'
-             stop
-          end if
-          if(rismprm%fceifreq <= 0 .and. rismprm%fcetrans == 6) then
-             write(6,'(/,a)') 'ifreq must be larger than 0 if fcetrans = 6'
-             stop
-          end if
-          if(rismprm%fcenbasis > rismprm%fcenbase .and. rismprm%fcetrans == 4) then
-             write(6,'(/,a)') 'nbasis must be equal to nbase if fcetrans = 4'
-             stop
-          end if
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        end if
        call flush(outunit)
     end if
 
-    call rism_timer_stop(timer_init)
   end subroutine rism_setparam
 
   !> Performs all of the initialization required for 3D-RISM
@@ -852,9 +724,6 @@ contains
   subroutine rism_init(comm)
     use amber_rism_interface
     use safemem
-#ifdef RISM_CRDINTERP
-    use fce_c
-#endif /*RISM_CRDINTERP*/
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -862,17 +731,6 @@ contains
     integer, intent(in) :: comm
 
     integer :: err
-
-    
-    ! Ensure that timers have been created incase RISM_SETPARAM was
-    ! only called by the master node.
-    if (trim(timer%name) .ne. "3D-RISM Total") &
-         call rism_timer_new(timer, "3D-RISM Total")
-    if (trim(timer_init%name) .ne. "3D-RISM initialization") &
-         call rism_timer_new(timer_init, "3D-RISM initialization", timer)
-    call rism_timer_start(timer_init)
-    if (trim(timer_write%name) .ne. "3D-RISM Output") &
-         call rism_timer_new(timer_write, "3D-RISM Output", timer)
 
     call rism_report_setMUnit(6)
     call rism_report_setWUnit(6)
@@ -892,22 +750,7 @@ contains
 #endif /*MPI*/
 
     ! STOP HERE IF THIS IS NOT A RISM RUN.
-    if (rismprm%rism == 0) then
-       call rism_timer_stop(timer_init)
-       return
-    end if
-
-#ifdef RISM_CRDINTERP
-    call fce_new(fce_o, solute%numAtoms, rismprm%fcenbasis, rismprm%fcenbase, &
-         rismprm%fcecrd, rismprm%fceweigh, rismprm%fcetrans, &
-         rismprm%fcesort, rismprm%fceifreq,rismprm%fcentfrcor, & 
-         rismprm%fceenormsw, rismprm%fcecut, mpicomm)
-
-    ! Read in saved extrapolation basis
-    if(rismprm%fceread == 1) then
-       call fce_readbasis(fce_o)
-    endif
-#endif /*RISM_CRDINTERP*/
+    if (rismprm%rism == 0) return
 
     ! 3D-RISM may have already been initialized. In the absence of a
     ! subroutine to set all of these parameters individually, we
@@ -933,7 +776,6 @@ contains
             o_biasPotential=rismprm%biasPotential)
     end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
-    call rism3d_setTimerParent(rism_3d, timer)
 
     call rismthermo_new(rismthermo, rism_3d%solvent%numAtomTypes, mpicomm)
     if (rismprm%polarDecomp == 1) then
@@ -944,17 +786,11 @@ contains
     ! Allocate working memory.
     ff => safemem_realloc(ff, 3, rism_3d%solute%numAtoms)
 
-#if defined(RISM_CRDINTERP)
-    if (rismprm%fcestride > 0) &
-         atomPositions_fce => safemem_realloc(atomPositions_fce, 3, rism_3d%solute%numAtoms)
-#endif /* RISM_CRDINTERP */
-
     ! Free up a bit of memory.
     call rism3d_solvent_destroy(solvent)
     call rism3d_solute_destroy(solute)
 
     call flush(outunit)
-    call rism_timer_stop(timer_init)
 
   end subroutine rism_init
 
@@ -973,9 +809,6 @@ contains
     ! Test for RESPA.
     if (mod(irespa, rismprm%rismnrespa) /= 0) then
        calc_type = RISM_NONE
-    else if (rismprm%fcestride > 0 .and. fce_o%nsample >= fce_o%nbasis) then
-       if (mod(irespa, rismprm%rismnrespa*rismprm%fcestride) /= 0) &
-          calc_type = RISM_INTERP
     end if
   end function rism_calc_type
 
@@ -999,7 +832,7 @@ contains
     use amber_rism_interface
     use constants, only : KB
     use rism3d_c, only : rism3d_calculateSolution
-    use rism_util, only : corr_drift, alignorient, translate, findCenterOfMass, rotationalVelocity
+    use rism_util, only: corr_drift
     implicit none
 #include "def_time.h"
 
@@ -1048,7 +881,6 @@ contains
       jrespa=jrespa+1
    end if
 
-   call rism_timer_start(timer)
    epol = 0
    ff=0
 
@@ -1059,75 +891,6 @@ contains
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      !!!No forces this steps. DO NOTHING!!!
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#if defined(RISM_CRDINTERP)
-    else if (rism_calc_type(jrespa) == RISM_INTERP) then
-     !!!!!!!!!!!!!!!!
-     !!!FCE forces!!!
-     !!!!!!!!!!!!!!!!
-       if (rismprm%verbose>=2) call rism_report_message("|LINEAR PROJECTION PREDICT!!!")
-
-       call timer_start(TIME_REORIENT)
-       atomPositions_fce = atomPositions_md
-       call orient(rism_3d%solute, atomPositions_fce, rism_3d%nsolution)
-       call timer_stop(TIME_REORIENT)
-       !linproj predict
-       call timer_start(TIME_CRDINTERP)
-     if (rismprm%apply_rism_force==1) then
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Use untransformed, three versions of the transformed extrapolation, or
-! the old non-normalized individual scheme
-
-     ! old methods and associated objects (sff, sratu_fce, ratu_fce)
-
-        ! if (fce_o%trans==0) call fce_forcea(fce_o,ff,atomPositions_fce)
-
-        ! if (fce_o%trans==1) call fce_forceb(fce_o,ff,atomPositions_fce,sff,sratu_fce)
-
-        ! if (fce_o%trans==2) call fce_forcebm(fce_o,ff,atomPositions_fce,sff,sratu_fce)
-
-        ! if (fce_o%trans==3) call fce_forcec(fce_o,ff,atomPositions_fce,sff,sratu_fce)
-
-        ! if (fce_o%trans==4) call fce_force(fce_o,ff,atomPositions_fce)
-
-     if(fce_o%trans==0) call fce_forcea(fce_o,ff,atomPositions_fce)
-        
-     if(fce_o%trans==1) call fce_forceb(fce_o,ff,atomPositions_fce)
-
-     if(fce_o%trans==2) call fce_forcebm(fce_o,ff,atomPositions_fce,iupdate,idirom)                ! ASFE
-
-     if(fce_o%trans==3) call fce_forcebm(fce_o,ff,atomPositions_fce,iupdate,idirom)                ! ASFE
-        
-     if(fce_o%trans==4) call fce_force(fce_o,ff,atomPositions_fce)
-
-     if(fce_o%trans==5) call fce_forcesa(fce_o,ff,atomPositions_fce,forcnetr,iupdate,idirom)       ! GSFE
-
-     if(fce_o%trans==6) call fce_forcesan(fce_o,ff,atomPositions_fce,forcnetr,iupdate,idirom)      ! GSFE
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-     end if
-
-       call timer_stop(TIME_CRDINTERP)
-
-!!$     call timer_start(TIME_REORIENT)
-!!$     call unorient(rism_3d%solu, atomPositions_md)
-!!$     call timer_stop(TIME_REORIENT)
-
-       if (rismprm%zerofrc==1) then
-#ifdef MPI
-          call corr_drift(ff, rism_3d%solute%mass, rism_3d%solute%numAtoms, &
-               mpirank, mpisize, mpicomm)
-#else
-          call corr_drift(ff, rism_3d%solute%mass, rism_3d%solute%numAtoms)
-#endif /*MPI*/
-       end if
-       if (rismprm%fcestride > 1) then
-          if (rismprm%verbose >= 2) call rism_report_message("|IMPULSE FORCE - INTERP!!!")
-          ff=rismprm%rismnrespa*ff
-       end if
-
-#endif /*RISM_CRDINTERP*/
     else
        if (rismprm%verbose >= 2) call rism_report_message("|FULL RISM!!!")
 !!!!!!!!!!!!!!!!!!!!!!!!
@@ -1162,138 +925,10 @@ contains
 
        ! Get the excess chemical potential.
        call timer_start(TIME_EXCESSCHEMICALPOTENTIAL)
-       epol = rism3d_excessChemicalPotential_tot(rism_3d, rismprm%asympCorr)*KB*rism_3d%solvent%temperature
-#if 0
-       ! TODO: figure out when we need to see a detail like this:
-       write(6,'(a,f15.5)') 'excessChemicalPotential: ', epol
-#endif
+       epol = rism3d_excessChemicalPotential_tot(rism_3d)*KB*rism_3d%solvent%temperature
        call timer_stop(TIME_EXCESSCHEMICALPOTENTIAL)
 
-#ifdef RISM_CRDINTERP
-       if (rismprm%fcestride >0 .and. rismprm%apply_rism_force==1) then
-          call timer_start(TIME_REORIENT)
-          atomPositions_fce = atomPositions_md
-          call orient(rism_3d%solute, atomPositions_fce, rism_3d%nsolution)
-          call timer_stop(TIME_REORIENT)
-          call timer_start(TIME_SAVECRDINTERP)
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Estimate the accuracy of the extrapolation 
-
-        if (fce_o%nsample >= fce_o%nbase .and. rismprm%verbose >= 1) then
-
-        !   call fce_estimate(fce_o,ff,atomPositions_fce,sff,sratu_fce,ffm,deviat)
-
-          call fce_estimate(fce_o,ff,atomPositions_fce,ffm,deviat,forcnetr,iupdate,idirom)
-
-! Print the deviations using the root processor
-
-        if (mpirank==0) then
-
-             if(fce_o%trans==5.or.fce_o%trans==6) then
-                 write(6,256) 'Error of the extrapolation:',0.5d0*deviat*100.d0, &
-                      ' %    |  Net force accuracy:',forcnetr*100.d0,' %'
-256              format(a31,f8.3,a28,f8.3,a2)
-              else
-                 write(6,257) 'Error of the extrapolation:',0.5d0*deviat*100.d0,' %'
-257              format(a31,f8.3,a2)
-              end if
-              
-              if((fce_o%trans==2.or.fce_o%trans==3.or.fce_o%trans==5.or.fce_o%trans==6).and.fce_o%ifreq>1) then
-                 ! Calculating the averaged number of steps for the frequency regime
-                 mmidirom=mmidirom+idirom
-                 llidirom=llidirom+1
-                 write(6,265) '|Averaged inverse frequency after updating:', &
-                      dble(mmidirom)/llidirom
-265              format(a42,f11.3)
-              end if
-        end if
-
-        end if
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Update the basic vectors
-
-        call fce_update(fce_o, ff, atomPositions_fce)
-
-        iupdate=0
-
-        ! Print the current number of the basic vectors and the size of the outer step
-        if(mpirank == 0 .and. rismprm%verbose >= 1) then
-           if(fce_o%nsample<fce_o%nbasis-1.and.fsestride<=rismprm%fcestride) then
-              write(6,275) '|Number of samples:',fce_o%nsample,'  /  ', &
-                   'Size of the outer time step (in dt):',fsestride*rismprm%rismnrespa
-275           format(a18,i5,a5,a36,i5)
-           end if
-           if(fce_o%nsample == fce_o%nbasis-1) then
-              write(6,276) '|Number of samples:',fce_o%nsample
-            !  write(6,276) '|Number of samples:',fce_o%nsample+1
-276           format(a18,i5)
-           end if
-           if(fsestride==rismprm%fcestride-1) then
-              write(6,277) '|Size of the outer time step (in dt):',fsestride*rismprm%rismnrespa
-         !     write(6,277) '|Size of the outer time step (in dt):',(fsestride+1)*rismprm%rismnrespa
-277           format(a36,i5)
-           end if
-        end if
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!   On the very beginning the exact 3D-RISM forces are applied every   !
-!   rismnrespa*dt time step by fcenbase times. Then the extrapolation  !
-!   starts and the 3D-RISM forces are calculated with a decreasing     !
-!   frequency every 2*rismnrespa*dt, 3*rismnrespa*dt, and so on up     !
-!   to fcestride*rismnrespa*dt steps. In other words, after each       !
-!   outer time interval passed, it increases by 1 until achieves       !
-!   the value fcestride*rismnrespa*dt.                                 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      if (fce_o%nsample >= fce_o%nbase) then
-
-      if (ijrespe==1) then
-         fsestride=rismprm%fcestride
-      else
-         if (fsestride < rismprm%fcestride) then
-
-! Before the last step when the outer interval is enlarged it is
-! additionally adjusted to make the total number of steps to be
-! exactly multiple of fcestride*rismnrespa
-
-            if (fsestride == rismprm%fcestride-1) then
-               fsestride=rismprm%fcestride- &
-                    mod(irespa,rismprm%rismnrespa*rismprm%fcestride)/rismprm%rismnrespa
-
-               ijrespe=1
-
-            else
-
-               fsestride=fsestride+1
-
-            end if
-         end if
-      end if
-
-      jrespa=0
-
-   end if
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Perform transformation of basic force-coordinate pairs after updating
-
-   if((fce_o%trans==1.or.fce_o%trans==2.or.fce_o%trans==3).and.fce_o%nsample>=fce_o%nbase) then
-        call fce_transformi(fce_o)
-   end if
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-          call timer_stop(TIME_SAVECRDINTERP)
-!!$        call timer_start(TIME_REORIENT)
-!!$        call unorient(rism_3d%solu, atomPositions_fce)
-!!$        call timer_stop(TIME_REORIENT)
-       
-    endif
-#endif /*RISM_CRDINTERP*/
-
-       !         if (rismnrespa >1 .and. (.not. interpcrd>0 .or. .not. nsample >= fcenbasis)) then
+       ! if (rismnrespa >1) then
        if (rismprm%rismnrespa >1) then
           if (rismprm%verbose>=2) call rism_report_message("|IMPULSE FORCE!!!")
           ff=rismprm%rismnrespa*ff
@@ -1303,17 +938,7 @@ contains
 
     if (rismprm%apply_rism_force==1) frc = frc + ff
 
-#if defined(RISM_CRDINTERP)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! If specified with 'fcewrite', write extrapolation basis
-    
-    if (mpirank == 0 .and. rismprm%fcewrite > 0) then
-       if (mod(irespa,rismprm%fcewrite) == 0) call fce_wrtbasis(fce_o, jrespa)
-    endif
-#endif
-
     call flush(outunit)
-    call rism_timer_stop(timer)
   end subroutine rism_force
 
   
@@ -1347,7 +972,6 @@ contains
     logical*4, intent(in) :: writedist
     integer, intent(in) :: step
     integer :: err
-    call rism_timer_start(timer_write)
     call rismthermo_reset(rismthermo)
     if (associated(rismthermo_pol%excessChemicalPotential)) &
          call rismthermo_reset(rismthermo_pol)
@@ -1355,26 +979,23 @@ contains
          call rismthermo_reset(rismthermo_apol)
 
     ! Calculate thermodynamics.
-    call rism_timer_stop(timer_write)
     rismthermo%excessChemicalPotential = &
-         rism3d_excessChemicalPotential(rism_3d, rismprm%asympCorr)* KB * rism_3d%solvent%temperature
+         rism3d_excessChemicalPotential(rism_3d)* KB * rism_3d%solvent%temperature
     rismthermo%solventPotentialEnergy = rism3d_solventPotEne(rism_3d) * KB * rism_3d%solvent%temperature
     rismthermo%partialMolarVolume = rism3d_partialMolarVolume(rism_3d)
-    rismthermo%excessParticlesBox = rism3d_excessParticles(rism_3d, .false.)
+    rismthermo%excessParticlesBox = rism3d_excessParticles(rism_3d)
     rismthermo%totalParticlesBox = rismthermo%excessParticlesBox &
          + rism_3d%grid%voxelVolume &
          * rism_3d%grid%totalLocalPointsR * rism_3d%solvent%density
          ! this is the local volume for the MPI process.
-    rismthermo%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d, rismprm%asympCorr)
+    rismthermo%kirkwoodBuff = rism3d_kirkwoodbuff(rism_3d)
     rismthermo%DCFintegral = rism3d_DCFintegral(rism_3d)
 
     ! Output distributions.
     if (writedist .and. step >= 0) &
          call rism_writeVolumetricData(rism_3d, step)
-    call rism_timer_start(timer_write)
 
     call rismthermo_mpireduce(rismthermo)
-    call rism_timer_stop(timer_write)
   end subroutine rism_solvdist_thermo_calc
 
   
@@ -1399,8 +1020,6 @@ contains
     
     integer :: iv, iu, ig, il, err
     integer :: ix, iy, iz
-
-    call rism_timer_start(timer_write)
 
     if (description) then
        if (mpirank==0) then
@@ -1497,7 +1116,6 @@ contains
        end if
     end if
     call flush(outunit)
-    call rism_timer_stop(timer_write)
   end subroutine rism_thermo_print
   
   !> Prints out a description line for thermodynamics output.
@@ -1587,32 +1205,17 @@ contains
   end subroutine thermo_print_results_line
 
   
-  !> Prints out the heirarchical timer summary.
-  subroutine rism_printTimer()
-    use amber_rism_interface
-    implicit none
-    call rism_timer_start(timer)
-    call rism_timer_summary(timer, '|', outunit, mpicomm)
-    call rism_timer_stop(timer)
-  end subroutine rism_printTimer
-
-  
   !> Finalizes all of the 3D-RISM objects and frees memory.
   subroutine rism_finalize()
     use amber_rism_interface
-    use fce_c, only : fce_destroy
     use safemem
     use rism3d_solvent_c
     use rism3d_solute_c
     implicit none
     integer :: err
     integer*8 :: memstats(10)
-    call rism_timer_destroy(timer_write)
-    call rism_timer_destroy(timer_init)
-    call rism_timer_destroy(timer)
     if (rismprm%rism == 1) then
        call rism3d_destroy(rism_3d)
-       call fce_destroy(fce_o)
        call rismthermo_destroy(rismthermo)
        call rismthermo_destroy(rismthermo_pol)
        call rismthermo_destroy(rismthermo_apol)
@@ -1620,11 +1223,6 @@ contains
        call rism3d_solute_destroy(solute)
        if (safemem_dealloc(ff)/= 0) &
             call rism_report_error("Deallocation in Amber-RISM interface failed")
-#if defined(RISM_CRDINTERP)
-       if (safemem_dealloc(atomPositions_fce)/= 0) &
-            call rism_report_error("Deallocation in Amber-RISM interface failed")
-#endif /*RISM_CRDINTER*/
-
        if (safemem_dealloc(closurelist) /= 0) &
             call rism_report_error("Deallocation in Amber-RISM interface failed")
 
@@ -1730,8 +1328,6 @@ contains
 
     procedure (writeVolumeInterface), pointer :: writeVolume => NULL()
 
-    call rism_timer_start(timer_write)
-
     if (volfmt .eq. 'ccp4') then
        extension = '.ccp4'
        writeVolume => rism3d_ccp4_map_write
@@ -1749,11 +1345,9 @@ contains
     end if
 
     call rism_writePdfTcfDcf(this, writeVolume, step, extension)
-    call rism_writePotentialAsymptotics(this, writeVolume, step, extension)
-    call rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
+    call rism_writeThermo(this, writeVolume, step, extension)
     call rism_writeSmearElectronMap(this, writeVolume, step, extension)
     
-   call rism_timer_stop(timer_write)
   end subroutine rism_writeVolumetricData
 
   !> Outputs PDF, TCF, and DCF. Each distribution
@@ -1841,9 +1435,7 @@ contains
                 do i = 1, this%grid%globalDimsR(1)
                    ig = i + (j - 1) * this%grid%localDimsR(1) + &
                         (k - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-                   work(i, j, k) = &
-                        this%cuv(i,j,k, iv)&
-                        -this%potential%solvent%charge(iv)*this%potential%dcfLongRangeAsympR(ig)
+                   work(i, j, k) = this%cuv(i,j,k, iv)
                 end do
              end do
           end do
@@ -1970,30 +1562,6 @@ contains
           call writeVolume(trim(uuvfile)//suffix, this%potential%uuv(:, :, :, iv), &
                this%grid, this%solute, mpirank, mpisize, mpicomm)
        endif
-       ! Asymptotics files.  There are four but it is a simple loop.
-       if (len_trim(asympfile) /= 0 .and. this%solute%charged) then
-          write(cstep, '(i16)') step
-          cstep = adjustl(cstep)
-          suffix = '.'//trim(cstep)
-          suffix = trim(suffix)//extension
-          ! h(r)
-          if (this%solvent%ionic) then
-             call writeVolume(trim(asympfile)//"hr"//suffix, &
-                  & this%potential%tcfLongRangeAsympR, &
-                  & this%grid, this%solute, mpirank, mpisize, mpicomm)
-          else if(.not. warned_h) then
-             call rism_report_warn("Not writing long-range asymptotics of h(r); not used for non-ionic solvent.")
-             warned_h = .true.
-          end if
-          ! c(r)
-          call writeVolume(trim(asympfile)//"cr"//suffix, &
-               & this%potential%dcfLongRangeAsympR, &
-               & this%grid, this%solute, mpirank, mpisize, mpicomm)
-
-       else if (.not.this%solute%charged .and. .not. warned_all) then
-          call rism_report_warn("Not writing long-range asymptotics; not used for uncharged solute.")
-          warned_all = .true.
-       endif
     end do
   end subroutine rism_writePotentialAsymptotics
 
@@ -2002,7 +1570,7 @@ contains
   !! suffix. 
   !! @param[in,out] this 3D-RISM object.
   !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeThermodynamicsDistributions(this, writeVolume, step, extension)
+  subroutine rism_writeThermo(this, writeVolume, step, extension)
     use constants, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
@@ -2101,144 +1669,8 @@ contains
               this%solute, mpirank, mpisize, mpicomm)
       end do
     end subroutine writeThermo
-   end subroutine rism_writeThermodynamicsDistributions
+   end subroutine rism_writeThermo
   
-  
-!!!! INTERPOLATION RESTART FILE I/O
-#if 0
-#if defined(RISM_CRDINTERP)
-  !> Writes the interpolation restart file.
-  !! @param[in] this rism3d object.
-  !! @param[in] atomPositions The position of each solute atom for each step.
-  !! @param[in] frc The force of each solute atom for each step.
-  !! @param[in] nstep Number of steps.
-  !! FIXME: modify this to use the NetCDF format
-  subroutine rismRestartWrite(this, atomPositions, frc, nstep)
-    use amber_rism_interface
-    use rism_util, only : freeUnit
-    implicit none
-#include "files.h"
-    type(rism3d) :: this
-    _REAL_, intent(in) :: atomPositions(3, this%solute%numAtoms, nstep), frc(3, this%solute%numAtoms, nstep)
-    integer, intent(in) :: nstep
-    integer :: istep
-    integer :: unit
-    !this is performed by the master node only:
-    if (mpirank == 0) then
-#ifdef RISM_DEBUG
-       write(outunit, *) 'entering rismrestrtwrit'
-       call flush(6)
-#endif /*RISM_DEBUG*/
-       unit = freeUnit()
-       if (len_trim(rismcrdfil) /= 0)  then
-          open(unit=unit, file=rismcrdfil, status='new', form='FORMATTED', iostat=stat)
-          write(unit, '(i8)') nstep
-          do istep = 1, nstep
-             call corpac(atomPositions(1:3, 1:this%solute%numAtoms, istep), 1, this%solute%numAtoms*3, unit, .true.)
-          end do
-          close(unit)
-       end if
-       if (len_trim(rismfrcfil) /= 0)  then
-          open(unit=unit, file=rismfrcfil, status='new', form='FORMATTED', iostat=stat)
-          write(unit, '(i8)') nstep
-          do istep = 1, nstep
-             call corpac(frc(1:3, 1:this%solute%numAtoms, istep), 1, this%solute%numAtoms*3, unit, .true.)
-          end do
-          close(unit)
-       end if
-#ifdef RISM_DEBUG
-       write(outunit, *) 'done rismrestrtwrit'
-       call flush(6)
-#endif /*RISM_DEBUG*/
-    end if
-  end subroutine rismRestartWrite
-
-  
-  !! Reads in the interpolation restart file
-  !!IN:
-  !!   atomPositions    :: the position of each atom for each step read in
-  !!   frc     :: the force of each atom for each step read in
-  !!   this%solute%numAtoms    :: number of solute atoms
-  !!   nstep   :: maximum number of steps to read
-  !!   nsample :: will hold the total number of steps read in
-  !!TODO: Modify this to use the NetCDF format.
-  subroutine rismRestartRead(this, atomPositions, frc, nstep, nsample)
-    use amber_rism_interface
-    use rism_util, only : freeUnit
-    implicit none
-#include "files.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
-    type(rism3d) :: this
-    _REAL_, intent(out) :: atomPositions(3, this%solute%numAtoms, nstep), frc(3, this%solute%numAtoms, nstep)
-    integer, intent(in) :: nstep
-    integer, intent(out) :: nsample
-    integer :: istep, iatu, csteps, fsteps, err
-    integer :: unit
-    !this is performed by the master node only:
-    if (mpirank == 0) then
-#ifdef RISM_DEBUG
-       write(outunit, *) "Reading interpolation restart files..."
-       write(outunit, *) 'entering rismrestrtread'
-       call flush(6)
-#endif /*RISM_DEBUG*/
-       unit=freeeUnit()
-       if (len_trim(rismcrdrstfil) /= 0)  then
-          open(unit=unit, file=rismcrdfil, status='old', form='FORMATTED', iostat=stat)
-          read(unit, '(i12)') csteps
-          !discard the extra samples at the beginning
-#ifdef RISM_DEBUG
-          write(outunit, *) csteps, nstep, csteps-nstep
-          call flush(6)
-#endif /*RISM_DEBUG*/
-          do istep = 1, csteps-nstep
-             !            read(unit, '(10f8.3)') (atomPositions(1:3, iatu, 1), iatu=1, this%solute%numAtoms)
-             read(unit, '(10f21.16)') (atomPositions(1:3, iatu, 1), iatu=1, this%solute%numAtoms)
-          end do
-          do istep = 1, min(csteps, nstep)
-             !            read(unit, '(10f8.3)') (atomPositions(1:3, iatu, istep), iatu=1, this%solute%numAtoms)
-             read(unit, '(10f21.16)') (atomPositions(1:3, iatu, istep), iatu=1, this%solute%numAtoms)
-          end do
-          close(unit)
-       endif
-       if (len_trim(rismfrcrstfil) /= 0)  then
-          open(unit=unit, file=rismfrcfil, status='old', form='FORMATTED', iostat=stat)
-          read(unit, '(i12)') fsteps
-          !discard the extra samples at the beginning
-          do istep = 1, fsteps-nstep
-             !            read(unit, '(10f8.3)') (frc(1:3, iatu, 1), iatu=1, this%solute%numAtoms)
-             read(unit, '(10f21.16)') (frc(1:3, iatu, 1), iatu=1, this%solute%numAtoms)
-          end do
-          do istep = 1, min(fsteps, nstep)
-             !            read(unit, '(10f8.3)') (frc(1:3, iatu, istep), iatu=1, this%solute%numAtoms)
-             read(unit, '(10f21.16)') (frc(1:3, iatu, istep), iatu=1, this%solute%numAtoms)
-          end do
-          close(unit)
-          if (csteps /= fsteps) then
-             call rism_report_error('RISM interpolation restart files have different numbers of entries.')
-          end if
-          nsample = min(csteps, nstep)
-       end if
-#ifdef RISM_DEBUG
-       write(outunit, *) nsample, " samples read"
-       write(outunit, *) 'done rismrestrtread'
-       call flush(6)
-#endif /*RISM_DEBUG*/
-    end if
-    !
-    !broadcast results to the other processes: nsamples, atomPositions and frc
-    !
-!!$#if defined(MPI)
-!!$      CALL MPI_BCAST(nsample, 1, MPI_INTEGER, 0, mpicomm, err)
-!!$      CALL MPI_BCAST(atomPositions, 3*this%solute%numAtoms*nstep, MPI_DOUBLE_PRECISION, 0, mpicomm, err)
-!!$      CALL MPI_BCAST(frc, 3*this%solute%numAtoms*nstep, MPI_DOUBLE_PRECISION, 0, mpicomm, err)
-!!$#endif /*defined(MPI)*/
-
-  end subroutine rismRestartRead
-#endif /*RISM_CRDINTERP*/
-#endif  /* 0 */
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PRIVATE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef MPI
@@ -2291,12 +1723,6 @@ contains
        call mpi_bcast(rismprm%mdiis_restart, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MDIIS_RESTART")
-       call mpi_bcast(rismprm%fcecut, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCECUT")
-       call mpi_bcast(rismprm%uccoeff, size(rismprm%uccoeff), mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCECUT")
        call mpi_bcast(rismprm%chargeSmear, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast chargeSmear")
@@ -2324,9 +1750,6 @@ contains
        call mpi_bcast(rismprm%biasPotential, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast BIASPOTENTIAL")
-       call mpi_bcast(rismprm%asympCorr, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ASYMPCORR")
        call mpi_bcast(rismprm%maxstep, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MAXSTEP")
@@ -2345,36 +1768,6 @@ contains
        call mpi_bcast(rismprm%rismnrespa, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast RISMNRESPA")
-       call mpi_bcast(rismprm%fcestride, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCESTRIDE")
-       call mpi_bcast(rismprm%fcenbasis, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCENBASIS")
-       call mpi_bcast(rismprm%fcenbase,1,mpi_integer,0,mpicomm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCENBASE")
-       call mpi_bcast(rismprm%fcecrd, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCECRD")
-       call mpi_bcast(rismprm%fceweigh,1,mpi_integer,0,mpicomm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCEWEIGH")
-       call mpi_bcast(rismprm%fcetrans,1,mpi_integer,0,mpicomm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCETRANS")
-       call mpi_bcast(rismprm%fcesort,1,mpi_integer,0,mpicomm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCESORT")
-       call mpi_bcast(rismprm%fceifreq,1,mpi_integer,0,mpicomm,err)
-       if(err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCEIFREQ")
-       call mpi_bcast(rismprm%fcentfrcor,1,mpi_integer,0,mpicomm,err)
-       if(err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCENTFRCOR")
-       call mpi_bcast(rismprm%fceenormsw,1,mpi_double_precision,0,mpicomm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D interface: could not broadcast FCENORMSW")
        call mpi_bcast(rismprm%saveprogress, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast SAVEPROGRESS")
@@ -2434,9 +1827,6 @@ contains
        call mpi_bcast(uuvfile, len(uuvfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast UUVFILE")
-       call mpi_bcast(asympfile, len(asympfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ASYMPFILE")
        call mpi_bcast(quvfile, len(quvfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast QUVFILE")
@@ -2510,7 +1900,6 @@ contains
     closurelist(2:)           = ''
     closurelist(1)            = 'KH'
     rismprm%closureOrder      = 1
-    rismprm%asympCorr         = .true.
     rismprm%uccoeff           = 0d0
     rismprm%biasPotential     = 0
     rismprm%polarDecomp       = 0
@@ -2548,21 +1937,6 @@ contains
 
     !imin = 0 (MD)
     rismprm%rismnrespa       = 1
-#ifdef RISM_CRDINTERP
-    rismprm%fcestride        = 0
-    rismprm%fcecut           = 9999d0
-    rismprm%fcenbasis        = 20
-    rismprm%fcenbase         = 20
-    rismprm%fcecrd           = 0
-    rismprm%fceweigh         = 0
-    rismprm%fcetrans         = 0
-    rismprm%fcesort          = 0
-    rismprm%fceifreq         = 1
-    rismprm%fcentfrcor       = 0
-    rismprm%fcewrite         = 0
-    rismprm%fceread          = 0
-    rismprm%fceenormsw       = 0.d0
-#endif
 
     !output
     rismprm%saveprogress     = 0
@@ -2575,8 +1949,6 @@ contains
     ! molecular reconstruction
     rismprm%molReconstruct = .false.
     
-    !long-range asymptotics k-space tolerance
-    !Lennard-Jones tolerance
     !charge smear
     rismprm%chargeSmear = 1d0
     rismprm%write_thermo=1
@@ -2591,7 +1963,6 @@ contains
     _REAL_ :: tolerance(nclosuredefault)
     integer :: closureOrder
     integer, intent(in) :: mdin_unit
-    logical :: asympCorr
     integer :: entropicDecomp
     integer :: polarDecomp
     integer :: gfCorrection
@@ -2614,19 +1985,6 @@ contains
     integer :: zerofrc
     integer :: apply_rism_force
     integer :: rismnrespa
-    integer :: fcestride
-    _REAL_ :: fcecut
-    integer ::  fcenbasis
-    integer ::  fcenbase
-    integer ::  fcecrd
-    integer ::  fceweigh
-    integer ::  fcetrans
-    integer ::  fcesort
-    integer ::  fceifreq
-    integer ::  fcentfrcor
-    integer ::  fcewrite
-    integer ::  fceread
-    _REAL_  ::  fceenormsw
     integer :: saveprogress
     logical :: molReconstruct
     integer :: ntwrism
@@ -2642,11 +2000,6 @@ contains
          mdiis_restart, maxstep, npropagate, centering, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
          rismnrespa, chargeSmear, molReconstruct, write_thermo, &
-#ifdef RISM_CRDINTERP
-         fcestride, fcecut, fcenbasis, fcenbase, fcecrd, &
-         fceweigh,fcetrans,fcesort,fceifreq,fcentfrcor, &
-         fceenormsw, fcewrite, fceread, &
-#endif /*RISM_CRDINTERP*/
          saveprogress, ntwrism, verbose, progress, volfmt, selftest
     
     call flush(0)
@@ -2654,7 +2007,6 @@ contains
     closure = closurelist
     tolerance = tolerancelist
     closureOrder = rismprm%closureOrder
-    asympCorr = rismprm%asympCorr
     entropicDecomp = rismprm%entropicDecomp
     polarDecomp = rismprm%polarDecomp
     gfCorrection = rismprm%gfCorrection
@@ -2677,19 +2029,6 @@ contains
     zerofrc = rismprm%zerofrc
     apply_rism_force = rismprm%apply_rism_force
     rismnrespa = rismprm%rismnrespa
-    fcestride = rismprm%fcestride
-    fcecut = rismprm%fcecut
-    fcenbasis = rismprm%fcenbasis
-    fcenbase = rismprm%fcenbase
-    fcecrd = rismprm%fcecrd
-    fceweigh = rismprm%fceweigh
-    fcetrans = rismprm%fcetrans
-    fcesort  = rismprm%fcesort
-    fceifreq = rismprm%fceifreq
-    fcentfrcor = rismprm%fcentfrcor
-    fceenormsw = rismprm%fceenormsw
-    fcewrite = rismprm%fcewrite
-    fceread = rismprm%fceread
     saveprogress = rismprm%saveprogress
     molreconstruct = rismprm%molReconstruct
     ntwrism = rismprm%ntwrism
@@ -2709,7 +2048,6 @@ contains
     closurelist = closure
     tolerancelist = tolerance
     rismprm%closureOrder = closureOrder
-    rismprm%asympCorr=asympCorr
     rismprm%entropicDecomp = entropicDecomp
     rismprm%polarDecomp = polarDecomp
     rismprm%gfCorrection = gfCorrection
@@ -2739,21 +2077,6 @@ contains
     rmsd_orient=rmsd_orient
     ! md
     rismprm%rismnrespa=rismnrespa
-#ifdef RISM_CRDINTERP
-    rismprm%fcestride=fcestride
-    rismprm%fcecut=fcecut
-    rismprm%fcenbasis=fcenbasis
-    rismprm%fcenbase=fcenbase
-    rismprm%fcecrd=fcecrd
-    rismprm%fceweigh=fceweigh
-    rismprm%fcetrans=fcetrans
-    rismprm%fcesort=fcesort
-    rismprm%fceifreq=fceifreq
-    rismprm%fcentfrcor=fcentfrcor
-    rismprm%fceenormsw=fceenormsw
-    rismprm%fcewrite=fcewrite
-    rismprm%fceread=fceread
-#endif /*RISM_CRDINTERP*/
     ! Output.
     rismprm%saveprogress=saveprogress
     rismprm%molReconstruct = molReconstruct
@@ -2789,10 +2112,6 @@ contains
           call rism_report_error( &
           "Only 'ewald', 'ewaldn', 'pme' and 'pmen' periodic potentials are supported.")
        end if 
-       ! Do not apply asymptotic corrections for periodic 3D-RISM.
-       rismprm%asympcorr = .false.
-       !if (rismprm%apply_rism_force /= 0 ) call rism_report_error( &
-       !   "RISM forces are not yet correct for periodic systems")
     end if
 
     ! Ensure that solvbox and ng3 have been set if buffer < 0.

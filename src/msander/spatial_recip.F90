@@ -2,7 +2,6 @@
 
 module ew_recip_spatial
 
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -224,15 +223,13 @@ subroutine spatial_do_pmesh_kspace( natom,crd,charge, &
       call spatial_scalar_sumrc_orthog( &
             q_spat,ew_coeff,volume,recip, &
             prefac1,prefac2,prefac3, &
-            nfft1,nfft2,nfft3,xgridmax-xgridmin+1,ygridmax-ygridmin+1, & 
-            eer,rec_vir)
+            nfft1,nfft2,nfft3,xgridmax-xgridmin+1,ygridmax-ygridmin+1,eer)
    else
       call sander_bomb("Broken","broken","broken")
       call spatial_scalar_sumrc( &
             ew_coeff,volume,recip, &
             prefac1,prefac2,prefac3, &
-            nfft1,nfft2,nfft3,xgridmax-xgridmin+1,ygridmax-ygridmin+1, &
-            eer,rec_vir)
+            nfft1,nfft2,nfft3,xgridmax-xgridmin+1,ygridmax-ygridmin+1,eer)
    end if
    call timer_stop_start(TIME_SCSUM,TIME_FFT)
    
@@ -610,8 +607,7 @@ end subroutine spatial_grad_sumrc
 !+ [Enter a one-line description of subroutine dummy_scalar_sumrc here]
 subroutine spatial_scalar_sumrc( &
       ewaldcof,volume,recip,prefac1,prefac2,prefac3, &
-      nfft1,nfft2,nfft3,xdim,ydim, &
-      eer,rec_vir)
+      nfft1,nfft2,nfft3,xdim,ydim, eer)
   use fft,only:get_fft_limits,XY_Z_PARTITION
    use constants, only : pi, PI2, ZERO,HALF
    implicit none
@@ -623,8 +619,7 @@ subroutine spatial_scalar_sumrc( &
    integer nfft1,nfft2,nfft3,xdim,ydim
    _REAL_ prefac1(nfft1),prefac2(nfft2), &
          prefac3(nfft3),ewaldcof,volume
-   _REAL_ eer,rec_vir(3,3)
-   _REAL_ recip(3,3)
+   _REAL_ recip(3,3), eer
    integer k2q
    _REAL_ q(2,nfft3,xdim,ydim)
    _REAL_ fac,eterm,vterm,energy
@@ -731,8 +726,7 @@ end subroutine spatial_scalar_sumrc
 subroutine spatial_scalar_sumrc_orthog( &
       q,ewaldcof,volume,recip, &
       prefac1,prefac2,prefac3, &
-      nfft1,nfft2,nfft3,xdim,ydim, &
-      eer,rec_vir)
+      nfft1,nfft2,nfft3,xdim,ydim, eer)
    use constants, only : PI, PI2,ZERO,HALF
    use ew_recip,only:first_pme
    use fft,only:get_xy_z_partition_limits,get_fft_limits,XY_Z_PARTITION
@@ -753,8 +747,7 @@ subroutine spatial_scalar_sumrc_orthog( &
    _REAL_,intent(in) :: prefac1(nfft1),prefac2(nfft2), &
          prefac3(nfft3)
    _REAL_,intent(in) :: recip(3,3),ewaldcof,volume
-   _REAL_,intent(out) :: eer,rec_vir(3,3)
-   
+   _REAL_,intent(out) :: eer
    
    _REAL_ fac,eterm,vterm,energy
    _REAL_ mhat1,mhat2,mhat3,msq,struc2,msq_inv,piv_inv

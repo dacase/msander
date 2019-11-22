@@ -30,8 +30,11 @@ module xray_globals_module
    ! If TRUE, write the full 4-character ChainID to the SegID field.
    logical, save :: pdb_use_segid, pdb_wrap_names
 
-   ! if TRUE, use the vector (complex) difference between Fobs and Fcalc.
-   logical, save :: vector_target
+   ! character string to identify the type of target function being used
+   !   current values are "ls" (least squares), "vls" (vector least
+   !   squares, and "ml" (phenix-like maximum likelihood).  We hope
+   !   to implement the LLGI target soon(?!?)
+   character(len=4), save :: target
 
    ! Standard condensed spacegroup name, or integer spacegroup number
    character(len=16), save :: spacegroup_name

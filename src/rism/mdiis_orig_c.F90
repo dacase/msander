@@ -9,7 +9,6 @@
 !! This is the reference MDIIS implementation.
 module mdiis_orig_c
   use safemem
-  use rism_timer_c
   implicit none
   type mdiis_orig
      private
@@ -26,9 +25,6 @@ module mdiis_orig_c
      _REAL_,pointer :: xi(:,:)=>NULL(), ri(:,:)=>NULL()
      !restart restarting comparison factor .....................
      _REAL_ ::  restart
-
-     type(rism_timer) :: overlapTimer, restartTimer, &
-          lapackTimer, projectTimer
 
   end type mdiis_orig
 
@@ -53,25 +49,15 @@ contains
 !!!   nis Length of DIIS vectors.
 !!!   restart Restart threshold factor. Ratio of the current residual to the
 !!!              minimum residual in the basis that causes a restart.
-!!!   timer Parent rism_timer.
-  subroutine mdiis_orig_new_serial (this,delta,tol,restart,timer)
+  subroutine mdiis_orig_new_serial (this,delta,tol,restart)
     implicit none
     type(mdiis_orig),intent(out) :: this
     _REAL_,intent(in) :: delta, tol, restart
-    type(rism_timer), intent(inout) :: timer
 
     this%delta = delta
     this%tol = tol
     this%restart = restart
     this%istep = 0
-    call rism_timer_new(this%overlapTimer,"Overlap")
-    call rism_timer_setParent(this%overlapTimer,timer)
-    call rism_timer_new(this%restartTimer,"Restart")
-    call rism_timer_setParent(this%restartTimer,timer)
-    call rism_timer_new(this%lapackTimer,"Lapack")
-    call rism_timer_setParent(this%lapackTimer,timer)
-    call rism_timer_new(this%projectTimer,"Project")
-    call rism_timer_setParent(this%projectTimer,timer)
   end subroutine mdiis_orig_new_serial
 
 
@@ -93,19 +79,17 @@ contains
 !!!   rank  :: MPI process rank
 !!!   size  :: Number of processes
 !!!   comm  :: MPI communicator
-!!!   timer :: parent rism_timer
 
-  subroutine mdiis_orig_new_mpi(this,delta,tol,restart,timer,&
+  subroutine mdiis_orig_new_mpi(this,delta,tol,restart,&
        rank,size,comm)
     implicit none
     type(mdiis_orig),intent(out) :: this
     _REAL_,intent(in) :: delta, tol, restart
     integer, intent(in) :: rank, size, comm
-    type(rism_timer), intent(inout) :: timer
 #ifdef RISM_DEBUG
     write(6,*) "MDIIS_ORIG_NEW_MPI",rank,size,comm
 #endif /*RISM_DEBUG*/    
-    call mdiis_orig_new_serial(this,delta,tol,restart,timer)
+    call mdiis_orig_new_serial(this,delta,tol,restart)
     this%mpirank = rank
     this%mpisize = size
     this%mpicomm = comm
@@ -133,10 +117,6 @@ contains
     if(safemem_dealloc(this%tovlij) /= 0) call rism_report_error("MDIIS_ORIG: failed to deallocate TOVLIJ")
     nullify(this%xi)
     nullify(this%ri)
-    call rism_timer_destroy(this%overlapTimer)
-    call rism_timer_destroy(this%restartTimer)
-    call rism_timer_destroy(this%lapackTimer)
-    call rism_timer_destroy(this%projectTimer)
   end subroutine mdiis_orig_destroy
 
 
@@ -266,7 +246,6 @@ contains
     !............. calculate diagonal overlap of new residual ..............
     this%ovlij(1, 1) = 0d0
     this%tovlij(1, 1) = 0d0
-    call rism_timer_start(this%overlapTimer)
     call timer_start(TIME_MDIIS_DATA)
 #if defined(MPI)      
     do ip = 1, this%np
@@ -280,7 +259,6 @@ contains
        this%ovlij(1, 1) = this%ovlij(1, 1) + sum(this%ri(:, 1)**2)
 #endif /* defined(MPI) */
     call timer_stop(TIME_MDIIS_DATA)
-    call rism_timer_stop(this%overlapTimer)
     !................ get mean square value of new residual ................
     rms1 = sqrt( this%ovlij(1, 1) / (this%np * this%mpisize))
 #if 0
@@ -320,7 +298,6 @@ contains
       rmsmi2 = sqrt( rmsmi2 / this%np / this%mpisize)
 
     !................ if convergence is poor, restart MDIIS ................
-    call rism_timer_start(this%restartTimer)
     if (this%nis0 > 1 .AND. rms1 > this%restart * rmsmin)  then
 
        !.......... choose restarting vector so as to prevent cycling .........
@@ -344,10 +321,8 @@ contains
        this%isimio = isiupd
 
     end if
-    call rism_timer_stop(this%restartTimer)
 
     !........... calculate nondiagonal overlaps of new residual ............
-    call rism_timer_start(this%overlapTimer)
     do is = 2, this%nis0
        isi = isindx(is)
        this%ovlij(isi, 1) = 0d0
@@ -368,9 +343,7 @@ contains
        call timer_stop(TIME_MDIIS_DATA)
        this%ovlij(1, isi) = this%ovlij(isi, 1)
     end do
-    call rism_timer_stop(this%overlapTimer)
     !......................... load DIIS matrices ..........................
-    call rism_timer_start(this%lapackTimer)
     call timer_start(TIME_MDIIS_LAPACK)
     aij(0, 0) = 0d0
     bi = 0
@@ -401,11 +374,9 @@ contains
        call rism_report_error("Linear equation solver failed.")
     end if
     call timer_stop(TIME_MDIIS_LAPACK)
-    call rism_timer_stop(this%lapackTimer)
 
      call timer_start(TIME_MDIIS_DATA)
     !......... get DIIS minimum, MDIIS correction, and next point ..........
-    call rism_timer_start(this%projectTimer)
     do ip = 1, this%np
        xs = 0d0
        rs = 0d0
@@ -430,6 +401,5 @@ contains
        isi = isindx(is)
        this%ovlij(isiupd,isi) = this%ovlij(1,isi)
     end do
-    call rism_timer_stop(this%projectTimer)
   end subroutine mdiis_orig_advance
 end module mdiis_orig_c

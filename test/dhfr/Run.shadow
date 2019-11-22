@@ -1,27 +1,28 @@
 #!/bin/sh
 
 sander="../../bin/msander"
+sander="/home/case/amber18/bin/pmemd"
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
 fi
 
 cat > gbin <<EOF
- short md, nve ensemble
+ short md, nve ensemble, no shake
  &cntrl
    ntx=5, irest=1,
-   ntc=1, ntf=1, tol=0.0000001, 
-   nstlim=500, ntt=0, gamma_ln=0.0
-   ntpr=1, ntwr=10000, ntwe=1,
-   dt=0.0002, cut=10.0,
+   ntc=2, ntf=2, tol=0.0000001, 
+   nstlim=500, ntt = 0,
+   ntpr=50, ntwr=10000, 
+   dt=0.0005, cut=10.0,
  /
  &ewald
    nfft1 = 72, nfft2 = 60, nfft3 = 54,
    dsum_tol=1.e-6,
  /
 EOF
-$DO_PARALLEL $sander -O -i gbin -c md12_noshake.x -o mdout.shadow \
-    -e mden.shadow < /dev/null \
-    || (echo "  ${0}:  Program error"; exit 1)
+$DO_PARALLEL $sander -O -i gbin -c md12_noshake.x -o mdout.shadow.4 \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
+/bin/rm -f gbin restrt
 exit 0

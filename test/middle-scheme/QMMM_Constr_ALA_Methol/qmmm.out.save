@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/04/2019 at 08:40:46
+| Run on 11/12/2019 at 14:55:45
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/middle-sheme/QMMM_Constr_ALA_Methol
+| Working directory: /Users/case/msander/test/middle-scheme/QMMM_Constr_ALA_Methol
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -15,13 +15,13 @@ File Assignments:
 | MDOUT: qmmm.out                                                              
 |INPCRD: ala.crd                                                               
 |  PARM: ala.top                                                               
-|RESTRT: qmmm.rst                                                              
+|RESTRT: restrt                                                                
 |  REFC: refc                                                                  
 | MDVEL: mdvel                                                                 
 | MDFRC: mdfrc                                                                 
 |  MDEN: mden                                                                  
-| MDCRD: qmmm.mdcrd                                                            
-|MDINFO: qmmm.info                                                             
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
 |  MTMD: mtmd                                                                  
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
@@ -61,8 +61,6 @@ qmcut=8.0              ! Use 8 angstrom cut off for QM region
  getting new box info from bottom of inpcrd
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    16.206
-| New format PARM file being parsed.
-| Version =    1.000 Date = 04/08/18 Time = 16:44:12
  NATOM  =    2428 NTYPES =       9 NBONH =    1616 MBONA  =     410
  NTHETH =    2832 MTHETA =      11 NPHIH =    1246 MPHIA  =      24
  NHPARM =       0 NPARM  =       0 NNB   =    6515 NRES   =     404
@@ -104,9 +102,9 @@ Nature and format of input:
      ntx     =       1, irest   =       0, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =      10
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
 
 Potential function:
      ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
@@ -120,9 +118,9 @@ Molecular dynamics:
      nstlim  =        10, nscm    =      1000, nrespa  =         1
      t       =   0.00000, dt      =   0.00200, vlimit  =  20.00000
 
-Initial temperature generation:
+Langevin dynamics temperature regulation:
      ig      =    6666
-     tempi   = 300.00000
+     temp0   = 300.00000, tempi   = 300.00000, therm_par=   5.00000
 
 SHAKE:
      ntc     =       2, jfastw  =       0
@@ -189,8 +187,8 @@ QMMM: ----------------------------------------------------------------------
  APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
  using   5000.0 points per unit in tabled values
  TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
-| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
-| CHECK d/dx switch(x): max rel err =   0.8332E-11   at   2.782960
+| CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
+| CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =     321508
 | TOTAL SIZE OF NONBOND LIST =     321508
@@ -252,15 +250,15 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | QMMM:                              norbs =       52
 | QMMM:    diag iterations used for timing =       15
 | QMMM:
-| QMMM:              Internal diag routine = 0.004197 seconds
-| QMMM:                 Dspev diag routine = 0.007585 seconds
-| QMMM:                Dspevd diag routine = 0.006273 seconds
-| QMMM:                Dspevx diag routine = 0.020150 seconds
-| QMMM:                 Dsyev diag routine = 0.011440 seconds
-| QMMM:                Dsyevd diag routine = 0.009314 seconds
-| QMMM:                Dsyevr diag routine = 0.010282 seconds
+| QMMM:              Internal diag routine = 0.004316 seconds
+| QMMM:                 Dspev diag routine = 0.007467 seconds
+| QMMM:                Dspevd diag routine = 0.004528 seconds
+| QMMM:                Dspevx diag routine = 0.018831 seconds
+| QMMM:                 Dsyev diag routine = 0.008025 seconds
+| QMMM:                Dsyevd diag routine = 0.005930 seconds
+| QMMM:                Dsyevr diag routine = 0.007215 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.001301 seconds
+| QMMM:                Pseudo diag routine = 0.001283 seconds
 | QMMM:
 | QMMM: Using internal diagonalization routine (diag_routine=1).
 
@@ -305,134 +303,121 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
  1-4 NB =         0.0000  1-4 EEL =      2139.6308  VDWAALS    =      -599.4236
  EELEC  =     -2050.1411  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -86.4580
- Ewald error estimate:   0.2439E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        1   TIME(PS) =       0.002  TEMP(K) =   290.49  PRESS =     0.0
- Etot   =      1320.2082  EKtot   =      1639.4435  EPtot      =      -319.2352
+ NSTEP =        1   TIME(PS) =       0.002  TEMP(K) =   293.36  PRESS =     0.0
+ Etot   =      1336.4022  EKtot   =      1655.6374  EPtot      =      -319.2352
  BOND   =        44.2720  ANGLE   =       118.2755  DIHED      =       114.6092
  1-4 NB =         0.0000  1-4 EEL =      2139.6308  VDWAALS    =      -599.4236
  EELEC  =     -2050.1411  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -86.4580
- Ewald error estimate:   0.2439E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        2   TIME(PS) =       0.004  TEMP(K) =   262.04  PRESS =     0.0
- Etot   =      1330.2103  EKtot   =      1478.8308  EPtot      =      -148.6205
+ NSTEP =        2   TIME(PS) =       0.004  TEMP(K) =   241.60  PRESS =     0.0
+ Etot   =      1214.8932  EKtot   =      1363.5137  EPtot      =      -148.6205
  BOND   =        58.4859  ANGLE   =       266.8667  DIHED      =       113.8676
  1-4 NB =         0.0000  1-4 EEL =      2136.0454  VDWAALS    =      -599.1342
  EELEC  =     -2040.3697  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -84.3821
- Ewald error estimate:   0.2451E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        3   TIME(PS) =       0.006  TEMP(K) =   207.14  PRESS =     0.0
- Etot   =      1355.3046  EKtot   =      1169.0127  EPtot      =       186.2919
+ NSTEP =        3   TIME(PS) =       0.006  TEMP(K) =   190.42  PRESS =     0.0
+ Etot   =      1260.9669  EKtot   =      1074.6750  EPtot      =       186.2919
  BOND   =        90.1318  ANGLE   =       560.5526  DIHED      =       114.1333
  1-4 NB =         0.0000  1-4 EEL =      2133.2552  VDWAALS    =      -597.1079
  EELEC  =     -2027.3737  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -87.2995
- Ewald error estimate:   0.2471E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        4   TIME(PS) =       0.008  TEMP(K) =   177.14  PRESS =     0.0
- Etot   =      1374.5566  EKtot   =       999.7026  EPtot      =       374.8540
+ NSTEP =        4   TIME(PS) =       0.008  TEMP(K) =   184.53  PRESS =     0.0
+ Etot   =      1416.2718  EKtot   =      1041.4178  EPtot      =       374.8540
  BOND   =       115.3584  ANGLE   =       715.2287  DIHED      =       115.1810
  1-4 NB =         0.0000  1-4 EEL =      2130.3024  VDWAALS    =      -595.1609
  EELEC  =     -2021.0112  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -85.0446
- Ewald error estimate:   0.2480E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        5   TIME(PS) =       0.010  TEMP(K) =   195.85  PRESS =     0.0
- Etot   =      1377.4211  EKtot   =      1105.2835  EPtot      =       272.1376
+ NSTEP =        5   TIME(PS) =       0.010  TEMP(K) =   224.92  PRESS =     0.0
+ Etot   =      1541.4997  EKtot   =      1269.3621  EPtot      =       272.1376
  BOND   =       120.6483  ANGLE   =       606.0059  DIHED      =       116.7074
  1-4 NB =         0.0000  1-4 EEL =      2127.0460  VDWAALS    =      -594.2198
  EELEC  =     -2023.7597  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -80.2905
- Ewald error estimate:   0.2471E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        6   TIME(PS) =       0.012  TEMP(K) =   238.83  PRESS =     0.0
- Etot   =      1364.6043  EKtot   =      1347.8671  EPtot      =        16.7372
+ NSTEP =        6   TIME(PS) =       0.012  TEMP(K) =   263.95  PRESS =     0.0
+ Etot   =      1506.3671  EKtot   =      1489.6299  EPtot      =        16.7372
  BOND   =       110.2746  ANGLE   =       374.2873  DIHED      =       118.3661
  1-4 NB =         0.0000  1-4 EEL =      2124.5230  VDWAALS    =      -593.1813
  EELEC  =     -2032.6514  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -84.8811
- Ewald error estimate:   0.2456E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        7   TIME(PS) =       0.014  TEMP(K) =   261.31  PRESS =     0.0
- Etot   =      1360.4484  EKtot   =      1474.7459  EPtot      =      -114.2974
+ NSTEP =        7   TIME(PS) =       0.014  TEMP(K) =   268.05  PRESS =     0.0
+ Etot   =      1398.4815  EKtot   =      1512.7789  EPtot      =      -114.2974
  BOND   =        97.4874  ANGLE   =       260.2066  DIHED      =       120.0378
  1-4 NB =         0.0000  1-4 EEL =      2123.9003  VDWAALS    =      -590.9559
  EELEC  =     -2041.8000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -83.1737
- Ewald error estimate:   0.2447E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        8   TIME(PS) =       0.016  TEMP(K) =   249.52  PRESS =     0.0
- Etot   =      1376.3539  EKtot   =      1408.2167  EPtot      =       -31.8628
+ NSTEP =        8   TIME(PS) =       0.016  TEMP(K) =   243.74  PRESS =     0.0
+ Etot   =      1343.6897  EKtot   =      1375.5525  EPtot      =       -31.8628
  BOND   =        90.3359  ANGLE   =       354.7743  DIHED      =       121.7162
  1-4 NB =         0.0000  1-4 EEL =      2125.4566  VDWAALS    =      -588.3791
  EELEC  =     -2047.5720  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -88.1946
- Ewald error estimate:   0.2450E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =        9   TIME(PS) =       0.018  TEMP(K) =   225.07  PRESS =     0.0
- Etot   =      1405.3944  EKtot   =      1270.2035  EPtot      =       135.1909
+ NSTEP =        9   TIME(PS) =       0.018  TEMP(K) =   223.47  PRESS =     0.0
+ Etot   =      1396.3468  EKtot   =      1261.1559  EPtot      =       135.1909
  BOND   =        85.4588  ANGLE   =       527.8056  DIHED      =       123.3109
  1-4 NB =         0.0000  1-4 EEL =      2128.3614  VDWAALS    =      -587.4098
  EELEC  =     -2051.6725  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -90.6634
- Ewald error estimate:   0.2457E+00
  ------------------------------------------------------------------------------
 
 
- NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   216.99  PRESS =     0.0
- Etot   =      1415.9829  EKtot   =      1224.6233  EPtot      =       191.3596
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   228.64  PRESS =     0.0
+ Etot   =      1481.7151  EKtot   =      1290.3555  EPtot      =       191.3596
  BOND   =        78.6648  ANGLE   =       589.7328  DIHED      =       124.5595
  1-4 NB =         0.0000  1-4 EEL =      2131.3726  VDWAALS    =      -588.9306
  EELEC  =     -2057.0615  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -86.9781
- Ewald error estimate:   0.2456E+00
  ------------------------------------------------------------------------------
 
 
       A V E R A G E S   O V E R      10 S T E P S
 
 
- NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   232.44  PRESS =     0.0
- Etot   =      1368.0485  EKtot   =      1311.7930  EPtot      =        56.2555
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   236.27  PRESS =     0.0
+ Etot   =      1389.6634  EKtot   =      1333.4079  EPtot      =        56.2555
  BOND   =        89.1118  ANGLE   =       437.3736  DIHED      =       118.2489
  1-4 NB =         0.0000  1-4 EEL =      2129.9894  VDWAALS    =      -593.3903
  EELEC  =     -2039.3413  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -85.7366
- Ewald error estimate:   0.2458E+00
  ------------------------------------------------------------------------------
 
 
       R M S  F L U C T U A T I O N S
 
 
- NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =    32.78  PRESS =     0.0
- Etot   =        28.0072  EKtot   =       184.9784  EPtot      =       202.7032
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =    32.02  PRESS =     0.0
+ Etot   =        99.0130  EKtot   =       180.6849  EPtot      =       202.7032
  BOND   =        22.9674  ANGLE   =       180.3584  DIHED      =         3.7663
  1-4 NB =         0.0000  1-4 EEL =         4.9105  VDWAALS    =         4.1686
  EELEC  =        11.9344  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=         2.7220
 |E(PBS) =        21.3134
- Ewald error estimate:   0.1178E-02
  ------------------------------------------------------------------------------
 
 
@@ -440,60 +425,60 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 0.29% of Total)
-|                Build the list             0.01 (65.13% of List )
-|                Other                      0.00 (34.87% of List )
-|             List time                  0.01 ( 8.61% of Nonbo)
-|                   Short_ene time             0.06 (98.87% of Direc)
-|                   Other                      0.00 ( 1.13% of Direc)
-|                Direct Ewald time          0.06 (44.12% of Ewald)
-|                Adjust Ewald time          0.00 ( 1.09% of Ewald)
+|    Read coords time           0.00 ( 0.32% of Total)
+|                Build the list             0.01 (61.62% of List )
+|                Other                      0.01 (38.38% of List )
+|             List time                  0.01 ( 9.70% of Nonbo)
+|                   Short_ene time             0.06 (98.79% of Direc)
+|                   Other                      0.00 ( 1.21% of Direc)
+|                Direct Ewald time          0.06 (47.95% of Ewald)
+|                Adjust Ewald time          0.00 ( 1.61% of Ewald)
 |                Self Ewald time            0.00 ( 0.01% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 4.29% of Recip)
-|                   Fill charge grid           0.01 (11.35% of Recip)
-|                   Scalar sum                 0.02 (22.41% of Recip)
-|                   Grad sum                   0.01 (11.29% of Recip)
-|                   FFT time                   0.04 (50.50% of Recip)
-|                   Other                      0.00 ( 0.17% of Recip)
-|                Recip Ewald time           0.07 (54.53% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 4.18% of Recip)
+|                   Fill charge grid           0.01 (10.94% of Recip)
+|                   Scalar sum                 0.00 ( 6.79% of Recip)
+|                   Grad sum                   0.01 (14.67% of Recip)
+|                   FFT time                   0.04 (63.16% of Recip)
+|                   Other                      0.00 ( 0.25% of Recip)
+|                Recip Ewald time           0.06 (50.22% of Ewald)
 |                Force Adjust               0.00 ( 0.01% of Ewald)
-|                Virial junk                0.00 ( 0.06% of Ewald)
+|                Start synchronizatio       0.00 ( 0.01% of Ewald)
 |                Other                      0.00 ( 0.18% of Ewald)
-|             Ewald time                 0.13 (91.39% of Nonbo)
-|          Nonbond force              0.15 (31.02% of Force)
+|             Ewald time                 0.12 (90.30% of Nonbo)
+|          Nonbond force              0.14 (29.97% of Force)
 |                QMMM ewald setup           0.00 ( 0.01% of QMMM )
-|                Other                      0.07 (100.0% of QMMM )
-|             QMMM setup                 0.07 (22.40% of QMMM )
-|             QMMM Ewald KTable          0.03 (10.26% of QMMM )
-|             QMMM list build            0.00 ( 0.54% of QMMM )
-|             QMMM prep coords           0.00 ( 0.31% of QMMM )
-|             QMMM RIJ Eqns Calc         0.00 ( 1.07% of QMMM )
-|                   QMMM hcore QM-QM           0.00 (63.13% of QMMM )
-|                   QMMM hcore QM-MM           0.00 (36.87% of QMMM )
-|                QMMM hcore calc            0.01 ( 3.99% of QMMM )
-|                      QMMM Ewald Contrib         0.06 (58.16% of QMMM )
-|                      Other                      0.04 (41.84% of QMMM )
-|                   QMMM fock build            0.10 (73.62% of QMMM )
-|                   QMMM elec-energy cal       0.00 ( 0.27% of QMMM )
-|                   QMMM full matrix dia       0.02 (15.90% of QMMM )
-|                   QMMM pseudo matrix d       0.01 ( 7.89% of QMMM )
-|                   QMMM density build         0.00 ( 2.33% of QMMM )
-|                QMMM scf                   0.14 (94.87% of QMMM )
-|                QMMM ewald energy          0.00 ( 1.14% of QMMM )
-|             QMMM energy                0.15 (45.24% of QMMM )
-|             QMMM QM-QM force           0.00 ( 1.52% of QMMM )
-|             QMMM QM-MM force           0.01 ( 2.25% of QMMM )
-|             QMMM Ewald force           0.05 (16.40% of QMMM )
-|             QMMM Collate Forces        0.00 ( 0.02% of QMMM )
-|          QMMM                       0.32 (68.44% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 0.54% of Force)
-|       Force time                 0.47 (96.96% of Runmd)
-|       Shake time                 0.00 ( 0.14% of Runmd)
-|       Verlet update time         0.01 ( 2.58% of Runmd)
-|       Other                      0.00 ( 0.32% of Runmd)
-|    Runmd Time                 0.49 (95.69% of Total)
-|    Other                      0.02 ( 4.02% of Total)
-| Total time                 0.51 (100.0% of ALL  )
+|                Other                      0.06 (100.0% of QMMM )
+|             QMMM setup                 0.06 (19.01% of QMMM )
+|             QMMM Ewald KTable          0.03 ( 9.87% of QMMM )
+|             QMMM list build            0.00 ( 0.52% of QMMM )
+|             QMMM prep coords           0.00 ( 0.25% of QMMM )
+|             QMMM RIJ Eqns Calc         0.00 ( 0.94% of QMMM )
+|                   QMMM hcore QM-QM           0.00 (63.43% of QMMM )
+|                   QMMM hcore QM-MM           0.00 (36.57% of QMMM )
+|                QMMM hcore calc            0.01 ( 4.08% of QMMM )
+|                      QMMM Ewald Contrib         0.06 (58.54% of QMMM )
+|                      Other                      0.04 (41.46% of QMMM )
+|                   QMMM fock build            0.10 (73.97% of QMMM )
+|                   QMMM elec-energy cal       0.00 ( 0.29% of QMMM )
+|                   QMMM full matrix dia       0.02 (15.59% of QMMM )
+|                   QMMM pseudo matrix d       0.01 ( 8.14% of QMMM )
+|                   QMMM density build         0.00 ( 2.02% of QMMM )
+|                QMMM scf                   0.14 (94.79% of QMMM )
+|                QMMM ewald energy          0.00 ( 1.13% of QMMM )
+|             QMMM energy                0.15 (47.34% of QMMM )
+|             QMMM QM-QM force           0.01 ( 1.75% of QMMM )
+|             QMMM QM-MM force           0.01 ( 2.28% of QMMM )
+|             QMMM Ewald force           0.06 (18.01% of QMMM )
+|             QMMM Collate Forces        0.00 ( 0.03% of QMMM )
+|          QMMM                       0.31 (69.40% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 0.63% of Force)
+|       Force time                 0.45 (97.85% of Runmd)
+|       Shake time                 0.00 ( 0.16% of Runmd)
+|       Verlet update time         0.01 ( 1.91% of Runmd)
+|       Other                      0.00 ( 0.07% of Runmd)
+|    Runmd Time                 0.46 (94.98% of Total)
+|    Other                      0.02 ( 4.70% of Total)
+| Total time                 0.49 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -503,20 +488,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.49 Per Step(ms) =      48.96
-|         ns/day =       3.53   seconds/ns =   24481.95
+|     Elapsed(s) =       0.46 Per Step(ms) =      46.35
+|         ns/day =       3.73   seconds/ns =   23172.75
 | -----------------------------------------------------
 
-|           Job began  at 08:40:46.252  on 11/04/2019
-|           Setup done at 08:40:46.275  on 11/04/2019
-|           Run   done at 08:40:46.764  on 11/04/2019
+|           Job began  at 14:55:45.047  on 11/12/2019
+|           Setup done at 14:55:45.072  on 11/12/2019
+|           Run   done at 14:55:45.535  on 11/12/2019
 |     wallclock() was called    4626 times
-
-|3D-RISM memory allocation summary
-|Type          Maximum        Current   
-|Integer       0.00000 GB     0.00000 GB
-|Real          0.00000 GB     0.00000 GB
-|Logical       0.00000 GB     0.00000 GB
-|Character     0.00000 GB     0.00000 GB
-|---------------------------------------
-|Total         0.00000 GB     0.00000 GB

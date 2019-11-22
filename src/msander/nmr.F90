@@ -4,7 +4,6 @@ module nmr
   implicit none
 
 #include "../include/assert.fh"
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 public   chklin, echoin, impnum, modwt, ndvprt, nmrnrg, nmrprt, nmrrad, &

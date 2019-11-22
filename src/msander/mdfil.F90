@@ -1,4 +1,3 @@
-#include "copyright.h"
 
 module commandline_module
 
@@ -24,7 +23,7 @@ subroutine mdfil(VERSION, version_requested)
    use sander_rism_interface
 
    !, only : xvvfile, guvfile, huvfile, cuvfile, uuvfile, &
-   !     asympfile, quvfile, chgdistfile, excessChemicalPotentialfile, &
+   !     quvfile, chgdistfile, excessChemicalPotentialfile, &
    !     solvationEnergyfile, entropyfile, &
    !     excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
    !     excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile, &
@@ -135,7 +134,6 @@ subroutine mdfil(VERSION, version_requested)
    huvfile       = ''
    cuvfile       = ''
    uuvfile       = ''
-   asympfile     = ''
    quvfile       = ''
    chgdistfile   = ''
    excessChemicalPotentialfile    = ''
@@ -374,9 +372,6 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-uuv') then
          iarg = iarg + 1
          call getarg_wrap(iarg,uuvfile)
-      else if (arg == '-asymp') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,asympfile)
       else if (arg == '-quv') then
          iarg = iarg + 1
          call getarg_wrap(iarg,quvfile)

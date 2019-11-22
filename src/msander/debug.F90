@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -433,9 +432,6 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
    include 'mpif.h'
    integer ierr
 #  include "parallel.h"
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif /* MPI */
    logical qsetup
    _REAL_ xx(*),x(*),f(3,*),vir(*)
@@ -1347,9 +1343,6 @@ subroutine merge_forces(f)
   include 'mpif.h'
    integer ierr
 #  include "parallel.h"
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
    ! needed in mpi case to put forces together
    _REAL_ f(*)
    call MPI_Gatherv ( f(iparpt3(sanderrank)+1), &

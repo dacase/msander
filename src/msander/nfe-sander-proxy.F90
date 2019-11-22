@@ -369,7 +369,7 @@ subroutine flush_UNIT(lun)
 
    integer, intent(in) :: lun
 
-   call amflsh(lun)
+   call flush(lun)
 
 end subroutine flush_UNIT
 

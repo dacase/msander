@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -240,7 +239,6 @@ subroutine close_dump_files
   return
 end subroutine close_dump_files
 
-#ifndef PBSA
 !------------------------------------------------------------------------------
 ! prntmd: energy output for md, in human-readable form.
 !
@@ -281,7 +279,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use nbips, only: ips
   use emap,only: temap
   use amd_mod, only: iamd
-  use abfqmmm_module, only: abfqmmm_param
 
   implicit none
 
@@ -410,28 +407,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #endif /*RISMSANDER*/
   ect     = ener%pot%ct
 
-  if (abfqmmm_param%abfqmmm == 1) then
-    write(6,*) "--------------------------------------------------------&
-               &----------------------"
-    if (abfqmmm_param%system == 1) then
-      write(6,'(1x,a33,i4,5x,a12,i2)') 'System = Extended    N(QM atoms) = ', &
-                                       qmmm_struct%nquant, 'QM Charge = ', &
-                                       qmmm_nml%qmcharge
-      write(6,'(1x,a10,i4,7x,a8,i4,6x,a12,i4)') 'N(core) = ', &
-            abfqmmm_param%n_core, 'N(qm) = ', &
-            abfqmmm_param%n_qm - abfqmmm_param%n_core, &
-            'N(buffer) = ', abfqmmm_param%n_buffer
-    end if
-    if (abfqmmm_param%system == 2) then
-      if (.not. qmmm_nml%ifqnt) then
-        qmmm_struct%nquant = 0
-        qmmm_nml%qmcharge = 0
-      end if
-      write(6,'(1x,a33,i4,5x,a12,i2)') 'System = Reduced     N(QM atoms) = ', &
-            qmmm_struct%nquant, 'QM Charge = ', qmmm_nml%qmcharge
-    end if
-  end if
-
   write(6, 9018) nstep,time,temp,press
   write(6, 9028) etot,ektot,epot
   write(6, 9038) ebond,eangle,edihed
@@ -448,10 +423,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(6, 9058) eel, ehbond, econst
   else if (igb == 10 .or. ipb /= 0) then
     write(6, 9060) eel, epb, econst
-#ifdef APBS
-  else if (igb == 6 .and. mdin_apbs) then
-    write(6, 9060) eel, epb, econst
-#endif /* APBS */
 #ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(6, 9061) eel, erism, econst
@@ -524,11 +495,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (igb == 10 .or. ipb /= 0) then
     write(6, 9074) esurf, edisp
   end if
-#ifdef APBS
-  if (igb == 6 .and. mdin_apbs ) then
-    write(6, 9097) esurf
-  end if
-#endif /* APBS */
   if (econst /= 0.0) then
     write(6, 9076) epot-econst
   end if
@@ -615,29 +581,10 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   write(6, 8088)
 
   ! Flush i/o buffer
-  call amflsh(6)
+  call flush(6)
   if (iout7 == 0) return
 
   ! Output the info file if requested
-  if (abfqmmm_param%abfqmmm == 1) then
-    if (abfqmmm_param%system == 1) then
-      write(7, '(1x,a33,i4,5x,a12,i2)') &
-            'System = Extended    N(QM atoms) = ', qmmm_struct%nquant, &
-            'QM Charge = ', qmmm_nml%qmcharge
-      write(7,'(1x,a10,i4,7x,a8,i4,6x,a12,i4)') 'N(core) = ', &
-            abfqmmm_param%n_core, 'N(qm) = ', &
-            abfqmmm_param%n_qm - abfqmmm_param%n_core, &
-            'N(buffer) = ', abfqmmm_param%n_buffer
-    end if
-    if (abfqmmm_param%system == 2) then
-      if (.not. qmmm_nml%ifqnt) then
-        qmmm_struct%nquant = 0
-        qmmm_nml%qmcharge = 0
-      end if
-      write(7,'(1x,a33,i4,5x,a12,i2)') 'System = Reduced     N(QM atoms) = ', &
-            qmmm_struct%nquant, 'QM Charge = ', qmmm_nml%qmcharge
-    end if
-  end if
   write(7, 9018) nstep, time, temp, press
   write(7, 9028) etot, ektot, epot
   write(7, 9038) ebond, eangle, edihed
@@ -655,10 +602,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(7, 9058) eel, ehbond, econst
   else if ( igb == 10 .or. ipb /= 0) then
     write(7, 9060) eel, epb, econst
-#ifdef APBS
-  else if (igb == 6 .and. mdin_apbs) then
-    write(7, 9060) eel, epb, econst
-#endif /* APBS */
 #ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(7, 9061) eel, erism, econst
@@ -753,11 +696,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
    if (igb == 10 .or. ipb /= 0) then
      write(7, 9074) esurf, edisp
    end if
-#ifdef APBS
-   if (igb == 6 .and. mdin_apbs) then
-     write(7, 9097) esurf
-   end if
-#endif /* APBS */
    if (econst /= 0.0) then
      write(7, 9076) epot-econst
    end if
@@ -911,9 +849,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   9092 format (1x,'EXTERNESCF= ',f14.4)
   9093 format (1x,'PM3MAISESCF= ',f14.4)
   9096 format (1x,'PM3MMX2ESCF= ',f14.4)
-#ifdef APBS
-  9097 format (1x,'ENPOLAR= ',f14.4)
-#endif
   9099 format (1x,'ECRG   = ',f14.4)
 
 #ifdef LES
@@ -937,7 +872,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   return
 end subroutine prntmd
-#endif /*ifndef PBSA*/
 
 !------------------------------------------------------------------------------
 ! setvel: assign velocities from a Maxwellian distribution for initialization
@@ -1245,7 +1179,7 @@ subroutine cenmas(natom,x,v,amass,ekcm,xcm,vcm,acm,ekrot,ocm,icm)
    if (master.AND.icm.NE.5) then
       write(6,'(/3x,a,f11.4,3x,a,f11.4,3x,a,f12.6)') 'KE Trans =', &
             ekcm, 'KE Rot =', ekrot,'C.O.M. Vel =',comvel
-      call amflsh(6)
+      call flush(6)
    end if
    return
 end subroutine cenmas

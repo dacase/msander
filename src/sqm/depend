@@ -1159,7 +1159,7 @@ xmin.o:   xmin.F90
 	@echo '[SQM]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ xmin.F90
 
-constants.o: ../lib/constants.F90
+constants.o: ../msander/constants.F90
 	@echo '[SQM]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o constants.o ../lib/constants.F90
+	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o constants.o ../msander/constants.F90
 

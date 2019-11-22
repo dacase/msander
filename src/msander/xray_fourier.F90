@@ -10,17 +10,25 @@ module xray_fourier_module
 !
 !  SUBROUTINES:
 !
-!  fourier_dXYZBQ_dF  --  Calculate the derivative of the coordinate,
-!                              B, or occupancy versus the structure factor.
-!                              This one uses the direct (exact) Fourier.
+!  fourier_Fcalc     --   Caclulate structure factors using a direct
+!                         method.
+!
+!  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
+!                         energy with respect to coordinate, B, or occupancy.
+!                         Uses chain rule to combine dTarget/dF (passed
+!                         from that routine in array dF) and dF/dXYZ or
+!                         dF/dB or dF/dQ (computed in this routine).
 !
 !  dTarget_dF         --  Calculate a structure-factor restraint force
-!                              from the scalar difference of |Fobs| and |Fcalc|.
+!                         from the scalar difference of |Fobs| and |Fcalc|.
+!                         This uses a simple least-squares target function.
 !
 !  dTargetV_dF        --  Calculate a structure-factor restraint force
-!                              from the vector (complex) difference of Fobs 
-!                              and Fcalc.  (For use when phases are available,
-!                              as in cryoEM.
+!                         from the vector (complex) difference of Fobs 
+!                         and Fcalc.  (For use when phases are available,
+!                         as in cryoEM.
+!
+!  dTargetML_dF       --   Use the phenix maximum=-likelihood target function.
 !
 ! FUNCTIONS:
 !
@@ -78,26 +86,9 @@ contains
 #ifdef MPI
       integer hklgroup
 #endif
-#ifdef OPENMP
-    integer :: numtasks
-    character(len=5) omp_num_threads
-#endif
-
-      ! Use the following if you expect num_atoms to change during a run:
-      ! integer :: alloc_status
-      ! allocate(angle(num_atoms), f(num_atoms), stat=alloc_status)
-      ! REQUIRE(alloc_status==0)
 
       call wallclock( time0 )
 
-#ifdef OPENMP
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
       ! set up reflection partitioning for MPI
 #ifdef MPI
       ihkl1 = mytaskid*num_hkl/numtasks + 1
@@ -112,8 +103,7 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  &
-!$omp&  num_threads(numtasks)
+!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
          if (present(hkl_selected)) then
             if (hkl_selected(ihkl)==0) cycle
@@ -168,8 +158,13 @@ contains
    end subroutine fourier_Fcalc
 
    ! -------------------------------------------------------------------------
-   ! Calculate dXYZ, dTempFactor and/or dOccupancy with respect to dF,
-   ! using the direct Fourier sum.
+   ! Combine dFcalc with respect to dXYZ, dB and/or dQ, 
+   !    with dTarget/dFcalc (passed in as dF) to get dTarget/DXYZ,
+   !    dTarget/dB or dTarget/dQ.
+
+   ! Note the here XYZ is in the fractional coordinate system; conversion
+   ! to Cartesian coordinates is done by the calling program in 
+   ! xray_get_derivative() in xray_interface.F90
 
    ! Note Q is short for occupancy; B is short for tempFactor (aka B - factor).
    ! Small molecule software uses a U parameter in place of B - factor.
@@ -178,7 +173,7 @@ contains
    !     isotropic B - factor = 8 * pi ** 2 * isotropic - U
    !     isotropic U = [U(1,1) + U(2,2) + U(3,3)]/3.0
 
-   subroutine fourier_dXYZBQ_dF( &
+   subroutine fourier_dTarget_dXYZBQ( &
             num_hkl,hkl,dF,mSS4,hkl_selected, & ! reflections
             num_atoms,xyz,tempFactor,scatter_type_index, & ! atoms
             occupancy, &  ! (put optional args after all non-optional ones)
@@ -213,10 +208,6 @@ contains
       complex(real_kind) :: f
       real(real_kind) :: phase
       double precision time0, time1
-#ifdef OPENMP
-    integer :: numtasks, ier
-    character(len=5) omp_num_threads
-#endif
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
@@ -233,21 +224,12 @@ contains
       ihkl2 = num_hkl
 #endif
 
-#ifdef OPENMP
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
-
 #ifdef USE_ISCALE
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor ) num_threads(numtasks)
+!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor )
 #else
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )  num_threads(numtasks)
+!$omp&  reduction( +:dxyz )
 #endif
       REFLECTION: do ihkl = ihkl1,ihkl2
          ! if (present(hkl_selected)) then
@@ -300,7 +282,7 @@ contains
       dhkl_duration = dhkl_duration + time1 - time0
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
 
-   end subroutine fourier_dXYZBQ_dF
+   end subroutine fourier_dTarget_dXYZBQ
 
    ! -------------------------------------------------------------------------
    ! R - factor = sum(abs(Fobs - Fcalc)) / sum(Fobs)
@@ -392,12 +374,12 @@ contains
             end if
          else
             if (present(selected)) then
-               residual = sum(abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
+               residual = sum( abs_Fobs - Fcalc_scale * abs_Fcalc, &
                   selected/=0) / sum(abs_Fobs, selected/=0)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
             else
-               residual = sum (abs(abs_Fobs - Fcalc_scale*abs_Fcalc)) &
+               residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc) &
                     / sum(abs_Fobs)
                xray_energy = norm_scale * &
                     sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2)
@@ -416,7 +398,7 @@ contains
       implicit none
       integer, intent(in) :: num_hkl
       complex(real_kind), intent(in) :: Fobs(:)
-      complex(real_kind), intent(inout) :: Fcalc(:)
+      complex(real_kind), intent(in) :: Fcalc(:)
       complex(real_kind), intent(out) :: deriv(:)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
@@ -446,6 +428,84 @@ contains
 
    end subroutine dTargetV_dF
 
+   ! This routine computes the force gradient on Fcalc, using the
+   ! phenix maximum likelihood function
+
+   subroutine dTargetML_dF(num_hkl,abs_Fobs,Fcalc,deriv, &
+         residual,xray_energy)
+      use ml_mod, only : estimate_ml_parameters, b_vector_base, &
+           alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0,  &
+           hkl_indexing_bs_mask
+      use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
+           mask_cell_params, mask_grid_size, k_mask, &
+           init_bulk_solvent, fft_bs_mask, shrink_bulk_solvent
+      implicit none
+      integer, intent(in) :: num_hkl
+      real(real_kind), intent(in) :: abs_Fobs(:)
+      complex(real_kind), intent(inout) :: Fcalc(:)
+      complex(real_kind), intent(out) :: deriv(:)
+      real(real_kind), intent(out) :: residual
+      real(real_kind), intent(out) :: xray_energy
+
+      real(real_kind) :: abs_Fcalc(num_hkl)
+      integer :: nstep = 0
+      integer :: i
+      double precision :: term, b(7), Uaniso(7)
+
+      ! step 1: get fcalc, including solvent mask contribution:
+      !  (atomic part already done in fourier_Fcalc, and passed in here.)
+      !  need to add the bulk-solvent mask --could/should we use RISM?
+      
+      ! TODO: need to get bulk_solvent working
+      ! call init_bulk_solvent()
+      ! need to get coordinates, natom here:
+      ! call grid_bulk_solvent(n_atom, crd)
+      ! call shrink_bulk_solvent()
+      ! call fft_bs_mask()
+
+      do i=1,num_hkl
+         f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
+                        mask_cell_params(16) / mask_grid_size(4)
+      end do
+      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      abs_Fcalc(:) = abs(Fcalc(:))
+
+      ! step 2: scaling Fcalc:
+      b_vector_base = log(abs_Fobs(1:NRF_work) / abs_Fcalc(1:NRF_work)) / NRF_work_sq
+      b(1) = sum(b_vector_base)
+      b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+      b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+      b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+      b(5) = sum(b_vector_base * hk(1:NRF_work))
+      b(6) = sum(b_vector_base * hl(1:NRF_work))
+      b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+      Uaniso = matmul(MUcryst_inv, b)
+
+      k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+                Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+      Fcalc = Fcalc * k_scale
+
+      ! step 3: get ml parameters and xray restraint energy:
+      !         note that this routine needs xray2-type initialization;
+      !         also, will probably only be active on selected nstep values
+      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
+                                   nstep, num_hkl )
+
+      ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
+      do i=1,num_hkl
+         deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
+              ( alpha_array(i) - abs_Fobs(i) * &
+              i1_over_i0(2.d0 * delta_array(i) *  abs_Fcalc(i) * abs_Fobs(i))) / &
+              abs_Fcalc(i)
+      end do
+
+      ! residual = r_work, as in dTarget/dF
+      residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc ) / sum(abs_Fobs)
+
+   end subroutine dTargetML_dF
+
    function atom_scatter_factor_mss4(coeffs,mss4) result(sfac)
       real(real_kind) :: sfac
       real(real_kind), intent(in) :: coeffs(2,scatter_ncoeffs), mss4
@@ -467,9 +527,9 @@ contains
       a = unit_cell(1)
       b = unit_cell(2)
       c = unit_cell(3)
-      alpha = 3.14159*unit_cell(4)/180.
-      beta = 3.14159*unit_cell(5)/180.
-      gamma = 3.14159*unit_cell(6)/180.
+      alpha = 3.1415926536d0*unit_cell(4)/180.
+      beta = 3.1415926536d0*unit_cell(5)/180.
+      gamma = 3.1415926536d0*unit_cell(6)/180.
       sina = sin(alpha)
       cosa = cos(alpha)
       sinb = sin(beta)

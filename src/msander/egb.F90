@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 #define VACUUM3 603
@@ -186,9 +185,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    use decomp, only: decsasa, decpair
    use qmmm_module, only : qmmm_nml,qmmm_struct,qm2_struct
    use parms, only: cn1,cn2
-#ifdef HAS_10_12
-   use parms, only: asol,bsol
-#endif
    use constants, only: zero, one, two, three, four, five, six, seven, &
                         eight, nine, ten, eleven, twelve, half, third, &
                         fourth, eighth, pi, fourpi, alpb_alpha, &
@@ -210,9 +206,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 #    undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif
 #  include "../include/md.h"
 #  include "def_time.h"
@@ -248,10 +241,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
     _REAL_ :: alpb_beta, one_Arad_beta
 #ifndef LES
     _REAL_ :: gbvalpha(*),gbvbeta(*),gbvgamma(*) !add gbvalpha,gbvbeta,gbvgamma
-#endif
-
-#ifdef HAS_10_12
-   _REAL_ :: r10inv, f10
 #endif
 
    integer count,count2,icount,ineighbor(*),max_count, iminus
@@ -1029,26 +1018,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
                end if
                de = de + (twelve*f12 - six*f6)*r2inv
 
-#ifdef HAS_10_12
-
-               !    ---The following could be commented out if the Cornell
-               !       et al. force field was always used, since then all hbond
-               !       terms are zero.
-
-            else
-               !                                    10-12 potential:
-               r10inv = r2inv*r2inv*r2inv*r2inv*r2inv
-               f10 = bsol(-ic)*r10inv
-               f12 = asol(-ic)*r10inv*r2inv
-               evdw = evdw + f12 -f10
-               if(idecomp == 3 .or. idecomp == 2) then
-                  call decpair(1,i,j,f12-f10)
-               else if(idecomp == 3 .or. idecomp == 4) then
-                  call decpair(-1,i,j,f12-f10)
-               end if
-               de = de + (twelve*f12 - ten*f10)*r2inv
-#endif
-
             end if  ! ( ic > 0 )
 #ifdef MPI
 #  ifdef LES
@@ -1820,20 +1789,6 @@ VACUUM3 &
                  call decpair(-3,i,j,f12-f6)
                end if
                de = (twelve*f12 - six*f6)*r2inv
-#ifdef HAS_10_12
-             else
-               !10-12 potential:
-               r10inv = r2inv*r2inv*r2inv*r2inv*r2inv
-               f10 = bsol(-ic)*r10inv
-               f12 = asol(-ic)*r10inv*r2inv
-               evdw = evdw + f12 -f10
-               if(idecomp == 3 .or. idecomp == 2) then
-                 call decpair(1,i,j,f12-f10)
-               else if(idecomp == 3 .or. idecomp == 4) then
-                 call decpair(-1,i,j,f12-f10)
-               end if
-               de = (twelve*f12 - ten*f10)*r2inv
-#endif
              end if !if ic>0
              de = de*nrespai
              dedx = de * xij

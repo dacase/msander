@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 module relax_mat
@@ -632,10 +631,6 @@ subroutine calrate(ddep,rate,trp)
                trp(ii,jj) = ddep(ii,jj)*(s1 + s2 + s0)*popjsq
                trp(jj,ii) = ddep(ii,jj)*(s1 + s2 + s0)*popisq
             end if
-#ifdef DEBUG_NMR
-            !           write(6,*) 'trp:',ii,jj,trp(ii,jj),trp(jj,ii)
-#endif
-            
          end if  ! (ii == jj)
          k = k+1
       end do
@@ -650,9 +645,6 @@ subroutine calrate(ddep,rate,trp)
       do jj=1,natmet
          rate(ii,ii)=rate(ii,ii)+trp(ii,jj)
       end do
-#ifdef DEBUG_NMR
-      write(6,*) 'rate:',ii,ii,rate(ii,ii)
-#endif
    end do
    
    ! --- filling up the whole rate matrix:
@@ -660,9 +652,6 @@ subroutine calrate(ddep,rate,trp)
    do ii=1,natmet
       do jj=ii+1,natmet
          rate(ii,jj)=rate(jj,ii)
-#ifdef DEBUG_NMR
-         write(6,*) 'rate:',ii,jj,rate(ii,jj)
-#endif
       end do
    end do
    
@@ -789,23 +778,6 @@ subroutine corf(x, khyd, lhyd, kreal, lreal, newf, amass)
       end do
       first = .false.
       if( nmsnap > 0 ) then
-#ifdef DEBUG_NMR
-         
-         !       --- check orthogonality:
-         
-         dot77 = 0.0
-         dot78 = 0.0
-         dot89 = 0.0
-         n = 0
-         do i=1,3*natom
-            if( mod(i,3) == 1 ) n = n + 1
-            dot77 = dot77 + vect(i,7)*vect(i,7)*amass(n)
-            dot78 = dot78 + vect(i,7)*vect(i,8)*amass(n)
-            dot89 = dot89 + vect(i,8)*vect(i,9)*amass(n)
-         end do
-         write(6,*) 'orthog check: ', dot77, dot78, dot89
-         write(6,*) (amass(i),i=1,natom)
-#endif
          
          call amrset( 54185253 )
          
@@ -1143,9 +1115,6 @@ subroutine drates( ddep, dddep, rate, trp, dorat, ddrat)
    !       goes by the natmet scheme; cf. the way these arrays
    !       are used in the kmat subroutine.
    
-#ifdef DEBUG_NMR
-   write(6,*) 'drates:'
-#endif
    do i=1, nath
       ii = inn(i)
       do n=1,3
@@ -1158,20 +1127,12 @@ subroutine drates( ddep, dddep, rate, trp, dorat, ddrat)
             ddrat(n,i,jj) = dddep(n,i,jj)*trp(jj,ii)/ddep(ii,jj)
             tii(n) = tii(n) + dddep(n,i,jj)*trp(ii,jj)/ddep(ii,jj)
          end do
-#ifdef DEBUG_NMR
-         write(6,*) 'do:',i,jj,(dorat(n,i,jj),n=1,3)
-         write(6,*) 'dd:',i,jj,(ddrat(n,i,jj),n=1,3)
-#endif
       end do
       
       do n=1,3
          dorat(n,i,ii) = 0.0d0
          ddrat(n,i,ii) = tii(n)
       end do
-#ifdef DEBUG_NMR
-      write(6,*) i,ii,(dorat(n,i,ii),n=1,3)
-      write(6,*) i,ii,(ddrat(n,i,ii),n=1,3)
-#endif
    end do
 #ifdef NMODE
    
@@ -1259,9 +1220,6 @@ subroutine indexn(ix,ih,iin)
             (resat(i)(1:3) == 'H62' .and. resat(i)(6:7) == 'DA') .or. &
             (resat(i)(1:3) == 'H62' .and. resat(i)(6:8) == 'ADE'))) &
             ihyd(i) = 0
-#ifdef DEBUG_NMR
-      if (ihyd(i) /= 0) write(6,'(a14)') resat(i)
-#endif
    end do
    k=-3
    do i=1,natomx
@@ -1355,14 +1313,7 @@ subroutine indexn(ix,ih,iin)
          m2(nath) = 2
       end if  ! (mtyp == 1)
       inatom(i) = natmet
-#ifdef DEBUG_NMR
-      write(6,*) i,nath,natmet,resat(i),ihyp(nath),m2(nath), &
-            pop(nath),popn(natmet)
-#endif
    end do
-#ifdef DEBUG_NMR
-   write(6,*) 'nath, natmet are: ',nath,natmet
-#endif
    if (nath > ma) then
       write(6,*) 'Maximum allowed value for nath is ',ma
       call mexit(6, 1)
@@ -1375,18 +1326,6 @@ subroutine indexn(ix,ih,iin)
       inn(n) = nn
       if (m2(n) == 2 .or. m2(n) == 3 .or. m2(n) == 5) nn=nn+1
    end do
-#ifdef DEBUG_NMR
-   write(6,30) (m2(i),i=1,nath)
-   30 format(' m2:'/(10i5))
-   write(6,31) (pop(i),i=1,nath)
-   31 format(' pop:'/(5f10.5))
-   write(6,32) (ihyp(i),i=1,nath)
-   32 format(' ihyp:'/(10i5))
-   write(6,33) (popn(i),i=1,natmet)
-   33 format(' popn:'/(5f10.5))
-   write(6,34) (inatom(i),i=1,natomx)
-   34 format(' inatom:'/(10i5))
-#endif
    return
 end subroutine indexn 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2855,12 +2794,6 @@ subroutine noecalc(x,f,xx,ix)
 #endif
    
    return
-   
-#ifdef DEBUG_NMR
-   1030 format(1x,79('=')/'Data for submolecule',i4,': id2o = ', &
-         i1,', oscale = ',e12.5,', taumet = ',e12.5,/ &
-         36x,'omega = ',e12.5, 'taurot =',e12.5/)
-#endif
    
 end subroutine noecalc 
 

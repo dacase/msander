@@ -49,11 +49,6 @@
 #  undef  DPREC
 #endif
 
-#ifdef CRAY_PVP
-#  undef  AMBER_MPI_REAL
-#  define AMBER_MPI_REAL MPI_REAL8
-#endif
-
 #ifdef DPREC
 #  define D_OR_S() d
 #  define VD_OR_VS() d

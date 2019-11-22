@@ -35,7 +35,7 @@ module xray_interface_module
          resolution_low, &
          resolution_high, &
          xray_weight, &
-         vector_target, &
+         target, &
          solvent_mask_probe_radius, &
          solvent_mask_expand, &
          solvent_mask_outfile, &
@@ -93,7 +93,7 @@ contains
       !write(stdout,'(5X,A)') reflection_sigFobs
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
-      write(stdout,'(5X,A,L1)') 'Use vector target: ',vector_target
+      write(stdout,'(5X,A,A4)') 'Use target: ',target
       write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
       write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
       write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
@@ -454,9 +454,11 @@ contains
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
+      use ml_mod, only: init_ml
+      use bulk_solvent_mod, only: init_bulk_solvent
       implicit none
       ! local
-      integer :: hkl_lun, i, alloc_status
+      integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
       real(real_kind) :: phi
       logical :: master
 #ifdef MPI
@@ -498,18 +500,16 @@ contains
       REQUIRE(alloc_status==0)
 
       !  each line contains h,k,l and two reals
-      !  if vector_target == .false., these are Fobs, sigFobs (for diffraction)
-      !  if vector_target == .true.,  these are Fobs, phiFobs (for cryoEM)
+      !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
+      !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
       do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) hkl_index(1:3,i),abs_Fobs(i),sigFobs(i)
+         read(hkl_lun,*,end=1,err=1) &
+            hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
       end do
 
-      ! for now, use all reflections:
-      test_flag(:) = 1
-
       ! set up complex Fobs(:), if vector target is requested
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          allocate(Fobs(num_hkl),stat=alloc_status)
          REQUIRE(alloc_status==0)
          do i = 1,num_hkl
@@ -518,8 +518,6 @@ contains
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi) )
          end do
       endif
-      
-      close(hkl_lun)
 
       ! if( fft_method > 0 ) call FFT_setup()
 
@@ -528,10 +526,17 @@ contains
                igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
-         if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(atom_selection),' atoms in ', &
+         NAT_for_mask = sum(atom_selection)
+         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask,' atoms in ', &
                atom_selection_mask
       end if
       call get_mss4(num_hkl, hkl_index, mSS4 )
+
+      if( target(1:2) == 'ml' ) then
+         call init_ml(natom, nstlim, num_hkl, &
+              hkl_index, abs_Fobs, sigFobs, test_flag)
+         ! call init_bulk_solvent(n_atom, NRF, resolution)
+      end if
 
       return
       1 continue
@@ -545,7 +550,7 @@ contains
       pdb_read_coordinates = .false.
       pdb_use_segid = .false.
       pdb_wrap_names = .false.
-      vector_target = .false.
+      target = 'ls  '
       spacegroup_name = 'P 1'
       reflection_infile = ''
       reflection_infile_format = 'raw'
@@ -586,6 +591,7 @@ contains
          call xray_write_pdb(trim(pdb_outfile))
       end if
 
+      ! if (target(1:2) == 'ml') call finalize_ml_mod()
       if (.not.xray_active) return
 
       deallocate(atom_bfactor,atom_occupancy,atom_scatter_type, &
@@ -595,7 +601,7 @@ contains
             hkl_index,abs_Fobs,sigFobs,mSS4,test_flag, &
             stat=dealloc_status)
       REQUIRE(dealloc_status==0)
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          deallocate(Fobs,stat=dealloc_status)
          REQUIRE(dealloc_status==0)
       endif
@@ -671,12 +677,18 @@ contains
 
       !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 
-      if( vector_target ) then
+      if( target(1:3) == 'vls' ) then
          call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
+      else if( target(1:2) == 'ls' ) then
+         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
+             deriv=dF, residual=r_work, xray_energy=xray_energy)
+      else if(target(1:2) == 'ml' ) then
+         call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
+             deriv=dF, residual=r_work, xray_energy=xray_energy)
       else
-         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag,deriv=dF, &
-            residual=r_work, xray_energy=xray_energy)
+         write(6,*) 'Bad target: ', target
+         call mexit(6,1)
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
@@ -685,7 +697,7 @@ contains
          write( 6,'(a,f15.5,e15.5)') 'At start: Fcalc_scale, norm_scale = ', &
               Fcalc_scale, norm_scale
          open(20,file='first.fmtz',action='write')
-         if( vector_target ) then
+         if( target(1:3) == 'vls' ) then
             do i=1,num_hkl
 #  if 1
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
@@ -719,13 +731,13 @@ contains
       if( fft_method == 0 ) then
          ! This call uses MPI parallel to compute xray_dxyz:
          if( present(dB) ) then
-            call fourier_dXYZBQ_dF(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
             dxyz=xray_dxyz, d_tempFactor=xray_dB )
          else
-            call fourier_dXYZBQ_dF(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
@@ -753,11 +765,15 @@ contains
           - xray_dxyz(:,:)
       if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
 
+      ! DAC: why not allocate/deallocate just once, or make these
+      !    automatic variables?  Or is this not important?
       deallocate(frac_xyz,dF,Fcalc, &
             abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
       REQUIRE(dealloc_status==0)
       deallocate(sel_index,stat=dealloc_status)
       REQUIRE(dealloc_status==0)
+
+      ! end if  ! from the xray logic
 
    end subroutine xray_get_derivative
 

@@ -1,53 +1,39 @@
-#!/bin/csh -f
-#TEST-PROGRAM sander
-#TEST-DESCRIP Tests PME potential gradients vs. analytic forces
-#TEST-PURPOSE regression, basic
-#TEST-STATE   undocumented
+#!/bin/sh
 
-set sander = "../../../bin/msander"
+sander="../../../bin/msander"
 
-if( ! $?DO_PARALLEL ) then
-        setenv DO_PARALLEL " "
-else
-        set sander = $sander.MPI
-        echo "Running $DO_PARALLEL $sander"
-endif
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+output=2igd.pme.out
 
 cat > mdin <<EOF
 2igd crystal unit cell
  &cntrl
-    ntx=1, ntpr=1, ntwx=0, ntwr=0
-    imin=1, drms=1E-4
-    maxcyc=3, ntmin=1
-    ig=314159
-    ntb=1
-    irism=1
-    cut=8.0
+    ntx=1, ntpr=1, ntwx=0, ntwr=0,
+    nstlim=3, irest=0, tempi=0.0,
+    ig=314159,
+    irism=1,
  /
  &rism
-    periodic='pme'
-    closure='kh'
-    buffer=1, grdspc=0.5,0.5,0.5
-    solvcut=12.d0
-    verbose=1
-    write_thermo=1
-    npropagate=5
-    mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-10
-    apply_rism_force=1
+    periodic='pme',
+    closure='kh',
+    grdspc=0.5,0.5,0.5,
+    solvcut=8.d0,
+    verbose=1,
+    write_thermo=0,
+    npropagate=5,
+    mdiis_del=0.7, mdiis_nvec=10, tolerance=1e-8,
+    apply_rism_force=1,
  /
 EOF
 
-$DO_PARALLEL $sander -O -i mdin -o 2igd.pme.out \
-    -p 2igd.parm7 -c 2igd.rst7 \
-    -xvv ../xvv/spc.kh.xvv \
-    || goto error
+$DO_PARALLEL $sander -O -i mdin -o $output \
+    -p 2igd.parm7 -c 2igd.rst7 -xvv ../xvv/spc.kh.xvv \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
-grep ERISM 2igd.pme.out > erism.out
-../../dacdif -a 1.e-4 erism.out.save erism.out
+../../dacdif $output.save $output
 /bin/rm -f mdin mdinfo restrt
-exit(0)
-
-error:
-echo "  ${0}:  Program error"
-exit(1)
+exit 0 
 

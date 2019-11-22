@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -38,9 +37,6 @@ subroutine do_pmesh_dipole_kspace( &
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
 
@@ -400,9 +396,6 @@ subroutine grad_sum_dipolerc( &
 #     undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif
    _REAL_ q(2*nfftdim1,nfftdim2,nfftdim3)
    

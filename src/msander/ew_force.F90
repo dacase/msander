@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
@@ -10,12 +9,7 @@
 subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
       xr,virvsene,pol,pol2,qm_pot_only, &
-#ifdef HAS_10_12
-      cn3,cn4,cn5,asol,bsol)
-#else
       cn3,cn4,cn5)
-#endif
-   use trace
    use ew_recip
    use ew_dipole_recip
    use stack
@@ -36,7 +30,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use parms, only : one_scee, one_scnb
 #endif /* LES */
    use nbips, only : aipspbc,ips,teaips,tvaips,virexips
-   use pol_gauss
 
    implicit none
 #  include "extra.h"
@@ -63,17 +56,11 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #endif
    include 'mpif.h'
    integer ierr
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numatoms,iac(*),ico(*)
    _REAL_ crd(3,*),charge(*),cn1(*),cn2(*),cn6(*), &
           eelt,epol,frc(3,*),xr(3,*),virvsene
-#ifdef HAS_10_12
-   _REAL_ asol(*), bsol(*)
-#endif
    _REAL_ pol(*), pol2(*)
    _REAL_ cn3(*), cn4(*), cn5(*)
 !!
@@ -120,7 +107,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    integer i,commsander_mytaskid,commsander_numtasks, qm_temp_count
 
-   call trace_enter( 'ewald_force' )
 #ifdef MPI
    commsander_mytaskid = mytaskid
    commsander_numtasks = numtasks
@@ -471,12 +457,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
             maxnblst,eed,evdw,ehb,dir_vir,eedvir, &
             nbfilter,ee_type,eedmeth,dxdr, &
             pol, pol2, cn3, cn4, cn5, &
-#ifdef HAS_10_12
-            epold,x(linddip),x(lfield),mpoltype,asol,bsol)
-#else
             epold,x(linddip),x(lfield),mpoltype)
-#endif
-
 
 #ifdef MPI
        numtasks = commsander_numtasks
@@ -547,12 +528,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
                          ee14,enb14,epol14,one_scee,one_scnb,e14vir,ix, &
                          commsander_mytaskid,commsander_numtasks)
 
-      !1-2, 1-3, 1-4 dip-dip and 1-4 chg-dip, chg-chg interactions
-      !get_14_dipole only calculates VDW 1-4 if ipolg == 1
-      if (ipolg == 1) then
-         call Get_Intra_Gauss_Dip (crd,frc,e14vir,ee14, epolg, &
-            x(linddip),x(lfield))
-      end if
    end if
 
    ! Now transfer force and torque from extra points:
@@ -569,8 +544,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    nstart = ndel*mytaskid+1
    ntop = nstart+ndel-1
    if(ntop > numatoms)ntop=numatoms
-   call trace_mpi('mpi_allreduce',3,'MPI_DOUBLE_PRECISION',mpi_sum)
-
    call mpi_allreduce(MPI_IN_PLACE,frcx,3,MPI_DOUBLE_PRECISION, &
          mpi_sum,commsander,ierr)
 
@@ -644,8 +617,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    !     Accumulate the virials and energies
    
-   call trace_mpi('mpi_allreduce', &
-         BC_EW_COMM3,'MPI_DOUBLE_PRECISION',mpi_sum)
    call mpi_allreduce(MPI_IN_PLACE,eer,BC_EW_COMM3, &
          MPI_DOUBLE_PRECISION, mpi_sum,commsander,ierr)
 
@@ -727,7 +698,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
          rec_vird,atvir,subvir,verbose)
 
    call timer_stop(TIME_EWVIRIAL)  
-   call trace_exit( 'ewald_force' )
 
    return
 end subroutine ewald_force 
@@ -1033,9 +1003,6 @@ subroutine nb_adjust(charge,eea,crd, &
 #undef MPI_DOUBLE_PRECISION
 #endif
    include 'mpif.h'
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numlo,numhi
@@ -1325,9 +1292,6 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
 #undef MPI_DOUBLE_PRECISION
 #endif
    include 'mpif.h'
-#ifdef CRAY_PVP
-#define MPI_DOUBLE_PRECISION MPI_REAL8
-#endif
 #endif
 
    integer numlo,numhi
@@ -1506,8 +1470,6 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    use les_data, only : lfac, lesfac, lestyp, nlesty, cnum
 #endif
 
-   use abfqmmm_module, only: abfqmmm_param
-
    implicit none
 #  include "../include/memory.h"
    integer numatoms
@@ -1522,13 +1484,13 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    save sumq,sumq2
    data sumq,sumq2/0.d0,0.d0/
    
-   if (do_self == 0 .and. ilrt == 0 .and. (abfqmmm_param%abfqmmm /= 1)) return
+   if (do_self == 0 .and. ilrt == 0 ) return
    !     ---only compute sumq and sumq2 at beginning. They don't change
    ! if LIE module is in use, this is called repeatedly with different charge arrays, so recompute
 
    d0 = -ewaldcof*INVSQRTPI
    
-   if (first .or. abfqmmm_param%abfqmmm == 1) then
+   if (first) then
       sumq = 0.d0
       sumq2 = 0.d0
       factor = sqrt(pi/(ewaldcof*ewaldcof*volume))*sqrt(0.5d0)
@@ -1707,9 +1669,6 @@ subroutine nb_adjust_les(charge,ene,crd, &
 #     undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#     define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer numleft,numdel
 #endif /* MPI */
    !-------------------------------------------------------------------

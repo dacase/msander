@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -920,7 +919,7 @@ subroutine cnstphwriterestart(inchrgdat)
    close(CNSTPH_UNIT)
 
    ! flush all cpout data
-   call amflsh(CPOUT_UNIT)
+   call flush(CPOUT_UNIT)
 
 end subroutine cnstphwriterestart
 

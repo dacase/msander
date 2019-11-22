@@ -11,7 +11,6 @@
 !! o Temperature derivative expressed as T*d/dT
 !! o MDIIS accelerated solutions
 !! o Optional cutoffs
-!! o Supercell method for long range asymptotics
 !! o Analytic forces
 !! o Variable grid size and dynamic memory allocation
 !! o MPI support
@@ -29,7 +28,6 @@ module rism3d_c
   use rism3d_grid_c
   use rism3d_closure_c
   use rism_report_c
-  use rism_timer_c
   use mdiis_c
   use rism3d_fft_c
 
@@ -72,10 +70,6 @@ module rism3d_c
      ! thermoTimer :: specifically times thermodynamics calculations
      ! forceTimer :: specifically times force calculation
      ! excessChemicalPotentialTimer :: specificall times excess chemical potential calculation
-     type(rism_timer) :: timer, resizeTimer, reorientTimer, &
-          cuvpropTimer, fftTimer, solventTimer, &
-          solve3DRISMTimer, single3DRISMsolutionTimer, thermoTimer, &
-          forceTimer, excessChemicalPotentialTimer
 
      !! private !(should be)
 
@@ -136,8 +130,6 @@ module rism3d_c
      !> Variable box size.
      logical :: varbox = .true.
 
-     !> long-range asymptotics k-space cut off tolerance.  Only grid
-     !! points that have an approximate value greater than this will be computed.
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: NVec
@@ -321,29 +313,6 @@ contains
     ! using the temporary copies.  This leaves the input parameters
     ! untouched.
 
-    call rism_timer_new(this%timer, "3D-RISM")
-    call rism_timer_start(this%timer)
-    call rism_timer_new(this%thermoTimer, "Thermodynamics")
-    call rism_timer_setParent(this%thermoTimer, this%timer)
-    call rism_timer_new(this%forceTimer, "Force")
-    call rism_timer_setParent(this%forceTimer, this%thermoTimer)
-    call rism_timer_new(this%excessChemicalPotentialTimer, "Excess Chemical Potential")
-    call rism_timer_setParent(this%excessChemicalPotentialTimer, this%thermoTimer)
-    call rism_timer_new(this%solventTimer, "Solve 3D-RISM")
-    call rism_timer_setParent(this%solventTimer, this%timer)
-    call rism_timer_new(this%resizeTimer, "Solvation box resize")
-    call rism_timer_setParent(this%resizeTimer, this%solventTimer)
-    call rism_timer_new(this%reorientTimer, "Solute reorientation")
-    call rism_timer_setParent(this%reorientTimer, this%solventTimer)
-    call rism_timer_new(this%cuvpropTimer, "Cuv propagation")
-    call rism_timer_setParent(this%cuvpropTimer, this%solventTimer)
-    call rism_timer_new(this%solve3DRISMTimer, "RXRISM")
-    call rism_timer_setParent(this%solve3DRISMTimer, this%solventTimer)
-    call rism_timer_new(this%single3DRISMsolutionTimer, "R1RISM")
-    call rism_timer_setParent(this%single3DRISMsolutionTimer, this%solve3DRISMTimer)
-    call rism_timer_new(this%fftTimer, "FFT")
-    call rism_timer_setParent(this%fftTimer, this%single3DRISMsolutionTimer)
-
     nullify(t_closure)
 
     if (present(o_periodic)) then
@@ -457,13 +426,10 @@ contains
 #endif /*MPI*/
     ! INITIALIZE
     call rism3d_grid_new(this%grid, this%mpicomm)
-    call rism_timer_stop(this%timer)
     call rism3d_setmdiis(this, t_mdiis_nvec, t_mdiis_del, t_mdiis_method, t_mdiis_restart)
-    call rism_timer_start(this%timer)
     call rism3d_potential_new(this%potential, this%grid, this%solvent, this%solute, 0d0, &
          this%fft, this%periodicPotential, o_biasPotential,&
          chargeSmear)
-    call rism3d_potential_setTimerParent(this%potential, this%solventTimer)
 
 #ifdef MPI
     call mdiis_new_mpi(this%mdiis_o, this%mdiis_method, &
@@ -476,8 +442,6 @@ contains
          this%MDIIS_restart)
 #endif /*MPI*/
 
-    call mdiis_setTimerParent(this%mdiis_o, this%single3DRISMsolutiontimer)
-    call rism_timer_stop(this%timer)
     call rism3d_setcut(this, t_cut)
     call rism3d_setclosurelist(this, t_closure)
     call rism3d_setbox_fixed(this, t_boxlen, t_ng3)
@@ -524,19 +488,6 @@ contains
     can_molReconstruct = rism3d_solvent_canCalc_molReconstruct(this%solvent)
   end function rism3d_canCalc_molReconstruct
 
-  !> Set parent for this timer
-  !! IN:
-  !!   this : rism3d object
-  !!   parent : parent timer object
-  subroutine rism3d_setTimerParent(this, parent)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    type(rism_timer), intent(inout) :: parent
-    call rism_timer_start(this%timer)
-    call rism_timer_setParent(this%timer, parent)
-    call rism_timer_stop(this%timer)
-  end subroutine rism3d_setTimerParent
-
   !>Sets the parameters for a fixed solvation box.
   !! IN:
   !!  this :: rism3d object
@@ -547,11 +498,9 @@ contains
     type(rism3d), intent(inout) :: this
     _REAL_, intent(in) :: boxlen(3)
     integer, intent(in) :: ng3(3)
-    call rism_timer_start(this%timer)
     this%varbox = .false.
     this%fixedBoxDimensionsR = boxlen
     this%fixedNumGridPoints = ng3
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setbox_fixed
 
 
@@ -568,11 +517,9 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     character(len = *), intent(in) :: closure(:)
-    call rism_timer_start(this%timer)
     this%closureList => safemem_realloc(this%closureList, len(this%closureList), &
          ubound(closure, 1))
     this%closureList = closure
-    call rism_timer_stop(this%timer)
     call rism3d_setclosure(this, this%closureList(1))
   end subroutine rism3d_setclosurelist
 
@@ -585,10 +532,8 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     character(len = *), intent(in) :: closure
-    call rism_timer_start(this%timer)
     call rism3d_closure_destroy(this%closure)
     call rism3d_closure_new(this%closure, closure, this%potential)
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setclosure
 
 
@@ -602,9 +547,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: verbosity
-    call rism_timer_start(this%timer)
     this%verbose = verbosity
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setverbosity
 
 
@@ -616,9 +559,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_, intent(in) :: cut
-    call rism_timer_start(this%timer)
     call rism3d_potential_setCut_ljdistance(this%potential, cut)
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setcut
 
 
@@ -635,12 +576,10 @@ contains
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: nvec, method
     _REAL_, intent(in) :: del, restart
-    call rism_timer_start(this%timer)
     this%NVec = nvec
     this%deloz = del
     this%mdiis_method = method
     this%mdiis_restart = restart
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setmdiis
 
 
@@ -652,9 +591,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_, intent(in) :: solutePositions(:, :)
-    call rism_timer_start(this%timer)
     call rism3d_solute_setCoord(this%solute, solutePositions)
-    call rism_timer_stop(this%timer)
   end subroutine rism3d_setCoord
 
 
@@ -741,8 +678,6 @@ contains
     _REAL_ :: offset(3), buffer(3)
     integer :: id, iu
 
-    call rism_timer_start(this%solventTimer)
-
     ! 1) Quick check that the tolerance list is of the correct length.
     if (ubound(tolerance, 1) /= ubound(this%closureList, 1)) &
          call rism_report_error("(a,i3,a,i3)", &
@@ -752,11 +687,9 @@ contains
 
     ! 2) Get the box size (assumed to be fixed here)
     if (this%nsolution == 0) then
-       call rism_timer_start(this%resizeTimer)
        call timer_start(TIME_RESIZE)
        call resizeBox(this)
        call timer_stop(TIME_RESIZE)
-       call rism_timer_stop(this%resizeTimer)
 
        call rism_report_message("||Setting solvation box to")
        call rism_report_message("(3(a,i10))", "|grid size: ", &
@@ -784,9 +717,7 @@ contains
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
     call timer_start(TIME_CUVPROP)
-    call rism_timer_start(this%cuvpropTimer)
     call guessDCF(this)
-    call rism_timer_stop(this%cuvpropTimer)
     call timer_stop(TIME_CUVPROP)
 
 
@@ -800,9 +731,7 @@ contains
           if (this%verbose >= 1) &
                call rism_report_message("|Switching to "// &
                trim(this%closureList(iclosure))//" closure")
-          call rism_timer_stop(this%solventTimer)
           call rism3d_setClosure(this, this%closureList(iclosure))
-          call rism_timer_start(this%solventTimer)
           call timer_start(TIME_RXRISM)
           call solve3DRISM(this, ksave, kshow, maxSteps, tolerance(iclosure))
           call timer_stop(TIME_RXRISM)
@@ -823,13 +752,10 @@ contains
 
     ! 11) Update stored variables.
     call timer_start(TIME_CUVPROP)
-    call rism_timer_start(this%cuvpropTimer)
     this%nsolution = this%nsolution + 1
     call updateDCFguessHistory(this)
-    call rism_timer_stop(this%cuvpropTimer)
     call timer_stop(TIME_CUVPROP)
 
-    call rism_timer_stop(this%solventTimer)
   end subroutine rism3d_calculateSolution
 
   !> Calculates the forces on the solute contributed by the solvent according
@@ -841,11 +767,9 @@ contains
     implicit none
     type(rism3d):: this
     _REAL_, intent(out) :: ff(3, this%solute%numAtoms)
-    call rism_timer_start(this%forceTimer)
     call timer_start(TIME_FF)
     call rism3d_closure_force(this%closure, ff, this%guv, this%periodicPotential)
     call timer_stop(TIME_FF)
-    call rism_timer_stop(this%forceTimer)
     !!!!!!!
     !! - uncomment this to have a proper force check
     !! call rism3d_checkForceNumDeriv(this%closure, ff, this%guv)
@@ -856,41 +780,29 @@ contains
   !> Calculate the excess chemical potential for each solvent species
   !! IN:
   !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
   !! OUT:
   !!    excess chemical potential of solvation for each solvent species
-  function rism3d_excessChemicalPotential(this, o_lr) result(excessChemicalPotential)
+  function rism3d_excessChemicalPotential(this) result(excessChemicalPotential)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: excessChemicalPotential(this%solvent%numAtomTypes)
 
-    call rism_timer_start(this%excessChemicalPotentialTimer)
     excessChemicalPotential = &
        rism3d_closure_excessChemicalPotential(this%closure, &
        this%huv, this%cuv(:, :, :, :))
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
   end function rism3d_excessChemicalPotential
 
   !> Calculate the total excess chemical potential of solvation
   !! IN:
   !!   this :: rism3d object with computed solution
-  !!   o_lr   :: (optional) (default = .true.) Apply asymptotic long range correction
   !! OUT:
   !!    total excess chemical potential of solvation
-  function rism3d_excessChemicalPotential_tot(this, o_lr) result(excessChemicalPotential)
+  function rism3d_excessChemicalPotential_tot(this) result(excessChemicalPotential)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: excessChemicalPotential
-    call rism_timer_start(this%excessChemicalPotentialTimer)
 
-    lr = .true.
-    if (present(o_lr)) lr = o_lr
-    call rism_timer_stop(this%excessChemicalPotentialTimer)
-    excessChemicalPotential = sum(rism3d_excessChemicalPotential(this, o_lr))
+    excessChemicalPotential = sum(rism3d_excessChemicalPotential(this))
   end function rism3d_excessChemicalPotential_tot
 
   !> Calculate the solvation interaction energy: de = density sum g*u for
@@ -905,9 +817,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_ :: ene(this%solvent%numAtomTypes)
-    !call rism_timer_start(this%thermoTimer)
     ene = rism3d_closure_solvPotEne(this%closure, this%guv)
-    !call rism_timer_stop(this%thermoTimer)
   end function rism3d_solventPotEne
 
 
@@ -922,9 +832,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_ :: ene
-    call rism_timer_start(this%thermoTimer)
     ene = sum(rism3d_solventPotEne(this))
-    call rism_timer_stop(this%thermoTimer)
   end function rism3d_solventPotEne_tot
 
   !! Calculating the partial molar volume of solute.
@@ -936,27 +844,19 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_ :: partialMolarVolume
-    call rism_timer_start(this%thermoTimer)
     partialMolarVolume = rism3d_closure_partialMolarVolume(this%closure, this%cuv(:, :, :, :))
-    call rism_timer_stop(this%thermoTimer)
   end function rism3d_partialMolarVolume
 
   !> Calculating excess number of each solvent type associated with
   !! the solute.
   !! @param[in,out] this rism3d object with computed solution.
-  !! @param[in] o_lr (optional) (default = .true.)
-  !!                 Apply asymptotic long range correction.
   !! @return Excess number of each solvent type associated with the solute.
-  function rism3d_excessParticles(this, o_lr) result(num)
+  function rism3d_excessParticles(this) result(num)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
-    logical :: lr
     _REAL_ :: num(this%solvent%numAtomTypes)
 
-    call rism_timer_start(this%thermoTimer)
     num = rism3d_closure_excessParticles(this%closure, this%guv)
-    call rism_timer_stop(this%thermoTimer)
 
   end function rism3d_excessParticles
 
@@ -966,19 +866,14 @@ contains
   !! J. G. Kirkwood; F. P. Buff. J. Chem. Phys. 1951, 19, 774-777
   !! IN:
   !!    this :: rism3d object with computed solution
-  !!    o_lr :: (optional) (default = .true.) Apply asymptotic long range
-  !!            correction
   !! OUT:
   !!    Kirkwood-Buff integeral for each solvent site
-  function rism3d_kirkwoodBuff(this, o_lr) result(kb)
+  function rism3d_kirkwoodBuff(this) result(kb)
     implicit none
     type(rism3d), intent(inout) :: this
-    logical, optional, intent(in) :: o_lr
     _REAL_ :: kb(this%solvent%numAtomTypes)
 
-    call rism_timer_start(this%thermoTimer)
     kb = rism3d_closure_kirkwoodBuff(this%closure, this%guv)
-    call rism_timer_stop(this%thermoTimer)
   end function rism3d_kirkwoodBuff
 
   !! Calculates the direct correlation function integral for the solute. This is the
@@ -991,9 +886,7 @@ contains
     implicit none
     type(rism3d), intent(inout) :: this
     _REAL_ :: dcfi(this%solvent%numAtomTypes)
-    call rism_timer_start(this%thermoTimer)
     dcfi = rism3d_closure_DCFintegral(this%closure, this%cuv)
-    call rism_timer_stop(this%thermoTimer)
   end function rism3d_DCFintegral
 
 !!!!!
@@ -1007,17 +900,6 @@ contains
     use safemem
     implicit none
     type(rism3d) :: this
-    call rism_timer_destroy(this%fftTimer)
-    call rism_timer_destroy(this%single3DRISMsolutionTimer)
-    call rism_timer_destroy(this%solve3DRISMTimer)
-    call rism_timer_destroy(this%cuvpropTimer)
-    call rism_timer_destroy(this%reorientTimer)
-    call rism_timer_destroy(this%resizeTimer)
-    call rism_timer_destroy(this%solventTimer)
-    call rism_timer_destroy(this%excessChemicalPotentialTimer)
-    call rism_timer_destroy(this%forceTimer)
-    call rism_timer_destroy(this%thermoTimer)
-    call rism_timer_destroy(this%timer)
 
     call rism3d_solvent_destroy(this%solvent)
     call rism3d_solute_destroy(this%solute)
@@ -1385,8 +1267,6 @@ contains
     ! MPI error.
     logical :: ierr
 
-    call rism_timer_start(this%solve3DRISMTimer)
-
     if (this%verbose >= 1 .and. size(this%closureList) > 1) &
          call rism_report_message("|Using "// &
          trim(rism3d_closure_type(this%closure))//" closure")
@@ -1469,7 +1349,6 @@ contains
        call rism_report_message('(a,i5,a)', &
            "|RXRISM converged in ", istep, " steps")
     end if
-    call rism_timer_stop(this%solve3DRISMTimer)
     return
   end subroutine solve3DRISM
 
@@ -1509,7 +1388,6 @@ contains
     logical, external :: OMP_get_dynamic, OMP_get_nested
 #endif
     integer :: ierr, irank
-    call rism_timer_start(this%single3DRISMsolutionTimer)
 
     ! --------------------------------------------------------------
     ! Cuv(r) is then loaded into the guv array.
@@ -1556,7 +1434,6 @@ contains
     ! [Short-range part of] Cuv(r) FFT>K.
     ! --------------------------------------------------------------
     call timer_start(TIME_RISMFFT)
-    call rism_timer_start(this%fftTimer)
 #if defined(MPI)
     call  rism3d_fft_fwd(this%fft, this%guv)
     this%guv(2:this%grid%totalLocalPointsK:2, :) = &
@@ -1564,7 +1441,6 @@ contains
 #else
     call  rism3d_fft_fwd(this%fft, this%guv)
 #endif /*defined(MPI)*/
-    call rism_timer_stop(this%fftTimer)
     call timer_stop(TIME_RISMFFT)
 
     ! --------------------------------------------------------------
@@ -1602,7 +1478,6 @@ contains
     ! Short-range part of Huv(k) FFT>R.
     ! --------------------------------------------------------------
     call timer_start(TIME_RISMFFT)
-    call rism_timer_start(this%fftTimer)
 #if defined(MPI)
     this%huv(2:this%grid%totalLocalPointsK:2, :) = &
          -this%huv(2:this%grid%totalLocalPointsK:2, :)
@@ -1610,7 +1485,6 @@ contains
 #else
     call  rism3d_fft_bwd(this%fft, this%huv)
 #endif /*defined(MPI)*/
-    call rism_timer_stop(this%fftTimer)
     call timer_stop(TIME_RISMFFT)
 
     ! --------------------------------------------------------------
@@ -1651,7 +1525,6 @@ contains
     this%cuv => this%cuvWRK(:, :, :, :, mdiis_getWorkVector(this%mdiis_o))
     this%cuvres => this%cuvresWRK(:, :, mdiis_getWorkVector(this%mdiis_o))
     call timer_stop(TIME_MDIIS)
-    call rism_timer_stop(this%single3DRISMsolutionTimer)
 
   end subroutine single3DRISMsolution
 

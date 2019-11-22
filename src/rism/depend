@@ -6,11 +6,9 @@ amber_rism_interface.o: \
                     ../include/dprec.fh\
                     safemem.o\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     rism3d_c.o\
                     rism3d_solvent_c.o\
                     rism3d_solute_c.o\
-                    fce_c.o\
                     rism_io.o\
                     constants.o\
                     rism_util.o\
@@ -18,7 +16,6 @@ amber_rism_interface.o: \
                     rism3d_ccp4.o\
                     rism3d_opendx.o\
                     rism3d_xyzv.o\
-                    files.h\
                     array_util.o
 
 
@@ -62,16 +59,6 @@ erfcfun.o:   erfcfun.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ erfcfun.F90
 
-fce_c.o: \
-                    ../include/dprec.fh\
-                    safemem.o
-
-
-fce_c.o:   fce_c.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ fce_c.F90
-
 
 fftw3.o:   fftw3.F90
 	@echo [RISM]  FC $<
@@ -81,7 +68,6 @@ fftw3.o:   fftw3.F90
 mdiis_blas2_c.o: \
                     ../include/dprec.fh\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     safemem.o\
                     def_time.h
 
@@ -94,7 +80,6 @@ mdiis_blas2_c.o:   mdiis_blas2_c.F90
 mdiis_blas_c.o: \
                     ../include/dprec.fh\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     safemem.o\
                     def_time.h
 
@@ -108,8 +93,7 @@ mdiis_c.o: \
                     ../include/dprec.fh\
                     mdiis_orig_c.o\
                     mdiis_blas_c.o\
-                    mdiis_blas2_c.o\
-                    rism_timer_c.o
+                    mdiis_blas2_c.o
 
 
 mdiis_c.o:   mdiis_c.F90
@@ -120,7 +104,6 @@ mdiis_c.o:   mdiis_c.F90
 mdiis_orig_c.o: \
                     ../include/dprec.fh\
                     safemem.o\
-                    rism_timer_c.o\
                     rism_util.o\
                     def_time.h
 
@@ -130,25 +113,6 @@ mdiis_orig_c.o:   mdiis_orig_c.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ mdiis_orig_c.F90
 
-pubfft.o: \
-                    ../include/dprec.fh\
-                    constants.o
-
-
-pubfft.o:   pubfft.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FNOOPTFLAGS) $(FFLAGS) -o $@ pubfft.F90
-
-quaternion.o: \
-                    ../include/dprec.fh
-
-
-quaternion.o:   quaternion.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ quaternion.F90
-
 rism3d_c.o: \
                     ../include/dprec.fh\
                     rism3d_solute_c.o\
@@ -157,7 +121,6 @@ rism3d_c.o: \
                     rism3d_grid_c.o\
                     rism3d_closure_c.o\
                     rism_report_c.o\
-                    rism_timer_c.o\
                     mdiis_c.o\
                     rism3d_fft.o\
                     rism3d_opendx.o\
@@ -284,16 +247,15 @@ rism3d_opendx.o:   rism3d_opendx.F90
 
 rism3d_potential_c.o: \
                     ../include/dprec.fh\
-                    rism_util.o\
-                    constants.o\
                     safemem.o\
                     rism3d_solute_c.o\
                     rism3d_solvent_c.o\
                     rism3d_grid_c.o\
-                    rism_timer_c.o\
                     rism3d_fft.o\
                     def_time.h\
+                    rism_util.o\
                     rism3d_opendx.o\
+                    constants.o\
                     bspline.o\
                     fftw3.o
 
@@ -395,22 +357,9 @@ rism_report_c.o:   rism_report_c.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(FFLAGS) -o $@ rism_report_c.F90
 
-rism_timer_c.o: \
-                    ../include/dprec.fh\
-                    rism_report_c.o
-
-
-rism_timer_c.o:   rism_timer_c.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(FFLAGS) -o $@ rism_timer_c.F90
-
 rism_util.o: \
                     ../include/dprec.fh\
-                    rism_report_c.o\
-                    constants.o\
-                    quaternion.o\
-                    safemem.o
+                    rism_report_c.o
 
 
 rism_util.o:   rism_util.F90

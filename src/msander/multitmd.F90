@@ -1,7 +1,6 @@
 module multitmd
 
 #include "../include/assert.fh"
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 public mtmdread, mtmdenergy, mtmdprint

@@ -1,7 +1,5 @@
-#include "copyright.h"
 #include "../include/dprec.fh"
 
-#ifndef PBSA
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Emit the final minimization report 
 !-----------------------------------------------------------------------
@@ -66,7 +64,7 @@ subroutine report_min_results( nstep, gradient_rms, coordinates, &
         call mtmdcall(emtmd,xx(lmtmd01),ix(imtmd02),coordinates,forces,ih(m04),ih(m02),ix(i02),&
                                       ih(m06),xx(lmass),natom,nres,'PRNT')
       end if
-      if (imin /= 5) call amflsh(MDINFO_UNIT)
+      if (imin /= 5) call flush(MDINFO_UNIT)
    end if
 
    return
@@ -118,12 +116,11 @@ subroutine report_min_progress( nstep, gradient_rms, forces, energies, &
       if ( ifcr > 0 .and. crprintcharges > 0 ) then
          call cr_print_charge( charge, nstep ) 
       end if
-      if (imin /= 5) call amflsh(MDINFO_UNIT)
+      if (imin /= 5) call flush(MDINFO_UNIT)
    end if
 
    return
 end subroutine report_min_progress
-#endif /*ifndef PBSA*/
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Compute the maximum gradient component and the corresponding atom
@@ -174,9 +171,6 @@ end subroutine grdmax
 subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       atom_number_of_gmax, atom_name_of_gmax )
    
-#ifdef APBS
-   use file_io_dat
-#endif
 #ifdef RISMSANDER
    use sander_rism_interface, only : rismprm, RISM_NONE, RISM_FULL, RISM_INTERP,&
         rism_calc_type, rism_thermo_print
@@ -263,10 +257,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       write(6,9048) enonb,enele,ehbond
    else if ( igb == 10 .or. ipb /= 0 ) then
       write(6,9050) enonb,enele,epb
-#ifdef APBS
-   else if ( igb == 6 .and. mdin_apbs ) then
-      write(6,9050) enonb,enele,epb
-#endif /* APBS */
 #ifdef RISMSANDER
    else if(rismprm%rism == 1 )then
       write(6,9051) enonb,enele,erism
@@ -331,9 +321,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
 #endif
    if( gbsa > 0 ) write(6,9077) esurf
    if (igb == 10 .or. ipb /= 0) write(6,9074) esurf,edisp
-#ifdef APBS
-   if (igb == 6 .and. mdin_apbs ) write(6,9069) esurf
-#endif /* APBS */
       if (cmap_active .and. ipol > 0 ) then
           write(6,9066) epolar, ene%pot%cmap
       else
@@ -351,7 +338,7 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    end if
    if (xray_active) call xray_write_min_state(6)
 
-   call amflsh(6)
+   call flush(6)
 
    !     ----- SEND IT TO THE INFO FILE -----
 
@@ -374,10 +361,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
          write(7,9048) enonb,enele,ehbond
       else if ( igb == 10 .or. ipb /= 0 ) then
          write(7,9050) enonb,enele,epb
-#ifdef APBS
-      else if ( igb == 6 .and. mdin_apbs ) then
-         write(7,9050) enonb,enele,epb
-#endif /* APBS */
 #ifdef RISMSANDER
       else if ( rismprm%rism == 1 ) then
          write(7,9051) enonb,enele,erism
@@ -441,9 +424,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
 #endif
       if( gbsa > 0 ) write(7,9077) esurf
       if ( igb == 10 .or. ipb /= 0 ) write(7,9074) esurf,edisp
-#ifdef APBS
-      if (igb == 6 .and. mdin_apbs ) write(7,9069) esurf
-#endif /* APBS */
 ! FF11 CMAP SPECIFIC ENERGY TERMS
       if (cmap_active .and. epolar /= 0.0 ) then
           write(7,9066) epolar, ene%pot%cmap
@@ -490,9 +470,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    9066 format (1x,'EPOLAR  = ',f13.4,2x,'CMAP    = ',f13.4)
    9067 format (1x,'CMAP    = ',f13.4)
    9068 format (1x,'EPOLAR  = ',f13.4)
-#ifdef APBS
-   9069 format (1x,'ENPOLAR = ',f13.4)
-#endif /* APBS */
    9074 format (1x,'ECAVITY = ',f13.4,2x,'EDISPER = ',f13.4)
    9077 format (1x,'ESURF   = ',f13.4)
    9078 format (1x,'EAMBER  = ',f13.4)

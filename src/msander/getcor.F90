@@ -1,6 +1,5 @@
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
-#include "copyright.h"
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Read initial coordinates (and velocities) from restart file

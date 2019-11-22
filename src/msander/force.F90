@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 #include "nfe-config.h"
@@ -59,10 +58,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, rism_force
 #endif /* RISMSANDER */
-#ifdef APBS
-  use apbs
-#endif /* APBS */
-  use trace
   use stack
   use qmmm_module, only : qmmm_nml
   use constants, only: zero, one
@@ -109,7 +104,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif /* MPI */
   use state
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
-  use abfqmmm_module
   use les_data, only: temp0les
   use music_module, only : music_force
 
@@ -146,9 +140,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #  ifdef LES
   _REAL_ :: vel0_nrg_sum
 #  endif /* LES */
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
 #endif /* MPI */
 
   logical belly
@@ -190,9 +181,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   integer i
   _REAL_  virvsene, eelt, epol, esurf, edisp
-#ifdef APBS
-  _REAL_ enpol
-#endif /* APBS */
 #ifdef RISMSANDER
   _REAL_ erism
 #endif /*RISMSANDER*/
@@ -211,7 +199,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ect = 0.0
 
-  call trace_enter( 'force' )
 
   call timer_start(TIME_FORCE)
   if ( idecomp /= 0 .and. icfe == 0) then
@@ -295,9 +282,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     ! For GB: do all nonbondeds together below
     call timer_start(TIME_NONBON)
     call timer_start(TIME_LIST)
-    if (abfqmmm_param%abfqmmm == 1) then
-      qsetup = .true.
-    end if
     call nonbond_list(x, ix(i04), ix(i06), ix(i08), ix(i10), ntypes, &
                       natom, xx, ix, ipairs, ntnb, ix(ibellygp), &
                       belly, newbalance, qsetup, do_list_update)
@@ -396,11 +380,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, cn6, &
                        eelt, epolar, f, xx, ix, ipairs, xx(l45), virvsene, &
                        xx(lpol), &
-#ifdef HAS_10_12
-                       xx(lpol2), .true., cn3, cn4, cn5, asol, bsol)
-#else
                        xx(lpol2), .true., cn3, cn4, cn5 )
-#endif
       call timer_stop(TIME_EWALD)
     endif
 
@@ -441,11 +421,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                             xx(lpol2), xx(lpolbnd), xx(l45), virvsene, &
                             ix(i02), ibgwat, nres, aveper, aveind, avetot, &
                             emtot, diprms, dipiter, dipole_temp, &
-#ifdef HAS_10_12
-                            cn3, cn4, cn5, asol, bsol)
-#else
                             cn3, cn4, cn5)
-#endif
       else
         if (ilrt /= 0) then
 
@@ -457,31 +433,19 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
             call ewald_force(x, natom, ix(i04), ix(i06), crg_m0, cn1, cn2, &
                              cn6, energy_m0, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
 
             ! call with water charges set to zero
             call ewald_force(x, natom, ix(i04), ix(i06), crg_w0, cn1, cn2, &
                              cn6, energy_w0, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
             ! call with full charges but no vdw interaction
             ! between solute and solvent
             call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1_lrt, &
                              cn2_lrt, cn6, eelt, epolar, f_scratch, xx, ix, &
                              ipairs, xx(l45), virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                             xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                              xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
             energy_vdw0 = evdw
             call lrt_solute_sasa(x,natom, xx(l165))
           end if
@@ -491,11 +455,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
           call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
                            cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
                            virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                           xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                            xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
           energy_vdw0 = evdw - energy_vdw0
 
           ! count call to ltr, maybe calculate Eee and print it
@@ -504,11 +464,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
           call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
                            cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
                            virvsene, xx(lpol), &
-#ifdef HAS_10_12
-                           xx(lpol2), .false. , cn3, cn4, cn5, asol, bsol)
-#else
                            xx(lpol2), .false. , cn3, cn4, cn5)
-#endif
         end if ! ilrt /= 0
       end if ! induced > 0
 
@@ -816,31 +772,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   endif
 #endif
 
-#ifdef APBS
-  ! Force computations from the Adaptive Poisson Boltzmann solver
-  if (mdin_apbs) then
-    if (igb /= 6) then
-      write(6, '(a)') '&apbs keyword requires igb=6.'
-      call mexit(6,1)
-    end if
-    call timer_start(TIME_PBFORCE)
-
-    ! Input:  coordinates, radii, charges
-    ! Output: updated forces (via apbs_params) and solvation energy
-    !         (pol + apolar)
-    if (sp_apbs) then
-      call apbs_spenergy(natom, x, f, eelt, enpol)
-    else
-      call apbs_force(natom, x, f, pot%vdw, eelt, enpol)
-    end if
-    pot%pb   = eelt 
-    pot%surf = enpol
-    call timer_stop(TIME_PBFORCE)
-
-  end if
-  ! End APBS force computations
-#endif /* APBS */
-
   if (master) then
     !  These parts of the NMR energies are not parallelized, so only
     !  are done on the master node:
@@ -1043,7 +974,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! End force computations and exit
   call timer_stop(TIME_FORCE)
-  call trace_exit('force')
   return
 
 end subroutine force

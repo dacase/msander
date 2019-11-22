@@ -16,7 +16,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module mdiis_blas_c
   use rism_report_c
-  use rism_timer_c
   implicit none
   type mdiis_blas
      private
@@ -38,8 +37,6 @@ module mdiis_blas_c
      !ri    :: array of residual data.  np X nVec
      _REAL_,pointer :: xi(:,:)=>NULL(), ri(:,:)=>NULL()
 
-     type(rism_timer) :: overlapTimer, restartTimer, &
-          lapackTimer, projectTimer
   end type mdiis_blas
 
 contains
@@ -58,28 +55,18 @@ contains
 !!!   np    :: number of data points (first dimension length)
 !!!   nVec   :: length of DIIS vectors
 !!!   restart :: restart threshold factor. Ratio of the current residual to the 
-!!!   timer :: parent rism_timer
 !!!              minimum residual in the basis that causes a restart
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine mdiis_blas_new_serial (this,delta,tol,restart,timer)
+  subroutine mdiis_blas_new_serial (this,delta,tol,restart)
     implicit none
     type(mdiis_blas),intent(inout) :: this
     _REAL_,intent(in) :: delta, tol, restart
-    type(rism_timer), intent(inout) :: timer
 
     this%delta = delta
     this%tol = tol
     this%restart = restart
     this%istep=0
     this%nVec0=0
-    call rism_timer_new(this%overlapTimer,"Overlap")
-    call rism_timer_setParent(this%overlapTimer,timer)
-    call rism_timer_new(this%restartTimer,"Restart")
-    call rism_timer_setParent(this%restartTimer,timer)
-    call rism_timer_new(this%lapackTimer,"Lapack")
-    call rism_timer_setParent(this%lapackTimer,timer)
-    call rism_timer_new(this%projectTimer,"Project")
-    call rism_timer_setParent(this%projectTimer,timer)
   end subroutine mdiis_blas_new_serial
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,16 +88,14 @@ contains
 !!!   rank  :: MPI process rank
 !!!   size  :: Number of processes
 !!!   comm  :: MPI communicator
-!!!   timer :: parent rism_timer
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine mdiis_blas_new_mpi(this,delta,tol,restart,timer,&
+  subroutine mdiis_blas_new_mpi(this,delta,tol,restart,&
        rank,size,comm)
     implicit none
     type(mdiis_blas),intent(out) :: this
     _REAL_,intent(in) :: delta, tol, restart
     integer, intent(in) :: rank, size, comm
-    type(rism_timer), intent(inout) :: timer
-    call mdiis_blas_new_serial(this,delta,tol,restart,timer)
+    call mdiis_blas_new_serial(this,delta,tol,restart)
     this%mpirank = rank
     this%mpisize = size
     this%mpicomm = comm
@@ -134,10 +119,6 @@ contains
     this%nVec0=0
     nullify(this%xi)
     nullify(this%ri)
-    call rism_timer_destroy(this%overlapTimer)
-    call rism_timer_destroy(this%restartTimer)
-    call rism_timer_destroy(this%lapackTimer)
-    call rism_timer_destroy(this%projectTimer)
   end subroutine mdiis_blas_destroy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -279,7 +260,6 @@ contains
     !............. calculate diagonal overlap of new residual ..............
     !                              and
     !........... calculate nondiagonal overlaps of new residual ............
-    call rism_timer_start(this%overlapTimer)
     call timer_start(TIME_MDIIS_DATA)
 #if defined(MPI)      
     call DGEMV ('T',this%np,this%nVec0,1d0,this%ri,this%np,&
@@ -294,7 +274,6 @@ contains
 #endif /*defined(MPI)*/
     call DCOPY(this%nVec0-1, this%overlap(2:this%nVec0,1), 1, this%overlap(1,2), this%nVec)
     call timer_stop(TIME_MDIIS_DATA)
-    call rism_timer_stop(this%overlapTimer)
  
     !................ get mean square value of new residual ................
     rms1 = sqrt( this%overlap(1,1)/(this%np*this%mpisize))
@@ -306,9 +285,7 @@ contains
        conver = .false.
     endif
 
-    call rism_timer_start(this%restartTimer)
     call checkrestart(this,rms1,vecUpdate)
-    call rism_timer_stop(this%restartTimer)
     nVec1 = min(this%nVec0,this%nVec-1)
 
 
@@ -330,7 +307,6 @@ contains
     !      |  : |
     !      |  0 |
     
-    call rism_timer_start(this%lapackTimer)
     call timer_start(TIME_MDIIS_LAPACK)
     aij(0,0) = 0d0
     bi=0
@@ -355,12 +331,10 @@ contains
        call rism_report_error("Linear equation solver failed.")
     endif
     call timer_stop(TIME_MDIIS_LAPACK)
-    call rism_timer_stop(this%lapackTimer)
 
     ! b(0,0) now contains the Lagrange multiplier and can be ignored.
     ! The coefficients are b(1:nvec0,0)
     !......... get DIIS minimum, MDIIS correction, and next point ..........
-    call rism_timer_start(this%projectTimer)
     !swap bi for the index that will be discarded with the first index
     temp = bi(vecUpdate,0)
     bi(vecUpdate,0) = bi(1,0)
@@ -397,7 +371,6 @@ contains
     !.................. reload overlaps of current point ...................
     call DCOPY(this%nVec,this%overlap(:,1),1,this%overlap(:,vecUpdate),1)
     call DCOPY(this%nVec,this%overlap(1,1),this%nVec,this%overlap(vecUpdate,1),this%nVec)
-    call rism_timer_stop(this%projectTimer)
   end subroutine mdiis_blas_advance
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

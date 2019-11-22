@@ -1,5 +1,4 @@
 !OPTIMIZEME??
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 

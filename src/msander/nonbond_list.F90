@@ -1,5 +1,4 @@
 !<compile=optimized>
-#include "copyright.h"
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
@@ -277,7 +276,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
                         do_list_update)
 #ifdef MPI
 #endif
-   use trace
    implicit none
 
    integer :: natom, ntnb, newbalance
@@ -302,9 +300,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #    undef MPI_DOUBLE_PRECISION
 #  endif
    include 'mpif.h'
-#  ifdef CRAY_PVP
-#    define MPI_DOUBLE_PRECISION MPI_REAL8
-#  endif
    integer tmplist(0:MPI_MAX_PROCESSORS), alllist(0:MPI_MAX_PROCESSORS)
 #else   /* not parallel needs numtasks and mytaskid */
    integer numtasks, mytaskid
@@ -329,7 +324,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #endif
    
    ! Code starts here
-   call trace_enter( 'nonbond_list' )
 #ifndef MPI
    mytaskid=0
    numtasks=1
@@ -368,7 +362,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     ! In these cases such a list is undoubtedly required or its
     ! contents are easily seen to be all pairs in the system.
     if (nocutoff) then
-      call trace_exit('nonbond_list')
       return
     end if
 
@@ -379,7 +372,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
         if(master)write(6,'(1x,A,I2)') 'OLD LIST LOGIC; ntnb = ',ntnb
       end if
       if (ntnb == 0) then
-        call trace_exit( 'nonbond_list' )
         return
       end if
     else
@@ -387,7 +379,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
       if (do_list_update) then
         call save_crds(natom,crd)
       else
-        call trace_exit( 'nonbond_list' )
         return
       end if
     end if
@@ -543,7 +534,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     ! Attempt load balancing in parallel simulations
     if (trial) then
       ASSERT(periodic == 0)
-      call trace_mpi('mpi_allreduce', nucgrd, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(gridpairs, gridpairs(1+nucgrd), nucgrd, &
                          mpi_integer, mpi_sum, commsander, ierr)
       call fix_grid_balance(gridpairs(1+nucgrd), nucgrd, numtasks, mytaskid, &
@@ -596,7 +586,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
         tmplist(i) = 0
       end do
       tmplist(mytaskid) = listtot
-      call trace_mpi('mpi_allreduce', numtasks, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(tmplist(0), alllist(0), numtasks, mpi_integer, &
                          mpi_sum, commsander, ierr)
       if (master) then
@@ -626,7 +615,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
   listtotall = listtot
 #ifdef MPI
     if (first_list_flag .or. (nbtell >= 1)) then
-      call trace_mpi('mpi_allreduce', 1, 'MPI_INTEGER', mpi_sum)
       call mpi_allreduce(listtot, listtotall, 1, mpi_integer, &
                          mpi_sum, commsander, ierr)
     end if
@@ -644,11 +632,10 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
     write(6, '(a,i10)') '| Local SIZE OF NONBOND LIST = ', listtot
     write(6, '(a,i10)') '| TOTAL SIZE OF NONBOND LIST = ', listtotall
   end if
-  call amflsh(6)
+  call flush(6)
 #endif /* API */
   first_list_flag = .false.
   call timer_stop(TIME_BLDLST)
-  call trace_exit( 'nonbond_list' )
 
   return
 
@@ -1566,9 +1553,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
 
   integer jtran
   _REAL_ x_tran, y_tran, z_tran, tranvec(3,*)
-#ifdef CRAY_X1
-  integer m2, mm, mlist(numlist)
-#endif
 
   num = 0
   m = maskptr(i)
@@ -1596,55 +1580,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
 
   deadi = .false.
   deadi = ((ibelly(i) == 0) .and. belly)
-
-#ifdef CRAY_X1
-  m2 = 0
-  do m = kk+1, numlist
-    jtran = itran(m)
-    x_tran = tranvec(1,itran(m))
-    y_tran = tranvec(2,itran(m))
-    z_tran = tranvec(3,itran(m))
-    n = atmlist(m)
-    k = bckptr(n)
-    deadik = ((ibelly(k) == 0) .and. deadi)
-    dx = imagcrds(1,n) - xk + x_tran
-    dy = imagcrds(2,n) - yk + y_tran
-    dz = imagcrds(3,n) - zk + z_tran
-    r2 = dx*dx + dy*dy + dz*dz
-    if (r2 < cutoffsq) then
-#ifdef TEST_CLOSEATOMS
-      if (r2 < .5) then
-        write(6,190) i, k, r2
-      end if
- 190  format("<pack_nb_list> Atoms close:",2i8,"  r**2 ",f10.6)
-#endif
-      if ((exclude(k) /= i) .and. .not. deadik) then
-        mygrdlist(n) = ior(mygrdlist(n), 1)
-        num = num + 1
-        m2 = m2 + 1
-        mlist(m2) = m
-      endif
-    endif
-  enddo
-  do mm = 1, m2
-    m = mlist(mm)
-    jtran = itran(m)
-    x_tran = tranvec(1,itran(m))
-    y_tran = tranvec(2,itran(m))
-    z_tran = tranvec(3,itran(m))
-    n = atmlist(m)
-    k = bckptr(n)
-    index = iaci + iac(k)
-    ic = ico(index)
-    if (ic >= 0) then
-      lpr = lpr+1
-      iwa(lpr) = ior(n,ishft(itran(m),27)) ! bitwise optimization
-    else
-      lhb = lhb+1
-      iwh(lhb) = ior(n,ishft(itran(m),27)) ! bitwise optimization
-    end if
-  enddo
-#else /* Generic (Not cray_x1) follows */
 
 #ifdef MPI /* SOFT CORE */
   softcore_on: if (ifsc .ne. 0) then
@@ -1766,7 +1701,6 @@ subroutine pack_nb_list(kk, i, xk, yk, zk, imagcrds, cutoffsq, numlist, &
   ! the indentation of the loop above.
   end if softcore_on
 # endif 
-#endif /* cray X1 */
   if (num + numpack > maxnblst) then
 #ifdef MPI
     write(6, '(/,a,i12,i12,a,i12,a,i4)') ' * NB pairs ', num, numpack, &
@@ -2080,7 +2014,6 @@ end subroutine fix_grid_balance
 !------------------------------------------------------------------------------
 subroutine adjust_imagcrds(crd, natom)
 
-   use trace
    use constants, only : half
    implicit none
    integer, intent(in) :: natom
@@ -2320,7 +2253,6 @@ end subroutine save_crds
 !------------------------------------------------------------------------------
 subroutine check_skin(crd,do_list_update)
 
-  use trace
   use constants, only : zero, fourth
   implicit none
   _REAL_, intent(in) :: crd(3,natom)
@@ -2336,7 +2268,6 @@ subroutine check_skin(crd,do_list_update)
   _REAL_ dx, dy, dz, dis2
   _REAL_ maxdis2
 
-  call trace_enter( 'check_skin' )
   steps_since_list_build = steps_since_list_build + 1
   first_atom = 1
   last_atom  = natom
@@ -2375,9 +2306,6 @@ subroutine check_skin(crd,do_list_update)
       end if
     end if
   end if
-
-  call trace_logical('do_list_update = ', do_list_update)
-  call trace_exit( 'check_skin' )
 
   return
 

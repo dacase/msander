@@ -1,5 +1,4 @@
 ! <compile=optimized>
-#include "copyright.h"
 #include "../include/dprec.fh"
 #include "../include/assert.fh"
 
@@ -11,7 +10,6 @@ subroutine get_fftdims(nfft1,nfft2,nfft3, &
       nfftdim1,nfftdim2,nfftdim3,nfftable,nffwork, &
       sizfftab,sizffwrk)
 
-   use trace
    implicit none
    integer nfft1,nfft2,nfft3,nfftdim1,nfftdim2,nfftdim3, &
          nfftable,nffwork,sizfftab,sizffwrk
@@ -21,7 +19,6 @@ subroutine get_fftdims(nfft1,nfft2,nfft3, &
 #  include "parallel.h"
 #  include "ew_parallel.h"
 #endif
-   call trace_enter( 'get_fftdims' )
    nfftdim1 = nfft1
    n = nfft1/2
    if ( nfft1 == 2*n )then
@@ -88,7 +85,6 @@ subroutine get_fftdims(nfft1,nfft2,nfft3, &
 
 #endif /* MPI */
 
-   call trace_exit( 'get_fftdims' )
    return
 end subroutine get_fftdims 
 
@@ -100,7 +96,6 @@ subroutine fft_backrc(array,fftable,ffwork, &
       nfft1,nfft2,nfft3,nfftdim1,nfftdim2, &
       tmpy, alpha,beta)
 
-   use trace
    implicit none
 
    _REAL_  array(*),fftable(*),ffwork(*)
@@ -108,7 +103,6 @@ subroutine fft_backrc(array,fftable,ffwork, &
    _REAL_  tmpy(*), &
          alpha(*),beta(*)
 
-   call trace_enter( 'fft_backrc' )
 
 #ifdef MPI
    call fft3d0rc(-1,nfft1,nfft2,nfft3,array, &
@@ -118,7 +112,6 @@ subroutine fft_backrc(array,fftable,ffwork, &
          nfftdim1,nfftdim2,fftable, ffwork,tmpy,alpha,beta )
 #endif
 
-   call trace_exit( 'fft_backrc' )
    return
 end subroutine fft_backrc 
 
@@ -130,14 +123,12 @@ subroutine fft_forwardrc(array,fftable,ffwork, &
       nfft1,nfft2,nfft3,nfftdim1,nfftdim2, &
       tmpy,alpha,beta)
 
-   use trace
    implicit none
    
    _REAL_  array(*),fftable(*),ffwork(*)
    integer nfft1,nfft2,nfft3,nfftdim1,nfftdim2
    _REAL_  tmpy(*),alpha(*),beta(*)
 
-   call trace_enter( 'fft_forwardrc' )
 
 #ifdef MPI
    call fft3d_zxyrc(1,nfft1,nfft2,nfft3,array, &
@@ -147,7 +138,6 @@ subroutine fft_forwardrc(array,fftable,ffwork, &
                     nfftdim1,nfftdim2,fftable,ffwork,tmpy,alpha,beta )
 #endif
    
-   call trace_exit( 'fft_forwardrc' )
    return
 end subroutine fft_forwardrc 
 
@@ -161,7 +151,6 @@ end subroutine fft_forwardrc
 subroutine fft_setup(array,fftable,ffwork, &
       nfft1,nfft2,nfft3,nfftdim1,nfftdim2)
    
-   use trace
    implicit none
    
    _REAL_  array(*),fftable(*),ffwork(*)
@@ -170,7 +159,6 @@ subroutine fft_setup(array,fftable,ffwork, &
    _REAL_  alpha(1),beta(1),tmpy(1)
    integer isign
    
-   call trace_enter( 'fft_setup' )
    isign = 0
 #ifdef MPI
    call fft3d0rc(isign,nfft1,nfft2,nfft3,array, &
@@ -180,7 +168,6 @@ subroutine fft_setup(array,fftable,ffwork, &
          nfftdim1,nfftdim2,fftable,ffwork,tmpy,alpha,beta )
 #endif
 
-   call trace_exit( 'fft_setup' )
    return
 end subroutine fft_setup 
 
@@ -205,7 +192,6 @@ subroutine par_fft_setup(n2,n3,ldx,ldx2, indz, &
       ntxyslab,ntxzslab,mxyslabs,mxzslabs, &
       nxyslab, nxzslab, mxystart,mxzstart,num_recip)
 
-   use trace
    implicit none
    
    !  #include "ew_parallel.h"
@@ -222,7 +208,6 @@ subroutine par_fft_setup(n2,n3,ldx,ldx2, indz, &
    integer n2, n3, ldx, ldx2, numtasks0 ,i,n3less
    integer n3all,n2all,n3left,n2left
 
-   call trace_enter( 'par_fft_setup' )
    !This is good for pub 1d fft and SGI 1d fft:
    indz = 2*n2
 
@@ -313,7 +298,6 @@ subroutine par_fft_setup(n2,n3,ldx,ldx2, indz, &
    mxzslabs = nxzslab(mytaskid)
 
    numtasks = numtasks0
-   call trace_exit( 'par_fft_setup' )
    return
 end subroutine par_fft_setup 
 
@@ -326,7 +310,6 @@ end subroutine par_fft_setup
 !+ [Enter a one-line description of subroutine xy_zx_transpose here]
 subroutine xy_zx_transpose(targ,src,ldx,n3,tmp,tmp1)
 
-   use trace
    implicit none
    _REAL_  targ(*), src(*), tmp(*),tmp1(*)
    integer n3, ldx, numval
@@ -337,7 +320,6 @@ subroutine xy_zx_transpose(targ,src,ldx,n3,tmp,tmp1)
 #  include "ew_parallel.h"
    integer ireq,isnd_stat(mpi_status_size)
 
-   call trace_enter( 'xy_zx_transpose' )
 
    rtask = mytaskid
    do jjtask = mytaskid+1, mytaskid+numtasks-1
@@ -358,32 +340,20 @@ subroutine xy_zx_transpose(targ,src,ldx,n3,tmp,tmp1)
             end do
          end do
 
-         call trace_mpi('mpi_*send', &
-               numval,'MPI_DOUBLE_PRECISION',jtask)
-#   ifdef MPI_BUFFER_SIZE
-         call mpi_bsend( &
-               tmp(1), numval, MPI_DOUBLE_PRECISION, &
-               jtask, 11, &
-               recip_comm, ierr )
-#   else
          call mpi_isend( &
                tmp(1), numval, MPI_DOUBLE_PRECISION, &
                jtask, 11, &
                recip_comm, ireq, ierr  )
-#   endif
 
          rtask = rtask - 1
          if ( rtask < 0 ) rtask = rtask + numtasks
          call xy_zx_trans_recv(targ,ldx,n3,tmp1,rtask)
       end if
-#   ifndef MPI_BUFFER_SIZE
       call mpi_wait(ireq, isnd_stat,ierr)
-#   endif
    end do  !  jjtask = mytaskid+1, mytaskid+numtasks-1
 
    !-----------------------------------------------------------------------
 
-   call trace_exit( 'xy_zx_transpose' )
    return
 end subroutine xy_zx_transpose 
 
@@ -395,7 +365,6 @@ end subroutine xy_zx_transpose
 !+ [Enter a one-line description of subroutine xy_zx_trans_recv here]
 subroutine xy_zx_trans_recv(targ,ldx,n3,foo,ktask)
 
-   use trace
    implicit none
 
 #  include "parallel.h"
@@ -409,10 +378,8 @@ subroutine xy_zx_trans_recv(targ,ldx,n3,foo,ktask)
 
    integer status(mpi_status_size)
 
-   call trace_enter( 'xy_zx_trans_recv' )
    numval = 2*ldx*nxzslab(mytaskid)*nxyslab(ktask)
 
-   call trace_mpi('mpi_recv',numval,'MPI_DOUBLE_PRECISION',ktask)
    call mpi_recv(foo(1), numval, MPI_DOUBLE_PRECISION, &
          ktask, 11, &
          recip_comm, status, ierr )
@@ -431,7 +398,6 @@ subroutine xy_zx_trans_recv(targ,ldx,n3,foo,ktask)
       end do
    end do
 
-   call trace_exit( 'xy_zx_trans_recv' )
    return
 end subroutine xy_zx_trans_recv 
 
@@ -443,7 +409,6 @@ end subroutine xy_zx_trans_recv
 !+ [Enter a one-line description of subroutine zx_xy_transpose here]
 subroutine zx_xy_transpose(targ,src,ldx,n3,tmp,tmp1)
 
-   use trace
    implicit none
    _REAL_  targ(*), src(*), tmp(*), tmp1(*)
    integer n3, ldx, numval
@@ -455,7 +420,6 @@ subroutine zx_xy_transpose(targ,src,ldx,n3,tmp,tmp1)
 #  include "ew_parallel.h"
    integer ireq,isnd_stat(mpi_status_size)
 
-   call trace_enter( 'zx_xy_transpose' )
    rtask = mytaskid
    do jjtask = mytaskid+1, mytaskid+numtasks-1
       jtask = mod(jjtask, numtasks)
@@ -475,30 +439,18 @@ subroutine zx_xy_transpose(targ,src,ldx,n3,tmp,tmp1)
             end do
          end do
 
-         call trace_mpi('mpi_*send', &
-               numval,'MPI_DOUBLE_PRECISION',jtask)
-#   ifdef MPI_BUFFER_SIZE
-         call mpi_bsend( &
-               tmp(1), numval, MPI_DOUBLE_PRECISION, &
-               jtask, 11, &
-               recip_comm, ierr )
-#   else
          call mpi_isend( &
                tmp(1), numval, MPI_DOUBLE_PRECISION, &
                jtask, 11, &
                recip_comm, ireq, ierr )
-#   endif
 
          rtask = rtask - 1
          if ( rtask < 0 ) rtask = rtask + numtasks
          call zx_trans_recv(targ,ldx,tmp1,rtask)
       end if
-#   ifndef MPI_BUFFER_SIZE
       call mpi_wait(ireq, isnd_stat,ierr)
-#   endif
    end do  !  jjtask = mytaskid+1, mytaskid+numtasks-1
 
-   call trace_exit( 'zx_xy_transpose' )
    return
 end subroutine zx_xy_transpose 
 
@@ -510,7 +462,6 @@ end subroutine zx_xy_transpose
 !+ [Enter a one-line description of subroutine zx_trans_recv here]
 subroutine zx_trans_recv(targ,ldx,foo,ktask)
 
-   use trace
    implicit none
 
    _REAL_  targ(*), foo(*)
@@ -524,10 +475,8 @@ subroutine zx_trans_recv(targ,ldx,foo,ktask)
 
    integer status(mpi_status_size)
 
-   call trace_enter( 'zx_trans_recv' )
    numval = 2*ldx*nxyslab(mytaskid)*nxzslab(ktask)
 
-   call trace_mpi('mpi_recv',numval,'MPI_DOUBLE_PRECISION',ktask)
    call mpi_recv(foo(1), numval, MPI_DOUBLE_PRECISION, &
          ktask, 11, &
          recip_comm, status, ierr )
@@ -546,7 +495,6 @@ subroutine zx_trans_recv(targ,ldx,foo,ktask)
       end do
    end do
 
-   call trace_exit( 'zx_trans_recv' )
    return
 end subroutine zx_trans_recv 
 
@@ -568,7 +516,6 @@ subroutine fft2d(isign,n1, n2, x, ldx, y, ldy, &
    !                 Oct 20, 1994
    !**************************************************************
 
-   use trace
    use constants, only : one
    implicit none
    _REAL_  x(*), y(*)
@@ -581,13 +528,11 @@ subroutine fft2d(isign,n1, n2, x, ldx, y, ldy, &
 
    !---------------------------------------------------------------
 
-   call trace_enter( 'fft2d' )
    if(isign == 0)then
 
       call cffti(n1,table)
       call cffti(n2,table(4*n1+15 + 1))
 
-      call trace_exit( 'fft2d' )
       return
    end if
 
@@ -693,7 +638,6 @@ subroutine fft2d(isign,n1, n2, x, ldx, y, ldy, &
             "Unknown FFT flag","Bombs away")
    end if  ! (isign == -1)
 
-   call trace_exit( 'fft2d' )
    return
 end subroutine fft2d 
 #endif /* MPI */
@@ -726,7 +670,6 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
       x, ldx,ldx2, table, work, tmpy, alpha, beta )
 #endif
 
-   use trace
    use constants, only : one
    implicit none
 
@@ -759,7 +702,6 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
    !         startup: initialize tables for all three dimensions
    
 
-   call trace_enter( 'fft3d0rc' )
 #ifndef MPI
    mxyslabs=n3
    mxzslabs=n2
@@ -776,7 +718,6 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
       call fft2drc(0,n1,n2,x,ldx,table,work,tmpy,alpha,beta)
       call cffti(n3,table(4*n1+15 + 4*n2+15 + 1))
 
-      call trace_exit( 'fft3d0rc' )
       return
    end if
 
@@ -842,7 +783,6 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
       x(k) = work(indz+k)
    end do
 
-   call trace_exit( 'fft3d0rc' )
    return
 end subroutine fft3d0rc 
 
@@ -863,7 +803,6 @@ subroutine fft3d_zxyrc(isign,n1,n2,n3,&
       x, ldx,ldx2,table, work,tmpy,alpha,beta )
 #endif
 
-   use trace
    use constants, only : one
    implicit none
    !****************************************************************
@@ -907,7 +846,6 @@ subroutine fft3d_zxyrc(isign,n1,n2,n3,&
    !--------------------------------------------------------------
    !         startup: no initialization possible in this routine
    
-   call trace_enter( 'fft3d_zxyrc' )
    if(isign == 0)then
       write(6,*)"fft3d_zxy ERROR, cannot do an isign of 0, I QUIT"
       stop
@@ -999,7 +937,6 @@ subroutine fft3d_zxyrc(isign,n1,n2,n3,&
       call fft2drc(isign,n1,n2,x(jj),ldx,table,work,tmpy,alpha,beta)
    end do
 
-   call trace_exit( 'fft3d_zxyrc' )
    return
 end subroutine fft3d_zxyrc 
 
@@ -1031,7 +968,6 @@ subroutine fft2drc(isign,n1, n2, x, ldx, &
    !                 Oct 20, 1994
    !**************************************************************
    
-   use trace
    use constants, only : TWOPI, one, half, zero
    implicit none
    integer isign,n1,n2,ldx
@@ -1045,7 +981,6 @@ subroutine fft2drc(isign,n1, n2, x, ldx, &
 
    !---------------------------------------------------------------
 
-   call trace_enter( 'fft2drc' )
    pi2n=TWOPI/n1
    n1x=n1/2
 
@@ -1061,7 +996,6 @@ subroutine fft2drc(isign,n1, n2, x, ldx, &
       call cffti(n1x,table)
       call cffti(n2,table(4*n1+15 + 1))
 
-      call trace_exit( 'fft2drc' )
       return
    end if
 
@@ -1171,7 +1105,6 @@ subroutine fft2drc(isign,n1, n2, x, ldx, &
       end do
    end if  ! (isign == -1)
 
-   call trace_exit( 'fft2drc' )
    return
 end subroutine fft2drc 
 

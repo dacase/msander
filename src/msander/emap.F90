@@ -11,7 +11,6 @@ module emap
   implicit none
 
 #include "../include/assert.fh"
-#include "copyright.h"
 #include "../include/dprec.fh"
 
 public   

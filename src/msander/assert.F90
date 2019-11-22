@@ -1,4 +1,3 @@
-#include "copyright.h"
 #include "../include/assert.fh"
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -12,7 +11,7 @@ subroutine Aass( condition, file, line )
 
    write( 6,'(5A,I6,A)') 'ASSERTion ''', condition, ''' failed in ' &
          , file, ' at line ', line, '.'
-   call amflsh(6)
+   call flush(6)
    call mexit(6,1)
    return
 end subroutine Aass 
