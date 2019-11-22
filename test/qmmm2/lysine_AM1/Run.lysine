@@ -2,6 +2,10 @@
 
 sander="../../../bin/msander"
 
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
 cat > mdin <<EOF
 Lysine: 5 cycles minimization, one methylene group QM, has link atoms
  &cntrl
@@ -18,7 +22,7 @@ EOF
 
 output=lysine.out
 
-$sander -O -c lysine.crd -o $output \
+$DO_PARALLEL $sander -O -c lysine.crd -o $output \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../../dacdif -t 1 $output.save $output
