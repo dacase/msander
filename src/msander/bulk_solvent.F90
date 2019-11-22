@@ -11,7 +11,11 @@ module bulk_solvent_mod
   double precision, dimension(3)    :: mask_grid_steps
 
   double precision, dimension(:), allocatable :: k_mask, k_scale, mask_cutoffs, &
-                                                 s_squared
+                                                 s_squared, b_vector_mask
+
+  ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
+  !                               FFT'd bulk solvent mask
+  integer, dimension(:), allocatable :: hkl_indexing_bs_mask
 
   ! Convenient numerical constants
   double precision, parameter :: pi = 3.14159265359, zero = 0.0, k_sol = 0.35, &
@@ -197,6 +201,8 @@ contains
     allocate(k_mask(NRF))
     allocate(k_scale(NRF))
     allocate(s_squared(NRF))
+    allocate(hkl_indexing_bs_mask(NRF))
+    allocate(b_vector_base(NRF_work))
 
     allocate(atom_types(n_atom))
     allocate(mask_cutoffs(n_atom))
@@ -298,6 +304,16 @@ contains
     allocate(mask_bs_grid_t_c_tmp(mask_grid_size(1) * mask_grid_size(2) * &
                                   (mask_grid_size(3) /2 + 1)))
 
+
+#if 0
+    !  need to get hkl here
+    do i = 1, NRF
+      hkl_indexing_bs_mask(i) = h_as_ih(hkl(i, 1), hkl(i, 2), hkl(i, 3), na, nb, nc)
+      if (hkl_indexing_bs_mask(i) == -1) then
+        stop 'Miller indices indexing failed'
+      end if
+    end do
+#endif
 
     call calc_grid_neighbors()
 

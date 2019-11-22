@@ -533,7 +533,7 @@ contains
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
       if( target(1:2) == 'ml' ) then
-         call init_ml(natom, nstlim, NAT_for_mask, num_hkl, &
+         call init_ml(natom, nstlim, num_hkl, &
               hkl_index, abs_Fobs, sigFobs, test_flag)
          ! call init_bulk_solvent(n_atom, NRF, resolution)
       end if

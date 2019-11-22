@@ -4,17 +4,10 @@ module ml_mod
   use file_io_dat
   implicit none
 
-  integer :: sfactors_unit = 31
-  character(len=50) :: sfactors_name = ''
-
-  ! Parameters for the structure factor computation, many of them supplied by the user
-  ! Potentially, they can be used if we want to restrain B-factors
+  ! Parameters for the structure factor computation
   double precision :: F_obs_sq_sum_work, F_obs_sq_sum_free, r_work_factor_denominator, &
                       r_free_factor_denominator, &
                       cell_volume, xray_r_work, xray_r_free
-
-  ! Unit cell dimensions
-  double precision, dimension(6)    :: uc_dimensions
 
   ! 7 x 7 transformation matrices to anisotropically scale structure factors from calculated
   ! to experimental
@@ -22,9 +15,7 @@ module ml_mod
 
   ! Arrays used in the computation of structure factors and ML parameters
   double precision, dimension(:), allocatable :: f_obs, f_obs_weight, f_obs_sigmas, &
-                                                 alpha_array, &
-                                                 beta_array, delta_array, &
-                                                 b_vector_base
+                                                 alpha_array, beta_array, delta_array
 
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
@@ -34,21 +25,15 @@ module ml_mod
                                                  t_optimal, alpha_in_zones, beta_in_zones
 
   ! Convenient numerical constants
-  double precision, parameter :: pi = 3.14159265359, zero = 0.0, k_sol = 0.35, &
-                                 b_sol = 46.0, mask_r_shrink = 0.9, &
-                                 mask_r_probe = 1.11, d_tolerance = 1.e-10
+  double precision, parameter :: pi = 3.14159265359, zero = 0.0, d_tolerance = 1.e-10
 
-  ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
-  !                               FFT'd bulk solvent mask
   ! h_sq, k_sq, l_sq:         Squares of H, K, and L indices (still integers)
   ! hk, kl, hl:               Products of H, K, and L indices
-  integer, dimension(:), allocatable :: hkl_indexing_bs_mask, &
-                                        h_sq, k_sq, l_sq, hk, kl, hl
+  integer, dimension(:), allocatable :: h_sq, k_sq, l_sq, hk, kl, hl
 
   ! NRF:                    The number of reflections (passed in from xray3 reads)
   ! NRF_work, NRF_work_sq:  Number of work reflections, and square thereof
   ! NRF_free:               Number of free reflections
-  ! NAT_for_mask:           Number of mask atoms
   ! call_est:               Tracking counter for pseudo-energy weight estimation
   ! N_steps:                The total number of simulation steps (N_steps is set directly to
   !                         nstlim). Used to potentially control the restraints weight
@@ -56,14 +41,9 @@ module ml_mod
   ! total_N_steps:          Step number to finish on. Similar purpose as for N_steps
   ! mask_update_frequency:  Solvent mask update freuency
   ! n_bins:                 Number of reflections per resolution bin
-  integer :: NRF,NRF_work, NRF_work_sq, NRF_free, NAT_for_mask, &
+  integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
              call_est, N_steps, starting_N_step, total_N_steps, &
              mask_update_frequency, n_bins
-
-  ! Threshold for atom types that will be included in the calculation.  These
-  ! type indexes are specific to the SF calculation with hard-wired parameters,
-  ! for the moment. Hydrogens are included into structure factors if 0, otherwise 1
-  integer, parameter :: h_threshold = 0
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -72,7 +52,7 @@ module ml_mod
   integer, dimension(:), allocatable :: bins_work_population, bins_free_population, &
                                         bins_free_start_indices, reflection_bin
 
-  ! hkl:                      N columns by 3 rows array containing HKL indices of reflections
+  ! hkl:                      3 rows by N columns array containing HKL indices of reflections
   !                             (transpose of hkl_index in xray3)
   ! bins_work_reflections:    Used to re-sort work reflections into the original order based on
   !                           resolution bin and relative position in it
@@ -190,13 +170,13 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !
   !--------------------------------------------------------------------------------------------
-  subroutine init_ml(n_atom, nstlim, nat_mask, NRF, hkl_tmp, &
+  subroutine init_ml(n_atom, nstlim, NRF, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag)
 
     use xray_globals_module, only: unit_cell
     implicit none
 
-    integer, intent(in) :: n_atom, nstlim, nat_mask, NRF
+    integer, intent(in) :: n_atom, nstlim, NRF
     integer, dimension(3,NRF), intent(in) :: hkl_tmp
     double precision, dimension(NRF), intent(in) :: f_obs_tmp, f_obs_sigma_tmp
     integer, dimension(NRF), intent(in) :: test_flag
@@ -207,30 +187,26 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
     double precision, dimension(:), allocatable :: d_star_sq, &
                                                    d_star_sq_sorted, bin_limits
-    integer, dimension(:), allocatable :: r_free_flag_array, counter_w, counter_f
+    integer, dimension(:), allocatable :: counter_w, counter_f
     integer (kind = 4) :: file_status
-    integer :: d_i, i, j, k, na, nb, nc
+    integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer, dimension(:,:), allocatable :: hkl
 
-    character(4) :: name
-    
     N_steps = nstlim
-    NAT_for_mask =nat_mask
 
     allocate(f_obs(NRF))
     allocate(f_obs_weight(NRF))
     allocate(f_obs_sigmas(NRF))
-    allocate(r_free_flag_array(NRF))
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
     allocate(hkl(3, NRF))
     allocate(delta_array(NRF))
     allocate(alpha_array(NRF))
-    alpha_array = 1.0
+    alpha_array(:) = 1.0
     allocate(beta_array(NRF))
-    beta_array = 1.0
-    ! allocate(s(3, NRF))
+    beta_array(:) = 1.0
+
     do i = 1, 7
       do j = 1, 7
         Ucryst(i, j) = zero
@@ -242,11 +218,8 @@ contains
     r_free_factor_denominator = zero
     r_free_counter = 0
     NRF_work = 0
-#if 0
-      read(sfactors_unit, *) mask_update_frequency
-      write(mdout, *) '| Mask update frequency = ', mask_update_frequency
-#endif
 
+    ! Following block work might be done somewhere else.
     a = unit_cell(1)
     b = unit_cell(2)
     c = unit_cell(3)
@@ -276,6 +249,8 @@ contains
     vcs(1:3) = vcs(1:3) / V
     cell_volume = V
 
+    ! start of block to separate work and free reflections, and sort into bins
+
     resolution = 50.0
     do i = 1, NRF
       r_free_flag = test_flag(i)
@@ -285,44 +260,37 @@ contains
                  2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
-      if (d < resolution) then
-        resolution = d
-        ! write(mdout, *) 'highest resolution', d, i
-      end if
+      resolution = min( d, resolution )
       if (r_free_flag == 0) then
         NRF_work = NRF_work + 1
-        k = NRF_work
         r_work_factor_denominator = r_work_factor_denominator + f_obs_tmp(i)
         F_obs_sq_sum_work = F_obs_sq_sum_work + f_obs_tmp(i) * f_obs_tmp(i) !* &
         ! (1.0/f_obs_sigma_tmp(i))**2
       else
-        k = NRF - r_free_counter
         r_free_counter = r_free_counter + 1
         r_free_factor_denominator = r_free_factor_denominator + f_obs_tmp(i)
         F_obs_sq_sum_free = F_obs_sq_sum_free + f_obs_tmp(i) * f_obs_tmp(i) !* &
         ! (1.0/f_obs_sigma_tmp(i))**2
       endif
-      r_free_flag_array(i) = r_free_flag
       d_star_sq(i) = d_star
       f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
     enddo
 
     NRF_free = NRF - NRF_work
-    if (NRF_free /= r_free_counter) then
-      write(mdout, *) 'STOP!!!!!!'
-    endif
+    REQUIRE( NRF_free == r_free_counter )
     write(mdout, *) 'NRFs', NRF_work, NRF_free, NRF
 
     ! Sort reflections for binning
     allocate(d_star_sq_sorted(NRF_free))
     r_free_counter = 0
     do i = 1, NRF
-      if (r_free_flag_array(i) == 1) then
+      if (test_flag(i) == 1) then
         r_free_counter = r_free_counter + 1
         d_star_sq_sorted(r_free_counter) = d_star_sq(i)
       end if
     end do
     call bubble_sort(d_star_sq_sorted)
+
     reflections_per_bin = 140.0
     if (reflections_per_bin > NRF_free) then
       reflections_per_bin = 1.0 * NRF_free
@@ -330,15 +298,13 @@ contains
     n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
     reflections_per_bin = 1.0 * NRF_free / n_bins
     write(mdout, *) "adjusted reflections per bin", reflections_per_bin
+
     allocate(bin_limits(n_bins + 1))
     bin_limits(1) = max(zero, d_star_sq_sorted(1) * (1 - d_tolerance))
     do i = 2, n_bins
       d_i = int((i-1) * reflections_per_bin + 0.5) + 1
       bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
-      if (d_i == NRF_free) then
-        write(mdout, *) "check your reflections file"
-        stop
-      end if
+      REQUIRE (d_i == NRF_free)
     end do
     bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
     write(mdout, *) "resolution bins"
@@ -379,7 +345,7 @@ contains
           reflection_bin(i) = j - 1
         end if
       end do
-      if (r_free_flag_array(i) == 0) then
+      if (test_flag(i) == 0) then
         bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
       else
         bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
@@ -394,7 +360,7 @@ contains
     counter_w = 1
     counter_f = 1
     do i = 1, NRF
-      if (r_free_flag_array(i) == 0) then
+      if (test_flag(i) == 0) then
         if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
           write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
         end if
@@ -450,8 +416,6 @@ contains
 
     ! Re-sort due to binning ended
 
-    allocate(b_vector_base(NRF_work))
-    allocate(hkl_indexing_bs_mask(NRF))
     allocate(h_sq(NRF))
     allocate(k_sq(NRF))
     allocate(l_sq(NRF))
