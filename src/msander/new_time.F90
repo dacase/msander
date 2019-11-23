@@ -50,7 +50,6 @@ subroutine fill_timer_array()
          call add_timer(TIME_FFTXTRA2, &
                TIME_FFTCOMM,'FFT call transp')
 
-
       call add_timer(TIME_FFTCOMM3, &
             TIME_FFT,'FFT fwd comm')
          call add_timer(TIME_FFTTRANS3, &
@@ -195,6 +194,10 @@ subroutine fill_timer_array()
    call add_timer(TIME_AIPS_FFT,  TIME_AIPS,'AIPS FFT')
    call add_timer(TIME_AIPS_SUM,  TIME_AIPS,'AIPS sum')
    call add_timer(TIME_AIPS_FRC,  TIME_AIPS,'AIPS force')
+   !-- xray energies
+   call add_timer(TIME_XRAY,TIME_FORCE,'Xray restaints')
+   call add_timer(TIME_IHKL,TIME_XRAY,'Fcalc loop' )
+   call add_timer(TIME_DHKL,TIME_XRAY,'Deriv loop' )
 
    return
 end subroutine fill_timer_array
@@ -645,6 +648,7 @@ subroutine write_timers(all,nf)
             if ( p > 99.9 )then
                write(nf,29)space(1:length(j)),other,t,short
             else
+               if ( p > 1 ) &
                write(nf,30)space(1:length(j)),other,t,p,short
             end if
          end if
@@ -668,6 +672,7 @@ subroutine write_timers(all,nf)
          if ( p > 99.9 )then
             write(nf,29)space(1:length(j)),t_string(i),t,short
          else
+            if ( p > 1 ) &
             write(nf,30)space(1:length(j)),t_string(i),t,p,short
          end if
       end if  ! ( t_print(i) > 0 )

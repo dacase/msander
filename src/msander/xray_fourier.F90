@@ -19,7 +19,7 @@ module xray_fourier_module
 !                         from that routine in array dF) and dF/dXYZ or
 !                         dF/dB or dF/dQ (computed in this routine).
 !
-!  dTarget_dF         --  Calculate a structure-factor restraint force
+!  dTargetLS_d        --  Calculate a structure-factor restraint force
 !                         from the scalar difference of |Fobs| and |Fcalc|.
 !                         This uses a simple least-squares target function.
 !
@@ -289,7 +289,7 @@ contains
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
 
-   subroutine dTarget_dF(num_hkl,abs_Fobs,Fcalc,weight,selected,deriv, &
+   subroutine dTargetLS_dF(num_hkl,abs_Fobs,Fcalc,weight,selected,deriv, &
          residual,xray_energy)
       implicit none
       integer, intent(in) :: num_hkl
@@ -307,6 +307,7 @@ contains
       logical, save :: first = .true.
 
       abs_Fcalc(:) = abs(Fcalc(:))
+      deriv(:) = 0._rk_
 
       if( first ) then
          if (present(selected)) then
@@ -387,7 +388,7 @@ contains
          end if
       end if
 
-   end subroutine dTarget_dF
+   end subroutine dTargetLS_dF
 
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the vector (complex) difference between Fcalc and

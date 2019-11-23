@@ -7,9 +7,9 @@ if [ ! -z "$DO_PARALLEL" ]; then
 fi
 
 cat > mdin.rism <<eof
-  single-point 3D-RISM calculation using the sander interface
+  3D-RISM calculation using the sander interface
  &cntrl
-    ntx=1, nstlim=10, irism=1, ntpr=1,
+    ntx=1, nstlim=2, irism=1, ntpr=1,
     tempi=0.0, ithermostat=0, dt=0.001, 
  /
  &rism

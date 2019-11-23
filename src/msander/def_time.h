@@ -158,3 +158,6 @@
 #define TIME_AIPS_FFT 173
 #define TIME_AIPS_SUM 174
 #define TIME_AIPS_FRC 175
+#define TIME_XRAY 176
+#define TIME_IHKL 177
+#define TIME_DHKL 178

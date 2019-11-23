@@ -1,0 +1,56 @@
+#!/bin/sh
+
+sander="../../../bin/msander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+cat <<EOF > mdin
+Standard MD run input
+ &cntrl
+  ntx    = 1, ntpr   = 1, ntf    = 8,       ntb    = 1,
+  cut   =  8.0, imin=1, maxcyc=1, ntmin=1,
+  nstlim = 5,
+ /
+ &ewald
+    vdwmeth=0,
+ /
+ &xray
+   spacegroup_name='P1',
+   pdb_infile = 'SolvXtal.pdb',
+   pdb_outfile = 'out.pdb',
+   reflection_infile = '2wcu-sf.dat',
+   atom_selection_mask = '!(@H=) & !(:WAT)',
+   xray_weight = 10000.
+   fft_method = 0, 
+ /
+ &debugf
+  do_debugf=1, neglgdel=4, nranatm=0, atomn = 1,4740,
+  chkvir=0, dumpfrc=0, rmsfrc=0, zerochg=0, zerovdw=0,
+  do_dir=0, do_rec=0, do_adj=0, do_self=0, do_bond=0,
+  do_angle=0, do_ephi=0, do_cap=0, doxconst=0, do_14=0,
+  do_tgt=0, do_pbdir=0, do_pbnp=0, do_pbfd=0,
+ /
+EOF
+
+output=2wcu_debug.out
+
+$DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c 2wcu_uc.rst7  \
+     -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif $output.save $output
+
+/bin/rm -f mdin
+exit 0
+
+
+
+
+
+
+
+
+
+

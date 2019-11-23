@@ -615,6 +615,7 @@ contains
       use xray_fourier_module
       use xray_utils_module, only: pack_index
       use xray_reciprocal_space_module, only: scale_data
+      implicit none
       real(real_kind), intent(in) :: xyz(3,num_atoms)
       real(real_kind), intent(inout) :: dxyz(3,num_atoms)
       real(real_kind), intent(out) :: xray_e
@@ -637,7 +638,9 @@ contains
 #else
       integer :: mytaskid = 0
 #endif
+#include "def_time.h"
 
+      call timer_start(TIME_XRAY)
       allocate(sel_index(num_atoms),stat=alloc_status)
       REQUIRE(alloc_status==0)
       call pack_index(atom_selection(:)==1 .and. atom_scatter_type(:)>0, sel_index, num_selected)
@@ -650,11 +653,13 @@ contains
       
 !     This call uses MPI parallel to compute Fcalc:
       if( fft_method == 0 ) then
+         call timer_start(TIME_IHKL)
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4,test_flag, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_occupancy(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)) )
+         call timer_stop(TIME_IHKL)
 #if 0
       else
          call FFT_Fcalc(num_hkl,Fcalc,test_flag-1, &
@@ -670,13 +675,13 @@ contains
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
 
-      !call dTarget_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
+      !call dTargetLS_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
       else if( target(1:2) == 'ls' ) then
-         call dTarget_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
+         call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
          call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
@@ -724,6 +729,7 @@ contains
       dF = xray_weight * dF
 
       if( fft_method == 0 ) then
+         call timer_start(TIME_DHKL)
          ! This call uses MPI parallel to compute xray_dxyz:
          if( present(dB) ) then
             call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
@@ -738,6 +744,7 @@ contains
             atom_scatter_type(sel_index(1:num_selected)), &
             dxyz=xray_dxyz )
          endif
+         call timer_stop(TIME_DHKL)
 #if 0
       else
          call FFT_dXYZBQ_dF(num_hkl,dF,test_flag-1, &
@@ -769,6 +776,7 @@ contains
       REQUIRE(dealloc_status==0)
 
       ! end if  ! from the xray logic
+      call timer_stop(TIME_XRAY)
 
    end subroutine xray_get_derivative
 
