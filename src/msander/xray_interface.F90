@@ -654,10 +654,9 @@ contains
 !     This call uses MPI parallel to compute Fcalc:
       if( fft_method == 0 ) then
          call timer_start(TIME_IHKL)
-         call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4,test_flag, &
+         call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
-            atom_occupancy(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)) )
          call timer_stop(TIME_IHKL)
 #if 0
@@ -674,8 +673,6 @@ contains
       call mpi_allreduce( MPI_IN_PLACE, Fcalc, num_hkl, &
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
-
-      !call dTargetLS_dF(num_hkl, Fobs,Fcalc,selected=test_flag-1,residual=r_free)
 
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
