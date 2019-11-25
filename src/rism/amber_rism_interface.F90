@@ -1344,10 +1344,6 @@ contains
        return
     end if
 
-    call rism_writePdfTcfDcf(this, writeVolume, step, extension)
-    call rism_writeThermo(this, writeVolume, step, extension)
-    call rism_writeSmearElectronMap(this, writeVolume, step, extension)
-    
   end subroutine rism_writeVolumetricData
 
   !> Outputs PDF, TCF, and DCF. Each distribution
@@ -1449,121 +1445,6 @@ contains
     if (safemem_dealloc(work)/= 0) &
          call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate WORK")
   end subroutine rism_writePdfTcfDcf
-
-  !> Outputs smeared solvent electron map.. Each distribution
-  !! is written in a separate file with the step number before the
-  !! suffix. 
-  !! @param[in,out] this 3D-RISM object.
-  !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeSmearElectronMap(this, writeVolume, step, extension)
-    use constants, only : COULOMB_CONST_E, KB, PI
-    use amber_rism_interface
-    use rism_io
-    use rism3d_ccp4
-    use rism3d_opendx
-    use rism3d_xyzv
-    use rism3d_c, only: createElectronDensityMap
-    use safemem
-    implicit none
-
-    type(rism3d), intent(inout) :: this
-    character(len=*), intent(in) :: extension
-    integer, intent(in) :: step
-    procedure (writeVolumeInterface) :: writeVolume 
-    
-    character(len=64) :: suffix
-    character(len=16) :: cstep
-
-    integer :: i, j, k, iv, elec_tot
-    _REAL_, pointer :: electronRDF(:) => NULL()
-    _REAL_ :: electronRDFGridSpacing
-    character(len=1024) :: amberhome, rdfFilename
-    
-    do iv = 1, this%solvent%numAtomTypes
-       write(cstep, '(i16)') step
-       cstep = adjustl(cstep)
-       suffix = '.'//trim(rism_3d%solvent%atomName(iv))//'.'//trim(cstep)
-       suffix = trim(suffix)//extension
-       
-       ! Smeared solvent electron map.
-       if (len_trim(electronMapFile) /= 0) then
-
-          ! dac strategy: do this for all values of iv, skipping H,
-          !   assumed to be in water for now.  This will potentially
-          !   create more files than we need, but they could be summed
-          !   in a separate script later to create a full map.
-
-          if( rism_3d%solvent%atomName(iv)(1:1) .eq. 'H' ) cycle
-
-          call getenv('AMBERHOME', amberhome)
-          rdfFilename = trim(amberhome) // '/dat/rism3d/electron_rdf/' & 
-               // trim(rism_3d%solvent%atomName(iv)) // '.rdf'
-          call readRDF1D(trim(rdfFilename), elec_tot,  &
-               electronRDF, electronRDFGridSpacing)
-
-          call createElectronDensityMap(this, iv, electronRDF, &
-               electronRDFGridSpacing, elec_tot, &
-               this%solvent%density(iv),  this%electronMap)
-          call writeVolume(trim(electronMapFile)//suffix, &
-               this%electronMap(:, :, :), &
-               this%grid, this%solute, mpirank, mpisize, mpicomm)
-          if (safemem_dealloc(electronRDF) /= 0) then
-             call rism_report_error( &
-                "rism_writeVolumetricData: Deallocate of electron RDF failed.")
-          end if
-       end if
-
-    end do
-
-
-    if (safemem_dealloc(electronRDF)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate ELECTRON_RDF")
-  end subroutine rism_writeSmearElectronMap
-    
-
-
-  !> Outputs PDF, TCF, and DCF. Each distribution
-  !! is written in a separate file with the step number before the
-  !! suffix. 
-  !! @param[in,out] this 3D-RISM object.
-  !! @param[in] step Step number used as a suffix.
-  subroutine rism_writePotentialAsymptotics(this, writeVolume, step, extension)
-    use constants, only : COULOMB_CONST_E, KB, PI
-    use amber_rism_interface
-    use rism_io
-    use rism3d_ccp4
-    use rism3d_opendx
-    use rism3d_xyzv
-    use safemem
-    implicit none
-
-    type(rism3d), intent(inout) :: this
-    integer, intent(in) :: step
-    character(len=*), intent(in) :: extension
-    procedure (writeVolumeInterface) :: writeVolume 
-
-    character(len=64) :: suffix
-    character(len=16) :: cstep
-    integer :: i, j, k, iv
-
-    logical :: warned_h, warned_all
-
-    warned_h = .false.
-    warned_all = .false.
-    
-    do iv = 1, this%solvent%numAtomTypes
-       ! Solute-solvent electric potential.
-       if (len_trim(uuvfile) /= 0)  then
-          write(cstep, '(i16)') step
-          cstep = adjustl(cstep)
-          suffix = '.'//trim(rism_3d%solvent%atomName(iv))//'.'//trim(cstep)
-          suffix = trim(suffix)//extension
-
-          call writeVolume(trim(uuvfile)//suffix, this%potential%uuv(:, :, :, iv), &
-               this%grid, this%solute, mpirank, mpisize, mpicomm)
-       endif
-    end do
-  end subroutine rism_writePotentialAsymptotics
 
   !> Outputs thermodynamics distributions. Each distribution
   !! is written in a separate file with the step number before the
