@@ -59,23 +59,21 @@ contains
    ! mSS4 = -S*S/4
    ! mSS4 is more relevant to the formulas used than S.
 
-   subroutine fourier_Fcalc( &
-      num_hkl,hkl,Fcalc,mSS4,hkl_selected, & ! reflections
-      num_atoms,xyz,tempFactor,occupancy,scatter_type_index)
+   subroutine fourier_Fcalc(  num_hkl,hkl,Fcalc,mSS4, &
+      num_atoms,xyz,tempFactor,scatter_type_index, occupancy)
 
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
       complex(real_kind), intent(out) :: Fcalc(num_hkl)
       real(real_kind), intent(in) :: mSS4(num_hkl)
-      integer, intent(in), optional :: hkl_selected(num_hkl)
-
       integer, intent(in) :: num_atoms
       real(real_kind), intent(in), target :: xyz(3,num_atoms)
       real(real_kind), intent(in) :: tempFactor(num_atoms)
-      real(real_kind), intent(in), target, optional :: occupancy(num_atoms)
       ! index into the scatter - type coeffs table for each atom:
       integer, intent(in), target :: scatter_type_index(num_atoms) 
+      ! integer, intent(in), optional :: hkl_selected(num_hkl)
+      real(real_kind), intent(in), target, optional :: occupancy(num_atoms)
 
       ! locals
       integer :: ihkl, i, ier
@@ -105,9 +103,10 @@ contains
 
 !$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
-         if (present(hkl_selected)) then
-            if (hkl_selected(ihkl)==0) cycle
-         end if
+         ! always compute all Fcalcs: we'll want these for everything anyway(?)
+         ! if (present(hkl_selected)) then
+         !    if (hkl_selected(ihkl)==0) cycle
+         ! end if
 
          ! NOTE: the atomic scatter factors do not change for a given atom type
          ! and hkl index as long as the unit cell is unchanged. If the number 
@@ -295,8 +294,8 @@ contains
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)
       complex(real_kind), intent(in) :: Fcalc(:)
-      integer, intent(in), optional :: selected(:)
       real(real_kind), intent(in), optional :: weight (:)
+      integer, intent(in), optional :: selected(:)
       complex(real_kind), intent(out), optional :: deriv(:)
       real(real_kind), intent(out), optional :: residual
       real(real_kind), intent(out), optional :: xray_energy
