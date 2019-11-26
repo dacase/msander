@@ -1995,7 +1995,7 @@ contains
     integer :: write_thermo
     namelist /rism/ &
          closure, closureOrder, biasPotential, periodic, &
-         buffer, grdspc, solvcut, ng3, solvbox, &
+         grdspc, solvcut, ng3, solvbox, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
          mdiis_restart, maxstep, npropagate, centering, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
@@ -2112,19 +2112,6 @@ contains
           call rism_report_error( &
           "Only 'ewald', 'ewaldn', 'pme' and 'pmen' periodic potentials are supported.")
        end if 
-    end if
-
-    ! Ensure that solvbox and ng3 have been set if buffer < 0.
-    if (rismprm%buffer < 0) then
-       if (minval(rismprm%ng3) < 0) &
-            call rism_report_error('if buffer < 0 ng3 (grid size) must be set.')
-       if (minval(rismprm%solvbox) < 0) &
-            call rism_report_error('if buffer < 0 solvbox must be set.')
-       ! Ensure that the cutoff is set to a reasonable value. This can
-       ! happen if buffer is < 0.
-       if (rismprm%solvcut < 0 .and. periodicPotential /= '') then
-          call rism_report_error('solvcut must be >= 0.')
-       end if
     end if
 
     ! Ensure that an apropriate file format has been chosen for

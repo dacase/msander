@@ -208,7 +208,7 @@ module rism3d_c
 
   public :: rism3d_new, rism3d_destroy, rism3d_calculateSolution, rism3d_force, &
        rism3d_excessChemicalPotential_tot, rism3d_excessChemicalPotential, &
-       rism3d_setbox_fixed, &
+       rism3d_setbox_variable, &
        rism3d_setclosure, rism3d_setverbosity, rism3d_setcut, rism3d_setmdiis
 
   private :: resizeBox, reallocateBox, &
@@ -439,7 +439,7 @@ contains
 
     call rism3d_setcut(this, t_cut)
     call rism3d_setclosurelist(this, t_closure)
-    call rism3d_setbox_fixed(this, t_boxlen, t_ng3)
+    call rism3d_setbox_variable(this, t_buffer, t_grdspc)
 
     if (present(o_unitCellDimensions)) then
        !TODO: This can probably be made a local variable.
@@ -483,21 +483,19 @@ contains
     can_molReconstruct = rism3d_solvent_canCalc_molReconstruct(this%solvent)
   end function rism3d_canCalc_molReconstruct
 
-  !>Sets the parameters for a fixed solvation box.
+  !> Sets the parameters for a variable solvation box.
   !! IN:
   !!  this :: rism3d object
-  !!  boxlen :: solvent box size in each dimension in Angstroms
-  !!  ng3    :: number of grid points in each dimension
-  subroutine rism3d_setbox_fixed(this, boxlen, ng3)
+  !!  buffer :: shortest distance between solute and solvent box boundary
+  !!  grdspc :: linear grid spacing for the solvent box in each dimension
+  subroutine rism3d_setbox_variable(this, buffer, grdspc)
     implicit none
     type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: boxlen(3)
-    integer, intent(in) :: ng3(3)
-    this%varbox = .false.
-    this%fixedBoxDimensionsR = boxlen
-    this%fixedNumGridPoints = ng3
-  end subroutine rism3d_setbox_fixed
-
+    _REAL_, intent(in) :: buffer, grdspc(3)
+    this%varbox = .true.
+    this%buffer = buffer
+    call rism3d_grid_setSpacing(this%grid, grdspc)
+  end subroutine rism3d_setbox_variable
 
   !> Sets the closure list and sets the current closure to the first one
   !! in the list.  When there is no previous solution to work from, the
