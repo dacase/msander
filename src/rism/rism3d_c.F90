@@ -208,7 +208,6 @@ module rism3d_c
 
   public :: rism3d_new, rism3d_destroy, rism3d_calculateSolution, rism3d_force, &
        rism3d_excessChemicalPotential_tot, rism3d_excessChemicalPotential, &
-       rism3d_setbox_variable, &
        rism3d_setclosure, rism3d_setverbosity, rism3d_setcut, rism3d_setmdiis
 
   private :: resizeBox, reallocateBox, &
@@ -353,19 +352,26 @@ contains
        t_mdiis_del = mdiis_del
        t_mdiis_restart = mdiis_restart
        ! check box parameters
-       if (present(o_buffer) .and. present(o_grdspc)) then
-              !! (This branch should also be taken for periodic RISM)
+       if (present(o_grdspc)) then
+          ! (When the user specifies the grid spacing, this is called
+          ! a "variable" box, even though it is not really variable.)
+          ! (This branch should also be taken for periodic RISM)
           t_buffer = o_buffer
           t_grdspc = o_grdspc
           if (present(o_boxlen) .or. present(o_ng3)) &
-               call rism_report_error("RISM3D: do not set BOXLEN or NG3 for variable box size")
-       else if (present(o_boxlen) .and. present(o_ng3)) then
+               call rism_report_error( &
+                 "RISM3D: do not set BOXLEN or NG3 for variable box size")
+       else if (present(o_ng3)) then
+          ! User giving requested number of grid points is called
+          ! a "fixed" box size.
           t_boxlen = o_boxlen
           t_ng3 = o_ng3
-          if (present(o_buffer) .or. present(o_grdspc)) &
-               call rism_report_error("RISM3D: do not set BUFFER or GRDSPC for fixed box size")
+          if (present(o_grdspc)) &
+               call rism_report_error( &
+                 "RISM3D: do not set BUFFER or GRDSPC for fixed box size")
        else
-          call rism_report_error("RISM3D: not enough parameters for fixed or variable box size")
+          call rism_report_error( &
+             "RISM3D: not enough parameters for fixed or variable box size")
        end if
        if (present(o_unitCellDimensions)) then
           t_unitCellDimensions = o_unitCellDimensions
@@ -439,7 +445,15 @@ contains
 
     call rism3d_setcut(this, t_cut)
     call rism3d_setclosurelist(this, t_closure)
-    call rism3d_setbox_variable(this, t_buffer, t_grdspc)
+    if (present(o_grdspc)) then
+       this%varbox = .true.
+       this%buffer = t_buffer
+       call rism3d_grid_setSpacing(this%grid, t_grdspc)
+    else
+       this%varbox = .false.
+       this%fixedBoxDimensionsR = t_boxlen
+       this%fixedNumGridPoints = t_ng3
+    end if
 
     if (present(o_unitCellDimensions)) then
        !TODO: This can probably be made a local variable.
@@ -482,20 +496,6 @@ contains
     logical :: can_molReconstruct
     can_molReconstruct = rism3d_solvent_canCalc_molReconstruct(this%solvent)
   end function rism3d_canCalc_molReconstruct
-
-  !> Sets the parameters for a variable solvation box.
-  !! IN:
-  !!  this :: rism3d object
-  !!  buffer :: shortest distance between solute and solvent box boundary
-  !!  grdspc :: linear grid spacing for the solvent box in each dimension
-  subroutine rism3d_setbox_variable(this, buffer, grdspc)
-    implicit none
-    type(rism3d), intent(inout) :: this
-    _REAL_, intent(in) :: buffer, grdspc(3)
-    this%varbox = .true.
-    this%buffer = buffer
-    call rism3d_grid_setSpacing(this%grid, grdspc)
-  end subroutine rism3d_setbox_variable
 
   !> Sets the closure list and sets the current closure to the first one
   !! in the list.  When there is no previous solution to work from, the
