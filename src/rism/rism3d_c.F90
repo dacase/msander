@@ -120,8 +120,6 @@ module rism3d_c
      !> Number of past direct correlation function time step saves.
      integer :: ncuvsteps ! numDCFsteps
 
-     !> Buffer distance to the edge of the box for the solvent. [A]
-     _REAL_ :: buffer = 12d0
      !> Fixed box size for 3D-RISM.
      _REAL_ :: fixedBoxDimensionsR(3)
      !> Number of Cartesian grid points in each dimension for a fixed box size.
@@ -221,8 +219,7 @@ contains
   !> Constructor - precalculates the solute solvent terms that are not
   !! configuration dependent and sets box parameters.
   !!
-  !! For periodic simulations, buffer can be set but will be ignored;
-  !! (this should get fixed).  The unit cell parameters give the size of
+  !! For periodic simulations, the unit cell parameters give the size of
   !! the box, and the grdspc(1:3) array gives an approximate grid
   !! spacing.  The actual spacing will be set that an exact number of 
   !! grids spans the box, and so that the number of grid points is even.  
@@ -250,7 +247,6 @@ contains
   !!   mdiis_method :: which implementation of the algorithm
   !!   chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
-  !!   o_buffer :: (optional) shortest distance between solute and solvent box boundary
   !!   o_grdspc :: (optional) linear grid spacing for the solvent box in each dimension
   !!   o_boxlen :: (optional) solvent box size in each dimension [A]
   !!   o_ng3    :: (optional) number of grid points in each dimension
@@ -260,8 +256,7 @@ contains
 
   subroutine rism3d_new(this, solute, solvent, centering, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       chargeSmear, &
-       o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
+       chargeSmear, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions, o_biasPotential)
     use rism3d_solute_c
     use rism3d_solvent_c
@@ -278,7 +273,7 @@ contains
     _REAL_, intent(in) :: cut
     integer, intent(in) :: mdiis_nvec, mdiis_method
     _REAL_, intent(in) :: mdiis_del, mdiis_restart
-    _REAL_, optional, intent(in) :: o_buffer, o_grdspc(3)
+    _REAL_, optional, intent(in) :: o_grdspc(3)
     _REAL_, optional, intent(in) :: o_boxlen(3)
     integer, optional, intent(in) :: o_ng3(3)
     integer, optional, intent(in) :: o_mpicomm
@@ -291,7 +286,7 @@ contains
     _REAL_ :: t_cut
     integer :: t_mdiis_nvec, t_mdiis_method
     _REAL_ :: t_mdiis_del, t_mdiis_restart
-    _REAL_ :: t_buffer, t_grdspc(3)
+    _REAL_ :: t_grdspc(3)
     _REAL_ :: t_boxlen(3)
     integer :: t_ng3(3)
     _REAL_ :: t_unitCellDimensions(6)
@@ -356,7 +351,6 @@ contains
           ! (When the user specifies the grid spacing, this is called
           ! a "variable" box, even though it is not really variable.)
           ! (This branch should also be taken for periodic RISM)
-          t_buffer = o_buffer
           t_grdspc = o_grdspc
           if (present(o_boxlen) .or. present(o_ng3)) &
                call rism_report_error( &
@@ -368,7 +362,7 @@ contains
           t_ng3 = o_ng3
           if (present(o_grdspc)) &
                call rism_report_error( &
-                 "RISM3D: do not set BUFFER or GRDSPC for fixed box size")
+                 "RISM3D: do not set GRDSPC for fixed box size")
        else
           call rism_report_error( &
              "RISM3D: not enough parameters for fixed or variable box size")
@@ -407,9 +401,7 @@ contains
     if (err /=0) call rism_report_error("RISM3D: broadcast MDIIS_RESTART in constructor failed")
     call mpi_bcast(t_mdiis_method, 1, mpi_integer, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast MDIIS_METHOD in constructor failed")
-    if (present(o_buffer) .and. present(o_grdspc)) then
-       call mpi_bcast(t_buffer, 1, mpi_double_precision, 0, this%mpicomm, err)
-       if (err /=0) call rism_report_error("RISM3D: broadcast BUFFER in constructor failed")
+    if (present(o_grdspc)) then
        call mpi_bcast(t_grdspc, 3, mpi_double_precision, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast GRDSPC in constructor failed")
     else
@@ -447,7 +439,6 @@ contains
     call rism3d_setclosurelist(this, t_closure)
     if (present(o_grdspc)) then
        this%varbox = .true.
-       this%buffer = t_buffer
        call rism3d_grid_setSpacing(this%grid, t_grdspc)
     else
        this%varbox = .false.
@@ -668,7 +659,7 @@ contains
     ! iclosure :: counter for closures
     integer :: iclosure
 
-    _REAL_ :: offset(3), buffer(3)
+    _REAL_ :: offset(3)
     integer :: id, iu
 
     ! 1) Quick check that the tolerance list is of the correct length.
@@ -971,84 +962,75 @@ contains
             //"of processes be a product of ", primes)
     end if
 
-    ! If we have a fixed box size, we simply retain all of the
-    ! previously calculated box size values.
+    boxlen(:) = this%grid%unitCellLengths(:)
 
-    if (this%periodic) then
-       !TODO: For periodic case, specifying buffer or box dimensions
-       ! is useless, so mention this in user documentation and print a
-       ! warning if user attempts to combine periodicity with either.
-       ! Also, automatically enable periodicity whenever a cell / box
-       ! size is present.
+    if ( ngr(1) == -1 ) then
 
-       !TODO: Support both grid spacing or grid dimensions.
-
-       boxlen(:) = this%grid%unitCellLengths(:)
-
+       ! user has specified the grid spacing:
        ! Ensure gridpoints fit in unit cell perfectly by adjusting
        ! grid spacing. Current approach treats user-specified grid
        ! spacing as a maximum spacing.
 
        ngr(:) = ceiling(boxlen(:) / this%grid%spacing(:))
-       this%grid%spacing(:) = boxlen(:) / ngr(:)
 
-       ! Determine if the number of grid points in each dimension
-       ! product only has prime factors 2, 3, 5 or 7. If not
-       ! increment the number of points (in that dimension) until
-       ! this is true.
+    endif
+    this%grid%spacing(:) = boxlen(:) / ngr(:)
 
-       ! Make sure that each dimension is divisible by 2 and that the
-       ! y- and z-dimensions are divisible by this%mpisize if
-       ! this%mpisize > 2.  This former is done for the sake of FFT
-       ! libraries.
-       ! dac note: this code does not ensure that the y and z dimesions
-       !   will still be even after dividing things up among the MPI
-       !   threads....
-       ! dac note: why do both y and z need to be multiples of mpisize?
-       !   is in not just z?
+    ! Determine if the number of grid points in each dimension
+    ! product only has prime factors 2, 3, 5 or 7. If not
+    ! increment the number of points (in that dimension) until
+    ! this is true.
 
-       ngr(:) = ngr(:) + mod(ngr(:), 2)
-       if (this%mpisize > 2) then
-          do id = 2, 3
-             if (mod(ngr(id), this%mpisize) /= 0) then
-                ngr(id) = ngr(id) + lcm(this%mpisize, 2) &
-                     - mod(ngr(id), lcm(this%mpisize, 2))
-             end if
-          end do
-       end if
+    ! Make sure that each dimension is divisible by 2 and that the
+    ! y- and z-dimensions are divisible by this%mpisize if
+    ! this%mpisize > 2.  This former is done for the sake of FFT
+    ! libraries.
+    ! dac note: this code does not ensure that the y and z dimesions
+    !   will still be even after dividing things up among the MPI
+    !   threads....
+    ! dac note: why do both y and z need to be multiples of mpisize?
+    !   is in not just z?
 
-       do id = 1, 3
-          do while (largestPrimeFactor(ngr(id)) .gt. 9)
-             if (this%mpisize > 1 .and. id > 1) then
-                ngr(id) = ngr(id) + lcm(this%mpisize, 2)
-             else
-                ngr(id) = ngr(id) + 2
-             end if
-          end do
-       end do
-       this%grid%spacing = boxlen / ngr
-
-       cuv_dimension_changed = .false.
-       do id = 1, 3
-          ngr_size = merge(ngr(id), ngr(id) / this%mpisize, id /= 3)
-          if (ubound(this%cuv, id) /= ngr_size &
-               .or. ubound(this%oldcuv, id) /= ngr_size) then
-             cuv_dimension_changed = .true.
-             exit
+    ngr(:) = ngr(:) + mod(ngr(:), 2)
+    if (this%mpisize > 2) then
+       do id = 2, 3
+          if (mod(ngr(id), this%mpisize) /= 0) then
+             ngr(id) = ngr(id) + lcm(this%mpisize, 2) &
+                  - mod(ngr(id), lcm(this%mpisize, 2))
           end if
        end do
-       if (.not. associated(this%cuv) &
-            .or. .not. associated(this%oldcuv) &
-            .or. cuv_dimension_changed) then
-          call reallocateBox(this, ngr, this%grid%spacing)
-       end if
+    end if
 
-       if (this%potential%cutoff >= this%grid%inscribedSphereRadius) then
-          call rism_report_error('(a,f8.2,a)', 'solvcut must be < ', &
-               this%grid%inscribedSphereRadius, &
-               ', the largest inscribed sphere radius of the unit cell.')
-       end if
+    do id = 1, 3
+       do while (largestPrimeFactor(ngr(id)) .gt. 9)
+          if (this%mpisize > 1 .and. id > 1) then
+             ngr(id) = ngr(id) + lcm(this%mpisize, 2)
+          else
+             ngr(id) = ngr(id) + 2
+          end if
+       end do
+    end do
+    this%grid%spacing = boxlen / ngr
 
+    cuv_dimension_changed = .false.
+    do id = 1, 3
+       ngr_size = merge(ngr(id), ngr(id) / this%mpisize, id /= 3)
+       if (ubound(this%cuv, id) /= ngr_size &
+            .or. ubound(this%oldcuv, id) /= ngr_size) then
+          cuv_dimension_changed = .true.
+          exit
+       end if
+    end do
+    if (.not. associated(this%cuv) &
+         .or. .not. associated(this%oldcuv) &
+         .or. cuv_dimension_changed) then
+       call reallocateBox(this, ngr, this%grid%spacing)
+    end if
+
+    if (this%potential%cutoff >= this%grid%inscribedSphereRadius) then
+       call rism_report_error('(a,f8.2,a)', 'solvcut must be < ', &
+            this%grid%inscribedSphereRadius, &
+            ', the largest inscribed sphere radius of the unit cell.')
     end if
 
   end subroutine resizeBox
