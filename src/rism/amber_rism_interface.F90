@@ -1475,11 +1475,15 @@ contains
     character(len=64) :: suffix
     character(len=16) :: cstep
 
-    integer :: i, j, k, iv, elec_tot
+    integer :: i, j, k, iv, elec_tot, msander_index
     _REAL_, pointer :: electronRDF(:) => NULL()
     _REAL_ :: electronRDFGridSpacing
-    character(len=1024) :: amberhome, rdfFilename
+    character(len=1024) :: msanderhome, rdfFilename
     
+    call get_command_argument(0, msanderhome)
+    msander_index = index( msanderhome, 'msander' )
+    REQUIRE( msander_index > 0 )
+
     do iv = 1, this%solvent%numAtomTypes
        write(cstep, '(i16)') step
        cstep = adjustl(cstep)
@@ -1496,18 +1500,22 @@ contains
 
           if( rism_3d%solvent%atomName(iv)(1:1) .eq. 'H' ) cycle
 
-          call getenv('AMBERHOME', amberhome)
-          rdfFilename = trim(amberhome) // '/dat/rism3d/electron_rdf/' & 
+          rdfFilename = msanderhome(1:msander_index -1) &
+               // 'dat/rism3d/electron_rdf/' & 
                // trim(rism_3d%solvent%atomName(iv)) // '.rdf'
+          write(0,*) 'opening ', rdfFilename
           call readRDF1D(trim(rdfFilename), elec_tot,  &
                electronRDF, electronRDFGridSpacing)
 
+          write(0,*) 'calling createElectronDensityMap ', elec_tot
           call createElectronDensityMap(this, iv, electronRDF, &
                electronRDFGridSpacing, elec_tot, &
                this%solvent%density(iv),  this%electronMap)
+          write(0,*) 'writing the volume'
           call writeVolume(trim(electronMapFile)//suffix, &
                this%electronMap(:, :, :), &
                this%grid, this%solute, mpirank, mpisize, mpicomm)
+          write(0,*) 'deallocation'
           if (safemem_dealloc(electronRDF) /= 0) then
              call rism_report_error( &
                 "rism_writeVolumetricData: Deallocate of electron RDF failed.")
