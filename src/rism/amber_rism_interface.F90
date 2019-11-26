@@ -1995,7 +1995,7 @@ contains
     integer :: write_thermo
     namelist /rism/ &
          closure, closureOrder, biasPotential, periodic, &
-         grdspc, solvcut, ng3, solvbox, &
+         grdspc, solvcut, ng3, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
          mdiis_restart, maxstep, npropagate, centering, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
