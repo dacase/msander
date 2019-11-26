@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #set -vx
 
 # Amber test-output filter and diff-er.
@@ -276,14 +276,14 @@ do
     then
         diff -w $old $new > $path.$dif_ext
     else
+        BASEDIR=$(dirname "$0")
         if [ "$ndiff" = "$on" ]
         then
-            #  $AMBERHOME/bin/ndiff -r $relerr $old $new > $path.$dif_ext
-            awk -f $AMBERHOME/test/ndiff.awk -v RELERR=$relerr \
+            awk -f $BASEDIR/ndiff.awk -v RELERR=$relerr \
                  $old $new > $path.$dif_ext
         elif [ "$ndiffa" = "$on" ]
         then
-            awk -f $AMBERHOME/test/ndiff.awk -v ABSERR=$abserr \
+            awk -f $BASEDIR/ndiff.awk -v ABSERR=$abserr \
                  $old $new > $path.$dif_ext
         else
             diff $old $new > $path.$dif_ext
