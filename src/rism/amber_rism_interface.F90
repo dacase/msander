@@ -1,6 +1,7 @@
 !<compile=optimized>
 
 #include "../include/dprec.fh"
+#include "../include/assert.fh"
 
 !> Book-keeping object for handling thermodynamic properties
 !! calculated in amber_rism_interface.F90.  This stores the basic
