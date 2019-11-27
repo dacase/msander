@@ -295,6 +295,8 @@ module amber_rism_interface
      sequence
      !> Cutoff for rism calculations (separate from SANDER non-bond).
      _REAL_ :: solvcut
+     !> Buffer distance to the edge of the box for the solvent.
+     _REAL_ :: buffer
      !> Grid spacing for all of the grids.
      _REAL_ :: grdspc(3)
      !> Box size for 3d-rism. For PBC calculations, these should generally be equal.
@@ -664,8 +666,9 @@ contains
                'closure'//whtspc, closurelist
           write(outunit, '(5x, a10, "= ",1p, 4(e12.5, 1x))') &
                'uccoeff'//whtspc, rismprm%uccoeff
-          write(outunit, '(5x, a10, "="f10.5)') &
-               'solvcut'//whtspc, rismprm%solvcut
+          write(outunit, '(5x, 3(a10, "="f10.5))') &
+               'solvcut'//whtspc, rismprm%solvcut, &
+               ', buffer'//whtspc, rismprm%buffer
           write(outunit, '(5x, a10, "=", 3(f10.5, 1x))') &
                'grd_spc'//whtspc, rismprm%grdspc
           write(outunit, '(5x, a10, "=", 3(i10, 1x))') &
@@ -755,25 +758,21 @@ contains
     ! rare event, it should not add to the expense of the calculation
     ! in any practical way.
     call rism3d_destroy(rism_3d)
-    if (rismprm%ng3(1) == -1) then
-       ! user specified the grid-spacing"
-       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, &
-            rismprm%npropagate, closurelist, rismprm%solvcut, &
-            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
-            rismprm%mdiis_restart, rismprm%chargeSmear, &
-            o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
-            o_periodic=periodicPotential, &
-            o_unitCellDimensions=unitCellDimensions, &
+    if (rismprm%buffer >= 0) then
+       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
+            closurelist, rismprm%solvcut, &
+            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
+            rismprm%chargeSmear, &
+            o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
+            o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
             o_biasPotential=rismprm%biasPotential)
     else
-       ! user specified the number of grid points:
-       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, &
-            rismprm%npropagate, closurelist, rismprm%solvcut, &
-            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
-            rismprm%mdiis_restart, rismprm%chargeSmear, &
+       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
+            closurelist, rismprm%solvcut, &
+            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
+            rismprm%chargeSmear, &
             o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
-            o_periodic=periodicPotential, &
-            o_unitCellDimensions=unitCellDimensions,&
+            o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions,&
             o_biasPotential=rismprm%biasPotential)
     end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
@@ -1717,6 +1716,9 @@ contains
        call mpi_bcast(rismprm%solvcut, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast SOLVCUT")
+       call mpi_bcast(rismprm%buffer, 1, mpi_double_precision, 0, mpicomm, err)
+       if (err /= 0) call rism_report_error&
+            ("RISM3D interface: could not broadcast BUFFER")
        call mpi_bcast(rismprm%grdspc, 3, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast GRDSPC")
@@ -1916,6 +1918,7 @@ contains
 
     !solvation box
     rismprm%solvcut         = -1
+    rismprm%buffer          = 14d0
     rismprm%grdspc          = 0.5d0
     rismprm%ng3             = -1
     rismprm%solvbox         = -1d0
@@ -1976,6 +1979,7 @@ contains
     _REAL_ :: uccoeff(size(rismprm%uccoeff))
     _REAL_ :: biasPotential
     _REAL_ :: solvcut
+    _REAL_ :: buffer
     _REAL_ :: grdspc(3)
     integer ::  ng3(3)
     _REAL_ :: solvbox(3)
@@ -2019,6 +2023,7 @@ contains
     uccoeff = rismprm%uccoeff
     biasPotential = rismprm%biasPotential
     solvcut = rismprm%solvcut
+    buffer = rismprm%buffer
     grdspc= rismprm%grdspc
     ng3 = rismprm%ng3
     solvbox = rismprm%solvbox
@@ -2059,6 +2064,7 @@ contains
     rismprm%uccoeff = uccoeff
     rismprm%biasPotential = biasPotential
     ! Solvation box.
+    rismprm%buffer=buffer
     rismprm%grdspc=grdspc
     rismprm%solvcut=solvcut
     rismprm%ng3=ng3
@@ -2088,6 +2094,11 @@ contains
     rismprm%selftest=selftest
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
+
+    ! Set the RISM cutoff if not set by the user.
+    if (rismprm%solvcut < 0) then
+       rismprm%solvcut = rismprm%buffer
+    end if
 
   end subroutine read_namelist
 
