@@ -1501,9 +1501,9 @@ contains
           if( rism_3d%solvent%atomName(iv)(1:1) .eq. 'H' ) cycle
 
           rdfFilename = msanderhome(1:msander_index -1) &
-               // 'dat/rism3d/electron_rdf/' & 
+               // 'msander/dat/rism3d/electron_rdf/' & 
                // trim(rism_3d%solvent%atomName(iv)) // '.rdf'
-          write(0,*) 'opening ', rdfFilename
+          write(0,*) 'opening ', trim(rdfFilename)
           call readRDF1D(trim(rdfFilename), elec_tot,  &
                electronRDF, electronRDFGridSpacing)
 
