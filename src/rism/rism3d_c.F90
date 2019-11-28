@@ -1650,7 +1650,8 @@ contains
     ! EXCEPT the center grid point.
     numElectronsAtGridCenter = totalSolventElectrons - electronRDFSum
 
-!$omp parallel do shared(this, density, electronMap, numSmearGridPoints, numElectronsAtGridCenter)
+! old code from Hung: appears to not be working(?)
+!!$omp parallel do shared(this, density, electronMap, numSmearGridPoints, numElectronsAtGridCenter)
     do igzCenter = 0, this%grid%globalDimsR(3) - 1
        rzCenter = igzCenter * this%grid%voxelVectorsR(3, :)
        do igyCenter = 0, this%grid%globalDimsR(2) - 1
@@ -1666,12 +1667,12 @@ contains
 
              if (this%guv(igCenter, iv) > nearZero) then
                 ! Center grid.
-!$omp critical
+!!$omp critical
                 electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) = &
                      electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) + &
                      numElectronsAtGridCenter * &
                      this%guv(igCenter, iv) * density
-!$omp end critical
+!!$omp end critical
                 do igz = igzCenter - numSmearGridPoints(3), igzCenter + numSmearGridPoints(3)
                    rz = igz * this%grid%voxelVectorsR(3, :)
                    do igy = igyCenter - numSmearGridPoints(2), igyCenter + numSmearGridPoints(2)
@@ -1701,13 +1702,13 @@ contains
 
                             rdfIndex = ceiling(distance / electronRDFGridSpacing)
                             if (rdfIndex .le. size(electronRDF)) then
-!$omp critical
+!!$omp critical
                                smearGridIndex = smearGridIndex + 1
                                electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) = &
                                     electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) &
                                     + electronRDF(rdfIndex) * this%grid%voxelVolume &
                                     * this%guv(igCenter, iv) * density
-!$omp end critical
+!!$omp end critical
                             end if
                          end if
                       end do
@@ -1717,7 +1718,7 @@ contains
           end do
        end do
     end do
-!$omp end parallel do
+!!$omp end parallel do
   end subroutine createElectronDensityMap
 
 end module rism3d_c
