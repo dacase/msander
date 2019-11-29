@@ -1600,6 +1600,7 @@ contains
     _REAL_, intent(in) :: density
     _REAL_, intent(out) :: electronMap(:,:,:)
 
+#include "def_time.h"
     integer :: numSmearGridPoints(3)
     integer :: igx, igy, igz, igk, igxCenter, igyCenter, igzCenter
     integer :: igCenter
@@ -1619,6 +1620,7 @@ contains
     ! Value near zero.
     _REAL_, parameter :: nearZero = 1E-10
 
+    call timer_start(TIME_EDENS)
     electronMap(:,:,:) = 0
 
     ! Number of grid points to smear in each direction.
@@ -1650,8 +1652,12 @@ contains
     ! EXCEPT the center grid point.
     numElectronsAtGridCenter = totalSolventElectrons - electronRDFSum
 
-! old code from Hung: appears to not be working(?)
-!!$omp parallel do shared(this, density, electronMap, numSmearGridPoints, numElectronsAtGridCenter)
+!  following code seems correct, but doesn't offer mjch speedup:
+!    (for 480d, 4 threads seems best)
+!!$omp parallel do private(igxCenter, igyCenter, igzCenter, rxCenter, &
+!!$omp&  ryCenter, rzCenter, igCenter, centerGridIndex, centerGridPoint, &
+!!$omp&  igx, igy, igz, rx, ry, rz, smearGridIndex, smearGridPoint, &
+!!$omp&  distanceVector, distance, numUnitCells, rdfIndex)
     do igzCenter = 0, this%grid%globalDimsR(3) - 1
        rzCenter = igzCenter * this%grid%voxelVectorsR(3, :)
        do igyCenter = 0, this%grid%globalDimsR(2) - 1
@@ -1667,12 +1673,10 @@ contains
 
              if (this%guv(igCenter, iv) > nearZero) then
                 ! Center grid.
-!!$omp critical
                 electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) = &
                      electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) + &
                      numElectronsAtGridCenter * &
                      this%guv(igCenter, iv) * density
-!!$omp end critical
                 do igz = igzCenter - numSmearGridPoints(3), igzCenter + numSmearGridPoints(3)
                    rz = igz * this%grid%voxelVectorsR(3, :)
                    do igy = igyCenter - numSmearGridPoints(2), igyCenter + numSmearGridPoints(2)
@@ -1688,13 +1692,9 @@ contains
                          if (distance .le. cutoff) then
                             ! Outside of box?
                             if (any(smearGridIndex < 0) .or. any(smearGridIndex >= this%grid%globalDimsR)) then
-                               if (this%periodic) then
-                                  ! Jump to grid image inside box.
-                                  numUnitCells = floor(real(smearGridIndex) / this%grid%globalDimsR)
-                                  smearGridIndex = smearGridIndex - numUnitCells * this%grid%globalDimsR
-                               else
-                                  cycle
-                               end if
+                               ! Jump to grid image inside box.
+                               numUnitCells = floor(real(smearGridIndex) / this%grid%globalDimsR)
+                               smearGridIndex = smearGridIndex - numUnitCells * this%grid%globalDimsR
                             ! Skip center grid point.
                             else if (all(smearGridIndex == centerGridIndex)) then
                                cycle
@@ -1702,8 +1702,8 @@ contains
 
                             rdfIndex = ceiling(distance / electronRDFGridSpacing)
                             if (rdfIndex .le. size(electronRDF)) then
-!!$omp critical
                                smearGridIndex = smearGridIndex + 1
+!!$omp critical
                                electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) = &
                                     electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) &
                                     + electronRDF(rdfIndex) * this%grid%voxelVolume &
@@ -1719,6 +1719,7 @@ contains
        end do
     end do
 !!$omp end parallel do
+    call timer_stop(TIME_EDENS)
   end subroutine createElectronDensityMap
 
 end module rism3d_c
