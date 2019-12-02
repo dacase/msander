@@ -48,7 +48,7 @@ module rism3d_closure_c
      type(rism3d_solute), pointer :: solute => NULL()
   end type rism3d_closure
 
-  private lennardJonesForcePeriodic, particleMeshEwaldForce
+  private LJforce, PMEforce
   
 contains
 
@@ -309,8 +309,8 @@ contains
     integer :: k, iat
 
     ff = 0
-    call lennardJonesForcePeriodic(this%potential, ff, guv)
-    call particleMeshEwaldForce(this%potential, ff, guv)
+    call LJforce(this%potential, ff, guv)
+    call PMEforce(this%potential, ff, guv)
 
   end subroutine rism3d_closure_force
 
@@ -342,57 +342,9 @@ contains
 
   !!                         PRIVATE
 
-! Numerical, finite difference way to check force computation.
-  subroutine rism3d_checkForceNumDeriv(this, ff, guv)
-    use constants, only : PI, KB
-    use rism_util, only : checksum
-    implicit none
-    type(rism3d_closure), intent(in) :: this !> potential object.
-    _REAL_, intent(in) :: ff(:, :) !> Force on each atom.
-    _REAL_, intent(in) :: guv(:, :) !< Site-site pair correlation function.
-    integer :: iu,id
-    _REAL_  :: delta 
-    _REAL_  :: ene(this%solvent%numAtomTypes)
-    _REAL_  :: ffn (3,this%potential%solute%numAtoms)
-    delta = 1e-4
-    ene = 0.d0
-    ffn = 0.d0
-    write (6,*) "Entering force debug procedure."
-    write (6,*) "-------------------------------"
-    call flush(6)
-    do iu = 1, this%potential%solute%numAtoms
-       do id=1,3
-          this%potential%solute%position(id, iu) = this%potential%solute%position(id, iu) - delta
-          call rism3d_potential_calc(this%potential)
-          ene = rism3d_closure_solvPotEne(this,guv)
-          
-          this%potential%solute%position(id, iu) = this%potential%solute%position(id, iu) + 2.0*delta
-          call rism3d_potential_calc(this%potential)
-          ene = ene - rism3d_closure_solvPotEne(this,guv)
-          ffn(id,iu) = sum(ene)/(2d0*delta)
-
-          this%potential%solute%position(id, iu) = this%potential%solute%position(id, iu) - delta
-      end do
-      write (6,*) "Force - Numerical:  ", iu, ffn(:,iu) * KB * this%solvent%temperature
-      write (6,*) "Force - Analytical: ", iu, ff(:,iu) * KB * this%solvent%temperature
-      write (6,*) "Force diff (A-F):   ", iu, ( ff(:,iu) - ffn(:,iu) ) * KB * this%solvent%temperature
-
-      write (6,*) "Force dev angle:    ", iu, (180d0/PI) * acos(dot_product(ffn(:,iu), ff(:,iu)) &
-           / sqrt( dot_product(ff(:,iu),ff(:,iu) ) * dot_product(ffn(:,iu),ffn(:,iu) )))
-      write (6,*) "Relative error:     ", sqrt(dot_product(ffn(:,iu)-ff(:,iu),ffn(:,iu)-ff(:,iu))&
-          /dot_product(ffn(:,iu),ffn(:,iu)))
-
-      call flush(6)  
-     
-    end do
-    write (6,*) "-------------------------------"
-    write (6,*) "Exiting force debug procedure."
-  end subroutine rism3d_checkForceNumDeriv
-
-
   !> Periodic solute-solvent 12-6 Lennard-Jones force 
   !! subject to the minimum image convention.
-  subroutine lennardJonesForcePeriodic(this, ff, guv)
+  subroutine LJforce(this, ff, guv)
     use constants, only : PI, KB
     use rism_util, only : checksum
     implicit none
@@ -485,11 +437,11 @@ contains
 !$omp end parallel do
     ff = ff * this%grid%voxelVolume *12d0
     call wallclock(time1)
-  end subroutine lennardJonesForcePeriodic
+  end subroutine LJforce
 
 ! Computes the PME reciprocal, long range part of electrostatic forces exerted 
 ! by the solvent charge density onto the solute.
-  subroutine particleMeshEwaldForce (this,ff,guv)
+  subroutine PMEforce (this,ff,guv)
     use, intrinsic :: iso_c_binding
     use bspline
     use constants, only : pi, KB
@@ -899,6 +851,6 @@ contains
     call wallclock(time1)
     ! write(6,*) 'short-range PME force: ', time1 - time0
 
-  end subroutine particleMeshEwaldForce 
+  end subroutine PMEforce 
 
 end module rism3d_closure_c

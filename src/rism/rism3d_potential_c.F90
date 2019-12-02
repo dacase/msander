@@ -172,7 +172,7 @@ contains
   !> Calculates the potential on the grid.
   !!       Only grid points that have an approximate value greater
   !!       than this will be computed.
-  subroutine rism3d_potential_calc(this)
+  subroutine rism3d_potential_calc(this,phineut)
     use rism_util, only : checksum
     use rism3d_opendx, only : rism3d_opendx_write
     implicit none
@@ -180,6 +180,7 @@ contains
     include 'mpif.h'
 #endif
     type(rism3d_potential), intent(inout) :: this !< potential object.
+    logical, intent(in) :: phineut
 
     integer :: id
 
@@ -215,7 +216,7 @@ contains
     call timer_stop(TIME_ULJUV)
 
     ! TODO: this routine should only need to be called once at the beginning:
-    call getnojellywt(this)
+    if( phineut ) call getnojellywt(this)
 
   end subroutine rism3d_potential_calc
 

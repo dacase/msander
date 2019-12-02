@@ -374,6 +374,9 @@ module amber_rism_interface
      !! by sander but also serves as padding for alignment for NAB.
      integer :: write_thermo
 
+     !> Apply a "phineut" correction to h to force charge neutralization
+     logical*4 :: phineut
+
      !> perform internal consistency test. Done after output.
      logical*4 :: selftest
 
@@ -694,8 +697,9 @@ contains
                'apply_rism_force'//whtspc, rismprm%apply_rism_force
           write(outunit, '(5x, a10, "=", i10)') &
                'rismnrespa'//whtspc, rismprm%rismnrespa
-          write(outunit, '(5x, 2(a20, "= ", a8))') &
-               'periodic'//whtspc, periodicPotential
+          write(outunit, '(5x, a20, "= ", a8, a20, l1)') &
+               'periodic'//whtspc, periodicPotential, &
+               'phineut'//whtspc, rismprm%phineut
           write(outunit, '(5x, 1(a10, "=", i10), a10, "=  ", a8)') &
                'write_thermo'//whtspc, rismprm%write_thermo, &
                ', volfmt'//whtspc, volfmt
@@ -898,8 +902,9 @@ contains
 !!!Full RISM SOLUTION!!!
 !!!!!!!!!!!!!!!!!!!!!!!!
        call rism3d_setCoord(rism_3d, atomPositions_md)
-       call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, rismprm%progress, &
-            rismprm%maxstep, tolerancelist)
+       call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, &
+            rismprm%progress, rismprm%maxstep, tolerancelist, &
+            rismprm%phineut)
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
@@ -1746,6 +1751,9 @@ contains
        call mpi_bcast(rismprm%selftest, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast SELFTEST")
+       call mpi_bcast(rismprm%phineut, 1, mpi_integer, 0, mpicomm, err)
+       if (err /= 0) call rism_report_error&
+            ("RISM3D interface: could not broadcast PHINEUT")
 
        if (mpirank==0) &
             nclosure=ubound(closurelist, 1)
@@ -1907,6 +1915,7 @@ contains
     rismprm%progress         = 1
     volfmt                   = 'dx'
     rismprm%selftest         = .false.
+    rismprm%phineut          = .true.
 
     ! molecular reconstruction
     rismprm%molReconstruct = .false.
@@ -1953,6 +1962,7 @@ contains
     integer :: verbose
     integer :: progress
     logical :: selftest
+    logical :: phineut
     _REAL_ :: chargeSmear
     integer :: write_thermo
     namelist /rism/ &
@@ -1962,7 +1972,8 @@ contains
          mdiis_restart, maxstep, npropagate, centering, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
          rismnrespa, chargeSmear, molReconstruct, write_thermo, &
-         saveprogress, ntwrism, verbose, progress, volfmt, selftest
+         saveprogress, ntwrism, verbose, progress, volfmt, selftest, &
+         phineut
     
     call flush(0)
 
@@ -1997,6 +2008,7 @@ contains
     verbose= rismprm%verbose
     progress = rismprm%progress
     selftest = rismprm%selftest
+    phineut = rismprm%phineut
     chargeSmear = rismprm%chargeSmear
     write_thermo = rismprm%write_thermo
 
@@ -2046,6 +2058,7 @@ contains
     rismprm%verbose=verbose
     rismprm%progress=progress
     rismprm%selftest=selftest
+    rismprm%phineut=phineut
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
 

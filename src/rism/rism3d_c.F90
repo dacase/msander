@@ -654,7 +654,8 @@ contains
   !! @param[in] maxSteps Maximum number of rism relaxation steps.
   !! @param[in] tolerance Convergence tolerances. There should be one
   !!          tolerance per closure in the closure list.
-  subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, tolerance)
+  subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
+          tolerance, phineut)
     use constants, only : pi
     implicit none
 #if defined(MPI)
@@ -663,6 +664,7 @@ contains
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
+    logical, intent(in) :: phineut
 
     _REAL_ :: com(3)
     ! iclosure :: counter for closures
@@ -705,7 +707,7 @@ contains
     
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
-    call rism3d_potential_calc(this%potential)
+    call rism3d_potential_calc(this%potential, phineut)
 
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
@@ -726,7 +728,8 @@ contains
                trim(this%closureList(iclosure))//" closure")
           call rism3d_setClosure(this, this%closureList(iclosure))
           call timer_start(TIME_RXRISM)
-          call solve3DRISM(this, ksave, kshow, maxSteps, tolerance(iclosure))
+          call solve3DRISM(this, ksave, kshow, maxSteps, &
+               tolerance(iclosure), phineut)
           call timer_stop(TIME_RXRISM)
           ! Increment nsolution and ncuvsteps to ensure the previous
           ! closure solution is used.
@@ -739,7 +742,8 @@ contains
        this%ncuvsteps = this%ncuvsteps - 1
     else
        call timer_start(TIME_RXRISM)
-       call solve3DRISM(this, ksave, kshow, maxSteps, tolerance(size(tolerance)))
+       call solve3DRISM(this, ksave, kshow, maxSteps, &
+            tolerance(size(tolerance)), phineut)
        call timer_stop(TIME_RXRISM)
     end if
 
@@ -1230,7 +1234,7 @@ contains
   !!  iteration (0 means no saves).
   !! @param[in] maxSteps Maximum number of rism relaxation steps.
   !! @param[in] tolerance Tolerance in.
-  subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance)
+  subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance, phineut)
     use mdiis_c
     use rism3d_restart
     implicit none
@@ -1241,6 +1245,7 @@ contains
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance
+    logical, intent(in) :: phineut
     character(72) :: cuvsav = 'rism.csv', guvfile
     integer :: guv_local = 77
 
@@ -1314,7 +1319,7 @@ contains
        ! One iteration of 3D-RISM and closure relation, advancing w/ mdiis.
        !  -----------------------------------------------------------------
        call single3DRISMsolution(this, residual, converged, tolerance, &
-           this%periodic)
+           this%periodic, phineut)
 
        ! Showing selected and last relaxation steps.
        if (kshow /= 0 .and. this%mpirank == 0 .and. this%verbose >= 2) then
@@ -1356,7 +1361,7 @@ contains
   !! @param[in,out] converged Returns true if the solution has converged.
   !! @param[in] tolerance Target residual tolerance for convergence.
   subroutine single3DRISMsolution(this, residual, converged, tolerance, &
-      periodic )
+      periodic, phineut )
 
     use rism3d_fft_c
     use constants, only : PI, FOURPI
@@ -1369,7 +1374,7 @@ contains
     logical, intent(inout) :: converged
     _REAL_, intent(inout) :: residual
     _REAL_, intent(in) :: tolerance
-    logical, intent(in) :: periodic
+    logical, intent(in) :: periodic, phineut
     integer :: iis
     _REAL_ :: earg, tuv0, tvvr
     integer :: istep
@@ -1459,13 +1464,13 @@ contains
     ! ---------------------------------------------------------------
     ! Remove the background charge effect from periodic calculations.
     ! ---------------------------------------------------------------
-    if (periodic) then
+    if (phineut) then
          if (this%mpirank == 0 .and. this%solute%charged .and. this%solvent%ionic ) then
            do iv = 1,this%solvent%numAtomTypes
                 this%huv(1,iv) = this%huv(1,iv) - this%potential%phineut(iv)
            end do
          endif
-    end if ! periodic
+    end if 
 
     ! --------------------------------------------------------------
     ! Short-range part of Huv(k) FFT>R.
