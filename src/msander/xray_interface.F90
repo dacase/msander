@@ -491,7 +491,7 @@ contains
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
       read(hkl_lun,*,end=1,err=1) num_hkl
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
-            mSS4(num_hkl),test_flag(num_hkl),stat=alloc_status)
+            mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), stat=alloc_status)
       REQUIRE(alloc_status==0)
 
       !  each line contains h,k,l and two reals
@@ -525,13 +525,28 @@ contains
          if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask,' atoms in ', &
                atom_selection_mask
       end if
-      call get_mss4(num_hkl, hkl_index, mSS4 )
 
       if( target(1:2) == 'ml' ) then
-         call init_ml(natom, nstlim, num_hkl, &
-              hkl_index, abs_Fobs, sigFobs, test_flag)
+         write(6,*) 'calling init_ml: ', num_hkl
+#if 0
+         do i=1,num_hkl
+            write(6,'(3i5,2f12.5,i5)') hkl_index(:,i),abs_Fobs(i), &
+                   sigFobs(i),test_flag(i)
+         end do
+#endif
+         call init_ml(nstlim, num_hkl, &
+              hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq)
+         write(6,*) 'after init_ml: ', num_hkl
+#if 0
+         do i=1,num_hkl
+            write(6,'(3i5,2f12.5,i5)') hkl_index(:,i),abs_Fobs(i), &
+                   sigFobs(i),test_flag(i)
+         end do
+#endif
          ! call init_bulk_solvent(n_atom, NRF, resolution)
       end if
+
+      call get_mss4(num_hkl, hkl_index, mSS4 )
 
       return
       1 continue
@@ -654,6 +669,10 @@ contains
 !     This call uses MPI parallel to compute Fcalc:
       if( fft_method == 0 ) then
          call timer_start(TIME_IHKL)
+         write(6,*) 'before fourier_Fcalc:'
+         do i=1,10
+            write(6,'(3i5)') hkl_index(:,i)
+         end do
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
@@ -681,6 +700,10 @@ contains
          call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
+         write(6,*) 'before dTargetML_dF:'
+         do i=1,10
+            write(6,'(3i5,2f10.5)') hkl_index(:,i),Fcalc(i)
+         end do
          call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else

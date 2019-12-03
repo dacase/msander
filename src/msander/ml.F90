@@ -16,8 +16,8 @@ module ml_mod
   double precision, dimension(7, 7) :: Ucryst, MUcryst_inv
 
   ! Arrays used in the computation of structure factors and ML parameters
-  double precision, dimension(:), allocatable :: f_obs, f_obs_weight, f_obs_sigmas, &
-                                                 alpha_array, beta_array, delta_array
+  double precision, dimension(:), allocatable :: alpha_array, beta_array, &
+                                                 delta_array
 
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
@@ -46,7 +46,7 @@ module ml_mod
   ! n_bins:                 Number of reflections per resolution bin
   integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
              call_est, N_steps, starting_N_step, total_N_steps, &
-             mask_update_frequency, n_bins
+             mask_update_frequency=5, n_bins
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -173,16 +173,18 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !
   !--------------------------------------------------------------------------------------------
-  subroutine init_ml(n_atom, nstlim, NRF, hkl_tmp, &
-                     f_obs_tmp, f_obs_sigma_tmp, test_flag)
+  subroutine init_ml(nstlim, NRF, hkl_tmp, &
+                     f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out)
 
     use xray_globals_module, only: unit_cell
     implicit none
 
-    integer, intent(in) :: n_atom, nstlim, NRF
-    integer, dimension(3,NRF), intent(in) :: hkl_tmp
-    double precision, dimension(NRF), intent(in) :: f_obs_tmp, f_obs_sigma_tmp
-    integer, dimension(NRF), intent(in) :: test_flag
+    integer, intent(in) :: nstlim, NRF
+    integer, dimension(3,NRF), intent(inout) :: hkl_tmp
+    double precision, dimension(NRF), intent(inout) :: f_obs_tmp, &
+            f_obs_sigma_tmp
+    integer, dimension(NRF), intent(inout) :: test_flag
+    double precision, dimension(NRF), intent(out) :: d_star_sq_out
 
     double precision :: a, b, c, alpha, beta, gamma, V, &
                         resolution, d, d_star, reflections_per_bin, fo_fo
@@ -194,16 +196,13 @@ contains
     integer (kind = 4) :: file_status
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
-    integer, dimension(:,:), allocatable :: hkl
+    integer:: hkl(3,NRF)
+    double precision :: f_obs(NRF), fobs_weight(NRF), f_obs_sigmas(NRF)
 
     N_steps = nstlim
 
-    allocate(f_obs(NRF))
-    allocate(f_obs_weight(NRF))
-    allocate(f_obs_sigmas(NRF))
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
-    allocate(hkl(3, NRF))
     allocate(delta_array(NRF))
     allocate(alpha_array(NRF))
     alpha_array(:) = 1.0
@@ -276,7 +275,7 @@ contains
         ! (1.0/f_obs_sigma_tmp(i))**2
       endif
       d_star_sq(i) = d_star
-      f_obs_weight(k) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
+      ! f_obs_weight(i) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
     enddo
 
     NRF_free = NRF - NRF_work
@@ -308,7 +307,7 @@ contains
     do i = 2, n_bins
       d_i = int((i-1) * reflections_per_bin + 0.5) + 1
       bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
-      REQUIRE (d_i == NRF_free)
+      REQUIRE (d_i /= NRF_free)
     end do
     bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
     write(mdout, *) "resolution bins"
@@ -385,7 +384,8 @@ contains
         index_sort = bins_work_reflections(i, j)
         f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
         f_obs(counter_sort) = f_obs_tmp(index_sort)
-        hkl(counter_sort,:) = hkl_tmp(:,index_sort)
+        hkl(:,counter_sort) = hkl_tmp(:,index_sort)
+        d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
     allocate(bins_free_start_indices(n_bins))
@@ -397,9 +397,22 @@ contains
         index_sort = bins_free_reflections(i, j)
         f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
         f_obs(counter_sort) = f_obs_tmp(index_sort)
-        hkl(counter_sort,:) = hkl_tmp(:,index_sort)
+        hkl(:,counter_sort) = hkl_tmp(:,index_sort)
+        d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
+
+    ! need to put fobs into f_obs_tmp to send back to calling 
+    !       program; same for f_obs_sigmas, f_obs_weight(?) and hkl
+
+    write(0,*) 'in init_ml: ', NRF_work, NRF_free, NRF, n_bins
+    f_obs_tmp(:) = f_obs(:)
+    f_obs_sigma_tmp(:) = f_obs_sigmas(:)
+    ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
+    hkl_tmp(:,:) = hkl(:,:)
+    test_flag(1:NRF_work) = 0
+    test_flag(NRF_work+1:NRF) = 1
+
     if (counter_sort .ne. NRF) then
 
       ! Might be an error in the code?
@@ -428,12 +441,12 @@ contains
     allocate(kl(NRF))
 
     do i = 1, NRF
-      h_sq(i) = hkl(i, 1) * hkl(i, 1)
-      k_sq(i) = hkl(i, 2) * hkl(i, 2)
-      l_sq(i) = hkl(i, 3) * hkl(i, 3)
-      hk(i) = hkl(i, 1) * hkl(i, 2)
-      hl(i) = hkl(i, 1) * hkl(i, 3)
-      kl(i) = hkl(i, 2) * hkl(i, 3)
+      h_sq(i) = hkl(1,i) * hkl(1,i)
+      k_sq(i) = hkl(2,i) * hkl(2,i)
+      l_sq(i) = hkl(3,i) * hkl(3,i)
+      hk(i) = hkl(1,i) * hkl(2,i)
+      hl(i) = hkl(1,i) * hkl(3,i)
+      kl(i) = hkl(2,i) * hkl(3,i)
     end do
     NRF_work_sq = NRF_work * NRF_work
     Ucryst(1, 1) = 1.0 / NRF_work
@@ -711,10 +724,13 @@ contains
   !   zone:       number of resolution bin
   !   f_calc_:    complex array of computed structure factors
   !--------------------------------------------------------------------------------------------
-  subroutine A_B_C_D_omega(zone, f_calc_)
+  subroutine A_B_C_D_omega(zone, f_calc_,f_obs)
 
-    integer :: zone, i, index_start, index_end
-    complex(8) :: f_calc_(NRF)
+    
+    integer, intent(in) :: zone
+    complex(8), intent(in) :: f_calc_(NRF)
+    double precision, intent(in) :: f_obs(NRF)
+    integer :: i, index_start, index_end
     double precision :: coef_norm, fm_fm, fo_fm, D, p, q
 
     coef_norm = 2 * bins_free_population(zone)
@@ -833,12 +849,13 @@ contains
   !--------------------------------------------------------------------------------------------
   ! estimate_t_optimal:  find root of G(t)
   !--------------------------------------------------------------------------------------------
-  subroutine estimate_t_optimal(zone, f_calc_)
+  subroutine estimate_t_optimal(zone, f_calc_, f_obs)
 
-    integer :: zone
-    complex(8) :: f_calc_(NRF)
+    integer, intent(in) :: zone
+    complex(8), intent(in) :: f_calc_(NRF)
+    double precision, intent(in) :: f_obs(NRF)
 
-    call A_B_C_D_omega(zone, f_calc_)
+    call A_B_C_D_omega(zone, f_calc_,f_obs)
     if (alpha_beta_OmegaI(zone) <= 0.0) then
       t_optimal(zone) = 0.0
     else if (alpha_beta_wi(zone)/(A_in_zones(zone)*B_in_zones(zone)) <= 3.0E-07) then
@@ -919,13 +936,14 @@ contains
   !                       eq. 29     - estimate_t_optimal() estimates root of function G(t)
   !                       eq. 30, 31 - alpha_beta_in_zones() calculates alpha and beta from t
   !--------------------------------------------------------------------------------------------
-  subroutine estimate_alpha_beta(f_calc_)
+  subroutine estimate_alpha_beta(f_calc_, f_obs)
 
+    complex(8), intent(in) :: f_calc_(NRF)
+    double precision, intent(in) :: f_obs(NRF)
     integer :: i
-    complex(8) :: f_calc_(NRF)
 
     do i = 1, n_bins
-      call estimate_t_optimal(i, f_calc_)
+      call estimate_t_optimal(i, f_calc_, f_obs)
     end do
     call smooth(t_optimal)
     call alpha_beta_in_zones()
@@ -963,11 +981,12 @@ contains
     integer :: i
     double precision :: f_calc_abs(NRF)
     
-    if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
-      call estimate_alpha_beta(f_calc)
+    ! if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
+      write(0,*) 'in estimate_ml ', nstep, NRF
+      call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
       mean_delta = sum(delta_array) / NRF
-    endif
+    ! endif
 
     f_calc_abs = abs(f_calc)
     r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
@@ -979,10 +998,10 @@ contains
 
     ! ML target function
     exray = exray + xray_weight * &
-                        sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
-                            f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
-                            ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
-                            f_obs(1:NRF_work)))
+            sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
+            f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
+            ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
+            f_obs(1:NRF_work)))
 
   end subroutine estimate_ml_parameters
 

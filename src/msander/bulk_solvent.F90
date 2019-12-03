@@ -292,10 +292,10 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-    write(mdout, *) 'resolution', resolution
-    write(mdout, *) 'mask_cell_params', mask_cell_params
-    write(mdout, *) 'mask_grid_steps', mask_grid_steps
-    write(mdout, *) 'mask_grid_size', mask_grid_size
+    write(6, *) 'resolution', resolution
+    write(6, *) 'mask_cell_params', mask_cell_params
+    write(6, *) 'mask_grid_steps', mask_grid_steps
+    write(6, *) 'mask_grid_size', mask_grid_size
     allocate(mask_bs_grid(mask_grid_size(4)))
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))
     allocate(mask_bs_grid_t_c(mask_grid_size(1) * mask_grid_size(2) * &

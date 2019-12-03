@@ -101,6 +101,7 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
+         write(6,*) 'in fourier_Fcalc:'
 !$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
          ! always compute all Fcalcs: we'll want these for everything anyway(?)
@@ -147,6 +148,7 @@ contains
 
          Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
               sum(f(:) * sin(angle(:))), rk_ )
+         if( ihkl <= 10 ) write(6,'(3i5,2f12.5)') hkl(:,ihkl),Fcalc(ihkl)
 
       end do
 !$omp end parallel do
@@ -438,8 +440,7 @@ contains
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0
       use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
            mask_cell_params, mask_grid_size, k_mask, &
-           init_bulk_solvent, fft_bs_mask, shrink_bulk_solvent, &
-           hkl_indexing_bs_mask
+           fft_bs_mask, shrink_bulk_solvent, hkl_indexing_bs_mask
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)
@@ -449,7 +450,7 @@ contains
       real(real_kind), intent(out) :: xray_energy
 
       real(real_kind) :: abs_Fcalc(num_hkl)
-      integer :: nstep = 0
+      integer :: nstep = 1
       integer :: i
       double precision :: term, b(7), Uaniso(7)
 
@@ -457,8 +458,8 @@ contains
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
       !  need to add the bulk-solvent mask --could/should we use RISM?
       
+#if 0
       ! TODO: need to get bulk_solvent working
-      ! call init_bulk_solvent()
       ! need to get coordinates, natom here:
       ! call grid_bulk_solvent(n_atom, crd)
       ! call shrink_bulk_solvent()
@@ -469,6 +470,7 @@ contains
                         mask_cell_params(16) / mask_grid_size(4)
       end do
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+#endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 2: scaling Fcalc:
@@ -485,7 +487,11 @@ contains
 
       k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+      write(0,*) 'in dtargetML, num_hkl is ', num_hkl
+      write(0,*) k_scale(1), k_scale(100), k_scale(num_hkl)
+      write(0,*) Fcalc(1), Fcalc(100), Fcalc(num_hkl)
       Fcalc = Fcalc * k_scale
+      Fcalc_scale = 1._rk_
 
       ! step 3: get ml parameters and xray restraint energy:
       !         note that this routine needs xray2-type initialization;
@@ -493,8 +499,11 @@ contains
       call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
                                    nstep, num_hkl )
 
+      write(0,*) alpha_array(1), alpha_array(100), alpha_array(num_hkl)
+      write(0,*) delta_array(1), delta_array(100), delta_array(num_hkl)
+
       ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
-      do i=1,num_hkl
+      do i=1,NRF_work
          deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
               ( alpha_array(i) - abs_Fobs(i) * &
               i1_over_i0(2.d0 * delta_array(i) *  abs_Fcalc(i) * abs_Fobs(i))) / &
