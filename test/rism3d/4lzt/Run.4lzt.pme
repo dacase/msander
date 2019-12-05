@@ -4,6 +4,7 @@ sander="../../../bin/msander"
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
+   export OMP_NUM_THREADS=1
 fi
 
 output=4lzt.pme.out
