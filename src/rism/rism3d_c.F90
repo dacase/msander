@@ -655,7 +655,7 @@ contains
   !! @param[in] tolerance Convergence tolerances. There should be one
   !!          tolerance per closure in the closure list.
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
-          tolerance, phineut)
+          tolerance, phineut, ng3)
     use constants, only : pi
     implicit none
 #if defined(MPI)
@@ -665,6 +665,7 @@ contains
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
     logical, intent(in) :: phineut
+    integer, intent(in) :: ng3(3)
 
     _REAL_ :: com(3)
     ! iclosure :: counter for closures
@@ -683,7 +684,7 @@ contains
     ! 2) Get the box size (assumed to be fixed here)
     if (this%nsolution == 0) then
        call timer_start(TIME_RESIZE)
-       call resizeBox(this)
+       call resizeBox(this,ng3)
        call timer_stop(TIME_RESIZE)
 
        call rism_report_message("||Setting solvation box to")
@@ -950,7 +951,7 @@ contains
   !! Periodic : the unit cell is used to determine the number of grid points.
   !!
   !! @param[in] this rism3d object
-  subroutine resizeBox(this)
+  subroutine resizeBox(this,ng3)
     use constants, only : PI
     use rism_util, only : isprime, lcm, isFactorable, largestPrimeFactor
     implicit none
@@ -959,6 +960,7 @@ contains
     integer :: ierr
 #endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
+    integer, intent(in) :: ng3(3)
     integer :: ngr(3)
     integer :: id
     _REAL_ :: boxlen(3)
@@ -979,21 +981,25 @@ contains
     ! previously calculated box size values.
 
     if (this%periodic) then
-       !TODO: For periodic case, specifying buffer or box dimensions
-       ! is useless, so mention this in user documentation and print a
-       ! warning if user attempts to combine periodicity with either.
-       ! Also, automatically enable periodicity whenever a cell / box
-       ! size is present.
 
        !TODO: Support both grid spacing or grid dimensions.
 
        boxlen(:) = this%grid%unitCellLengths(:)
 
-       ! Ensure gridpoints fit in unit cell perfectly by adjusting
-       ! grid spacing. Current approach treats user-specified grid
-       ! spacing as a maximum spacing.
+       if ( ng3(1) == -1 .and. ng3(2) == -1 .and. ng3(3) == -1 ) then
 
-       ngr(:) = ceiling(boxlen(:) / this%grid%spacing(:))
+          ! Ensure gridpoints fit in unit cell perfectly by adjusting
+          ! grid spacing. Current approach treats user-specified grid
+          ! spacing as a maximum spacing.
+          ngr(:) = ceiling(boxlen(:) / this%grid%spacing(:))
+
+       else
+
+          ! get the grid size from the user input:
+          ngr(:) = ng3(:)
+
+       end if
+
        this%grid%spacing(:) = boxlen(:) / ngr(:)
 
        ! Determine if the number of grid points in each dimension

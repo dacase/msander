@@ -133,7 +133,7 @@ function isPrime(number)
   i = abs(number)
   if (mod(i,2)==0) return 
   j=3
-  do while (j**2 < i)
+  do while (j**2 <= i)
      if (mod(i,j)==0) return 
      j = j+2
   end do
@@ -175,7 +175,8 @@ function largestPrimeFactor(number)
   implicit none
   integer, intent(in) :: number
   integer :: i, largestPrimeFactor
-  do i = 1, number
+  largestPrimeFactor = 1
+  do i = 2, number
      if (isPrime(i) .and. mod(number, i) == 0) then
         largestPrimeFactor = i
      end if

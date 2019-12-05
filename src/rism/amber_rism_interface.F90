@@ -836,7 +836,7 @@ contains
        call rism3d_setCoord(rism_3d, atomPositions_md)
        call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, &
             rismprm%progress, rismprm%maxstep, tolerancelist, &
-            rismprm%phineut)
+            rismprm%phineut, rismprm%ng3)
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
