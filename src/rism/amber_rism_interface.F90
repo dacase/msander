@@ -26,29 +26,15 @@ module rismthermo_c
      !> Excess chemical potential.
      _REAL_, pointer :: excessChemicalPotential(:) => NULL()
      !> Gaussian fluctuation excess chemical potential.
-     _REAL_, pointer :: excessChemicalPotentialGF(:) => NULL()
-     !> Initial State Correction excess chemical potential
-     _REAL_, pointer :: excessChemicalPotentialPCPLUS => NULL()
-     !> Universal Correction excess chemical potential.
-     _REAL_, pointer :: excessChemicalPotentialUC => NULL()
-     !> Solute-solvent interaction energy.
      _REAL_, pointer :: solventPotentialEnergy(:) => NULL()
      !> Solvation energy.
      _REAL_, pointer :: solvationEnergy(:) => NULL()
-     !> Gaussian fluctuation solvation energy.
-     _REAL_, pointer :: solvationEnergyGF(:) => NULL()
-     !> Initial State Correction solvation energy
-     _REAL_, pointer :: solvationEnergyPCPLUS => NULL()
-     !> Palmer correction solvation energy.
-     _REAL_, pointer :: solvationEnergyUC => NULL()
-     !> Partial molar volume.
+     !> Partial molar volume
      _REAL_, pointer :: partialMolarVolume => NULL()
      !> Total number of particles.
      _REAL_, pointer :: totalParticlesBox(:) => NULL()
      !> Excess number of particles.
      _REAL_, pointer :: excessParticlesBox(:) => NULL()
-     !> Excess number of particles after asymptotic TCF correction.
-     _REAL_, pointer :: excessParticles(:) => NULL()
      !> Kirkwood-Buff integral (a.k.a. total correlation function
      !! integral).
      _REAL_, pointer :: kirkwoodBuff(:) => NULL()
@@ -63,14 +49,12 @@ module rismthermo_c
      !! communication.  This is also used for the serial
      !! calculation for simplicity.
      !! Order and size:
-     !!         excessChemicalPotential(solvent%numAtomTypes), excessChemicalPotentialGF(solvent%numAtomTypes),
+     !!         excessChemicalPotential(solvent%numAtomTypes), 
      !!         solventPotentialEnergy(solvent%numAtomTypes),
-     !!         solvationEnergy(solvent%numAtomTypes),solvationEnergyGF(solvent%numAtomTypes),
+     !!         solvationEnergy(solvent%numAtomTypes),
      !!         excessNum(solvent%numAtomTypes), 
      !!         kirkwoodBuff(solvent%numAtomTypes),
      !!         dcfi(solvent%numAtomTypes),
-     !!         excessChemicalPotentialPCPLUS(1), solvationEnergyPCPLUS(1),
-     !!         excessChemicalPotentialUC(1), solvationEnergyUC(1),
      !!         partialMolarVolume(1)
      _REAL_, private, pointer :: mpi_buffer(:) => NULL()
   end type rismthermo_t
@@ -109,24 +93,17 @@ contains
 #endif /*MPI*/
 
     ! Setup memory space.
-    this%mpi_buffer => safemem_realloc(this%mpi_buffer, 13*nsite + 6)
+    this%mpi_buffer => safemem_realloc(this%mpi_buffer, 7*nsite + 2)
     ! Initialize for case that some values are not calculated.
     call rismthermo_reset(this)
     this%excessChemicalPotential => this%mpi_buffer(1:nsite)
-    this%excessChemicalPotentialGF => this%mpi_buffer(nsite + 1:2*nsite)
-    this%solventPotentialEnergy => this%mpi_buffer(2*nsite + 1:3*nsite)
-    this%solvationEnergy => this%mpi_buffer(3*nsite + 1:4*nsite)
-    this%solvationEnergyGF => this%mpi_buffer(4*nsite + 1:5*nsite)
-    this%excessParticlesBox => this%mpi_buffer(5*nsite + 1:6*nsite)
-    this%kirkwoodBuff => this%mpi_buffer(7*nsite + 1:8*nsite)
-    this%DCFintegral => this%mpi_buffer(9*nsite + 1:10*nsite)
-    this%totalParticlesBox => this%mpi_buffer(11*nsite + 1:12*nsite)
-    this%excessParticles => this%mpi_buffer(12*nsite + 1:13*nsite)
-    this%excessChemicalPotentialPCPLUS => this%mpi_buffer(13*nsite + 1)
-    this%solvationEnergyPCPLUS => this%mpi_buffer(13*nsite + 2)
-    this%excessChemicalPotentialUC => this%mpi_buffer(13*nsite + 3)
-    this%solvationEnergyUC => this%mpi_buffer(13*nsite + 4)
-    this%partialMolarVolume => this%mpi_buffer(13*nsite + 5)
+    this%solventPotentialEnergy => this%mpi_buffer(nsite + 1:2*nsite)
+    this%solvationEnergy => this%mpi_buffer(2*nsite + 1:3*nsite)
+    this%excessParticlesBox => this%mpi_buffer(3*nsite + 1:4*nsite)
+    this%kirkwoodBuff => this%mpi_buffer(4*nsite + 1:5*nsite)
+    this%DCFintegral => this%mpi_buffer(5*nsite + 1:6*nsite)
+    this%totalParticlesBox => this%mpi_buffer(6*nsite + 1:7*nsite)
+    this%partialMolarVolume => this%mpi_buffer(7*nsite + 1)
   end subroutine rismthermo_new
 
 
@@ -213,18 +190,11 @@ contains
     if (safemem_dealloc(this%mpi_buffer) /= 0 ) &
          call rism_report_error("Dealloc failed in rism_thermo")
     nullify(this%excessChemicalPotential)
-    nullify(this%excessChemicalPotentialGF)
-    nullify(this%excessChemicalPotentialPCPLUS)
-    nullify(this%excessChemicalPotentialUC)
     nullify(this%solventPotentialEnergy)
     nullify(this%solvationEnergy)
-    nullify(this%solvationEnergyGF)
-    nullify(this%solvationEnergyPCPLUS)
-    nullify(this%solvationEnergyUC)
     nullify(this%partialMolarVolume)
     nullify(this%excessParticlesBox)
     nullify(this%totalParticlesBox)
-    nullify(this%excessParticles)
     nullify(this%kirkwoodBuff)
     nullify(this%DCFintegral)
     this%mpicomm=0
@@ -448,15 +418,6 @@ module amber_rism_interface
   !excessChemicalPotentialfile    : (output) excess chemical potential map [kcal/mol/A^3]. Volumetric file.
   !solvationEnergyfile   : (output) solvation energy map [kcal/mol/A^3]. Volumetric file.
   !entropyfile   : (output) solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
-  !excessChemicalPotentialGFfile  : (output) Gaussian fluctuation excess chemical potential map [kcal/mol/A^3]. Volumetric file.
-  !solvationEnergyGFfile : (output) Gaussian fluctuation solvation energy map [kcal/mol/A^3]. Volumetric file.
-  !entropyGFfile : (output) Gaussian fluctuation solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
-  !excessChemicalPotentialPCPLUSfile  : (output) PCPLUS excess chemical potential map [kcal/mol/A^3]. Volumetric file.
-  !solvationEnergyPCPLUSfile : (output) PCPLUS solvation energy map [kcal/mol/A^3]. Volumetric file.
-  !entropyPCPLUSfile : (output) PCPLUS solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
-  !excessChemicalPotentialUCfile  : (output) Universal Correction excess chemical potential map [kcal/mol/A^3]. Volumetric file.
-  !solvationEnergyUCfile : (output) Universal Correction solvation energy map [kcal/mol/A^3]. Volumetric file.
-  !entropyUCfile : (output) Universal Correction solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
   !solventPotentialEnergyfile     : (output) solvent-solute potential energy map [kcal/mol/A^3]. Volumetric file.
   !electronMapFile : (output) solvent electron density map. Volumetric file.
   !periodicPotential : Specify periodic potential used for periodic calculations.
@@ -465,9 +426,6 @@ module amber_rism_interface
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
        uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
-       excessChemicalPotentialGFfile='', solvationEnergyGFfile='', entropyGFfile='', &
-       excessChemicalPotentialPCPLUSfile='', solvationEnergyPCPLUSfile='', entropyPCPLUSfile='', &
-       excessChemicalPotentialUCfile='', solvationEnergyUCfile='', entropyUCfile='', &
        solventPotentialEnergyfile='', electronMapFile='', &
        volfmt='dx', crdFile=''
 
@@ -525,32 +483,6 @@ contains
   !! @param[in] solvationEnergychar Character array for solvationEnergy output file name.
   !! @param[in] entropylen Length of entropychar array.
   !! @param[in] entropychar Character array for entropy output file name.
-  !! @param[in] excessChemicalPotentialGFlen Length of excessChemicalPotentialGFchar array.
-  !! @param[in] excessChemicalPotentialGFchar Character array for Gaussian fluctuation
-  !!   excessChemicalPotential output file name.
-  !! @param[in] solvationEnergyGFlen Length of solvationEnergyGFchar array.
-  !! @param[in] solvationEnergyGFchar Character array for Gaussian fluctuation
-  !!   solvationEnergy output file name.
-  !! @param[in] entropyGFlen Length of entropyGFchar array.
-  !! @param[in] entropyGFchar Character array for Gaussian fluctuation
-  !!   entropy output file name.
-  !! @param[in] excessChemicalPotentialPCPLUSlen Length of excessChemicalPotentialPCPLUSchar array.
-  !! @param[in] excessChemicalPotentialPCPLUSchar Character array for PCPLUS
-  !!   excessChemicalPotential output file name.
-  !! @param[in] solvationEnergyPCPLUSlen Length of solvationEnergyPCPLUSchar array.
-  !! @param[in] solvationEnergyPCPLUSchar Character array for PCPLUS
-  !!   solvationEnergy output file name.
-  !! @param[in] entropyPCPLUSlen Length of entropyPCPLUSchar array.
-  !! @param[in] entropyPCPLUSchar Character array for PCPLUS entropy output file name.
-  !! @param[in] excessChemicalPotentialUClen Length of excessChemicalPotentialUCchar array.
-  !! @param[in] excessChemicalPotentialUCchar Character array for Universal Correction
-  !!   excessChemicalPotential output file name.
-  !! @param[in] solvationEnergyUClen Length of solvationEnergyUCchar array.
-  !! @param[in] solvationEnergyUCchar Character array for Universal Correction
-  !!   solvationEnergy output file name.
-  !! @param[in] entropyUClen Length of entropyUCchar array.
-  !! @param[in] entropyUCchar Character array for Universal Correction
-  !!   entropy output file name.
   !! @param[in] solventPotentialEnergylen Length of solventPotentialEnergychar array.
   !! @param[in] solventPotentialEnergychar Character array for solute-solvent potential
   !!   energy output file name.
@@ -1038,21 +970,6 @@ contains
                'H-Bond    ', 'LJ-14     ', 'Coulomb-14', 'Restraints', '3D-RISM   '/), 10)
           call thermo_print_descr_line('rism_excessChemicalPotential', '[kcal/mol]', 'Total', 'ExcChemPot_', &
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-          if (rismprm%gfCorrection == 1) then
-             call thermo_print_descr_line('rism_excessChemicalPotentialGF', '[kcal/mol]', &
-                  'Total', 'ExcChemPot_GF_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-          end if
-          if (rismprm%pcplusCorrection == 1) then                       
-             call thermo_print_descr_line('rism_excessChemicalPotentialPCPLUS','[kcal/mol]',&
-                  'Total','ExcChemPot_PCPLUS_',&
-                  rism_3d%solvent%atomname,0)
-          end if
-          if (canCalculateUC) then
-             call thermo_print_descr_line('rism_excessChemicalPotentialUC', &
-                  '[kcal/mol]', 'Total', 'ExcChemPot_UC_', &
-                  rism_3d%solvent%atomName, 0)
-          end if
           call thermo_print_descr_line('rism_solventPotentialEnergy', '[kcal/mol]', 'Total', 'UV_potential_', &
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
 
@@ -1067,12 +984,6 @@ contains
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
           call thermo_print_descr_line('rism_excessChargeBox', '[e]', 'Total', 'ExChg_', &
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-          if (.not. rism_3d%periodic) then
-             call thermo_print_descr_line('rism_excessParticles', '[#]', '', 'ExNum_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-             call thermo_print_descr_line('rism_excessCharge', '[e]', 'Total', 'ExChg_', &
-                  rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
-          end if
           call thermo_print_descr_line('rism_KirkwoodBuff', '[A^3]', '', 'KB_', &
                rism_3d%solvent%atomName, rism_3d%solvent%numAtomTypes)
           call thermo_print_descr_line('rism_DCFintegral', '[A^3]', '', 'DCFI_', &
@@ -1184,11 +1095,11 @@ contains
     integer, intent(in) :: nitem
     ! Format for category (calculation type, e.g. excess chemical
     ! potential).
-    character(len=64) :: catFmt = "(a40)"
+    character(len=64) :: catFmt = "(a30)"
     ! Format for a string the same width as valfmt.
-    character(len=32) :: strFmt = "(a26)"
+    character(len=32) :: strFmt = "(a16)"
     ! Format for floating point values.
-    character(len=32) :: valFmt = '(1p, 2x, e24.16e3)'
+    character(len=32) :: valFmt = '(1p, 2x, e14.6e3)'
     ! Long string of whitespace that can be used to effect a
     ! left-justified string.  Otherwise strings are right-justified.
     ! Simply concatenate this to the end of the string you wish
@@ -1571,16 +1482,7 @@ contains
          len_trim(excessChemicalPotentialfile) /= 0 .or. &
          len_trim(solvationEnergyfile)/= 0 .or. &
          len_trim(entropyfile) /= 0 .or. &
-         len_trim(solventPotentialEnergyfile)/= 0 .or.  &
-         len_trim(excessChemicalPotentialGFfile) /= 0 .or. &
-         len_trim(solvationEnergyGFfile)/= 0 .or. &
-         len_trim(entropyGFfile) /= 0 .or. &
-         len_trim(excessChemicalPotentialPCPLUSfile) /= 0 .or. &
-         len_trim(solvationEnergyPCPLUSfile)/= 0 .or. &
-         len_trim(entropyPCPLUSfile) /= 0 .or. &
-         len_trim(excessChemicalPotentialUCfile) /= 0 .or. &
-         len_trim(solvationEnergyUCfile)/= 0 .or. &
-         len_trim(entropyUCfile) /= 0)  then
+         len_trim(solventPotentialEnergyfile) /= 0 ) then
        write(cstep, '(i16)') step
        cstep = adjustl(cstep)
        suffix = '.'//trim(cstep)
@@ -1812,33 +1714,6 @@ contains
        call mpi_bcast(entropyfile, len(entropyfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast ENTROPYFILE")
-       call mpi_bcast(excessChemicalPotentialGFfile, len(excessChemicalPotentialGFfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast EXCESSCHEMICALPOTENTIALGFFILE")
-       call mpi_bcast(solvationEnergyGFfile, len(solvationEnergyGFfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast SOLVATIONENERGYGFFILE")
-       call mpi_bcast(entropyGFfile, len(entropyGFfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ENTROPYGFFILE")
-       call mpi_bcast(excessChemicalPotentialPCPLUSfile, len(excessChemicalPotentialPCPLUSfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast EXCESSCHEMICALPOTENTIALPCPLUSFILE")
-       call mpi_bcast(solvationEnergyPCPLUSfile, len(solvationEnergyPCPLUSfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast SOLVATIONENERGYPCPLUSFILE")
-       call mpi_bcast(entropyPCPLUSfile, len(entropyPCPLUSfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ENTROPYPCPLUSFILE")
-       call mpi_bcast(excessChemicalPotentialUCfile, len(excessChemicalPotentialUCfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast EXCESSCHEMICALPOTENTIALUCFILE")
-       call mpi_bcast(solvationEnergyUCfile, len(solvationEnergyUCfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast SOLVATIONENERGYUCFILE")
-       call mpi_bcast(entropyUCfile, len(entropyUCfile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ENTROPYUCFILE")
        call mpi_bcast(solventPotentialEnergyfile, len(solventPotentialEnergyfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast POTUVFILE")

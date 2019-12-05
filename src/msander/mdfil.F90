@@ -139,15 +139,6 @@ subroutine mdfil(VERSION, version_requested)
    excessChemicalPotentialfile    = ''
    solvationEnergyfile   = ''
    entropyfile   = ''
-   excessChemicalPotentialGFfile    = ''
-   solvationEnergyGFfile   = ''
-   entropyGFfile   = ''
-   excessChemicalPotentialPCPLUSfile    = ''
-   solvationEnergyPCPLUSfile   = ''
-   entropyPCPLUSfile   = ''
-   excessChemicalPotentialUCfile    = ''
-   solvationEnergyUCfile   = ''
-   entropyUCfile   = ''
    solventPotentialEnergyfile     = ''
    electronMapFile = ''
    crdFile = ''
@@ -387,32 +378,6 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-entropy') then
          iarg = iarg + 1
          call getarg_wrap(iarg,entropyfile)
-      else if (arg == '-exchemGF') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,excessChemicalPotentialGFfile)
-      else if (arg == '-solveneGF') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,solvationEnergyGFfile)
-      else if (arg == '-entropyGF') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,entropyGFfile)
-      else if (arg == '-exchemPCPLUS') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,excessChemicalPotentialPCPLUSfile)
-      else if (arg == '-solvenePCPLUS') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,solvationEnergyPCPLUSfile)
-      else if (arg == '-entropyPCPLUS') then
-         iarg = iarg + 1
-      else if (arg == '-exchemUC') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,excessChemicalPotentialUCfile)
-      else if (arg == '-solveneUC') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,solvationEnergyUCfile)
-      else if (arg == '-entropyUC') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,entropyUCfile)
       else if (arg == '-potUV') then
          iarg = iarg + 1
          call getarg_wrap(iarg,solventPotentialEnergyfile)

@@ -51,9 +51,6 @@ subroutine mdread1()
    use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
         uuvfile, quvFile, chgDistFile, electronMapFile, &
         excessChemicalPotentialfile, solvationEnergyfile, entropyfile, &
-        excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
-        excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile,&
-        excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile,&
         solventPotentialEnergyfile
 #  endif /* API */
    use sander_rism_interface, only: rismprm
@@ -250,24 +247,6 @@ subroutine mdread1()
         write(6,9701) 'SolvEne', trim(solvationEnergyfile)
    if (len_trim(entropyfile) > 0) &
         write(6,9701) 'Entropy', trim(entropyfile)
-   if (len_trim(excessChemicalPotentialGFfile) > 0) &
-        write(6,9701) 'ExChGF', trim(excessChemicalPotentialGFfile)
-   if (len_trim(solvationEnergyGFfile) > 0) &
-        write(6,9701) 'SolvEneGF', trim(solvationEnergyGFfile)
-   if (len_trim(entropyGFfile) > 0) &
-        write(6,9701) '-TS_GF', trim(entropyGFfile)
-   if (len_trim(excessChemicalPotentialPCPLUSfile) > 0) &
-        write(6,9701) 'exchemPCPLUS', trim(excessChemicalPotentialPCPLUSfile)
-   if (len_trim(solvationEnergyPCPLUSfile) > 0) &
-        write(6,9701) 'SolvEnePCPLUS', trim(solvationEnergyPCPLUSfile)
-   if (len_trim(entropyPCPLUSfile) > 0) &
-        write(6,9701) '-TS_PCPLUS', trim(entropyPCPLUSfile)
-   if (len_trim(excessChemicalPotentialUCfile) > 0) &
-        write(6,9701) 'exchemUC', trim(excessChemicalPotentialUCfile)
-   if (len_trim(solvationEnergyUCfile) > 0) &
-        write(6,9701) 'SolvEneUC', trim(solvationEnergyUCfile)
-   if (len_trim(entropyUCfile) > 0) &
-        write(6,9701) '-TS_UC', trim(entropyUCfile)
    if (len_trim(solventPotentialEnergyfile) > 0) &
         write(6,9701) 'PotUV', trim(solventPotentialEnergyfile)
 #endif /*RISMSANDER*/
