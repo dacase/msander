@@ -53,7 +53,7 @@ fi
 
 workdir=`pwd`
 MSANDERHOME=`dirname $workdir`
-echo "setting MSANDERHOME to $MSANDERHOME"
+echo "setting installation path to $MSANDERHOME"
 echo " "
 
 case "$compiler" in
