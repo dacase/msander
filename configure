@@ -60,9 +60,9 @@ for var in "$@"; do
         --intel)
             compiler="intel"
             cc="icc"
-            mpicc="mpiicc"
+            mpicc="$msanderhome/bin/mpicc"
             fc="ifort"
-            mpif90="mpiifort"
+            mpif90="$msanderhome/bin/mpif90"
             flibs_arch="-lifport -lifcore -lsvml";;
         --no-rism)
             rismsander=""
@@ -346,7 +346,7 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib --enable-openmp $fftw_flags \
            --enable-static --enable-sse2=yes MPICC="$mpicc" \
-           CC="$cc" CFLAGS="-O2"  F77="$fc" FFLAGS="-O2" \
+           CC="$cc" CFLAGS="-gcc-sys -O2"  F77="$fc" FFLAGS="-O2" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
