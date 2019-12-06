@@ -20,7 +20,7 @@ cat > mdin <<EOF
  &rism
     periodic='pme',
     closure='kh',
-    grdspc=0.487,0.482,0.441,
+    ng3 = 72,96,100,
     solvcut=8.d0,
     verbose=1,
     write_thermo=0,
