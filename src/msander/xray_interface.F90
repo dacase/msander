@@ -669,10 +669,6 @@ contains
 !     This call uses MPI parallel to compute Fcalc:
       if( fft_method == 0 ) then
          call timer_start(TIME_IHKL)
-         write(6,*) 'before fourier_Fcalc:'
-         do i=1,10
-            write(6,'(3i5)') hkl_index(:,i)
-         end do
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
@@ -700,10 +696,6 @@ contains
          call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
-         write(6,*) 'before dTargetML_dF:'
-         do i=1,10
-            write(6,'(3i5,2f10.5)') hkl_index(:,i),Fcalc(i)
-         end do
          call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else

@@ -101,7 +101,6 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-         write(6,*) 'in fourier_Fcalc:'
 !$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
          ! always compute all Fcalcs: we'll want these for everything anyway(?)
@@ -148,7 +147,6 @@ contains
 
          Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
               sum(f(:) * sin(angle(:))), rk_ )
-         if( ihkl <= 10 ) write(6,'(3i5,2f12.5)') hkl(:,ihkl),Fcalc(ihkl)
 
       end do
 !$omp end parallel do
