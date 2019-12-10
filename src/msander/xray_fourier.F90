@@ -497,9 +497,6 @@ contains
       call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
                                    nstep, num_hkl )
 
-      write(0,*) alpha_array(1), alpha_array(100), alpha_array(num_hkl)
-      write(0,*) delta_array(1), delta_array(100), delta_array(num_hkl)
-
       ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
       do i=1,NRF_work
          deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
@@ -509,7 +506,8 @@ contains
       end do
 
       ! residual = r_work, as in dTarget/dF
-      residual = sum (abs_Fobs - Fcalc_scale*abs_Fcalc ) / sum(abs_Fobs)
+      residual = sum (abs( abs_Fobs(1:NRF_work) - abs_Fcalc(1:NRF_work) )) &
+           / sum(abs_Fobs(1:NRF_work))
 
    end subroutine dTargetML_dF
 
