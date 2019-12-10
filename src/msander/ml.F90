@@ -173,18 +173,18 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !
   !--------------------------------------------------------------------------------------------
-  subroutine init_ml(nstlim, NRF, hkl_tmp, &
+  subroutine init_ml(nstlim, num_hkl, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out)
 
     use xray_globals_module, only: unit_cell
     implicit none
 
-    integer, intent(in) :: nstlim, NRF
-    integer, dimension(3,NRF), intent(inout) :: hkl_tmp
-    double precision, dimension(NRF), intent(inout) :: f_obs_tmp, &
+    integer, intent(in) :: nstlim, num_hkl
+    integer, dimension(3,num_hkl), intent(inout) :: hkl_tmp
+    double precision, dimension(num_hkl), intent(inout) :: f_obs_tmp, &
             f_obs_sigma_tmp
-    integer, dimension(NRF), intent(inout) :: test_flag
-    double precision, dimension(NRF), intent(out) :: d_star_sq_out
+    integer, dimension(num_hkl), intent(inout) :: test_flag
+    double precision, dimension(num_hkl), intent(out) :: d_star_sq_out
 
     double precision :: a, b, c, alpha, beta, gamma, V, &
                         resolution, d, d_star, reflections_per_bin, fo_fo
@@ -196,10 +196,11 @@ contains
     integer (kind = 4) :: file_status
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
-    integer:: hkl(3,NRF)
-    double precision :: f_obs(NRF), fobs_weight(NRF), f_obs_sigmas(NRF)
+    integer:: hkl(3,num_hkl)
+    double precision :: f_obs(num_hkl), fobs_weight(num_hkl), f_obs_sigmas(num_hkl)
 
     N_steps = nstlim
+    NRF = num_hkl
 
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
@@ -405,7 +406,6 @@ contains
     ! need to put fobs into f_obs_tmp to send back to calling 
     !       program; same for f_obs_sigmas, f_obs_weight(?) and hkl
 
-    write(0,*) 'in init_ml: ', NRF_work, NRF_free, NRF, n_bins
     f_obs_tmp(:) = f_obs(:)
     f_obs_sigma_tmp(:) = f_obs_sigmas(:)
     ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
@@ -974,7 +974,7 @@ contains
     integer, intent(in) :: nstep, NRF
     complex(8), intent(in)   :: f_calc(NRF)
     double precision, intent(in) :: f_obs(NRF)
-    double precision, intent(inout) :: exray
+    double precision, intent(out) :: exray
     double precision :: k_scale(NRF)
     double precision :: r_work_factor_numerator, r_free_factor_numerator
     double precision :: mean_delta
@@ -982,7 +982,6 @@ contains
     double precision :: f_calc_abs(NRF)
     
     ! if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
-      write(0,*) 'in estimate_ml ', nstep, NRF
       call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
       mean_delta = sum(delta_array) / NRF
@@ -991,13 +990,14 @@ contains
     f_calc_abs = abs(f_calc)
     r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
     r_free_factor_numerator = sum(abs(f_calc_abs(NRF_work + 1:NRF) - f_obs(NRF_work + 1:NRF)))
-    if (mod(nstep, ntpr) == 0 .or. nstep == 0) then
+    !if (mod(nstep, ntpr) == 0 .or. nstep == 0) then
       xray_r_work = r_work_factor_numerator / r_work_factor_denominator
       xray_r_free = r_free_factor_numerator / r_free_factor_denominator
-    end if
+      write(6,*) 'rwork,rfree: ', xray_r_work, xray_r_free
+    !end if
 
     ! ML target function
-    exray = exray + xray_weight * &
+    exray = xray_weight * &
             sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
             f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
             ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
