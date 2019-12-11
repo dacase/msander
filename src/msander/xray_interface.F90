@@ -454,6 +454,7 @@ contains
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
+      double precision :: resolution
       real(real_kind) :: phi
       logical :: master
 #ifdef MPI
@@ -527,23 +528,15 @@ contains
       end if
 
       if( target(1:2) == 'ml' ) then
-         write(6,*) 'calling init_ml: ', num_hkl
-#if 0
-         do i=1,num_hkl
-            write(6,'(3i5,2f12.5,i5)') hkl_index(:,i),abs_Fobs(i), &
-                   sigFobs(i),test_flag(i)
-         end do
-#endif
          call init_ml(nstlim, num_hkl, &
-              hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq)
-         write(6,*) 'after init_ml: ', num_hkl
-#if 1
+              hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq, resolution)
+#if 0
          do i=1,num_hkl
             write(6,'(3i5,2f12.5,i5,f12.5)') hkl_index(:,i),abs_Fobs(i), &
                    sigFobs(i),test_flag(i),sqrt(1.d0/d_star_sq(i))
          end do
 #endif
-         ! call init_bulk_solvent(n_atom, NRF, resolution)
+         call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
       end if
 
       call get_mss4(num_hkl, hkl_index, mSS4 )
@@ -690,13 +683,13 @@ contains
 #endif
 
       if( target(1:3) == 'vls' ) then
-         call dTargetV_dF(num_hkl, Fobs,Fcalc,deriv=dF, &
+         call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
             residual=r_work, xray_energy=xray_energy)
       else if( target(1:2) == 'ls' ) then
          call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
-         call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, &
+         call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, num_atoms, xyz,  &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else
          write(6,*) 'Bad target: ', target

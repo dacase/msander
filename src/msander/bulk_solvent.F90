@@ -4,14 +4,14 @@ module bulk_solvent_mod
   implicit none
 
   ! Arrays to hold the bulk solvent mask
-  complex(8), dimension(:), allocatable :: f_mask, f_mask_tmp, mask_bs_grid_t_c, &
-                                           mask_bs_grid_t_c_tmp
+  complex(8), dimension(:), allocatable :: &
+          mask_bs_grid_t_c, mask_bs_grid_t_c_tmp
   ! Bulk solvent mask parameters
   double precision, dimension(16)   :: mask_cell_params
   double precision, dimension(3)    :: mask_grid_steps
 
-  double precision, dimension(:), allocatable :: k_mask, k_scale, mask_cutoffs, &
-                                                 s_squared, b_vector_mask
+  double precision, dimension(:), allocatable :: k_mask, k_scale, &
+          mask_cutoffs, b_vector_mask
 
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
   !                               FFT'd bulk solvent mask
@@ -22,25 +22,29 @@ module bulk_solvent_mod
                                  b_sol = 46.0, mask_r_shrink = 0.9, &
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
 
-  ! atom_types:               Type index for each atom, referring not to atom types in the
-  !                           standard MD topology but atom types for the SSF calculation
-  ! mask_bs_grid:             Array to hold the bulk solvent mask
-  ! mask_bs_grid_tmp:         Array used in shrinking the bulk solvent mask when building it
-  ! grid_neighbors:           Array of relative positions for any grid neighbors in the bulk
+  ! atom_types:    Type index for each atom, referring not to atom types in the
+  !                standard MD topology but atom types for the SSF calculation
+  ! mask_bs_grid:      Array to hold the bulk solvent mask
+  ! mask_bs_grid_tmp:  Array used in shrinking the bulk solvent mask 
+  !                    when building it
+  ! grid_neighbors:    Array of relative positions for any grid neighbors 
+  !                    in the bulk
   integer, dimension(:), allocatable :: atom_types, mask_bs_grid, &
                                         mask_bs_grid_tmp, grid_neighbors
 
   ! Size of the mask grid (number of grid points)
   integer, dimension(4) :: mask_grid_size
 
-  ! grid_neighbors_size:    Number of grid neighbors that are within the shrunken mask cutoff
+  ! grid_neighbors_size:    Number of grid neighbors that are within the 
+  !                         shrunken mask cutoff
   integer grid_neighbors_size
+  integer*8 plan_forward(1)
 
 contains
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! count_reduce:
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function count_reduce (red_n, factor) result(result)
     integer :: red_n, factor, result
 
@@ -51,9 +55,10 @@ contains
 
   end function count_reduce
 
-  !--------------------------------------------------------------------------------------------
-  ! check_max_prime: find the maximum prime of a number n, given a putative guess max_prime
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! check_max_prime: find the maximum prime of a number n, 
+  !                  given a putative guess max_prime
+  !----------------------------------------------------------------------------
   function check_max_prime (max_prime, n) result(result)
     integer :: max_prime, n, factor, n_
     logical :: result
@@ -72,10 +77,10 @@ contains
 
   end function check_max_prime
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! adjust_gridding:  adjust number of grid point for FFT productivity
   !                   in this module max prime factor is set to 5
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function adjust_gridding (n, max_prime) result(n_fixed)
     integer :: n, n_, max_prime, n_fixed, mandatory_factor
 
@@ -95,14 +100,14 @@ contains
 
   end function adjust_gridding
 
-  !--------------------------------------------------------------------------------------------
-  ! mod_grid:  compute the three dimensional grid index of an absolute position in the
-  !            corresponding linear array.
+  !----------------------------------------------------------------------------
+  ! mod_grid:  compute the three dimensional grid index of an absolute 
+  !            position in the corresponding linear array.
   !
   ! Arguments:
   !   x:        
   !   nx:       
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   pure function mod_grid(x, nx)
     integer, intent(in) :: x, nx
     integer :: mod_grid
@@ -175,32 +180,27 @@ contains
     end do
   end subroutine calc_grid_neighbors
 
-  !--------------------------------------------------------------------------------------------
-  ! init_bulk_solvent: intialize the bulk solvent mask to one, 'solvent present here.'
-  !--------------------------------------------------------------------------------------------
-  subroutine init_bulk_solvent(n_atom, NRF,resolution)
+  !----------------------------------------------------------------------------
+  ! init_bulk_solvent: intialize the mask to one, 'solvent present here.'
+  !----------------------------------------------------------------------------
+  subroutine init_bulk_solvent(n_atom, NRF, hkl, resolution)
 
     use xray_globals_module, only: unit_cell
     use memory_module, only: i100, ix
     use ml_mod, only: cross
     implicit none
     integer, intent(in) :: n_atom, NRF
+    integer, intent(in) :: hkl(3,NRF)
     double precision, intent(in) :: resolution
 
     integer :: i, atomic_number, na, nb, nc
     double precision :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
     double precision :: a,b,c,alpha,beta,gamma
-    double precision :: cosa, sina, cosb, sinb, cosg, sing, V
-    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
+    double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
+    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
 
-    mask_bs_grid = 1
-    mask_bs_grid_tmp = 1
-
-    allocate(f_mask(NRF))
-    allocate(f_mask_tmp(NRF))
     allocate(k_mask(NRF))
     allocate(k_scale(NRF))
-    allocate(s_squared(NRF))
     allocate(hkl_indexing_bs_mask(NRF))
 
     allocate(atom_types(n_atom))
@@ -243,10 +243,6 @@ contains
     ! work for grids related to solvent mask:
 
     ! TODO: next section is duplicated in init_ml()
-    temp_grid = resolution / 4.0
-    na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
-    nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
-    nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
 
     a = unit_cell(1)
     b = unit_cell(2)
@@ -275,12 +271,16 @@ contains
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
 
+    temp_grid = resolution / 4.0
+    na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
+    nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
+    nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
     grid_stepX = a / na
     grid_stepY = vb(2) / nb
     grid_stepZ = vc(3) / nc
 
-    ! Metric matrix (1:6), reciprocal cell lengths (7:9), cart-to-frac matrix (10:15),
-    ! cell volume (16)
+    ! Metric matrix (1:6), reciprocal cell lengths (7:9), 
+    ! cart-to-frac matrix (10:15), cell volume (16)
 
     mask_cell_params = (/a*a, b*b, c*c, 2*a*b*cos(gamma), 2*a*c*cos(beta), &
                         2*b*c*cos(alpha), norm2(vas), norm2(vbs), norm2(vcs), &
@@ -303,34 +303,35 @@ contains
     allocate(mask_bs_grid_t_c_tmp(mask_grid_size(1) * mask_grid_size(2) * &
                                   (mask_grid_size(3) /2 + 1)))
 
+    mask_bs_grid = 1
+    mask_bs_grid_tmp = 1
 
-#if 0
-    !  need to get hkl here
     do i = 1, NRF
-      hkl_indexing_bs_mask(i) = h_as_ih(hkl(i, 1), hkl(i, 2), hkl(i, 3), na, nb, nc)
+      s(:) = hkl(1,i) * vas(:) + hkl(2,i) * vbs(:) + hkl(3,i) * vcs(:)
+      s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
+      k_mask(i) = k_sol * exp(b_sol * s_squared)
+
+      hkl_indexing_bs_mask(i) = h_as_ih( hkl(1,i), hkl(2,i), hkl(3,i), &
+                                         na, nb, nc)
       if (hkl_indexing_bs_mask(i) == -1) then
         stop 'Miller indices indexing failed'
       end if
+      
     end do
-#endif
 
     call calc_grid_neighbors()
-
-    ! TODO: where should this go?
-    !k_mask(i) = k_sol * exp(b_sol * s_squared(i))
-
     return
 
   end subroutine init_bulk_solvent
 
-  !--------------------------------------------------------------------------------------------
-  ! grid_bulk_solvent: CPU equivalent of the GPU kernel kGrid, colors the bulk solvent mask
+  !----------------------------------------------------------------------------
+  ! grid_bulk_solvent: colors the bulk solvent mask
   !                    grid according to the presence of non-solvent atoms
   !
   ! Arguments:
-  !   n_atom:  the total number of atoms (not used but to define the size of crd)
+  !   n_atom:  the total number of atoms
   !   crd:     atomic coordinates
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine grid_bulk_solvent(n_atom, crd)
 
     implicit none
@@ -389,12 +390,12 @@ contains
     end do
   end subroutine
 
-  !--------------------------------------------------------------------------------------------
-  ! shrink_bulk_solvent: shave off the outermost layer of masking, expanding the domain of
-  !                      bulk solvent in the simulation.  The grid is generally four times the
-  !                      resolution of the X-ray data, implying for a 2.0A resolution
-  !                      structure a grid of 0.5A or less.  This is pretty fine.
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! shrink_bulk_solvent: shave off the outermost layer of masking, expanding 
+  !     the domain of bulk solvent in the simulation.  The grid is generally 
+  !     four times the resolution of the X-ray data, implying for a 2.0A 
+  !     resolution structure a grid of 0.5A or less.  This is pretty fine.
+  !----------------------------------------------------------------------------
   subroutine shrink_bulk_solvent()
 
     integer :: tid, a, i0, j0, k0, i, j, k
@@ -429,35 +430,76 @@ contains
     end do
   end subroutine
 
-  !--------------------------------------------------------------------------------------------
-  ! fft_bs_mask: FIX ME, THIS DOES NOT WORK.  This is the critical step in getting the CPU
-  !              code to operate.  Transforms the bulk solvent (BS) mask into fourier space.
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! fft_bs_mask: Transforms the bulk solvent (BS) mask into fourier space.
+  !----------------------------------------------------------------------------
   subroutine fft_bs_mask()
 
-    use iso_c_binding
+    !use iso_c_binding
     implicit none
-    include 'fftw3.f03'
-    double precision :: mask_bs_grid_3d(mask_grid_size(1) * mask_grid_size(2) * mask_grid_size(3))
-    double precision :: mask_bs_grid_3d_fft(mask_grid_size(1) * mask_grid_size(2) * mask_grid_size(3))
-    integer :: i, j, k
+#include <fftw3.f>
+    double precision :: mask_bs_grid_3d(mask_grid_size(3), &
+                                        mask_grid_size(2), &
+                                        mask_grid_size(1))
+    double complex ::   mask_bs_grid_3d_fft(mask_grid_size(3)/2 + 1, &
+                                            mask_grid_size(2), &
+                                            mask_grid_size(1))
 
-    ! CHECK
-    ! write(mdout, '(a,3i8)') '| mask_grid_size = ', mask_grid_size(1), mask_grid_size(2), &
-    !                         mask_grid_size(3)
-    ! END CHECK
+    mask_bs_grid_3d = reshape(mask_bs_grid, (/mask_grid_size(3) , &
+                                              mask_grid_size(2),  &
+                                              mask_grid_size(1)/))
 
-#if 0
-    call dfftw_plan_dft_r2c_3d(plan_forward, mask_grid_size(3), mask_grid_size(2), &
-                               mask_grid_size(1), mask_bs_grid_3d, mask_bs_grid_3d_fft, &
-                               FFTW_ESTIMATE)
-    call dfftw_execute_dft_r2c(plan_forward, mask_bs_grid_3d, mask_bs_grid_3d_fft)
+    call dfftw_plan_dft_r2c_3d(plan_forward, mask_grid_size(3), &
+        mask_grid_size(2), mask_grid_size(1), mask_bs_grid_3d, &
+        mask_bs_grid_3d_fft, FFTW_ESTIMATE)
+    call dfftw_execute_dft_r2c(plan_forward, mask_bs_grid_3d, &
+         mask_bs_grid_3d_fft)
+
     mask_bs_grid_t_c = reshape(mask_bs_grid_3d_fft, &
-                               (/(mask_grid_size(3) / 2 + 1) * mask_grid_size(2) * &
-                                 mask_grid_size(1)/))
+         (/(mask_grid_size(3) / 2 + 1) * mask_grid_size(2) * &
+            mask_grid_size(1)/))
     call dfftw_destroy_plan(plan_forward)
-#endif
+    return
+
   end subroutine fft_bs_mask
     
+  !----------------------------------------------------------------------------
+  ! h_as_ih:  represent a set of (h, k, l) as a 1D array index of FFT'd bulk 
+  !           solvent mask, given grid dimensions (na, nb, nc)
+  !----------------------------------------------------------------------------
+  function h_as_ih (h, k, l, na, nb, nc) result(ih)
+    integer :: h, k, l, na, nb, nc, m, ihh, ihk, ihl, ih
+    logical :: error
+
+    error = .false.
+
+    ihh = h
+    ihk = k
+    ihl = l
+
+    m = (na - 1) / 2
+    if (-m > ihh .or. ihh > m) then
+      error = .true.
+    elseif (ihh < 0) then
+      ihh = ihh + na
+    end if
+    m = (nb - 1) / 2
+    if (-m > ihk .or. ihk > m) then
+      error = .true.
+    elseif (ihk < 0) then
+      ihk = ihk + nb
+    end if
+    m = nc / 2 + 1
+    if (0 > ihl .or. h >= m) then
+      error = .true.
+    end if
+
+    if (error) then
+      ih = -1
+    else
+      ih = ihh * nb * m + ihk * m + ihl
+    end if
+
+  end function h_as_ih
 
 end module bulk_solvent_mod
