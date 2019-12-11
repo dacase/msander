@@ -450,7 +450,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer :: nstep = 1
       integer :: i
-      double precision :: term, b(7), Uaniso(7)
+      double precision :: term, b(7), Uaniso(7), rwork_num, rwork_denom
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
@@ -469,10 +469,9 @@ contains
       end do
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 #endif
-      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 2: scaling Fcalc:
-      b_vector_base = log(abs_Fobs(1:NRF_work) / abs_Fcalc(1:NRF_work)) / NRF_work_sq
+      b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
       b(1) = sum(b_vector_base)
       b(2) = sum(b_vector_base * h_sq(1:NRF_work))
       b(3) = sum(b_vector_base * k_sq(1:NRF_work))
@@ -485,17 +484,13 @@ contains
 
       k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-      write(0,*) 'in dtargetML, num_hkl is ', num_hkl
-      write(0,*) k_scale(1), k_scale(100), k_scale(num_hkl)
-      write(0,*) Fcalc(1), Fcalc(100), Fcalc(num_hkl)
       Fcalc = Fcalc * k_scale
-      Fcalc_scale = 1._rk_
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
       !         note that this routine needs xray2-type initialization;
       !         also, will probably only be active on selected nstep values
-      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, &
-                                   nstep, num_hkl )
+      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep )
 
       ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
       do i=1,NRF_work
@@ -506,8 +501,10 @@ contains
       end do
 
       ! residual = r_work, as in dTarget/dF
-      residual = sum (abs( abs_Fobs(1:NRF_work) - abs_Fcalc(1:NRF_work) )) &
-           / sum(abs_Fobs(1:NRF_work))
+      rwork_num = sum (abs( abs_Fobs(1:NRF_work) - abs_Fcalc(1:NRF_work) ))
+      rwork_denom = sum(abs_Fobs(1:NRF_work))
+      residual = rwork_num/rwork_denom
+      write(6,*) 'rwork: ', rwork_num, rwork_denom, residual
 
    end subroutine dTargetML_dF
 

@@ -6,13 +6,8 @@ module ml_mod
   use file_io_dat
   implicit none
 
-  ! Parameters for the structure factor computation
-  double precision :: F_obs_sq_sum_work, F_obs_sq_sum_free, r_work_factor_denominator, &
-                      r_free_factor_denominator, &
-                      cell_volume, xray_r_work, xray_r_free
-
-  ! 7 x 7 transformation matrices to anisotropically scale structure factors from calculated
-  ! to experimental
+  ! 7 x 7 transformation matrices to anisotropically scale structure factors 
+  !       from calculated to experimental
   double precision, dimension(7, 7) :: Ucryst, MUcryst_inv
 
   ! Arrays used in the computation of structure factors and ML parameters
@@ -22,10 +17,10 @@ module ml_mod
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
   double precision, dimension(:), allocatable :: A_in_zones, B_in_zones, &
-                                           C_in_zones, q_in_zones, &
-                                           alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
-                                           t_optimal, alpha_in_zones, beta_in_zones, &
-                                           b_vector_base
+                       C_in_zones, q_in_zones, &
+                       alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
+                       t_optimal, alpha_in_zones, beta_in_zones, &
+                       b_vector_base
 
   ! Convenient numerical constants
   double precision, parameter :: pi = 3.14159265359, zero = 0.0, d_tolerance = 1.e-10
@@ -34,14 +29,14 @@ module ml_mod
   ! hk, kl, hl:               Products of H, K, and L indices
   integer, dimension(:), allocatable :: h_sq, k_sq, l_sq, hk, kl, hl
 
-  ! NRF:                    The number of reflections (passed in from xray3 reads)
+  ! NRF:                    The number of reflections
   ! NRF_work, NRF_work_sq:  Number of work reflections, and square thereof
   ! NRF_free:               Number of free reflections
   ! call_est:               Tracking counter for pseudo-energy weight estimation
-  ! N_steps:                The total number of simulation steps (N_steps is set directly to
-  !                         nstlim). Used to potentially control the restraints weight
-  ! starting_N_step:        Step number to start on. Similar purpose as for N_steps
-  ! total_N_steps:          Step number to finish on. Similar purpose as for N_steps
+  ! N_steps:                The total number of simulation steps
+  !                         Used to potentially control the restraints weight
+  ! starting_N_step:        Step number to start on.
+  ! total_N_steps:          Step number to finish on.
   ! mask_update_frequency:  Solvent mask update freuency
   ! n_bins:                 Number of reflections per resolution bin
   integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
@@ -50,24 +45,25 @@ module ml_mod
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
-  ! bins_free_start_indices:  Stores the indices of first free reflection in each resolution zone
+  ! bins_free_start_indices:  Stores the indices of first free reflection 
+  !                           in each resolution zone
   ! reflection_bin:           HKL's number of the corresponding resolution zone
-  integer, dimension(:), allocatable :: bins_work_population, bins_free_population, &
-                                        bins_free_start_indices, reflection_bin
+  integer, dimension(:), allocatable :: bins_work_population, &
+           bins_free_population, bins_free_start_indices, reflection_bin
 
-  ! hkl:                      3 rows by N columns array containing HKL indices of reflections
-  !                             (transpose of hkl_index in xray3)
-  ! bins_work_reflections:    Used to re-sort work reflections into the original order based on
-  !                           resolution bin and relative position in it
-  ! bins_free_reflections:    Used to re-sort free reflections into the original order based on
-  !                           resolution bin and relative position in it
-  integer, dimension(:,:), allocatable :: bins_work_reflections, bins_free_reflections
+  ! hkl:                      3 by N carray containing HKL indices
+  ! bins_work_reflections:    Used to re-sort work reflections into the 
+  !                           original order based on resolution bin and 
+  !                           relative position in it
+  ! bins_free_reflections:    Used to re-sort free reflections
+  integer, dimension(:,:), allocatable :: bins_work_reflections, &
+                                          bins_free_reflections
 
 contains
 
-  !--------------------------------------------------------------------------------------------
-  ! cross:   Compute the cross product of vectors a and b.  Return the cross product.
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! cross:   Compute the cross product of vectors a and b.  
+  !----------------------------------------------------------------------------
   function cross(a, b) result(cross_product)
 
     double precision, dimension(3) :: cross_product
@@ -79,24 +75,25 @@ contains
 
   end function cross
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! i1_over_i0:   approximation of modified Bessel functions of the first kind:
   !               first order over zero order
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function i1_over_i0 (x) result(result)
 
-    double precision, dimension(7) :: p  = (/  1.00000000,  3.51562290,  3.08994240, &
-                                               1.20672920,  0.26597320,  0.03607680, &
-                                               0.00458130 /), &
-                                      pp = (/  0.50000000,  0.87890594,  0.51498869, &
-                                               0.15084934,  0.02658733,  0.00301532, &
-                                               0.00032411 /)
-    double precision, dimension(9) :: q  = (/  0.39894228,  0.01328592,  0.00225319, &
-                                              -0.00157565,  0.00916281, -0.02057706, &
-                                               0.02635537, -0.01647633,  0.00392377 /), &
-                                      qq = (/  0.39894228, -0.03988024, -0.00362018, &
-                                               0.00163801, -0.01031555,  0.02282967, &
-                                              -0.02895312,  0.01787654, -0.00420059 /)
+    double precision, dimension(7) :: &
+          p  = (/  1.00000000,  3.51562290,  3.08994240, &
+                   1.20672920,  0.26597320,  0.03607680,  0.00458130 /), &
+          pp = (/  0.50000000,  0.87890594,  0.51498869, &
+                   0.15084934,  0.02658733,  0.00301532,  0.00032411 /)
+    double precision, dimension(9) :: &
+          q  = (/  0.39894228,  0.01328592,  0.00225319, &
+                  -0.00157565,  0.00916281, -0.02057706, &
+                   0.02635537, -0.01647633,  0.00392377 /), &
+          qq = (/  0.39894228, -0.03988024, -0.00362018, &
+                   0.00163801, -0.01031555,  0.02282967, &
+                  -0.02895312,  0.01787654, -0.00420059 /)
+
     double precision :: x, y, result, be1, be0, pow_y_i, abs_x
     integer :: i
     be1 = 0
@@ -130,10 +127,10 @@ contains
 
   end function i1_over_i0
 
-  !--------------------------------------------------------------------------------------------
-  ! ln_of_i0:   approximation of logarithm of modified Bessel function of the first kind,
-  !             zero order
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! ln_of_i0:   approximation of logarithm of modified Bessel function of 
+  !             the first kind, zero order
+  !----------------------------------------------------------------------------
   function ln_of_i0 (x) result(bessel_lni0)
 
     double precision, dimension(NRF_work) :: x, bessel_lni0
@@ -169,10 +166,9 @@ contains
 
   end function ln_of_i0
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! init_ml: gateway to the maximum-likelihood target function
-  !
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine init_ml(nstlim, num_hkl, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out)
 
@@ -215,10 +211,6 @@ contains
         Ucryst(i, j) = zero
       end do
     end do
-    F_obs_sq_sum_work = zero
-    F_obs_sq_sum_free = zero
-    r_work_factor_denominator = zero
-    r_free_factor_denominator = zero
     r_free_counter = 0
     NRF_work = 0
 
@@ -250,7 +242,6 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
-    cell_volume = V
 
     ! start of block to separate work and free reflections, and sort into bins
 
@@ -266,14 +257,8 @@ contains
       resolution = min( d, resolution )
       if (r_free_flag == 0) then
         NRF_work = NRF_work + 1
-        r_work_factor_denominator = r_work_factor_denominator + f_obs_tmp(i)
-        F_obs_sq_sum_work = F_obs_sq_sum_work + f_obs_tmp(i) * f_obs_tmp(i) !* &
-        ! (1.0/f_obs_sigma_tmp(i))**2
       else
         r_free_counter = r_free_counter + 1
-        r_free_factor_denominator = r_free_factor_denominator + f_obs_tmp(i)
-        F_obs_sq_sum_free = F_obs_sq_sum_free + f_obs_tmp(i) * f_obs_tmp(i) !* &
-        ! (1.0/f_obs_sigma_tmp(i))**2
       endif
       d_star_sq(i) = d_star
       ! f_obs_weight(i) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
@@ -526,9 +511,9 @@ contains
   end subroutine init_ml
 
 #if 0
-  !--------------------------------------------------------------------------------------------
-  ! finalize_ml_mod:  clean up the structure factors computation before termination of pmemd
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! finalize_ml_mod:  clean up the structure factors computation 
+  !----------------------------------------------------------------------------
   subroutine finalize_ml_mod()
 
     implicit none
@@ -565,24 +550,24 @@ contains
   end subroutine finalize_ml_mod
 #endif
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! square:  compute the square of a number
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   pure function square(x)
     double precision, intent(in) :: x
     double precision :: square
     square = x * x
   end function
 
-  !--------------------------------------------------------------------------------------------
-  ! inverse: Matrix inverse, based on Doolittle LU factorization for Ax=b by Alex G.,
-  !          December 2009.  The original matrix a(n,n) will be destroyed.
+  !----------------------------------------------------------------------------
+  ! inverse: Matrix inverse, based on Doolittle LU factorization for Ax=b 
+  !   by Alex G., December 2009.  The original matrix a(n,n) will be destroyed.
   !
   ! Arguments:
   !   a:       (n x n) array of coefficients for square matrix A
   !   n:       dimension of A
   !   c:       (n x n) inverse of matrix A
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine inverse(a,c,n)
 
     implicit none
@@ -654,9 +639,9 @@ contains
     end do
   end subroutine inverse
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! bubble_sort:  go bubble sort!  Sort a list of real numbers a.
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine bubble_sort(a)
     double precision, dimension(:) :: a
     double precision :: temp
@@ -677,10 +662,10 @@ contains
     end do
   end subroutine bubble_sort
 
-  !--------------------------------------------------------------------------------------------
-  ! h_as_ih:  represent a set of (h, k, l) as a 1D array index of FFT'd bulk solvent mask,
-  !           given grid dimensions (na, nb, nc)
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! h_as_ih:  represent a set of (h, k, l) as a 1D array index of FFT'd bulk 
+  !           solvent mask, given grid dimensions (na, nb, nc)
+  !----------------------------------------------------------------------------
   function h_as_ih (h, k, l, na, nb, nc) result(ih)
     integer :: h, k, l, na, nb, nc, m, ihh, ihk, ihl, ih
     logical :: error
@@ -716,14 +701,14 @@ contains
 
   end function h_as_ih
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! A_B_C_D_omega:  start alpha and beta estimation according to
   !                 https://doi.org/10.1107/S010876739500688X
   !
   ! Arguments:
   !   zone:       number of resolution bin
   !   f_calc_:    complex array of computed structure factors
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine A_B_C_D_omega(zone, f_calc_,f_obs)
 
     
@@ -769,9 +754,9 @@ contains
 
   end subroutine A_B_C_D_omega
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! blamm:  \Lambda(t) in the original paper
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function blamm(t, zone) result(result)
 
     double precision :: t
@@ -787,9 +772,9 @@ contains
     result = result / bins_free_population(zone)
   end function blamm
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! t_optimal_function:  G(t) in the original paper
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   function t_optimal_function(t, zone) result(result)
 
     double precision :: t
@@ -800,9 +785,9 @@ contains
              2. * t * blamm(t, zone)
   end function t_optimal_function
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! solvm:  binary search for a root of t_optimal_function(t) in a general case
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine solvm(zone)
 
     integer :: zone, n1, n2, nst1, nst2
@@ -846,9 +831,9 @@ contains
 
   end subroutine solvm
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! estimate_t_optimal:  find root of G(t)
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine estimate_t_optimal(zone, f_calc_, f_obs)
 
     integer, intent(in) :: zone
@@ -866,9 +851,10 @@ contains
 
   end subroutine estimate_t_optimal
 
-  !--------------------------------------------------------------------------------------------
-  ! smooth: smoothes t_optimal values over resuluion bins in maximum likelihood (ML) estimation
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! smooth: smoothes t_optimal values over resuluion bins in maximum 
+  !         likelihood (ML) estimation
+  !----------------------------------------------------------------------------
   subroutine smooth(x)
 
     integer :: i
@@ -887,9 +873,9 @@ contains
 
   end subroutine smooth
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! alpha_beta_in_zones: used in maximum likelihood (ML) estimation
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine alpha_beta_in_zones()
 
     integer :: i
@@ -915,9 +901,9 @@ contains
 
   end subroutine alpha_beta_in_zones
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! alpha_beta_all:  expand alpha and beta ML parameters on all reflections
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   subroutine alpha_beta_all
 
     integer :: i
@@ -929,13 +915,12 @@ contains
 
   end subroutine alpha_beta_all
 
-  !--------------------------------------------------------------------------------------------
-  ! estimate_alpha_beta:  estimate alpha and beta parameters in resolution bins,
-  !                       as described in https://doi.org/10.1107/S010876739500688X,
-  !                       Appendix A:
-  !                       eq. 29     - estimate_t_optimal() estimates root of function G(t)
-  !                       eq. 30, 31 - alpha_beta_in_zones() calculates alpha and beta from t
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
+  ! estimate_alpha_beta:  estimate alpha and beta in resolution bins,
+  !      as described in https://doi.org/10.1107/S010876739500688X, Appendix A:
+  !      eq. 29     - estimate_t_optimal() estimates root of function G(t)
+  !      eq. 30, 31 - alpha_beta_in_zones() calculates alpha and beta from t
+  !----------------------------------------------------------------------------
   subroutine estimate_alpha_beta(f_calc_, f_obs)
 
     complex(8), intent(in) :: f_calc_(NRF)
@@ -952,49 +937,31 @@ contains
     call alpha_beta_all()
 
   end subroutine estimate_alpha_beta
-  ! End alpha/beta estimation
 
-  !--------------------------------------------------------------------------------------------
-  ! estimate_ml_parameters: currently this is only implemented on the CPU.  It is not all that
-  !                         much time to pull down the array of structure factors and compute
-  !                         these things on the CPU, but a GPU implementation of this
-  !                         algorithm, looping over all reflections multiple times, would be
-  !                         helpful.
+  !----------------------------------------------------------------------------
+  ! estimate_ml_parameters: currently this is only implemented on the CPU.
   !
   ! Arguments:
-  !   f_calc:    the initial computed structure factors (these will be modified with results
-  !              from this routine)
+  !   f_calc:    computed structure factors 
   !   exay:      xray restraint energy
   !   nstep:     the number of steps, passed down all the way from runmd
-  !--------------------------------------------------------------------------------------------
-  subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep, NRF)
+  !----------------------------------------------------------------------------
+  subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep)
         
     use xray_globals_module, only: xray_weight
     implicit none
-    integer, intent(in) :: nstep, NRF
     complex(8), intent(in)   :: f_calc(NRF)
     double precision, intent(in) :: f_obs(NRF)
     double precision, intent(out) :: exray
-    double precision :: k_scale(NRF)
-    double precision :: r_work_factor_numerator, r_free_factor_numerator
-    double precision :: mean_delta
-    integer :: i
+    integer, intent(in) :: nstep
     double precision :: f_calc_abs(NRF)
     
     ! if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
-      mean_delta = sum(delta_array) / NRF
     ! endif
 
     f_calc_abs = abs(f_calc)
-    r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
-    r_free_factor_numerator = sum(abs(f_calc_abs(NRF_work + 1:NRF) - f_obs(NRF_work + 1:NRF)))
-    !if (mod(nstep, ntpr) == 0 .or. nstep == 0) then
-      xray_r_work = r_work_factor_numerator / r_work_factor_denominator
-      xray_r_free = r_free_factor_numerator / r_free_factor_denominator
-      write(6,*) 'rwork,rfree: ', xray_r_work, xray_r_free
-    !end if
 
     ! ML target function
     exray = xray_weight * &

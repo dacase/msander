@@ -537,10 +537,10 @@ contains
          call init_ml(nstlim, num_hkl, &
               hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq)
          write(6,*) 'after init_ml: ', num_hkl
-#if 0
+#if 1
          do i=1,num_hkl
-            write(6,'(3i5,2f12.5,i5)') hkl_index(:,i),abs_Fobs(i), &
-                   sigFobs(i),test_flag(i)
+            write(6,'(3i5,2f12.5,i5,f12.5)') hkl_index(:,i),abs_Fobs(i), &
+                   sigFobs(i),test_flag(i),sqrt(1.d0/d_star_sq(i))
          end do
 #endif
          ! call init_bulk_solvent(n_atom, NRF, resolution)
