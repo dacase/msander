@@ -170,7 +170,8 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !----------------------------------------------------------------------------
   subroutine init_ml(nstlim, num_hkl, hkl_tmp, &
-                     f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out)
+                     f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out, &
+                     resolution)
 
     use xray_globals_module, only: unit_cell
     implicit none
@@ -181,9 +182,10 @@ contains
             f_obs_sigma_tmp
     integer, dimension(num_hkl), intent(inout) :: test_flag
     double precision, dimension(num_hkl), intent(out) :: d_star_sq_out
+    double precision, intent(out) :: resolution
 
     double precision :: a, b, c, alpha, beta, gamma, V, &
-                        resolution, d, d_star, reflections_per_bin, fo_fo
+                        d, d_star, reflections_per_bin, fo_fo
     double precision :: cosa, sina, cosb, sinb, cosg, sing
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
     double precision, dimension(:), allocatable :: d_star_sq, &
@@ -661,45 +663,6 @@ contains
       if (.NOT. swapped) exit
     end do
   end subroutine bubble_sort
-
-  !----------------------------------------------------------------------------
-  ! h_as_ih:  represent a set of (h, k, l) as a 1D array index of FFT'd bulk 
-  !           solvent mask, given grid dimensions (na, nb, nc)
-  !----------------------------------------------------------------------------
-  function h_as_ih (h, k, l, na, nb, nc) result(ih)
-    integer :: h, k, l, na, nb, nc, m, ihh, ihk, ihl, ih
-    logical :: error
-
-    error = .false.
-
-    ihh = h
-    ihk = k
-    ihl = l
-
-    m = (na - 1) / 2
-    if (-m > ihh .or. ihh > m) then
-      error = .true.
-    elseif (ihh < 0) then
-      ihh = ihh + na
-    end if
-    m = (nb - 1) / 2
-    if (-m > ihk .or. ihk > m) then
-      error = .true.
-    elseif (ihk < 0) then
-      ihk = ihk + nb
-    end if
-    m = nc / 2 + 1
-    if (0 > ihl .or. h >= m) then
-      error = .true.
-    end if
-
-    if (error) then
-      ih = -1
-    else
-      ih = ihh * nb * m + ihk * m + ihl
-    end if
-
-  end function h_as_ih
 
   !----------------------------------------------------------------------------
   ! A_B_C_D_omega:  start alpha and beta estimation according to
