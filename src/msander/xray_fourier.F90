@@ -19,7 +19,7 @@ module xray_fourier_module
 !                         from that routine in array dF) and dF/dXYZ or
 !                         dF/dB or dF/dQ (computed in this routine).
 !
-!  dTargetLS_d        --  Calculate a structure-factor restraint force
+!  dTargetLS_dF       --  Calculate a structure-factor restraint force
 !                         from the scalar difference of |Fobs| and |Fcalc|.
 !                         This uses a simple least-squares target function.
 !
@@ -338,7 +338,7 @@ contains
 
       if (present(deriv)) then
          if (present(selected)) then
-            where (selected/=0 .and. abs_Fcalc > 1.d-3)
+            where (selected==0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
 #if 1
@@ -367,7 +367,7 @@ contains
          if (present(weight)) then
             if (present(selected)) then
                residual = sum(weight * abs(abs_Fobs - Fcalc_scale*abs_Fcalc), &
-                 selected/=0) / sum(abs_Fobs,selected/=0)
+                 selected==0) / sum(abs_Fobs,selected==0)
             else
                residual = sum (weight * abs( abs_Fobs - Fcalc_scale*abs_Fcalc )) &
                 / sum(abs_Fobs)
@@ -375,9 +375,9 @@ contains
          else
             if (present(selected)) then
                residual = sum( abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
-                  selected/=0) / sum(abs_Fobs, selected/=0)
+                  selected==0) / sum(abs_Fobs, selected==0)
                xray_energy = norm_scale * &
-                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected/=0)
+                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected==0)
             else
                residual = sum (abs( abs_Fobs - Fcalc_scale*abs_Fcalc) ) &
                     / sum(abs_Fobs)
@@ -431,7 +431,7 @@ contains
    ! This routine computes the force gradient on Fcalc, using the
    ! phenix maximum likelihood function
 
-   subroutine dTargetML_dF(num_hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
+   subroutine dTargetML_dF(num_hkl,hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
          residual,xray_energy)
       use ml_mod, only : estimate_ml_parameters, b_vector_base, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
@@ -442,17 +442,18 @@ contains
            grid_bulk_solvent
       implicit none
       integer, intent(in) :: num_hkl
-      real(real_kind), intent(in) :: abs_Fobs(:)
-      complex(real_kind), intent(inout) :: Fcalc(:)
+      integer, intent(in) :: hkl(3,num_hkl)
+      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
+      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
       integer, intent(in) :: n_atom
       real(real_kind), intent(in) :: crd(3*n_atom)
-      complex(real_kind), intent(out) :: deriv(:)
+      complex(real_kind), intent(out) :: deriv(num_hkl)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
 
       real(real_kind) :: abs_Fcalc(num_hkl)
       complex(real_kind) :: f_mask(num_hkl)
-      integer :: nstep = 1
+      integer, save :: nstep = 0
       integer :: i
       double precision :: term, b(7), Uaniso(7), rwork_num, rwork_denom
 
@@ -467,9 +468,10 @@ contains
       do i=1,num_hkl
          f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
                         mask_cell_params(16) / mask_grid_size(4)
-         write(6,'(i6, 5f12.4)') i, Fcalc(i), k_mask(i), f_mask(i)
+         ! if(i<=10) write(6,'(i6, 5f12.4)') i, Fcalc(i), k_mask(i), f_mask(i)
       end do
-      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      ! skip bulk solvent contribution for now:
+      ! Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
       ! step 2: scaling Fcalc:
       b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
@@ -485,17 +487,34 @@ contains
 
       k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+
+      ! for now, use ls scaling:
+      ! k_scale = 0.79232
+
+      write(6,*) 'before scaling:'
+      do i=1,20
+         write(6,'(i5,3f15.5)') i, Fcalc(i), k_scale(i)
+      end do
+
       Fcalc = Fcalc * k_scale
       Fcalc_scale = 1._rk_   ! since we are scaling inside here....
+
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
       !         note that this routine needs xray2-type initialization;
       !         also, will probably only be active on selected nstep values
       call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep )
+      nstep = nstep + 1
 
-      ! step 4: put dTargetML/dF into deriv(:)  : (needs overall weight)
-      !   TODO: should k_scale(:) be needed below? already multiplied in above
+      write(6,*) 'xray restraint: ', xray_energy
+      open(17,FILE='msander.dat',ACTION='WRITE')
+      do i=1,num_hkl
+        write(17,'(3i5,2f12.5)') hkl(:,i),abs_Fobs(i),abs_Fcalc(i)
+      end do
+      close(17)
+
+      ! step 4: put dTargetML/dF into deriv(:)  : (assumes xray_weight = 1 ?)
       do i=1,NRF_work
          deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
               ( alpha_array(i) - abs_Fobs(i) * &

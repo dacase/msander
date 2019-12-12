@@ -41,7 +41,7 @@ module ml_mod
   ! n_bins:                 Number of reflections per resolution bin
   integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
              call_est, N_steps, starting_N_step, total_N_steps, &
-             mask_update_frequency=5, n_bins
+             mask_update_frequency=50, n_bins
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -244,6 +244,9 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
+      write(6,*) 'vas: ', vas
+      write(6,*) 'vbs: ', vbs
+      write(6,*) 'vcs: ', vcs
 
     ! start of block to separate work and free reflections, and sort into bins
 
@@ -254,9 +257,13 @@ contains
                  square(hkl_tmp(3,i) * norm2(vcs)) + &
                  2 * hkl_tmp(2,i) * hkl_tmp(3,i) * dot_product(vbs, vcs) + &
                  2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vas, vcs) + &
-                 2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vbs, vas))
+                 2 * hkl_tmp(1,i) * hkl_tmp(2,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
-      resolution = min( d, resolution )
+      ! resolution = min( d, resolution )
+      if( d < resolution ) then
+        resolution = d
+        write(6,*) 'new resolution: ', d, i, hkl_tmp(:,i)
+      endif
       if (r_free_flag == 0) then
         NRF_work = NRF_work + 1
       else
@@ -903,6 +910,7 @@ contains
 
   !----------------------------------------------------------------------------
   ! estimate_ml_parameters: currently this is only implemented on the CPU.
+  !                         Also, get the xray restraint energy
   !
   ! Arguments:
   !   f_calc:    computed structure factors 
@@ -918,13 +926,20 @@ contains
     double precision, intent(out) :: exray
     integer, intent(in) :: nstep
     double precision :: f_calc_abs(NRF)
+    integer :: i
     
-    ! if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
+    write(6,*) 'in estimate_ml_parameters:', nstep,mask_update_frequency
+
+    if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
-    ! endif
+      do i=1,NRF,20
+         write(6,'(i5,f15.5,f15.8)') i, alpha_array(i), delta_array(i)
+      end do
+    endif
 
     f_calc_abs = abs(f_calc)
+
 
     ! ML target function
     exray = xray_weight * &

@@ -689,7 +689,7 @@ contains
          call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
-         call dTargetML_dF(num_hkl, abs_Fobs,Fcalc, num_atoms, xyz,  &
+         call dTargetML_dF(num_hkl, hkl_index, abs_Fobs,Fcalc, num_atoms, xyz,  &
              deriv=dF, residual=r_work, xray_energy=xray_energy)
       else
          write(6,*) 'Bad target: ', target
@@ -719,9 +719,10 @@ contains
             end do
          else
             do i=1,num_hkl
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fobs(i), achar(9), Fcalc_scale*abs_Fcalc(i)
+                abs_Fobs(i), achar(9), Fcalc_scale*abs_Fcalc(i),achar(9), &
+                test_flag(i)
             end do
          endif
          close(20)
