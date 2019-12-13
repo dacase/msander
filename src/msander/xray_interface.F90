@@ -561,7 +561,7 @@ contains
       reflection_sigFobs = '5'
       resolution_low = 50
       resolution_high = 0
-      xray_weight = 3e+5 ! typical for Residual target
+      xray_weight = 1.0
       solvent_mask_probe_radius = 1.0
       solvent_mask_expand = 0.8
       solvent_mask_reflection_outfile = ''

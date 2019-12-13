@@ -133,36 +133,32 @@ contains
   !----------------------------------------------------------------------------
   function ln_of_i0 (x) result(bessel_lni0)
 
-    double precision, dimension(NRF_work) :: x, bessel_lni0
+    double precision, intent(in) :: x
+    double precision :: bessel_lni0
     double precision :: y, abs_x
     integer :: i
 
-    do i = 1, NRF_work
-      abs_x = x(i)
-      if (abs_x < 0) then
-        abs_x = -abs_x
-      end if
-      if (abs_x/3.75 < 1.0) then
-        y = x(i) / 3.75
-        y = y * y
-        bessel_lni0(i) = 1.0 + y*(3.5156229 + &
-                                  y*(3.0899424 + &
-                                     y*(1.2067492 + &
-                                        y*(0.2659732 + &
-                                           y*(0.0360768 + y*0.0045813)))))
-        bessel_lni0(i) = log(bessel_lni0(i));
-      else
-        y = 3.75 / abs_x
-        y = 0.39894228 + y*(0.01328592 + &
-                            y*(0.00225319 + &
-                               y*(-0.00157565 + &
-                                  y*(0.00916281 + &
-                                     y*(-0.02057706 + &
-                                        y*(0.02635537 + &
-                                           y*(-0.01647633 + y*0.00392377)))))))
-        bessel_lni0(i) = log(y) + abs_x - 0.5 * log(abs_x);
-      end if
-    end do
+    abs_x = abs(x)
+    if (abs_x/3.75 < 1.0) then
+      y = x / 3.75
+      y = y * y
+      bessel_lni0 = 1.0 + y*(3.5156229 + &
+                                y*(3.0899424 + &
+                                   y*(1.2067492 + &
+                                      y*(0.2659732 + &
+                                         y*(0.0360768 + y*0.0045813)))))
+      bessel_lni0 = log(bessel_lni0);
+    else
+      y = 3.75 / abs_x
+      y = 0.39894228 + y*(0.01328592 + &
+                          y*(0.00225319 + &
+                             y*(-0.00157565 + &
+                                y*(0.00916281 + &
+                                   y*(-0.02057706 + &
+                                      y*(0.02635537 + &
+                                         y*(-0.01647633 + y*0.00392377)))))))
+      bessel_lni0 = log(y) + abs_x - 0.5 * log(abs_x);
+    end if
 
   end function ln_of_i0
 
@@ -244,9 +240,6 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
-      write(6,*) 'vas: ', vas
-      write(6,*) 'vbs: ', vbs
-      write(6,*) 'vcs: ', vcs
 
     ! start of block to separate work and free reflections, and sort into bins
 
@@ -259,11 +252,7 @@ contains
                  2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_tmp(1,i) * hkl_tmp(2,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
-      ! resolution = min( d, resolution )
-      if( d < resolution ) then
-        resolution = d
-        write(6,*) 'new resolution: ', d, i, hkl_tmp(:,i)
-      endif
+      resolution = min( d, resolution )
       if (r_free_flag == 0) then
         NRF_work = NRF_work + 1
       else
@@ -275,7 +264,6 @@ contains
 
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
-    write(mdout, *) 'NRFs', NRF_work, NRF_free, NRF
 
     ! Sort reflections for binning
     allocate(b_vector_base(NRF_work))
@@ -295,7 +283,6 @@ contains
     end if
     n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
     reflections_per_bin = 1.0 * NRF_free / n_bins
-    write(mdout, *) "adjusted reflections per bin", reflections_per_bin
 
     allocate(bin_limits(n_bins + 1))
     bin_limits(1) = max(zero, d_star_sq_sorted(1) * (1 - d_tolerance))
@@ -305,10 +292,6 @@ contains
       REQUIRE (d_i /= NRF_free)
     end do
     bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
-    write(mdout, *) "resolution bins"
-    do i = 1, n_bins + 1
-      write(mdout, *) 1.0/sqrt(bin_limits(i))
-    end do
     reflection_bin = n_bins
     allocate(A_in_zones(n_bins))
     allocate(B_in_zones(n_bins))
@@ -386,7 +369,7 @@ contains
     allocate(bins_free_start_indices(n_bins))
     do i = 1, n_bins
       bins_free_start_indices(i) = counter_sort + 1
-      write(mdout, *) i, bins_free_start_indices(i), bins_free_population(i)
+      ! write(mdout, *) i, bins_free_start_indices(i), bins_free_population(i)
       do j = 1, bins_free_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_free_reflections(i, j)
@@ -398,7 +381,7 @@ contains
     end do
 
     ! need to put fobs into f_obs_tmp to send back to calling 
-    !       program; same for f_obs_sigmas, f_obs_weight(?) and hkl
+    !   program; same for f_obs_sigmas, f_obs_weight(?), hkl and test_flag
 
     f_obs_tmp(:) = f_obs(:)
     f_obs_sigma_tmp(:) = f_obs_sigmas(:)
@@ -518,46 +501,6 @@ contains
     return
 
   end subroutine init_ml
-
-#if 0
-  !----------------------------------------------------------------------------
-  ! finalize_ml_mod:  clean up the structure factors computation 
-  !----------------------------------------------------------------------------
-  subroutine finalize_ml_mod()
-
-    implicit none
-
-    complex(8), dimension(:), allocatable :: f_calc_tmp
-    integer :: i, j, counter_sort, index_sort
-    integer :: sf_weight = 41
-        
-    allocate(f_calc_tmp(NRF))
-    
-    counter_sort = 1
-    do i = 1, n_bins
-      do j = 1, bins_work_population(i)
-        index_sort = bins_work_reflections(i, j)
-        f_calc_tmp(index_sort) = Fcalc(counter_sort)
-        counter_sort = counter_sort + 1
-      end do
-    end do
-    do i = 1, n_bins
-      do j = 1, bins_free_population(i)
-        index_sort = bins_free_reflections(i, j)
-        f_calc_tmp(index_sort) = Fcalc(counter_sort)
-        counter_sort = counter_sort + 1
-      end do
-    end do
-
-    open (unit=sf_weight, file="structure_factors.txt", status='replace', action='write')
-    write (sf_weight, *) f_calc_tmp
-    close (sf_weight)
-    open (unit=sf_weight, file="final_weight.txt", status='replace', action='write')
-    write (sf_weight, *) starting_N_step + N_steps, total_N_steps
-    close (sf_weight)
-
-  end subroutine finalize_ml_mod
-#endif
 
   !----------------------------------------------------------------------------
   ! square:  compute the square of a number
@@ -908,6 +851,7 @@ contains
 
   end subroutine estimate_alpha_beta
 
+#if 0
   !----------------------------------------------------------------------------
   ! estimate_ml_parameters: currently this is only implemented on the CPU.
   !                         Also, get the xray restraint energy
@@ -928,14 +872,9 @@ contains
     double precision :: f_calc_abs(NRF)
     integer :: i
     
-    write(6,*) 'in estimate_ml_parameters:', nstep,mask_update_frequency
-
     if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
-      do i=1,NRF,20
-         write(6,'(i5,f15.5,f15.8)') i, alpha_array(i), delta_array(i)
-      end do
     endif
 
     f_calc_abs = abs(f_calc)
@@ -949,5 +888,6 @@ contains
             f_obs(1:NRF_work)))
 
   end subroutine estimate_ml_parameters
+#endif
 
 end module ml_mod

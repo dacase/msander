@@ -433,9 +433,10 @@ contains
 
    subroutine dTargetML_dF(num_hkl,hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
          residual,xray_energy)
-      use ml_mod, only : estimate_ml_parameters, b_vector_base, &
+      use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
-           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0, &
+           mask_update_frequency, ln_of_i0, estimate_alpha_beta
       use bulk_solvent_mod, only: k_scale, mask_bs_grid_t_c, &
            mask_cell_params, mask_grid_size, k_mask, &
            fft_bs_mask, shrink_bulk_solvent, hkl_indexing_bs_mask, &
@@ -455,7 +456,8 @@ contains
       complex(real_kind) :: f_mask(num_hkl)
       integer, save :: nstep = 0
       integer :: i
-      double precision :: term, b(7), Uaniso(7), rwork_num, rwork_denom
+      double precision :: b(7), Uaniso(7), rwork_num, rwork_denom, x
+      double precision :: eterm1, eterm2
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
@@ -474,6 +476,8 @@ contains
       ! Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
       ! step 2: scaling Fcalc:
+      ! to check derivatives, only get scaling on the first step:
+      if( nstep == 0 ) then
       b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
       b(1) = sum(b_vector_base)
       b(2) = sum(b_vector_base * h_sq(1:NRF_work))
@@ -487,14 +491,7 @@ contains
 
       k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-
-      ! for now, use ls scaling:
-      ! k_scale = 0.79232
-
-      write(6,*) 'before scaling:'
-      do i=1,20
-         write(6,'(i5,3f15.5)') i, Fcalc(i), k_scale(i)
-      end do
+      endif
 
       Fcalc = Fcalc * k_scale
       Fcalc_scale = 1._rk_   ! since we are scaling inside here....
@@ -502,24 +499,46 @@ contains
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
-      !         note that this routine needs xray2-type initialization;
-      !         also, will probably only be active on selected nstep values
-      call estimate_ml_parameters( Fcalc, abs_Fobs, xray_energy, nstep )
-      nstep = nstep + 1
+      !      old: call estimate_ml_parameters(Fcalc,abs_Fobs,xray_energy,nstep)
 
-      write(6,*) 'xray restraint: ', xray_energy
-      open(17,FILE='msander.dat',ACTION='WRITE')
-      do i=1,num_hkl
-        write(17,'(3i5,2f12.5)') hkl(:,i),abs_Fobs(i),abs_Fcalc(i)
-      end do
-      close(17)
+      if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
+        write(6,*) 'updating alpha and beta'
+        call estimate_alpha_beta(Fcalc, abs_Fobs)
+        delta_array = alpha_array / beta_array
+      endif
 
-      ! step 4: put dTargetML/dF into deriv(:)  : (assumes xray_weight = 1 ?)
+      ! ML target function
+#if 0
+      xray_energy =  &
+            sum( alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
+            abs_Fcalc(1:NRF_work) * abs_Fcalc(1:NRF_work) - &
+            ln_of_i0( 2.d0 * delta_array(1:NRF_work) * abs_Fcalc(1:NRF_work) * &
+            abs_Fobs(1:NRF_work) ) )
+#else
+      xray_energy = 0._rk_
+
+      if( nstep == 0 ) open(17,FILE='msander.dat',ACTION='WRITE')
       do i=1,NRF_work
-         deriv(i) = k_scale(i) * Fcalc(i) * 2.d0 * delta_array(i) * &
-              ( alpha_array(i) - abs_Fobs(i) * &
-              i1_over_i0(2.d0 * delta_array(i) *  abs_Fcalc(i) * abs_Fobs(i))) / &
-              abs_Fcalc(i)
+         x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
+         eterm1 = alpha_array(i)*delta_array(i)*abs_Fcalc(i)*abs_Fcalc(i)
+         eterm2 = ln_of_i0(x)
+         xray_energy = xray_energy + eterm1 - eterm2
+         if( nstep == 0 ) &
+            write(17,'(3i5,7f14.7)') hkl(:,i), abs_Fobs(i), &
+                abs_Fcalc(i), x, alpha_array(i)/i1_over_i0(x)
+      enddo
+      if( nstep == 0 ) close(17)
+#endif
+
+      nstep = nstep + 1
+      write(6,*) 'xray restraint: ', xray_energy
+
+      ! step 4: put dTargetML/dF into deriv(:)
+      do i=1,NRF_work
+         x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
+         deriv(i) = k_scale(i)*Fcalc(i)*2.d0*delta_array(i) &
+            * ( alpha_array(i)*abs_Fcalc(i) - i1_over_i0(x)*abs_Fobs(i) ) &
+            / abs_Fcalc(i)
       end do
 
       ! residual = r_work, as in dTarget/dF
