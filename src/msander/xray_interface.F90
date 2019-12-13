@@ -453,7 +453,7 @@ contains
       use bulk_solvent_mod, only: init_bulk_solvent
       implicit none
       ! local
-      integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask
+      integer :: hkl_lun, i, alloc_status, nstlim = 1
       double precision :: resolution
       real(real_kind) :: phi
       logical :: master
@@ -699,8 +699,6 @@ contains
 
 #if 1
       if(first .and. mytaskid==0) then
-         write( 6,'(a,f15.5,e15.5)') 'At start: Fcalc_scale, norm_scale = ', &
-              Fcalc_scale, norm_scale
          open(20,file='first.fmtz',action='write')
          if( target(1:3) == 'vls' ) then
             do i=1,num_hkl
@@ -708,8 +706,8 @@ contains
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                real(Fobs(i)), achar(9), Fcalc_scale*real(Fcalc(i)), achar(9),  &
-                aimag(Fobs(i)), achar(9), Fcalc_scale*aimag(Fcalc(i)) 
+                real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
+                aimag(Fobs(i)), achar(9), aimag(Fcalc(i)) 
 #  else
                phi = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
@@ -721,7 +719,7 @@ contains
             do i=1,num_hkl
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fobs(i), achar(9), Fcalc_scale*abs_Fcalc(i),achar(9), &
+                abs_Fobs(i), achar(9), abs_Fcalc(i),achar(9), &
                 test_flag(i)
             end do
          endif

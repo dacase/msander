@@ -4,14 +4,14 @@ module bulk_solvent_mod
   implicit none
 
   ! Arrays to hold the bulk solvent mask
-  complex(8), dimension(:), allocatable :: &
-          mask_bs_grid_t_c, mask_bs_grid_t_c_tmp
+  complex(8), dimension(:), allocatable :: mask_bs_grid_t_c
   ! Bulk solvent mask parameters
   double precision, dimension(16)   :: mask_cell_params
   double precision, dimension(3)    :: mask_grid_steps
 
   double precision, dimension(:), allocatable :: k_mask, k_scale, &
           mask_cutoffs, b_vector_mask
+  complex(8), dimension(:), allocatable :: f_mask
 
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
   !                               FFT'd bulk solvent mask
@@ -200,6 +200,7 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
 
     allocate(k_mask(NRF))
+    allocate(f_mask(NRF))
     allocate(k_scale(NRF))
     allocate(hkl_indexing_bs_mask(NRF))
 
@@ -302,8 +303,6 @@ contains
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))
     allocate(mask_bs_grid_t_c(mask_grid_size(1) * mask_grid_size(2) * &
                               (mask_grid_size(3)/2 + 1)))
-    allocate(mask_bs_grid_t_c_tmp(mask_grid_size(1) * mask_grid_size(2) * &
-                                  (mask_grid_size(3) /2 + 1)))
 
     mask_bs_grid = 1
     mask_bs_grid_tmp = 1
@@ -336,6 +335,7 @@ contains
   !----------------------------------------------------------------------------
   subroutine grid_bulk_solvent(n_atom, crd)
 
+    use xray_globals_module, only : NAT_for_mask
     implicit none
     integer :: tid, n_atom
     double precision :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
@@ -344,7 +344,7 @@ contains
     double precision :: frac(3)
     double precision :: crd(3, n_atom)
 
-    do tid = 1, n_atom
+    do tid = 1, NAT_for_mask
 
       ! Cartesian to fractional coordinates
       atomX = mask_cell_params(10) * crd(1, tid) + &
@@ -430,7 +430,7 @@ contains
         end do
       end if
     end do
-  end subroutine
+  end subroutine shrink_bulk_solvent
 
   !----------------------------------------------------------------------------
   ! fft_bs_mask: Transforms the bulk solvent (BS) mask into fourier space.

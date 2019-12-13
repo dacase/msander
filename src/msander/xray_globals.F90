@@ -104,7 +104,7 @@ module xray_globals_module
 
    !----------------------------------------------------------------------------
    ! Atom data:
-   integer, save :: num_atoms, num_residues
+   integer, save :: num_atoms, num_residues, NAT_for_mask
    real(real_kind), allocatable, save :: atom_bfactor(:), atom_occupancy(:)
    integer, allocatable, save :: atom_scatter_type(:)
    integer, allocatable, save :: atom_selection(:)

@@ -293,7 +293,7 @@ contains
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(:)
-      complex(real_kind), intent(in) :: Fcalc(:)
+      complex(real_kind), intent(inout) :: Fcalc(:)
       real(real_kind), intent(in), optional :: weight (:)
       integer, intent(in), optional :: selected(:)
       complex(real_kind), intent(out), optional :: deriv(:)
@@ -305,10 +305,8 @@ contains
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       logical, save :: first = .true.
 
-      abs_Fcalc(:) = abs(Fcalc(:))
-      deriv(:) = 0._rk_
-
       if( first ) then
+         abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
             sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
@@ -318,11 +316,15 @@ contains
             sum_fo_fo = sum(abs_Fobs ** 2)
             sum_fc_fc = sum(abs_Fcalc ** 2)
          end if
-
          Fcalc_scale = sum_fo_fc / sum_fc_fc
+         write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
+
          norm_scale = 1.0_rk_ / sum_fo_fo
          first = .false.
       endif
+
+      Fcalc(:) = Fcalc_scale * Fcalc(:)
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! Note: when Fcalc is approximately zero the phase is undefined, 
       ! so no force can be determined even if the energy is high. (Similar 
@@ -340,22 +342,14 @@ contains
          if (present(selected)) then
             where (selected==0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
-                  ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
-#if 1
-                  ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
-#else
-                  ! add in terms from derivative of Fcalc_scale:
-                  !   only kept here for possible later referral
-                  ( Fcalc_scale/abs_Fcalc(:) + &
-                    abs_Fobs(:)/sum_fc_fc - 2._rk_*abs_Fcalc(:) * &
-                    sum_fo_fc/(sum_fc_fc**2) )
-#endif
+                  ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
+                  ( Fcalc_scale/abs_Fcalc(:) )
             end where
-         else ! no selected (and no weight)
+         else ! no selected
             where( abs_Fcalc > 1.d-3 )
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
-                  ( abs_Fobs(:) - Fcalc_scale*abs_Fcalc(:) ) *  &
-                  ( Fcalc_scale/abs_Fcalc(:) )  !Joe's version
+                  ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
+                  ( Fcalc_scale/abs_Fcalc(:) ) 
             end where
          end if
       end if
@@ -366,23 +360,23 @@ contains
       if (present(residual)) then
          if (present(weight)) then
             if (present(selected)) then
-               residual = sum(weight * abs(abs_Fobs - Fcalc_scale*abs_Fcalc), &
+               residual = sum(weight * abs(abs_Fobs - abs_Fcalc), &
                  selected==0) / sum(abs_Fobs,selected==0)
             else
-               residual = sum (weight * abs( abs_Fobs - Fcalc_scale*abs_Fcalc )) &
+               residual = sum (weight * abs( abs_Fobs - abs_Fcalc )) &
                 / sum(abs_Fobs)
             end if
          else
             if (present(selected)) then
-               residual = sum( abs(abs_Fobs - Fcalc_scale * abs_Fcalc), &
+               residual = sum( abs(abs_Fobs - abs_Fcalc), &
                   selected==0) / sum(abs_Fobs, selected==0)
                xray_energy = norm_scale * &
-                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2, selected==0)
+                    sum((abs_Fobs - abs_Fcalc)**2, selected==0)
             else
-               residual = sum (abs( abs_Fobs - Fcalc_scale*abs_Fcalc) ) &
+               residual = sum (abs( abs_Fobs - abs_Fcalc) ) &
                     / sum(abs_Fobs)
                xray_energy = norm_scale * &
-                    sum((abs_Fobs - Fcalc_scale * abs_Fcalc)**2)
+                    sum((abs_Fobs - abs_Fcalc)**2)
             end if
          end if
       end if
@@ -398,7 +392,7 @@ contains
       implicit none
       integer, intent(in) :: num_hkl
       complex(real_kind), intent(in) :: Fobs(:)
-      complex(real_kind), intent(in) :: Fcalc(:)
+      complex(real_kind), intent(inout) :: Fcalc(:)
       complex(real_kind), intent(out) :: deriv(:)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
@@ -409,17 +403,19 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       logical, save :: first = .true.
 
-      abs_Fcalc(:) = abs(Fcalc(:))
-
       if (first) then
          sum_fo_fo = sum(abs_Fobs ** 2)
-         sum_fc_fc = sum(abs_Fcalc ** 2)
+         sum_fc_fc = sum(abs(Fcalc) ** 2)
          sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
          Fcalc_scale = sum_fo_fc / sum_fc_fc
+         write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
          first = .false.
       endif
+
+      Fcalc(:) = Fcalc_scale * Fcalc(:)
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       vecdif(:) = Fobs(:) - Fcalc_scale * Fcalc(:)
       xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
@@ -437,10 +433,10 @@ contains
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0, &
            mask_update_frequency, ln_of_i0, estimate_alpha_beta
-      use bulk_solvent_mod, only: k_scale, mask_bs_grid_t_c, &
+      use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
            mask_cell_params, mask_grid_size, k_mask, &
            fft_bs_mask, shrink_bulk_solvent, hkl_indexing_bs_mask, &
-           grid_bulk_solvent
+           grid_bulk_solvent, mask_bs_grid, mask_bs_grid_tmp
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
@@ -453,7 +449,6 @@ contains
       real(real_kind), intent(out) :: xray_energy
 
       real(real_kind) :: abs_Fcalc(num_hkl)
-      complex(real_kind) :: f_mask(num_hkl)
       integer, save :: nstep = 0
       integer :: i
       double precision :: b(7), Uaniso(7), rwork_num, rwork_denom, x
@@ -463,34 +458,38 @@ contains
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
       !  need to add the bulk-solvent mask --could/should we use RISM?
       
-      call grid_bulk_solvent(n_atom, crd)
-      call shrink_bulk_solvent()
-      call fft_bs_mask()
+      ! for now, only do this on the first step:
+      if( nstep == 0 ) then
+         call grid_bulk_solvent(n_atom, crd)
+         call shrink_bulk_solvent()
+         call fft_bs_mask()
 
-      do i=1,num_hkl
-         f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
+         do i=1,num_hkl
+            f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
                         mask_cell_params(16) / mask_grid_size(4)
-         ! if(i<=10) write(6,'(i6, 5f12.4)') i, Fcalc(i), k_mask(i), f_mask(i)
-      end do
-      ! skip bulk solvent contribution for now:
-      ! Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+         end do
+         write(6,'(a)') '| updating bulk solvent parameters'
+      endif
+      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
       ! step 2: scaling Fcalc:
       ! to check derivatives, only get scaling on the first step:
       if( nstep == 0 ) then
-      b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
-      b(1) = sum(b_vector_base)
-      b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-      b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-      b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-      b(5) = sum(b_vector_base * hk(1:NRF_work))
-      b(6) = sum(b_vector_base * hl(1:NRF_work))
-      b(7) = sum(b_vector_base * kl(1:NRF_work))
+         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+                         / NRF_work_sq
+         b(1) = sum(b_vector_base)
+         b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+         b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+         b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+         b(5) = sum(b_vector_base * hk(1:NRF_work))
+         b(6) = sum(b_vector_base * hl(1:NRF_work))
+         b(7) = sum(b_vector_base * kl(1:NRF_work))
 
-      Uaniso = matmul(MUcryst_inv, b)
+         Uaniso = matmul(MUcryst_inv, b)
 
-      k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+         k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+         write(6,'(a)') '| updating anisotropic scaling'
       endif
 
       Fcalc = Fcalc * k_scale
@@ -502,7 +501,7 @@ contains
       !      old: call estimate_ml_parameters(Fcalc,abs_Fobs,xray_energy,nstep)
 
       if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
-        write(6,*) 'updating alpha and beta'
+        write(6,'(a)') '| updating alpha and beta'
         call estimate_alpha_beta(Fcalc, abs_Fobs)
         delta_array = alpha_array / beta_array
       endif
@@ -531,7 +530,6 @@ contains
 #endif
 
       nstep = nstep + 1
-      write(6,*) 'xray restraint: ', xray_energy
 
       ! step 4: put dTargetML/dF into deriv(:)
       do i=1,NRF_work
