@@ -308,9 +308,9 @@ contains
       if( first ) then
          abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
-            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
-            sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
-            sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected==0)
+            sum_fo_fo = sum(abs_Fobs ** 2,selected==0)
+            sum_fc_fc = sum(abs_Fcalc ** 2,selected==0)
          else
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
             sum_fo_fo = sum(abs_Fobs ** 2)
