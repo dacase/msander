@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/22/2019 at 14:11:01
+| Run on 12/13/2019 at 22:33:30
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/2wcu
@@ -170,7 +170,7 @@ Found   2328 atoms in !(@H=) & !(:WAT);
 
      Sum of charges from parm topology file =  -6.00000213
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 6
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -189,7 +189,7 @@ Found   2328 atoms in !(@H=) & !(:WAT);
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =    2276257
 | TOTAL SIZE OF NONBOND LIST =    2276257
-At start: Fcalc_scale, norm_scale =         0.61619    0.50215E-08
+| updating isotropic scaling:      0.61619
 
  NSTEP =        1   TIME(PS) =      10.011  TEMP(K) =   303.21  PRESS =     0.0
  Etot   =    -22232.7605  EKtot   =      6860.7901  EPtot      =    -29093.5507
@@ -322,32 +322,30 @@ At start: Fcalc_scale, norm_scale =         0.61619    0.50215E-08
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.10 ( 0.55% of Total)
-|                Build the list             0.07 (89.47% of List )
-|                Other                      0.01 (10.53% of List )
-|             List time                  0.08 (11.45% of Nonbo)
-|                   Short_ene time             0.45 (99.34% of Direc)
-|                   Other                      0.00 ( 0.66% of Direc)
-|                Direct Ewald time          0.46 (77.38% of Ewald)
-|                Adjust Ewald time          0.01 ( 1.53% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 6.72% of Recip)
-|                   Fill charge grid           0.02 (12.61% of Recip)
-|                   Scalar sum                 0.03 (26.05% of Recip)
-|                   Grad sum                   0.02 (19.33% of Recip)
-|                   FFT time                   0.04 (35.29% of Recip)
-|                Recip Ewald time           0.12 (20.24% of Ewald)
-|                Other                      0.01 ( 0.85% of Ewald)
-|             Ewald time                 0.59 (88.55% of Nonbo)
-|          Nonbond force              0.66 ( 3.53% of Force)
-|          Bond/Angle/Dihedral        0.04 ( 0.20% of Force)
-|          Other                     18.10 (96.27% of Force)
-|       Force time                18.80 (100.0% of Runmd)
-|       Shake time                 0.00 ( 0.03% of Runmd)
-|       Verlet update time         0.01 ( 0.06% of Runmd)
-|       Other                      0.00 ( 0.01% of Runmd)
-|    Runmd Time                18.81 (98.64% of Total)
-|    Other                      0.16 ( 0.81% of Total)
-| Total time                19.07 (100.0% of ALL  )
+|    Read coords time           0.08 ( 2.17% of Total)
+|                Build the list             0.06 (89.39% of List )
+|                Other                      0.01 (10.61% of List )
+|             List time                  0.07 ( 9.91% of Nonbo)
+|                   Short_ene time             0.42 (98.58% of Direc)
+|                   Other                      0.01 ( 1.42% of Direc)
+|                Direct Ewald time          0.42 (70.33% of Ewald)
+|                Adjust Ewald time          0.01 ( 1.67% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 6.59% of Recip)
+|                   Fill charge grid           0.03 (17.37% of Recip)
+|                   Scalar sum                 0.04 (23.35% of Recip)
+|                   Grad sum                   0.03 (17.37% of Recip)
+|                   FFT time                   0.06 (35.33% of Recip)
+|                Recip Ewald time           0.17 (27.83% of Ewald)
+|             Ewald time                 0.60 (90.09% of Nonbo)
+|          Nonbond force              0.67 (20.20% of Force)
+|             Fcalc loop                 1.31 (50.33% of Xray )
+|             Deriv loop                 1.22 (46.98% of Xray )
+|             Other                      0.07 ( 2.69% of Xray )
+|          Xray restaints             2.60 (78.89% of Force)
+|       Force time                 3.30 (99.31% of Runmd)
+|    Runmd Time                 3.32 (94.69% of Total)
+|    Other                      0.11 ( 3.14% of Total)
+| Total time                 3.51 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -357,11 +355,11 @@ At start: Fcalc_scale, norm_scale =         0.61619    0.50215E-08
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      18.81 Per Step(ms) =    1881.40
-|         ns/day =       0.05   seconds/ns = 1881400.00
+|     Elapsed(s) =       3.32 Per Step(ms) =     332.00
+|         ns/day =       0.26   seconds/ns =  332000.00
 | -----------------------------------------------------
 
-|           Job began  at 14:11:01.457  on 11/22/2019
-|           Setup done at 14:11:01.717  on 11/22/2019
-|           Run   done at 14:11:20.530  on 11/22/2019
-|     wallclock() was called     505 times
+|           Job began  at 22:33:30.634  on 12/13/2019
+|           Setup done at 22:33:30.821  on 12/13/2019
+|           Run   done at 22:33:34.141  on 12/13/2019
+|     wallclock() was called     565 times

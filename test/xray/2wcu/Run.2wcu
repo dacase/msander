@@ -29,6 +29,6 @@ $DO_PARALLEL $sander -O -i mdin -p 2wcu_uc.parm7 -c eq2.x -o xray1_md.out \
 
 /bin/rm -f mdin mdinfo restrt first.fmtz
 
-../../dacdif -r 1.e-5 xray1_md.out.save xray1_md.out
+../../dacdif xray1_md.out.save xray1_md.out
 
 exit 0
