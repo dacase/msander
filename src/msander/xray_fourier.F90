@@ -303,7 +303,7 @@ contains
       real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
-      integer, save :: nstep=0, update_frequency=50,
+      integer, save :: nstep=0, update_frequency=50
 
       if( mod(nstep,update_frequency) == 0 ) then
          abs_Fcalc(:) = abs(Fcalc(:))
@@ -400,7 +400,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       complex(real_kind) :: vecdif(num_hkl)
-      integer, save :: nstep=0, update_frequency=50,
+      integer, save :: nstep=0, update_frequency=50
 
       if (mod(nstep,update_frequency) == 0) then
          sum_fo_fo = sum(abs_Fobs ** 2)
