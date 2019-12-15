@@ -1,0 +1,5 @@
+1. phenix.AmberPrep 3onk.pdb
+2. important: use modify_pdb to remove zero occupancy, zero bfactor records
+     in 4phenix_3onk.pdb
+3. usual path to get 3onk-sf.rdb and 3onk-sf.dat
+4. use run_fmodel to get what phenix.fmodel thinks one should have
