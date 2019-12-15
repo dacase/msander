@@ -699,7 +699,7 @@ contains
 
 #if 1
       if(first .and. mytaskid==0) then
-         open(20,file='first.fmtz',action='write')
+         open(20,file='first.rdb',action='write')
          if( target(1:3) == 'vls' ) then
             do i=1,num_hkl
 #  if 1
@@ -716,6 +716,10 @@ contains
 #  endif
             end do
          else
+            write(20,'(11a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+               'fobs',achar(9),'fcalc',achar(9),'rfree-flag'
+            write(20,'(11a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               '15N',achar(9),'15N',achar(9),'3N'
             do i=1,num_hkl
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
