@@ -303,9 +303,9 @@ contains
       real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
-      logical, save :: first = .true.
+      integer, save :: nstep=0, update_frequency=50,
 
-      if( first ) then
+      if( mod(nstep,update_frequency) == 0 ) then
          abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected==0)
@@ -320,7 +320,7 @@ contains
          write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
-         first = .false.
+         nstep = nstep + 1
       endif
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
@@ -333,8 +333,7 @@ contains
       ! We get the phase from Fcalc, so it needs to be divided by abs(Fcalc)
       ! to become a unit vector.
       !
-      ! deriv = Fcalc/abs(Fcalc) * K * ( Fobs - Fcalc_scale * abs(Fcalc) )
-      !       = Fcalc * K * ( Fobs/abs(Fcalc) - Fcalc_scale )
+      ! deriv = Fcalc/abs(Fcalc) * K * ( Fobs - abs(Fcalc) )
       !      ....plus the terms arising from differentiating Fcalc_scale with
       !      respect to Fcalc
 
@@ -401,9 +400,9 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       complex(real_kind) :: vecdif(num_hkl)
-      logical, save :: first = .true.
+      integer, save :: nstep=0, update_frequency=50,
 
-      if (first) then
+      if (mod(nstep,update_frequency) == 0) then
          sum_fo_fo = sum(abs_Fobs ** 2)
          sum_fc_fc = sum(abs(Fcalc) ** 2)
          sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
@@ -411,7 +410,7 @@ contains
          write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
-         first = .false.
+         nstep = nstep + 1
       endif
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
@@ -456,10 +455,9 @@ contains
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
-      !  need to add the bulk-solvent mask --could/should we use RISM?
+      !  TODO: allow alternate bulk solvent models, e.g. from 3D-RISM
       
-      ! for now, only do this on the first step:
-      if( nstep == 0 ) then
+      if (mod(nstep, mask_update_frequency) == 0) then
          call grid_bulk_solvent(n_atom, crd)
          call shrink_bulk_solvent()
          call fft_bs_mask()
@@ -473,8 +471,8 @@ contains
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
       ! step 2: scaling Fcalc:
-      ! to check derivatives, only get scaling on the first step:
-      if( nstep == 0 ) then
+      ! TODO: put into a separate routine; allow with iso or aniso scaling
+      if (mod(nstep, mask_update_frequency) == 0) then
          b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
                          / NRF_work_sq
          b(1) = sum(b_vector_base)
@@ -493,14 +491,12 @@ contains
       endif
 
       Fcalc = Fcalc * k_scale
-      Fcalc_scale = 1._rk_   ! since we are scaling inside here....
 
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
-      !      old: call estimate_ml_parameters(Fcalc,abs_Fobs,xray_energy,nstep)
 
-      if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
+      if (mod(nstep, mask_update_frequency) == 0) then
         write(6,'(a)') '| updating alpha and beta'
         call estimate_alpha_beta(Fcalc, abs_Fobs)
         delta_array = alpha_array / beta_array
