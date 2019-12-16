@@ -457,7 +457,7 @@ contains
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
       !  TODO: allow alternate bulk solvent models, e.g. from 3D-RISM
       
-      if (mod(nstep, mask_update_frequency) == 0) then
+      if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
          call grid_bulk_solvent(n_atom, crd)
          call shrink_bulk_solvent()
          call fft_bs_mask()

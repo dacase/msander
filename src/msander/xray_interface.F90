@@ -457,13 +457,14 @@ contains
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       use ml_mod, only: init_ml
-      use bulk_solvent_mod, only: init_bulk_solvent
+      use bulk_solvent_mod, only: init_bulk_solvent, f_mask
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status, nstlim = 1
       double precision :: resolution
       real(real_kind) :: phi
       logical :: master
+      complex(real_kind), dimension(:), allocatable :: f_solvent
 #ifdef MPI
 #     include "parallel.h"
 #else
@@ -497,19 +498,31 @@ contains
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
-      read(hkl_lun,*,end=1,err=1) num_hkl
+      read(hkl_lun,*,end=1,err=1) num_hkl, has_f_solvent
+
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
-            mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), stat=alloc_status)
+            mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), &
+            stat=alloc_status)
+      REQUIRE(alloc_status==0)
+      allocate(f_solvent(num_hkl), stat=alloc_status)
       REQUIRE(alloc_status==0)
 
       !  each line contains h,k,l and two reals
       !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
-      do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) &
-            hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
-      end do
+      if( has_f_solvent > 0 ) then
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=1) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
+                  f_solvent(i)
+         end do
+      else
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=1) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
+         end do
+      endif
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
@@ -534,18 +547,13 @@ contains
                atom_selection_mask
       end if
 
-      if( target(1:2) == 'ml' ) then
-         call init_ml(nstlim, num_hkl, &
+      call init_ml(target, nstlim, num_hkl, &
               hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq, resolution)
-#if 0
-         do i=1,num_hkl
-            write(6,'(3i5,2f12.5,i5,f12.5)') hkl_index(:,i),abs_Fobs(i), &
-                   sigFobs(i),test_flag(i),sqrt(1.d0/d_star_sq(i))
-         end do
-#endif
-         call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
-      end if
-
+      call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
+      if( has_f_solvent > 0 ) then
+         f_mask(:) = f_solvent(:)
+         deallocate( f_solvent )
+      endif
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
       return

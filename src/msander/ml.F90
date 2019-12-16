@@ -165,13 +165,14 @@ contains
   !----------------------------------------------------------------------------
   ! init_ml: gateway to the maximum-likelihood target function
   !----------------------------------------------------------------------------
-  subroutine init_ml(nstlim, num_hkl, hkl_tmp, &
+  subroutine init_ml(target, nstlim, num_hkl, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out, &
                      resolution)
 
     use xray_globals_module, only: unit_cell
     implicit none
 
+    character(len=4), intent(in) :: target
     integer, intent(in) :: nstlim, num_hkl
     integer, dimension(3,num_hkl), intent(inout) :: hkl_tmp
     double precision, dimension(num_hkl), intent(inout) :: f_obs_tmp, &
@@ -204,15 +205,10 @@ contains
     allocate(beta_array(NRF))
     beta_array(:) = 1.0
 
-    do i = 1, 7
-      do j = 1, 7
-        Ucryst(i, j) = zero
-      end do
-    end do
     r_free_counter = 0
     NRF_work = 0
 
-    ! Following block work might be done somewhere else.
+    ! Following block of work might be done somewhere else.
     a = unit_cell(1)
     b = unit_cell(2)
     c = unit_cell(3)
@@ -264,6 +260,8 @@ contains
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
     write(6,'(a,3i6)') '| number of reflections: ', NRF_work, NRF_free, NRF
+
+    if (target(1:2) == 'ml') then
 
     ! Sort reflections for binning
     allocate(b_vector_base(NRF_work))
@@ -391,7 +389,6 @@ contains
     test_flag(NRF_work+1:NRF) = 0
 
     if (counter_sort .ne. NRF) then
-
       ! Might be an error in the code?
       write(mdout, *) "Binning went wrong. Check the reflections file"
       stop
@@ -409,6 +406,10 @@ contains
     end do
 
     ! Re-sort due to binning ended
+
+    endif  ! only done for target=='ml'
+
+    ! Setting up anisotropic scaling parameters:
 
     allocate(h_sq(NRF))
     allocate(k_sq(NRF))
@@ -434,7 +435,7 @@ contains
     Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
     Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
 
-    ! In case if one needs only anisotropic scaling
+    ! In case if one needs only isotropic scaling
     ! Ucryst(1, 1) = 1.0
     ! Ucryst(1, 2) = 0.0
     ! Ucryst(1, 3) = 0.0
@@ -496,8 +497,6 @@ contains
 
     call_est = 1
 
-    ! DAC: need some deallocates here(?)
-    
     return
 
   end subroutine init_ml

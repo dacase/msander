@@ -125,7 +125,7 @@ module xray_globals_module
    complex(real_kind), allocatable, target, save :: Fobs(:)
    real(real_kind), allocatable, save :: mSS4(:)
    integer, allocatable, save :: test_flag(:)
-   integer, allocatable, save :: test_selection(:), work_selection(:)
+   integer, save :: has_f_solvent
 
    !----------------------------------------------------------------------------
    ! Symmetry, unit cell, and transformations:
