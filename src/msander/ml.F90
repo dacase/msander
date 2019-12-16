@@ -245,7 +245,6 @@ contains
 
     resolution = 50.0
     do i = 1, NRF
-      r_free_flag = test_flag(i)
       d_star =  (square(hkl_tmp(1,i) * norm2(vas)) + square(hkl_tmp(2,i) * norm2(vbs)) + &
                  square(hkl_tmp(3,i) * norm2(vcs)) + &
                  2 * hkl_tmp(2,i) * hkl_tmp(3,i) * dot_product(vbs, vcs) + &
@@ -253,7 +252,7 @@ contains
                  2 * hkl_tmp(1,i) * hkl_tmp(2,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
       resolution = min( d, resolution )
-      if (r_free_flag == 0) then
+      if (test_flag(i) == 1) then
         NRF_work = NRF_work + 1
       else
         r_free_counter = r_free_counter + 1
@@ -264,13 +263,14 @@ contains
 
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
+    write(6,'(a,3i6)') '| number of reflections: ', NRF_work, NRF_free, NRF
 
     ! Sort reflections for binning
     allocate(b_vector_base(NRF_work))
     allocate(d_star_sq_sorted(NRF_free))
     r_free_counter = 0
     do i = 1, NRF
-      if (test_flag(i) == 1) then
+      if (test_flag(i) == 0) then
         r_free_counter = r_free_counter + 1
         d_star_sq_sorted(r_free_counter) = d_star_sq(i)
       end if
@@ -326,7 +326,7 @@ contains
           reflection_bin(i) = j - 1
         end if
       end do
-      if (test_flag(i) == 0) then
+      if (test_flag(i) == 1) then
         bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
       else
         bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
@@ -341,7 +341,7 @@ contains
     counter_w = 1
     counter_f = 1
     do i = 1, NRF
-      if (test_flag(i) == 0) then
+      if (test_flag(i) == 1) then
         if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
           write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
         end if
@@ -387,8 +387,8 @@ contains
     f_obs_sigma_tmp(:) = f_obs_sigmas(:)
     ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
     hkl_tmp(:,:) = hkl(:,:)
-    test_flag(1:NRF_work) = 0
-    test_flag(NRF_work+1:NRF) = 1
+    test_flag(1:NRF_work) = 1
+    test_flag(NRF_work+1:NRF) = 0
 
     if (counter_sort .ne. NRF) then
 
