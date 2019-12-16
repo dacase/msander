@@ -308,9 +308,9 @@ contains
       if( mod(nstep,update_frequency) == 0 ) then
          abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
-            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected==0)
-            sum_fo_fo = sum(abs_Fobs ** 2,selected==0)
-            sum_fc_fc = sum(abs_Fcalc ** 2,selected==0)
+            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+            sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
+            sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
          else
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
             sum_fo_fo = sum(abs_Fobs ** 2)
@@ -339,7 +339,7 @@ contains
 
       if (present(deriv)) then
          if (present(selected)) then
-            where (selected==0 .and. abs_Fcalc > 1.d-3)
+            where (selected/=0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
                   ( Fcalc_scale/abs_Fcalc(:) )
@@ -360,7 +360,7 @@ contains
          if (present(weight)) then
             if (present(selected)) then
                residual = sum(weight * abs(abs_Fobs - abs_Fcalc), &
-                 selected==0) / sum(abs_Fobs,selected==0)
+                 selected/=0) / sum(abs_Fobs,selected/=0)
             else
                residual = sum (weight * abs( abs_Fobs - abs_Fcalc )) &
                 / sum(abs_Fobs)
@@ -368,9 +368,9 @@ contains
          else
             if (present(selected)) then
                residual = sum( abs(abs_Fobs - abs_Fcalc), &
-                  selected==0) / sum(abs_Fobs, selected==0)
+                  selected/=0) / sum(abs_Fobs, selected/=0)
                xray_energy = norm_scale * &
-                    sum((abs_Fobs - abs_Fcalc)**2, selected==0)
+                    sum((abs_Fobs - abs_Fcalc)**2, selected/=0)
             else
                residual = sum (abs( abs_Fobs - abs_Fcalc) ) &
                     / sum(abs_Fobs)
@@ -431,7 +431,7 @@ contains
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0, &
-           mask_update_frequency, ln_of_i0, estimate_alpha_beta
+           mask_update_frequency, ln_of_i0, estimate_alpha_beta, NRF
       use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
            mask_cell_params, mask_grid_size, k_mask, &
            fft_bs_mask, shrink_bulk_solvent, hkl_indexing_bs_mask, &
@@ -451,7 +451,7 @@ contains
       integer, save :: nstep = 0
       integer :: i
       double precision :: b(7), Uaniso(7), rwork_num, rwork_denom, x
-      double precision :: eterm1, eterm2
+      double precision :: eterm1, eterm2, rfree_num, rfree_denom
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
@@ -466,7 +466,7 @@ contains
             f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
                         mask_cell_params(16) / mask_grid_size(4)
          end do
-         write(6,'(a)') '| updating bulk solvent parameters'
+         write(6,'(a,f12.5)') '| updating bulk solvent parameters: ', k_mask(1)
       endif
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
@@ -487,10 +487,13 @@ contains
 
          k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-         write(6,'(a)') '| updating anisotropic scaling'
+         write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
+               exp(Uaniso(1))
+         write(6,'(a,6f10.3)') '|     ', b(2:7)
       endif
 
-      Fcalc = Fcalc * k_scale
+      ! skip for now
+      ! Fcalc = Fcalc * k_scale
 
       abs_Fcalc(:) = abs(Fcalc(:))
 
@@ -519,8 +522,10 @@ contains
          eterm2 = ln_of_i0(x)
          xray_energy = xray_energy + eterm1 - eterm2
          if( nstep == 0 ) &
-            write(17,'(3i5,7f14.7)') hkl(:,i), abs_Fobs(i), &
-                abs_Fcalc(i), x, alpha_array(i)/i1_over_i0(x)
+            ! write(17,'(3i5,7f14.7)') hkl(:,i), abs_Fobs(i), &
+            !     abs_Fcalc(i), x, alpha_array(i)/i1_over_i0(x)
+            write(17,'(3i5,6f14.7)') hkl(:,i), abs_Fobs(i), &
+                abs_Fcalc(i), k_scale(i), k_mask(i), f_mask(i) 
       enddo
       if( nstep == 0 ) close(17)
 #endif
@@ -539,6 +544,10 @@ contains
       rwork_num = sum (abs( abs_Fobs(1:NRF_work) - abs_Fcalc(1:NRF_work) ))
       rwork_denom = sum(abs_Fobs(1:NRF_work))
       residual = rwork_num/rwork_denom
+      rfree_num = sum (abs( abs_Fobs(NRF_work+1:NRF) -  &
+                       abs_Fcalc(NRF_work+1:NRF) ))
+      rfree_denom = sum(abs_Fobs(NRF_work+1:NRF))
+      r_free = rfree_num/rfree_denom
 
    end subroutine dTargetML_dF
 
