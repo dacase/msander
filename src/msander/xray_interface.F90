@@ -19,6 +19,7 @@ module xray_interface_module
 
    use xray_globals_module
    use xray_FFT_module
+   use bulk_solvent_mod, only: k_sol, b_sol
    implicit none
    private
 
@@ -52,7 +53,8 @@ module xray_interface_module
          fft_radius_min, fft_radius_max, &
          bfactor_min, bfactor_max, &
          bfactor_refinement_interval, &
-         atom_selection_mask
+         atom_selection_mask, &
+         k_sol, b_sol 
 
    ! Common public entities all have an xray_ prefix.
    ! Others assume localization by the module scope.
@@ -80,6 +82,9 @@ contains
    end subroutine xray_read_mdin
 
    subroutine xray_write_options()
+      use bulk_solvent_mod, only: k_sol, b_sol
+      implicit none
+
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
       write(stdout,'(5X,2A)') 'PDB InFile: ',trim(pdb_infile)
       write(stdout,'(5X,2A)') 'PDB OutFile:',trim(pdb_outfile)
@@ -110,6 +115,8 @@ contains
       write(stdout,'(5X,2(A,F8.3))') 'B-Factor Min:',bfactor_min,', Max: ',bfactor_max
       write(stdout,'(5X,A,I4)') 'B-factor Refinement Interval: ',bfactor_refinement_interval
       write(stdout,'(5X,2A)') 'Atom Selection Mask: ',trim(atom_selection_mask)
+      write(stdout,'(5X,A,2F8.3)') 'k_sol, b_sol: ', k_sol, b_sol
+      return
    end subroutine xray_write_options
 
    ! Read X-ray data from the PRMTOP file, and also save pointers to global
