@@ -461,7 +461,7 @@ contains
       implicit none
       ! local
       integer :: hkl_lun, i, alloc_status, nstlim = 1
-      double precision :: resolution
+      double precision :: resolution, fabs_solvent, phi_solvent
       real(real_kind) :: phi
       logical :: master
       complex(real_kind), dimension(:), allocatable :: f_solvent
@@ -515,7 +515,10 @@ contains
          do i = 1,num_hkl
             read(hkl_lun,*,end=1,err=1) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
-                  f_solvent(i)
+               fabs_solvent, phi_solvent
+            phi_solvent = phi_solvent * 0.0174532925d0
+            f_solvent(i) = cmplx( fabs_solvent*cos(phi_solvent), &
+                                  fabs_solvent*sin(phi_solvent) )
          end do
       else
          do i = 1,num_hkl
