@@ -18,13 +18,14 @@ module xray_interface_module
    !  sander.f:   call xray_fini()
 
    use xray_globals_module
-   use xray_FFT_module
+   ! use xray_FFT_module
    use bulk_solvent_mod, only: k_sol, b_sol
    implicit none
    private
 
    namelist /xray/ &
          pdb_infile, pdb_outfile, &
+         fave_outfile, fmtz_outfile, &
          pdb_read_coordinates, &
          pdb_use_segid, &
          pdb_wrap_names, &
@@ -88,6 +89,8 @@ contains
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
       write(stdout,'(5X,2A)') 'PDB InFile: ',trim(pdb_infile)
       write(stdout,'(5X,2A)') 'PDB OutFile:',trim(pdb_outfile)
+      write(stdout,'(5X,2A)') 'FCALC_AVE OutFile:',trim(fave_outfile)
+      write(stdout,'(5X,2A)') 'FMTZ OutFile:',trim(fmtz_outfile)
       write(stdout,'(5X,A,L1)') 'PDB Read Coordinates: ',pdb_read_coordinates
       write(stdout,'(5X,A,L1)') 'PDB Use SegID: ',pdb_use_segid
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
@@ -464,7 +467,9 @@ contains
       double precision :: resolution, fabs_solvent, phi_solvent
       real(real_kind) :: phi
       logical :: master
-      complex(real_kind), dimension(:), allocatable :: f_solvent
+      ! following is local: copied into f_mask in this routine, after
+      !     f_mask itself is allocated.  (could be simplified)
+      complex(real_kind), allocatable, save :: f_solvent(:)
 #ifdef MPI
 #     include "parallel.h"
 #else
@@ -502,10 +507,19 @@ contains
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), &
-            stat=alloc_status)
+            Fcalc(num_hkl), stat=alloc_status)
       REQUIRE(alloc_status==0)
-      allocate(f_solvent(num_hkl), stat=alloc_status)
-      REQUIRE(alloc_status==0)
+
+      if (has_f_solvent > 0 ) then
+         allocate(f_solvent(num_hkl), stat=alloc_status)
+         REQUIRE(alloc_status==0)
+      endif
+
+      if (fave_outfile /= '') then
+         allocate(Fcalc_ave(num_hkl), stat=alloc_status)
+         REQUIRE(alloc_status==0)
+         Fcalc_ave(:) = cmplx(0._rk_, 0._rk_)
+      endif
 
       !  each line contains h,k,l and two reals
       !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
@@ -569,6 +583,8 @@ contains
    subroutine xray_init_globals()
       pdb_infile = ''
       pdb_outfile = ''
+      fave_outfile = ''
+      fmtz_outfile = ''
       pdb_read_coordinates = .false.
       pdb_use_segid = .false.
       pdb_wrap_names = .false.
@@ -608,13 +624,62 @@ contains
       implicit none
 #     include "extra.h"
       ! local
-      integer :: dealloc_status
+      integer :: dealloc_status, i
+
+      if (.not.xray_active) return
+
       if (master .and. pdb_outfile /= '') then
          call xray_write_pdb(trim(pdb_outfile))
       end if
+      if (master .and. fave_outfile /= '') then
+         Fcalc_ave(:) = Fcalc_ave(:)/n_fcalc_ave
+         open(20,file=trim(fave_outfile),action='write')
+         write(20,'(11a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+            'fobs',achar(9),'real_fcalc_ave',achar(9),'imag_fcalc_ave'
+         write(20,'(11a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+            '15N',achar(9),'15N',achar(9),'15N'
+         do i=1,num_hkl
+            write(20,'(i4,a,i4,a,i4,a,f12.3,a,f15.5,a,f15.5)') hkl_index(1,i), &
+             achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+             abs_Fobs(i), achar(9), Fcalc_ave(i)%re, achar(9), &
+             Fcalc_ave(i)%im
+         end do
+         close(20)
+      endif
+
+      if (master .and. fmtz_outfile /= '') then
+         open(20,file=trim(fmtz_outfile),action='write')
+         if( target(1:3) == 'vls' ) then
+            do i=1,num_hkl
+#  if 1
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+                hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
+                aimag(Fobs(i)), achar(9), aimag(Fcalc(i)) 
+#  else
+               phi = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                abs_Fcalc(i), achar(9), phi
+#  endif
+            end do
+         else
+            write(20,'(11a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+               'fobs',achar(9),'fcalc',achar(9),'rfree-flag'
+            write(20,'(11a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               '15N',achar(9),'15N',achar(9),'3N'
+            do i=1,num_hkl
+               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
+                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                abs_Fobs(i), achar(9), abs(Fcalc(i)),achar(9), &
+                test_flag(i)
+            end do
+         endif
+         close(20)
+      endif
 
       ! if (target(1:2) == 'ml') call finalize_ml_mod()
-      if (.not.xray_active) return
 
       deallocate(atom_bfactor,atom_occupancy,atom_scatter_type, &
             atom_selection,residue_chainid,residue_icode, &
@@ -651,11 +716,9 @@ contains
       integer, allocatable :: sel_index(:)
       real(real_kind), allocatable :: frac_xyz(:,:)
       real(real_kind), allocatable :: xray_dxyz(:,:), xray_dB(:)
-      complex(real_kind), allocatable :: Fcalc(:)
       real(real_kind), allocatable, target :: abs_Fcalc(:)
       complex(real_kind), allocatable :: dF(:)
       real(real_kind) :: phi
-      type(hkl_data_scale_type) :: data(2)
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i
       logical, save :: first=.true.
@@ -671,7 +734,7 @@ contains
       allocate(sel_index(num_atoms),stat=alloc_status)
       REQUIRE(alloc_status==0)
       call pack_index(atom_selection(:)==1 .and. atom_scatter_type(:)>0, sel_index, num_selected)
-      allocate(frac_xyz(3,num_selected),dF(num_hkl),Fcalc(num_hkl), &
+      allocate(frac_xyz(3,num_selected),dF(num_hkl), &
             abs_Fcalc(num_hkl), &
             xray_dxyz(3,num_selected),xray_dB(num_selected), stat=alloc_status)
       REQUIRE(alloc_status==0)
@@ -716,40 +779,11 @@ contains
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
-#if 1
-      if(first .and. mytaskid==0) then
-         open(20,file='first.rdb',action='write')
-         if( target(1:3) == 'vls' ) then
-            do i=1,num_hkl
-#  if 1
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
-                hkl_index(1,i), &
-                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
-                aimag(Fobs(i)), achar(9), aimag(Fcalc(i)) 
-#  else
-               phi = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
-                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fcalc(i), achar(9), phi
-#  endif
-            end do
-         else
-            write(20,'(11a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
-               'fobs',achar(9),'fcalc',achar(9),'rfree-flag'
-            write(20,'(11a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-               '15N',achar(9),'15N',achar(9),'3N'
-            do i=1,num_hkl
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
-                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fobs(i), achar(9), abs_Fcalc(i),achar(9), &
-                test_flag(i)
-            end do
-         endif
-         close(20)
-         first=.false.
+      if (fave_outfile /= '') then
+         ! keep a running sum:
+         Fcalc_ave(:) = Fcalc_ave(:) + Fcalc(:)
+         n_fcalc_ave = n_fcalc_ave + 1
       endif
-#endif
 
       xray_energy = xray_weight * xray_energy
       xray_e = xray_energy
@@ -759,13 +793,13 @@ contains
          call timer_start(TIME_DHKL)
          ! This call uses MPI parallel to compute xray_dxyz:
          if( present(dB) ) then
-            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
             dxyz=xray_dxyz, d_tempFactor=xray_dB )
          else
-            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4,test_flag, &
+            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)), &
@@ -796,7 +830,7 @@ contains
 
       ! DAC: why not allocate/deallocate just once, or make these
       !    automatic variables?  Or is this not important?
-      deallocate(frac_xyz,dF,Fcalc, &
+      deallocate(frac_xyz,dF, &
             abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
       REQUIRE(dealloc_status==0)
       deallocate(sel_index,stat=dealloc_status)

@@ -41,8 +41,6 @@ module xray_fourier_module
 
    use xray_globals_module
    use constants, only: M_TWOPI => TWOPI
-   use xray_reciprocal_space_module
-   use xray_real_space_module
    implicit none
 #ifdef MPI
 #include "parallel.h"
@@ -72,7 +70,6 @@ contains
       real(real_kind), intent(in) :: tempFactor(num_atoms)
       ! index into the scatter - type coeffs table for each atom:
       integer, intent(in), target :: scatter_type_index(num_atoms) 
-      ! integer, intent(in), optional :: hkl_selected(num_hkl)
       real(real_kind), intent(in), target, optional :: occupancy(num_atoms)
 
       ! locals
@@ -103,10 +100,6 @@ contains
 
 !$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
       do ihkl = ihkl1, ihkl2
-         ! always compute all Fcalcs: we'll want these for everything anyway(?)
-         ! if (present(hkl_selected)) then
-         !    if (hkl_selected(ihkl)==0) cycle
-         ! end if
 
          ! NOTE: the atomic scatter factors do not change for a given atom type
          ! and hkl index as long as the unit cell is unchanged. If the number 
@@ -172,12 +165,9 @@ contains
    !     isotropic B - factor = 8 * pi ** 2 * isotropic - U
    !     isotropic U = [U(1,1) + U(2,2) + U(3,3)]/3.0
 
-   subroutine fourier_dTarget_dXYZBQ( &
-            num_hkl,hkl,dF,mSS4,hkl_selected, & ! reflections
-            num_atoms,xyz,tempFactor,scatter_type_index, & ! atoms
-            occupancy, &  ! (put optional args after all non-optional ones)
-            dxyz,d_occupancy,d_tempFactor & ! output derivatives
-      )   ! TODO: d_aniso_Bij  (anisotropic B refinement)
+   subroutine fourier_dTarget_dXYZBQ( num_hkl,hkl,dF,mSS4, & 
+            num_atoms,xyz,tempFactor,scatter_type_index, &
+            occupancy, dxyz,d_occupancy,d_tempFactor )
       implicit none
 
       ! reciprocal space arrays:
@@ -185,7 +175,6 @@ contains
       integer, intent(in) :: hkl(3,num_hkl)
       complex(real_kind), intent(in) :: dF(num_hkl)
       real(real_kind), intent(in) :: mSS4(num_hkl)
-      integer, intent(in) :: hkl_selected(num_hkl)
 
       ! coordinate arrays:
       integer, intent(in) :: num_atoms
@@ -231,9 +220,6 @@ contains
 !$omp&  reduction( +:dxyz )
 #endif
       REFLECTION: do ihkl = ihkl1,ihkl2
-         ! if (present(hkl_selected)) then
-         !    if (hkl_selected(ihkl)==0) cycle REFLECTION
-         ! end if
 
          do i = 1,num_scatter_types
             atomic_scatter_factor(i) = &
@@ -292,11 +278,11 @@ contains
          residual,xray_energy)
       implicit none
       integer, intent(in) :: num_hkl
-      real(real_kind), intent(in) :: abs_Fobs(:)
-      complex(real_kind), intent(inout) :: Fcalc(:)
-      real(real_kind), intent(in), optional :: weight (:)
-      integer, intent(in), optional :: selected(:)
-      complex(real_kind), intent(out), optional :: deriv(:)
+      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
+      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
+      real(real_kind), intent(in), optional :: weight (num_hkl)
+      integer, intent(in), optional :: selected(num_hkl)
+      complex(real_kind), intent(out), optional :: deriv(num_hkl)
       real(real_kind), intent(out), optional :: residual
       real(real_kind), intent(out), optional :: xray_energy
 
@@ -505,29 +491,13 @@ contains
       endif
 
       ! ML target function
-#if 0
-      xray_energy =  &
-            sum( alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
-            abs_Fcalc(1:NRF_work) * abs_Fcalc(1:NRF_work) - &
-            ln_of_i0( 2.d0 * delta_array(1:NRF_work) * abs_Fcalc(1:NRF_work) * &
-            abs_Fobs(1:NRF_work) ) )
-#else
       xray_energy = 0._rk_
-
-      if( nstep == 0 ) open(17,FILE='msander.dat',ACTION='WRITE')
       do i=1,NRF_work
          x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
          eterm1 = alpha_array(i)*delta_array(i)*abs_Fcalc(i)*abs_Fcalc(i)
          eterm2 = ln_of_i0(x)
          xray_energy = xray_energy + eterm1 - eterm2
-         if( nstep == 0 ) &
-            ! write(17,'(3i5,7f14.7)') hkl(:,i), abs_Fobs(i), &
-            !     abs_Fcalc(i), x, alpha_array(i)/i1_over_i0(x)
-            write(17,'(3i5,6f14.7)') hkl(:,i), abs_Fobs(i), &
-                abs_Fcalc(i), k_scale(i), k_mask(i), f_mask(i) 
       enddo
-      if( nstep == 0 ) close(17)
-#endif
 
       nstep = nstep + 1
 

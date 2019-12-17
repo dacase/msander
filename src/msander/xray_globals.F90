@@ -21,7 +21,9 @@ module xray_globals_module
    ! NameList Input Parameters
    integer, parameter :: REFL_LABEL_MAXLEN=32
 
-   character(len=MAX_FN_LEN), save :: pdb_infile, pdb_outfile
+   character(len=MAX_FN_LEN), save :: pdb_infile, pdb_outfile, &
+         fave_outfile, fmtz_outfile
+   integer, save :: n_fcalc_ave = 0
 
    ! If true, PDB coordinates will overwrite INPCRD coordinates.
    ! NOTE: the cell still comes from the INPCRD!
@@ -121,11 +123,14 @@ module xray_globals_module
    real(real_kind), save :: Fcalc_scale, norm_scale
    integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
 
-   real(real_kind), allocatable, target, save :: abs_Fobs(:), sigFobs(:), d_star_sq(:)
+   real(real_kind), allocatable, target, save :: abs_Fobs(:), sigFobs(:), &
+         d_star_sq(:)
    complex(real_kind), allocatable, target, save :: Fobs(:)
    real(real_kind), allocatable, save :: mSS4(:)
    integer, allocatable, save :: test_flag(:)
    integer, save :: has_f_solvent
+
+   complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:)
 
    !----------------------------------------------------------------------------
    ! Symmetry, unit cell, and transformations:
