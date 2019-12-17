@@ -12,6 +12,7 @@ test::
 	-(cd rism3d/4lzt && ./Run.4lzt.pme)
 	-(cd rism3d/2igd && ./Run.2igd.pme)
 	-(cd xray/2wcu && ./Run.2wcu)
+	-(cd xray/3onk && ./Run.3onk_ml)
 
 clean::
 	/bin/rm -f TEST_FAILURES.diff
