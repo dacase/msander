@@ -554,6 +554,7 @@ contains
               hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq, resolution)
       call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
       if( has_f_solvent > 0 ) then
+         write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
          deallocate( f_solvent )
       endif

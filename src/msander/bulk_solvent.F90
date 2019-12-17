@@ -308,6 +308,7 @@ contains
     mask_bs_grid = 1
     mask_bs_grid_tmp = 1
 
+    write(6,'(a,2f8.3)') '| creating k_mask with k_sol,b_sol = ', k_sol, b_sol
     do i = 1, NRF
       s(:) = hkl(1,i) * vas(:) + hkl(2,i) * vbs(:) + hkl(3,i) * vcs(:)
       s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)

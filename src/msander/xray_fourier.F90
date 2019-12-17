@@ -492,8 +492,7 @@ contains
          write(6,'(a,6f10.3)') '|     ', b(2:7)
       endif
 
-      ! skip for now
-      ! Fcalc = Fcalc * k_scale
+      Fcalc = Fcalc * k_scale
 
       abs_Fcalc(:) = abs(Fcalc(:))
 
