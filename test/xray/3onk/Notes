@@ -1,5 +1,14 @@
 1. phenix.AmberPrep 3onk.pdb
-2. important: use modify_pdb to remove zero occupancy, zero bfactor records
-     in 4phenix_3onk.pdb
-3. usual path to get 3onk-sf.rdb and 3onk-sf.dat
+
+2. important: use modify_pdb to modify zero occupancy, zero bfactor records
+     in 4phenix_3onk.pdb: set to 1.0 30.00
+
+3. usual path to get 3onk-sf.rdb and 3onk-sf.dat:
+
+   phenix.mtz_as_cif --extend_flags 3onk-sf.cif
+   phenix.mtz.dump -f s -c 3onk-sf.mtz | tr ',' '\t' > 3onk-sf.fmtz
+   <edit to add rdb headers>
+   column < 3onk-sf.fmtz h k l FOBS SIGFOBS R-free-flags | row FOBS ne '' | headchg -del > 3onk-sf.dat
+   <edit to remove -1 -1 1 outlier, and add number of reflections at top>
+
 4. use run_fmodel to get what phenix.fmodel thinks one should have
