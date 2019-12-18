@@ -44,6 +44,8 @@ module xray_fourier_module
    implicit none
 #ifdef MPI
 #include "parallel.h"
+#else
+      integer :: mytaskid = 0
 #endif
 
    !-------------------------------------------------------------------
@@ -303,7 +305,8 @@ contains
             sum_fc_fc = sum(abs_Fcalc ** 2)
          end if
          Fcalc_scale = sum_fo_fc / sum_fc_fc
-         write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
+         if (mytaskid == 0 ) &
+            write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
          nstep = nstep + 1
@@ -393,7 +396,8 @@ contains
          sum_fc_fc = sum(abs(Fcalc) ** 2)
          sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
          Fcalc_scale = sum_fo_fc / sum_fc_fc
-         write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
+         if (mytaskid == 0 ) &
+           write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
          nstep = nstep + 1
@@ -452,7 +456,8 @@ contains
             f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
                         mask_cell_params(16) / mask_grid_size(4)
          end do
-         write(6,'(a,f12.5)') '| updating bulk solvent parameters: ', k_mask(1)
+         if (mytaskid == 0 ) &
+           write(6,'(a,f12.5)') '| updating bulk solvent parameters: ',k_mask(1)
       endif
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
@@ -473,9 +478,11 @@ contains
 
          k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
                 Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-         write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
+         if (mytaskid == 0 ) then
+           write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
                exp(Uaniso(1))
-         write(6,'(a,6f10.3)') '|     ', b(2:7)
+           write(6,'(a,6f10.3)') '|     ', b(2:7)
+         endif
       endif
 
       Fcalc = Fcalc * k_scale
@@ -485,7 +492,8 @@ contains
       ! step 3: get ml parameters and xray restraint energy:
 
       if (mod(nstep, mask_update_frequency) == 0) then
-        write(6,'(a)') '| updating alpha and beta'
+        if (mytaskid == 0 ) &
+           write(6,'(a)') '| updating alpha and beta'
         call estimate_alpha_beta(Fcalc, abs_Fobs)
         delta_array = alpha_array / beta_array
       endif

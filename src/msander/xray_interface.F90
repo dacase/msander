@@ -568,7 +568,7 @@ contains
               hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq, resolution)
       call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
       if( has_f_solvent > 0 ) then
-         write(6,'(a)') '| setting f_mask to f_solvent'
+         if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
          deallocate( f_solvent )
       endif
@@ -715,12 +715,6 @@ contains
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i
       logical, save :: first=.true.
-#ifdef MPI
-      include 'mpif.h'
-      integer :: ierr
-#else
-      integer :: mytaskid = 0
-#endif
 #include "def_time.h"
 
       call timer_start(TIME_XRAY)
@@ -778,7 +772,7 @@ contains
          n_fcalc_ave = n_fcalc_ave + 1
       endif
 
-      if (xray_weight == 0._rk_) then  ! skip any derivative calculation
+      if (xray_weight /= 0._rk_) then  ! skip any derivative calculation
          xray_energy = xray_weight * xray_energy
          xray_e = xray_energy
          dF = xray_weight * dF

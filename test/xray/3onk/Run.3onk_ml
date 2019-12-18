@@ -1,8 +1,5 @@
 #!/bin/sh
 
-export OMP_NUM_THREADS=8
-export DO_PARALLEL=''
-
 sander=/home/case/msander/bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI

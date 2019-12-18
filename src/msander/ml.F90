@@ -59,6 +59,11 @@ module ml_mod
   integer, dimension(:,:), allocatable :: bins_work_reflections, &
                                           bins_free_reflections
 
+#ifdef MPI
+#     include "parallel.h"
+#else
+      integer :: mytaskid = 0
+#endif
 contains
 
   !----------------------------------------------------------------------------
@@ -260,7 +265,8 @@ contains
 
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
-    write(6,'(a,3i6)') '| number of reflections: ', NRF_work, NRF_free, NRF
+    if (mytaskid == 0 ) &
+      write(6,'(a,3i6)') '| number of reflections: ', NRF_work, NRF_free, NRF
 
     if (target(1:2) == 'ml') then
 
