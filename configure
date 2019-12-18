@@ -24,6 +24,7 @@ flibs_arch="-lgfortran -w"
 flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
+gccsys=""
 
 openmp='no'
 ompflag=""
@@ -63,6 +64,7 @@ for var in "$@"; do
             mpicc="$msanderhome/bin/mpicc"
             fc="ifort"
             mpif90="$msanderhome/bin/mpif90"
+            gccsys="-gcc-sys "
             flibs_arch="-lifport -lifcore -lsvml";;
         --no-rism)
             rismsander=""
@@ -342,11 +344,13 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
        printf "\nConfiguring fftw-3.3..."
        enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes"
+       # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
+       #   be required for Intel compilers.
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib --enable-openmp $fftw_flags \
            --enable-static --enable-sse2=yes MPICC="$mpicc" \
-           CC="$cc" CFLAGS="-gcc-sys -O2"  F77="$fc" FFLAGS="-O2" \
+           CC="$cc" CFLAGS="$gccsys -O2"  F77="$fc" FFLAGS="-O2" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
