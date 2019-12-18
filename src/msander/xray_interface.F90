@@ -695,14 +695,7 @@ contains
 
    end subroutine xray_fini
 
-   ! NOTE: CNS supports user-defined functions for:
-   !
-   ! TARGET function (expression to minimize)
-   ! DERIVATIVE function (derivative of TARGET)
-   ! SELECTION expression to define R-work set
-   ! CV-SELECTION expression to define R-free set
-   ! MONITOR function (working R-factor)
-
+   ! gets xray_energy and derivatives
    subroutine xray_get_derivative(xyz,dxyz,xray_e,dB)
       use xray_fourier_module
       use xray_utils_module, only: pack_index
@@ -785,58 +778,59 @@ contains
          n_fcalc_ave = n_fcalc_ave + 1
       endif
 
-      xray_energy = xray_weight * xray_energy
-      xray_e = xray_energy
-      dF = xray_weight * dF
+      if (xray_weight == 0._rk_) then  ! skip any derivative calculation
+         xray_energy = xray_weight * xray_energy
+         xray_e = xray_energy
+         dF = xray_weight * dF
 
-      if( fft_method == 0 ) then
-         call timer_start(TIME_DHKL)
-         ! This call uses MPI parallel to compute xray_dxyz:
-         if( present(dB) ) then
-            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
-            num_selected,frac_xyz, &
-            atom_bfactor(sel_index(1:num_selected)), &
-            atom_scatter_type(sel_index(1:num_selected)), &
-            dxyz=xray_dxyz, d_tempFactor=xray_dB )
-         else
-            call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
-            num_selected,frac_xyz, &
-            atom_bfactor(sel_index(1:num_selected)), &
-            atom_scatter_type(sel_index(1:num_selected)), &
-            dxyz=xray_dxyz )
-         endif
-         call timer_stop(TIME_DHKL)
+         if( fft_method == 0 ) then
+            call timer_start(TIME_DHKL)
+            ! This call uses MPI parallel to compute xray_dxyz:
+            if( present(dB) ) then
+               call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
+               num_selected,frac_xyz, &
+               atom_bfactor(sel_index(1:num_selected)), &
+               atom_scatter_type(sel_index(1:num_selected)), &
+               dxyz=xray_dxyz, d_tempFactor=xray_dB )
+            else
+               call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
+               num_selected,frac_xyz, &
+               atom_bfactor(sel_index(1:num_selected)), &
+               atom_scatter_type(sel_index(1:num_selected)), &
+               dxyz=xray_dxyz )
+            endif
+            call timer_stop(TIME_DHKL)
 #if 0
-      else
-         call FFT_dXYZBQ_dF(num_hkl,dF,test_flag-1, &
-            num_selected,frac_xyz, &
-            atom_bfactor(sel_index(1:num_selected)), &
-            atom_occupancy(sel_index(1:num_selected)), &
-            atom_scatter_type(sel_index(1:num_selected)), &
-            num_scatter_types,scatter_ncoeffs,scatter_coefficients,xray_dxyz)
+         else
+            call FFT_dXYZBQ_dF(num_hkl,dF,test_flag-1, &
+               num_selected,frac_xyz, &
+               atom_bfactor(sel_index(1:num_selected)), &
+               atom_occupancy(sel_index(1:num_selected)), &
+               atom_scatter_type(sel_index(1:num_selected)), &
+               num_scatter_types,scatter_ncoeffs,scatter_coefficients,xray_dxyz)
 #endif
-      endif
+         endif
 #ifdef MPI
-      call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
-           MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
+         call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
+              MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
 #endif
 
-      ! Convert xray_dxyz() back to orthogonal coordinates: 
-      xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))
+         ! Convert xray_dxyz() back to orthogonal coordinates: 
+         xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))
 
-      dxyz(:,sel_index(1:num_selected)) = dxyz(:,sel_index(1:num_selected)) &
-          - xray_dxyz(:,:)
-      if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
+         dxyz(:,sel_index(1:num_selected)) = dxyz(:,sel_index(1:num_selected)) &
+             - xray_dxyz(:,:)
+         if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
 
-      ! DAC: why not allocate/deallocate just once, or make these
-      !    automatic variables?  Or is this not important?
-      deallocate(frac_xyz,dF, &
-            abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
-      REQUIRE(dealloc_status==0)
-      deallocate(sel_index,stat=dealloc_status)
-      REQUIRE(dealloc_status==0)
+         ! DAC: why not allocate/deallocate just once, or make these
+         !    automatic variables?  Or is this not important?
+         deallocate(frac_xyz,dF, &
+               abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
+         REQUIRE(dealloc_status==0)
+         deallocate(sel_index,stat=dealloc_status)
+         REQUIRE(dealloc_status==0)
 
-      ! end if  ! from the xray logic
+      end if  ! from skipping derivatives
       call timer_stop(TIME_XRAY)
 
    end subroutine xray_get_derivative
