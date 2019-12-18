@@ -1,0 +1,21 @@
+#!/bin/bash
+
+in=4
+let out=$in+1
+
+cat<<EOF >mdin
+md for 5l9j_uc
+ &cntrl
+  ntpr=5000, ntwx=100000, ntwr=1000000, cut=9., ioutfm=1, ntxo=2,
+  ntx=5, irest=1, tempi=300., temp0=300.,
+  ithermstat=1, therm_par=5.,
+  ntb=1, ntc=2, ntf=2,  tol=0.0000001,
+  nstlim=40000000, dt=.004, ig=-1, ntave=0,
+  ntr=0, restraint_wt=0.1, restraintmask='(!:WAT,CL,ACT)&(!@H=)',
+ /
+EOF
+
+$DO_PARALLEL $sander -O -i mdin -p 5l9j.parm7 \
+    -ref md-1.x -inf md$out.info \
+    -c md$in.x -o md$out.o -r md$out.x -x md$out.nc < /dev/null
+
