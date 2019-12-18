@@ -164,6 +164,7 @@ contains
 
   !----------------------------------------------------------------------------
   ! init_ml: gateway to the maximum-likelihood target function
+  !          this routine also intializes anisotropic scaling data
   !----------------------------------------------------------------------------
   subroutine init_ml(target, nstlim, num_hkl, hkl_tmp, &
                      f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out, &
