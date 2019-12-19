@@ -1319,8 +1319,11 @@ subroutine mdread2(x,ix,ih)
      !running in parallel giving better scaling.
      no_ntt3_sync = 1
      !  old: call microsec(ig)
-     call wallclock( wallc )
-     ig = wallc*1.d6
+     call wallclock( wallc ) ! GNU fortran yields wallc to milliseconds
+     write(0,*) wallc
+     wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
+     ig = wallc
+     write(0,*) wallc, ig
 #ifdef MPI
      write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
@@ -1577,19 +1580,19 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
 
-      if ( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
+      if( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ithermostat == 2 ) then
-         write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
-         write(6,'(5x,4(a,i8))') 'ig      =',ig, ', vrand   =',vrand
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
       else if( ithermostat == 1) then
          write(6,'(/a)') 'Langevin dynamics temperature regulation:'
-         write(6,'(5x,4(a,i8))') 'ig      =',ig
+         write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
                ', tempi   =',tempi,', therm_par=', therm_par
+      else if( ithermostat == 2 ) then
+         write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
+         write(6,'(5x,2(a,i8))') 'ig      =',ig, ', vrand   =',vrand
+         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
       end if
 
       if( ntp /= 0 ) then

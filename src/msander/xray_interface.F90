@@ -696,14 +696,13 @@ contains
    end subroutine xray_fini
 
    ! gets xray_energy and derivatives
-   subroutine xray_get_derivative(xyz,dxyz,xray_e,dB)
+   subroutine xray_get_derivative(xyz,dxyz,dB)
       use xray_fourier_module
       use xray_utils_module, only: pack_index
       use xray_reciprocal_space_module, only: scale_data
       implicit none
       real(real_kind), intent(in) :: xyz(3,num_atoms)
       real(real_kind), intent(inout) :: dxyz(3,num_atoms)
-      real(real_kind), intent(out) :: xray_e
       real(real_kind), optional, intent(out) :: dB(num_atoms)
       ! local
       integer, allocatable :: sel_index(:)
@@ -715,9 +714,10 @@ contains
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i,ierr
       logical, save :: first=.true.
+      integer :: free_flag(num_hkl)
 #include "def_time.h"
 #ifdef MPI
-#  include <mpif.h>
+      include 'mpif.h'
 #endif
 
       call timer_start(TIME_XRAY)
@@ -731,7 +731,7 @@ contains
 
       frac_xyz=modulo(matmul(transpose(orth_to_frac),xyz(:,sel_index(1:num_selected))),1.0_rk_)
       
-!     This call uses MPI parallel to compute Fcalc:
+!     This call uses MPI or openmp parallel to compute Fcalc:
       if( fft_method == 0 ) then
          call timer_start(TIME_IHKL)
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
@@ -755,31 +755,36 @@ contains
 #endif
 
       if (fave_outfile /= '') then
-         ! keep a running sum:
+         ! keep a running sum of unscaled Fcalc values:
          Fcalc_ave(:) = Fcalc_ave(:) + Fcalc(:)
          n_fcalc_ave = n_fcalc_ave + 1
       endif
 
-      xray_e = 0._rk_
-      if (xray_weight /= 0._rk_) then  ! skip remaining calculations
+      if( target(1:3) == 'vls' ) then
+         call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
+            residual=r_work, xray_energy=xray_energy)
+      else if( target(1:2) == 'ls' ) then
+         call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
+             deriv=dF, xray_energy=xray_energy)
+      else if(target(1:2) == 'ml' ) then
+         call dTargetML_dF(num_hkl,hkl_index,abs_Fobs,Fcalc,num_atoms,xyz,  &
+             deriv=dF, xray_energy=xray_energy)
+      else
+         write(6,*) 'Bad target: ', target
+         call mexit(6,1)
+      endif
 
-         if( target(1:3) == 'vls' ) then
-            call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
-               residual=r_work, xray_energy=xray_energy)
-         else if( target(1:2) == 'ls' ) then
-            call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
-                deriv=dF, residual=r_work, xray_energy=xray_energy)
-         else if(target(1:2) == 'ml' ) then
-            call dTargetML_dF(num_hkl, hkl_index, abs_Fobs,Fcalc, num_atoms, xyz,  &
-                deriv=dF, residual=r_work, xray_energy=xray_energy)
-         else
-            write(6,*) 'Bad target: ', target
-            call mexit(6,1)
-         endif
-         abs_Fcalc(:) = abs(Fcalc(:))
+      ! now we can get r_work/r_free since target functions may have scaled
+      !   Fcalc, or added a bulk solvent contribution, etc.:
+      abs_Fcalc(:) = abs(Fcalc(:))
+      call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_work,selected=test_flag)
+      free_flag(:) = test_flag(:) - 1
+      call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_free,selected=free_flag)
 
+      if (xray_weight == 0._rk_) then  ! skip remaining calculations
+         xray_energy = 0._rk_
+      else
          xray_energy = xray_weight * xray_energy
-         xray_e = xray_energy
          dF = xray_weight * dF
 
          if( fft_method == 0 ) then

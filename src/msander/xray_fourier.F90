@@ -13,6 +13,8 @@ module xray_fourier_module
 !  fourier_Fcalc     --   Caclulate structure factors using a direct
 !                         method.
 !
+!  get_residual      --   Compute standard r_work/r_free statistics
+!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -59,7 +61,7 @@ contains
    ! mSS4 = -S*S/4
    ! mSS4 is more relevant to the formulas used than S.
 
-   subroutine fourier_Fcalc(  num_hkl,hkl,Fcalc,mSS4, &
+   subroutine fourier_Fcalc(num_hkl,hkl,Fcalc,mSS4, &
       num_atoms,xyz,tempFactor,scatter_type_index, occupancy)
 
       implicit none
@@ -268,16 +270,41 @@ contains
       call wallclock( time1 )
       dhkl_duration = dhkl_duration + time1 - time0
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
+      return
 
    end subroutine fourier_dTarget_dXYZBQ
 
    ! -------------------------------------------------------------------------
    ! R - factor = sum(abs(Fobs - Fcalc)) / sum(Fobs)
+   ! -------------------------------------------------------------------------
+   subroutine get_residual (num_hkl,abs_Fobs,abs_Fcalc,residual,selected)
+      implicit none
+      integer, intent(in) :: num_hkl
+      real(real_kind), intent(in) :: abs_Fobs(num_hkl), abs_Fcalc(num_hkl)
+      real(real_kind), intent(out) :: residual
+      integer, intent(in), optional :: selected(num_hkl)
+      real(real_kind) :: denom
+   
+      if (present(selected)) then
+         denom = sum(abs_Fobs, selected/=0)
+         if( denom > 0._rk_ ) then
+            residual = sum( abs(abs_Fobs - abs_Fcalc), &
+               selected/=0) / denom
+         else
+            residual = 0._rk_
+         endif
+      else
+         residual = sum (abs( abs_Fobs - abs_Fcalc) ) / sum(abs_Fobs)
+      end if
+      return
+   end subroutine get_residual
+
+   ! -------------------------------------------------------------------------
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
-
+   ! -------------------------------------------------------------------------
    subroutine dTargetLS_dF(num_hkl,abs_Fobs,Fcalc,weight,selected,deriv, &
-         residual,xray_energy)
+         xray_energy)
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(num_hkl)
@@ -285,7 +312,6 @@ contains
       real(real_kind), intent(in), optional :: weight (num_hkl)
       integer, intent(in), optional :: selected(num_hkl)
       complex(real_kind), intent(out), optional :: deriv(num_hkl)
-      real(real_kind), intent(out), optional :: residual
       real(real_kind), intent(out), optional :: xray_energy
 
       real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
@@ -342,31 +368,11 @@ contains
          end if
       end if
 
-      ! Do the appropriate R - factor calculation, depending on weights 
-      ! and/or a selection mask.
-
-      if (present(residual)) then
-         if (present(weight)) then
-            if (present(selected)) then
-               residual = sum(weight * abs(abs_Fobs - abs_Fcalc), &
-                 selected/=0) / sum(abs_Fobs,selected/=0)
-            else
-               residual = sum (weight * abs( abs_Fobs - abs_Fcalc )) &
-                / sum(abs_Fobs)
-            end if
-         else
-            if (present(selected)) then
-               residual = sum( abs(abs_Fobs - abs_Fcalc), &
-                  selected/=0) / sum(abs_Fobs, selected/=0)
-               xray_energy = norm_scale * &
-                    sum((abs_Fobs - abs_Fcalc)**2, selected/=0)
-            else
-               residual = sum (abs( abs_Fobs - abs_Fcalc) ) &
-                    / sum(abs_Fobs)
-               xray_energy = norm_scale * &
-                    sum((abs_Fobs - abs_Fcalc)**2)
-            end if
-         end if
+      if (present(selected)) then
+         xray_energy = norm_scale * &
+              sum((abs_Fobs - abs_Fcalc)**2, selected/=0)
+      else
+         xray_energy = norm_scale * sum((abs_Fobs - abs_Fcalc)**2)
       end if
 
    end subroutine dTargetLS_dF
@@ -417,7 +423,7 @@ contains
    ! phenix maximum likelihood function
 
    subroutine dTargetML_dF(num_hkl,hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
-         residual,xray_energy)
+         xray_energy)
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0, &
@@ -434,7 +440,6 @@ contains
       integer, intent(in) :: n_atom
       real(real_kind), intent(in) :: crd(3*n_atom)
       complex(real_kind), intent(out) :: deriv(num_hkl)
-      real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
 
       real(real_kind) :: abs_Fcalc(num_hkl)
@@ -516,16 +521,7 @@ contains
             * ( alpha_array(i)*abs_Fcalc(i) - i1_over_i0(x)*abs_Fobs(i) ) &
             / abs_Fcalc(i)
       end do
-
-      ! residual = r_work, as in dTarget/dF
-      rwork_num = sum (abs( abs_Fobs(1:NRF_work) - abs_Fcalc(1:NRF_work) ))
-      rwork_denom = sum(abs_Fobs(1:NRF_work))
-      residual = rwork_num/rwork_denom
-      rfree_num = sum (abs( abs_Fobs(NRF_work+1:NRF) -  &
-                       abs_Fcalc(NRF_work+1:NRF) ))
-      rfree_denom = sum(abs_Fobs(NRF_work+1:NRF))
-      r_free = rfree_num/rfree_denom
-
+      return
    end subroutine dTargetML_dF
 
    function atom_scatter_factor_mss4(coeffs,mss4) result(sfac)

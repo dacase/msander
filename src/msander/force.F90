@@ -87,9 +87,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
                              do_lrt, f_scratch, lrt_solute_sasa
   use xray_interface_module, only: xray_get_derivative, xray_active
-#ifdef USE_ISCALE
-  use xray_globals_module, only: atom_bfactor
-#endif
+  use xray_globals_module, only: atom_bfactor, xray_energy
 
   ! CHARMM Force Field Support
   use charmm_mod, only: charmm_active, charmm_calc_impropers, &
@@ -154,7 +152,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   integer istart, iend
   _REAL_ evdwex, eelex
   _REAL_ enemap
-  _REAL_ xray_e
 
   logical, intent(inout) :: qsetup
   logical, intent(out) :: do_list_update
@@ -843,7 +840,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif
 
   ! Built-in X-ray target function and gradient
-  xray_e = 0.d0
+  xray_energy = 0.d0
   if( xray_active ) then
 #ifdef USE_ISCALE
      if (first) then
@@ -854,9 +851,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         ! get current bfactors from the end of the coordinate array:
         atom_bfactor(1:natom) = x(3*natom+1:4*natom)
      endif
-     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+     call xray_get_derivative(x,f,dB=f(3*natom+1))
 #else
-     call xray_get_derivative(x,f,xray_e)
+     call xray_get_derivative(x,f)
 #endif
   endif
 
@@ -868,7 +865,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   endif
 #endif
   pot%constraint = pot%constraint + eshf + epcshf + pot%noe + &
-                   sum(enmr(1:6)) + ealign + ecsa + pot%emap + xray_e + enfe
+       sum(enmr(1:6)) + ealign + ecsa + pot%emap + xray_energy + enfe
 #ifdef DSSP
   pot%constraint = pot%constraint + edssp
 #endif

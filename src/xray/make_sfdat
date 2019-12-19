@@ -1,0 +1,28 @@
+#!/bin/bash
+
+id=5l9j
+
+#  convert sf.cif file to mtz format
+phenix.cif_as_mtz  --extend_flags  5l9j-sf.cif
+
+# expand to P1 symmetry:
+cad hklin1 $id-sf.mtz hklout $id-P1.mtz << EOF > cad.log
+LABIN FILE_NUMBER 1 ALL
+OUTLIM SPACEGROUP 1
+END
+EOF
+
+#  convert to formatted file:
+phenix.mtz.dump -c -f s $id-P1.mtz  | tr ',' '\t' > $id.fmtz
+
+#  make the -sf.dat file needed by xray3:
+awk 'NR>1 && $6 != "" {printf("%d\t%d\t%d\t%12.3f\t%12.3f\t%d\n",\
+        $1,$2,$3,$6,$7,$9)}'  $id.fmtz > tmp.dat
+
+nrefl=`wc -l tmp.dat | awk '{print $1}'`
+echo "$nrefl 0" > $id-sf.dat
+cat tmp.dat >> $id-sf.dat
+
+
+# clean up
+/bin/rm -f tmp.dat $id-sf.mtz $id.fmtz
