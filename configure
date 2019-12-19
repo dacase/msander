@@ -25,6 +25,7 @@ flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
 gccsys=""
+optflags="-g -O3 -mtune=native"
 
 openmp='no'
 ompflag=""
@@ -65,6 +66,7 @@ for var in "$@"; do
             fc="ifort"
             mpif90="$msanderhome/bin/mpif90"
             gccsys="-gcc-sys "
+            optflags="-g -O3 -fast"
             flibs_arch="-lifport -lifcore -lsvml";;
         --no-rism)
             rismsander=""
@@ -420,8 +422,8 @@ BLAS=$blas
 
 CC=$cc
 CFLAGS=$bintraj
-CNOOPTFLAGS=
-COPTFLAGS=-O3 -mtune=native 
+CNOOPTFLAGS=-g -O0
+COPTFLAGS=$optflags
 
 ###############################################################################
 
@@ -431,7 +433,7 @@ FC=$fc
 FFLAGS=$bintraj $inc $ompflag $mpiflag
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
-FOPTFLAGS= -O3 -g -mtune=native
+FOPTFLAGS=$optflags
 
 ###############################################################################
 
