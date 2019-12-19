@@ -751,28 +751,30 @@ contains
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
 
-      if( target(1:3) == 'vls' ) then
-         call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
-            residual=r_work, xray_energy=xray_energy)
-      else if( target(1:2) == 'ls' ) then
-         call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
-             deriv=dF, residual=r_work, xray_energy=xray_energy)
-      else if(target(1:2) == 'ml' ) then
-         call dTargetML_dF(num_hkl, hkl_index, abs_Fobs,Fcalc, num_atoms, xyz,  &
-             deriv=dF, residual=r_work, xray_energy=xray_energy)
-      else
-         write(6,*) 'Bad target: ', target
-         call mexit(6,1)
-      endif
-      abs_Fcalc(:) = abs(Fcalc(:))
-
       if (fave_outfile /= '') then
          ! keep a running sum:
          Fcalc_ave(:) = Fcalc_ave(:) + Fcalc(:)
          n_fcalc_ave = n_fcalc_ave + 1
       endif
 
-      if (xray_weight /= 0._rk_) then  ! skip any derivative calculation
+      xray_e = 0._rk_
+      if (xray_weight /= 0._rk_) then  ! skip remaining calculations
+
+         if( target(1:3) == 'vls' ) then
+            call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
+               residual=r_work, xray_energy=xray_energy)
+         else if( target(1:2) == 'ls' ) then
+            call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
+                deriv=dF, residual=r_work, xray_energy=xray_energy)
+         else if(target(1:2) == 'ml' ) then
+            call dTargetML_dF(num_hkl, hkl_index, abs_Fobs,Fcalc, num_atoms, xyz,  &
+                deriv=dF, residual=r_work, xray_energy=xray_energy)
+         else
+            write(6,*) 'Bad target: ', target
+            call mexit(6,1)
+         endif
+         abs_Fcalc(:) = abs(Fcalc(:))
+
          xray_energy = xray_weight * xray_energy
          xray_e = xray_energy
          dF = xray_weight * dF
@@ -816,15 +818,16 @@ contains
              - xray_dxyz(:,:)
          if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
 
-         ! DAC: why not allocate/deallocate just once, or make these
-         !    automatic variables?  Or is this not important?
-         deallocate(frac_xyz,dF, &
-               abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
-         REQUIRE(dealloc_status==0)
-         deallocate(sel_index,stat=dealloc_status)
-         REQUIRE(dealloc_status==0)
+      end if  ! from skipping target + derivatives if xray_weight is zero
 
-      end if  ! from skipping derivatives
+      ! DAC: why not allocate/deallocate just once, or make these
+      !    automatic variables?  Or is this not important?
+      deallocate(frac_xyz,dF, &
+            abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
+      REQUIRE(dealloc_status==0)
+      deallocate(sel_index,stat=dealloc_status)
+      REQUIRE(dealloc_status==0)
+
       call timer_stop(TIME_XRAY)
 
    end subroutine xray_get_derivative
