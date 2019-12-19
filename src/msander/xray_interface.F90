@@ -713,9 +713,12 @@ contains
       complex(real_kind), allocatable :: dF(:)
       real(real_kind) :: phi
       integer :: status, alloc_status, num_selected, dealloc_status
-      integer :: i
+      integer :: i,ierr
       logical, save :: first=.true.
 #include "def_time.h"
+#ifdef MPI
+#  include <mpif.h>
+#endif
 
       call timer_start(TIME_XRAY)
       allocate(sel_index(num_atoms),stat=alloc_status)
