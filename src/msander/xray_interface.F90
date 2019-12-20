@@ -18,7 +18,6 @@ module xray_interface_module
    !  sander.f:   call xray_fini()
 
    use xray_globals_module
-   ! use xray_FFT_module
    use bulk_solvent_mod, only: k_sol, b_sol
    implicit none
    private
@@ -449,7 +448,6 @@ contains
       use nblist, only: a, b, c, alpha, beta, gamma
       use xray_utils_module, only: allocate_lun
       use xray_reciprocal_space_module, only: derive_cell_info
-      ! use xray_FFT_module, only: FFT_setup
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
@@ -698,7 +696,6 @@ contains
    subroutine xray_get_derivative(xyz,dxyz,dB)
       use xray_fourier_module
       use xray_utils_module, only: pack_index
-      use xray_reciprocal_space_module, only: scale_data
       implicit none
       real(real_kind), intent(in) :: xyz(3,num_atoms)
       real(real_kind), intent(inout) :: dxyz(3,num_atoms)

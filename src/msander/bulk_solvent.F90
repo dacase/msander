@@ -448,7 +448,7 @@ contains
 
     !use iso_c_binding
     implicit none
-#include <fftw3.f>
+#include "fftw3.f"
     double precision :: mask_bs_grid_3d(mask_grid_size(3), &
                                         mask_grid_size(2), &
                                         mask_grid_size(1))

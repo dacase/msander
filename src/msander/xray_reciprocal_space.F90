@@ -180,6 +180,7 @@ module xray_reciprocal_space_module
 !==============================================================================
 contains
 
+#if 0
    subroutine scale_data( &
             num_hkl,hkl_index,hkl_selected, &
             num_sets,data, &
@@ -610,6 +611,8 @@ contains
 
    end subroutine scale_data
 
+#endif
+
    !+ Derive matrices, lookup symmetry operators, etc., from unit cell.
    !+ Mostly equivalent to Ewald get_ucell().
    subroutine derive_cell_info(a,b,c,alpha,beta,gamma,ncode)
@@ -716,6 +719,7 @@ contains
 
    end subroutine derive_cell_info
 
+#if 0
    subroutine hkl_generate(resolution_range)
       use xray_globals_module, only: hkl_index
       implicit none
@@ -1097,5 +1101,6 @@ contains
       end do
       absent = .FALSE.
    end function hkl_is_sysabs
+#endif
 
 end module xray_reciprocal_space_module

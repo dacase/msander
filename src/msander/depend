@@ -139,10 +139,10 @@ bintraj.LES.o:   bintraj.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
 bulk_solvent.o: \
+                    parallel.h\
                     xray_globals.o\
                     memory_module.o\
-                    ml.o\
-                    iso_c_binding.o
+                    ml.o
 
 
 bulk_solvent.o:   bulk_solvent.F90
@@ -1534,7 +1534,6 @@ mdread.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
-                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1554,6 +1553,7 @@ mdread.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
+                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1592,7 +1592,6 @@ mdread.LES.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
-                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1612,6 +1611,7 @@ mdread.LES.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.LES.o\
+                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1649,7 +1649,6 @@ mdread.PUPIL.o: \
                     linear_response.o\
                     ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
-                    parallel.h\
                     box.h\
                     def_time.h\
                     ew_cntrl.h\
@@ -1669,6 +1668,7 @@ mdread.PUPIL.o: \
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.PUPIL.o\
+                    parallel.h\
                     extra_pts.h\
                     ew_mpole.h\
                     ew_legal.h\
@@ -1764,6 +1764,7 @@ minrit.LES.o:   minrit.F90
 ml.o: \
                     ../include/assert.fh\
                     file_io_dat.o\
+                    parallel.h\
                     xray_globals.o
 
 
@@ -3909,11 +3910,9 @@ xray_fourier.o: \
                     ../include/assert.fh\
                     xray_globals.o\
                     constants.o\
-                    xray_reciprocal_space.o\
-                    xray_real_space.o\
                     parallel.h\
-                    ml.o\
-                    bulk_solvent.o
+                    bulk_solvent.o\
+                    ml.o
 
 
 xray_fourier.o:   xray_fourier.F90
@@ -3933,7 +3932,7 @@ xray_interface.o: \
                     ../include/assert.fh\
                     file_io_dat.o\
                     xray_globals.o\
-                    xray_FFT.o\
+                    bulk_solvent.o\
                     memory_module.o\
                     xray_reciprocal_space.o\
                     parallel.h\
@@ -3942,8 +3941,8 @@ xray_interface.o: \
                     xray_fourier.o\
                     findmask.o\
                     ml.o\
-                    bulk_solvent.o\
-                    extra.h
+                    extra.h\
+                    def_time.h
 
 
 xray_interface.o:   xray_interface.F90
