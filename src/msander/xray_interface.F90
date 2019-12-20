@@ -499,7 +499,7 @@ contains
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), &
-            Fcalc(num_hkl), stat=alloc_status)
+            Fcalc(num_hkl), k_scale(num_hkl), stat=alloc_status)
       REQUIRE(alloc_status==0)
 
       if (has_f_solvent > 0 ) then

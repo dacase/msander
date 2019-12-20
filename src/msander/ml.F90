@@ -37,11 +37,11 @@ module ml_mod
   !                         Used to potentially control the restraints weight
   ! starting_N_step:        Step number to start on.
   ! total_N_steps:          Step number to finish on.
-  ! mask_update_frequency:  Solvent mask update freuency
   ! n_bins:                 Number of reflections per resolution bin
+  ! ml_update_frequency     how often to update the ML parameters
   integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
-             call_est, N_steps, starting_N_step, total_N_steps, &
-             mask_update_frequency=50, n_bins
+             call_est, N_steps, starting_N_step, total_N_steps, n_bins, &
+             ml_update_frequency=50
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -878,7 +878,7 @@ contains
     double precision :: f_calc_abs(NRF)
     integer :: i
     
-    if (mod(nstep, mask_update_frequency) == 0 .or. nstep == 0) then
+    if (mod(nstep, ml_update_frequency) == 0 .or. nstep == 0) then
       call estimate_alpha_beta(f_calc, f_obs)
       delta_array = alpha_array / beta_array
     endif

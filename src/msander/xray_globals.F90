@@ -115,14 +115,13 @@ module xray_globals_module
    real(real_kind), save :: Fcalc_scale, norm_scale
    integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
 
-   real(real_kind), allocatable, target, save :: abs_Fobs(:), sigFobs(:), &
+   real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:), &
          d_star_sq(:)
-   complex(real_kind), allocatable, target, save :: Fobs(:)
-   real(real_kind), allocatable, save :: mSS4(:)
+   real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
    integer, allocatable, save :: test_flag(:)
-   integer, save :: has_f_solvent
+   integer, save :: has_f_solvent, scale_update_frequency=50
 
-   complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:)
+   complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:), Fobs(:)
 
    !----------------------------------------------------------------------------
    ! Symmetry, unit cell, and transformations:

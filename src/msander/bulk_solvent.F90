@@ -9,7 +9,7 @@ module bulk_solvent_mod
   double precision, dimension(16)   :: mask_cell_params
   double precision, dimension(3)    :: mask_grid_steps
 
-  double precision, dimension(:), allocatable :: k_mask, k_scale, &
+  double precision, dimension(:), allocatable :: k_mask, &
           mask_cutoffs, b_vector_mask
   complex(8), dimension(:), allocatable :: f_mask
 
@@ -35,6 +35,9 @@ module bulk_solvent_mod
 
   ! Size of the mask grid (number of grid points)
   integer, dimension(4) :: mask_grid_size
+
+  ! mask_update_frequency   how often to update the bs mask
+  integer, save :: mask_update_frequency=50
 
   ! grid_neighbors_size:    Number of grid neighbors that are within the 
   !                         shrunken mask cutoff
@@ -208,7 +211,6 @@ contains
 
     allocate(k_mask(NRF))
     allocate(f_mask(NRF))
-    allocate(k_scale(NRF))
     allocate(hkl_indexing_bs_mask(NRF))
 
     allocate(atom_types(n_atom))

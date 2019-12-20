@@ -17,6 +17,8 @@ module xray_fourier_module
 !
 !  scale_Fcalc       --   Carry out scaling (just anisotropic for now)
 !
+!  get_solvent_contribution -- bulk_solvent mask or other models
+!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -304,8 +306,8 @@ contains
    subroutine get_solvent_contribution(num_hkl,nstep,n_atom,crd,Fcalc)
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
-          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
-      use ml_mod, only : mask_update_frequency
+          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size, &
+          mask_update_frequency
       implicit none
       integer, intent(in) :: num_hkl, nstep, n_atom
       real(real_kind), intent(in) :: crd(3*n_atom)
@@ -333,7 +335,6 @@ contains
    subroutine scale_Fcalc(num_hkl,abs_Fobs,Fcalc)
       use ml_mod, only : b_vector_base, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
-      use bulk_solvent_mod, only: k_scale
       implicit none
       integer, intent(in) :: num_hkl
       real(real_kind), intent(in) :: abs_Fobs(num_hkl)
@@ -493,8 +494,8 @@ contains
          xray_energy)
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
-           i1_over_i0, mask_update_frequency, ln_of_i0, estimate_alpha_beta, NRF
-      use bulk_solvent_mod, only: k_scale
+           i1_over_i0, ln_of_i0, &
+           estimate_alpha_beta, NRF, ml_update_frequency
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
@@ -517,14 +518,14 @@ contains
       call get_solvent_contribution( num_hkl, nstep, n_atom, crd, Fcalc)
 
       ! step 2: scaling Fcalc:
-      if (mod(nstep, mask_update_frequency) == 0) then
+      if (mod(nstep, scale_update_frequency) == 0) then
          call scale_Fcalc( num_hkl, abs_Fobs, Fcalc )
          abs_Fcalc(:) = abs(Fcalc(:))
       endif
 
       ! step 3: get ml parameters and xray restraint energy:
 
-      if (mod(nstep, mask_update_frequency) == 0) then
+      if (mod(nstep, ml_update_frequency) == 0) then
         if (mytaskid == 0 ) &
            write(6,'(a)') '| updating alpha and beta'
         call estimate_alpha_beta(Fcalc, abs_Fobs)
