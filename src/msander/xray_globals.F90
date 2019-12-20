@@ -44,14 +44,6 @@ module xray_globals_module
    ! Filename for reflection input file.
    character(len=MAX_FN_LEN), save :: reflection_infile
 
-   ! raw: unlabelled columns, starting with H,K,L.
-   ! Input labels are the column number.
-   character(len=16), save :: reflection_infile_format
-
-   ! Labels for input Fobs, sigFobs. More labels in the future.
-   character(len=REFL_LABEL_MAXLEN), save :: &
-         reflection_Fobs, reflection_sigFobs
-
    ! Resolution limits for all X-ray calculations
    real(real_kind), save :: resolution_low, resolution_high
 

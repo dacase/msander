@@ -299,6 +299,42 @@ contains
       return
    end subroutine get_residual
 
+   subroutine scale_Fcalc(num_hkl,abs_Fobs,Fcalc)
+      use ml_mod, only : b_vector_base, NRF_work, &
+           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
+      use bulk_solvent_mod, only: k_scale
+      implicit none
+      integer, intent(in) :: num_hkl
+      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
+      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
+
+      real(real_kind) :: b(7), Uaniso(7)
+
+      ! anisotropic scaling for Fcalc:
+      b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+                      / NRF_work_sq
+      b(1) = sum(b_vector_base)
+      b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+      b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+      b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+      b(5) = sum(b_vector_base * hk(1:NRF_work))
+      b(6) = sum(b_vector_base * hl(1:NRF_work))
+      b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+      Uaniso = matmul(MUcryst_inv, b)
+
+      k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+             Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+      if (mytaskid == 0 ) then
+        write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
+            exp(Uaniso(1))
+        write(6,'(a,6f10.3)') '|     ', b(2:7)
+      endif
+
+      Fcalc = Fcalc * k_scale
+      return
+   end subroutine scale_Fcalc
+
    ! -------------------------------------------------------------------------
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
@@ -467,32 +503,10 @@ contains
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
       ! step 2: scaling Fcalc:
-      ! TODO: put into a separate routine; allow with iso or aniso scaling
       if (mod(nstep, mask_update_frequency) == 0) then
-         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-                         / NRF_work_sq
-         b(1) = sum(b_vector_base)
-         b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-         b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-         b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-         b(5) = sum(b_vector_base * hk(1:NRF_work))
-         b(6) = sum(b_vector_base * hl(1:NRF_work))
-         b(7) = sum(b_vector_base * kl(1:NRF_work))
-
-         Uaniso = matmul(MUcryst_inv, b)
-
-         k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
-                Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-         if (mytaskid == 0 ) then
-           write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
-               exp(Uaniso(1))
-           write(6,'(a,6f10.3)') '|     ', b(2:7)
-         endif
+         call scale_Fcalc( num_hkl, abs_Fobs, Fcalc )
+         abs_Fcalc(:) = abs(Fcalc(:))
       endif
-
-      Fcalc = Fcalc * k_scale
-
-      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
 

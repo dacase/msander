@@ -1320,10 +1320,8 @@ subroutine mdread2(x,ix,ih)
      no_ntt3_sync = 1
      !  old: call microsec(ig)
      call wallclock( wallc ) ! GNU fortran yields wallc to milliseconds
-     write(0,*) wallc
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
-     write(0,*) wallc, ig
 #ifdef MPI
      write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"

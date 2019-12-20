@@ -31,9 +31,6 @@ module xray_interface_module
          pdb_wrap_names, &
          spacegroup_name, &
          reflection_infile, &
-         reflection_infile_format, &
-         reflection_Fobs, &
-         reflection_sigFobs, &
          resolution_low, &
          resolution_high, &
          xray_weight, &
@@ -96,9 +93,6 @@ contains
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
-      !write(stdout,'(5X,A)') reflection_infile_format
-      !write(stdout,'(5X,A)') reflection_Fobs
-      !write(stdout,'(5X,A)') reflection_sigFobs
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
       write(stdout,'(5X,A,A4)') 'Use target: ',target
@@ -463,7 +457,7 @@ contains
       use bulk_solvent_mod, only: init_bulk_solvent, f_mask
       implicit none
       ! local
-      integer :: hkl_lun, i, alloc_status, nstlim = 1
+      integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask1
       double precision :: resolution, fabs_solvent, phi_solvent
       real(real_kind) :: phi
       logical :: master
@@ -559,9 +553,17 @@ contains
                igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
+         NAT_for_mask1 = sum(atom_selection)
+         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
+              ' atoms in ', atom_selection_mask
+         !  also ignore any atoms with zero occupancy:
+         do i=1,natom
+            if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
+         end do
          NAT_for_mask = sum(atom_selection)
-         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask,' atoms in ', &
-               atom_selection_mask
+         if( master .and. NAT_for_mask1 /= NAT_for_mask ) &
+            write(6,'(a,i4,a)') 'Removing ',NAT_for_mask1 - NAT_for_mask, &
+              ' additional atoms with zero occupancy'
       end if
 
       call init_ml(target, nstlim, num_hkl, &
@@ -591,9 +593,6 @@ contains
       target = 'ls  '
       spacegroup_name = 'P 1'
       reflection_infile = ''
-      reflection_infile_format = 'raw'
-      reflection_Fobs = '4'
-      reflection_sigFobs = '5'
       resolution_low = 50
       resolution_high = 0
       xray_weight = 1.0
