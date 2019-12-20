@@ -15,6 +15,8 @@ module xray_fourier_module
 !
 !  get_residual      --   Compute standard r_work/r_free statistics
 !
+!  scale_Fcalc       --   Carry out scaling (just anisotropic for now)
+!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -299,6 +301,35 @@ contains
       return
    end subroutine get_residual
 
+   subroutine get_solvent_contribution(num_hkl,nstep,n_atom,crd,Fcalc)
+      use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
+          shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
+          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
+      use ml_mod, only : mask_update_frequency
+      implicit none
+      integer, intent(in) :: num_hkl, nstep, n_atom
+      real(real_kind), intent(in) :: crd(3*n_atom)
+      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
+
+      integer :: i
+
+      if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
+         call grid_bulk_solvent(n_atom, crd)
+         call shrink_bulk_solvent()
+         call fft_bs_mask()
+
+         do i=1,num_hkl
+            f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
+                        mask_cell_params(16) / mask_grid_size(4)
+         end do
+         if (mytaskid == 0 ) &
+           write(6,'(a,f12.5)') '| updating bulk solvent parameters: ',k_mask(1)
+      endif
+      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      return
+
+   end subroutine get_solvent_contribution
+
    subroutine scale_Fcalc(num_hkl,abs_Fobs,Fcalc)
       use ml_mod, only : b_vector_base, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
@@ -461,13 +492,9 @@ contains
    subroutine dTargetML_dF(num_hkl,hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
          xray_energy)
       use ml_mod, only : b_vector_base, &
-           alpha_array, beta_array, delta_array, MUcryst_inv, NRF_work, &
-           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, i1_over_i0, &
-           mask_update_frequency, ln_of_i0, estimate_alpha_beta, NRF
-      use bulk_solvent_mod, only: k_scale, f_mask, mask_bs_grid_t_c, &
-           mask_cell_params, mask_grid_size, k_mask, &
-           fft_bs_mask, shrink_bulk_solvent, hkl_indexing_bs_mask, &
-           grid_bulk_solvent, mask_bs_grid, mask_bs_grid_tmp
+           alpha_array, beta_array, delta_array, NRF_work, &
+           i1_over_i0, mask_update_frequency, ln_of_i0, estimate_alpha_beta, NRF
+      use bulk_solvent_mod, only: k_scale
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
@@ -481,26 +508,13 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer, save :: nstep = 0
       integer :: i
-      double precision :: b(7), Uaniso(7), rwork_num, rwork_denom, x
+      double precision :: rwork_num, rwork_denom, x
       double precision :: eterm1, eterm2, rfree_num, rfree_denom
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
       !  TODO: allow alternate bulk solvent models, e.g. from 3D-RISM
-      
-      if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
-         call grid_bulk_solvent(n_atom, crd)
-         call shrink_bulk_solvent()
-         call fft_bs_mask()
-
-         do i=1,num_hkl
-            f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
-                        mask_cell_params(16) / mask_grid_size(4)
-         end do
-         if (mytaskid == 0 ) &
-           write(6,'(a,f12.5)') '| updating bulk solvent parameters: ',k_mask(1)
-      endif
-      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      call get_solvent_contribution( num_hkl, nstep, n_atom, crd, Fcalc)
 
       ! step 2: scaling Fcalc:
       if (mod(nstep, mask_update_frequency) == 0) then
