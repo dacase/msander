@@ -8,14 +8,24 @@ use file_io_dat
 end module xray_common_module
 
 module xray_interface_module
+
    ! Calls from main SANDER code:
    !  dynlib.f:   if (xray_active) call xray_write_md_state(stdout=6)
    !  printe.f:   if (xray_active) call xray_write_min_state(stdout=6)
-   !  force.f:    if (xray_active) call xray_get_derivative(coor=x,deriv=f,ener)
+   !  force.f:    if (xray_active) call xray_get_derivative(x,f,ener)
    !  mdread.f:   call xray_read_mdin(mdin_lun=5) !<== Also does the global init
    !  sander.f:   call xray_read_parm(prmtop_lun=8,stdout=6)
    !  sander.f:   call xray_init()
    !  sander.f:   call xray_fini()
+
+   ! Calls from main PMEMD code:
+   !  runfiles.F90:      if (xray_active) call xray_write_md_state(6)
+   !  runmin.F90:        if (xray_active) call xray_write_min_state(6)
+   !  pme_force.F90:     if (xray_active) call xray_get_derivative(x,f,ener)
+   !  master_setup.F90:  call xray_read_mdin(mdin_lun=5)
+   !  master_setup.F90:  call xray_read_parm(prmtop, 6)
+   !  pmemd.F90:         call xray_init()
+   !  pmemd.F90:         call xray_fini()
 
    use xray_globals_module
    use bulk_solvent_mod, only: k_sol, b_sol
@@ -56,7 +66,7 @@ module xray_interface_module
    ! Common public entities all have an xray_ prefix.
    ! Others assume localization by the module scope.
    public :: xray_init_globals, xray_init, xray_fini
-   public :: xray_active, xray_get_derivative, xray_write_md_state
+   public :: xray_get_derivative, xray_write_md_state
    public :: xray_read_mdin, xray_read_parm, xray_read_pdb
    public :: xray_write_options, xray_write_min_state
 
@@ -330,7 +340,6 @@ contains
       character(len=4) :: name
       character(len=8) :: date
       character(len=10) :: time
-      ! logical, allocatable :: linked(:)
       ! character(len=1) :: altloc
       ! character(len=4) :: segid
       character(len=3) :: resName
@@ -344,27 +353,6 @@ contains
             '("MODRES",1X,A4,1X,A3,1X,A1,1X,I4,A1,1X,A3,2X,A41)'
       ! GMS: Fix for pgf90 compiler
       character(len=4) :: this_residue_chainid
-      ! begin
-#if 0
-      allocate(linked(num_residues),stat=ierr)
-      if (ierr==0) then
-         do ires = 1,num_residues-1
-            first1 = 3*(residue_pointer(ires))
-            last1  = 3*(residue_pointer(ires+1)-1)
-            first2 = 3*(residue_pointer(ires+1))
-            last2  = 3*(residue_pointer(ires+2)-1)
-            do ibond=1,num_bonds
-               if (bond_atom1(ibond) >= first1 &
-                     .and. bond_atom1(ibond) <= last1 &
-                     .and. bond_atom2(ibond) >= first2 &
-                     .and. bond_atom2(ibond) <= last2) then
-                  linked(ires)=.true.
-                  exit
-               end if
-            end do
-         end do
-      end if
-#endif
 
       call amopen(allocate_lun(unit),filename,owrite,'F','R')
       call date_and_time(date,time)
@@ -693,12 +681,13 @@ contains
    end subroutine xray_fini
 
    ! gets xray_energy and derivatives
-   subroutine xray_get_derivative(xyz,dxyz,dB)
+   subroutine xray_get_derivative(xyz,dxyz,xray_e,dB)
       use xray_fourier_module
       use xray_utils_module, only: pack_index
       implicit none
       real(real_kind), intent(in) :: xyz(3,num_atoms)
       real(real_kind), intent(inout) :: dxyz(3,num_atoms)
+      real(real_kind), intent(out) :: xray_e
       real(real_kind), optional, intent(out) :: dB(num_atoms)
       ! local
       integer, allocatable :: sel_index(:)
@@ -779,8 +768,12 @@ contains
 
       if (xray_weight == 0._rk_) then  ! skip remaining calculations
          xray_energy = 0._rk_
+         xray_e = 0._rk_
       else
          xray_energy = xray_weight * xray_energy
+         xray_e = xray_energy  ! energy get sent back both through the argument
+                               ! list and via xray_globals, to accommodate
+                               ! both pmemd and sander interfaces
          dF = xray_weight * dF
 
          if( fft_method == 0 ) then

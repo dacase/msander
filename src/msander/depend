@@ -395,6 +395,7 @@ dynlib.o: \
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xray_interface.o\
+                    xray_globals.o\
                     state.o\
                     charmm.o\
                     crg_reloc.o\
@@ -429,6 +430,7 @@ dynlib.LES.o: \
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xray_interface.o\
+                    xray_globals.o\
                     state.o\
                     charmm.o\
                     crg_reloc.o\
@@ -462,6 +464,7 @@ dynlib.PUPIL.o: \
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
                     xray_interface.o\
+                    xray_globals.o\
                     state.o\
                     charmm.o\
                     crg_reloc.o\
@@ -1528,6 +1531,7 @@ mdread.o: \
                     emap.o\
                     dssp.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     remd.o\
@@ -1586,6 +1590,7 @@ mdread.LES.o: \
                     emap.o\
                     dssp.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     remd.LES.o\
@@ -1643,6 +1648,7 @@ mdread.PUPIL.o: \
                     emap.o\
                     dssp.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     remd.o\
@@ -2693,6 +2699,7 @@ printe.o: \
                     charmm.o\
                     emap.o\
                     xray_interface.o\
+                    xray_globals.o\
                     ew_mpole.h\
                     ew_cntrl.h
 
@@ -2720,6 +2727,7 @@ printe.PUPIL.o: \
                     charmm.o\
                     emap.o\
                     xray_interface.o\
+                    xray_globals.o\
                     ew_mpole.h\
                     ew_cntrl.h
 
@@ -3438,6 +3446,7 @@ sander.o: \
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -3506,6 +3515,7 @@ sander.LES.o: \
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -3573,6 +3583,7 @@ sander.PUPIL.o: \
                     ../rism/amber_rism_interface.o\
                     pupildata.o\
                     xray_interface.o\
+                    xray_globals.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\

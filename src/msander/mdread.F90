@@ -36,7 +36,8 @@ subroutine mdread1()
 #endif /* DSSP */
 
 #ifndef API
-   use xray_interface_module, only: xray_active, xray_read_mdin
+   use xray_interface_module, only: xray_read_mdin
+   use xray_globals_module, only: xray_active
 #endif /* API */
 #ifdef MPI /* SOFT CORE */
    use softcore, only : scalpha,scbeta,ifsc,scmask,logdvdl,dvdl_norest,dynlmb, &
@@ -1177,7 +1178,8 @@ subroutine mdread2(x,ix,ih)
 #endif /* API */
    use qmmm_module, only: get_atomic_number, qm_gb
 #ifndef API
-   use xray_interface_module, only: xray_active, xray_write_options
+   use xray_interface_module, only: xray_write_options
+   use xray_globals_module, only: xray_active
 #endif /* API */
 #ifdef MPI
    use softcore, only : ifsc, scalpha, scbeta, dvdl_norest, &

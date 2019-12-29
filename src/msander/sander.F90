@@ -67,8 +67,9 @@ subroutine sander()
   use pupildata
 #endif /* PUPIL */
 
-  use xray_interface_module, only: xray_active, xray_init, xray_read_parm, &
+  use xray_interface_module, only: xray_init, xray_read_parm, &
                                    xray_read_mdin, xray_fini
+  use xray_globals_module, only: xray_active
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &

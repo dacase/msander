@@ -181,7 +181,8 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    use crg_reloc, only : ifcr
    use emap,only : temap,scemap
    use ff11_mod, only : cmap_active
-   use xray_interface_module, only: xray_active, xray_write_min_state
+   use xray_interface_module, only: xray_write_min_state
+   use xray_globals_module, only: xray_active
 
    implicit none
    integer, intent(in)          :: nstep

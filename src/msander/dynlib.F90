@@ -270,7 +270,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #endif
 
   use qmmm_module, only: qmmm_nml,qmmm_struct
-  use xray_interface_module, only: xray_active, xray_write_md_state
+  use xray_interface_module, only: xray_write_md_state
+  use xray_globals_module, only: xray_active
   use state
   use charmm_mod, only: charmm_active
   use crg_reloc, only: ifcr

@@ -86,8 +86,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use linear_response, only: ilrt, ee_linear_response, energy_m0, energy_w0, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
                              do_lrt, f_scratch, lrt_solute_sasa
-  use xray_interface_module, only: xray_get_derivative, xray_active
-  use xray_globals_module, only: atom_bfactor, xray_energy
+  use xray_interface_module, only: xray_get_derivative
+  use xray_globals_module, only: atom_bfactor, xray_energy, xray_active
 
   ! CHARMM Force Field Support
   use charmm_mod, only: charmm_active, charmm_calc_impropers, &
@@ -119,7 +119,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   _REAL_ xx(*)
   integer   ix(*)
   character(len=4) ih(*)
-  _REAL_ fs(*), rborn(*), reff(*), dvdl
+  _REAL_ fs(*), rborn(*), reff(*), dvdl, xray_e
   _REAL_, intent(out) :: onereff(*)
 #include "def_time.h"
 #include "ew_frc.h"
@@ -851,9 +851,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         ! get current bfactors from the end of the coordinate array:
         atom_bfactor(1:natom) = x(3*natom+1:4*natom)
      endif
-     call xray_get_derivative(x,f,dB=f(3*natom+1))
+     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
 #else
-     call xray_get_derivative(x,f)
+     call xray_get_derivative(x,f,xray_e)
 #endif
   endif
 
