@@ -310,203 +310,119 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   invfswitch3cut3 = cut3inv / fswitch3
 #endif
    
-  ! The "eedmeth" decision is unrolled here, since this provides significant
-  ! efficiency improvements, in spite of greatly increasing the code length.
-  ! Each eedmeth case calculates the 12-6 LJ terms and 12-10 LJ terms in
-  ! separate sets of fissioned loops.  Each loop set consists of three loop
-  ! fission fragments: prologue, electrostatic, and epilogue.
-  !
-  ! The prologue loop computes delta r**2 and conditionally caches it:
-  ! delta x, delta y, delta z, and the bckptr index.  The electrostatic loop
-  ! calculates and caches the direct Ewald sum.  The epilogue loop computes
-  ! the van der Waals interaction and updates the forces using the previously
-  ! cached data.  This substantial code tuning is designed to enable software
-  ! pipelining of loops for superscalar and similar architectures.
-  !
-  ! For eedmeth = 1 12-6 LJ, the most common case, the electrostatic loop is
-  ! fissioned into two fragments. The first loop calculates and caches
-  ! principally the reciprocal square root of delta r**2.  The second loop
-  ! completes the electrostatic work.  This code tuning is designed to enable
-  ! SIMD vectorization of the reciprocal square root on IA32 SSE2 compatible
-  ! platforms.
-  if (eedmeth == 1) then
-     
     !-------------------------------------------------------------
-    ! Loop over the 12-6 LJ terms for eedmeth = 1
+    ! Loop over the 12-6 LJ and electrostatic terms for eedmeth = 1
     !-------------------------------------------------------------
-    icount = 0
-    do m = 1, nvdw
-#     include "ew_directp.h"
-    end do
+  do m = 1, nvdw+nhbnd
 
-    !  calculation starts: loop over the data gathered in the temporary
-    !  array caches.
-    call vdinvsqrt(icount, cache_r2, cache_df)
-    cache_r2(1:icount) = dxdr*cache_df(1:icount) * cache_r2(1:icount)
-
-    ! The df cache now stores the reciprocal of delta r, variable delrinv.
-    ! The r2 cache contains delta r times the derivative; this product,
-    ! dxdr*delr, is denoted as variable x below.
-    do im_new = 1, icount
-      j = cache_bckptr(im_new)
-      delrinv = cache_df(im_new)
-      x = cache_r2(im_new)
-
-      ! Cubic spline on switch:
-      ind = int(eedtbdns*x)
-      dx = x - ind*del
-      ind = 4*ind
-      e3dx = dx * eed_cub(3+ind)
-      e4dx = dx * dx * eed_cub(4+ind)
-      switch = eed_cub(1+ind) + dx*(eed_cub(2+ind) + &
-               (e3dx + e4dx*third)*half)
-      d_switch_dx = eed_cub(2+ind) + e3dx + e4dx*half
-         
-      ! Tom Darden got the idea for B_l from Walter Smith's CCP5 article 1982
-      ! Ewald for point multipoles.
-      b0 = switch*delrinv
-      b1 = b0 - d_switch_dx*dxdr
-      cgj = charge(j)
-#ifdef LES
-      if (use_pme .ne. 0) then
-
-        ! If we are using PME, then the correction for lfac will
-        ! be done after the reciprocal space calculation is done,
-        ! so no need for it here
-        comm1 = cgi * cgj
-
-        ! calculate contribution of dc/dr to force
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
-      else
-        lfac = lesfac(lestmp + lestyp(j))
-        comm1 = cgi * cgj * lfac
-
-        ! Calculate contribution of dc/dr to force
-        if (ifcr .ne. 0) then
-          b2 = b0*lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
-      end if
-#else
-      comm1 = cgi*cgj
+    n=ipairs(m)
+    itran=ishft(n,-27)
+    n = iand(n,mask27)
+    j = bckptr(n)
+    delx = imagcrds(1,n) + xktran(1,itran)
+    dely = imagcrds(2,n) + xktran(2,itran)
+    delz = imagcrds(3,n) + xktran(3,itran)
+    delr2 = delx*delx + dely*dely+delz*delz
  
+    if ( delr2 >= filter_cut2 ) cycle
+
+    delrinv = 1.d0/sqrt(delr2)
+    x = dxdr*delrinv*delr2
+
+    ! Cubic spline on switch:
+    ind = int(eedtbdns*x)
+    dx = x - ind*del
+    ind = 4*ind
+    e3dx = dx * eed_cub(3+ind)
+    e4dx = dx * dx * eed_cub(4+ind)
+    switch = eed_cub(1+ind) + dx*(eed_cub(2+ind) + &
+             (e3dx + e4dx*third)*half)
+    d_switch_dx = eed_cub(2+ind) + e3dx + e4dx*half
+       
+    ! Tom Darden got the idea for B_l from Walter Smith's CCP5 article 1982
+    ! Ewald for point multipoles.
+    b0 = switch*delrinv
+    b1 = b0 - d_switch_dx*dxdr
+    cgj = charge(j)
+#ifdef LES
+    if (use_pme .ne. 0) then
+
+      ! If we are using PME, then the correction for lfac will
+      ! be done after the reciprocal space calculation is done,
+      ! so no need for it here
+      comm1 = cgi * cgj
+
+      ! calculate contribution of dc/dr to force
+      if (ifcr .ne. 0) then
+        call cr_add_dcdr_factor(i, b0*cgj)
+        call cr_add_dcdr_factor(j, b0*cgi)
+      end if
+    else
+      lfac = lesfac(lestmp + lestyp(j))
+      comm1 = cgi * cgj * lfac
+
       ! Calculate contribution of dc/dr to force
       if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
+        b2 = b0*lfac
+        call cr_add_dcdr_factor(i, b2*cgj)
+        call cr_add_dcdr_factor(j, b2*cgi)
       end if
-#endif
-      ecur = comm1 * b0
-      eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
-      dfee = comm1*b1
-#ifdef LES
-#  include "ene_decomp.h"
-#endif
-
-      delr2inv = delrinv*delrinv
-      dfee = dfee*delr2inv
-      cache_r2(im_new)=delr2inv
-      cache_df(im_new)=dfee
-    end do
-    ! End prologue loop
-
-    if (tvips) then
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-         ! regular epilogue:
-      !call wallclock(time0)
-#     include "ew_directe.h"
-      !call wallclock(time1)
-      !time_ewd = time_ewd + time1-time0
     end if
-      
-    ! Now loop over the 12-10 LJ terms for eedmeth = 1
-    icount = 0
-    do m = nvdw+1,nvdw+nhbnd
-#     include "ew_directp.h"
-    end do
-    call vdinvsqrt(icount, cache_r2, cache_df)
-    cache_r2(1:icount) = dxdr * cache_df(1:icount) * cache_r2(1:icount)
-
-    ! SGI compiler directive to prevent compiler loop fusioning.
-    !*$* NO FUSION
-    do im_new = 1, icount
-      j = cache_bckptr(im_new)
-      delrinv = cache_df(im_new)
-      x = cache_r2(im_new)
-      
-      ! Cubic spline on switch:
-      ind = int(eedtbdns*x)
-      dx = x - ind*del
-      ind = 4*ind
-
-      e3dx = dx*eed_cub(3+ind)
-      e4dx = dx*dx*eed_cub(4+ind)
-      switch = eed_cub(1+ind) + dx*(eed_cub(2+ind) + (e3dx + e4dx*third)*half)
-      d_switch_dx = eed_cub(2+ind) + e3dx + e4dx*half
-         
-      ! Tom Darden Got the idea for B_l from Walter Smith's CCP5 article 1982
-      ! Ewald for point multipoles
-      b0 = switch * delrinv
-      b1 = b0 - d_switch_dx*dxdr
-      cgj = charge(j)
-#ifdef LES
-      if (use_pme .ne. 0) then
-            
-        ! If we are using PME, then the correction for lfac will
-        ! be done after the reciprocal space calculation is done,
-        ! so no need for it here
-        comm1 = cgi*cgj
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor( i, b0*cgj )
-          call cr_add_dcdr_factor( j, b0*cgi )
-        end if
-      else
-        lfac = lesfac(lestmp+lestyp(j))
-        comm1 = cgi * cgj * lfac
-        if (ifcr .ne. 0) then
-          b2 = b0 * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
-      end if
 #else
-      comm1 = cgi*cgj
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
+    comm1 = cgi*cgj
+
+    ! Calculate contribution of dc/dr to force
+    if (ifcr .ne. 0) then
+      call cr_add_dcdr_factor(i, b0*cgj)
+      call cr_add_dcdr_factor(j, b0*cgi)
+    end if
 #endif
-      ecur = comm1 * b0
-      eelt = eelt + ecur
+    ecur = comm1 * b0
+    eelt = eelt + ecur
 
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
-      dfee = comm1 * b1
-
+    ! Thermodynamic Integration decomposition
+    if (decpr .and. idecomp > 0) then
+      call decpair(2, i, j, ecur/(nstlim/ntpr))
+    end if
+    dfee = comm1*b1
 #ifdef LES
 #  include "ene_decomp.h"
 #endif
+    delr2inv = delrinv*delrinv
+    dfee = dfee*delr2inv
 
-      delr2inv = delrinv*delrinv
-      dfee = dfee*delr2inv
-      cache_df(im_new)=dfee
-    end do
-    ! End electrostatic loop
+    ! epilogue: 12-6 LF terms
 
-#   include "ew_directe2.h"
+    if (m<=nvdw) then
+       ic = ico(iaci+iac(j))
+       r6 = delr2inv*delr2inv*delr2inv
+       delr12inv = r6 * r6
+#ifdef LES 
+       lfac=lesfac(lestmp+lestyp(j))
+       f6 = cn2(ic)*r6*lfac
+       f12 = cn1(ic)*delr12inv*lfac
+#else
+       f6 = cn2(ic)*r6
+       f12 = cn1(ic)*delr12inv
+#endif
+       evdw = evdw + f12 - f6
+       dfee = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
+    endif
+
+    dfx = delx*dfee
+    dfy = dely*dfee
+    dfz = delz*dfee
+    dumx = dumx + dfx
+    dumy = dumy + dfy
+    dumz = dumz + dfz
+    force(1,j) = force(1,j) + dfx
+    force(2,j) = force(2,j) + dfy
+    force(3,j) = force(3,j) + dfz
+  end do 
+
+  !  end of what is now a single loop over j that are in the list as
+  !    being close to i
+      
 
 #ifdef MPI /* SOFT CORE */
 
@@ -676,9 +592,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
     end if
 #endif /* MPI for SOFT CORE  */
 
-#include "eedmeth2-6.h"
-  end if
-  ! End switch over six eedmeth options
+!   #include "eedmeth2-6.h"
 
   ! Contribute forces on the ith particle, accumulated as forces
   ! from the ith particle were added onto all other particles.
