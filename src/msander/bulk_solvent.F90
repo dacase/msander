@@ -285,6 +285,7 @@ contains
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
     nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
     nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
+    write(6,'(a,3i4)') '| bulk_solvent grid set to: ', na,nb,nc
     grid_stepX = a / na
     grid_stepY = vb(2) / nb
     grid_stepZ = vc(3) / nc

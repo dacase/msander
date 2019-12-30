@@ -310,6 +310,9 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
     force(2,j) = force(2,j) + dfy
     force(3,j) = force(3,j) + dfz
   end do 
+#if 0
+!$omp end parallel do
+#endif
 
   !  end of what is now a single loop over j that are in the list as
   !    being close to i
