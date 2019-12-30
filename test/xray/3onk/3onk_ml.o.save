@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/17/2019 at 15:06:12
+| Run on 12/30/2019 at 10:48:35
 
 |   Executable path: /home/case/msander/bin/msander
 | Working directory: /home/case/msander/test/xray/3onk
@@ -178,13 +178,15 @@ X-ray Refinement Parameters:
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    26.600   37.589   38.109  77.81  86.64  65.54
 Found   1171 atoms in !@H=;                                                                                                                                                                                                                                                           
+Removing   28 additional atoms with zero occupancy
 | number of reflections:   6611   714  7325
+| bulk_solvent grid set to:   54  72  75
 | creating k_mask with k_sol,b_sol =    0.000   0.000
  Number of triangulated 3-point waters found:       33
 
      Sum of charges from parm topology file =   0.99999995
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -204,17 +206,17 @@ Found   1171 atoms in !@H=;
 | Local SIZE OF NONBOND LIST =     664380
 | TOTAL SIZE OF NONBOND LIST =     664380
 | updating bulk solvent parameters:      0.00000
-| updating anisotropic scaling:      0.942
+| updating anisotropic scaling:      0.961
 |          0.001     0.001     0.001     0.000     0.000     0.000
 | updating alpha and beta
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =    -26499.6700  EKtot   =         0.0000  EPtot      =    -26499.6700
+ Etot   =    -28029.7267  EKtot   =         0.0000  EPtot      =    -28029.7267
  BOND   =        58.7225  ANGLE   =       240.7777  DIHED      =      1631.0484
  1-4 NB =       667.0283  1-4 EEL =      3850.6336  VDWAALS    =       397.6339
- EELEC  =     -9238.0161  EHBOND  =         0.0000  RESTRAINT  =    -24107.4983
+ EELEC  =     -9238.0161  EHBOND  =         0.0000  RESTRAINT  =    -25637.5550
  EAMBER (non-restraint)  =     -2392.1717
- Exray  =    -24107.4983  Rwork   =         0.2661  Rfree      =         0.3318
+ Exray  =    -25637.5550  Rwork   =         0.2609  Rfree      =         0.3199
  ------------------------------------------------------------------------------
 
 
@@ -222,33 +224,31 @@ Found   1171 atoms in !@H=;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.02 ( 4.85% of Total)
-|                Build the list             0.01 (75.00% of List )
-|                Other                      0.00 (25.00% of List )
-|             List time                  0.02 (21.74% of Nonbo)
-|                   Short_ene time             0.07 (98.53% of Direc)
-|                   Other                      0.00 ( 1.47% of Direc)
-|                Direct Ewald time          0.07 (94.44% of Ewald)
-|                   Fill charge grid           0.00 (25.00% of Recip)
+|    Read coords time           0.02 ( 5.94% of Total)
+|                Build the list             0.02 (75.00% of List )
+|                Other                      0.01 (25.00% of List )
+|             List time                  0.02 (55.56% of Nonbo)
+|                   Short_ene time             0.01 (100.0% of Direc)
+|                Direct Ewald time          0.01 (75.00% of Ewald)
 |                   Scalar sum                 0.00 (25.00% of Recip)
-|                   FFT time                   0.00 (50.00% of Recip)
-|                Recip Ewald time           0.00 ( 5.56% of Ewald)
-|             Ewald time                 0.07 (78.26% of Nonbo)
-|          Nonbond force              0.09 (29.39% of Force)
-|             Fcalc loop                 0.10 (44.29% of Xray )
-|             Deriv loop                 0.07 (31.51% of Xray )
-|             Other                      0.05 (24.20% of Xray )
-|          Xray restaints             0.22 (69.97% of Force)
-|       Force time                 0.31 (99.37% of Runmd)
-|    Runmd Time                 0.31 (80.36% of Total)
-|    Other                      0.06 (14.80% of Total)
-| Total time                 0.39 (100.0% of ALL  )
+|                   FFT time                   0.00 (75.00% of Recip)
+|                Recip Ewald time           0.00 (25.00% of Ewald)
+|             Ewald time                 0.02 (44.44% of Nonbo)
+|          Nonbond force              0.04 (14.63% of Force)
+|             Fcalc loop                 0.06 (28.85% of Xray )
+|             Deriv loop                 0.04 (18.75% of Xray )
+|             Other                      0.11 (52.40% of Xray )
+|          Xray restaints             0.21 (84.55% of Force)
+|       Force time                 0.25 (99.19% of Runmd)
+|    Runmd Time                 0.25 (77.50% of Total)
+|    Other                      0.05 (16.56% of Total)
+| Total time                 0.32 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     177038
 | Highest istack allocated:       2368
-|           Job began  at 15:06:12.012  on 12/17/2019
-|           Setup done at 15:06:12.089  on 12/17/2019
-|           Run   done at 15:06:12.404  on 12/17/2019
+|           Job began  at 10:48:35.043  on 12/30/2019
+|           Setup done at 10:48:35.115  on 12/30/2019
+|           Run   done at 10:48:35.363  on 12/30/2019
 |     wallclock() was called      63 times

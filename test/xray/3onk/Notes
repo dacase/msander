@@ -1,7 +1,6 @@
 1. phenix.AmberPrep 3onk.pdb
 
-2. important: use modify_pdb to modify zero occupancy, zero bfactor records
-     in 4phenix_3onk.pdb: set to 1.0 30.00
+2. modify HIS to HIE/HID; HOH -> WAT
 
 3. usual path to get 3onk-sf.rdb and 3onk-sf.dat:
 
