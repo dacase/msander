@@ -36,9 +36,6 @@ module bulk_solvent_mod
   ! Size of the mask grid (number of grid points)
   integer, dimension(4) :: mask_grid_size
 
-  ! mask_update_frequency   how often to update the bs mask
-  integer, save :: mask_update_frequency=50
-
   ! grid_neighbors_size:    Number of grid neighbors that are within the 
   !                         shrunken mask cutoff
   integer grid_neighbors_size

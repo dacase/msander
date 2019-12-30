@@ -38,10 +38,8 @@ module ml_mod
   ! starting_N_step:        Step number to start on.
   ! total_N_steps:          Step number to finish on.
   ! n_bins:                 Number of reflections per resolution bin
-  ! ml_update_frequency     how often to update the ML parameters
   integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
-             call_est, N_steps, starting_N_step, total_N_steps, n_bins, &
-             ml_update_frequency=50
+             call_est, N_steps, starting_N_step, total_N_steps, n_bins
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone

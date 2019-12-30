@@ -61,7 +61,9 @@ module xray_interface_module
          bfactor_min, bfactor_max, &
          bfactor_refinement_interval, &
          atom_selection_mask, &
-         k_sol, b_sol 
+         k_sol, b_sol,  &
+         mask_update_frequency, scale_update_frequency, &
+         ml_update_frequency
 
    ! Common public entities all have an xray_ prefix.
    ! Others assume localization by the module scope.
@@ -601,6 +603,9 @@ contains
       bfactor_max = 999.0
       bfactor_refinement_interval = 0
       atom_selection_mask = '!@H='
+      mask_update_frequency = 100
+      scale_update_frequency = 100
+      ml_update_frequency = 100
    end subroutine xray_init_globals
 
    ! Write X-ray output files and deallocate. Bond info is included

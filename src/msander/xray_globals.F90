@@ -119,7 +119,8 @@ module xray_globals_module
          d_star_sq(:)
    real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
    integer, allocatable, save :: test_flag(:)
-   integer, save :: has_f_solvent, scale_update_frequency=50
+   integer, save :: has_f_solvent, scale_update_frequency, &
+          ml_update_frequency, mask_update_frequency
 
    complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:), Fobs(:)
 

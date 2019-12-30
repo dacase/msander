@@ -306,8 +306,7 @@ contains
    subroutine get_solvent_contribution(num_hkl,nstep,n_atom,crd,Fcalc)
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
-          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size, &
-          mask_update_frequency
+          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
       implicit none
       integer, intent(in) :: num_hkl, nstep, n_atom
       real(real_kind), intent(in) :: crd(3*n_atom)
@@ -332,38 +331,40 @@ contains
 
    end subroutine get_solvent_contribution
 
-   subroutine scale_Fcalc(num_hkl,abs_Fobs,Fcalc)
+   subroutine scale_Fcalc(nstep, num_hkl,abs_Fobs,Fcalc)
       use ml_mod, only : b_vector_base, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
-      integer, intent(in) :: num_hkl
+      integer, intent(in) :: nstep, num_hkl
       real(real_kind), intent(in) :: abs_Fobs(num_hkl)
       complex(real_kind), intent(inout) :: Fcalc(num_hkl)
 
       real(real_kind) :: b(7), Uaniso(7)
 
-      ! anisotropic scaling for Fcalc:
-      b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+      if (mod(nstep, scale_update_frequency) == 0) then
+         ! anisotropic scaling for Fcalc:
+         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
                       / NRF_work_sq
-      b(1) = sum(b_vector_base)
-      b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-      b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-      b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-      b(5) = sum(b_vector_base * hk(1:NRF_work))
-      b(6) = sum(b_vector_base * hl(1:NRF_work))
-      b(7) = sum(b_vector_base * kl(1:NRF_work))
+         b(1) = sum(b_vector_base)
+         b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+         b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+         b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+         b(5) = sum(b_vector_base * hk(1:NRF_work))
+         b(6) = sum(b_vector_base * hl(1:NRF_work))
+         b(7) = sum(b_vector_base * kl(1:NRF_work))
 
-      Uaniso = matmul(MUcryst_inv, b)
+         Uaniso = matmul(MUcryst_inv, b)
 
-      k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+         k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
              Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-      if (mytaskid == 0 ) then
-        write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
-            exp(Uaniso(1))
-        write(6,'(a,6f10.3)') '|     ', b(2:7)
+         if (mytaskid == 0 ) then
+           write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
+               exp(Uaniso(1))
+           write(6,'(a,6f10.3)') '|     ', b(2:7)
+         endif
       endif
 
-      Fcalc = Fcalc * k_scale
+      Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
       return
    end subroutine scale_Fcalc
 
@@ -385,9 +386,9 @@ contains
       real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
-      integer, save :: nstep=0, update_frequency=50
+      integer, save :: nstep=0
 
-      if( mod(nstep,update_frequency) == 0 ) then
+      if( mod(nstep,scale_update_frequency) == 0 ) then
          abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
@@ -463,9 +464,9 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       complex(real_kind) :: vecdif(num_hkl)
-      integer, save :: nstep=0, update_frequency=50
+      integer, save :: nstep=0
 
-      if (mod(nstep,update_frequency) == 0) then
+      if (mod(nstep,scale_update_frequency) == 0) then
          sum_fo_fo = sum(abs_Fobs ** 2)
          sum_fc_fc = sum(abs(Fcalc) ** 2)
          sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
@@ -494,8 +495,7 @@ contains
          xray_energy)
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
-           i1_over_i0, ln_of_i0, &
-           estimate_alpha_beta, NRF, ml_update_frequency
+           i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
@@ -514,14 +514,11 @@ contains
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
-      !  TODO: allow alternate bulk solvent models, e.g. from 3D-RISM
       call get_solvent_contribution( num_hkl, nstep, n_atom, crd, Fcalc)
 
       ! step 2: scaling Fcalc:
-      if (mod(nstep, scale_update_frequency) == 0) then
-         call scale_Fcalc( num_hkl, abs_Fobs, Fcalc )
-         abs_Fcalc(:) = abs(Fcalc(:))
-      endif
+      call scale_Fcalc( nstep, num_hkl, abs_Fobs, Fcalc )
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
 
