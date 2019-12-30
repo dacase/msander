@@ -4,9 +4,7 @@
 
 !------------------------------------------------------------------------------
 ! get_nb_energy: the main routine for vdw, hbond, and direct space Ewald sum
-!                computations.  It is structured for parallelism.
-!
-! Arguments:
+!                computations. 
 !
 !------------------------------------------------------------------------------
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
@@ -33,7 +31,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 #include "flocntrl.h"
 #include "def_time.h"
    
-  integer l_real_df, l_real_x, l_real_y, l_real_z, l_real_r2, l_int
   integer numatoms, maxnblst, mpoltype
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
@@ -46,7 +43,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
   _REAL_ xk, yk, zk
-  integer ncache
    
   if (do_dir == 0) then
     return
@@ -86,48 +82,12 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
         if (ntot > 0) then
           if (mpoltype == 0) then
 
-            ! Allocate 6 temporary caches for performance optimizations
-#ifdef MPI /* SOFT CORE */
-            if (nhbnd > numsc(i)) then
-#endif
-              ncache = max(nvdw, numhbnd(i))
-#ifdef MPI /* SOFT CORE */
-            else
-              ncache = max( nvdw, numsc(i) )
-            end if
-#endif
-            call get_stack(l_real_df, ncache, routine)
-            call get_stack(l_real_x, ncache, routine)
-            call get_stack(l_real_y, ncache, routine)
-            call get_stack(l_real_z, ncache, routine)
-            call get_stack(l_real_r2, ncache, routine)
-            call get_istack(l_int, ncache, routine)
-            if (.not. rstack_ok) then
-              deallocate(r_stack)
-              allocate(r_stack(1:lastrst), stat=alloc_ier)
-              call reassign_rstack(routine)
-            endif
-            if (.not. istack_ok) then
-              deallocate(i_stack)
-              allocate(i_stack(1:lastist), stat=alloc_ier)
-              call reassign_istack(routine)
-            endif
-            REQUIRE(rstack_ok)
-            REQUIRE(istack_ok)
             call short_ene(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, nhbnd, &
                            eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
                            ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
                            dir_vir, ee_type, eedmeth, dxdr, eedvir, &
-                           r_stack(l_real_df), r_stack(l_real_x), &
-                           r_stack(l_real_y), r_stack(l_real_z), &
-                           r_stack(l_real_r2), i_stack(l_int), cn3, cn4, cn5)
+                           cn3, cn4, cn5)
                         
-            call free_stack(l_real_r2,routine)
-            call free_stack(l_real_z,routine)
-            call free_stack(l_real_y,routine)
-            call free_stack(l_real_x,routine)
-            call free_stack(l_real_df,routine)
-            call free_istack(l_int,routine)
           else if ( mpoltype > 0 ) then
             call short_ene_dip(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, &
                                ewaldcof, eedtbdns, eed_cub, eed_lin, charge, &
@@ -154,55 +114,13 @@ end subroutine get_nb_energy
 !            This subroutine was modified by Nathalie Godbout, sgi 04/26/00.
 !            Additional optimizations aimed at IA32 SSE2 were provided by Scott
 !            Brozell, TSRI Oct 2002.  More tweaks were made by Ross Walker,
-!            TSRI 2005.
+!            TSRI 2005.  Heavily modified for msander by DAC, 2019.
 !
-! Arguments:
-!   i:           calculate contributions for the ith particle
-!   xk:      
-!   yk:
-!   zk:
-!   ipairs:
-!   ntot:
-!   nvdw:
-!   nhbnd:
-!   eedtbdns:
-!   eed_cub:
-!   eed_lin:
-!   charge:
-!   ntypes:
-!   iac:
-!   ico:
-!   cn1:
-!   cn2:
-!   cn6:
-!   filter_cnt:
-!   eelt:
-!   evdw:
-!   force:
-!   dir_vir:
-!   ee_type:
-!   eedmeth:      as seen in the sander &ewald input namelist, a code for the
-!                 style of electrostatic interactions to take (six options) 
-!   dxdr:       
-!   eedvir:
-!   cache_dif:
-!   cache_x:
-!   cache_y:
-!   cache_z:
-!   cache_r2:
-!   cache_bckptr: 
-!   cn3:
-!   cn4:
-!   cn5:
-!   asol:
-!   bsol:
-!   ehb:
 !------------------------------------------------------------------------------
 subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                      eed_cub, eed_lin, charge, ntypes, iac, ico, cn1, cn2, &
                      cn6, filter_cut, eelt, evdw, force, dir_vir, ee_type, &
-                     eedmeth, dxdr, eedvir, cache_df, cache_x, cache_y, &
-                     cache_z, cache_r2, cache_bckptr, cn3, cn4, cn5)
+                     eedmeth, dxdr, eedvir, cn3, cn4, cn5)
   use nblist, only: imagcrds, bckptr, tranvec, cutoffnb, volume
   use constants, only: zero, one, two, half, third, TWOPI, six, twelve
   use file_io_dat
@@ -233,7 +151,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   _REAL_ del, delrinv, delr12inv
   _REAL_ switch, d_switch_dx
   _REAL_ b0, b1, b2
-  _REAL_ ee_vir_iso
   _REAL_ filter_cut2, xx
   _REAL_ comm1
   _REAL_ xktran(3,18)
@@ -246,16 +163,9 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   integer, parameter :: mask27 = 2**27 - 1
 #ifdef LES
 #  include "ew_cntrl.h"
-#else
-  ! Variables for the force-switch
-  _REAL_ fswitch2, fswitch3, fswitch6, fswitch2inv, p12, p6
-  _REAL_ cut3, cut6, cutinv, cut3inv, cut6inv
-  _REAL_ delr3inv, df12, df6, invfswitch6cut6, invfswitch3cut3
 #endif
-  _REAL_ mr4, f4
   _REAL_ delx,dely,delz,delr, delr2, cgi, cgj, delr2inv, r6, f6, f12, df, &
-         dfee, dx, x, dfx, vxx, vxy, vxz, dfy, vyy, vyz, dumy, dfz, vzz, &
-         dumz, dumx
+         dfee, dx, x, dfx, dfy, dfz, dumx, dumy, dumz
 #ifdef MPI
   _REAL_ denom, denom_n, delr_n, switch_c, denom2, denom3, rfour
 #endif
@@ -265,21 +175,8 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   _REAL_ pipse, dpipse, pvc, dvcu, pva, dvau
   integer itran
 
-  ! variables for conditionally cached data.
-  _REAL_ cache_df(*), cache_x(*), cache_y(*)
-  _REAL_ cache_z(*), cache_r2(*)
-  integer im_new, icount
-  integer cache_bckptr(*)
   _REAL_ time0, time1
 
-  vxx = zero
-  vxy = zero
-  vxz = zero
-  vyy = zero
-  vyz = zero
-  vzz = zero
-  f4 = zero
-  ee_vir_iso = zero
   del = one / eedtbdns
   dumx = zero
   dumy = zero
@@ -296,23 +193,17 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 
 #ifdef LES
   lestmp=nlesty*(lestyp(i)-1)
-#else
-  fswitch2 = fswitch * fswitch
-  fswitch3 = fswitch2 * fswitch
-  fswitch6 = fswitch3 * fswitch3
-  fswitch2inv = 1.d0 / fswitch2
-  cut3 = filter_cut2 * filter_cut
-  cut6 = cut3 * cut3
-  cutinv = 1.d0 / filter_cut
-  cut3inv = 1.d0 / cut3
-  cut6inv = 1.d0 / cut6
-  invfswitch6cut6 = cut6inv / fswitch6
-  invfswitch3cut3 = cut3inv / fswitch3
 #endif
    
-    !-------------------------------------------------------------
-    ! Loop over the 12-6 LJ and electrostatic terms for eedmeth = 1
-    !-------------------------------------------------------------
+  !-----------------------------------------------
+  ! Loop over the 12-6 LJ and electrostatic terms 
+  !-----------------------------------------------
+#if 0   /* following works but slows down execution */
+!$omp parallel do private( n,itran,j,delx,dely,delz,delr2,delrinv,x,  &
+!$omp&  ind,dx,e3dx,e4dx,switch,d_switch_dx,b0,b1,cgj,comm1,ecur,  &
+!$omp&  dfee,delr2inv,ic,r6,f6,f12,dfx,dfy,dfz) &
+!$omp&  reduction(+:eelt,evdw,dumx,dumy,dumz)
+#endif
   do m = 1, nvdw+nhbnd
 
     n=ipairs(m)
@@ -424,9 +315,11 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   !    being close to i
       
 
+#if 0  /*  no longer creating caches needed for the following code: */
 #ifdef MPI /* SOFT CORE */
 
     ! Now loop over the softcore (modified 12-6) LJ terms for eedmeth = 1
+
     icount = 0
 
     ! run over the 3rd subset of the pairlist
@@ -591,6 +484,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #     include "ew_directe4.h"
     end if
 #endif /* MPI for SOFT CORE  */
+#endif  /* if 0 skipping this section */
 
 !   #include "eedmeth2-6.h"
 
