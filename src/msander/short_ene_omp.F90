@@ -75,8 +75,8 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 #ifdef LES
 #  include "ew_cntrl.h"
 #endif
-  _REAL_ delx,dely,delz,delr, delr2, cgi, cgj, delr2inv, r6, f6, f12, df, &
-         dfee, dx, x, dfx, dfy, dfz, dumx, dumy, dumz
+  _REAL_ delx(3), delr, delr2, cgi, cgj, delr2inv, r6, f6, f12, df, &
+         dfee, dx, x, dfx(3), dumx(3)
 #ifdef MPI
   _REAL_ denom, denom_n, delr_n, switch_c, denom2, denom3, rfour
 #endif
@@ -111,10 +111,10 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   call timer_start(TIME_SHORT_ENE)
 
 !$omp parallel private( inddel, myindexlo, myindexhi, ncell_lo, ncell_hi, &
-!$omp&  k,i,xk,yk,zk,ntot,nvdw,nhbnd,dumx,dumy,dumz,cgi,iaci,m,xktran, &
-!$omp&  n,itran,j,delx,dely,delz,delr2,delrinv,x,  &
+!$omp&  k,i,xk,yk,zk,ntot,nvdw,nhbnd,dumx,cgi,iaci,m,xktran, &
+!$omp&  n,itran,j,delx,delr2,delrinv,x,  &
 !$omp&  ind,dx,e3dx,e4dx,switch,d_switch_dx,b0,b1,cgj,comm1,ecur,  &
-!$omp&  dfee,delr2inv,ic,r6,delr12inv,f6,f12,dfx,dfy,dfz)  &
+!$omp&  dfee,delr2inv,ic,r6,delr12inv,f6,f12,dfx)  &
 !$omp&  firstprivate(numpack)
 
 !$  inddel = (nucgrd-1) / OMP_GET_NUM_THREADS() + 1
@@ -148,9 +148,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
       yk = imagcrds(2,k)
       zk = imagcrds(3,k)
 !==========  short ene routine in-lined below:===============================
-  dumx = zero
-  dumy = zero
-  dumz = zero
+  dumx(:) = zero
   cgi = charge(i)
   iaci = ntypes * (iac(i) - 1)
    
@@ -173,10 +171,8 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
     itran=ishft(n,-27)
     n = iand(n,mask27)
     j = bckptr(n)
-    delx = imagcrds(1,n) + xktran(1,itran)
-    dely = imagcrds(2,n) + xktran(2,itran)
-    delz = imagcrds(3,n) + xktran(3,itran)
-    delr2 = delx*delx + dely*dely+delz*delz
+    delx(:) = imagcrds(:,n) + xktran(:,itran)
+    delr2 = delx(1)*delx(1) + delx(2)*delx(2) + delx(3)*delx(3)
 
     !  write(6,'(9i5)') index,k,i,j,OMP_GET_THREAD_NUM(),m,n,itran,numpack
  
@@ -271,16 +267,10 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
        dfee = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
     endif
 
-    dfx = delx*dfee
-    dfy = dely*dfee
-    dfz = delz*dfee
-    dumx = dumx + dfx
-    dumy = dumy + dfy
-    dumz = dumz + dfz
+    dfx(:) = delx(:)*dfee
+    dumx(:) = dumx(:) + dfx(:)
 !$omp critical
-    force(1,j) = force(1,j) + dfx
-    force(2,j) = force(2,j) + dfy
-    force(3,j) = force(3,j) + dfz
+    force(:,j) = force(:,j) + dfx(:)
 !$omp end critical
   end do 
 
@@ -292,9 +282,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   ! Contribute forces on the ith particle, accumulated as forces
   ! from the ith particle were added onto all other particles.
 !$omp critical
-  force(1,i) = force(1,i) - dumx
-  force(2,i) = force(2,i) - dumy
-  force(3,i) = force(3,i) - dumz
+  force(:,i) = force(:,i) - dumx(:)
 !$omp end critical
 
 !==========  short ene routine in-lined above===============================
