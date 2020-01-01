@@ -58,7 +58,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
-  _REAL_ xk, yk, zk
   integer ic,j,m,n,ind,iaci,inddel
   _REAL_ del, delrinv, delr12inv
   _REAL_ switch, d_switch_dx
@@ -66,7 +65,8 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   _REAL_ filter_cut2, xx
   _REAL_ comm1
   _REAL_ xktran(3,18)
-  _REAL_ e3dx, e4dx
+  _REAL_ e3dx, e4dx, eeltl, evdwl
+  _REAL_ forcel(3,numatoms)
 #ifdef TVDW
   _REAL_ r4, r6pinv
 #endif
@@ -111,10 +111,10 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   call timer_start(TIME_SHORT_ENE)
 
 !$omp parallel private( inddel, myindexlo, myindexhi, ncell_lo, ncell_hi, &
-!$omp&  k,i,xk,yk,zk,ntot,nvdw,nhbnd,dumx,cgi,iaci,m,xktran, &
+!$omp&  k,i,ntot,nvdw,nhbnd,dumx,cgi,iaci,m,xktran, &
 !$omp&  n,itran,j,delx,delr2,delrinv,x,  &
 !$omp&  ind,dx,e3dx,e4dx,switch,d_switch_dx,b0,b1,cgj,comm1,ecur,  &
-!$omp&  dfee,delr2inv,ic,r6,delr12inv,f6,f12,dfx)  &
+!$omp&  dfee,delr2inv,ic,r6,delr12inv,f6,f12,dfx,evdwl,eeltl,forcel)  &
 !$omp&  firstprivate(numpack)
 
 !$  inddel = (nucgrd-1) / OMP_GET_NUM_THREADS() + 1
@@ -123,7 +123,9 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 !$  myindexhi = myindexlo + inddel - 1
 !$  if (OMP_GET_THREAD_NUM() == OMP_GET_NUM_THREADS()-1) myindexhi = nucgrd
 
-  ! do index = myindexlo, myindexhi
+  evdwl = zero
+  eeltl = zero
+  forcel(:,:) = zero
   do index = 1,nucgrd
     if (numimg(index) <= 0) cycle
     ncell_lo = nlogrid(index)
@@ -144,18 +146,13 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 !$       numpack = numpack + ntot
 !$       cycle
 !$    endif
-      xk = imagcrds(1,k)
-      yk = imagcrds(2,k)
-      zk = imagcrds(3,k)
 !==========  short ene routine in-lined below:===============================
   dumx(:) = zero
   cgi = charge(i)
   iaci = ntypes * (iac(i) - 1)
    
   do m = 1, 18
-    xktran(1,m) = tranvec(1,m) - xk
-    xktran(2,m) = tranvec(2,m) - yk
-    xktran(3,m) = tranvec(3,m) - zk
+    xktran(:,m) = tranvec(:,m) - imagcrds(:,k)
   end do
 
 #ifdef LES
@@ -203,37 +200,15 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
       ! be done after the reciprocal space calculation is done,
       ! so no need for it here
       comm1 = cgi * cgj
-
-      ! calculate contribution of dc/dr to force
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
     else
       lfac = lesfac(lestmp + lestyp(j))
       comm1 = cgi * cgj * lfac
-
-      ! Calculate contribution of dc/dr to force
-      if (ifcr .ne. 0) then
-        b2 = b0*lfac
-        call cr_add_dcdr_factor(i, b2*cgj)
-        call cr_add_dcdr_factor(j, b2*cgi)
-      end if
     end if
 #else
     comm1 = cgi*cgj
-
-    ! Calculate contribution of dc/dr to force
-    if (ifcr .ne. 0) then
-      call cr_add_dcdr_factor(i, b0*cgj)
-      call cr_add_dcdr_factor(j, b0*cgi)
-    end if
 #endif
     ecur = comm1 * b0
-!$omp critical
-    eelt = eelt + ecur
-!$omp end critical
-
+    eeltl = eeltl + ecur
 #if 0
     ! Thermodynamic Integration decomposition
     if (decpr .and. idecomp > 0) then
@@ -261,17 +236,13 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
        f6 = cn2(ic)*r6
        f12 = cn1(ic)*delr12inv
 #endif
-!$omp critical
-       evdw = evdw + f12 - f6
-!$omp end critical
+       evdwl = evdwl + f12 - f6
        dfee = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
     endif
 
     dfx(:) = delx(:)*dfee
     dumx(:) = dumx(:) + dfx(:)
-!$omp critical
-    force(:,j) = force(:,j) + dfx(:)
-!$omp end critical
+    forcel(:,j) = forcel(:,j) + dfx(:)
   end do 
 
   !  end of what is now a single loop over j that are in the list as
@@ -281,15 +252,18 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
       
   ! Contribute forces on the ith particle, accumulated as forces
   ! from the ith particle were added onto all other particles.
-!$omp critical
-  force(:,i) = force(:,i) - dumx(:)
-!$omp end critical
+  forcel(:,i) = forcel(:,i) - dumx(:)
 
 !==========  short ene routine in-lined above===============================
                         
       numpack = numpack + ntot
     end do  !  k = ncell_lo,ncell_hi
   end do
+!$omp critical
+  force(:,:) = force(:,:) + forcel(:,:)
+  evdw = evdw + evdwl
+  eelt = eelt + eeltl
+!$omp end critical
 !$omp end parallel
   ! nd loop over this process's assigned atoms
 
