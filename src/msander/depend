@@ -3725,11 +3725,9 @@ short_ene.o: \
                     crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ew_directp.h\
                     ene_decomp.h\
                     ips_lj.h\
-                    ew_directe.h\
-                    ew_directe2.h\
+                    ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
                     eedmeth2-6.h\
@@ -3759,11 +3757,9 @@ short_ene.LES.o: \
                     crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ew_directp.h\
                     ene_decomp.h\
                     ips_lj.h\
-                    ew_directe.h\
-                    ew_directe2.h\
+                    ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
                     eedmeth2-6.h\
@@ -3772,6 +3768,32 @@ short_ene.LES.o: \
 short_ene.LES.o:   short_ene.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
+
+short_ene_omp.o: \
+                    ../include/assert.fh\
+                    ../include/dprec.fh\
+                    nonbond_list.o\
+                    stack.o\
+                    softcore.o\
+                    constants.o\
+                    file_io_dat.o\
+                    les.o\
+                    decomp.o\
+                    ips.o\
+                    mbar.o\
+                    omp_lib.o\
+                    ew_parallel.h\
+                    parallel.h\
+                    flocntrl.h\
+                    def_time.h\
+                    ew_cntrl.h\
+                    ../include/md.h\
+                    ene_decomp.h
+
+
+short_ene_omp.o:   short_ene_omp.F90
+	@echo '[SANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene_omp.F90
 
 softcore.o: \
                     ../include/assert.fh\

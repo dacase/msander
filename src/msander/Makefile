@@ -59,7 +59,7 @@ MMOBJ = \
     random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
     runmin.o sander_lib.o sander.o scaledMD.o set.o \
-    sglds.o shake.o short_ene.o softcore.o spatial_fft.o \
+    sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
     spatial_recip.o stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o
 

@@ -36,6 +36,7 @@ lapack="skip"
 blas="skip"
 inc="-I$msanderhome/include"
 netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
+short_ene=short_ene_omp.o
 
 #  process command-line flags:
 for var in "$@"; do
@@ -76,6 +77,7 @@ for var in "$@"; do
             fftw_flags="--enable-mpi=yes $fftw_flags"
             mpiflag="-DMPI"
             flibs_fftw="-lfftw3_mpi -lfftw3 -lmpi"
+            short_ene=short_ene.o
             sfx=".MPI";;
         *)
             echo "Option $var not recognized"
@@ -434,6 +436,7 @@ FFLAGS=$bintraj $inc $ompflag $mpiflag
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
+SHORT_ENE=$short_ene
 
 ###############################################################################
 
@@ -455,6 +458,7 @@ PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 EOF
+
 
 #--------------------------------------------------------------------------
 #  Test if the C compiler works:

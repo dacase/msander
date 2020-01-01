@@ -45,7 +45,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
-  _REAL_ xk, yk, zk
+  _REAL_ xk(3)
   integer ncache
    
   if (do_dir == 0) then
@@ -72,9 +72,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
       ncell_hi = nhigrid(index)
       do k = ncell_lo, ncell_hi
         i = bckptr(k)
-        xk = imagcrds(1,k)
-        yk = imagcrds(2,k)
-        zk = imagcrds(3,k)
 #ifdef MPI /* SOFT CORE */
         ! SOFT CORE contribution in numsc
         ntot = numvdw(i) + numhbnd(i) + numsc(i)
@@ -84,13 +81,14 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
         nvdw = numvdw(i)
         nhbnd = numhbnd(i)
         if (ntot > 0) then
+          xk(:) = imagcrds(:,k)
           if (mpoltype == 0) then
 
             ! Allocate 6 temporary caches for performance optimizations
 #ifdef MPI /* SOFT CORE */
             if (nhbnd > numsc(i)) then
 #endif
-              ncache = max(nvdw, numhbnd(i))
+              ncache = max(nvdw, nhbnd)
 #ifdef MPI /* SOFT CORE */
             else
               ncache = max( nvdw, numsc(i) )
@@ -114,7 +112,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
             endif
             REQUIRE(rstack_ok)
             REQUIRE(istack_ok)
-            call short_ene(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, nhbnd, &
+            call short_ene(i, xk, ipairs(numpack), ntot, nvdw, nhbnd, &
                            eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
                            ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
                            dir_vir, ee_type, eedmeth, dxdr, eedvir, &
@@ -129,15 +127,15 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
             call free_stack(l_real_df,routine)
             call free_istack(l_int,routine)
           else if ( mpoltype > 0 ) then
-            call short_ene_dip(i, xk, yk, zk, ipairs(numpack), ntot, nvdw, &
+            call short_ene_dip(i, xk, ipairs(numpack), ntot, nvdw, &
                                ewaldcof, eedtbdns, eed_cub, eed_lin, charge, &
                                dipole, ntypes, iac, ico, cn1, cn2, cn6, &
                                filter_cut, eelt, epol, evdw, ehb, force, &
                                field, pol, pol2, dir_vir, ee_type, eedmeth, &
                                mpoltype, dxdr, eedvir, cn3, cn4, cn5)
           end if
-          numpack = numpack + ntot
         end if  ! ( ntot > 0 )
+        numpack = numpack + ntot
       end do  !  k = ncell_lo,ncell_hi
     end if  ! ( numimg(k) > 0 )
   end do
@@ -156,7 +154,7 @@ end subroutine get_nb_energy
 !            Brozell, TSRI Oct 2002.  More tweaks were made by Ross Walker,
 !            TSRI 2005.
 !------------------------------------------------------------------------------
-subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
+subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                      eed_cub, eed_lin, charge, ntypes, iac, ico, cn1, cn2, &
                      cn6, filter_cut, eelt, evdw, force, dir_vir, ee_type, &
                      eedmeth, dxdr, eedvir, cache_df, cache_x, cache_y, &
@@ -180,7 +178,7 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   use crg_reloc, only: ifcr, cr_add_dcdr_factor
 
   implicit none
-  _REAL_ xk, yk, zk
+  _REAL_ xk(3)
   integer i, nvdw, nhbnd, ntot
   integer ipairs(*), ee_type, eedmeth
   _REAL_ eed_cub(*), eed_lin(2,*), charge(*), dir_vir(3,3), eedvir
@@ -204,16 +202,9 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   integer, parameter :: mask27 = 2**27 - 1
 #ifdef LES
 #  include "ew_cntrl.h"
-#else
-  ! Variables for the force-switch
-  _REAL_ fswitch2, fswitch3, fswitch6, fswitch2inv, p12, p6
-  _REAL_ cut3, cut6, cutinv, cut3inv, cut6inv
-  _REAL_ delr3inv, df12, df6, invfswitch6cut6, invfswitch3cut3
 #endif
-  _REAL_ mr4, f4
   _REAL_ delx,dely,delz,delr, delr2, cgi, cgj, delr2inv, r6, f6, f12, df, &
-         dfee, dx, x, dfx, vxx, vxy, vxz, dfy, vyy, vyz, dumy, dfz, vzz, &
-         dumz, dumx
+         dfee, dx, x, dfx, dfy, dumy, dfz, dumz, dumx
 #ifdef MPI
   _REAL_ denom, denom_n, delr_n, switch_c, denom2, denom3, rfour
 #endif
@@ -230,13 +221,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   integer cache_bckptr(*)
   _REAL_ time0, time1
 
-  vxx = zero
-  vxy = zero
-  vxz = zero
-  vyy = zero
-  vyz = zero
-  vzz = zero
-  f4 = zero
   ee_vir_iso = zero
   del = one / eedtbdns
   dumx = zero
@@ -246,26 +230,12 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   cgi = charge(i)
   iaci = ntypes * (iac(i) - 1)
    
-  do m = 1, 18
-    xktran(1,m) = tranvec(1,m) - xk
-    xktran(2,m) = tranvec(2,m) - yk
-    xktran(3,m) = tranvec(3,m) - zk
-  end do
+  xktran(1,:) = tranvec(1,:) - xk(1)
+  xktran(2,:) = tranvec(2,:) - xk(2)
+  xktran(3,:) = tranvec(3,:) - xk(3)
 
 #ifdef LES
   lestmp=nlesty*(lestyp(i)-1)
-#else
-  fswitch2 = fswitch * fswitch
-  fswitch3 = fswitch2 * fswitch
-  fswitch6 = fswitch3 * fswitch3
-  fswitch2inv = 1.d0 / fswitch2
-  cut3 = filter_cut2 * filter_cut
-  cut6 = cut3 * cut3
-  cutinv = 1.d0 / filter_cut
-  cut3inv = 1.d0 / cut3
-  cut6inv = 1.d0 / cut6
-  invfswitch6cut6 = cut6inv / fswitch6
-  invfswitch3cut3 = cut3inv / fswitch3
 #endif
    
   ! The "eedmeth" decision is unrolled here, since this provides significant
@@ -595,8 +565,6 @@ subroutine short_ene(i, xk, yk, zk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
     ! cache_r2 is saved for the vdW interactions below
     cache_r2(1:icount) = dxdr * cache_df(1:icount) * cache_r2(1:icount)
 
-    ! SGI compiler directive to prevent compiler loop fusioning.
-    !*$* NO FUSION
     do im_new = 1, icount
       j = cache_bckptr(im_new)
       delrinv = cache_df(im_new)

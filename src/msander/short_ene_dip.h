@@ -11,7 +11,7 @@
 !   pol2:
 !   dipole:    
 !------------------------------------------------------------------------------
-subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
+subroutine short_ene_dip(i, xk, ipairs, numtot, numvdw, ewaldcof, &
                          eedtbdns, eed_cub, eed_lin, charge, dipole, ntypes, &
                          iac, ico, cn1, cn2, cn6, filter_cut, eelt, epol, &
                          evdw, ehb, frc, field, pol, pol2, dir_vir, ee_type, &
@@ -26,7 +26,7 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
 
   implicit none
 #include "../include/md.h"
-  _REAL_ xk, yk, zk
+  _REAL_ xk(3)
   integer i, numvdw, numtot
   integer ipairs(*), ee_type, eedmeth, mpoltype
   _REAL_ ewaldcof, eed_cub(4,*), eed_lin(2,*), charge(*), dipole(3,*), &
@@ -70,11 +70,9 @@ subroutine short_ene_dip(i, xk, yk, zk, ipairs, numtot, numvdw, ewaldcof, &
   filter_cut2 = filter_cut * filter_cut
   cgi = charge(i)
   iaci = ntypes * (iac(i) - 1)
-  do m = 1, 18
-    xktran(1,m) = tranvec(1,m) - xk
-    xktran(2,m) = tranvec(2,m) - yk
-    xktran(3,m) = tranvec(3,m) - zk
-  end do
+  xktran(1,:) = tranvec(1,:) - xk(1)
+  xktran(2,:) = tranvec(2,:) - xk(2)
+  xktran(3,:) = tranvec(3,:) - xk(3)
 #ifdef LES
   lestmp=nlesty*(lestyp(i)-1)
 #endif
