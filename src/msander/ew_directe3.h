@@ -64,15 +64,6 @@ do im_new = 1,icount
    dfy = dely*df
    dfz = delz*df
 
-#ifndef noVIRIAL
-   vxx = vxx - dfx*delx
-   vxy = vxy - dfx*dely
-   vxz = vxz - dfx*delz
-   vyy = vyy - dfy*dely
-   vyz = vyz - dfy*delz
-   vzz = vzz - dfz*delz
-#endif
-
    dumx = dumx + dfx
    dumy = dumy + dfy
    dumz = dumz + dfz
