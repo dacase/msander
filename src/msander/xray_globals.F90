@@ -57,11 +57,6 @@ module xray_globals_module
    character(len=MAX_FN_LEN), save :: solvent_mask_reflection_outfile
    character(len=MAX_FN_LEN), save :: solvent_mask_outfile
 
-   ! Number of cycles between updates of the bulk-solvent mask
-   integer, save :: solvent_mask_update_interval
-
-   _REAL_, save :: solvent_scale, solvent_bfactor
-
    ! 0=direct, fft=1. This is currently is a boolean option, but
    ! may have other fft options for spacegroup-optimized fft.
    integer, save :: fft_method
@@ -120,7 +115,7 @@ module xray_globals_module
    real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
    integer, allocatable, save :: test_flag(:)
    integer, save :: has_f_solvent, scale_update_frequency, &
-          ml_update_frequency, mask_update_frequency
+          ml_update_frequency, mask_update_frequency, xray_nstep
 
    complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:), Fobs(:)
 

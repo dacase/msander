@@ -48,9 +48,6 @@ module xray_interface_module
          solvent_mask_expand, &
          solvent_mask_outfile, &
          solvent_mask_reflection_outfile, &
-         solvent_mask_update_interval, &
-         solvent_scale, &
-         solvent_bfactor, &
          fft_method, &
          fft_grid_size, &
          fft_grid_spacing, &
@@ -63,7 +60,7 @@ module xray_interface_module
          atom_selection_mask, &
          k_sol, b_sol,  &
          mask_update_frequency, scale_update_frequency, &
-         ml_update_frequency
+         ml_update_frequency, xray_nstep
 
    ! Common public entities all have an xray_ prefix.
    ! Others assume localization by the module scope.
@@ -111,8 +108,8 @@ contains
       write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
       write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
       write(stdout,'(5X,2A)') 'Solvent Mask Reflection OutFile:',trim(solvent_mask_reflection_outfile)
-      write(stdout,'(5X,A,I4)') 'Solvent Mask Update Interval: ',solvent_mask_update_interval
-      write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',solvent_scale,', B-factor:', solvent_bfactor
+      write(stdout,'(5X,A,I4)') 'Solvent Mask Update Interval: ',mask_update_frequency
+      write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',k_sol,', B-factor:', b_sol
       write(stdout,'(5X,A,I2)')   'FFT method: ',fft_method
       write(stdout,'(5X,A,3(5X,I5))') 'FFT Grid Size: ',fft_grid_size
       write(stdout,'(5X,A,F9.5)') 'FFT Grid Spacing: ',fft_grid_spacing
@@ -123,7 +120,6 @@ contains
       write(stdout,'(5X,2(A,F8.3))') 'B-Factor Min:',bfactor_min,', Max: ',bfactor_max
       write(stdout,'(5X,A,I4)') 'B-factor Refinement Interval: ',bfactor_refinement_interval
       write(stdout,'(5X,2A)') 'Atom Selection Mask: ',trim(atom_selection_mask)
-      write(stdout,'(5X,A,2F8.3)') 'k_sol, b_sol: ', k_sol, b_sol
       return
    end subroutine xray_write_options
 
@@ -588,9 +584,6 @@ contains
       solvent_mask_expand = 0.8
       solvent_mask_reflection_outfile = ''
       solvent_mask_outfile = ''
-      solvent_mask_update_interval = 0
-      solvent_scale = -1
-      solvent_bfactor = -1
       fft_method = 1
       fft_grid_size = (/0,0,0/)
       fft_grid_spacing = 0.33_rk_
@@ -606,6 +599,7 @@ contains
       mask_update_frequency = 100
       scale_update_frequency = 100
       ml_update_frequency = 100
+      xray_nstep = 1
    end subroutine xray_init_globals
 
    ! Write X-ray output files and deallocate. Bond info is included
