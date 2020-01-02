@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/30/2019 at 10:48:35
+| Run on 01/02/2020 at 11:39:42
 
 |   Executable path: /home/case/msander/bin/msander
 | Working directory: /home/case/msander/test/xray/3onk
@@ -138,9 +138,6 @@ Ewald parameters:
 
 X-ray Refinement Parameters:
      PDB InFile: 4phenix_3onk.pdb
-     PDB OutFile:
-     FCALC_AVE OutFile:
-     FMTZ OutFile:
      PDB Read Coordinates: F
      PDB Use SegID: F
      PDB Wrap Names: F
@@ -149,23 +146,10 @@ X-ray Refinement Parameters:
      Resolution Range:   50.000,   0.000
      X-ray weight:  0.600E+00
      Use target: ml  
-     Solvent mask probe radius:    1.000
-     Solvent mask expand:    0.800
-     Solvent Mask OutFile:
-     Solvent Mask Reflection OutFile:
-     Solvent Mask Update Interval:    0
-     Solvent scale:  -1.000, B-factor:  -1.000
+     Solvent Mask Update Interval:  100
+     Solvent scale:   0.000, B-factor:   0.000
      FFT method:  0
-     FFT Grid Size:          0         0         0
-     FFT Grid Spacing:   0.33000
-     FFT B-factor Sharpen:   20.000
-     FFT Densty Toleranec:  0.100E-03
-     FFT Reflection Tolerance:  0.100E-03
-     FFT Radius Min:   1.000, Max:    4.000
-     B-Factor Min:   1.000, Max:  999.000
-     B-factor Refinement Interval:    0
      Atom Selection Mask: !@H=
-     k_sol, b_sol:    0.000   0.000
      Setting ifbox to 3 for non-orthogonal unit cell
 
 --------------------------------------------------------------------------------
@@ -177,16 +161,15 @@ X-ray Refinement Parameters:
 
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    26.600   37.589   38.109  77.81  86.64  65.54
-Found   1171 atoms in !@H=;                                                                                                                                                                                                                                                           
+Found   1171 atoms in !@H=;
 Removing   28 additional atoms with zero occupancy
-| number of reflections:   6611   714  7325
-| bulk_solvent grid set to:   54  72  75
+| number of reflections:     6611     714    7325
 | creating k_mask with k_sol,b_sol =    0.000   0.000
  Number of triangulated 3-point waters found:       33
 
      Sum of charges from parm topology file =   0.99999995
      Assuming uniform neutralizing plasma
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OPENMP code, with OMP_NUM_THREADS = 4
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -224,31 +207,35 @@ Removing   28 additional atoms with zero occupancy
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.02 ( 5.94% of Total)
-|                Build the list             0.02 (75.00% of List )
-|                Other                      0.01 (25.00% of List )
-|             List time                  0.02 (55.56% of Nonbo)
+|    Read coords time           0.05 ( 4.98% of Total)
+|                Build the list             0.05 (76.56% of List )
+|                Other                      0.01 (23.44% of List )
+|             List time                  0.06 (71.91% of Nonbo)
 |                   Short_ene time             0.01 (100.0% of Direc)
-|                Direct Ewald time          0.01 (75.00% of Ewald)
-|                   Scalar sum                 0.00 (25.00% of Recip)
-|                   FFT time                   0.00 (75.00% of Recip)
-|                Recip Ewald time           0.00 (25.00% of Ewald)
-|             Ewald time                 0.02 (44.44% of Nonbo)
-|          Nonbond force              0.04 (14.63% of Force)
-|             Fcalc loop                 0.06 (28.85% of Xray )
-|             Deriv loop                 0.04 (18.75% of Xray )
-|             Other                      0.11 (52.40% of Xray )
-|          Xray restaints             0.21 (84.55% of Force)
-|       Force time                 0.25 (99.19% of Runmd)
-|    Runmd Time                 0.25 (77.50% of Total)
-|    Other                      0.05 (16.56% of Total)
-| Total time                 0.32 (100.0% of ALL  )
+|                Direct Ewald time          0.01 (44.00% of Ewald)
+|                Adjust Ewald time          0.00 ( 4.00% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 7.69% of Recip)
+|                   Fill charge grid           0.00 ( 7.69% of Recip)
+|                   Scalar sum                 0.00 (30.77% of Recip)
+|                   Grad sum                   0.00 ( 7.69% of Recip)
+|                   FFT time                   0.01 (46.15% of Recip)
+|                Recip Ewald time           0.01 (52.00% of Ewald)
+|             Ewald time                 0.02 (28.09% of Nonbo)
+|          Nonbond force              0.09 (10.52% of Force)
+|             Fcalc loop                 0.29 (39.23% of Xray )
+|             Deriv loop                 0.33 (44.15% of Xray )
+|             Other                      0.12 (16.62% of Xray )
+|          Xray restaints             0.75 (88.89% of Force)
+|       Force time                 0.85 (99.76% of Runmd)
+|    Runmd Time                 0.85 (86.27% of Total)
+|    Other                      0.09 ( 8.75% of Total)
+| Total time                 0.98 (99.90% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     177038
 | Highest istack allocated:       2368
-|           Job began  at 10:48:35.043  on 12/30/2019
-|           Setup done at 10:48:35.115  on 12/30/2019
-|           Run   done at 10:48:35.363  on 12/30/2019
+|           Job began  at 11:39:42.539  on 01/02/2020
+|           Setup done at 11:39:42.674  on 01/02/2020
+|           Run   done at 11:39:43.522  on 01/02/2020
 |     wallclock() was called      63 times

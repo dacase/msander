@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/17/2019 at 14:36:29
+| Run on 01/02/2020 at 11:39:00
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/2wcu
@@ -129,9 +129,6 @@ Ewald parameters:
 
 X-ray Refinement Parameters:
      PDB InFile: SolvXtal.pdb
-     PDB OutFile:
-     FCALC_AVE OutFile:
-     FMTZ OutFile:
      PDB Read Coordinates: F
      PDB Use SegID: F
      PDB Wrap Names: F
@@ -140,23 +137,10 @@ X-ray Refinement Parameters:
      Resolution Range:   50.000,   0.000
      X-ray weight:  0.100E+04
      Use target: ls  
-     Solvent mask probe radius:    1.000
-     Solvent mask expand:    0.800
-     Solvent Mask OutFile:
-     Solvent Mask Reflection OutFile:
-     Solvent Mask Update Interval:    0
-     Solvent scale:  -1.000, B-factor:  -1.000
+     Solvent Mask Update Interval:  100
+     Solvent scale:   0.350, B-factor:  46.000
      FFT method:  0
-     FFT Grid Size:          0         0         0
-     FFT Grid Spacing:   0.33000
-     FFT B-factor Sharpen:   20.000
-     FFT Densty Toleranec:  0.100E-03
-     FFT Reflection Tolerance:  0.100E-03
-     FFT Radius Min:   1.000, Max:    4.000
-     B-Factor Min:   1.000, Max:  999.000
-     B-factor Refinement Interval:    0
      Atom Selection Mask: !(@H=) & !(:WAT)
-     k_sol, b_sol:    0.350  46.000
      Setting ifbox to 3 for non-orthogonal unit cell
 
 --------------------------------------------------------------------------------
@@ -168,14 +152,14 @@ X-ray Refinement Parameters:
 
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
-Found   2328 atoms in !(@H=) & !(:WAT);                                                                                                                                                                                                                                               
-| number of reflections:  24614     0 24614
+Found   2328 atoms in !(@H=) & !(:WAT);
+| number of reflections:    24614       0   24614
 | creating k_mask with k_sol,b_sol =    0.350  46.000
  Number of triangulated 3-point waters found:     1820
 
      Sum of charges from parm topology file =  -6.00000213
      Assuming uniform neutralizing plasma
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OPENMP code, with OMP_NUM_THREADS = 4
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -327,29 +311,27 @@ Found   2328 atoms in !(@H=) & !(:WAT);
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.08 ( 2.28% of Total)
-|                Build the list             0.06 (89.55% of List )
-|                Other                      0.01 (10.45% of List )
-|             List time                  0.07 ( 9.71% of Nonbo)
-|                   Short_ene time             0.45 (98.26% of Direc)
-|                   Other                      0.01 ( 1.74% of Direc)
-|                Direct Ewald time          0.46 (74.00% of Ewald)
-|                Adjust Ewald time          0.01 ( 1.61% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 7.38% of Recip)
-|                   Fill charge grid           0.02 (14.77% of Recip)
-|                   Scalar sum                 0.04 (24.16% of Recip)
-|                   Grad sum                   0.03 (17.45% of Recip)
-|                   FFT time                   0.05 (36.24% of Recip)
-|                Recip Ewald time           0.15 (23.92% of Ewald)
-|             Ewald time                 0.62 (90.29% of Nonbo)
-|          Nonbond force              0.69 (20.63% of Force)
-|             Fcalc loop                 1.36 (51.71% of Xray )
-|             Deriv loop                 1.24 (47.37% of Xray )
-|          Xray restaints             2.62 (78.45% of Force)
-|       Force time                 3.35 (99.35% of Runmd)
-|    Runmd Time                 3.37 (94.61% of Total)
-|    Other                      0.11 ( 3.12% of Total)
-| Total time                 3.56 (100.0% of ALL  )
+|                Build the list             0.15 (88.95% of List )
+|                Other                      0.02 (11.05% of List )
+|             List time                  0.17 (22.69% of Nonbo)
+|                   Short_ene time             0.26 (94.20% of Direc)
+|                   Other                      0.02 ( 5.80% of Direc)
+|                Direct Ewald time          0.28 (47.10% of Ewald)
+|                Adjust Ewald time          0.02 ( 3.92% of Ewald)
+|                   Fill Bspline coeffs        0.02 ( 7.45% of Recip)
+|                   Fill charge grid           0.03 (11.70% of Recip)
+|                   Scalar sum                 0.07 (23.05% of Recip)
+|                   Grad sum                   0.07 (25.53% of Recip)
+|                   FFT time                   0.09 (32.27% of Recip)
+|                Recip Ewald time           0.28 (48.12% of Ewald)
+|             Ewald time                 0.59 (77.31% of Nonbo)
+|          Nonbond force              0.76 ( 1.81% of Force)
+|             Fcalc loop                19.92 (48.50% of Xray )
+|             Deriv loop                21.11 (51.40% of Xray )
+|          Xray restaints            41.07 (98.00% of Force)
+|       Force time                41.91 (100.0% of Runmd)
+|    Runmd Time                41.95 (98.90% of Total)
+| Total time                42.41 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -359,11 +341,11 @@ Found   2328 atoms in !(@H=) & !(:WAT);
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       3.37 Per Step(ms) =     336.80
-|         ns/day =       0.26   seconds/ns =  336800.00
+|     Elapsed(s) =      41.95 Per Step(ms) =    4194.60
+|         ns/day =       0.02   seconds/ns = 4194600.00
 | -----------------------------------------------------
 
-|           Job began  at 14:36:29.014  on 12/17/2019
-|           Setup done at 14:36:29.207  on 12/17/2019
-|           Run   done at 14:36:32.574  on 12/17/2019
+|           Job began  at 11:39:00.076  on 01/02/2020
+|           Setup done at 11:39:00.542  on 01/02/2020
+|           Run   done at 11:39:42.488  on 01/02/2020
 |     wallclock() was called     565 times
