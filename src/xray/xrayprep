@@ -1,0 +1,59 @@
+#!/bin/bash
+
+id=5l9j
+
+echo "Running phenix.AmberPrep" 
+phenix.AmberPrep $id.pdb > $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+
+# next only needed for ions: how to automate?
+perl -pi -e 's/CL$/Cl-1/' 5l9j_uc.pdb
+
+echo "creating ${id}_uc.parm7"
+add_pdb -i 4amber_5l9j.prmtop -p 5l9j_uc.pdb -o foo.parm7 >> $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+add_xray -i foo.parm7 -o 5l9j_uc.parm7 >> $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+/bin/rm -f foo.parm7
+
+echo "Making input mtz file"
+phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+
+echo "Running phenix.refine to get R-Free_factors"
+phenix.refine  \
+   4phenix_$id.pdb $id-sf.mtz \
+   refinement.input.xray_data.r_free_flags.generate=True \
+   refinement.main.number_of_macro_cycles=0 \
+   prefix=cdl serial=1 \
+   write_geo=False cdl=True --overwrite >> $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+
+echo "Expanding reflections to P1 symmetry"
+# expand to P1 symmetry:
+cad hklin1 cdl_data.mtz hklout $id-P1.mtz << EOF >> $id-prep.log \
+     || { echo "  $0:  Program error"; exit 1; }
+LABIN FILE_NUMBER 1 ALL
+OUTLIM SPACEGROUP 1
+END
+EOF
+
+echo "Making the sf.dat file"
+#  convert to formatted file:
+phenix.mtz.dump -c -f s $id-P1.mtz  | tr ',' '\t' > $id.fmtz \
+     || { echo "  $0:  Program error"; exit 1; }
+
+#  make the -sf.dat file needed by xray3:
+#    note that the '-$6+1' construct takes 0->1, 1->0 to swap the meaning
+#    of Rfree-flags
+awk '{printf("%d\t%d\t%d\t%12.3f\t%12.3f\t%d\n", $1,$2,$3,$4,$5,-$6+1)}'  \
+    $id.fmtz | awk 'NR>1 && $3!=0' > tmp.dat \
+     || { echo "  $0:  Program error"; exit 1; }
+
+nrefl=`wc -l tmp.dat | awk '{print $1}'`
+echo "$nrefl 0" > $id-sf.dat
+cat tmp.dat >> $id-sf.dat
+
+
+# clean up
+/bin/rm -f tmp.dat cdl_data.mtz $id-P1.mtz $id.fmtz cdl_00*
