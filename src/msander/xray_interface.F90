@@ -93,9 +93,12 @@ contains
 
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
       write(stdout,'(5X,2A)') 'PDB InFile: ',trim(pdb_infile)
-      write(stdout,'(5X,2A)') 'PDB OutFile:',trim(pdb_outfile)
-      write(stdout,'(5X,2A)') 'FCALC_AVE OutFile:',trim(fave_outfile)
-      write(stdout,'(5X,2A)') 'FMTZ OutFile:',trim(fmtz_outfile)
+      if( pdb_outfile .ne. '' ) &
+         write(stdout,'(5X,2A)') 'PDB OutFile:',trim(pdb_outfile)
+      if( fave_outfile .ne. '' ) &
+         write(stdout,'(5X,2A)') 'FCALC_AVE OutFile:',trim(fave_outfile)
+      if( fmtz_outfile .ne. '' ) &
+         write(stdout,'(5X,2A)') 'FMTZ OutFile:',trim(fmtz_outfile)
       write(stdout,'(5X,A,L1)') 'PDB Read Coordinates: ',pdb_read_coordinates
       write(stdout,'(5X,A,L1)') 'PDB Use SegID: ',pdb_use_segid
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
@@ -104,21 +107,23 @@ contains
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
       write(stdout,'(5X,A,A4)') 'Use target: ',target
-      write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
-      write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
-      write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
-      write(stdout,'(5X,2A)') 'Solvent Mask Reflection OutFile:',trim(solvent_mask_reflection_outfile)
+      ! write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
+      ! write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
+      ! write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
+      ! write(stdout,'(5X,2A)') 'Solvent Mask Reflection OutFile:',trim(solvent_mask_reflection_outfile)
       write(stdout,'(5X,A,I4)') 'Solvent Mask Update Interval: ',mask_update_frequency
       write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',k_sol,', B-factor:', b_sol
       write(stdout,'(5X,A,I2)')   'FFT method: ',fft_method
-      write(stdout,'(5X,A,3(5X,I5))') 'FFT Grid Size: ',fft_grid_size
-      write(stdout,'(5X,A,F9.5)') 'FFT Grid Spacing: ',fft_grid_spacing
-      write(stdout,'(5X,A,F8.3)') 'FFT B-factor Sharpen: ',fft_bfactor_sharpen
-      write(stdout,'(5X,A,E10.3)') 'FFT Densty Toleranec: ',fft_density_tolerance
-      write(stdout,'(5X,A,E10.3)') 'FFT Reflection Tolerance: ',fft_reflection_tolerance
-      write(stdout,'(5X,2(A,F8.3))') 'FFT Radius Min:',fft_radius_min,', Max: ',fft_radius_max
-      write(stdout,'(5X,2(A,F8.3))') 'B-Factor Min:',bfactor_min,', Max: ',bfactor_max
-      write(stdout,'(5X,A,I4)') 'B-factor Refinement Interval: ',bfactor_refinement_interval
+      if( fft_method > 0 ) then
+         write(stdout,'(5X,A,3(5X,I5))') 'FFT Grid Size: ',fft_grid_size
+         write(stdout,'(5X,A,F9.5)') 'FFT Grid Spacing: ',fft_grid_spacing
+         write(stdout,'(5X,A,F8.3)') 'FFT B-factor Sharpen: ',fft_bfactor_sharpen
+         write(stdout,'(5X,A,E10.3)') 'FFT Densty Toleranec: ',fft_density_tolerance
+         write(stdout,'(5X,A,E10.3)') 'FFT Reflection Tolerance: ',fft_reflection_tolerance
+         write(stdout,'(5X,2(A,F8.3))') 'FFT Radius Min:',fft_radius_min,', Max: ',fft_radius_max
+      endif
+      ! write(stdout,'(5X,2(A,F8.3))') 'B-Factor Min:',bfactor_min,', Max: ',bfactor_max
+      ! write(stdout,'(5X,A,I4)') 'B-factor Refinement Interval: ',bfactor_refinement_interval
       write(stdout,'(5X,2A)') 'Atom Selection Mask: ',trim(atom_selection_mask)
       return
    end subroutine xray_write_options
@@ -539,7 +544,7 @@ contains
                maskstr=atom_selection_mask,mask=atom_selection)
          NAT_for_mask1 = sum(atom_selection)
          if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
-              ' atoms in ', atom_selection_mask
+              ' atoms in ', trim(atom_selection_mask)
          !  also ignore any atoms with zero occupancy:
          do i=1,natom
             if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0

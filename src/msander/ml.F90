@@ -264,7 +264,7 @@ contains
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
     if (mytaskid == 0 ) &
-      write(6,'(a,3i6)') '| number of reflections: ', NRF_work, NRF_free, NRF
+      write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
 
     if (target(1:2) == 'ml') then
 
