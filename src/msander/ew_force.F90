@@ -7,8 +7,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+
 subroutine ewald_force(crd,numatoms,iac,ico,charge, &
-      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, &
-      xr,virvsene,pol,pol2,qm_pot_only, &
+      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, xr,virvsene,pol,pol2,qm_pot_only, &
       cn3,cn4,cn5)
    use ew_recip
    use stack
@@ -524,21 +523,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    end if
    call timer_stop_start(TIME_EWFRCADJ,TIME_EWVIRIAL)   
 
-   !--------------------------------------------------------
-   !            NB  VIRIAL
-   !--------------------------------------------------------
-
-   !only get the virial if this is a periodic simulation.
-   if (ntb>0) then
-     call get_nonbond_virial(atvir,molvir,rec_vir,dir_vir, &
-                             adj_vir,rec_vird,self_vir, &
-#ifdef LES
-                              les_vir, &
-#endif
-                              e14vir,framevir, &
-                              frc,xr,numatoms)
-  end if
-
 #ifdef MPI
    
    !     Accumulate the virials and energies
@@ -561,43 +545,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    
    evdw = evdw + evdwr
    
-#ifdef LES
-
-!  +---------------------------------------------------------------+
-!  |  NOTE: evdwr (which is only calculated for the master) has    |
-!  |  been mpi_allreduced above but this gets overcounted when     |
-!  |  nrg_all is later mpi_allreduced before ntrfc.  Only      |
-!  |  accumulate evdwr on the master PE.                           | 
-!  +---------------------------------------------------------------+
-
-#endif
-   !  [need to do this here, after reduction of the virials, rather than
-   !  in get_nonbond_vir().  (should figure out why....)]
-
-   virvsene = rec_vir(1,1) + rec_vir(2,2) + rec_vir(3,3) + &
-         eedvir + adj_vir(1,1)+adj_vir(2,2)+adj_vir(3,3) + &
-         les_vir(1,1)+les_vir(2,2)+les_vir(3,3)
-   
-   !  Compare the virvsene number to the electrostatic energy:
-   
-   if (eelt /= 0.0d0) then
-      virvsene = abs(virvsene+eelt)/abs(eelt)
-   else
-      virvsene = 0.0d0
-   end if
-   
-   !     --- Dump info if verbose
-   
-   call force_info(ees,eer,eed,eea, &
-         epol,epold,epola,epols,dipself,dipkine,induced, &
-#ifdef LES
-         eeles,les_vir, &
-#endif
-         evdw,ehb,eelt,virvsene,molvir,eedvir, &
-         rec_vir,dir_vir,adj_vir,self_vir, &
-         e14vir, &
-         rec_vird,atvir,subvir,verbose)
-
    call timer_stop(TIME_EWVIRIAL)  
 
    return
@@ -689,156 +636,13 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
      frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
 
 #endif /* LES */
-
 end subroutine do_pme_recip
 
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ Emit verbose information about the PME calculation.
-subroutine force_info(ees,eer,eed,eea, &
-      epol,epold,epola,epols,dipself,dipkine,induced, &
-#ifdef LES
-      eeles,les_vir, &
-#endif
-      evdw,ehb,eelt,virvsene,molvir,eedvir, &
-      rec_vir,dir_vir,adj_vir,self_vir, &
-      e14vir, &
-      rec_vird,atvir,subvir,verbose)
-   implicit none
-   _REAL_ ees,eer,eed,eea,evdw,ehb,eelt, &
-         epol,epold,epola,epols,dipself,dipkine, &
-         eedvir,virvsene,molvir(3,3), &
-         rec_vir(3,3),dir_vir(3,3),adj_vir(3,3),self_vir(3,3), &
-         e14vir(3,3), &
-         rec_vird(3,3),atvir(3,3),subvir(3,3)
-   integer verbose,induced
-#  include "extra.h"
-#ifdef LES
-   _REAL_ eeles,les_vir(3,3)
-#endif
-#ifdef MPI
-#  include "ew_parallel.h"
-#  include "parallel.h"
-#endif
-   
-   if (.not. master) return
-
-   if ( verbose >= 1 ) then
-      write(6, '(3(/,5x,a,f24.12))' ) &
-            'Evdw                   = ', evdw, &
-            'Ehbond                 = ', ehb, &
-            'Ecoulomb               = ', eelt
-      write(6, '(2(/,5x,a,f24.12))') &
-            'Iso virial             = ', &
-            molvir(1,1)+molvir(2,2)+molvir(3,3), &
-            'Eevir vs. Ecoulomb     = ', virvsene
-   end if
-   if ( verbose >= 2 )then
-      write(6, '(4(/,5x,a,f24.12),/)') &
-            'E electrostatic (self) = ', ees, &
-            '                (rec)  = ', eer, &
-            '                (dir)  = ', eed, &
-            '                (adj)  = ', eea &
-#ifdef LES
-            ,'             (LESadj)  = ', eeles &
-#endif
-            ;
-
-      write(6,30)molvir(1,1),molvir(1,2),molvir(1,3)
-      write(6,30)molvir(2,1),molvir(2,2),molvir(2,3)
-      write(6,30)molvir(3,1),molvir(3,2),molvir(3,3)
-      30 format(5x,'MOLECULAR VIRIAL: ',3(1x,e14.7))
-   end if
-   if ( verbose == 3 )then
-      write(6,*)'--------------------------------------------'
-      write(6,31)rec_vir(1,1),rec_vir(1,2),rec_vir(1,3)
-      write(6,31)rec_vir(2,1),rec_vir(2,2),rec_vir(2,3)
-      write(6,31)rec_vir(3,1),rec_vir(3,2),rec_vir(3,3)
-      write(6,*)'..................'
-      31 format(5x,'Reciprocal VIRIAL: ',3(1x,e14.7))
-      write(6,32)dir_vir(1,1),dir_vir(1,2),dir_vir(1,3)
-      write(6,32)dir_vir(2,1),dir_vir(2,2),dir_vir(2,3)
-      write(6,32)dir_vir(3,1),dir_vir(3,2),dir_vir(3,3)
-      write(6,*)'..................'
-      32 format(5x,'Direct VIRIAL: ',3(1x,e14.7))
-      write(6,38)eedvir
-      write(6,*)'..................'
-      38 format(5x,'Dir Sum EE vir trace: ',e14.7)
-      write(6,33)adj_vir(1,1),adj_vir(1,2),adj_vir(1,3)
-      write(6,33)adj_vir(2,1),adj_vir(2,2),adj_vir(2,3)
-      write(6,33)adj_vir(3,1),adj_vir(3,2),adj_vir(3,3)
-      write(6,*)'..................'
-      33 format(5x,'Adjust VIRIAL: ',3(1x,e14.7))
-      write(6,34)rec_vird(1,1),rec_vird(1,2),rec_vird(1,3)
-      write(6,34)rec_vird(2,1),rec_vird(2,2),rec_vird(2,3)
-      write(6,34)rec_vird(3,1),rec_vird(3,2),rec_vird(3,3)
-      write(6,*)'..................'
-      34 format(5x,'Recip Disp. VIRIAL: ',3(1x,e14.7))
-      write(6,35)self_vir(1,1),self_vir(1,2),self_vir(1,3)
-      write(6,35)self_vir(2,1),self_vir(2,2),self_vir(2,3)
-      write(6,35)self_vir(3,1),self_vir(3,2),self_vir(3,3)
-      write(6,*)'..................'
-      35 format(5x,'Self VIRIAL: ',3(1x,e14.7))
-#ifdef LES
-      write(6,36)les_vir(1,1),les_vir(1,2),les_vir(1,3)
-      write(6,36)les_vir(2,1),les_vir(2,2),les_vir(2,3)
-      write(6,36)les_vir(3,1),les_vir(3,2),les_vir(3,3)
-      write(6,*)'..................'
-      36 format(5x,'LES VIRIAL: ',3(1x,e14.7))
-#endif
-      write(6,40)e14vir(1,1),e14vir(1,2),e14vir(1,3)
-      write(6,40)e14vir(2,1),e14vir(2,2),e14vir(2,3)
-      write(6,40)e14vir(3,1),e14vir(3,2),e14vir(3,3)
-      write(6,*)'..................'
-      40 format(5x,'E14 VIRIAL: ',3(1x,e14.7))
-      write(6,37)atvir(1,1),atvir(1,2),atvir(1,3)
-      write(6,37)atvir(2,1),atvir(2,2),atvir(2,3)
-      write(6,37)atvir(3,1),atvir(3,2),atvir(3,3)
-      37 format(5x,'Atomic VIRIAL: ',3(1x,e14.7))
-      write(6,*)'--------------------------------------------'
-      write(6,39)subvir(1,1),subvir(1,2),subvir(1,3)
-      write(6,39)subvir(2,1),subvir(2,2),subvir(2,3)
-      write(6,39)subvir(3,1),subvir(3,2),subvir(3,3)
-      39 format(5x,'Sub    VIRIAL: ',3(1x,e14.7))
-      write(6,*)'--------------------------------------------'
-   end if  ! ( verbose == 3 )
-   return
-end subroutine force_info 
-
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ [Enter a one-line description of subroutine get_nonbond_virial here]
-subroutine get_nonbond_virial(atvir,molvir, &
-      rec_vir,dir_vir,adj_vir,rec_vird,self_vir, &
-#ifdef LES
-      les_vir, &
-#endif
-      e14vir,framevir, &
-      frc,xr,numatoms)
-   implicit none
-#ifdef LES
-   _REAL_ les_vir(3,3)
-#endif
-   _REAL_ e14vir(3,3),framevir(3,3)
-   _REAL_ atvir(3,3),molvir(3,3) !,subvir(3,3)
-   _REAL_ rec_vir(3,3),dir_vir(3,3), &
-         adj_vir(3,3),rec_vird(3,3)
-   _REAL_ self_vir(3,3)
-   _REAL_ frc(3,*),xr(3,*)
-   integer numatoms
-
-   integer i,j,n
-
-   return
-end subroutine get_nonbond_virial 
-
-
 !     --- NB_ADJUST ---
-
 !     ...the part of ewald due to gaussian counterion about an atom
 !     you are bonded to or otherwise for which you do not compute the
 !     nonbond pair force. NECESSARY since you ARE computing this pair
 !     in the reciprocal sum...
-
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine nb_adjust here]
@@ -847,7 +651,6 @@ subroutine nb_adjust(charge,eea,crd, &
       numadjst,ewaldcof,eedtbdns, &
       eed_cub,eed_lin,frc,numatoms, &
       adj_vir, ee_type,eedmeth)
-
 
    use constants, only : INVSQRTPI, third, half
    use crg_reloc, only: ifcr, cr_add_dcdr_factor
