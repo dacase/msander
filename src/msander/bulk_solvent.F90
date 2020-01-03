@@ -190,14 +190,12 @@ contains
   !----------------------------------------------------------------------------
   ! init_bulk_solvent: intialize the mask to one, 'solvent present here.'
   !----------------------------------------------------------------------------
-  subroutine init_bulk_solvent(n_atom, NRF, hkl, resolution)
+  subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms
     use memory_module, only: i100, ix
     use ml_mod, only: cross
     implicit none
-    integer, intent(in) :: n_atom, NRF
-    integer, intent(in) :: hkl(3,NRF)
     double precision, intent(in) :: resolution
 
     integer :: i, atomic_number, na, nb, nc
@@ -206,13 +204,13 @@ contains
     double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
 
-    allocate(k_mask(NRF))
-    allocate(f_mask(NRF))
-    allocate(hkl_indexing_bs_mask(NRF))
+    allocate(k_mask(num_hkl))
+    allocate(f_mask(num_hkl))
+    allocate(hkl_indexing_bs_mask(num_hkl))
 
-    allocate(atom_types(n_atom))
-    allocate(mask_cutoffs(n_atom))
-    do i = 1, n_atom
+    allocate(atom_types(num_atoms))
+    allocate(mask_cutoffs(num_atoms))
+    do i = 1, num_atoms
 
       atomic_number = ix(i100+i)
 
@@ -315,13 +313,14 @@ contains
 
     if (mytaskid == 0 ) &
       write(6,'(a,2f8.3)') '| creating k_mask with k_sol,b_sol = ', k_sol, b_sol
-    do i = 1, NRF
-      s(:) = hkl(1,i) * vas(:) + hkl(2,i) * vbs(:) + hkl(3,i) * vcs(:)
+    do i = 1, num_hkl
+      s(:) = hkl_index(1,i) * vas(:) + hkl_index(2,i) * vbs(:) &
+           + hkl_index(3,i) * vcs(:)
       s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
       k_mask(i) = k_sol * exp(b_sol * s_squared)
 
-      hkl_indexing_bs_mask(i) = h_as_ih( hkl(1,i), hkl(2,i), hkl(3,i), &
-                                         na, nb, nc)
+      hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
+                                hkl_index(3,i), na, nb, nc)
       if (hkl_indexing_bs_mask(i) == -1) then
         stop 'Miller indices indexing failed'
       end if

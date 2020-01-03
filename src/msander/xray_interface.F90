@@ -555,9 +555,8 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      call init_ml(target, nstlim, num_hkl, &
-              hkl_index, abs_Fobs, sigFobs, test_flag, d_star_sq, resolution)
-      call init_bulk_solvent(natom, num_hkl, hkl_index, resolution)
+      call init_ml(target, nstlim, d_star_sq, resolution)
+      call init_bulk_solvent(resolution)
       if( has_f_solvent > 0 ) then
          if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
@@ -750,14 +749,11 @@ contains
       endif
 
       if( target(1:3) == 'vls' ) then
-         call dTargetV_dF(num_hkl, Fobs,Fcalc, deriv=dF, &
-            residual=r_work, xray_energy=xray_energy)
+         call dTargetV_dF(deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if( target(1:2) == 'ls' ) then
-         call dTargetLS_dF(num_hkl, abs_Fobs,Fcalc,selected=test_flag, &
-             deriv=dF, xray_energy=xray_energy)
+         call dTargetLS_dF(selected=test_flag,deriv=dF,xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
-         call dTargetML_dF(num_hkl,hkl_index,abs_Fobs,Fcalc,num_atoms,xyz,  &
-             deriv=dF, xray_energy=xray_energy)
+         call dTargetML_dF(xyz, deriv=dF, xray_energy=xray_energy)
       else
          write(6,*) 'Bad target: ', target
          call mexit(6,1)

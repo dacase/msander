@@ -911,9 +911,9 @@ subroutine mdread1()
    !--------------------------------------------------------------------
 
 #ifdef API
-   if( igb == 0 .and. ipb == 0 ) call load_ewald_info(ntp)
+   if( ipb == 0 ) call load_ewald_info(ntp)
 #else
-   if( igb == 0 .and. ipb == 0 ) call load_ewald_info(inpcrd,ntp)
+   if( ipb == 0 ) call load_ewald_info(inpcrd,ntp)
 #endif
 
    !--------------------------------------------------------------------
@@ -3092,7 +3092,7 @@ subroutine mdread2(x,ix,ih)
 
    ! check if ifbox variable from prmtop file matches actual angles:
 
-   if ( igb == 0 .and. ipb == 0 .and. ntb /= 0 ) then
+   if ( ipb == 0 .and. ntb /= 0 ) then
       if ( ifbox == 1 ) then
          if ( abs(alpha - 90.0d0) > 1.d-5 .or. &
            abs(beta  - 90.0d0) > 1.d-5 .or. &
@@ -3177,10 +3177,12 @@ subroutine mdread2(x,ix,ih)
       write(6,'(/,a)') ' CUT must be < half smallest box dimension'
       DELAYED_ERROR
    end if
+#if 0
    if (ntb /= 0 .and. (igb > 0 .or. ipb /= 0) ) then
       write(6,'(/,a)') ' igb>0 is only compatible with ntb=0'
       DELAYED_ERROR
    end if
+#endif
    if ( ntb == 0 .and. sqrt(cut) < 8.05 .and. igb /= 10 .and. ipb == 0 .and. &
         igb /= 6 ) then
       write(6,'(/,a,f8.2)') ' unreasonably small cut for non-periodic run: ', &

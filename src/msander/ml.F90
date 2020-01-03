@@ -169,19 +169,14 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !          this routine also intializes anisotropic scaling data
   !----------------------------------------------------------------------------
-  subroutine init_ml(target, nstlim, num_hkl, hkl_tmp, &
-                     f_obs_tmp, f_obs_sigma_tmp, test_flag, d_star_sq_out, &
-                     resolution)
+  subroutine init_ml(target, nstlim, d_star_sq_out, resolution)
 
-    use xray_globals_module, only: unit_cell
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, test_flag, &
+            abs_Fobs, sigFobs
     implicit none
 
     character(len=4), intent(in) :: target
-    integer, intent(in) :: nstlim, num_hkl
-    integer, dimension(3,num_hkl), intent(inout) :: hkl_tmp
-    double precision, dimension(num_hkl), intent(inout) :: f_obs_tmp, &
-            f_obs_sigma_tmp
-    integer, dimension(num_hkl), intent(inout) :: test_flag
+    integer, intent(in) :: nstlim
     double precision, dimension(num_hkl), intent(out) :: d_star_sq_out
     double precision, intent(out) :: resolution
 
@@ -196,7 +191,7 @@ contains
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer:: hkl(3,num_hkl)
-    double precision :: f_obs(num_hkl), fobs_weight(num_hkl), f_obs_sigmas(num_hkl)
+    double precision :: f_obs_tmp(num_hkl), sigma_tmp(num_hkl)
 
     N_steps = nstlim
     NRF = num_hkl
@@ -245,11 +240,11 @@ contains
 
     resolution = 50.0
     do i = 1, NRF
-      d_star =  (square(hkl_tmp(1,i) * norm2(vas)) + square(hkl_tmp(2,i) * norm2(vbs)) + &
-                 square(hkl_tmp(3,i) * norm2(vcs)) + &
-                 2 * hkl_tmp(2,i) * hkl_tmp(3,i) * dot_product(vbs, vcs) + &
-                 2 * hkl_tmp(1,i) * hkl_tmp(3,i) * dot_product(vas, vcs) + &
-                 2 * hkl_tmp(1,i) * hkl_tmp(2,i) * dot_product(vbs, vas))
+      d_star =  (square(hkl_index(1,i) * norm2(vas)) + square(hkl_index(2,i) * norm2(vbs)) + &
+                 square(hkl_index(3,i) * norm2(vcs)) + &
+                 2 * hkl_index(2,i) * hkl_index(3,i) * dot_product(vbs, vcs) + &
+                 2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
+                 2 * hkl_index(1,i) * hkl_index(2,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
       resolution = min( d, resolution )
       if (test_flag(i) == 1) then
@@ -258,7 +253,7 @@ contains
         r_free_counter = r_free_counter + 1
       endif
       d_star_sq(i) = d_star
-      ! f_obs_weight(i) = 1.0 ! (1.0/f_obs_sigma_tmp(i))**2
+      ! f_obs_weight(i) = 1.0 ! (1.0/sigFobs(i))**2
     enddo
 
     NRF_free = NRF - NRF_work
@@ -363,9 +358,9 @@ contains
       do j = 1, bins_work_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_work_reflections(i, j)
-        f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
-        f_obs(counter_sort) = f_obs_tmp(index_sort)
-        hkl(:,counter_sort) = hkl_tmp(:,index_sort)
+        sigma_tmp(counter_sort) = sigFobs(index_sort)
+        f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+        hkl(:,counter_sort) = hkl_index(:,index_sort)
         d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
@@ -376,20 +371,20 @@ contains
       do j = 1, bins_free_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_free_reflections(i, j)
-        f_obs_sigmas(counter_sort) = f_obs_sigma_tmp(index_sort)
-        f_obs(counter_sort) = f_obs_tmp(index_sort)
-        hkl(:,counter_sort) = hkl_tmp(:,index_sort)
+        sigma_tmp(counter_sort) = sigFobs(index_sort)
+        f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+        hkl(:,counter_sort) = hkl_index(:,index_sort)
         d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
 
-    ! need to put fobs into f_obs_tmp to send back to calling 
-    !   program; same for f_obs_sigmas, f_obs_weight(?), hkl and test_flag
+    ! need to put f_obs_tmp into abs_Fobs to send back to calling 
+    !   program; same for sigma_tmp, f_obs_weight(?), hkl and test_flag
 
-    f_obs_tmp(:) = f_obs(:)
-    f_obs_sigma_tmp(:) = f_obs_sigmas(:)
+    abs_Fobs(:) = f_obs_tmp(:)
+    sigFobs(:) = sigma_tmp(:)
     ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
-    hkl_tmp(:,:) = hkl(:,:)
+    hkl_index(:,:) = hkl(:,:)
     test_flag(1:NRF_work) = 1
     test_flag(NRF_work+1:NRF) = 0
 
@@ -402,7 +397,7 @@ contains
     do i = 1, n_bins
       do j = bins_free_start_indices(i) + bins_free_population(i) - 1, &
              bins_free_start_indices(i), -1
-        fo_fo = f_obs(j) * f_obs(j) ! / 2
+        fo_fo = f_obs_tmp(j) * f_obs_tmp(j) ! / 2
         B_in_zones(i) = B_in_zones(i) + 2 * fo_fo ! / coef_norm
         q_in_zones(i) = q_in_zones(i) + 2 * fo_fo * fo_fo ! / coef_norm
       end do

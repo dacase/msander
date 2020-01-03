@@ -716,7 +716,7 @@ subroutine rdparm2(x,ix,ih,nf)
       !-1 = amber 6 prmtop file.
       if (iok==-1) read(nf,fmt) oldbeta,duma,dumb,dumc
       
-      if( igb /= 0  .or. ipb /= 0 .or.  ntb == 0 )then
+      if( ipb /= 0 .or.  ntb == 0 )then
          box(1)=0.0d0
          box(2)=0.0d0
          box(3)=0.0d0

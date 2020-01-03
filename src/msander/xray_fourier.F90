@@ -303,19 +303,18 @@ contains
       return
    end subroutine get_residual
 
-   subroutine get_solvent_contribution(num_hkl,nstep,n_atom,crd,Fcalc)
+   subroutine get_solvent_contribution(nstep,crd)
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
           hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
       implicit none
-      integer, intent(in) :: num_hkl, nstep, n_atom
-      real(real_kind), intent(in) :: crd(3*n_atom)
-      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
+      integer, intent(in) :: nstep
+      real(real_kind), intent(in) :: crd(3*num_atoms)
 
       integer :: i
 
       if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
-         call grid_bulk_solvent(n_atom, crd)
+         call grid_bulk_solvent(num_atoms, crd)
          call shrink_bulk_solvent()
          call fft_bs_mask()
 
@@ -331,13 +330,11 @@ contains
 
    end subroutine get_solvent_contribution
 
-   subroutine scale_Fcalc(nstep, num_hkl,abs_Fobs,Fcalc)
+   subroutine scale_Fcalc(nstep)
       use ml_mod, only : b_vector_base, NRF_work, &
            NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
-      integer, intent(in) :: nstep, num_hkl
-      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
-      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
+      integer, intent(in) :: nstep
 
       real(real_kind) :: b(7), Uaniso(7)
 
@@ -372,12 +369,8 @@ contains
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
    ! -------------------------------------------------------------------------
-   subroutine dTargetLS_dF(num_hkl,abs_Fobs,Fcalc,weight,selected,deriv, &
-         xray_energy)
+   subroutine dTargetLS_dF(weight,selected,deriv,xray_energy)
       implicit none
-      integer, intent(in) :: num_hkl
-      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
-      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
       real(real_kind), intent(in), optional :: weight (num_hkl)
       integer, intent(in), optional :: selected(num_hkl)
       complex(real_kind), intent(out), optional :: deriv(num_hkl)
@@ -450,12 +443,8 @@ contains
    ! restraint on the vector (complex) difference between Fcalc and
    ! Fobs
 
-   subroutine dTargetV_dF(num_hkl,Fobs,Fcalc,deriv, &
-         residual,xray_energy)
+   subroutine dTargetV_dF(deriv,residual,xray_energy)
       implicit none
-      integer, intent(in) :: num_hkl
-      complex(real_kind), intent(in) :: Fobs(:)
-      complex(real_kind), intent(inout) :: Fcalc(:)
       complex(real_kind), intent(out) :: deriv(:)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
@@ -466,16 +455,22 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
-      if (mod(nstep,scale_update_frequency) == 0) then
-         sum_fo_fo = sum(abs_Fobs ** 2)
-         sum_fc_fc = sum(abs(Fcalc) ** 2)
-         sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
-         Fcalc_scale = sum_fo_fc / sum_fc_fc
-         if (mytaskid == 0 ) &
-           write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
+      if (scale_update_frequency > 0 ) then
+         if (mod(nstep,scale_update_frequency) == 0) then
+            sum_fo_fo = sum(abs_Fobs ** 2)
+            sum_fc_fc = sum(abs(Fcalc) ** 2)
+            sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
+            Fcalc_scale = sum_fo_fc / sum_fc_fc
+            if (mytaskid == 0 ) &
+              write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
+            norm_scale = 1.0_rk_ / sum_fo_fo
+            nstep = nstep + 1
+         endif
+      else
+         Fcalc_scale = 1.0_rk_
+         sum_fo_fo = sum(abs_Fobs ** 2)
          norm_scale = 1.0_rk_ / sum_fo_fo
-         nstep = nstep + 1
       endif
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
@@ -491,18 +486,12 @@ contains
    ! This routine computes the force gradient on Fcalc, using the
    ! phenix maximum likelihood function
 
-   subroutine dTargetML_dF(num_hkl,hkl,abs_Fobs,Fcalc,n_atom,crd,deriv, &
-         xray_energy)
+   subroutine dTargetML_dF(crd,deriv,xray_energy)
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF
       implicit none
-      integer, intent(in) :: num_hkl
-      integer, intent(in) :: hkl(3,num_hkl)
-      real(real_kind), intent(in) :: abs_Fobs(num_hkl)
-      complex(real_kind), intent(inout) :: Fcalc(num_hkl)
-      integer, intent(in) :: n_atom
-      real(real_kind), intent(in) :: crd(3*n_atom)
+      real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(num_hkl)
       real(real_kind), intent(out) :: xray_energy
 
@@ -514,10 +503,10 @@ contains
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
-      call get_solvent_contribution( num_hkl, nstep, n_atom, crd, Fcalc)
+      call get_solvent_contribution(nstep, crd)
 
       ! step 2: scaling Fcalc:
-      call scale_Fcalc( nstep, num_hkl, abs_Fobs, Fcalc )
+      call scale_Fcalc( nstep )
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters and xray restraint energy:
