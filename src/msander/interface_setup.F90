@@ -378,11 +378,6 @@
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
 
-         ! M-WJ
-         !if( igb == 0 .and. induced == 1 ) call get_dips(x,nr)
-! WJM  if is a polarizable model, reading input dipole information
-         if (igb == 0 .and. ipb == 0 .and. induced > 0) call get_dips(x,nr)
-
          call xray_init()
 
       ! ----- SET THE INITIAL VELOCITIES -----

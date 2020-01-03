@@ -107,11 +107,6 @@ subroutine cpparm1(parmdata, ierr)
    end if
 
    ipol = parmdata%ipol
-
-! These two are actually used in the code.
-   mpoltype = ipol
-   induced  = ipol
-
    charmm_active = parmdata%is_chamber /= 0
 
    return

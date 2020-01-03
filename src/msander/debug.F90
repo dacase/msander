@@ -459,10 +459,6 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
    endif
    REQUIRE(rstack_ok)
    call merge_forces(f)
-   ! merge fields if dipoles
-   if ( mpoltype >= 1 )then
-      call merge_forces(xx(lfield))
-   end if
    call free_stack(ltmp,routine)
 #endif
    return
@@ -719,19 +715,6 @@ subroutine rms_check(natom,xx,ix,ih,ipairs,x,f, &
       write(6,*)'TOTAL FORCES:     '
       write(6,*)'-----------------------------------------'
       call frc_compare(f3,f4,f3,f4,srms,natom)
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         call array_copy(xx(lfield),f5,3*natom)
-         read(30,200)count
-         mycount = mycount + 1
-         if ( mycount /= count )goto 666
-         do j = 1,natom
-            read(30,301)f6(1,j),f6(2,j),f6(3,j)
-         end do
-         write(6,*)'TOTAL FIELDS:     '
-         write(6,*)'-----------------------------------------'
-         call frc_compare(f5,f6,f5,f6,srms,natom)
-      end if
    end if
    ! .. DO FORCE COMPONENTS
    ! bonds
@@ -840,18 +823,6 @@ subroutine rms_check(natom,xx,ix,ih,ipairs,x,f, &
       write(6,*)'FORCES from Direct EE ROUTINE:     '
       write(6,*)'-----------------------------------------'
       call frc_compare(f,f2,f3,f4,srms,natom)
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         read(30,200)count
-         mycount = mycount + 1
-         if ( mycount /= count )goto 666
-         do j = 1,natom
-            read(30,301)f2(1,j),f2(2,j),f2(3,j)
-         end do
-         write(6,*)'FIELDS from Direct EE ROUTINE:     '
-         write(6,*)'-----------------------------------------'
-         call frc_compare(xx(lfield),f2,f5,f6,srms,natom)
-      end if
    end if
    ! reciprocal ee sum
    call zero_flow()
@@ -879,18 +850,6 @@ subroutine rms_check(natom,xx,ix,ih,ipairs,x,f, &
       write(6,*)'FORCES from Reciprocal EE ROUTINE:     '
       write(6,*)'-----------------------------------------'
       call frc_compare(f,f2,f3,f4,srms,natom)
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         read(30,200)count
-         mycount = mycount + 1
-         if ( mycount /= count )goto 666
-         do j = 1,natom
-            read(30,301)f2(1,j),f2(2,j),f2(3,j)
-         end do
-         write(6,*)'FIELDS from Reciprocal EE ROUTINE:     '
-         write(6,*)'-----------------------------------------'
-         call frc_compare(xx(lfield),f2,f5,f6,srms,natom)
-      end if
    end if
    ! adj ee sum
    call zero_flow()
@@ -913,18 +872,6 @@ subroutine rms_check(natom,xx,ix,ih,ipairs,x,f, &
       write(6,*)'FORCES from Adjust EE ROUTINE:     '
       write(6,*)'-----------------------------------------'
       call frc_compare(f,f2,f3,f4,srms,natom)
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         read(30,200)count
-         mycount = mycount + 1
-         if ( mycount /= count )goto 666
-         do j = 1,natom
-            read(30,301)f2(1,j),f2(2,j),f2(3,j)
-         end do
-         write(6,*)'FIELDS from Adjust EE ROUTINE:     '
-         write(6,*)'-----------------------------------------'
-         call frc_compare(xx(lfield),f2,f5,f6,srms,natom)
-      end if
    end if
    ! fix back again (side effects in force routine)
    call restore_flow(sdo_dir,sdo_rec,sdo_adj,sdo_self, &
@@ -1112,17 +1059,6 @@ subroutine force_dump(natom,xx,ix,ih,ipairs,x,f, &
       do j = 1,natom
          write(30,301)f(1,j),f(2,j),f(3,j)
       end do
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         count = count + 1
-         write(30,2010)count
-         2010 format(1x,i2,' Total Field')
-         kk = 0
-         do j = 1,natom
-            write(30,301)xx(lfield+kk),xx(lfield+kk+1),xx(lfield+kk+2)
-            kk = kk + 3
-         end do
-      end if
    end if
    ! bonds
    call zero_flow()
@@ -1216,17 +1152,6 @@ subroutine force_dump(natom,xx,ix,ih,ipairs,x,f, &
       do j = 1,natom
          write(30,301)f(1,j),f(2,j),f(3,j)
       end do
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         count = count + 1
-         write(30,2060)count
-         2060 format(1x,i2,' Direct sum electrostatic Field')
-         kk = 0
-         do j = 1,natom
-            write(30,301)xx(lfield+kk),xx(lfield+kk+1),xx(lfield+kk+2)
-            kk = kk + 3
-         end do
-      end if
    end if
    ! reciprocal ee sum
    call zero_flow()
@@ -1252,17 +1177,6 @@ subroutine force_dump(natom,xx,ix,ih,ipairs,x,f, &
       do j = 1,natom
          write(30,301)f(1,j),f(2,j),f(3,j)
       end do
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         count = count + 1
-         write(30,2070)count
-         2070 format(1x,i2,' Reciprocal sum electrostatic Field')
-         kk = 0
-         do j = 1,natom
-            write(30,301)xx(lfield+kk),xx(lfield+kk+1),xx(lfield+kk+2)
-            kk = kk + 3
-         end do
-      end if
    end if
    ! adj ee sum
    call zero_flow()
@@ -1288,17 +1202,6 @@ subroutine force_dump(natom,xx,ix,ih,ipairs,x,f, &
       do j = 1,natom
          write(30,301)f(1,j),f(2,j),f(3,j)
       end do
-      ! field if dipoles
-      if ( mpoltype >= 1 )then
-         count = count + 1
-         write(30,2080)count
-         2080 format(1x,i2,' Adjust sum electrostatic Field')
-         kk = 0
-         do j = 1,natom
-            write(30,301)xx(lfield+kk),xx(lfield+kk+1),xx(lfield+kk+2)
-            kk = kk + 3
-         end do
-      end if
    end if
    ! end components
    if ( master )then

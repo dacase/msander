@@ -670,24 +670,6 @@ ew_bspline.o:   ew_bspline.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_bspline.F90
 
-ew_dipole_recip.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    ew_bspline.o\
-                    stack.o\
-                    flocntrl.h\
-                    ew_pme_recip.h\
-                    def_time.h\
-                    parallel.h\
-                    ew_parallel.h\
-                    constants.o\
-                    extra.h
-
-
-ew_dipole_recip.o:   ew_dipole_recip.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_dipole_recip.F90
-
 ew_fft.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -706,7 +688,6 @@ ew_force.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ew_recip.o\
-                    ew_dipole_recip.o\
                     stack.o\
                     decomp.o\
                     nonbond_list.o\
@@ -746,7 +727,6 @@ ew_force.LES.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
                     ew_recip.LES.o\
-                    ew_dipole_recip.o\
                     stack.o\
                     decomp.o\
                     nonbond_list.LES.o\
@@ -780,24 +760,6 @@ ew_force.LES.o: \
 ew_force.LES.o:   ew_force.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_force.F90
-
-ew_handle_dips.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    ew_mpole.h\
-                    ew_cntrl.h\
-                    ew_frc.h\
-                    def_time.h\
-                    parallel.h\
-                    ew_bndpol.o\
-                    constants.o\
-                    debug.h\
-                    file_io_dat.o
-
-
-ew_handle_dips.o:   ew_handle_dips.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_handle_dips.F90
 
 ew_recip.o: \
                     ../include/dprec.fh\
@@ -3774,16 +3736,11 @@ short_ene_omp.o: \
                     ../include/dprec.fh\
                     nonbond_list.o\
                     stack.o\
-                    softcore.o\
                     constants.o\
                     file_io_dat.o\
                     les.o\
-                    decomp.o\
                     ips.o\
-                    mbar.o\
                     omp_lib.o\
-                    ew_parallel.h\
-                    parallel.h\
                     flocntrl.h\
                     def_time.h\
                     ew_cntrl.h\

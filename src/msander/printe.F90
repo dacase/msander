@@ -330,9 +330,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       end if
    if (econst /= 0.0) write(6,9078) epot-econst
    if ( dvdl /= 0.d0) write(6,9100) dvdl
-   if (induced > 0.and.indmeth < 3) write(6,9190)diprms,dipiter
-   if (induced > 0.and.indmeth == 3) write(6,9191)diprms, &
-         dipole_temp
    if (itgtmd == 1) then
       write (6,'(a,f8.3)') "Current RMSD from reference: ",rmsdvalue
       write (6,'(a,f8.3)') "Current target RMSD:         ",tgtrmsd
@@ -434,9 +431,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       end if
       if (econst /= 0.0) write(7,9078) epot-econst
       if ( dvdl /= 0.d0) write(7,9100) dvdl
-      if (induced > 0.and.indmeth < 3) write(7,9190)diprms,dipiter
-      if (induced > 0.and.indmeth == 3) write(7,9191)diprms, &
-            dipole_temp
    end if
 
 #ifdef RISMSANDER

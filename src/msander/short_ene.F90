@@ -82,58 +82,49 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
         nhbnd = numhbnd(i)
         if (ntot > 0) then
           xk(:) = imagcrds(:,k)
-          if (mpoltype == 0) then
 
-            ! Allocate 6 temporary caches for performance optimizations
+          ! Allocate 6 temporary caches for performance optimizations
 #ifdef MPI /* SOFT CORE */
-            if (nhbnd > numsc(i)) then
+          if (nhbnd > numsc(i)) then
 #endif
-              ncache = max(nvdw, nhbnd)
+            ncache = max(nvdw, nhbnd)
 #ifdef MPI /* SOFT CORE */
-            else
-              ncache = max( nvdw, numsc(i) )
-            end if
-#endif
-            call get_stack(l_real_df, ncache, routine)
-            call get_stack(l_real_x, ncache, routine)
-            call get_stack(l_real_y, ncache, routine)
-            call get_stack(l_real_z, ncache, routine)
-            call get_stack(l_real_r2, ncache, routine)
-            call get_istack(l_int, ncache, routine)
-            if (.not. rstack_ok) then
-              deallocate(r_stack)
-              allocate(r_stack(1:lastrst), stat=alloc_ier)
-              call reassign_rstack(routine)
-            endif
-            if (.not. istack_ok) then
-              deallocate(i_stack)
-              allocate(i_stack(1:lastist), stat=alloc_ier)
-              call reassign_istack(routine)
-            endif
-            REQUIRE(rstack_ok)
-            REQUIRE(istack_ok)
-            call short_ene(i, xk, ipairs(numpack), ntot, nvdw, nhbnd, &
-                           eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
-                           ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
-                           dir_vir, ee_type, eedmeth, dxdr, eedvir, &
-                           r_stack(l_real_df), r_stack(l_real_x), &
-                           r_stack(l_real_y), r_stack(l_real_z), &
-                           r_stack(l_real_r2), i_stack(l_int), cn3, cn4, cn5)
-                        
-            call free_stack(l_real_r2,routine)
-            call free_stack(l_real_z,routine)
-            call free_stack(l_real_y,routine)
-            call free_stack(l_real_x,routine)
-            call free_stack(l_real_df,routine)
-            call free_istack(l_int,routine)
-          else if ( mpoltype > 0 ) then
-            call short_ene_dip(i, xk, ipairs(numpack), ntot, nvdw, &
-                               ewaldcof, eedtbdns, eed_cub, eed_lin, charge, &
-                               dipole, ntypes, iac, ico, cn1, cn2, cn6, &
-                               filter_cut, eelt, epol, evdw, ehb, force, &
-                               field, pol, pol2, dir_vir, ee_type, eedmeth, &
-                               mpoltype, dxdr, eedvir, cn3, cn4, cn5)
+          else
+            ncache = max( nvdw, numsc(i) )
           end if
+#endif
+          call get_stack(l_real_df, ncache, routine)
+          call get_stack(l_real_x, ncache, routine)
+          call get_stack(l_real_y, ncache, routine)
+          call get_stack(l_real_z, ncache, routine)
+          call get_stack(l_real_r2, ncache, routine)
+          call get_istack(l_int, ncache, routine)
+          if (.not. rstack_ok) then
+            deallocate(r_stack)
+            allocate(r_stack(1:lastrst), stat=alloc_ier)
+            call reassign_rstack(routine)
+          endif
+          if (.not. istack_ok) then
+            deallocate(i_stack)
+            allocate(i_stack(1:lastist), stat=alloc_ier)
+            call reassign_istack(routine)
+          endif
+          REQUIRE(rstack_ok)
+          REQUIRE(istack_ok)
+          call short_ene(i, xk, ipairs(numpack), ntot, nvdw, nhbnd, &
+                         eedtbdns, eed_cub, eed_lin, charge, ntypes, iac, &
+                         ico, cn1, cn2, cn6, filter_cut, eelt, evdw, force, &
+                         dir_vir, ee_type, eedmeth, dxdr, eedvir, &
+                         r_stack(l_real_df), r_stack(l_real_x), &
+                         r_stack(l_real_y), r_stack(l_real_z), &
+                         r_stack(l_real_r2), i_stack(l_int), cn3, cn4, cn5)
+                      
+          call free_stack(l_real_r2,routine)
+          call free_stack(l_real_z,routine)
+          call free_stack(l_real_y,routine)
+          call free_stack(l_real_x,routine)
+          call free_stack(l_real_df,routine)
+          call free_istack(l_int,routine)
         end if  ! ( ntot > 0 )
         numpack = numpack + ntot
       end do  !  k = ncell_lo,ncell_hi

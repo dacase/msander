@@ -530,12 +530,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-  if (induced > 0 .and. indmeth < 3) then
-    write(6, 9190) diprms, dipiter
-  end if
-  if (induced > 0 .and. indmeth == 3) then
-    write(6, 9191) diprms, dipole_temp
-  end if
   if (ntp > 0.0 .or. volume /= 0.0) then
     write(6, 9079) densit
   end if
@@ -729,12 +723,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
       write(7,9070) epol
     end if
   endif
-  if (induced > 0 .and. indmeth < 3) then
-    write(7, 9190) diprms, dipiter
-  end if
-  if (induced > 0 .and. indmeth == 3) then
-    write(7, 9191) diprms, dipole_temp
-  end if
   if (ntp > 0.0 .or. volume /= 0.0) then
     write(7, 9079) densit
   end if

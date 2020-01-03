@@ -11,7 +11,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       xr,virvsene,pol,pol2,qm_pot_only, &
       cn3,cn4,cn5)
    use ew_recip
-   use ew_dipole_recip
    use stack
    use decomp, only: decpr
    use nblist, only: recip, cutoffnb,nbfilter, volume, &
@@ -153,29 +152,11 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    if(ips>0)then
      adj_vir=virexips
    endif
-! M-WJ
-!   if ( mpoltype == 1 )then
-   if ( mpoltype > 0 ) then
-!
-      call zero_array(frc,3*numatoms) ! note that ips and ipol are inconsistent
-      call zero_array(x(lfield),3*numatoms)
-   end if
 
    frcx(1:3) = 0.d0
    
    call timer_stop(TIME_EWFSTRT)
    if( numextra > 0 ) call local_to_global(crd,x,ix)
-#ifdef MPI
-! M-WJ
-!   if ( induced == 1 ) then
-   if ( induced > 0 ) then
-!
-      call timer_start(TIME_DISTDIP)
-      call xdist(x(linddip),x_temp,numatoms)
-      call timer_stop(TIME_DISTDIP)
-   end if
-#endif
-
    
    if( use_pme /= 0 .and. mod(irespa,nrespa) == 0) then
       
@@ -209,22 +190,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
               ASSERT( .false. )  ! ew_type input validation occurs in mdread.f
            end if
         
-           ! Get the dipole specific part of virial, which depends on recip 
-           ! efield.  Note this logic relies on the recip being done first; 
-           ! i.e. total efield is the recip efield at this point
-         
-           if ( mpoltype > 0 ) then
-
-              call dip_field_corr(x(lfield),x(linddip),rec_vir, &
-                    numatoms) !, commsander_mytaskid,commsander_numtasks)
-            
-              ! Get the energy and field contributions from the self-images 
-              ! of dipoles
-            
-              call self_dipole(numatoms,epols,ew_coeff,x(lfield), &
-                    x(linddip),commsander_mytaskid,commsander_numtasks)
-           end if
-         
            ! Scaleup forces, field for respa
          
            if ( nrespa > 1 ) &
@@ -471,23 +436,12 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    !--------------------------------------------------------
    if( use_pme /= 0 ) then
       call timer_start(TIME_ADJ)
-      if ( mpoltype == 0 )then
 
-         call nb_adjust(charge,eea,crd, &
-               ix(imask1),ix(imask2),numadjst, &
-               ew_coeff,eedtbdns, &
-               x(leed_cub),x(leed_lin),frc,numatoms,adj_vir, &
-               ee_type,eedmeth)
-
-! M-WJ
-!      else if ( mpoltype == 1 )then
-      else if ( mpoltype > 0 )then
-!
-         call nb_adjust_dipole(charge,eea,crd, &
-               ix(imask1),ix(imask2),numadjst,ew_coeff,eedtbdns, &
-               x(leed_cub),x(leed_lin),frc,numatoms,adj_vir, &
-               ee_type,eedmeth,x(linddip),x(lfield),epola)
-      end if
+      call nb_adjust(charge,eea,crd, &
+            ix(imask1),ix(imask2),numadjst, &
+            ew_coeff,eedtbdns, &
+            x(leed_cub),x(leed_lin),frc,numatoms,adj_vir, &
+            ee_type,eedmeth)
 
       call timer_stop(TIME_ADJ)
    end if
@@ -510,24 +464,15 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    ! do the 1-4 here & remove them from ephi
    !--------------------------------------------------------
 
-   if ( mpoltype == 0 )then
-      if (charmm_active) then
-        call get_14_cg(charge,crd,frc,iac, &
-              charmm_cn114,charmm_cn214, ee14,enb14,one_scee,one_scnb, &
-              e14vir,ix,commsander_mytaskid,commsander_numtasks,eedmeth)
-      ! mjhsieh: note that ff11cmap doesn't need to touch this
-      else
-        call get_14_cg(charge,crd,frc,iac, &
-              cn1,cn2, ee14,enb14,one_scee,one_scnb, &
-              e14vir,ix,commsander_mytaskid,commsander_numtasks,eedmeth)
-      end if
-   else if ( mpoltype > 0 ) then
-      call get_14_dipole(charge,crd,frc, &
-                         x(linddip),x(lfield), &
-                         iac,cn1,cn2, pol,pol2, &
-                         ee14,enb14,epol14,one_scee,one_scnb,e14vir,ix, &
-                         commsander_mytaskid,commsander_numtasks)
-
+   if (charmm_active) then
+     call get_14_cg(charge,crd,frc,iac, &
+           charmm_cn114,charmm_cn214, ee14,enb14,one_scee,one_scnb, &
+           e14vir,ix,commsander_mytaskid,commsander_numtasks,eedmeth)
+   ! mjhsieh: note that ff11cmap doesn't need to touch this
+   else
+     call get_14_cg(charge,crd,frc,iac, &
+           cn1,cn2, ee14,enb14,one_scee,one_scnb, &
+           e14vir,ix,commsander_mytaskid,commsander_numtasks,eedmeth)
    end if
 
    ! Now transfer force and torque from extra points:
@@ -596,27 +541,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 
 #ifdef MPI
    
-   !     Accumulate field; similar to accum force
-   
-! M-WJ
-!   if ( induced == 1 ) call fsum(x(lfield),x(lfrctmp),r_stack(1),r_stack(1))
-   if ( induced > 0 ) call fsum(x(lfield),x(lfrctmp),r_stack(1),r_stack(1))
-!
-#endif
-   
-   !     ---Now get dipole self energy if induced
-   
-! M-WJ
-!   if ( induced == 1 )then
-   if ( induced > 0 )then
-!
-      call get_dipinfo(numatoms,pol,x(lfield),x(linddip), &
-            x(ldipvel),dipself,dipkine,diprms,dipndf,indmeth)
-   end if
-#ifdef MPI
-   
    !     Accumulate the virials and energies
-   
    call mpi_allreduce(MPI_IN_PLACE,eer,BC_EW_COMM3, &
          MPI_DOUBLE_PRECISION, mpi_sum,commsander,ierr)
 
@@ -626,30 +551,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #  endif
 #endif /* MPI */
    
-   !     finish up dipole stuff. Note that we just need to scale by
-   !     degrees of freedom, which had to be summed over MPI procs.
-   !     hence not done in get_dipinfo
-   
-! M-WJ
-!   if ( induced == 1 )then
-   if ( induced > 0 )then
-!
-      if ( indmeth == 3 )then
-         boltz2 = 8.31441d-3 * 0.5d0
-         boltz2 = boltz2/4.184d0
-         dipkine = 0.5d0*dipmass*dipkine*INV_AMBER_ELECTROSTATIC2
-         diptemp = dipkine/(boltz2*3.d0*dipndf)
-      end if
-! M-WJ
-!     diprms = sqrt(diprms/dipndf)
-      if (dipndf /= 0) diprms = sqrt(diprms/dipndf)
-!
-      
-      !       ---change to Debye units
-      
-      diprms = diprms*4.8d0*INV_AMBER_ELECTROSTATIC
-   end if
-
 #ifdef LES
    eelt = ees + eer + eed + eea + eeles
 #else
@@ -731,7 +632,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
       field,prefac1,prefac2,prefac3,fftable,qm_pot_only)
    use ew_recip
    use ew_recip_spatial
-   use ew_dipole_recip
    use nblist, only: recip, volume
 #if defined(MPI) && !defined(LES)
    use fft,only:column_fft_flag
@@ -767,40 +667,28 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
    _REAL_ eer_sum
 #endif
 
-   if ( mpoltype == 0 )then
 #ifdef LES      
-    call do_pmesh_kspace(numatoms,crd,charge,frc, &
-           prefac1,prefac2,prefac3,fftable,qm_pot_only)
-           frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
+   call do_pmesh_kspace(numatoms,crd,charge,frc, &
+          prefac1,prefac2,prefac3,fftable,qm_pot_only)
+          frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
 
 #else /* LES */
 
 # ifdef MPI
-      if(column_fft_flag)then
-         call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
-              prefac1,prefac2,prefac3,qm_pot_only)
-      else
+     if(column_fft_flag)then
+        call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
+             prefac1,prefac2,prefac3,qm_pot_only)
+     else
 # endif         
-         call do_pmesh_kspace(numatoms,crd,charge,frc, &
-             prefac1,prefac2,prefac3,fftable,qm_pot_only)
+        call do_pmesh_kspace(numatoms,crd,charge,frc, &
+            prefac1,prefac2,prefac3,fftable,qm_pot_only)
 
 # ifdef MPI
-      endif
+     endif
 # endif
-      frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
+     frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
 
 #endif /* LES */
-
-! M-WJ
-!   else if ( mpoltype == 1 )then
-   else if ( mpoltype > 0 )then
-!
-      call do_pmesh_dipole_kspace( &
-            numatoms,crd,charge,recip,volume,ew_coeff, &
-            eer,frc,rec_vir,dipole,field,prefac1,prefac2,prefac3, &
-            fftable,frcx(1),frcx(2),frcx(3))
-      frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
-   end if  ! mpoltype
 
 end subroutine do_pme_recip
 
@@ -839,9 +727,6 @@ subroutine force_info(ees,eer,eed,eea, &
             'Evdw                   = ', evdw, &
             'Ehbond                 = ', ehb, &
             'Ecoulomb               = ', eelt
-      if (induced > 0) &
-      write(6, '((/,5x,a,f24.12))' ) &
-            'E polarization         = ', epol
       write(6, '(2(/,5x,a,f24.12))') &
             'Iso virial             = ', &
             molvir(1,1)+molvir(2,2)+molvir(3,3), &
@@ -858,20 +743,6 @@ subroutine force_info(ees,eer,eed,eea, &
 #endif
             ;
 
-! M-WJ
-!      if ( induced == 1 )then
-      if ( induced > 0 )then
-!
-         write(6, '(5x,a,a)') &
-               'E polarization  (rec)  : ', &
-               'Included in Electrostatic (rec)'
-         write(6, '(5(/,5x,a,f24.12),/)') &
-               'E polarization  (self) = ', epols, &
-               '                (dir)  = ', epold, &
-               '                (adj)  = ', epola, &
-               'E dip induction (pot)  = ', dipself, &
-               '            (kinetic)  = ', dipkine
-      end if
       write(6,30)molvir(1,1),molvir(1,2),molvir(1,3)
       write(6,30)molvir(2,1),molvir(2,2),molvir(2,3)
       write(6,30)molvir(3,1),molvir(3,2),molvir(3,3)

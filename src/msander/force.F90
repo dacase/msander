@@ -413,58 +413,49 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
     ! (for GB: do all nonbondeds together below)
     call timer_start(TIME_EWALD)
-      if (induced > 0) then
-        call handle_induced(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
-                            cn6, eelt, epolar, f, xx, ix, ipairs, xx(lpol), &
-                            xx(lpol2), xx(lpolbnd), xx(l45), virvsene, &
-                            ix(i02), ibgwat, nres, aveper, aveind, avetot, &
-                            emtot, diprms, dipiter, dipole_temp, &
-                            cn3, cn4, cn5)
-      else
-        if (ilrt /= 0) then
+    if (ilrt /= 0) then
 
-          ! Modifications for computing interaction energy
-          ! according to the Linear Response Theory, LIE module
-          if (do_lrt) then
+      ! Modifications for computing interaction energy
+      ! according to the Linear Response Theory, LIE module
+      if (do_lrt) then
 
-            ! call with molecule charges set to zero
-            call ewald_force(x, natom, ix(i04), ix(i06), crg_m0, cn1, cn2, &
-                             cn6, energy_m0, epolar, f_scratch, xx, ix, &
-                             ipairs, xx(l45), virvsene, xx(lpol), &
-                             xx(lpol2), .false. , cn3, cn4, cn5)
+        ! call with molecule charges set to zero
+        call ewald_force(x, natom, ix(i04), ix(i06), crg_m0, cn1, cn2, &
+                         cn6, energy_m0, epolar, f_scratch, xx, ix, &
+                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         xx(lpol2), .false. , cn3, cn4, cn5)
 
-            ! call with water charges set to zero
-            call ewald_force(x, natom, ix(i04), ix(i06), crg_w0, cn1, cn2, &
-                             cn6, energy_w0, epolar, f_scratch, xx, ix, &
-                             ipairs, xx(l45), virvsene, xx(lpol), &
-                             xx(lpol2), .false. , cn3, cn4, cn5)
-            ! call with full charges but no vdw interaction
-            ! between solute and solvent
-            call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1_lrt, &
-                             cn2_lrt, cn6, eelt, epolar, f_scratch, xx, ix, &
-                             ipairs, xx(l45), virvsene, xx(lpol), &
-                             xx(lpol2), .false. , cn3, cn4, cn5)
-            energy_vdw0 = evdw
-            call lrt_solute_sasa(x,natom, xx(l165))
-          end if
+        ! call with water charges set to zero
+        call ewald_force(x, natom, ix(i04), ix(i06), crg_w0, cn1, cn2, &
+                         cn6, energy_w0, epolar, f_scratch, xx, ix, &
+                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         xx(lpol2), .false. , cn3, cn4, cn5)
+        ! call with full charges but no vdw interaction
+        ! between solute and solvent
+        call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1_lrt, &
+                         cn2_lrt, cn6, eelt, epolar, f_scratch, xx, ix, &
+                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         xx(lpol2), .false. , cn3, cn4, cn5)
+        energy_vdw0 = evdw
+        call lrt_solute_sasa(x,natom, xx(l165))
+      end if
 
-          ! call normal_ewald force this will overwrite everything 
-          ! computed above except energy_m0 and energy_w0
-          call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
-                           cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
-                           virvsene, xx(lpol), &
-                           xx(lpol2), .false. , cn3, cn4, cn5)
-          energy_vdw0 = evdw - energy_vdw0
+      ! call normal_ewald force this will overwrite everything 
+      ! computed above except energy_m0 and energy_w0
+      call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
+                       cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
+                       virvsene, xx(lpol), &
+                       xx(lpol2), .false. , cn3, cn4, cn5)
+      energy_vdw0 = evdw - energy_vdw0
 
-          ! count call to ltr, maybe calculate Eee and print it
-          call ee_linear_response(eelt, master)
-        else ! just call ewald_force normally
-          call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
-                           cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
-                           virvsene, xx(lpol), &
-                           xx(lpol2), .false. , cn3, cn4, cn5)
-        end if ! ilrt /= 0
-      end if ! induced > 0
+      ! count call to ltr, maybe calculate Eee and print it
+      call ee_linear_response(eelt, master)
+    else ! just call ewald_force normally
+      call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
+                       cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
+                       virvsene, xx(lpol), &
+                       xx(lpol2), .false. , cn3, cn4, cn5)
+    end if ! ilrt /= 0
 
     call timer_stop(TIME_EWALD)
 #ifdef MPI

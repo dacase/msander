@@ -666,14 +666,8 @@ subroutine ewald_mem(maxpr,natom_local,numbad_nnb, &
    startr = startreal
    starti = startint
    ! point multipole stuff
-   if ( mpoltype >= 1 )then
-      call mpole_mem(natom_local,startr,endreal, &
-                     starti,endint, linddip,lfield, &
-                     leold1,leold2,leold3,ldipvel,indmeth)
-   else
-      linddip=1
-      lfield=1
-   end if
+   linddip=1
+   lfield=1
    starti = endint
    
    !     -- reals
@@ -1188,96 +1182,6 @@ subroutine load_ewald_info(inpcrd,ntp)
 
    return
 end subroutine load_ewald_info 
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!-------------------------------------------------------------------
-!     --- LOAD_EWALD_POL_INFO ---
-!-------------------------------------------------------------------
-!     Routine which sets up multipole-related parameters.
-!
-#ifdef API
-subroutine load_ewald_pol_info(ipol, pol, pol2, df, natom)
-#else
-subroutine load_ewald_pol_info(ipol, pol, pol2, df, natom, iok)
-#endif
-   implicit none
-#  include "ew_cntrl.h"
-#  include "ew_mpole.h"
-   integer ipol, i, natom
-#ifndef API
-   integer iok
-#endif
-   _REAL_ pol(*), pol2(*), df(*), sixth, small
-   
-   sixth = 1.d0/6.d0
-   small = 1.d-6
-
-!   induced = ipol
-
-   ! setup point multipoles
-   
-!   mpoltype = induced
-   if ( induced == 0 )then
-      irstdip =0
-      indmeth = 0
-   end if
-!
-   if ( ipol > 1 ) then
-      if ( dipdamp <= 0.d0 ) then
-         if ( ipol == 2 ) then
-            dipdamp = 0.572d0
-         else if ( ipol == 3 ) then
-            dipdamp = 2.089d0
-         else if ( ipol == 4 ) then
-            dipdamp = 1.662d0
-         end if
-#ifndef API
-         write(6,'(5X,a/5X,a,f12.4/)') &
-        '|  Thole coefficient dipdamp was not found in ewald control. ', &
-        '|  Use default value = ',dipdamp
-      else
-         write(6,'(5X,a,f12.4/)') &
-        '|  Thole coefficient dipdamp read from ewald control = ',dipdamp
-#endif
-      end if
-
-#ifndef API
-      if ( iok .eq. 0 ) then
-         write(6,'(5X,A)') &
-         '| Thole damping coefficients read from prmtop.'
-      else
-         write(6,'(5X,A/A,F12.5)') &
-         '| Thole damping coefficients are unavailable in prmtop.', &
-         '| Use default value dipdamp = ',dipdamp
-      end if
-#endif
-      do i = 1, natom
-         if (df(i) .le. small ) df(i) = dipdamp
-      end do
-
-   end if
-!
-   if ( ipol == 2 ) then
-! YD pre-calculate the factors for performance
-! Thole exponential
-       do i = 1,natom
-         pol2(i) = sqrt(pol(i)/df(i))
-       end do
-   else if ( ipol == 3) then
-! Thole exponential
-       do i = 1,natom
-         pol2(i) = pol(i)**sixth/sqrt(df(i))
-       end do
-   else if ( ipol == 4) then
-! Thole-linear
-       do i = 1,natom
-         pol2(i) = pol(i)**sixth*sqrt(df(i))
-       end do
-   end if
-
-   return
-end subroutine load_ewald_pol_info 
-
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine load_list_mask here]

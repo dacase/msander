@@ -1957,14 +1957,6 @@ subroutine mdread2(x,ix,ih)
    cut_inner = cut_inner*cut_inner
 
    !------------------------------------------------------------------------
-   ! If user has requested polarizable ff, set up variables
-   !------------------------------------------------------------------------
-
-   if ( ipol == 5 ) then
-      call ew_bndpol(natom,nbonh,nbona,ix(iibh),ix(ijbh),ix(iiba),ix(ijba),ih(m04),ih(m06))
-   end if
-
-   !------------------------------------------------------------------------
    ! If user has requested generalized born electrostatics, set up variables
    !------------------------------------------------------------------------
 

@@ -4450,7 +4450,6 @@ subroutine sander_cleanup()
    call adaptive_reset
    call shake_reset
    call ewald_self_reset
-   call handle_induced_reset
    call nxtsec_reset
    call deallocate_molecule
 

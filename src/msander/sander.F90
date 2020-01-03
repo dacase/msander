@@ -550,11 +550,6 @@ subroutine sander()
 #  endif
 #endif /* LES */
 
-        ! If this is a polarizable model, read input dipole information
-        if (igb == 0 .and. ipb == 0 .and. induced > 0) then
-          call get_dips(x, nr)
-        end if
-
         call xray_init()
 
         ! Set the initial velocities
@@ -1520,9 +1515,6 @@ subroutine sander()
     write(6, '(''|'',5x,''wallclock() was called'',I8,'' times'')') ncalls
     call flush(6)
 
-    if (iesp > 0) then
-      call esp(natom, x(lcrd) ,x(linddip))
-    end if
   end if
   call flush(6)
 
@@ -1589,7 +1581,7 @@ subroutine sander()
   REQUIRE(ier == 0)
   deallocate(x, stat=ier)
   REQUIRE(ier == 0)
-  if (ntb > 0 .and. ifbox == 1 .and. mpoltype == 0) then
+  if (ntb > 0 .and. ifbox == 1) then
     call deallocate_m1m2m3()
   end if
   call deallocate_molecule()
@@ -1602,91 +1594,3 @@ subroutine sander()
 
 end subroutine sander
 
-!------------------------------------------------------------------------------
-! esp: Calculate the ElectroStatic Potential for a system.
-!
-! Arguments:
-!   natom:     the number of atoms in the system
-!   x:         array of coordinates for the atoms
-!   mom_ind:   array of induced moments on each atom
-!------------------------------------------------------------------------------
-subroutine esp(natom, x, mom_ind)
-
-  ! Routine to calculate the ESP due to the induced moments (and only
-  ! those induced moments) at the same spatial points as the reference QM.
-  use constants, only : zero, BOHRS_TO_A, INV_AMBER_ELECTROSTATIC
-  use file_io_dat
-  implicit none
-  integer natom
-  _REAL_  x(3,*)
-  _REAL_  mom_ind(3,*)
-
-#  include "ew_mpole.h"
-
-  integer dat_unit, new_unit, minus_new_unit
-  parameter(dat_unit=30, new_unit=31, minus_new_unit=33)
-
-  integer inat, nesp, idum
-  _REAL_  xin, yin, zin
-  integer jn, kn
-  _REAL_  esp_qm, xb_esp, yb_esp, zb_esp
-  _REAL_  x_esp, y_esp, z_esp
-  _REAL_  e_x, e_y, e_z, e_q, esp_new
-  _REAL_  dist, dist3
-
-  call amopen(dat_unit,"esp.dat",'O','F','R')
-  call amopen(new_unit,"esp.induced",owrite,'F','W')
-  call amopen(minus_new_unit,"esp.qm-induced",owrite,'F','W')
-  read (dat_unit,'(3i5)')inat,nesp,idum
-  write(6,'(t2,''inat = '',i5)')inat
-  write(6,'(t2,''nesp = '',i5)')nesp
-
-  write(new_unit,'(2i5)')inat,nesp
-  write(minus_new_unit,'(2i5)')inat,nesp
-
-  if (inat /= natom) then
-    write(6,'(t2,''natom mismatch with esp file'')')
-    call mexit(6,1)
-  end if
-
-  do jn = 1,inat
-    read (dat_unit,'(17x,3e16.7)')xin,yin,zin
-    write(new_unit,'(17x,3e16.7)')xin,yin,zin
-    write(minus_new_unit,'(17x,3e16.7)')xin,yin,zin
-  end do
-
-  do jn = 1,nesp
-    e_x = zero
-    e_y = zero
-    e_z = zero
-    e_q = zero
-    read(dat_unit,'(1x,4f16.0)') esp_qm, xb_esp, yb_esp, zb_esp
-    x_esp = xb_esp * BOHRS_TO_A
-    y_esp = yb_esp * BOHRS_TO_A
-    z_esp = zb_esp * BOHRS_TO_A
-    do kn = 1, natom
-      dist = sqrt((x(1,kn)-x_esp)**2 + (x(2,kn)-y_esp)**2 + &
-                  (x(3,kn)-z_esp)**2)
-      dist3 = dist**3
-      e_x = e_x - mom_ind(1,kn)*(x(1,kn) - x_esp)/dist3
-      e_y = e_y - mom_ind(2,kn)*(x(2,kn) - y_esp)/dist3
-      e_z = e_z - mom_ind(3,kn)*(x(3,kn) - z_esp)/dist3
-    end do
-
-    e_x = e_x * BOHRS_TO_A * INV_AMBER_ELECTROSTATIC
-    e_y = e_y * BOHRS_TO_A * INV_AMBER_ELECTROSTATIC
-    e_z = e_z * BOHRS_TO_A * INV_AMBER_ELECTROSTATIC
-    e_q = e_q * BOHRS_TO_A * INV_AMBER_ELECTROSTATIC
-    esp_new = e_x + e_y + e_z
-    write(new_unit, '(1x,4e16.7)') esp_new, xb_esp, yb_esp, zb_esp
-    write(minus_new_unit, '(1x,4e16.7)') esp_qm-esp_new, &
-                                           xb_esp, yb_esp, zb_esp
-  end do
-
-  close(dat_unit)
-  close(new_unit)
-  close(minus_new_unit)
-
-  return
-
-end subroutine esp

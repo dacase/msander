@@ -46,8 +46,8 @@ MMOBJ = \
     constantph.o constants.o crg_reloc.o csa.o cshf.o \
     debug.o decnvh.o decomp.o degcnt.o dssp.o \
     dynlib.o egb.o emap.o ene.o erfcfun.o \
-    ew_bndpol.o ew_box.o ew_bspline.o ew_dipole_recip.o ew_fft.o \
-    ew_force.o ew_handle_dips.o ew_recip.o ew_setup.o extra_pts.o \
+    ew_box.o ew_bspline.o ew_fft.o \
+    ew_force.o ew_recip.o ew_setup.o extra_pts.o \
     fastwt.o file_io_dat.o findmask.o force.o getcor.o \
     icosasurf.o ips.o iwrap2.o les.o linear_response.o \
     lmodC.o lmod.o locmem.o matinv.o mbar.o \
@@ -55,7 +55,7 @@ MMOBJ = \
     mexit.o minrit.o molecule.o mtmdcall.o multisander.o \
     multitmd.o music_module.o new_time.o nmlsrc.o nmrcal.o \
     nmr.o nonbond_list.o parallel.o parms.o pcshift.o \
-    pearsn.o printe.o prn_dipoles.o qm_mm.o quench.o rand2.o \
+    pearsn.o printe.o qm_mm.o quench.o rand2.o \
     random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
     runmin.o sander_lib.o sander.o scaledMD.o set.o \
@@ -69,8 +69,8 @@ LESOBJ= \
     constante.o constantph.o constants.o crg_reloc.o csa.o \
     cshf.o debug.o decnvh.o decomp.o degcnt.LES.o \
     dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
-    erfcfun.o ew_bndpol.o ew_box.LES.o ew_bspline.oew_dipole_recip.o \
-    ew_fft.o ew_force.LES.o ew_handle_dips.o ew_recip.LES.o ew_setup.LES.o \
+    erfcfun.o ew_box.LES.o ew_bspline.o \
+    ew_fft.o ew_force.LES.o ew_recip.LES.o ew_setup.LES.o \
     extra_pts.LES.o fastwt.o file_io_dat.o findmask.o force.LES.o \
     getcor.LES.o icosasurf.o ips.o iwrap2.o KFReader.o \
     les.o linear_response.o lmodC.o lmod.LES.o locmem.LES.o \
@@ -78,7 +78,7 @@ LESOBJ= \
     mdwrit.LES.o memory_module.o mexit.o minrit.LES.o molecule.o \
     mtmdcall.o multisander.LES.o multitmd.o music_module.o new_time.o \
     nmlsrc.o nmrcal.o nmr.LES.o nonbond_list.LES.o parallel.LES.o \
-    parms.o pcshift.o pearsn.o printe.o prn_dipoles.o \
+    parms.o pcshift.o pearsn.o printe.o \
     prn_qmmm_dipole.o qm_mm.LES.o quench.o rand2.o random.o \
     rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o runmin.o \

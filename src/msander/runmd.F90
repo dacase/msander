@@ -1231,10 +1231,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   if (vv == 1) call quench(f, v)
 
-  ! Car-Parrinello on dipoles: note that the (small?) kinetic energy
-  ! of the dipoles is included in the epol energy.
-  if (induced > 0 .and. indmeth == 3) call cp_dips(natom,xx(lpol),xx,dt)
-
   if (isgld > 0) then
     call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
                x, f, v)
@@ -1618,10 +1614,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (ivdump .or. ivscm .or. ixdump) then
       call xdist(v, xx(lfrctmp), natom)
     endif
-    if (ixdump .and. (induced > 0 .and. indmeth == 3)) then
-      call xdist(xx(ldipvel), xx(lfrctmp), natom)
-      call xdist(xx(linddip), xx(lfrctmp), natom)
-    end if
     call timer_stop(TIME_DISTCRD)
   end if
   call timer_start(TIME_VERLET)
@@ -1821,9 +1813,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* LES */
 !------------------------------------------------------------------------------
 
-      if (igb == 0 .and. ipb == 0 .and. induced > 0 .and. indmeth == 3) then
-        call wrt_dips(xx(linddip), xx(ldipvel), nr, t, title)
-      end if
       if ((icnstph .ne. 0 .or. (icnste .ne. 0 .and. cpein_specified)) .and. &
           ((rem .ne. 0 .and. mdloop > 0) .or. rem == 0)) then
         call cnstphwriterestart(chrgdat)

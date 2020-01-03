@@ -183,13 +183,6 @@ subroutine rdparm1(nf)
    if (ipol == RETIRED_INPUT_OPTION) then
      ipol = 0
    end if
-! These two are actually used in the code.
-! RL: The use of ipol = 5 is temperary
-   if ( ipol < 5) then
-      mpoltype = ipol
-   else
-      mpoltype = 2 ! YD needs to confirm this
-   end if
    induced  = ipol
 
 #ifndef API
@@ -784,21 +777,6 @@ subroutine rdparm2(x,ix,ih,nf)
       CHECK_REQUIRED(iok, 'POLARIZABILITY')
       read(nf,fmt) (x(lpol+i-1),i=1,natom)
    end if
-
-! Modified by WJM
-   if (ipol > 1) then
-      fmtin = rfmt
-      type = 'DIPOLE_DAMP_FACTOR'
-      call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)
-      if ( iok .eq. 0 ) then
-         read(nf,fmt) (x(ldf+i-1),i=1,natom)
-      end if
-   end if
-#ifdef API
-   call load_ewald_pol_info(ipol, x(lpol), x(lpol2), x(ldf), natom)
-#else
-   call load_ewald_pol_info(ipol, x(lpol), x(lpol2), x(ldf), natom, iok)
-#endif
 
    ! Check that every atom is assigned to a molecule for NTP simulations. If
    ! not, segfaults or chaos will ensue.
