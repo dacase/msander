@@ -723,4 +723,3 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 
 end subroutine short_ene 
 
-#include "short_ene_dip.h"

@@ -2702,16 +2702,6 @@ prmtop_type.o:   prmtop_type.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prmtop_type.F90
 
-prn_dipoles.o: \
-                    ../include/dprec.fh\
-                    constants.o\
-                    qmmm_module.o
-
-
-prn_dipoles.o:   prn_dipoles.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prn_dipoles.F90
-
 prn_qmmm_dipole.o: \
                     ../include/dprec.fh\
                     qmmm_module.o\
@@ -3692,8 +3682,7 @@ short_ene.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h\
-                    short_ene_dip.h
+                    eedmeth2-6.h
 
 
 short_ene.o:   short_ene.F90
@@ -3724,8 +3713,7 @@ short_ene.LES.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h\
-                    short_ene_dip.h
+                    eedmeth2-6.h
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[SANDER]  FC $<'
