@@ -2,6 +2,8 @@ test::
 	-(cd dhfr && ./Run.dhfr)
 	-(cd dhfr && ./Run.dhfr.min)
 	-(cd dhfr && ./Run.dhfr.xmin)
+	-(cd gb8_trx && ./Run.trxox)
+	-(cd gb8_trx && ./Run.trxox_md)
 	-(cd tip4p && ./Run.tip4p)
 	-(cd tip4p && ./Run.tip4p_mcbar)
 	-(cd middle-scheme/MD_Constr_Langevin_water && ./Run.LGV_LF)
