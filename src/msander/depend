@@ -612,14 +612,6 @@ erfcfun.o:   erfcfun.F90
 	@echo '[SANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ erfcfun.F90
 
-ew_bndpol.o: \
-                    ../include/dprec.fh
-
-
-ew_bndpol.o:   ew_bndpol.F90
-	@echo '[SANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_bndpol.F90
-
 ew_box.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -1196,7 +1188,6 @@ interface.o: \
                     egb.o\
                     parms.o\
                     nonbond_list.o\
-                    ew_bndpol.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
@@ -1515,7 +1506,6 @@ mdread.o: \
                     egb.o\
                     parms.o\
                     nonbond_list.o\
-                    ew_bndpol.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.o\
@@ -1574,7 +1564,6 @@ mdread.LES.o: \
                     egb.LES.o\
                     parms.o\
                     nonbond_list.LES.o\
-                    ew_bndpol.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.LES.o\
@@ -1632,7 +1621,6 @@ mdread.PUPIL.o: \
                     egb.o\
                     parms.o\
                     nonbond_list.o\
-                    ew_bndpol.o\
                     sander_lib.o\
                     qmmm_vsolv_module.o\
                     mdfil.PUPIL.o\

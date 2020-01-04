@@ -1495,7 +1495,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use bndpol, only: ew_bndpol
    use md_scheme, only: therm_par
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
@@ -2341,14 +2340,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    cut = cut*cut
    cut_inner = cut_inner*cut_inner
-
-   !------------------------------------------------------------------------
-   ! If user has requested polarizable ff, set up variables
-   !------------------------------------------------------------------------
-
-   if ( ipol == 5 ) then
-      call ew_bndpol(natom,nbonh,nbona,ix(iibh),ix(ijbh),ix(iiba),ix(ijba),ih(m04),ih(m06))
-   end if
 
    !------------------------------------------------------------------------
    ! If user has requested generalized born electrostatics, set up variables

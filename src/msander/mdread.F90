@@ -1156,7 +1156,6 @@ subroutine mdread2(x,ix,ih)
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use bndpol, only: ew_bndpol
    use md_scheme, only: ithermostat
    use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
    use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e

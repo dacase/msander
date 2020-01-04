@@ -53,7 +53,6 @@
       3 RELAXATION_TRAJ
       1 RISM_DEBUG
      55 RISMSANDER
-      1 RISMSFF
       6 RREMD_DEBUG
       1 SANDER_H
       1 SFF_H
