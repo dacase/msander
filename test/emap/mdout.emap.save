@@ -1,0 +1,405 @@
+
+          -------------------------------------------------------
+          Amber 18 SANDER                              2018
+          -------------------------------------------------------
+
+| Run on 01/06/2020 at 15:14:25
+
+|   Executable path: ../../bin/msander
+| Working directory: /home/case/msander/test/emap
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: emapin                                                                
+| MDOUT: mdout.emap                                                            
+|INPCRD: gb1f.sta                                                              
+|  PARM: gb1f.top                                                              
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+
+ Here is the input file:
+
+Map Constraint Self-Guided Langevin dynamics                                   
+ &cntrl                                                                        
+    ntx=5, irest=1,ntb=0,nstlim=10,                                            
+    ntc=2, ntf=2, cut=9.0,temp0=300,tempi=300,                                 
+    ntpr=1, ntwr=0,ntwx=0, ithermostat=1, therm_par=10.0,nscm=100,             
+    dt=0.001, ntb=0,igb=1,ips=0,                                               
+   isgld=1, tsgavg=0.2, sgft=0.5,tempsg=0,                                     
+   iemap=1, ig=71277,                                                          
+ /                                                                             
+ &emap                                                                         
+  mapfile='',atmask=':1-19',fcons=0.1,move=1,                                  
+ /                                                                             
+ &emap                                                                         
+  mapfile='1gb1.map',atmask=':*',fcons=0.01,move=0,                            
+  ifit=0,grids=1,1,1,2,2,2,                                                    
+  mapfit='1gb1_fit.mrc',molfit='1gb1_fit.pdb'                                  
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+|Largest sphere to fit in unit cell has radius =   131.557
+ NATOM  =     855 NTYPES =      13 NBONH =     419 MBONA  =     442
+ NTHETH =     951 MTHETA =     600 NPHIH =    1914 MPHIA  =    1460
+ NHPARM =       0 NPARM  =       0 NNB   =    4698 NRES   =      56
+ NBONA  =     442 NTHETA =     600 NPHIA =    1460 NUMBND =      30
+ NUMANG =      65 NPTRA  =      37 NATYP =      21 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      24 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+ Implicit solvent radii are modified Bondi radii (mbondi)                                                   
+
+|     Memory Use     Allocated
+|     Real              298988
+|     Hollerith           2623
+|     Integer            65611
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total             2602 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+                                                                                
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       5, irest   =       1, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       2, ntb     =       0, igb     =       1, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   9.00000, intdiel =   1.00000
+     saltcon =   0.00000, offset  =   0.09000, gbalpha=    1.00000
+     gbbeta  =   0.00000, gbgamma =   0.00000, surften =   0.00500
+     rdt     =   0.00000, rgbmax  =  25.00000  extdiel =  78.50000
+     alpb  =        0
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =        10, nscm    =       100, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Langevin dynamics temperature regulation:
+     ig      =   71277
+     temp0   = 300.00000, tempi   = 300.00000, therm_par=  10.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.010 ps
+
+ Number of triangulated 3-point waters found:        0
+| Running OPENMP code, with OMP_NUM_THREADS = 4
+  _________________ SGLD parameters _________________
+  Parameters for self-guided Langevin dynamics (SGLD) simulation
+
+  Guiding range from     1  to   855
+  Local averaging time:     0.2000 ps 
+  Momentum guiding factor:   0.5000
+    SGLD  method is used to enhance conformational search. 
+  Collision frequency:   10.00 /ps
+  SGMD/SGLD output properties:
+  SGLF=  SGFT   TEMPSG   TEMPLF   TREFLF   FRCLF   EPOTLF    SGWT
+  SGHF=  SGFF   SGFD     TEMPHF   TREFHF   FRCHF   EPOTHF   VIRSG
+         SGMD/SGLD weighting factor=exp(SGWT)
+ _______________________________________________________
+
+ ------------------EMAP IMAGE    2 INPUT ---------------
+map file: 1gb1.map is read from unit:   99
+ LX, LY, LZ              =       30      20      20
+ MODE                    =        2
+ MX, MY, MZ              =      -15     -10     -10
+ NX, NY, NZ              =       30      20      20
+ XL, YL, ZL              =    45.00   30.00   30.00
+ ALPHA,BETA,GAMMA        =    90.00   90.00   90.00
+ MAPC, MAPR, MAPS        =        1       2       3
+ MIN,MAX,MEAN,STD        =   0.0000E+00  0.7801E+01  0.5157E+00  0.1224E+01
+ ISPG,NSYMBT=        0       0
+ LSKFLG,NNOTE=        0       3
+ SKWMAT                  =     1.00    0.00    0.00
+ SKWMAT                  =     0.00    1.00    0.00
+ SKWMAT                  =     0.00    0.00    1.00
+ SKWTRN                  =     0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ MAPLABEL                = EMAP
+ MACHST                  = ALL 
+ NOTES  1:  This map is created with the emap module                                       
+ NOTES  2:  Report questions to Dr. Xiongwu Wu                                             
+ NOTES  3:              Email: wuxw@nhlbi.nih.gov                                          
+ DATA POINT NUMBER       =    12000
+ ----------------------- END OF EMAP IMAGE    2  -------------------------- 
+Map    1 is created from    310 constrained atoms with resolution:  2.0
+ ------------------EMAP ID    1 CREATED ---------------
+ LX, LY, LZ              =       51      30      38
+ MODE                    =    2
+ MX, MY, MZ              =      -20     -16     -20
+ XL, YL, ZL              =    34.00   20.00   25.33
+ MIN,MAX,MEAN,STD        =   0.0000E+00  0.4438E+01  0.3658E-01  0.1848E+00
+ DATA POINT NUMBER       =    58140
+ ----------------------- END OF EMAP IMAGE    1  -------------------------- 
+Rigid    1 has    310 constrained atoms with mask: :1-19;                                                                                                                                                                                                                                                          
+    Rigid-fitting is not requested for the constrained atoms.
+    The constraint map is movable to follow the constrained atoms.
+Rigid    2 has    855 constrained atoms with mask: :*;                                                                                                                                                                                                                                                             
+    Rigid-fitting is not requested for the constrained atoms.
+    The constraint map is fixed in space.
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):    2146.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =    2146.     NUM_NOSHAKE =      0     CORRECTED RNDFP =    2146.
+|  TOTAL # of degrees of freedom (RNDF) =    2146.
+
+ NSTEP =        1   TIME(PS) =       0.011  TEMP(K) =   289.37  PRESS =     0.0
+ Etot   =     -1923.7229  EKtot   =       617.0014  EPtot      =     -2540.7243
+ BOND   =       159.7274  ANGLE   =       412.1703  DIHED      =       589.9095
+ 1-4 NB =       203.5664  1-4 EEL =      3041.8514  VDWAALS    =      -321.8182
+ EELEC  =     -5010.2468  EGB     =      -480.0403  RESTRAINT  =     -1135.8440
+ EAMBER (non-restraint)  =     -1404.8803
+ SGLF =   0.5000   300.00   21.2034   21.2029  0.9998     -2540.7243     0.0000
+ SGHF =   0.0000   0.0377  278.7966  278.7971  0.9998         0.0000     0.0000
+ EMAP   =     -1135.8440
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        2   TIME(PS) =       0.012  TEMP(K) =   288.54  PRESS =     0.0
+ Etot   =     -1923.1165  EKtot   =       615.2469  EPtot      =     -2538.3633
+ BOND   =       158.5789  ANGLE   =       416.6801  DIHED      =       589.7806
+ 1-4 NB =       203.7311  1-4 EEL =      3040.8093  VDWAALS    =      -323.5835
+ EELEC  =     -4938.5544  EGB     =      -550.0323  RESTRAINT  =     -1135.7731
+ EAMBER (non-restraint)  =     -1402.5903
+ SGLF =   0.5000   299.99   21.1937   21.1907  0.9997     -2540.7125    -0.0007
+ SGHF =   0.0000   0.0380  278.8063  278.8093  0.9997         2.3491     0.0000
+ EMAP   =     -1135.7731
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        3   TIME(PS) =       0.013  TEMP(K) =   295.73  PRESS =     0.0
+ Etot   =     -1908.2185  EKtot   =       630.5779  EPtot      =     -2538.7964
+ BOND   =       156.4908  ANGLE   =       420.3862  DIHED      =       589.9001
+ 1-4 NB =       204.0345  1-4 EEL =      3040.5983  VDWAALS    =      -325.5352
+ EELEC  =     -4959.1927  EGB     =      -529.9391  RESTRAINT  =     -1135.5392
+ EAMBER (non-restraint)  =     -1403.2573
+ SGLF =   0.5000   299.98   21.1842   21.1767  0.9996     -2540.7029    -0.0006
+ SGHF =   0.0000   0.0370  278.8158  278.8233  0.9995         1.9065     0.0000
+ EMAP   =     -1135.5392
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        4   TIME(PS) =       0.014  TEMP(K) =   300.78  PRESS =     0.0
+ Etot   =     -1896.3890  EKtot   =       641.3398  EPtot      =     -2537.7287
+ BOND   =       154.3686  ANGLE   =       424.1633  DIHED      =       590.4152
+ 1-4 NB =       204.4451  1-4 EEL =      3041.3126  VDWAALS    =      -327.3344
+ EELEC  =     -4917.7165  EGB     =      -572.2017  RESTRAINT  =     -1135.1809
+ EAMBER (non-restraint)  =     -1402.5478
+ SGLF =   0.5000   299.98   21.1747   21.1607  0.9994     -2540.6880    -0.0009
+ SGHF =   0.0000   0.0350  278.8253  278.8393  0.9993         2.9593     0.0000
+ EMAP   =     -1135.1809
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        5   TIME(PS) =       0.015  TEMP(K) =   306.55  PRESS =     0.0
+ Etot   =     -1883.1433  EKtot   =       653.6357  EPtot      =     -2536.7790
+ BOND   =       152.7828  ANGLE   =       427.9836  DIHED      =       591.2585
+ 1-4 NB =       204.7228  1-4 EEL =      3042.0394  VDWAALS    =      -329.0648
+ EELEC  =     -4945.6251  EGB     =      -546.1602  RESTRAINT  =     -1134.7159
+ EAMBER (non-restraint)  =     -1402.0631
+ SGLF =   0.5000   299.98   21.1653   21.1429  0.9993     -2540.6685    -0.0012
+ SGHF =   0.0000   0.0328  278.8347  278.8571  0.9992         3.8895     0.0000
+ EMAP   =     -1134.7159
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        6   TIME(PS) =       0.016  TEMP(K) =   305.60  PRESS =     0.0
+ Etot   =     -1880.6390  EKtot   =       651.6244  EPtot      =     -2532.2634
+ BOND   =       152.0900  ANGLE   =       432.4470  DIHED      =       592.2267
+ 1-4 NB =       204.9791  1-4 EEL =      3042.6778  VDWAALS    =      -330.6447
+ EELEC  =     -4863.0437  EGB     =      -628.8355  RESTRAINT  =     -1134.1602
+ EAMBER (non-restraint)  =     -1398.1033
+ SGLF =   0.5000   299.99   21.1560   21.1234  0.9992     -2540.6265    -0.0025
+ SGHF =   0.0000   0.0300  278.8440  278.8766  0.9991         8.3630     0.0000
+ EMAP   =     -1134.1602
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        7   TIME(PS) =       0.017  TEMP(K) =   305.04  PRESS =     0.0
+ Etot   =     -1882.7495  EKtot   =       650.4325  EPtot      =     -2533.1820
+ BOND   =       150.3754  ANGLE   =       433.5136  DIHED      =       592.8379
+ 1-4 NB =       205.0163  1-4 EEL =      3043.8786  VDWAALS    =      -331.8816
+ EELEC  =     -4867.6718  EGB     =      -625.7159  RESTRAINT  =     -1133.5344
+ EAMBER (non-restraint)  =     -1399.6476
+ SGLF =   0.5000   299.99   21.1468   21.1020  0.9991     -2540.5892    -0.0023
+ SGHF =   0.0000   0.0256  278.8532  278.8980  0.9990         7.4072     0.0000
+ EMAP   =     -1133.5344
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        8   TIME(PS) =       0.018  TEMP(K) =   307.22  PRESS =     0.0
+ Etot   =     -1885.5256  EKtot   =       655.0718  EPtot      =     -2540.5974
+ BOND   =       147.5085  ANGLE   =       429.9969  DIHED      =       592.8144
+ 1-4 NB =       204.8844  1-4 EEL =      3045.4086  VDWAALS    =      -332.8433
+ EELEC  =     -4906.9483  EGB     =      -588.5346  RESTRAINT  =     -1132.8841
+ EAMBER (non-restraint)  =     -1407.7133
+ SGLF =   0.5000   299.99   21.1377   21.0789  0.9990     -2540.5893    -0.0000
+ SGHF =   0.0000   0.0210  278.8623  278.9211  0.9989        -0.0081     0.0000
+ EMAP   =     -1132.8841
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        9   TIME(PS) =       0.019  TEMP(K) =   309.42  PRESS =     0.0
+ Etot   =     -1890.3234  EKtot   =       659.7688  EPtot      =     -2550.0922
+ BOND   =       144.0157  ANGLE   =       424.2095  DIHED      =       592.3646
+ 1-4 NB =       204.7539  1-4 EEL =      3047.3583  VDWAALS    =      -333.5795
+ EELEC  =     -4917.0769  EGB     =      -579.9201  RESTRAINT  =     -1132.2177
+ EAMBER (non-restraint)  =     -1417.8745
+ SGLF =   0.5000   300.00   21.1286   21.0542  0.9989     -2540.6368     0.0028
+ SGHF =   0.0000   0.0166  278.8714  278.9458  0.9989        -9.4554     0.0000
+ EMAP   =     -1132.2177
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   306.58  PRESS =     0.0
+ Etot   =     -1905.2575  EKtot   =       653.7001  EPtot      =     -2558.9576
+ BOND   =       141.7965  ANGLE   =       417.1109  DIHED      =       591.3868
+ 1-4 NB =       204.7464  1-4 EEL =      3049.7199  VDWAALS    =      -334.0275
+ EELEC  =     -4922.1930  EGB     =      -575.9458  RESTRAINT  =     -1131.5517
+ EAMBER (non-restraint)  =     -1427.4059
+ SGLF =   0.5000   300.00   21.1195   21.0282  0.9988     -2540.7284     0.0055
+ SGHF =   0.0000   0.0133  278.8805  278.9718  0.9988       -18.2292     0.0000
+ EMAP   =     -1131.5517
+ ------------------------------------------------------------------------------
+
+
+      A V E R A G E S   O V E R      10 S T E P S
+
+
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   301.48  PRESS =     0.0
+ Etot   =     -1897.9085  EKtot   =       642.8399  EPtot      =     -2540.7484
+ BOND   =       151.7735  ANGLE   =       423.8662  DIHED      =       591.2894
+ 1-4 NB =       204.4880  1-4 EEL =      3043.5654  VDWAALS    =      -329.0313
+ EELEC  =     -4924.8269  EGB     =      -567.7326  RESTRAINT  =     -1134.1401
+ EAMBER (non-restraint)  =     -1406.6083
+ SGLF =   0.5000   299.99   21.1610   21.1261  0.9993     -2540.6666     0.0000
+ SGHF =   0.0000   0.0287  278.8390  278.8739  0.9992        -0.0818     0.0000
+ EMAP   =     -1134.1401
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =     7.25  PRESS =     0.0
+ Etot   =        15.5607  EKtot   =        15.4503  EPtot      =         7.6323
+ BOND   =         5.6529  ANGLE   =         6.8383  DIHED      =         1.1681
+ 1-4 NB =         0.5000  1-4 EEL =         2.8860  VDWAALS    =         4.0953
+ EELEC  =        40.7672  EGB     =        42.0253  RESTRAINT  =         1.4589
+ EAMBER (non-restraint)  =         6.1735
+|E(PBS) =        14.2853
+ SGLF =   0.0000     0.01    0.0268    0.0563  0.0003         0.0505     0.0023
+ SGHF =   0.0000   0.0086    0.0268    0.0563  0.0003         7.6124     0.0000
+ EMAP   =         1.4589
+ ------------------------------------------------------------------------------
+
+ map object: 1gb1.map is written to: 1gb1_fit.mrc
+ LX, LY, LZ              =       30      20      20
+ MODE                    =        2
+ MX, MY, MZ              =      -15     -10     -10
+ NX, NY, NZ              =       30      20      20
+ XL, YL, ZL              =    45.00   30.00   30.00
+ ALPHA,BETA,GAMMA        =    90.00   90.00   90.00
+ MAPC, MAPR, MAPS        =        1       2       3
+ MIN,MAX,MEAN,STD        =   0.0000E+00  0.7801E+01  0.5157E+00  0.1224E+01
+ ISPG,NSYMBT=        0       0
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ EXTRA                   =     0.00    0.00    0.00    0.00    0.00
+ X0,Y0,Z0                =   -22.50  -15.00  -15.00
+ MAPLABEL                = EMAP
+ MACHST                  = ALL 
+ NOTES  1:  This map is created with the emap module                                       
+ NOTES  2:  Report questions to Dr. Xiongwu Wu                                             
+ NOTES  3:              Email: wuxw@nhlbi.nih.gov                                          
+ DATA POINT NUMBER       =    12000
+
+ Fit structure is written to: 1gb1_fit.pdb                                                                    
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|                Calc gb radii              0.10 (44.59% of Gen B)
+|                Calc gb diag               0.10 (43.29% of Gen B)
+|                Calc gb off-diag           0.03 (12.12% of Gen B)
+|             Gen Born time              0.23 (100.0% of Nonbo)
+|          Nonbond force              0.23 (93.52% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 2.02% of Force)
+|          Other                      0.01 ( 4.45% of Force)
+|       Force time                 0.25 (96.48% of Runmd)
+|       Verlet update time         0.01 ( 3.52% of Runmd)
+|    Runmd Time                 0.26 (87.37% of Total)
+|    Other                      0.04 (11.95% of Total)
+| Total time                 0.29 (100.0% of ALL  )
+
+| Number of list builds   :          0
+
+| Highest rstack allocated:          0
+| Highest istack allocated:          0
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =       0.26 Per Step(ms) =      26.20
+|         ns/day =       3.30   seconds/ns =   26200.00
+| -----------------------------------------------------
+
+|           Job began  at 15:14:25.568  on 01/06/2020
+|           Setup done at 15:14:25.598  on 01/06/2020
+|           Run   done at 15:14:25.860  on 01/06/2020
+|     wallclock() was called     263 times
