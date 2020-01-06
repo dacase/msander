@@ -38,8 +38,9 @@ module ml_mod
   ! starting_N_step:        Step number to start on.
   ! total_N_steps:          Step number to finish on.
   ! n_bins:                 Number of reflections per resolution bin
-  integer :: NRF,NRF_work, NRF_work_sq, NRF_free, &
+  integer :: NRF,NRF_work, NRF_free, &
              call_est, N_steps, starting_N_step, total_N_steps, n_bins
+  double precision :: NRF_work_sq
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -264,7 +265,6 @@ contains
     if (target(1:2) == 'ml') then
 
     ! Sort reflections for binning
-    allocate(b_vector_base(NRF_work))
     allocate(d_star_sq_sorted(NRF_free))
     r_free_counter = 0
     do i = 1, NRF
@@ -411,6 +411,7 @@ contains
 
     ! Setting up anisotropic scaling parameters:
 
+    allocate(b_vector_base(NRF_work))
     allocate(h_sq(NRF))
     allocate(k_sq(NRF))
     allocate(l_sq(NRF))
@@ -419,12 +420,12 @@ contains
     allocate(kl(NRF))
 
     do i = 1, NRF
-      h_sq(i) = hkl(1,i) * hkl(1,i)
-      k_sq(i) = hkl(2,i) * hkl(2,i)
-      l_sq(i) = hkl(3,i) * hkl(3,i)
-      hk(i) = hkl(1,i) * hkl(2,i)
-      hl(i) = hkl(1,i) * hkl(3,i)
-      kl(i) = hkl(2,i) * hkl(3,i)
+      h_sq(i) = hkl_index(1,i) * hkl_index(1,i)
+      k_sq(i) = hkl_index(2,i) * hkl_index(2,i)
+      l_sq(i) = hkl_index(3,i) * hkl_index(3,i)
+      hk(i) = hkl_index(1,i) * hkl_index(2,i)
+      hl(i) = hkl_index(1,i) * hkl_index(3,i)
+      kl(i) = hkl_index(2,i) * hkl_index(3,i)
     end do
     NRF_work_sq = NRF_work * NRF_work
     Ucryst(1, 1) = 1.0 / NRF_work

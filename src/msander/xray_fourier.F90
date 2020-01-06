@@ -331,15 +331,28 @@ contains
    end subroutine get_solvent_contribution
 
    subroutine scale_Fcalc(nstep)
-      use ml_mod, only : b_vector_base, NRF_work, &
-           NRF_work_sq, h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
+      use ml_mod, only : b_vector_base, NRF_work, NRF_work_sq, &
+           h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
       integer, intent(in) :: nstep
 
       real(real_kind) :: b(7), Uaniso(7)
 
       if (mod(nstep, scale_update_frequency) == 0) then
+#if 0
+         ! isotropic scaling for Fcalc, with same general notation:
+         NRF_work_sq = NRF_work * NRF_work
+         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+                      / NRF_work_sq
+         b(1) = sum(b_vector_base)
+         k_scale(:) = exp(b(1))
+         if(mytaskid==0) then
+           write(6,'(a)') '| updating   isotropic scaling: '
+           write(6,'(a,f10.5)') '|     ', k_scale(1)
+         endif
+#else
          ! anisotropic scaling for Fcalc:
+         NRF_work_sq = NRF_work * NRF_work
          b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
                       / NRF_work_sq
          b(1) = sum(b_vector_base)
@@ -351,14 +364,14 @@ contains
          b(7) = sum(b_vector_base * kl(1:NRF_work))
 
          Uaniso = matmul(MUcryst_inv, b)
-
          k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
              Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
          if (mytaskid == 0 ) then
-           write(6,'(a,f10.3)') '| updating anisotropic scaling: ',  &
-               exp(Uaniso(1))
-           write(6,'(a,6f10.3)') '|     ', b(2:7)
+           write(6,'(a)') '| updating anisotropic scaling: '
+           write(6,'(a,7f10.5)') '|     ', Uaniso
+           write(6,'(a,f10.5)')  '|     ', b(1)
          endif
+#endif
       endif
 
       Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
@@ -381,8 +394,8 @@ contains
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       integer, save :: nstep=0
 
+      abs_Fcalc(:) = abs(Fcalc(:))
       if( mod(nstep,scale_update_frequency) == 0 ) then
-         abs_Fcalc(:) = abs(Fcalc(:))
          if (present(selected)) then
             sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
             sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
@@ -397,8 +410,8 @@ contains
             write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
 
          norm_scale = 1.0_rk_ / sum_fo_fo
-         nstep = nstep + 1
       endif
+      nstep = nstep + 1
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
       abs_Fcalc(:) = abs(Fcalc(:))
@@ -443,40 +456,41 @@ contains
    ! restraint on the vector (complex) difference between Fcalc and
    ! Fobs
 
-   subroutine dTargetV_dF(deriv,residual,xray_energy)
+   subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
       implicit none
+      real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(:)
       real(real_kind), intent(out) :: residual
       real(real_kind), intent(out) :: xray_energy
 
-      real(real_kind) :: sum_fo_fc, sum_fo_fo, sum_fc_fc
-      real(real_kind) :: abs_Fcalc(num_hkl)
-      real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
+      ! step 1: get fcalc, including solvent mask contribution:
+      !  (atomic part already done in fourier_Fcalc)
+      call get_solvent_contribution(nstep, crd)
+
+#if 1
+      ! step 2: isotropic scaling:
       if (scale_update_frequency > 0 ) then
          if (mod(nstep,scale_update_frequency) == 0) then
-            sum_fo_fo = sum(abs_Fobs ** 2)
-            sum_fc_fc = sum(abs(Fcalc) ** 2)
-            sum_fo_fc = sum( real(Fobs * conjg(Fcalc)) )
-            Fcalc_scale = sum_fo_fc / sum_fc_fc
+            Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
             if (mytaskid == 0 ) &
               write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
-
-            norm_scale = 1.0_rk_ / sum_fo_fo
-            nstep = nstep + 1
+            norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
          endif
       else
          Fcalc_scale = 1.0_rk_
-         sum_fo_fo = sum(abs_Fobs ** 2)
-         norm_scale = 1.0_rk_ / sum_fo_fo
       endif
+#else
+      ! step 2: anisotropic scaling:
+      call scale_Fcalc( nstep )
+#endif
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
-      abs_Fcalc(:) = abs(Fcalc(:))
+      nstep = nstep + 1
 
-      vecdif(:) = Fobs(:) - Fcalc_scale * Fcalc(:)
+      vecdif(:) = Fobs(:) - Fcalc(:)
       xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
       deriv(:) = - norm_scale * 2._rk_ * Fcalc_scale * vecdif(:)
       residual = sum (abs(vecdif)) / sum(abs_Fobs)

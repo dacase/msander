@@ -284,7 +284,7 @@ subroutine mdread1()
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
    ithermostat = 1
-   therm_par = 5.0d0
+   therm_par = 0.0d0
 ! } 
 ! PLUMED
    plumed = 0
@@ -719,16 +719,17 @@ subroutine mdread1()
       end if
    end if
 
-   ! middle scheme is requested {
-      if (ithermostat < 0 .or. ithermostat > 2) then
-         write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 0-2'
-         FATAL_ERROR
-      end if
-      if (therm_par < 0d0) then
-         write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
-         FATAL_ERROR
-      end if
+   ! middle scheme is now the only scheme {
+   gamma_ln = therm_par  !  gamma_ln is the old variable in ../include/md.h
+   if (ithermostat < 0 .or. ithermostat > 2) then
+      write(6,'(1x,a,/)') &
+         'Middle scheme: ithermostat is only available for 0-2'
+      FATAL_ERROR
+   end if
+   if (therm_par < 0d0) then
+      write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+      FATAL_ERROR
+   end if
    ! }
 
    ! Now that we've read the input file, set up the defaults for variables

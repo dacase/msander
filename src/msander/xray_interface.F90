@@ -107,11 +107,12 @@ contains
       write(stdout,'(5X,2(A,F8.3))') 'Resolution Range: ',resolution_low,',',resolution_high
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ',xray_weight
       write(stdout,'(5X,A,A4)') 'Use target: ',target
+      write(stdout,'(5X,A,I5)') 'Scale update Interval: ',scale_update_frequency
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
       ! write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
       ! write(stdout,'(5X,2A)') 'Solvent Mask Reflection OutFile:',trim(solvent_mask_reflection_outfile)
-      write(stdout,'(5X,A,I4)') 'Solvent Mask Update Interval: ',mask_update_frequency
+      write(stdout,'(5X,A,I5)') 'Solvent Mask Update Interval: ',mask_update_frequency
       write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',k_sol,', B-factor:', b_sol
       write(stdout,'(5X,A,I2)')   'FFT method: ',fft_method
       if( fft_method > 0 ) then
@@ -638,15 +639,21 @@ contains
       if (master .and. fmtz_outfile /= '') then
          open(20,file=trim(fmtz_outfile),action='write')
          if( target(1:3) == 'vls' ) then
+            ! rdb header:
+            write(20,'(13a)') 'h', achar(9), 'k', achar(9), 'l', achar(9), &
+               'Fobsr', achar(9), 'Fcalcr', achar(9), 'Fobsi', achar(9), &
+               'Fcalci' 
+            write(20,'(13a)') '4N', achar(9), '4N', achar(9), '4N', achar(9), &
+               '15N', achar(9), '15N', achar(9), '15N', achar(9), '15N' 
             do i=1,num_hkl
 #  if 1
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
-                aimag(Fobs(i)), achar(9), aimag(Fcalc(i)) 
+                Fobs(i)%re, achar(9), Fcalc(i)%re, achar(9),  &
+                Fobs(i)%im, achar(9), Fcalc(i)%im 
 #  else
-               phi = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               phi = atan2( Fcalc(i)%im, Fcalc(i)%re ) * 57.2957795d0
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
                 abs_Fcalc(i), achar(9), phi
@@ -749,7 +756,7 @@ contains
       endif
 
       if( target(1:3) == 'vls' ) then
-         call dTargetV_dF(deriv=dF, residual=r_work, xray_energy=xray_energy)
+         call dTargetV_dF(xyz, deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if( target(1:2) == 'ls' ) then
          call dTargetLS_dF(selected=test_flag,deriv=dF,xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then

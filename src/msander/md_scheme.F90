@@ -151,6 +151,6 @@ contains
       write(*,*) 'Error in '//routine//': unknown ithermostat'
       stop
     end select
-  end subroutine
+  end subroutine thermostat_step
 
 end module
