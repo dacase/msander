@@ -1,0 +1,331 @@
+
+          -------------------------------------------------------
+          Amber 18 SANDER                              2018
+          -------------------------------------------------------
+
+| Run on 01/05/2020 at 19:59:57
+
+|   Executable path: ../../../bin/msander.MPI
+| Working directory: /home/case/msander/test/softcore/electro
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin.1                                                                
+| MDOUT: out.1                                                                 
+|INPCRD: rst.1                                                                 
+|  PARM: prmtop.1                                                              
+|RESTRT: restrt.1                                                              
+|  REFC: refc                                                                  
+| MDVEL: mdvel.001                                                             
+| MDFRC: mdfrc.001                                                             
+|  MDEN: mden.001                                                              
+| MDCRD: mdcrd.001                                                             
+|MDINFO: mdinfo.001                                                            
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
+
+ Here is the input file:
+
+NPT run V1                                                                     
+ &cntrl                                                                        
+  imin = 0, ntx = 5, irest = 1,                                                
+  ntpr = 5, ntwr = 0, ntwx = 0, ntxo=1,                                        
+  ntf = 1, ntc = 2, cut = 9.0,                                                 
+  ntb = 1, nstlim = 20, dt = 0.002,                                            
+  temp0 = 300.0,	ithermostat = 1,	therm_par = 2.,                              
+  icfe = 1, clambda = 0.30,                                                    
+  ifsc = 1,                                                                    
+  scmask = '',                                                                 
+  crgmask = '',                                                                
+  scalpha = 0.4,                                                               
+  scbeta = 8,                                                                  
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags: MPI                                                                    
+ getting new box info from bottom of inpcrd
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    13.787
+ NATOM  =    2984 NTYPES =       3 NBONH =    2238 MBONA  =     746
+ NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
+ NHPARM =       0 NPARM  =       0 NNB   =    5222 NRES   =     746
+ NBONA  =     746 NTHETA =       0 NPHIA =       0 NUMBND =       3
+ NUMANG =       0 NPTRA  =       0 NATYP =       3 NPHB   =       1
+ IFBOX  =       1 NMXRS  =       4 IFCAP =       0 NEXTRA =     746
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              496285
+|     Hollerith           9700
+|     Integer           100582
+|     Max Pairs        1588680
+|     nblistReal         35808
+|     nblist Int        100682
+|       Total            11186 kbytes
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+eto                                                                             
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       5, irest   =       1, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =       5, ntrx    =       1, ntwr    =      20
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   9.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =        20, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00200, vlimit  =  20.00000
+
+Langevin dynamics temperature regulation:
+     ig      =   71277
+     temp0   = 300.00000, tempi   =   0.00000, therm_par=   2.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
+
+Extra-points options:
+     frameon =       1, chngmask=       1
+
+Free energy options:
+     icfe    =       1, ifsc    =       1, klambda =       1
+     clambda =  0.3000, scalpha =  0.4000, scbeta  =  8.0000
+     sceeorder =       2 dvdl_norest =       0
+     dynlmb =  0.0000 logdvdl =       0
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     Box X =   29.039   Box Y =   28.061   Box Z =   27.575
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   30       NFFT2 =   30       NFFT3 =   27
+     Cutoff=    9.000   Tol   = 0.100E-04
+     Ewald Coefficient =  0.30768
+     Interpolation order =    4
+
+| MPI Timing options:
+|      profile_mpi =        0
+|      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =  2238     0
+|      EXTRA_PTS, trim_bonds: num bonds AFTER  trim =  2238     0
+|      EXTRA_PTS, trim_bonds: num bonds BEFORE trim =   746     0
+|      EXTRA_PTS, trim_bonds: num bonds AFTER  trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle BEFORE trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle AFTER  trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle BEFORE trim =     0     0
+|      EXTRA_PTS, trim_theta: num angle AFTER  trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
+|      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+eto                                                                             
+ begin time read from input coords =  2105.000 ps
+
+ Number of triangulated 3-point waters found:      746
+|  Atom division among processors:
+|         0    1492    2984
+       
+     Softcore Mask  matches     0 atoms
+     this run corresponds to V1, its softcore atoms interact fully for lambda=1
+     this process:   2984 atoms, partner process:   2993 atoms
+     Checking for mismatched coordinates.
+
+     Sum of charges for TI region  1 =   0.00000282
+     Forcing neutrality...
+
+
+     Sum of charges for TI region  2 =   0.00000082
+     Forcing neutrality...
+
+|  Running AMBER/MPI version on    2 nodes
+
+|  MULTISANDER:    2 groups.    2 processors out of    4 total.
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):    6714.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =    6714.     NUM_NOSHAKE =      0     CORRECTED RNDFP =    6714.
+|  TOTAL # of degrees of freedom (RNDF) =    6714.
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
+| CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =     551818
+| TOTAL SIZE OF NONBOND LIST =    1099567
+
+ NSTEP =        5   TIME(PS) =    2105.010  TEMP(K) =   297.66  PRESS =     0.0
+ Etot   =     -6946.4449  EKtot   =      1323.7901  EPtot      =     -8270.2350
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      1543.9485
+ EELEC  =     -9814.1835  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         3.5365
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =       10   TIME(PS) =    2105.020  TEMP(K) =   293.85  PRESS =     0.0
+ Etot   =     -6946.0037  EKtot   =      1306.8524  EPtot      =     -8252.8561
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      1543.4436
+ EELEC  =     -9796.2997  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         3.6660
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =       15   TIME(PS) =    2105.030  TEMP(K) =   300.65  PRESS =     0.0
+ Etot   =     -6936.7134  EKtot   =      1337.1086  EPtot      =     -8273.8220
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      1541.9050
+ EELEC  =     -9815.7271  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         7.2646
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =       20   TIME(PS) =    2105.040  TEMP(K) =   300.46  PRESS =     0.0
+ Etot   =     -6928.6243  EKtot   =      1336.2678  EPtot      =     -8264.8921
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      1535.8695
+ EELEC  =     -9800.7616  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         8.6749
+ ------------------------------------------------------------------------------
+
+
+      A V E R A G E S   O V E R      20 S T E P S
+
+
+ NSTEP =       20   TIME(PS) =    2105.040  TEMP(K) =   297.82  PRESS =     0.0
+ Etot   =     -6941.3554  EKtot   =      1324.5098  EPtot      =     -8265.8653
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      1541.3014
+ EELEC  =     -9807.1667  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         5.5304
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =       20   TIME(PS) =    2105.040  TEMP(K) =     2.38  PRESS =     0.0
+ Etot   =         5.2446  EKtot   =        10.5818  EPtot      =         7.8615
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         2.8571
+ EELEC  =         7.3493  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         1.9900
+|E(PBS) =         4.7125
+ ------------------------------------------------------------------------------
+
+
+      DV/DL, AVERAGES OVER      20 STEPS
+
+
+ NSTEP =       20   TIME(PS) =    2105.040  TEMP(K) =    -2.71  PRESS =     0.0
+ Etot   =       -12.0602  EKtot   =       -12.0602  EPtot      =         5.5304
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         3.2930
+ EELEC  =         2.2373  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ DV/DL  =         5.5304
+ ------------------------------------------------------------------------------
+
+      TI atoms summary
+
+ ------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Build the list             0.03 (84.00% of List )
+|                Other                      0.01 (16.00% of List )
+|             List time                  0.04 (16.97% of Nonbo)
+|                   Short_ene time             0.15 (98.68% of Direc)
+|                   Other                      0.00 ( 1.32% of Direc)
+|                Direct Ewald time          0.15 (82.83% of Ewald)
+|                   Fill Bspline coeffs        0.00 (10.87% of Recip)
+|                   Fill charge grid           0.00 ( 6.52% of Recip)
+|                   Scalar sum                 0.00 ( 6.52% of Recip)
+|                   Grad sum                   0.01 (41.30% of Recip)
+|                      FFT back comm time         0.00 (40.00% of FFT t)
+|                      Other                      0.00 (60.00% of FFT t)
+|                   FFT time                   0.01 (32.61% of Recip)
+|                   Other                      0.00 ( 2.17% of Recip)
+|                Recip Ewald time           0.02 (12.53% of Ewald)
+|                Force Adjust               0.01 ( 3.00% of Ewald)
+|                Other                      0.00 ( 1.09% of Ewald)
+|             Ewald time                 0.18 (83.03% of Nonbo)
+|          Nonbond force              0.22 (100.0% of Force)
+|       Force time                 0.22 (87.70% of Runmd)
+|       Verlet update time         0.02 ( 9.72% of Runmd)
+|       CRD distribute time        0.00 ( 1.39% of Runmd)
+|    Runmd Time                 0.25 (85.42% of Total)
+|    Other                      0.04 (13.90% of Total)
+| Total time                 0.30 (100.0% of ALL  )
+
+| Number of list builds   :          2
+
+| Highest rstack allocated:     111527
+| Highest istack allocated:       2505
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =       0.26 Per Step(ms) =      12.85
+|         ns/day =      13.45   seconds/ns =    6425.00
+| -----------------------------------------------------
+
+|           Job began  at 19:59:57.864  on 01/05/2020
+|           Setup done at 19:59:57.908  on 01/05/2020
+|           Run   done at 19:59:58.164  on 01/05/2020
+|     wallclock() was called    1161 times

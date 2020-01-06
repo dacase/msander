@@ -1,0 +1,51 @@
+#!/bin/sh
+
+sander="../../../bin/msander.MPI"
+
+if [ -z "$DO_PARALLEL" ]; then
+   echo "TI tests must be run in parallel -- skipping"
+   exit 0
+fi
+
+cat > mdin.0 <<EOF
+NPT production
+ &cntrl
+  imin = 1,	
+  ntpr = 10,	ntwr = 0,	ntwx = 0,
+  ntf = 1,	ntc = 2,
+  ntb = 1,	cut = 9.0,
+  maxcyc = 100, ntmin = 2,
+  icfe=1,       clambda = 0.50000,
+  ifsc=1,       scmask=':1', ntxo=1,
+ /
+EOF
+
+cat > mdin.1 <<EOF
+NPT production
+ &cntrl
+  imin = 1,	
+  ntpr = 10,	ntwr = 0,	ntwx = 0,
+  ntf = 1,	ntc = 2,
+  ntb = 1,	cut = 9.0,
+  maxcyc = 100, ntmin = 2,
+  icfe=1,       clambda = 0.50000,
+  ifsc=1,       scmask='', ntxo=1,
+ /
+EOF
+
+cat > groupfile <<EOF
+-O -i mdin.0 -o out.0 -p ../prmtop.0 -c ../rst.0 -r restrt.0
+-O -i mdin.1 -o out.1 -p ../prmtop.1 -c ../rst.1 -r restrt.1
+EOF
+
+$DO_PARALLEL $sander -ng 2 -groupfile groupfile \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif out.0.save out.0
+../../dacdif out.1.save out.1
+../../dacdif restrt.0.save restrt.0
+../../dacdif restrt.1.save restrt.1
+
+/bin/rm -f mdin.0 mdin.1 mdinfo* groupfile
+exit 0
+

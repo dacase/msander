@@ -9,6 +9,7 @@ test::
 	-(cd middle-scheme/MD_Constr_Langevin_water && ./Run.LGV_LF)
 	-(cd middle-scheme/MD_Unconstr_Langevin_water && ./Run.LGV_LF)
 	-(cd middle-scheme/QMMM_Constr_ALA_Methol && Run.qmmm)
+	-(cd softcore && ./Run_sc)
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin)
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin_md)
 	-(cd rism3d/4lzt && ./Run.4lzt.pme)
