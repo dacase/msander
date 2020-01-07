@@ -220,13 +220,8 @@ contains
       ihkl2 = num_hkl
 #endif
 
-#ifdef USE_ISCALE
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
 !$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor )
-#else
-!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )
-#endif
       REFLECTION: do ihkl = ihkl1,ihkl2
 
          do i = 1,num_scatter_types
@@ -336,10 +331,11 @@ contains
       implicit none
       integer, intent(in) :: nstep
 
+      real(real_kind) :: sum_fo_fc, sum_fc_fc
       real(real_kind) :: b(7), Uaniso(7)
 
       if (mod(nstep, scale_update_frequency) == 0) then
-#if 0
+#if 1
          ! isotropic scaling for Fcalc, with same general notation:
          NRF_work_sq = NRF_work * NRF_work
          b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
@@ -351,6 +347,15 @@ contains
            write(6,'(a,f10.5)') '|     ', k_scale(1)
          endif
 #else
+         ! isotropic scaling from dtargetLS:
+
+         sum_fo_fc = sum(abs_Fobs(1:NRF_work) * abs(Fcalc(1:NRF_work)))
+         sum_fc_fc = sum(abs(Fcalc(1:NRF_work)) ** 2)
+         Fcalc_scale = sum_fo_fc / sum_fc_fc
+         if (mytaskid == 0 ) &
+            write(6,'(a,f12.5)') '| simple   isotropic scaling: ',Fcalc_scale
+         k_scale(:) = Fcalc_scale
+
          ! anisotropic scaling for Fcalc:
          NRF_work_sq = NRF_work * NRF_work
          b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
@@ -369,7 +374,8 @@ contains
          if (mytaskid == 0 ) then
            write(6,'(a)') '| updating anisotropic scaling: '
            write(6,'(a,7f10.5)') '|     ', Uaniso
-           write(6,'(a,f10.5)')  '|     ', b(1)
+           write(6,'(a,2f10.5)')  '|     ', exp(b(1))
+           write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
          endif
 #endif
       endif
@@ -533,6 +539,7 @@ contains
       endif
 
       ! ML target function
+#if 0
       xray_energy = 0._rk_
       do i=1,NRF_work
          x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
@@ -540,6 +547,15 @@ contains
          eterm2 = ln_of_i0(x)
          xray_energy = xray_energy + eterm1 - eterm2
       enddo
+#else
+      ! Oleg new version, Dec. 2019:
+      xray_energy = sum(abs_Fobs(1:NRF_work)**2 / beta_array(1:NRF_work) - &
+            log(2*abs_Fobs(1:NRF_work)/beta_array(1:NRF_work)) +  &
+            alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
+            abs_Fcalc(1:NRF_work) * abs_Fcalc(1:NRF_work) - &
+            ln_of_i0(2 * delta_array(1:NRF_work) * abs_Fcalc(1:NRF_work) * &
+            abs_Fobs(1:NRF_work)))
+#endif
 
       nstep = nstep + 1
 
