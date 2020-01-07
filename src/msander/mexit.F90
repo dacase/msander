@@ -51,13 +51,5 @@ subroutine mexit(output_unit, status)
     close(unit = output_unit)
   endif
 
-#ifdef XLF90
-  if (status /= 0) then
-    stop 1
-  else
-    stop 0
-  endif
-#else
   call exit(status)
-#endif
 end subroutine mexit 
