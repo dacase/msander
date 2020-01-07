@@ -674,8 +674,6 @@ contains
          close(20)
       endif
 
-      ! if (target(1:2) == 'ml') call finalize_ml_mod()
-
       deallocate(atom_bfactor,atom_occupancy,atom_scatter_type, &
             atom_selection,residue_chainid,residue_icode, &
             atom_element,atom_altloc,residue_number, &
