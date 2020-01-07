@@ -1934,9 +1934,6 @@ subroutine mdread2(x,ix,ih)
 !---- XRAY Options ----
    if( xray_active ) then
       call xray_write_options()
-#ifdef USE_ISCALE
-      iscale = natom
-#endif
    endif
 
 ! ----EMAP Options-----

@@ -165,9 +165,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! Local
   _REAL_                     :: ene(30)    !Used locally ONLY
   type(potential_energy_rec) :: pot        !Used locally ONLY
-#ifdef USE_ISCALE
   logical, save :: first=.true.
-#endif
 
 #if defined(LES) && defined(MPI)
   _REAL_  :: nrg_bead(nbead)
@@ -834,19 +832,19 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! Built-in X-ray target function and gradient
   xray_energy = 0.d0
   if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
-#ifdef USE_ISCALE
-     if (first) then
-        ! set coordinates to current bfactors:
-        x(3*natom+1:4*natom) = atom_bfactor(1:natom)
-        first = .false.
+     if( iscale > 0 ) then
+        if (first) then
+           ! set coordinates to current bfactors:
+           x(3*natom+1:4*natom) = atom_bfactor(1:natom)
+           first = .false.
+        else
+           ! get current bfactors from the end of the coordinate array:
+           atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+        endif
+        call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
      else
-        ! get current bfactors from the end of the coordinate array:
-        atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+        call xray_get_derivative(x,f,xray_e)
      endif
-     call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
-#else
-     call xray_get_derivative(x,f,xray_e)
-#endif
   endif
 
     ! Calculate the total energy and group the components
