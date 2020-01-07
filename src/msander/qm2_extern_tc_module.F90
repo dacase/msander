@@ -130,20 +130,10 @@ contains
     end if
 
 #ifdef MPI
-# ifndef MPI_1
     if (tc_nml%mpi==1 ) then ! Do mpi (forced to 0 ifndef MPI)
       call mpi_hook( trim(tplfile), nqmatoms, qmcoords, qmtypes, nclatoms, clcoords,&
         tc_nml, escf, dxyzqm, dxyzcl, dipmom, qmcharges, do_grad, id, charge, spinmult )
     else
-# else
-    ! If we are using MPI 1.x the code will not compile since
-    ! MPI_LOOKUP_NAME is part of the MPI 2 standard, so  just quit
-    if (tc_nml%mpi==1 ) then 
-    call sander_bomb('(qm2_extern_tc_module)', &
-      '&unsupported MPI version', &
-      'Will quit now.')
-    else
-# endif
 #endif
       
        call system('rm -f '//inpfile)
@@ -422,7 +412,7 @@ contains
 
   end subroutine print_namelist
 
-#if defined(MPI) && !defined(MPI_1)
+#ifdef MPI
   ! Perform MPI communications with terachem. Requires MPI 2.0 or above to use
   subroutine mpi_hook( tplfile, nqmatoms, qmcoords, qmtypes, nclatoms, clcoords,&
        tc_nml, escf, dxyzqm, dxyzcl, dipmom, qmcharges, do_grad, id, charge, spinmult )

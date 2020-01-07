@@ -196,17 +196,9 @@ module qm2_extern_module
     if (trim(extern_program) == 'genmpi') &
       call sander_bomb("qm2_extern_select_program", "cannot use genmpi", &
             "You must compile with MPI to use 'genmpi' external QM")
-#else
-#  ifdef MPI_1
-    if (trim(extern_program) == 'genmpi') &
-       call sander_bomb("qm2_extern_select_program", &
-            'unsupported MPI version (need MPI version 2 or larger).', &
-            'Will quit now.')
-#  endif
 #endif /* MPI */
 
   end subroutine select_program
-
 
   ! Check whether program supports electronic embedding
   subroutine check_electrostatic_embedding(nclatoms, qmmm_int, extern_program)
