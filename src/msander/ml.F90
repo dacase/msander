@@ -137,32 +137,34 @@ contains
   !----------------------------------------------------------------------------
   function ln_of_i0 (x) result(bessel_lni0)
 
-    double precision, intent(in) :: x
-    double precision :: bessel_lni0
+    double precision, intent(in) :: x(NRF_work) 
+    double precision :: bessel_lni0(NRF_work)
     double precision :: y, abs_x
     integer :: i
 
-    abs_x = abs(x)
-    if (abs_x/3.75 < 1.0) then
-      y = x / 3.75
-      y = y * y
-      bessel_lni0 = 1.0 + y*(3.5156229 + &
-                                y*(3.0899424 + &
-                                   y*(1.2067492 + &
-                                      y*(0.2659732 + &
-                                         y*(0.0360768 + y*0.0045813)))))
-      bessel_lni0 = log(bessel_lni0);
-    else
-      y = 3.75 / abs_x
-      y = 0.39894228 + y*(0.01328592 + &
-                          y*(0.00225319 + &
-                             y*(-0.00157565 + &
-                                y*(0.00916281 + &
-                                   y*(-0.02057706 + &
-                                      y*(0.02635537 + &
-                                         y*(-0.01647633 + y*0.00392377)))))))
-      bessel_lni0 = log(y) + abs_x - 0.5 * log(abs_x);
-    end if
+    do i=1,NRF_work
+       abs_x = abs(x(i))
+       if (abs_x/3.75 < 1.0) then
+         y = x(i) / 3.75
+         y = y * y
+         bessel_lni0(i) = 1.0 + y*(3.5156229 + &
+                                   y*(3.0899424 + &
+                                      y*(1.2067492 + &
+                                         y*(0.2659732 + &
+                                            y*(0.0360768 + y*0.0045813)))))
+         bessel_lni0(i) = log(bessel_lni0(i));
+       else
+         y = 3.75 / abs_x
+         y = 0.39894228 + y*(0.01328592 + &
+                             y*(0.00225319 + &
+                                y*(-0.00157565 + &
+                                   y*(0.00916281 + &
+                                      y*(-0.02057706 + &
+                                         y*(0.02635537 + &
+                                            y*(-0.01647633 + y*0.00392377)))))))
+         bessel_lni0(i) = log(y) + abs_x - 0.5 * log(abs_x);
+       end if
+    end do
 
   end function ln_of_i0
 
@@ -241,7 +243,8 @@ contains
 
     resolution = 50.0
     do i = 1, NRF
-      d_star =  (square(hkl_index(1,i) * norm2(vas)) + square(hkl_index(2,i) * norm2(vbs)) + &
+      d_star =  (square(hkl_index(1,i) * norm2(vas)) + &
+                 square(hkl_index(2,i) * norm2(vbs)) + &
                  square(hkl_index(3,i) * norm2(vcs)) + &
                  2 * hkl_index(2,i) * hkl_index(3,i) * dot_product(vbs, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
@@ -850,44 +853,5 @@ contains
     call alpha_beta_all()
 
   end subroutine estimate_alpha_beta
-
-#if 0
-  !----------------------------------------------------------------------------
-  ! estimate_ml_parameters: currently this is only implemented on the CPU.
-  !                         Also, get the xray restraint energy
-  !
-  ! Arguments:
-  !   f_calc:    computed structure factors 
-  !   exay:      xray restraint energy
-  !   nstep:     the number of steps, passed down all the way from runmd
-  !----------------------------------------------------------------------------
-  subroutine estimate_ml_parameters(f_calc, f_obs, exray, nstep)
-        
-    use xray_globals_module, only: xray_weight
-    implicit none
-    complex(8), intent(in)   :: f_calc(NRF)
-    double precision, intent(in) :: f_obs(NRF)
-    double precision, intent(out) :: exray
-    integer, intent(in) :: nstep
-    double precision :: f_calc_abs(NRF)
-    integer :: i
-    
-    if (mod(nstep, ml_update_frequency) == 0 .or. nstep == 0) then
-      call estimate_alpha_beta(f_calc, f_obs)
-      delta_array = alpha_array / beta_array
-    endif
-
-    f_calc_abs = abs(f_calc)
-
-
-    ! ML target function
-    exray = xray_weight * &
-            sum(alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
-            f_calc_abs(1:NRF_work) * f_calc_abs(1:NRF_work) - &
-            ln_of_i0(2 * delta_array(1:NRF_work) * f_calc_abs(1:NRF_work) * &
-            f_obs(1:NRF_work)))
-
-  end subroutine estimate_ml_parameters
-#endif
 
 end module ml_mod
