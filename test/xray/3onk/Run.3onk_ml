@@ -21,13 +21,13 @@ Test of MD with Xray restraints
  /
  &xray
    spacegroup_name='P1',
-   pdb_infile = '4phenix_3onk.pdb'
-   reflection_infile = '3onk-sf.dat',
-   atom_selection_mask = '!@H=',
-   xray_weight = 0.6,
+   pdb_infile = 'final_structure_bf.pdb'
+   reflection_infile = 'reflections-sf.dat',
+   atom_selection_mask = ':*',
+   xray_weight = 1.0,
    fft_method = 0,
    target='ml', 
-   k_sol=0.0, b_sol=0.0,
+   k_sol=0.35, b_sol=46.0,
  /
 EOF
 

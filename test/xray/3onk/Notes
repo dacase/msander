@@ -1,13 +1,8 @@
-1. phenix.AmberPrep 3onk.pdb
+See ~/xtal/3onk/oleg_nowat2 for the origin of these, plus notes from 1/7/20
 
-2. modify HIS to HIE/HID; HOH -> WAT
+1. phenix.AmberPrep 3onk.pdb use_reduce=False, no waters in 3onk.pdb
 
-3. usual path to get 3onk-sf.rdb and 3onk-sf.dat:
+2. modify HIS to HIE;
 
-   phenix.mtz_as_cif --extend_flags 3onk-sf.cif
-   phenix.mtz.dump -f s -c 3onk-sf.mtz | tr ',' '\t' > 3onk-sf.fmtz
-   <edit to add rdb headers>
-   column < 3onk-sf.fmtz h k l FOBS SIGFOBS R-free-flags | row FOBS ne '' | headchg -del > 3onk-sf.dat
-   <edit to remove -1 -1 1 outlier, and add number of reflections at top>
+3. Oleg provided the reflections.mtz file and the final_structure_bf.pdb
 
-4. use run_fmodel to get what phenix.fmodel thinks one should have
