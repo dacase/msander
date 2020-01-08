@@ -479,24 +479,22 @@ contains
 
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc)
-      call get_solvent_contribution(nstep, crd)
+      ! assume for now that cryoEM won't need a solvent contribution
+      ! call get_solvent_contribution(nstep, crd)
 
-#if 1
       ! step 2: isotropic scaling:
       if (scale_update_frequency > 0 ) then
          if (mod(nstep,scale_update_frequency) == 0) then
             Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-            if (mytaskid == 0 ) &
-              write(6,'(a,f12.5)') '| updating isotropic scaling: ',Fcalc_scale
             norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
+            if (mytaskid == 0 ) &
+              write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ',&
+                   Fcalc_scale, norm_scale
          endif
       else
+         if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
          Fcalc_scale = 1.0_rk_
       endif
-#else
-      ! step 2: anisotropic scaling:
-      call scale_Fcalc( nstep )
-#endif
 
       Fcalc(:) = Fcalc_scale * Fcalc(:)
       nstep = nstep + 1
