@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/03/2020 at 12:40:44
+| Run on 01/08/2020 at 10:53:35
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/cryoem/3j9d
@@ -158,7 +158,8 @@ X-ray Refinement Parameters:
      Resolution Range:   50.000,   0.000
      X-ray weight:  0.100E+05
      Use target: vls 
-     Solvent Mask Update Interval:  100
+     Scale update Interval:    10
+     Solvent Mask Update Interval:   100
      Solvent scale:   0.350, B-factor:  46.000
      FFT method:  0
      Atom Selection Mask: !@H=
@@ -176,7 +177,7 @@ Found   6089 atoms in !@H=;
 | number of reflections:   155124       0  155124
 | creating k_mask with k_sol,b_sol =    0.350  46.000
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, with OMP_NUM_THREADS = 16
+| Running OPENMP code, with OMP_NUM_THREADS = 4
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -186,92 +187,92 @@ Found   6089 atoms in !@H=;
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  NDFMIN =   30449.     NUM_NOSHAKE =      0     CORRECTED RNDFP =   30449.
 |  TOTAL # of degrees of freedom (RNDF) =   30449.
-| updating isotropic scaling:      2.64334
+| updating isotropic scaling:      2.64334 0.29181E-10
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =      5296.1022  EKtot   =         0.0000  EPtot      =      5296.1022
+ Etot   =    -21285.0498  EKtot   =         0.0000  EPtot      =    -21285.0498
  BOND   =       482.6857  ANGLE   =      2283.5761  DIHED      =      9606.0502
  1-4 NB =      3688.7481  1-4 EEL =     27842.2287  VDWAALS    =     -4878.4999
- EELEC  =    -49946.9025  EGB     =    -10520.1139  RESTRAINT  =     26738.3298
+ EELEC  =    -49946.9025  EGB     =    -10520.1139  RESTRAINT  =       157.1777
  EAMBER (non-restraint)  =    -21442.2275
- Exray  =     26738.3298  Rwork   =         0.1235  Rfree      =         0.0000
+ Exray  =       157.1777  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
- NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.47  PRESS =     0.0
- Etot   =      5310.1950  EKtot   =        14.0928  EPtot      =      5296.1022
+ NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.46  PRESS =     0.0
+ Etot   =    -21271.0458  EKtot   =        14.0040  EPtot      =    -21285.0498
  BOND   =       482.6857  ANGLE   =      2283.5761  DIHED      =      9606.0502
  1-4 NB =      3688.7481  1-4 EEL =     27842.2287  VDWAALS    =     -4878.4999
- EELEC  =    -49946.9025  EGB     =    -10520.1139  RESTRAINT  =     26738.3298
+ EELEC  =    -49946.9025  EGB     =    -10520.1139  RESTRAINT  =       157.1777
  EAMBER (non-restraint)  =    -21442.2275
- Exray  =     26738.3298  Rwork   =         0.1235  Rfree      =         0.0000
+ Exray  =       157.1777  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
- NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     3.89  PRESS =     0.0
- Etot   =      5358.5254  EKtot   =       117.5793  EPtot      =      5240.9461
- BOND   =       472.9493  ANGLE   =      2262.8126  DIHED      =      9603.5697
- 1-4 NB =      3686.9181  1-4 EEL =     27839.9881  VDWAALS    =     -4894.3758
- EELEC  =    -49953.7663  EGB     =    -10514.4115  RESTRAINT  =     26737.2618
- EAMBER (non-restraint)  =    -21496.3158
- Exray  =     26737.2618  Rwork   =         0.1235  Rfree      =         0.0000
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     3.86  PRESS =     0.0
+ Etot   =    -21222.5432  EKtot   =       116.7653  EPtot      =    -21339.3085
+ BOND   =       472.7381  ANGLE   =      2263.1326  DIHED      =      9603.5677
+ 1-4 NB =      3687.3580  1-4 EEL =     27839.9342  VDWAALS    =     -4894.7796
+ EELEC  =    -49964.2670  EGB     =    -10504.1577  RESTRAINT  =       157.1652
+ EAMBER (non-restraint)  =    -21496.4738
+ Exray  =       157.1652  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
- NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =     9.67  PRESS =     0.0
- Etot   =      5385.5894  EKtot   =       292.4919  EPtot      =      5093.0976
- BOND   =       447.0474  ANGLE   =      2207.5659  DIHED      =      9596.4232
- 1-4 NB =      3681.6711  1-4 EEL =     27833.2822  VDWAALS    =     -4935.9609
- EELEC  =    -49930.5356  EGB     =    -10540.4603  RESTRAINT  =     26734.0646
- EAMBER (non-restraint)  =    -21640.9670
- Exray  =     26734.0646  Rwork   =         0.1235  Rfree      =         0.0000
+ NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =     9.59  PRESS =     0.0
+ Etot   =    -21193.7143  EKtot   =       290.1626  EPtot      =    -21483.8769
+ BOND   =       446.1976  ANGLE   =      2208.8347  DIHED      =      9596.4148
+ 1-4 NB =      3683.4254  1-4 EEL =     27833.0582  VDWAALS    =     -4937.5318
+ EELEC  =    -49928.4887  EGB     =    -10542.9162  RESTRAINT  =       157.1291
+ EAMBER (non-restraint)  =    -21641.0060
+ Exray  =       157.1291  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
- NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =    16.34  PRESS =     0.0
- Etot   =      5387.1729  EKtot   =       494.3700  EPtot      =      4892.8029
- BOND   =       413.6521  ANGLE   =      2136.1198  DIHED      =      9585.4245
- 1-4 NB =      3673.5863  1-4 EEL =     27821.9975  VDWAALS    =     -4991.6757
- EELEC  =    -49875.8889  EGB     =    -10599.1592  RESTRAINT  =     26728.7464
- EAMBER (non-restraint)  =    -21835.9435
- Exray  =     26728.7464  Rwork   =         0.1234  Rfree      =         0.0000
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =    16.19  PRESS =     0.0
+ Etot   =    -21189.4930  EKtot   =       489.7129  EPtot      =    -21679.2058
+ BOND   =       411.7212  ANGLE   =      2138.9286  DIHED      =      9585.4033
+ 1-4 NB =      3677.5161  1-4 EEL =     27821.4643  VDWAALS    =     -4995.0738
+ EELEC  =    -49896.7414  EGB     =    -10579.4973  RESTRAINT  =       157.0731
+ EAMBER (non-restraint)  =    -21836.2789
+ Exray  =       157.0731  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    22.52  PRESS =     0.0
- Etot   =      5364.6833  EKtot   =       681.3375  EPtot      =      4683.3458
- BOND   =       383.6115  ANGLE   =      2071.0934  DIHED      =      9571.7799
- 1-4 NB =      3663.3357  1-4 EEL =     27805.9450  VDWAALS    =     -5052.5841
- EELEC  =    -49907.5652  EGB     =    -10573.6156  RESTRAINT  =     26721.3451
- EAMBER (non-restraint)  =    -22037.9993
- Exray  =     26721.3451  Rwork   =         0.1233  Rfree      =         0.0000
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    22.26  PRESS =     0.0
+ Etot   =    -21207.6248  EKtot   =       673.5816  EPtot      =    -21881.2064
+ BOND   =       380.1369  ANGLE   =      2075.9566  DIHED      =      9571.7357
+ 1-4 NB =      3670.2820  1-4 EEL =     27804.9289  VDWAALS    =     -5058.3418
+ EELEC  =    -49923.4959  EGB     =    -10559.4123  RESTRAINT  =       157.0035
+ EAMBER (non-restraint)  =    -22038.2099
+ Exray  =       157.0035  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
       A V E R A G E S   O V E R       5 S T E P S
 
 
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    10.58  PRESS =     0.0
- Etot   =      5361.2332  EKtot   =       319.9743  EPtot      =      5041.2589
- BOND   =       439.9892  ANGLE   =      2192.2336  DIHED      =      9592.6495
- 1-4 NB =      3678.8519  1-4 EEL =     27828.6883  VDWAALS    =     -4950.6193
- EELEC  =    -49922.9317  EGB     =    -10549.5521  RESTRAINT  =     26731.9495
- EAMBER (non-restraint)  =    -21690.6906
- Exray  =     26721.3451  Rwork   =         0.1233  Rfree      =         0.0000
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    10.47  PRESS =     0.0
+ Etot   =    -21216.8842  EKtot   =       316.8453  EPtot      =    -21533.7295
+ BOND   =       438.6959  ANGLE   =      2194.0857  DIHED      =      9592.6344
+ 1-4 NB =      3681.4659  1-4 EEL =     27828.3229  VDWAALS    =     -4952.8454
+ EELEC  =    -49931.9791  EGB     =    -10541.2195  RESTRAINT  =       157.1097
+ EAMBER (non-restraint)  =    -21690.8392
+ Exray  =       157.0035  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
       R M S  F L U C T U A T I O N S
 
 
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =     8.05  PRESS =     0.0
- Etot   =        27.8935  EKtot   =       243.4254  EPtot      =       227.0015
- BOND   =        36.9628  ANGLE   =        79.2258  DIHED      =        12.6555
- 1-4 NB =         9.3747  1-4 EEL =        13.3728  VDWAALS    =        64.2835
- EELEC  =        28.3984  EGB     =        32.3235  RESTRAINT  =         6.2628
- EAMBER (non-restraint)  =       220.7386
-|E(PBS) =         7.4923
- Exray  =     26721.3451  Rwork   =         0.1233  Rfree      =         0.0000
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =     7.95  PRESS =     0.0
+ Etot   =        29.4563  EKtot   =       240.6661  EPtot      =       220.9208
+ BOND   =        38.2284  ANGLE   =        77.4472  DIHED      =        12.6717
+ 1-4 NB =         6.8156  1-4 EEL =        13.7472  VDWAALS    =        66.4020
+ EELEC  =        22.7643  EGB     =        26.9001  RESTRAINT  =         0.0643
+ EAMBER (non-restraint)  =       220.8564
+|E(PBS) =         3.6428
+ Exray  =       157.0035  Rwork   =         0.1235  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
@@ -279,17 +280,17 @@ Found   6089 atoms in !@H=;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              1.95 (25.05% of Gen B)
-|                Calc gb diag               3.76 (48.24% of Gen B)
-|                Calc gb off-diag           2.08 (26.70% of Gen B)
-|             Gen Born time              7.80 (100.0% of Nonbo)
-|          Nonbond force              7.80 (14.49% of Force)
-|             Fcalc loop                25.32 (55.06% of Xray )
-|             Deriv loop                20.55 (44.68% of Xray )
-|          Xray restaints            45.99 (85.40% of Force)
-|       Force time                53.85 (99.84% of Runmd)
-|    Runmd Time                53.94 (99.09% of Total)
-| Total time                54.44 (100.0% of ALL  )
+|                Calc gb radii              2.96 (24.94% of Gen B)
+|                Calc gb diag               5.76 (48.57% of Gen B)
+|                Calc gb off-diag           3.14 (26.49% of Gen B)
+|             Gen Born time             11.87 (100.0% of Nonbo)
+|          Nonbond force             11.87 ( 5.83% of Force)
+|             Fcalc loop               102.15 (53.33% of Xray )
+|             Deriv loop                89.31 (46.62% of Xray )
+|          Xray restaints           191.56 (94.13% of Force)
+|       Force time               203.50 (100.0% of Runmd)
+|    Runmd Time               203.58 (99.73% of Total)
+| Total time               204.14 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -299,11 +300,11 @@ Found   6089 atoms in !@H=;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      53.94 Per Step(ms) =   10788.60
-|         ns/day =       0.01   seconds/ns = **********
+|     Elapsed(s) =     203.59 Per Step(ms) =   40717.20
+|         ns/day =       0.00   seconds/ns = **********
 | -----------------------------------------------------
 
-|           Job began  at 12:40:44.718  on 01/03/2020
-|           Setup done at 12:40:45.217  on 01/03/2020
-|           Run   done at 12:41:39.159  on 01/03/2020
+|           Job began  at 10:53:35.953  on 01/08/2020
+|           Setup done at 10:53:36.513  on 01/08/2020
+|           Run   done at 10:57:00.098  on 01/08/2020
 |     wallclock() was called     216 times

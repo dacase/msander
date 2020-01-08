@@ -17,6 +17,7 @@ cat > mdin <<EOF
   dt=0.001, 
   jfastw=1, watnam='TP4', barostat=2
   mcbarint=2, ig=71277,
+  ithermostat=1, therm_par=5.0,
  /
  &ewald
    skinnb=1.0, nfft1=18, nfft2=18, nfft3=18, 
@@ -34,6 +35,7 @@ cat > mdin2 <<EOF
   dt=0.001, 
   jfastw=1, watnam='TP4', barostat=2
   mcbarint=2, ig=71277,
+  ithermostat=1, therm_par=5.0,
  /
  &ewald
    skinnb=1.0, nfft1=18, nfft2=18, nfft3=18, 
