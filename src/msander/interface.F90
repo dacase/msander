@@ -627,8 +627,8 @@ subroutine api_mdread1(input_options, ierr)
    nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 0
-   therm_par = 0.0d0
+   ithermostat = 1
+   therm_par = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
