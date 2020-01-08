@@ -220,8 +220,13 @@ contains
       ihkl2 = num_hkl
 #endif
 
+#ifdef USE_ISCALE
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz )  reduction( +:d_tempFactor )
+!$omp&  reduction( +:dxyz, d_tempFactor )
+#else
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
+!$omp&  reduction( +:dxyz ) 
+#endif
       REFLECTION: do ihkl = ihkl1,ihkl2
 
          do i = 1,num_scatter_types

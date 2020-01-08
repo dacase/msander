@@ -189,7 +189,8 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
     double precision, dimension(:), allocatable :: d_star_sq, &
                                                    d_star_sq_sorted, bin_limits
-    integer, dimension(:), allocatable :: counter_w, counter_f
+    integer, dimension(:), allocatable :: counter_w, counter_f, &
+                                          reflection_bin_tmp
     integer (kind = 4) :: file_status
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
@@ -201,6 +202,7 @@ contains
 
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
+    allocate(reflection_bin_tmp(NRF))
     allocate(delta_array(NRF))
     allocate(alpha_array(NRF))
     alpha_array(:) = 1.0
@@ -363,6 +365,7 @@ contains
         index_sort = bins_work_reflections(i, j)
         sigma_tmp(counter_sort) = sigFobs(index_sort)
         f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+        reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
         hkl(:,counter_sort) = hkl_index(:,index_sort)
         d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
@@ -376,10 +379,12 @@ contains
         index_sort = bins_free_reflections(i, j)
         sigma_tmp(counter_sort) = sigFobs(index_sort)
         f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+        reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
         hkl(:,counter_sort) = hkl_index(:,index_sort)
         d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
+    reflection_bin(:) = reflection_bin_tmp(:)
 
     ! need to put f_obs_tmp into abs_Fobs to send back to calling 
     !   program; same for sigma_tmp, f_obs_weight(?), hkl and test_flag
