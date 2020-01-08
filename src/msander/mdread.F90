@@ -284,7 +284,7 @@ subroutine mdread1()
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
    ithermostat = 1
-   therm_par = 0.0d0
+   therm_par = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
