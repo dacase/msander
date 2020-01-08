@@ -1,9 +1,11 @@
 ! <compile=optimized>
 #include "../include/assert.fh"
+#include "../include/dprec.fh"
 
 module ml_mod
 
   use file_io_dat
+  use xray_globals_module
   implicit none
 
   ! 7 x 7 transformation matrices to anisotropically scale structure factors 
@@ -38,9 +40,10 @@ module ml_mod
   ! starting_N_step:        Step number to start on.
   ! total_N_steps:          Step number to finish on.
   ! n_bins:                 Number of reflections per resolution bin
-  integer :: NRF,NRF_work, NRF_free, &
+  integer :: NRF,NRF_work, NRF_free, hi_res_shell_n, hi_res_shell_n_counter, &
              call_est, N_steps, starting_N_step, total_N_steps, n_bins
-  double precision :: NRF_work_sq
+  double precision :: NRF_work_sq, r_work_factor_denominator, &
+                      r_free_factor_denominator, low_res
 
   ! bins_work_population:     Number of work reflections in each resolution zone
   ! bins_free_population:     Number of free reflections in each resolution zone
@@ -56,7 +59,20 @@ module ml_mod
   !                           relative position in it
   ! bins_free_reflections:    Used to re-sort free reflections
   integer, dimension(:,:), allocatable :: bins_work_reflections, &
-                                          bins_free_reflections
+         bins_free_reflections
+  integer, dimension(:), allocatable, save :: scale_k1_indices
+
+  double precision, dimension(:), allocatable :: s_squared, &
+         s_squared_for_scaling, k_mask
+  double precision, dimension(:,:), allocatable ::  s, scat_factors_precalc
+
+  ! Arrays for scaling coefficients optimization
+  double precision, dimension(:), allocatable :: k_mask_bin_orig, &
+          k_iso, k_iso_test, k_aniso, k_aniso_test, &
+          k_iso_exp, k_iso_exp_test, &
+          s_squared_min_bin, s_squared_max_bin, s_squared_mean_bin
+
+  complex(real_kind), allocatable :: f_calc_tmp(:), f_mask(:)
 
 #ifdef MPI
 #     include "parallel.h"
@@ -174,8 +190,6 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_ml(target, nstlim, d_star_sq_out, resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, test_flag, &
-            abs_Fobs, sigFobs
     implicit none
 
     character(len=4), intent(in) :: target
@@ -200,6 +214,17 @@ contains
     N_steps = nstlim
     NRF = num_hkl
 
+    allocate(f_calc_tmp(NRF))
+    allocate(f_mask(NRF))
+    allocate(k_mask(NRF))
+    allocate(k_scale(NRF))
+    allocate(k_iso(NRF))
+    allocate(k_iso_test(NRF))
+    allocate(k_iso_exp(NRF))
+    allocate(k_iso_exp_test(NRF))
+    allocate(k_aniso(NRF))
+    allocate(k_aniso_test(NRF))
+
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
@@ -209,6 +234,8 @@ contains
     allocate(beta_array(NRF))
     beta_array(:) = 1.0
 
+    r_work_factor_denominator = zero
+    r_free_factor_denominator = zero
     r_free_counter = 0
     NRF_work = 0
 
@@ -243,7 +270,8 @@ contains
 
     ! start of block to separate work and free reflections, and sort into bins
 
-    resolution = 50.0
+    resolution = 50.d0
+    low_res = 0.d0
     do i = 1, NRF
       d_star =  (square(hkl_index(1,i) * norm2(vas)) + &
                  square(hkl_index(2,i) * norm2(vbs)) + &
@@ -252,11 +280,14 @@ contains
                  2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(2,i) * dot_product(vbs, vas))
       d = sqrt(1.0 / d_star)
+      low_res = max( d, low_res )
       resolution = min( d, resolution )
       if (test_flag(i) == 1) then
         NRF_work = NRF_work + 1
+        r_work_factor_denominator = r_work_factor_denominator + abs_Fobs(i)
       else
         r_free_counter = r_free_counter + 1
+        r_free_factor_denominator = r_free_factor_denominator + abs_Fobs(i)
       endif
       d_star_sq(i) = d_star
       ! f_obs_weight(i) = 1.0 ! (1.0/sigFobs(i))**2
@@ -272,12 +303,17 @@ contains
     ! Sort reflections for binning
     allocate(d_star_sq_sorted(NRF_free))
     r_free_counter = 0
+    hi_res_shell_n = 0
     do i = 1, NRF
       if (test_flag(i) == 0) then
         r_free_counter = r_free_counter + 1
         d_star_sq_sorted(r_free_counter) = d_star_sq(i)
+      else if (1. / sqrt(d_star_sq(i)) < min(4.0d0, resolution + 1.0d0)) then
+        hi_res_shell_n = hi_res_shell_n + 1
       end if
     end do
+    allocate(scale_k1_indices(hi_res_shell_n))
+    scale_k1_indices = 0
     call bubble_sort(d_star_sq_sorted)
 
     reflections_per_bin = 140.0
@@ -288,13 +324,13 @@ contains
     reflections_per_bin = 1.0 * NRF_free / n_bins
 
     allocate(bin_limits(n_bins + 1))
-    bin_limits(1) = max(zero, d_star_sq_sorted(1) * (1 - d_tolerance))
+    bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
     do i = 2, n_bins
       d_i = int((i-1) * reflections_per_bin + 0.5) + 1
       bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
       REQUIRE (d_i /= NRF_free)
     end do
-    bin_limits(n_bins + 1) = d_star_sq_sorted(NRF_free) * (1 + d_tolerance)
+    bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
     reflection_bin = n_bins
     allocate(A_in_zones(n_bins))
     allocate(B_in_zones(n_bins))
@@ -359,17 +395,25 @@ contains
       end if
     end do
     counter_sort = 0
+    hi_res_shell_n_counter = 0
     do i = 1, n_bins
       do j = 1, bins_work_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_work_reflections(i, j)
         sigma_tmp(counter_sort) = sigFobs(index_sort)
         f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+        if (1./sqrt(d_star_sq(index_sort)) < min(4.0d0, resolution+1.0d0)) then
+            hi_res_shell_n_counter = hi_res_shell_n_counter + 1
+            scale_k1_indices(hi_res_shell_n_counter) = counter_sort
+        end if
         reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
         hkl(:,counter_sort) = hkl_index(:,index_sort)
         d_star_sq_out(counter_sort) = d_star_sq(index_sort)
       end do
     end do
+    if (minval(scale_k1_indices) == 0) then
+       write(*, *) 'weird hi res shell indexing'
+    end if
     allocate(bins_free_start_indices(n_bins))
     do i = 1, n_bins
       bins_free_start_indices(i) = counter_sort + 1
@@ -630,12 +674,9 @@ contains
   !   zone:       number of resolution bin
   !   f_calc_:    complex array of computed structure factors
   !----------------------------------------------------------------------------
-  subroutine A_B_C_D_omega(zone, f_calc_,f_obs)
-
+  subroutine A_B_C_D_omega(zone)
     
     integer, intent(in) :: zone
-    complex(8), intent(in) :: f_calc_(NRF)
-    double precision, intent(in) :: f_obs(NRF)
     integer :: i, index_start, index_end
     double precision :: coef_norm, fm_fm, fo_fm, D, p, q
 
@@ -647,8 +688,8 @@ contains
     D = 0.0
     p = 0.0
     do i = index_end, index_start, -1  ! reverse order for compliance with cctbx
-      fo_fm = f_obs(i) * abs(f_calc_(i))
-      fm_fm = abs(f_calc_(i)) * abs(f_calc_(i))
+      fo_fm = abs_Fobs(i) * abs(Fcalc(i))
+      fm_fm = abs(Fcalc(i)) * abs(Fcalc(i))
       A_in_zones(zone) = A_in_zones(zone) + 2 * fm_fm ! / coef_norm
       C_in_zones(zone) = C_in_zones(zone) + 2 * fo_fm ! / coef_norm
       D = D + 2 * fo_fm * fo_fm ! / coef_norm
@@ -755,13 +796,11 @@ contains
   !----------------------------------------------------------------------------
   ! estimate_t_optimal:  find root of G(t)
   !----------------------------------------------------------------------------
-  subroutine estimate_t_optimal(zone, f_calc_, f_obs)
+  subroutine estimate_t_optimal(zone)
 
     integer, intent(in) :: zone
-    complex(8), intent(in) :: f_calc_(NRF)
-    double precision, intent(in) :: f_obs(NRF)
 
-    call A_B_C_D_omega(zone, f_calc_,f_obs)
+    call A_B_C_D_omega(zone)
     if (alpha_beta_OmegaI(zone) <= 0.0) then
       t_optimal(zone) = 0.0
     else if (alpha_beta_wi(zone)/(A_in_zones(zone)*B_in_zones(zone)) <= 3.0E-07) then
@@ -842,14 +881,12 @@ contains
   !      eq. 29     - estimate_t_optimal() estimates root of function G(t)
   !      eq. 30, 31 - alpha_beta_in_zones() calculates alpha and beta from t
   !----------------------------------------------------------------------------
-  subroutine estimate_alpha_beta(f_calc_, f_obs)
+  subroutine estimate_alpha_beta()
 
-    complex(8), intent(in) :: f_calc_(NRF)
-    double precision, intent(in) :: f_obs(NRF)
     integer :: i
 
     do i = 1, n_bins
-      call estimate_t_optimal(i, f_calc_, f_obs)
+      call estimate_t_optimal(i)
     end do
     call smooth(t_optimal)
     call alpha_beta_in_zones()
@@ -859,4 +896,581 @@ contains
 
   end subroutine estimate_alpha_beta
 
+  subroutine optimize_k_scale_k_mask()
+    implicit none
+
+    double precision :: current_r_work, r
+    integer :: cycle
+
+    r = 1.0d0
+    cycle = 0
+    current_r_work = 0.0
+    current_r_work = r_factor_w(Fcalc)
+
+    do while (r - current_r_work > 1.e-4 .and. cycle < 20)
+      write(*, *) r
+      r = current_r_work
+      write(*, *) r
+      if (cycle == 0) then
+        call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
+                abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
+        call k_mask_grid_search(current_r_work)
+        call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
+                abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
+      else
+        call bulk_solvent_scaling(current_r_work)
+      end if
+      call anisotropic_scaling(current_r_work)
+      cycle = cycle + 1
+    end do
+  end subroutine optimize_k_scale_k_mask
+
+  subroutine anisotropic_scaling(r_start)
+    implicit none
+
+    double precision :: r_start, r, b(7), Uaniso(7)
+
+    f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
+
+    b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
+    b(1) = sum(b_vector_base)
+    b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+    b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+    b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+    b(5) = sum(b_vector_base * hk(1:NRF_work))
+    b(6) = sum(b_vector_base * hl(1:NRF_work))
+    b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+    Uaniso = matmul(MUcryst_inv, b) ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
+
+    k_aniso_test = exp(Uaniso(2) * h_sq + Uaniso(3) * k_sq + Uaniso(4) * l_sq + &
+            Uaniso(5) * hk + Uaniso(6) * hl + Uaniso(7) * kl) !&
+    ! + Uaniso(1))
+    r = r_factor_w(k_aniso_test * f_calc_tmp)
+    if (r < r_start) then
+      r_start = r
+      k_aniso = k_aniso_test
+    end if
+    write(*, *) 'aniso', r, r_start ! , r_factor_w_scale(k_aniso * f_calc_tmp, 1.0d0)
+  end subroutine anisotropic_scaling
+
+  subroutine fit_k_iso_exp(r_start, x, y, z)
+    double precision, dimension(2) :: a
+    double precision :: r_start, p, q, r, s, d, v, den, u
+    double precision, dimension(NRF) :: x, y, z
+    integer :: i
+
+    a = 0
+    p = 0
+    q = 0
+    r = 0
+    s = 0
+
+    ! fit over all work reflections
+    do i = 1, NRF_work
+      if (z(i) /= 0) then
+        if (y(i) > 0) then
+          d = log(y(i) / z(i))
+          v = x(i) * x(i)
+          p = p + d
+          q = q + v
+          r = r + v * v
+          s = s + v * d
+        end if
+      end if
+    end do
+
+    if (r /= 0) then
+      den = NRF_work - q * q / r
+      if (den /= 0) then
+        u = (p - s * q / r) / den
+        a(2) = (u * q - s) / r
+        a(1) = exp(u)
+      end if
+    end if
+
+    ! write(*, *) a
+
+    if (a(2) > -100) then
+      k_iso_exp_test = a(1) * exp(s_squared * a(2))
+      r = special_r_factor(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask))
+      write(*, *) 'k_iso_exp', a, r, r_start!, sum(k_iso_exp_test), sum(k_iso), sum(k_aniso), sum(k_mask)
+      if (r < r_start) then
+        k_iso_exp = k_iso_exp_test
+        r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
+      end if
+    end if
+    write(*, *) 'k_iso_exp', r_start
+
+  end subroutine fit_k_iso_exp
+
+  subroutine moving_average(x, result2)
+    double precision :: x(n_bins), x_(n_bins + 2), result1(n_bins + 2), result2(n_bins)
+    logical :: selection(n_bins)
+    integer :: cycle, i
+    x_(2:n_bins + 1) = x
+    x_(1) = x(1)
+    x_(n_bins + 2) = x(n_bins)
+    do cycle = 1, 5
+      result1 = x_
+      selection = .False.
+      do i = 1, n_bins
+        if (i > 1 .and. i < n_bins + 2) then
+          if((result1(i - 1)<result1(i) .and. result1(i + 1)<result1(i)) .or. &
+                  (result1(i - 1)>result1(i) .and. result1(i + 1)>result1(i))) then
+            selection(i) = .True.
+          end if
+        end if
+      end do
+      do i = 1, n_bins
+        if(i> 1 .and. i<n_bins + 2 .and. selection(i)) then
+          result1(i) = (x_(i - 1) + x_(i) + x_(i + 1)) / 3.
+        end if
+      end do
+      x_ = result1
+    end do
+    result2 = result1(2:n_bins + 1)
+  end subroutine moving_average
+
+  subroutine smooth_k_mask(x)
+    double precision, dimension(n_bins) :: x, result_, result1
+    double precision :: r, d
+    integer :: i
+    call moving_average(x, result1)
+    result_ = 0
+    do i = 1, n_bins
+      r = result1(i)
+      d = 1 / sqrt(s_squared_max_bin(i)) / 2
+      if (r==0 .and. d<3) then
+        exit
+      end if
+      result_(i) = r
+    end do
+    x = result_
+  end subroutine smooth_k_mask
+
+  subroutine k_mask_grid_search(r_start)
+    double precision :: r_start, r, k_mask_best, k_overall_best, r_best, k_mask_per_bin_test, k_overall_tmp, &
+            num, denum, k_mask_test(NRF), k_overall_
+    double precision, dimension(14) :: k_mask_trial_range
+    double precision, dimension(n_bins) :: k_mask_bin, k_mask_bin_
+    double precision, dimension(NRF_work) :: tmp_scale
+    integer :: i, j, sampling, index_start, index_end
+
+    sampling = 14
+    do i = 1, sampling
+      k_mask_trial_range(i) = (i - 1) * 50.0 / 1000.
+    end do
+    k_mask_bin = 0
+    tmp_scale = k_aniso(1:NRF_work) * k_iso(1:NRF_work) * k_iso_exp(1:NRF_work)
+    index_end = 0
+    do i = 1, n_bins
+      !write(*, *) sum(f_mask(index_start:index_end))
+      index_start = index_end + 1
+      index_end = bins_work_population(i) + index_start - 1
+      k_mask_best = 0.0
+      k_overall_best = 1.0
+      r_best = r_factor_w_selection(Fcalc * tmp_scale, index_start, index_end)
+      !write(*,*) i, r_best
+      do j = 1, sampling
+        k_mask_per_bin_test = k_mask_trial_range(j)
+        f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
+                * (Fcalc(index_start:index_end) + &
+                k_mask_per_bin_test * f_mask(index_start:index_end))
+        k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
+        r = r_factor_w_selection(k_overall_ * f_calc_tmp, index_start, index_end)
+        if (r < r_best) then
+          k_mask_best = k_mask_per_bin_test
+          k_overall_best = k_overall_
+          r_best = r
+        end if
+      end do
+      ! write(*,*) i, r_best, k_mask_best
+      k_mask_bin(i) = k_mask_best
+    end do
+    k_mask_bin_orig = k_mask_bin
+    call smooth_k_mask(k_mask_bin)
+    call populate_k_mask_linear_interpolation(k_mask_bin, k_mask)
+    call bin_k_isotropic_as_scale_k1(r_start, k_iso, k_mask)
+    r_start = r_factor_w_scale(k_iso * k_aniso * k_iso_exp * (Fcalc + k_mask * f_mask), 1.0d0)
+    ! TO-DO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
+    ! if(n_bins>2) then
+    ! end if
+    write(*, *) 'end of grid search', r_start
+
+  end subroutine k_mask_grid_search
+
+  subroutine bin_k_isotropic_as_scale_k1(r_start, k_iso_in, k_mask_in)
+    double precision :: r_start, r, num, denum, sc, k_iso_in(NRF), k_mask_in(NRF)
+    integer :: i, j, index_start, index_end
+    k_iso_test = 1
+    index_end = 0
+    f_calc_tmp = k_iso_exp * k_aniso * (Fcalc + k_mask_in * f_mask)
+    do i = 1, n_bins
+      index_start = index_end + 1
+      index_end = bins_work_population(i) + index_start - 1
+      k_iso_test(index_start:index_end) = scale_selection(f_calc_tmp, index_start, index_end)
+    end do
+    r = r_factor_w(f_calc_tmp * k_iso_test)
+    if (r < r_start) then
+      index_end = 0
+      r_start = r
+      do i = 1, n_bins
+        index_start = index_end + 1
+        index_end = bins_work_population(i) + index_start - 1
+        j = index_end
+        sc = k_iso_test(index_start)
+        k_iso_in(index_start:index_end) = k_iso_test(index_start:index_end)
+        index_start = bins_free_start_indices(i)
+        index_end = bins_free_start_indices(i) + bins_free_population(i) - 1
+        k_iso_in(index_start:index_end) = sc
+        index_end = j
+      end do
+    end if
+
+  end subroutine bin_k_isotropic_as_scale_k1
+
+  function linear_interpolation(x1, x2, y1, y2) result (k)
+    double precision :: x1, x2, y1, y2
+    double precision, dimension(2) :: k
+    ! write(*, *) x1, x2, y1, y2
+    k(1) = 0
+    if(x1 /=x2) then
+      k(1) = (y2 - y1) / (x2 - x1)
+    end if
+    k(2) = y1 - k(1) * x1
+  end function linear_interpolation
+
+  subroutine populate_k_mask_linear_interpolation(k_mask_bin, k_mask_in)
+    double precision, dimension(n_bins) :: k_mask_bin
+    double precision, dimension(NRF) :: k_mask_tmp, k_mask_in
+    integer :: i, index_start, index_end, index_start_, index_end_
+    double precision, dimension(2) :: k
+    double precision :: r0, r1, r2
+    !do i = 1, NRF
+    !    k_mask(i) = k_mask_bin(reflection_bin(i))
+    !end do
+    index_end = 0
+    do i = 1, n_bins
+      if (i == n_bins) then
+        ! double check that! cctbx code is weird. for some reason last argument was n_bins - 2
+        k = linear_interpolation(s_squared_min_bin(n_bins), s_squared_max_bin(n_bins), &
+                k_mask_bin(n_bins), k_mask_bin(n_bins - 1)) !! as in cctbx. is it a mistake for the last index?
+      else
+        k = linear_interpolation(s_squared_min_bin(i), s_squared_max_bin(i), k_mask_bin(i), k_mask_bin(i + 1))
+      end if
+      index_start = index_end + 1
+      index_end = bins_work_population(i) + index_start - 1
+      k_mask_tmp(index_start:index_end) = max(0.0d0, k(1) * s_squared_for_scaling(index_start:index_end) + k(2))
+
+      r0 = 1.0d0 ! r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask * f_mask), index_start, index_end)
+      r1 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask_tmp * f_mask), index_start, index_end)
+      r2 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask_bin(i) * f_mask), &
+              index_start, index_end)
+      ! write(*, *) k_mask_bin(i), k, r1, r2, r0
+      if (r0 > min(r1, r2)) then
+        if (r1 < r2) then
+          k_mask_in(index_start:index_end) = k_mask_tmp(index_start:index_end)
+          index_start_ = bins_free_start_indices(i)
+          index_end_ = bins_free_start_indices(i) + bins_free_population(i) - 1
+          k_mask_in(index_start_:index_end_) = k(1) * s_squared_for_scaling(index_start_:index_end_) + k(2)
+        else
+          k_mask_in(index_start:index_end) = k_mask_bin(i)
+          index_start_ = bins_free_start_indices(i)
+          index_end_ = bins_free_start_indices(i) + bins_free_population(i) - 1
+          k_mask_in(index_start_:index_end_) = k_mask_bin(i)
+        end if
+      end if
+    end do
+
+  end subroutine populate_k_mask_linear_interpolation
+
+  function solve_cubic_equation(a, b, c) result(solution)
+    double precision :: a, b, c, solution(3), Disc, theta, S, T, p, q, arg, eps
+    solution = 0
+    eps = d_tolerance * 10
+    p = (3 * b - square(a)) / 3
+    q = (2 * square(a) * a - 9 * a * b + 27 * c) / 27
+    Disc = square(p / 3) * p / 3 + square(q / 2)
+    if (abs(p)<eps .and. abs(q)<eps .and. abs(Disc)<eps) then
+      solution(1:3) = - sign(abs(c)**(1. / 3.), c)
+    else if (Disc < 0) then
+      ! theta = acos(-q/2/(sqrt(abs((p/3)**3))))
+      arg = (q / p)**2 * 27 / (4 * p)
+      if (abs(1 - abs(arg))<1.e-9) then
+        arg = 1
+      end if
+      if (q>0) then
+        theta = acos(-arg)
+      else
+        theta = acos(arg)
+      end if
+      solution(1) = 2 * (sqrt(abs(p / 3)) * cos(theta / 3)) - a / 3
+      solution(2) = - 2 * (sqrt(abs(p / 3)) * cos((theta + 2 * pi) / 3)) - a / 3
+      solution(3) = - 2 * (sqrt(abs(p / 3)) * cos((theta - 2 * pi) / 3)) - a / 3
+    else
+      S = sign(abs(-q / 2 + sqrt(Disc))**(1. / 3.), -q / 2 + sqrt(Disc))
+      T = sign(abs(-q / 2 - sqrt(Disc))**(1. / 3.), -q / 2 - sqrt(Disc))
+      solution(1:3) = S + T - a / 3
+      if (Disc <= eps) then
+        solution(2:3) = -(S + T) / 2 - a / 3
+      end if
+    end if
+  end function solve_cubic_equation
+
+  subroutine bulk_solvent_scaling(r_start)
+    implicit none
+    double precision :: r_start, min_f_mask, a2, b2, c2, y2, a3, b3, c3, d3, y3, p, q, r, t, I, v, w, u, den, &
+            k_m_test(3), k_best, r_best, shift, k_mask_per_bin_test, k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
+            tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
+    integer :: l, j, index_start, index_end
+    !write(*, *) 'bulk start', r_start
+    shift = 0.05
+    index_end = 0
+    scale_k1 = estimate_scale_k1(k_iso_exp*k_aniso*(Fcalc + k_mask*f_mask))
+    !write(*, *) 'k1', scale_k1
+    tmp_scale = k_aniso(1:NRF_work) * scale_k1 * k_iso_exp(1:NRF_work)
+
+    do l = 1, n_bins
+      index_start = index_end + 1
+      index_end = bins_work_population(l) + index_start - 1
+      min_f_mask = minval(tmp_scale(index_start:index_end) * abs(f_mask(index_start:index_end)))
+      k_best = k_mask_bin_orig(l)
+      f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
+              * (Fcalc(index_start:index_end) + &
+              k_best * f_mask(index_start:index_end))
+      k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
+      r_best = r_factor_w_selection(f_calc_tmp, index_start, index_end)
+      !write(*, *) 'previous round', k_best, r_best
+      a2 = 0.0d0
+      b2 = 0.0d0
+      c2 = 0.0d0
+      y2 = 0.0d0
+      a3 = 0.0d0
+      b3 = 0.0d0
+      c3 = 0.0d0
+      d3 = 0.0d0
+      y3 = 0.0d0
+      if (min_f_mask > 1.0e-9) then
+        do j = index_start, index_end
+          p = real(tmp_scale(j) * Fcalc(j))
+          r = aimag(tmp_scale(j) * Fcalc(j))
+          q = real(tmp_scale(j) * f_mask(j))
+          t = aimag(tmp_scale(j) * f_mask(j))
+          I = abs_Fobs(j) * abs_Fobs(j)
+          v = p * q + r * t
+          w = q * q + t * t
+          u = p * p + r * r
+          a2 = a2 + u * I
+          b2 = b2 + 2. * v * I
+          c2 = c2 + w * I
+          y2 = y2 + I * I
+          a3 = a3 + u * v
+          b3 = b3 + 2. * v * v + u * w
+          c3 = c3 + 3. * v * w
+          d3 = d3 + w * w
+          y3 = y3 + v * I
+        end do
+        den = d3 * y2 - c2 * c2
+        !! ASSERT(den != 0.0);
+        !! coefficients of x**3 + ax**2 + bx + c = 0
+        a = (c3 * y2 - c2 * b2 - c2 * y3) / den
+        b = (b3 * y2 - c2 * a2 - y3 * b2) / den
+        c = (a3 * y2 - y3 * a2) / den
+        k_m_test = solve_cubic_equation(a, b, c)
+        !write(*, *) k_m_test
+        do j = 1, 3
+          if (k_m_test(j) >= 0) then
+            r = r_factor_w_selection(tmp_scale * (Fcalc + k_m_test(j) * f_mask), index_start, index_end)
+            if (r < r_best) then
+              r_best = r
+              k_best = k_m_test(j)
+            end if
+          end if
+        end do
+        !write(*, *) 'select the best', k_best, r_best
+      end if
+      if (k_best > 1) then
+        k_best = 1
+      end if
+      r_best = r_factor_w_selection(tmp_scale * (Fcalc + k_best * f_mask), index_start, index_end)
+      upper_limit = k_best + shift + 1.e-3
+      ! fine-tune by grid search around
+      k_mask_per_bin_test = max(0.0d0, k_best - shift)
+      !write(*, *) k_best, r_best, upper_limit, k_mask_per_bin_test
+      do while (k_mask_per_bin_test <= upper_limit)
+        f_calc_tmp(index_start:index_end) = &
+           tmp_scale(index_start:index_end) * (Fcalc(index_start:index_end) + &
+                k_mask_per_bin_test * f_mask(index_start:index_end))
+        k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
+        r = r_factor_w_selection_and_scale(f_calc_tmp, index_start, index_end, k_overall_)
+        !write(*,*) k_mask_per_bin_test, r
+        if (r < r_best) then
+          ! write(*,*) k_mask_per_bin_test, r
+          k_best = k_mask_per_bin_test
+          r_best = r
+        end if
+        k_mask_per_bin_test = k_mask_per_bin_test + 0.01
+      end do
+      !write(*, *) 'best', k_best, r_best
+      k_mask_bin(l) = k_best
+    end do
+    !write(*, *) k_mask_bin
+    call smooth_k_mask(k_mask_bin)
+    call populate_k_mask_linear_interpolation(k_mask_bin, k_mask_test)
+    call bin_k_isotropic_as_scale_k1(r_start, k_iso_test, k_mask_test)
+    r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * (Fcalc + k_mask_test * f_mask), 1.0d0)
+    if (r - r_start<0.5 / 100) then
+      k_iso = k_iso_test
+      k_mask = k_mask_test
+      r_start = r
+      k_mask_bin_orig = k_mask_bin
+    end if
+    write(*, *) 'end of analytical search', r_start
+
+  end subroutine bulk_solvent_scaling
+
+  function estimate_scale_k1(f_m) result (scale_k1)
+    double precision :: scale_k1, cutoff, high_res, num, denum
+    integer :: i, min_reflections
+    complex(8), dimension(NRF) :: f_m
+    ! overall scaling on min(best 1A shell, 500 reflection)
+    min_reflections = 500
+    scale_k1 = 1
+    !write(*, *) 'hi_res_shell_n', sum(f_m(scale_k1_indices(1:hi_res_shell_n)))
+#if 1
+    if (hi_res_shell_n > min_reflections) then
+      denum = sum(abs(f_m(scale_k1_indices(1:hi_res_shell_n))) &
+                * abs(f_m(scale_k1_indices(1:hi_res_shell_n))))
+      num = sum(abs_Fobs(scale_k1_indices(1:hi_res_shell_n)) &
+              * abs(f_m(scale_k1_indices(1:hi_res_shell_n))))
+      if (denum == 0) then
+        ! make test for zero f_obs in sf.F90
+        scale_k1 = 0
+      else
+        scale_k1 = num / denum
+      end if
+    end if
+#endif
+    !write(*, *) 'hi_res_shell_k1', scale_k1
+
+  end function estimate_scale_k1
+
+  subroutine init_scales()
+
+    implicit none
+
+    k_mask = 0
+    k_iso = 1
+    k_iso_test = 1
+    k_iso_exp = 1
+    k_iso_exp_test = 1
+    k_aniso = 1
+    k_aniso_test = 1
+    return
+
+  end subroutine init_scales
+
+  function r_factor_w(f_m) result(r)
+    implicit none
+    double precision :: r, sc
+    complex(8), dimension(NRF) :: f_m
+    sc = scale(f_m)
+    r = r_factor_w_scale(f_m, sc)
+
+  end function r_factor_w
+
+  function r_factor_w_selection(f_m, index_start, index_end) result(r)
+    implicit none
+    double precision :: r, num, denum, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: index_start, index_end
+    sc = scale_selection(f_m, index_start, index_end)
+    num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+    denum = sum(abs_Fobs(index_start:index_end))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / denum
+    end if
+  end function r_factor_w_selection
+
+  function r_factor_w_selection_and_scale(f_m, index_start, index_end, sc) result(r)
+    implicit none
+    double precision :: r, num, denum, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: index_start, index_end
+    num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+    denum = sum(abs_Fobs(index_start:index_end))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / denum
+    end if
+  end function r_factor_w_selection_and_scale
+
+  function r_factor_w_scale(f_m, sc) result(r)
+    implicit none
+    double precision :: r, num, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: i
+    num = sum(abs(abs_Fobs(1:NRF_work) - sc * abs(f_m(1:NRF_work))))
+    if (r_work_factor_denominator == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / r_work_factor_denominator
+    end if
+
+  end function r_factor_w_scale
+
+  function scale(f_m) result(r)
+    implicit none
+    double precision :: r
+    complex(8), dimension(NRF) :: f_m
+    r = scale_selection(f_m, 1, NRF)
+  end function scale
+
+  function scale_selection(f_m, index_start, index_end) result(r)
+    implicit none
+    double precision :: r, num, denum
+    complex(8), dimension(NRF) :: f_m
+    integer :: i, index_start, index_end
+    num = sum(abs_Fobs(index_start:index_end) * abs(f_m(index_start:index_end)))
+    denum = sum(abs(f_m(index_start:index_end)) * abs(f_m(index_start:index_end)))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 0
+    else
+      r = num / denum
+    end if
+  end function scale_selection
+
+  function special_r_factor(f_m) result(r_best)
+    implicit none
+    double precision :: r, r_best, scale, scale_best, scale_, offset_factor, step_factor, step, num, denum
+    complex(8), dimension(NRF) :: f_m
+    offset_factor = 3.0
+    step_factor = 20.0
+    num = sum(abs_Fobs(1:NRF_work) * abs(f_m(1:NRF_work)))
+    denum = sum(abs(f_m(1:NRF_work)) * abs(f_m(1:NRF_work)))
+    if (denum > 0)  then
+      scale = num / denum
+    else
+      scale = 0.0d0
+    end if
+    scale_ = scale - scale / offset_factor
+    r_best = r_factor_w_scale(f_m, scale_)
+    step = scale / step_factor
+    do while (scale_ <= scale + scale / offset_factor)
+      r = r_factor_w_scale(f_m, scale_)
+      if (r < r_best) then
+        r_best = r
+        scale_best = scale_
+      end if
+      scale_ = scale_ + step
+    end do
+  end function special_r_factor
 end module ml_mod
