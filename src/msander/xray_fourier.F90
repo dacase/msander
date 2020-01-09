@@ -512,7 +512,10 @@ contains
    subroutine dTargetML_dF(crd,deriv,xray_energy)
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
-           i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF
+           i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
+           init_scales, optimize_k_scale_k_mask, k_iso, k_iso_exp, &
+           k_aniso
+      use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(num_hkl)
@@ -524,6 +527,8 @@ contains
       double precision :: rwork_num, rwork_denom, x
       double precision :: eterm1, eterm2, rfree_num, rfree_denom
 
+#define beforev12 1
+#ifdef beforev12
       ! step 1: get fcalc, including solvent mask contribution:
       !  (atomic part already done in fourier_Fcalc, and passed in here.)
       call get_solvent_contribution(nstep, crd)
@@ -531,13 +536,21 @@ contains
       ! step 2: scaling Fcalc:
       call scale_Fcalc( nstep )
       abs_Fcalc(:) = abs(Fcalc(:))
+#else
+    if (mod(nstep, mask_update_frequency) == 0) then
+      call init_scales()
+      call optimize_k_scale_k_mask()
+      k_scale = k_iso * k_iso_exp * k_aniso
+    endif
+    Fcalc = k_scale * (Fcalc + k_mask * f_mask)
+#endif
 
       ! step 3: get ml parameters and xray restraint energy:
 
       if (mod(nstep, ml_update_frequency) == 0) then
         if (mytaskid == 0 ) &
            write(6,'(a)') '| updating alpha and beta'
-        call estimate_alpha_beta(Fcalc, abs_Fobs)
+        call estimate_alpha_beta()
         delta_array = alpha_array / beta_array
       endif
 

@@ -6,6 +6,7 @@ module ml_mod
 
   use file_io_dat
   use xray_globals_module
+  use bulk_solvent_mod, only: f_mask
   implicit none
 
   ! 7 x 7 transformation matrices to anisotropically scale structure factors 
@@ -72,7 +73,7 @@ module ml_mod
           k_iso_exp, k_iso_exp_test, &
           s_squared_min_bin, s_squared_max_bin, s_squared_mean_bin
 
-  complex(real_kind), allocatable :: f_calc_tmp(:), f_mask(:)
+  complex(real_kind), allocatable :: f_calc_tmp(:)
 
 #ifdef MPI
 #     include "parallel.h"
@@ -215,9 +216,6 @@ contains
     NRF = num_hkl
 
     allocate(f_calc_tmp(NRF))
-    allocate(f_mask(NRF))
-    allocate(k_mask(NRF))
-    allocate(k_scale(NRF))
     allocate(k_iso(NRF))
     allocate(k_iso_test(NRF))
     allocate(k_iso_exp(NRF))
