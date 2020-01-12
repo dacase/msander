@@ -192,9 +192,9 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, &
+         cross
     use memory_module, only: i100, ix
-    use ml_mod, only: cross
     implicit none
     double precision, intent(in) :: resolution
 
