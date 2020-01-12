@@ -22,6 +22,7 @@ module bulk_solvent_mod
                                  mask_r_shrink = 0.9, &
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
   double precision :: k_sol = 0.35, b_sol = 46.0
+  logical :: simple_bulk_solvent = .false. 
 
   ! atom_types:    Type index for each atom, referring not to atom types in the
   !                standard MD topology but atom types for the SSF calculation
@@ -192,9 +193,9 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, &
+        cross
     use memory_module, only: i100, ix
-    use ml_mod, only: cross
     implicit none
     double precision, intent(in) :: resolution
 
@@ -311,21 +312,25 @@ contains
     mask_bs_grid = 1
     mask_bs_grid_tmp = 1
 
-    if (mytaskid == 0 ) &
-      write(6,'(a,2f8.3)') '| creating k_mask with k_sol,b_sol = ', k_sol, b_sol
-    do i = 1, num_hkl
-      s(:) = hkl_index(1,i) * vas(:) + hkl_index(2,i) * vbs(:) &
-           + hkl_index(3,i) * vcs(:)
-      s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
-      k_mask(i) = k_sol * exp(b_sol * s_squared)
-
-      hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
+    if (simple_bulk_solvent ) then
+       ! following is specific to the "old" k_sol,b_sol approach.  
+       if (mytaskid == 0 ) &
+         write(6,'(a,2f8.3)') '| creating k_mask with k_sol,b_sol = ', k_sol, b_sol
+       do i = 1, num_hkl
+         s(:) = hkl_index(1,i) * vas(:) + hkl_index(2,i) * vbs(:) &
+              + hkl_index(3,i) * vcs(:)
+         s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
+         k_mask(i) = k_sol * exp(b_sol * s_squared)
+   
+         hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
                                 hkl_index(3,i), na, nb, nc)
-      if (hkl_indexing_bs_mask(i) == -1) then
-        stop 'Miller indices indexing failed'
-      end if
-      
-    end do
+         if (hkl_indexing_bs_mask(i) == -1) then
+           stop 'Miller indices indexing failed'
+         end if
+       end do
+    else
+       ! need to import code here for the newer, grid search initialization
+    endif
 
     call calc_grid_neighbors()
     return
