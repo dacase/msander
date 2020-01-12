@@ -172,4 +172,20 @@ module xray_globals_module
    ! MPI distribution on reflections:
    integer, save :: ihkl1, ihkl2
 
+contains
+
+  !----------------------------------------------------------------------------
+  ! cross:   Compute the cross product of vectors a and b.  
+  !----------------------------------------------------------------------------
+  function cross(a, b) result(cross_product)
+
+    double precision, dimension(3) :: cross_product
+    double precision, dimension(3), intent(in) :: a, b
+
+    cross_product(1) = a(2) * b(3) - a(3) * b(2)
+    cross_product(2) = a(3) * b(1) - a(1) * b(3)
+    cross_product(3) = a(1) * b(2) - a(2) * b(1)
+
+  end function cross
+
 end module xray_globals_module
