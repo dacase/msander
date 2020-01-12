@@ -62,12 +62,9 @@ module memory_module
 !      rborn_max, rborn_min, rborn_ave, rborn_fluct
 ! Modified by WJM, YD, RL
       rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor, pol2
-   _REAL_, dimension(:,:), pointer :: polbnd
 !!
 
-   integer, dimension(:), pointer :: egb_neighbor_list
-
-   _REAL_, dimension(:,:), pointer :: ref_coordinate, coordinate, &
+   _REAL_, dimension(:), pointer :: ref_coordinate, coordinate, &
       velocity, velocity_old, frc
 
    integer, pointer, dimension(:) :: nmr_imet
@@ -142,7 +139,6 @@ contains
       ! i78: UNUSED
 
       num_bonds => ix(i80:i80+natom-1)
-      egb_neighbor_list => ix(i82:i82+natom*merge(80,40,gbsa==2))
 
       charge => x(l15:l15+natom-1)
       massinv => x(lwinv:lwinv+natom-1)
@@ -151,25 +147,27 @@ contains
       screen => x(l96:l96+natom-1)
       polarizability => x(lpol:lpol+natom-1)
 ! by WJM, YD
-      pol2 => x(lpol2:lpol2+natom-1)
-      dampfactor => x(ldf:ldf+natom-1)
-!!
 
       restraint_group => ix(icnstrgp:icnstrgp+ndper-1)
       tgt_fit_group => ix(itgtfitgp:itgtfitgp+natom-1)
       tgt_rms_group => ix(itgtrmsgp:itgtrmsgp+natom-1)
-      belly_group => ix(ibelly:ibelly+natom-1)
+      belly_group => ix(ibellygp:ibellygp+natom-1)
       atom_noshake => ix(noshake:noshake+natom-1)
 
+#if 0
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
       call set_rank2_pointer(ref_coordinate,x(lcrdr),3,natom)
       call set_rank2_pointer(velocity,x(lvel),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(velocity_old,x(lvel2),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(frc,x(lforce),3,natom)
-! by RL
-      call set_rank2_pointer(polbnd,x(lpolbnd),3,natom)
+#else
+      coordinate => x(lcrd:lcrd+3*natom+iscale-1)
+      ref_coordinate => x(lcrdr:lcrdr+3*natom+iscale-1)
+      velocity => x(lvel:lvel+3*natom+iscale-1)
+      velocity_old => x(lvel2:lvel2+3*natom+iscale-1)
+      frc => x(lforce:lforce+3*natom+iscale+40-1)
+#endif
 
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       group_weight => x(l60:l60+natom-1)
 
       ! l65: polarization  DEAD??
@@ -274,7 +272,6 @@ contains
       ! i78: UNUSED
 
       nullify(num_bonds)
-      nullify(egb_neighbor_list)
 
       nullify(charge)
       nullify(massinv)
@@ -282,10 +279,6 @@ contains
       nullify(radii)
       nullify(screen)
       nullify(polarizability)
-! by WJM, YD
-      nullify(pol2)
-      nullify(dampfactor)
-!!
 
       nullify(restraint_group)
       nullify(tgt_fit_group)
@@ -298,10 +291,6 @@ contains
       nullify(velocity)
       nullify(velocity_old)
       nullify(frc)
-! by RL
-      nullify(polbnd)
-
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       nullify(group_weight)
 
       ! l65: polarization  DEAD??
