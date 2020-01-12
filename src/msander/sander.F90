@@ -777,6 +777,9 @@ subroutine sander()
     call mpi_bcast(plumed, 1, MPI_INTEGER, 0, commsander, ier)
     call mpi_bcast(plumedfile, MAX_FN_LEN, MPI_CHARACTER, 0, commsander, ier)
 
+    ! get iscale sent to all node:
+    call mpi_bcast(iscale, 1, mpi_integer, 0, commsander, ier)
+
     ! GMS: Broadcast parameters from module 'molecule'
     call mpi_bcast(mol_info%natom, 1, mpi_integer, 0, commsander, ier)
     call mpi_bcast(mol_info%nres, 1, mpi_integer, 0, commsander, ier)
