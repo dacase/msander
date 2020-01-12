@@ -28,7 +28,7 @@ module xray_interface_module
    !  pmemd.F90:         call xray_fini()
 
    use xray_globals_module
-   use bulk_solvent_mod, only: k_sol, b_sol
+   use bulk_solvent_mod, only: k_sol, b_sol, simple_bulk_solvent
    implicit none
    private
 
@@ -58,7 +58,7 @@ module xray_interface_module
          bfactor_min, bfactor_max, &
          bfactor_refinement_interval, &
          atom_selection_mask, &
-         k_sol, b_sol,  &
+         k_sol, b_sol, simple_bulk_solvent, &
          mask_update_frequency, scale_update_frequency, &
          ml_update_frequency, xray_nstep
 
@@ -88,7 +88,7 @@ contains
    end subroutine xray_read_mdin
 
    subroutine xray_write_options()
-      use bulk_solvent_mod, only: k_sol, b_sol
+      use bulk_solvent_mod, only: k_sol, b_sol, simple_bulk_solvent
       implicit none
 
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
@@ -113,7 +113,8 @@ contains
       ! write(stdout,'(5X,2A)') 'Solvent Mask OutFile:',trim(solvent_mask_outfile)
       ! write(stdout,'(5X,2A)') 'Solvent Mask Reflection OutFile:',trim(solvent_mask_reflection_outfile)
       write(stdout,'(5X,A,I5)') 'Solvent Mask Update Interval: ',mask_update_frequency
-      write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',k_sol,', B-factor:', b_sol
+      if( simple_bulk_solvent ) &
+        write(stdout,'(5X,2(A,F8.3))') 'Solvent scale:',k_sol,', B-factor:', b_sol
       write(stdout,'(5X,A,I2)')   'FFT method: ',fft_method
       if( fft_method > 0 ) then
          write(stdout,'(5X,A,3(5X,I5))') 'FFT Grid Size: ',fft_grid_size
@@ -266,7 +267,7 @@ contains
                         name,resName,chainID(1:1),resSeq,iCode(1:1)
                end if
             end if
-            if (pdb_read_coordinates) coordinate(1:3,i) = xyz
+            if (pdb_read_coordinates) coordinate(3*i-2:3*i) = xyz
             atom_bfactor(i) = tempFactor
             atom_occupancy(i) = occupancy
          end if
@@ -424,7 +425,7 @@ contains
                   iatom_p,name,atom_altloc(iatom)(1:1), &
                   resName,residue_chainid(ires)(1:1), &
                   ires_p,residue_icode(ires)(1:1), &
-                  coordinate(1:3,iatom), &
+                  coordinate(3*iatom-2:3*iatom), &
                   atom_occupancy(iatom), &
                   atom_bfactor(iatom), &
                   merge(this_residue_chainid,'    ',pdb_use_segid), &
