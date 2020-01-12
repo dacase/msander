@@ -141,7 +141,8 @@ bintraj.LES.o:   bintraj.F90
 bulk_solvent.o: \
                     parallel.h\
                     xray_globals.o\
-                    memory_module.o
+                    memory_module.o\
+                    ml.o
 
 
 bulk_solvent.o:   bulk_solvent.F90
@@ -1718,11 +1719,9 @@ minrit.LES.o:   minrit.F90
 
 ml.o: \
                     ../include/assert.fh\
-                    ../include/dprec.fh\
                     file_io_dat.o\
-                    xray_globals.o\
-                    bulk_solvent.o\
-                    parallel.h
+                    parallel.h\
+                    xray_globals.o
 
 
 ml.o:   ml.F90

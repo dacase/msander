@@ -220,8 +220,13 @@ contains
       ihkl2 = num_hkl
 #endif
 
+#ifdef USE_ISCALE
 !$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz,d_tempFactor )
+!$omp&  reduction( +:dxyz, d_tempFactor )
+#else
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
+!$omp&  reduction( +:dxyz ) 
+#endif
       REFLECTION: do ihkl = ihkl1,ihkl2
 
          do i = 1,num_scatter_types
@@ -510,7 +515,7 @@ contains
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
            init_scales, optimize_k_scale_k_mask, k_iso, k_iso_exp, &
            k_aniso
-      use bulk_solvent_mod, only: f_mask, k_mask, simple_bulk_solvent
+      use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(num_hkl)
@@ -522,26 +527,25 @@ contains
       double precision :: rwork_num, rwork_denom, x
       double precision :: eterm1, eterm2, rfree_num, rfree_denom
 
-      ! TODO following needs to be put into xray-interface, to separate
-      !      scaling an bulk_solvent from target function selection
-      if( simple_bulk_solvent ) then
-         ! step 1: get fcalc, including solvent mask contribution:
-         !  (atomic part already done in fourier_Fcalc, and passed in here.)
-         call get_solvent_contribution(nstep, crd)
+#define beforev12 1
+#ifdef beforev12
+      ! step 1: get fcalc, including solvent mask contribution:
+      !  (atomic part already done in fourier_Fcalc, and passed in here.)
+      call get_solvent_contribution(nstep, crd)
 
-         ! step 2: scaling Fcalc:
-         call scale_Fcalc( nstep )
-         abs_Fcalc(:) = abs(Fcalc(:))
-      else
-         if (mod(nstep, mask_update_frequency) == 0) then
-           call init_scales()
-           call optimize_k_scale_k_mask()
-           k_scale = k_iso * k_iso_exp * k_aniso
-         endif
-         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-      endif
+      ! step 2: scaling Fcalc:
+      call scale_Fcalc( nstep )
+      abs_Fcalc(:) = abs(Fcalc(:))
+#else
+    if (mod(nstep, mask_update_frequency) == 0) then
+      call init_scales()
+      call optimize_k_scale_k_mask()
+      k_scale = k_iso * k_iso_exp * k_aniso
+    endif
+    Fcalc = k_scale * (Fcalc + k_mask * f_mask)
+#endif
 
-      ! step 3: get ml parameters
+      ! step 3: get ml parameters and xray restraint energy:
 
       if (mod(nstep, ml_update_frequency) == 0) then
         if (mytaskid == 0 ) &

@@ -157,22 +157,32 @@ subroutine locmem()
    else
       call adj_mem_ptr( r_ptr, lpol, 0 )
    end if
-   call adj_mem_ptr( r_ptr, lcrd, 3*natom + iscale )
-   call adj_mem_ptr( r_ptr, lforce, 3*natom + iscale + 40 )
-   if (imin == 0) then
-      call adj_mem_ptr( r_ptr, lvel,  3*natom + iscale )
-      call adj_mem_ptr( r_ptr, lvel2, 3*natom + iscale )
+! Modified by WJM, YD, RL
+   if (ipol > 1) then
+      call adj_mem_ptr( r_ptr, ldf, natom )
+      call adj_mem_ptr( r_ptr, lpol2, natom )
+      if ( ipol == 5) call adj_mem_ptr( r_ptr, lpolbnd, 3*natom )
    else
-      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + iscale) )
+      call adj_mem_ptr( r_ptr, ldf, 0 )
+      call adj_mem_ptr( r_ptr, lpol2, 0 )
+      call adj_mem_ptr( r_ptr, lpolbnd, 0 )
+   end if
+   call adj_mem_ptr( r_ptr, lcrd, 3*natom + mxvar )
+   call adj_mem_ptr( r_ptr, lforce, 3*natom + mxvar + 40 )
+   if (imin == 0) then
+      call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
+      call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
+   else
+      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + mxvar) )
       call adj_mem_ptr( r_ptr, lvel2, 0 )
    end if
-   call adj_mem_ptr( r_ptr, l45, 3*natom + iscale )
+   call adj_mem_ptr( r_ptr, l45, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, l50, ntbond )
    
    ! positional restraints or carlos added targeted MD
    
    if (ntr > 0.or.itgtmd == 1) then
-      call adj_mem_ptr( r_ptr, lcrdr, 3*natom + iscale )
+      call adj_mem_ptr( r_ptr, lcrdr, 3*natom + mxvar )
       call adj_mem_ptr( r_ptr, l60, natom )
    else
       call adj_mem_ptr( r_ptr, lcrdr, 0 )
@@ -284,14 +294,14 @@ subroutine locmem()
 
    if (nmropt >= 2) then
       call adj_mem_ptr( r_ptr, l105, mxsub*isubr )
-      call adj_mem_ptr( r_ptr, l110, 3*natom + iscale )
+      call adj_mem_ptr( r_ptr, l110, 3*natom + mxvar )
       call adj_mem_ptr( r_ptr, l115, ma*ma )
       call adj_mem_ptr( r_ptr, l120, 3*ma*ma )
       call adj_mem_ptr( r_ptr, l125, 3*ma*ma )
       call adj_mem_ptr( r_ptr, l130, 3*ma*ma )
       call adj_mem_ptr( r_ptr, l135, ma*ma )
       call adj_mem_ptr( r_ptr, l140, ma*ma )
-      call adj_mem_ptr( r_ptr, l145, 3*ma + iscale )
+      call adj_mem_ptr( r_ptr, l145, 3*ma + mxvar )
    else
       call adj_mem_ptr( r_ptr, l110, 0 )
    end if
@@ -414,7 +424,7 @@ subroutine locmem()
       call adj_mem_ptr( i_ptr, i80, natom )
       call adj_mem_ptr( i_ptr, i82, 80*natom )
    else
-      call adj_mem_ptr( i_ptr, i80, 0 )
+   !  call adj_mem_ptr( i_ptr, i80, 0 )
       call adj_mem_ptr( i_ptr, i82, 0 )
    end if
    
@@ -504,9 +514,7 @@ end subroutine locmem
 !+ [Enter a one-line description of subroutine adj_mem_ptr here]
 subroutine adj_mem_ptr(mem_ptr,assign_ptr,size)
    implicit none
-   integer, intent(inout) :: mem_ptr
-   integer, intent(out) :: assign_ptr
-   integer, intent(in) :: size
+   integer mem_ptr,assign_ptr,size
 
    assign_ptr = mem_ptr
    mem_ptr = mem_ptr + size

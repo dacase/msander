@@ -384,7 +384,7 @@ subroutine runmin(xx,ix,ih,ipairs,x,fg,w,ib,jb,conp, &
       fnq = sqrt(fnq)
    end if          
 
-   rms = sqrt(sum)/(fnq+iscale)
+   rms = sqrt(sum)/fnq
 
    !     ----- PRINT THE INTERMEDIATE RESULTS -----
 

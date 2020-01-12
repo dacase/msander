@@ -248,9 +248,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   logical do_list_update
   logical skip(*), belly, lout, loutfm, erstop, vlim, onstep
   ! Fortran does not guarantee short circuit logical expressions:
-  _REAL_ x(3*natom + iscale), winv(3*natom), amass(3*natom), &
-      f(3*natom+iscale), v(3*natom+iscale), vold(3*natom+iscale), &
-      xr(*), xc(*), conp(*)
+  _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), xr(*), xc(*), conp(*)
   type(state_rec) :: ener   ! energy values per time step
   type(state_rec) :: enert  ! energy values tallied over the time steps
   type(state_rec) :: enert2 ! energy values squared tallied over the time steps

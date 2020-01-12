@@ -319,9 +319,9 @@ contains
        
        if ( amber_atom_type(i) == o_atom_type ) then
 
-          coord_o => coordinate(3*i-2:3*i)
-          coord_h1 => coordinate(3*i+1:3*i+3)
-          coord_h2 => coordinate(3*i+4:3*i+6)
+          coord_o => coordinate(1:3,i)
+          coord_h1 => coordinate(1:3,i+1)
+          coord_h2 => coordinate(1:3,i+2)
 
           ! Fermi damping function
           r_o_surf = coord_o(surface_index) - surface_position
@@ -352,16 +352,16 @@ contains
              tmp = dot * one_dipnorm
              acos_grad = -one / sqrt(one - tmp*tmp)
              tmp = fermi * vtheta_grad * acos_grad * one_dipnorm
-             frc(surface_index+3*i-3) = frc(surface_index+3*i-3) + tmp
+             frc(surface_index,i) = frc(surface_index,i) + tmp
              tmp = half * tmp
-             frc(surface_index+3*i) = frc(surface_index+3*i) - tmp
-             frc(surface_index+3*i+3) = frc(surface_index+3*i+3) - tmp
+             frc(surface_index,i+1) = frc(surface_index,i+1) - tmp
+             frc(surface_index,i+2) = frc(surface_index,i+2) - tmp
              tmp = - fermi * vtheta_grad * acos_grad * dot &
                   * one_dipnorm * one_dipnorm * one_dipnorm
-             frc(3*i-2:3*i) = frc(3*i-2:3*i) + tmp * dipole(1:3)
+             frc(1:3,i) = frc(1:3,i) + tmp * dipole(1:3)
              tmp = half * tmp
-             frc(3*i+1:3*i+3) = frc(3*i+1:3*i+3) - tmp * dipole(1:3)
-             frc(3*i+4:3*i+6) = frc(3*i+4:3*i+6) - tmp * dipole(1:3)
+             frc(1:3,i+1) = frc(1:3,i+1) - tmp * dipole(1:3)
+             frc(1:3,i+2) = frc(1:3,i+2) - tmp * dipole(1:3)
 
           end if
 
@@ -378,7 +378,7 @@ contains
              rn = rn * r_h1_surf
              vprop_grad = -dble(n_h_surf) * b_h_surf / rn
              ! force H1
-             frc(surface_index+3*i) = frc(surface_index+3*i) - vprop_grad
+             frc(surface_index,i+1) = frc(surface_index,i+1) - vprop_grad
 
              r_h2_surf = coord_h2(surface_index) - surface_position
              rn = one
@@ -389,14 +389,14 @@ contains
              rn = rn * r_h2_surf
              vprop_grad = -dble(n_h_surf) * b_h_surf / rn
              ! force H2
-             frc(surface_index+3*i+3) = frc(surface_index+3*i+3) - vprop_grad
+             frc(surface_index,i+2) = frc(surface_index,i+2) - vprop_grad
 
           end if
 
           vang = vang + fermi*vtheta + vprop
 
           ! force Fermi derivative
-          frc(surface_index+3*i-3) = frc(surface_index+3*i-3)-fermi_grad*vtheta
+          frc(surface_index,i) = frc(surface_index,i) - fermi_grad*vtheta
 
        end if
 
@@ -434,7 +434,7 @@ contains
     surface_position = -1.0d20
     do i = 1, natom
        if (amber_atom_type(i) == pt_atom_type) then
-          tmp = coordinate(surface_index+3*i-3)
+          tmp = coordinate(surface_index,i)
           if (tmp > surface_position) then
              surface_position = tmp
           end if
@@ -510,8 +510,8 @@ contains
              ! ie d/drk = 6 * c6_ptPo * r4 * delx(k) * (r6 + a6_pt_o)^(-2)
              tmp = six * c6_pt_o * r4 * dispinv * dispinv
              force(1:3) = tmp * delx(1:3)
-             frc(3*i-2:3*i) = frc(3*i-2:3*i) + force(1:3)
-             frc(3*j-2:3*j) = frc(3*j-2:3*j) - force(1:3)
+             frc(1:3,i) = frc(1:3,i) + force(1:3)
+             frc(1:3,j) = frc(1:3,j) - force(1:3)
 
           end if
 
@@ -532,8 +532,8 @@ contains
 
              !force
              force(1:3) = -two * b_gauss(1:3) * delx(1:3) * tmp * eps_gauss
-             frc(3*i-2:3*i) = frc(3*i-2:3*i) + force(1:3)
-             frc(3*j-2:3*j) = frc(3*j-2:3*j) - force(1:3)
+             frc(1:3,i) = frc(1:3,i) + force(1:3)
+             frc(1:3,j) = frc(1:3,j) - force(1:3)
 
           end if
 
@@ -647,8 +647,8 @@ contains
                 force(1:3) = force(1:3) + (one-f_rho)*tmp1*bo3 * rinv * delx(1:3)
                 force(1:3) = force(1:3) - tmp1 * f_rho_grad(1:3)
 
-                frc(3*i-2:3*i) = frc(3*i-2:3*i) + force(1:3)
-                frc(3*j-2:3*j) = frc(3*j-2:3*j) - force(1:3)
+                frc(1:3,i) = frc(1:3,i) + force(1:3)
+                frc(1:3,j) = frc(1:3,j) - force(1:3)
 
              else  ! must be h
 
@@ -656,8 +656,8 @@ contains
 
                 !force
                 force(1:3) = tmp * bh * rinv * delx(1:3)
-                frc(3*i-2:3*i) = frc(3*i-2:3*i) + force(1:3)
-                frc(3*j-2:3*j) = frc(3*j-2:3*j) - force(1:3)
+                frc(1:3,i) = frc(1:3,i) + force(1:3)
+                frc(1:3,j) = frc(1:3,j) - force(1:3)
 
              end if
 

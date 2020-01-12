@@ -27,7 +27,7 @@ Test of MD with Xray restraints
    xray_weight = 1.0,
    fft_method = 0,
    target='ml', 
-   k_sol=0.35, b_sol=46.0, simple_bulk_solvent=.true.,
+   k_sol=0.35, b_sol=46.0,
  /
 EOF
 

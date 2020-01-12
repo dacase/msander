@@ -1153,12 +1153,12 @@ contains
              ENDIF
            ENDDO
            IF(ATSKIP)CYCLE
-           XN=coordinate(3*ia-2)-T(1)-CX
-           YN=coordinate(3*ia-1)-T(2)-CY
-           ZN=coordinate(3*ia  )-T(3)-CZ
-           coordinate(3*ia-2)=U(1,1)*XN+U(2,1)*YN+U(3,1)*ZN+CX
-           coordinate(3*ia-1)=U(1,2)*XN+U(2,2)*YN+U(3,2)*ZN+CY
-           coordinate(3*ia  )=U(1,3)*XN+U(2,3)*YN+U(3,3)*ZN+CZ
+           XN=coordinate(1,ia)-T(1)-CX
+           YN=coordinate(2,ia)-T(2)-CY
+           ZN=coordinate(3,ia)-T(3)-CZ
+           coordinate(1,ia)=U(1,1)*XN+U(2,1)*YN+U(3,1)*ZN+CX
+           coordinate(2,ia)=U(1,2)*XN+U(2,2)*YN+U(3,2)*ZN+CY
+           coordinate(3,ia)=U(1,3)*XN+U(2,3)*YN+U(3,3)*ZN+CZ
          end do
       end do
       RETURN
@@ -1197,9 +1197,9 @@ contains
              ENDIF
            ENDDO
            IF(ATSKIP)CYCLE
-           XN=coordinate(3*ia-2)-T(1)-CX
-           YN=coordinate(3*ia-1)-T(2)-CY
-           ZN=coordinate(3*ia  )-T(3)-CZ
+           XN=coordinate(1,ia)-T(1)-CX
+           YN=coordinate(2,ia)-T(2)-CY
+           ZN=coordinate(3,ia)-T(3)-CZ
            CRDN(1)=U(1,1)*XN+U(2,1)*YN+U(3,1)*ZN+CX
            CRDN(2)=U(1,2)*XN+U(2,2)*YN+U(3,2)*ZN+CY
            CRDN(3)=U(1,3)*XN+U(2,3)*YN+U(3,3)*ZN+CZ
