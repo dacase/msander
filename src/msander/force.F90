@@ -159,7 +159,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   _REAL_  enmr(6), devdis(4), devang(4), devtor(4), devpln(4), devplpt(4), &
           devgendis(4), entr, ecap, enfe
-  _REAL_  x(*), f(*), vir(4)
+  _REAL_  x(3*natom+iscale), f(3*natom+iscale), vir(4)
   type(state_rec)  ener
 
   ! Local
@@ -837,11 +837,17 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
            ! set coordinates to current bfactors:
            x(3*natom+1:4*natom) = atom_bfactor(1:natom)
            first = .false.
+           ! write(6,*) 'starting B-factors:'
+           ! write(6,'(5f15.6)') x(3*natom+1:3*natom+10)
         else
            ! get current bfactors from the end of the coordinate array:
            atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+           ! write(6,*) 'current B-factors:'
+           ! write(6,'(5f15.6)') x(3*natom+1:3*natom+10)
         endif
         call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+           ! write(6,*) 'current B-factor-derivatives:'
+           ! write(6,'(5f15.6)') f(3*natom+1:3*natom+10)
      else
         call xray_get_derivative(x,f,xray_e)
      endif
