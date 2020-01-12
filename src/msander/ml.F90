@@ -6,7 +6,7 @@ module ml_mod
 
   use file_io_dat
   use xray_globals_module
-  use bulk_solvent_mod, only: f_mask
+  use bulk_solvent_mod, only: f_mask, k_mask
   implicit none
 
   ! 7 x 7 transformation matrices to anisotropically scale structure factors 
@@ -64,7 +64,7 @@ module ml_mod
   integer, dimension(:), allocatable, save :: scale_k1_indices
 
   double precision, dimension(:), allocatable :: s_squared, &
-         s_squared_for_scaling, k_mask
+         s_squared_for_scaling
   double precision, dimension(:,:), allocatable ::  s, scat_factors_precalc
 
   ! Arrays for scaling coefficients optimization
@@ -81,20 +81,6 @@ module ml_mod
       integer :: mytaskid = 0
 #endif
 contains
-
-  !----------------------------------------------------------------------------
-  ! cross:   Compute the cross product of vectors a and b.  
-  !----------------------------------------------------------------------------
-  function cross(a, b) result(cross_product)
-
-    double precision, dimension(3) :: cross_product
-    double precision, dimension(3), intent(in) :: a, b
-
-    cross_product(1) = a(2) * b(3) - a(3) * b(2)
-    cross_product(2) = a(3) * b(1) - a(1) * b(3)
-    cross_product(3) = a(1) * b(2) - a(2) * b(1)
-
-  end function cross
 
   !----------------------------------------------------------------------------
   ! i1_over_i0:   approximation of modified Bessel functions of the first kind:
@@ -223,6 +209,11 @@ contains
     allocate(k_aniso(NRF))
     allocate(k_aniso_test(NRF))
 
+    allocate(s(3, NRF))
+    allocate(s_squared(NRF))
+    allocate(s_squared_for_scaling(NRF))
+    allocate(scat_factors_precalc(5, NRF))
+
     allocate(d_star_sq(NRF))
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
@@ -295,6 +286,7 @@ contains
     REQUIRE( NRF_free == r_free_counter )
     if (mytaskid == 0 ) &
       write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
+
 
     if (target(1:2) == 'ml') then
 
@@ -1358,7 +1350,8 @@ contains
 
     implicit none
 
-    k_mask = 0
+    write(0,*) 'in init_scales: ', size(k_mask), num_hkl
+    k_mask(:) = 0
     k_iso = 1
     k_iso_test = 1
     k_iso_exp = 1
