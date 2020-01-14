@@ -339,8 +339,8 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
 
    !     Parameters:
 
-   _REAL_, intent(inout)           :: f(*),vir(*)
-   _REAL_                          :: forcetmp(*)
+   _REAL_, intent(inout)           :: f(size),vir(4)
+   _REAL_                          :: forcetmp(size)
    type(potential_energy_rec), intent(inout)  :: pot
    type(potential_energy_rec)                 :: pot_tmp
    integer, intent(out) ::  newbalance
