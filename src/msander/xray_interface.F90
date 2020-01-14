@@ -331,10 +331,7 @@ contains
       use xray_common_module, only: owrite, title, title1
       use xray_utils_module, only: allocate_lun
       use memory_module, only: &
-            residue_pointer,residue_label,atom_name,coordinate, &
-            num_bonds=>nbona, &
-            bond_atom1=>bonds_without_hydrogen_1, &
-            bond_atom2=>bonds_without_hydrogen_2
+            residue_pointer,residue_label,atom_name,coordinate
       implicit none
       character(len=*), intent(in) :: filename
       ! locals
