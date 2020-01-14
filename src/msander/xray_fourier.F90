@@ -220,7 +220,8 @@ contains
       ihkl2 = num_hkl
 #endif
 
-!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) 
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
+!$omp&  reduction( +:dxyz, d_tempFactor )
       REFLECTION: do ihkl = ihkl1,ihkl2
 
          do i = 1,num_scatter_types
@@ -257,10 +258,8 @@ contains
             end if
 
             if (present(dxyz)) then
-!$omp critical
                dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
                    ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
-!$omp end critical
             end if
 
          end do ATOM
