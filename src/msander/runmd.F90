@@ -2164,7 +2164,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 
     ! Call xdist such that master has all the velocities
-    call xdist(v, xx(lfrctmp), natom)
+    call xdist(v, xx(lfrctmp), 3*natom+iscale)
   else if (next_rem_method == 4 .or. next_rem_method == 5) then
     remd_ekmh = ekmh
   endif
