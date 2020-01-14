@@ -740,6 +740,8 @@ contains
 #endif
       endif
 #ifdef MPI
+      ! need reduction on Fcalc so all nodes can subsequently calculate
+      !   the target energy, etc.
       call mpi_allreduce( MPI_IN_PLACE, Fcalc, num_hkl, &
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
@@ -806,8 +808,9 @@ contains
 #endif
          endif
 #ifdef MPI
-         call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
-              MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
+         ! see if following fdist can take care of this reduction:
+         ! call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
+         !      MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
 #endif
 
          ! Convert xray_dxyz() back to orthogonal coordinates: 

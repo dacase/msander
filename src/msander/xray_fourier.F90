@@ -220,22 +220,20 @@ contains
       ihkl2 = num_hkl
 #endif
 
-!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) &
-!$omp&  reduction( +:dxyz, d_tempFactor )
-      REFLECTION: do ihkl = ihkl1,ihkl2
+!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) 
+      ATOM: do iatom = 1,num_atoms
+         REFLECTION: do ihkl = ihkl1,ihkl2
 
-         do i = 1,num_scatter_types
-            atomic_scatter_factor(i) = &
+            do i = 1,num_scatter_types
+               atomic_scatter_factor(i) = &
                atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
-         end do
+            end do
 
-         ! FIXME: symmetry operations are included here, and require an 
-         ! additional loop.
-         ! This code is currently limited to P1.
-         dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
+            ! FIXME: symmetry operations are included here, and require an 
+            ! additional loop.
+            ! This code is currently limited to P1.
+            dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
-         ! --------------------------------------------------------------------
-         ATOM: do iatom = 1,num_atoms
             phase = sum( dhkl * xyz(:,iatom) )
             f = atomic_scatter_factor(scatter_type_index(iatom)) &
                   * exp(mSS4(ihkl) * tempFactor(iatom)) 
@@ -262,9 +260,8 @@ contains
                    ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
             end if
 
-         end do ATOM
-
-      end do REFLECTION
+         end do REFLECTION
+      end do ATOM
 !$omp end parallel do
       call wallclock( time1 )
       dhkl_duration = dhkl_duration + time1 - time0
