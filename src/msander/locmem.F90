@@ -53,7 +53,7 @@ subroutine locmem()
    !                  L97   ! GB "rborn" array
    !                  L98   ! GB "reff" array
    !                  L99   ! GB "onereff" array (1/reff)
-   !                 Lfrctmp! 3*Natom + 40 Real Scratch( fdist + pol.), mpi only
+   !                 Lfrctmp! 3*Natom + iscale Real Scratch, mpi only
    !                  L105  ! NMR "xstore" variable
    !                  L110  ! NMR "fnoe" variable
    !                  L115  ! NMR "ddep" variable
@@ -289,7 +289,7 @@ subroutine locmem()
    end if  ! ( igb /= 0 .or. ipb /= 0 )
 
 #ifdef MPI
-   call adj_mem_ptr( r_ptr, lfrctmp, 3*natom + 40 )
+   call adj_mem_ptr( r_ptr, lfrctmp, 3*natom + iscale )
 #endif
 
    if (nmropt >= 2) then
@@ -424,7 +424,7 @@ subroutine locmem()
       call adj_mem_ptr( i_ptr, i80, natom )
       call adj_mem_ptr( i_ptr, i82, 80*natom )
    else
-   !  call adj_mem_ptr( i_ptr, i80, 0 )
+      call adj_mem_ptr( i_ptr, i80, 0 )
       call adj_mem_ptr( i_ptr, i82, 0 )
    end if
    
