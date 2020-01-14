@@ -842,6 +842,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
            atom_bfactor(1:natom) = x(3*natom+1:4*natom)
         endif
         call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+        write(0,'(a,i3,7f10.5)') 'x',mytaskid, x(3*natom+1:3*natom+7)
+        write(0,'(a,i3,7f10.2)') 'f',mytaskid, f(3*natom+1:3*natom+7)
      else
         call xray_get_derivative(x,f,xray_e)
      endif
