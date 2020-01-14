@@ -68,8 +68,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #ifdef MPI
    integer ndel
    _REAL_ rl_temp(BC_EW_COMM3)
-! JMS: xdist doesn't consider mxvar from nmr.h, so we won't bother with it here
-   _REAL_ x_temp(numatoms*3)
 #endif
 
    integer nstart,ntop
