@@ -780,6 +780,25 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! MuSiC - GAL17 force field
   call music_force(ipairs, music_vdisp, music_vang, music_vgauss, music_spohr89)
 
+  ! Built-in X-ray target function and gradient
+  xray_energy = 0.d0
+  if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
+     if( iscale > 0 ) then
+        if (first) then
+           ! set coordinates to current bfactors:
+           x(3*natom+1:4*natom) = atom_bfactor(1:natom)
+           first = .false.
+        else
+           ! get current bfactors from the end of the coordinate array:
+           atom_bfactor(1:natom) = x(3*natom+1:4*natom)
+        endif
+        call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+     else
+        call xray_get_derivative(x,f,xray_e)
+     endif
+  endif
+
+
 #ifdef MPI
   call timer_barrier( commsander )
   call timer_start(TIME_COLLFRC)
@@ -789,7 +808,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! Remember to work on the local instance of the
   ! potential energy array, i.e. pot and NOT the global one,
   ! i.e. ener%pot
-  call fdist(f,xx(lfrctmp),pot,vir,newbalance)
+  call fdist(f,xx(lfrctmp),pot,vir,newbalance,3*natom+iscale)
   call timer_stop(TIME_COLLFRC)
 #endif
 
@@ -828,26 +847,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     edssp = 0.d0
   end if
 #endif
-
-  ! Built-in X-ray target function and gradient
-  xray_energy = 0.d0
-  if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
-     if( iscale > 0 ) then
-        if (first) then
-           ! set coordinates to current bfactors:
-           x(3*natom+1:4*natom) = atom_bfactor(1:natom)
-           first = .false.
-        else
-           ! get current bfactors from the end of the coordinate array:
-           atom_bfactor(1:natom) = x(3*natom+1:4*natom)
-        endif
-        call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
-        write(0,'(a,i3,7f10.5)') 'x',mytaskid, x(3*natom+1:3*natom+7)
-        write(0,'(a,i3,7f10.2)') 'f',mytaskid, f(3*natom+1:3*natom+7)
-     else
-        call xray_get_derivative(x,f,xray_e)
-     endif
-  endif
 
     ! Calculate the total energy and group the components
 #ifndef LES
