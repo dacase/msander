@@ -101,7 +101,7 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(nmropt,7,MPI_INTEGER,0,commsander,ierr)   ! /nmr1/
    call mpi_bcast(intreq,6,MPI_INTEGER,0,commsander,ierr)   ! /nmrstf/
    call mpi_bcast(wnoesy,6,MPI_DOUBLE_PRECISION,0,commsander,ierr) ! /wremar/
-   call mpi_bcast(scalm,6,MPI_DOUBLE_PRECISION,0,commsander,ierr) ! /nmr1/
+   call mpi_bcast(scalm,7,MPI_DOUBLE_PRECISION,0,commsander,ierr) ! /nmr1/
    call mpi_bcast(dobsu,BC_ALIGNR,MPI_DOUBLE_PRECISION,0,commsander,ierr)
                                                                   ! /align/
    call mpi_bcast(ndip, BC_ALIGNI,MPI_INTEGER,0,commsander,ierr)  ! /align/
@@ -321,7 +321,7 @@ end subroutine startup
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine fdist here]
-subroutine fdist(f,forcetmp,pot,vir,newbalance)
+subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
 
    use qmmm_module, only : qmmm_nml
    use state
@@ -343,7 +343,8 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
    _REAL_                          :: forcetmp(*)
    type(potential_energy_rec), intent(inout)  :: pot
    type(potential_energy_rec)                 :: pot_tmp
-   integer newbalance
+   integer, intent(out) ::  newbalance
+   integer, intent(in) ::  size
 
    !     Local:
 
@@ -357,12 +358,12 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance)
       !      (hence, the master will know all coordinates and all forces):
 
       if (master) then
-        call mpi_reduce(MPI_IN_PLACE,f,(3*natom+iscale), &
+        call mpi_reduce(MPI_IN_PLACE,f,size, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
         call mpi_reduce(MPI_IN_PLACE,pot,potential_energy_rec_len, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
       else
-        call mpi_reduce(f,0,(3*natom+iscale), &
+        call mpi_reduce(f,0,size, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
         call mpi_reduce(pot,0,potential_energy_rec_len, &
             MPI_DOUBLE_PRECISION,mpi_sum,0,commsander,ierr)
@@ -488,12 +489,12 @@ end subroutine fsum
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Distribute the coordinates to all processors.
-subroutine xdist(x, tmp, natom)
+subroutine xdist(x, tmp, size)
 
    implicit none
 
-   integer, intent(in) :: natom
-   _REAL_ x(3*natom), tmp(3*natom)
+   integer, intent(in) :: size   ! will be 3*natom + iscale
+   _REAL_ x(size), tmp(size)
 
 #  include "parallel.h"
 #    ifdef MPI_DOUBLE_PRECISION
@@ -545,20 +546,20 @@ subroutine xdist(x, tmp, natom)
            x(iparpt3(mytaskid)+1),rcvcnt3(mytaskid), &
            MPI_DOUBLE_PRECISION,tmp,rcvcnt3,iparpt3, &
            MPI_DOUBLE_PRECISION,commsander, ierr)
-     x(1:3*natom) = tmp(1:3*natom)
+     x(1:size) = tmp(1:size)
    endif
    return
 end subroutine xdist
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine fgblsum here]
-subroutine fgblsum(x,tmp, natom)
+subroutine fgblsum(x,tmp, size)
    implicit none
-   integer, intent(in) :: natom
-   _REAL_ x(3*natom),tmp(3*natom)
+   integer, intent(in) :: size
+   _REAL_ x(size),tmp(size)
 
    call fsum(x,tmp)
-   call xdist(x, tmp, natom)
+   call xdist(x, tmp, size)
 
    return
 end subroutine fgblsum
