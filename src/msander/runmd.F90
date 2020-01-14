@@ -8,7 +8,7 @@
 !          zM closes all folds; zR opens all folds
 
 !------------------------------------------------------------------------------
-! runmd: main driver routine for molecular dynamics.  This is over 2500 lines
+! runmd: main driver routine for molecular dynamics.  This is over 2300 lines
 !        long and incorporates virtually every method that sander offers.
 !        Prior to calling this routine, the sander subroutine itself will take
 !        user input, read system specifications from coordinates and topology
@@ -166,6 +166,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #else
   ! mdloop and REM is always 0 in serial
   integer, parameter :: mdloop = 0, rem = 0, remd_types(1) = 0, replica_indexes(1) = 0
+  integer, parameter :: numtasks = 1
+  integer, parameter :: mytaskid = 0
 #endif
 
   ! The following variables are needed since nstep and nstlim behave
@@ -292,7 +294,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   integer nrx, nr, nr3, ntcmt, izero, istart
   logical ixdump, ivdump, itdump, ifdump
   logical qsetup
-  _REAL_, allocatable, dimension(:) :: f_or
 #ifdef RISMSANDER
   logical irismdump
 #  ifdef RISM_DEBUG
@@ -316,8 +317,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_,parameter :: pressure_constant = 6.85695d+4
 
   ! variables used in middle scheme
-  _REAL_ :: xold(3*natom)       ! for constrained MD
-  _REAL_ :: x_centroid(3,natom) ! for PIMD
+  _REAL_, allocatable :: xold(:)       ! for shake
   ! Ek(t) used to be written to mdout
   ! Ek(t+dt/2) is now written to mdout
   ! DAC: need to figure out exactly how the above matches the code
@@ -412,7 +412,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
   istart3 = 3*istart -2
   iend3 = 3*iend
+  if( mytaskid == numtasks -1 )  iend3 = iend3 + iscale
 
+  if( ntc>1 ) allocate (xold(3*natom+iscale))
 #ifdef MPI
   if (icfe /= 0) then
     allocate(frcti(nr3 + 3*extra_atoms), stat=ierr)
@@ -423,7 +425,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! If ntwprt.NE.0, only print the atoms up to this value
   nrx = nr3
   if (ntwprt > 0) nrx = ntwprt*3
-  if (.not. allocated(f_or)) allocate(f_or(nr3))
 
   ! Cleanup the velocity if belly run
   if (belly) call bellyf(nr,ix(ibellygp),v)
@@ -606,11 +607,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 
 !------------------------------------------------------------------------------
-    ! Needed for Adaptive Biasing-Force mixing QM/MM
-    f_or(1:nr3) = f(1:nr3)
-#ifdef MPI
-    call xdist(f_or, xx(lfrctmp), natom)
-#endif /* MPI */
 
     ! This force call does not count as a "step". CALL NMRDCP to decrement
     ! local NMR step counter and MTMDUNSTEP to decrease the local MTMD step
@@ -736,6 +732,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Added LES tempsu (actual LES sum of m*v**2 )
     tempsules = 0.0d0
 #endif
+
+    ! update the velocities; only real atoms are handled in this loop:
+    !  TODO:  fdist has been called, but I think each MPI process only
+    !         knows the forces assigned to its atoms(?)
     do j = 1,nrp
       winf = winv(j) * dt5
       aamass = amass(j)
@@ -760,18 +760,21 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end do
     end do
 
+    ! Now do velocity updates for the 
+    !       only it has the correct forces for these extra variables
+    do im = 1, iscale
+      tempsu = tempsu + scalm * v(nr3+im)*v(nr3+im)
+      if( mytaskid == numtasks -1 )  &
+          v(nr3+im) = v(nr3+im) - f(nr3+im) * dt5 / scalm
+    end do
+    ener%kin%solt = tempsu * 0.5d0
+
 #ifdef MPI /* SOFT CORE */
     if (ifsc /= 0) then
       call calc_softcore_ekin(amass, v, v, istart, iend)
       sc_ener(13) = sc_ener(6) + sc_ener(12)
     end if
 #endif
-
-    do im = 1, iscale
-      tempsu = tempsu + scalm * v(nr3+im)*v(nr3+im)
-      v(nr3+im) = v(nr3+im) - f(nr3+im) * dt5 / scalm
-    end do
-    ener%kin%solt = tempsu * 0.5d0
 
     ! middle scheme for constrain MD
     if (ntc /= 1) then
@@ -903,14 +906,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
     if (nstlim == 0) then
 #ifdef MPI
-      call xdist(x, xx(lfrctmp), natom)
-      call xdist(v, xx(lfrctmp), natom)
+      call xdist(x, xx(lfrctmp), 3*natom+iscale)
+      call xdist(v, xx(lfrctmp), 3*natom+iscale)
 #endif
       if (master) then
         call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
         if (ntwx>0) call corpac(x, 1, nrx, MDCRD_UNIT, loutfm)
         if (ntwv>0) call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
-        if (ntwf>0) call corpac(f_or, 1, nrx, MDFRC_UNIT, loutfm)
         if (ntwe>0) call mdeng(15, nstep, t, ener, onefac, ntp)
       end if
       return
@@ -1024,12 +1026,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
              xx(l98), xx(l99), qsetup, do_list_update, nstep)
 
 !------------------------------------------------------------------------------
-  ! distribute the forces:  (dac: what does f_or stand for?)
-  f_or(1:nr3) = f(1:nr3)
-
-#ifdef MPI
-  call xdist(f_or, xx(lfrctmp), natom)
-#endif
 
   ! }}}
 
@@ -1284,9 +1280,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
   !  Simple Newtonian dynamics on the "extra" variables  (why?)
-  do im = 1, iscale
-    v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
-  end do
+  !  TODO: in parallel, should be done by the final processor only
+  if( mytaskid == numtasks - 1 ) then
+     do im = 1, iscale
+        v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
+     end do
+  endif
 
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
@@ -1308,11 +1307,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
        x(i3) = x(i3) + v(i3)*dt5
     end do
 
-  ! position update for the "extra" variables"
+#if 0  /* what used to be here  */
+  ! position update for the "extra" variables": no thermostat here??
   do i = 1,iscale
     f(nr3+i) = x(nr3+i)
     x(nr3+i) = x(nr3+i) + v(nr3+i)*dtx
   end do
+#endif
 
   call timer_stop(TIME_VERLET)
   ! }}}
@@ -1342,7 +1343,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call timer_barrier( commsander )
       call timer_stop_start(TIME_SHAKE,TIME_DISTCRD)
       if (.not. mpi_orig .and. numtasks > 1) &
-        call xdist(x, xx(lfrctmp), natom)
+        call xdist(x, xx(lfrctmp), nr3+iscale)
 
       ! In dual-topology this is done within softcore.f
       if (ifsc .ne. 1) then
@@ -1563,7 +1564,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Distribute the coordinates, dipoles, and velocities as necessary
   call timer_barrier(commsander)
   call timer_stop_start(TIME_VERLET,TIME_DISTCRD)
-  if (.not. mpi_orig .and. numtasks > 1) call xdist(x, xx(lfrctmp), natom)
+  if (.not. mpi_orig .and. numtasks > 1) call xdist(x, xx(lfrctmp), nr3+iscale)
 
   ! DAC/knut change: force the coordinates to be the same on both masters.
   ! For certain compilers, addition may not be strictly commutative, so
@@ -1612,7 +1613,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! node really needs the velocities for archiving.  But the extra
     ! overhead of doing it this way is probably small in most cases.)
     if (ivdump .or. ivscm .or. ixdump) then
-      call xdist(v, xx(lfrctmp), natom)
+      call xdist(v, xx(lfrctmp), nr3+iscale)
     endif
     call timer_stop(TIME_DISTCRD)
   end if
@@ -1667,9 +1668,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Put current velocities into vold
   vold(istart3:iend3) = v(istart3:iend3)
-  do im = 1, iscale
-    vold(nr3+im) = v(nr3+im)
-  end do
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -2086,13 +2084,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   call timer_stop(TIME_VERLET)
 #if !defined(DISABLE_NFE) && defined(NFE_ENABLE_BBMD)
   if (infe == 1) then
-    call xdist(x, xx(lfrctmp), natom)
-    call xdist(v, xx(lfrctmp), natom)
+    call xdist(x, xx(lfrctmp), nr3+iscale)
+    call xdist(v, xx(lfrctmp), nr3+iscale)
     call nfe_on_mdstep(ener%pot%tot, x, v, ekmh)
     vold(istart3:iend3) = v(istart3:iend3)
-    do im = 1, iscale
-       vold(nr3+im) = v(nr3+im)
-    end do
   end if
 #endif /* DISABLE_NFE is NOT defined, but NFE_ENABLE_BBMD is */
 
@@ -2247,6 +2242,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         if (iredir(7) .ne. 0) then
           call pcshift(-1, x, f)
         end if
+        
         call ndvptx(x, f, ih(m04), ih(m02), ix(i02), nres, xx(l95), &
                     natom, xx(lwinv), xx(lnmr01), ix(inmr02), 6)
       end if
@@ -2285,6 +2281,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! depends on whether MPI is part of the compilation. }}}
 
   ! deallocates: {{{
+  if( ntc>1 ) then
+    deallocate( xold, stat=ierr )
+    REQUIRE( ierr == 0 )
+  end if
   if (icfe .ne. 0) then
     deallocate( frcti, stat = ierr )
     REQUIRE( ierr == 0 )
