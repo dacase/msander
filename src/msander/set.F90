@@ -638,6 +638,8 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
       if (master) then
          write(6,'(a)') '|  Atom division among processors:'
          write(6,'("|  ", 8i8)') (iparpt(j),j=0,numtasks)
+         write(6,'(a)') '|  Coordinate  division among processors:'
+         write(6,'("|  ", 8i8)') (iparpt3(j),j=0,numtasks)
       end if
 #endif
    end if  
