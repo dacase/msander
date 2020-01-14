@@ -65,8 +65,6 @@ module memory_module
    _REAL_, dimension(:,:), pointer :: polbnd
 !!
 
-   integer, dimension(:), pointer :: egb_neighbor_list
-
    _REAL_, dimension(:,:), pointer :: ref_coordinate, coordinate, &
       velocity, velocity_old, frc
 
@@ -142,7 +140,6 @@ contains
       ! i78: UNUSED
 
       num_bonds => ix(i80:i80+natom-1)
-      egb_neighbor_list => ix(i82:i82+natom*merge(80,40,gbsa==2))
 
       charge => x(l15:l15+natom-1)
       massinv => x(lwinv:lwinv+natom-1)
@@ -158,7 +155,7 @@ contains
       restraint_group => ix(icnstrgp:icnstrgp+ndper-1)
       tgt_fit_group => ix(itgtfitgp:itgtfitgp+natom-1)
       tgt_rms_group => ix(itgtrmsgp:itgtrmsgp+natom-1)
-      belly_group => ix(ibelly:ibelly+natom-1)
+      belly_group => ix(ibellygp:ibellygp+natom-1)
       atom_noshake => ix(noshake:noshake+natom-1)
 
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
@@ -274,7 +271,6 @@ contains
       ! i78: UNUSED
 
       nullify(num_bonds)
-      nullify(egb_neighbor_list)
 
       nullify(charge)
       nullify(massinv)
