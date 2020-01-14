@@ -566,6 +566,9 @@ subroutine sander()
 #else
           call amrset(ig)
 #endif
+        else if (irest>0) then
+          ! still need to set initial velocities for extra variables:
+          if( iscale>0 ) x(lvel+3*nr:lvel+3*nr+iscale-1) = 0.d0
         end if
         if (belly) then
           call bellyf(natom, ix(ibellygp), x(lvel))
