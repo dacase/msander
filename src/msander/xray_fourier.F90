@@ -53,6 +53,7 @@ module xray_fourier_module
 #else
       integer :: mytaskid = 0
 #endif
+      real(real_kind), allocatable, save  :: atomic_scatter_factor(:,:)
 
    !-------------------------------------------------------------------
 contains
@@ -81,44 +82,45 @@ contains
       real(real_kind), intent(in), target, optional :: occupancy(num_atoms)
 
       ! locals
-      integer :: ihkl, i, ier
+      integer :: ihkl, i, ier, ierr
       ! automatic
-      real(real_kind) :: atomic_scatter_factor(num_scatter_types)
       real(real_kind) :: f(num_atoms), angle(num_atoms)
       double precision :: time0, time1
 #ifdef MPI
       integer hklgroup
 #endif
+      logical, save :: first=.true.
 
       call wallclock( time0 )
 
-      ! set up reflection partitioning for MPI
+      if( first ) then
+         ! set up reflection partitioning for MPI
 #ifdef MPI
-      ihkl1 = mytaskid*num_hkl/numtasks + 1
-      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
-      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
+         ihkl1 = mytaskid*num_hkl/numtasks + 1
+         ihkl2 = (mytaskid + 1) * num_hkl/numtasks
+         if(mytaskid == numtasks - 1) ihkl2 = num_hkl
 #else
-      ihkl1 = 1
-      ihkl2 = num_hkl
+         ihkl1 = 1
+         ihkl2 = num_hkl
 #endif
+
+         allocate(atomic_scatter_factor(num_hkl,num_scatter_types), stat=ierr)
+         REQUIRE(ierr==0)
+         do ihkl=ihkl1,ihkl2
+            do i = 1,num_scatter_types
+               atomic_scatter_factor(ihkl,i) = &
+               atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
+            end do
+         enddo
+         first = .false. 
+      endif
 
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-!$omp parallel do private(ihkl,i,atomic_scatter_factor,f,angle)  
+!$omp parallel do private(ihkl,i,f,angle)  
       do ihkl = ihkl1, ihkl2
-
-         ! NOTE: the atomic scatter factors do not change for a given atom type
-         ! and hkl index as long as the unit cell is unchanged. If the number 
-         ! of atom types is small, it may be worth saving a pre-calculated 
-         ! array of num_type by num_reflections.
-         ! (this is *not* what is being done here, however)
-
-         do i = 1, num_scatter_types
-           atomic_scatter_factor(i) = &
-             atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
-         end do
 
          ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
          !      j = 1,num_selected_atoms
@@ -140,7 +142,7 @@ contains
          !    j = 1,num_selected_atoms
 
          f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
-              * atomic_scatter_factor(scatter_type_index(:))
+              * atomic_scatter_factor(ihkl,scatter_type_index(:))
          if (present(occupancy)) then
             f(:) = f(:)*occupancy(:)
          endif
@@ -199,43 +201,25 @@ contains
 
       ! locals
       integer :: ihkl, iatom, i
-      real(real_kind) :: atomic_scatter_factor(num_scatter_types)
       real(real_kind) :: dhkl(3)
       complex(real_kind) :: f
       real(real_kind) :: phase
       double precision time0, time1
+      logical, save :: first=.true.
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
 
       call wallclock( time0 )
 
-      ! set up reflection partitioning for MPI
-#ifdef MPI
-      ihkl1 = mytaskid*num_hkl/numtasks + 1
-      ihkl2 = (mytaskid + 1) * num_hkl/numtasks
-      if(mytaskid == numtasks - 1) ihkl2 = num_hkl
-#else
-      ihkl1 = 1
-      ihkl2 = num_hkl
-#endif
-
-!$omp parallel do private(ihkl,atomic_scatter_factor,dhkl,iatom,phase,f) 
+!$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
       ATOM: do iatom = 1,num_atoms
          REFLECTION: do ihkl = ihkl1,ihkl2
 
-            do i = 1,num_scatter_types
-               atomic_scatter_factor(i) = &
-               atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
-            end do
-
-            ! FIXME: symmetry operations are included here, and require an 
-            ! additional loop.
-            ! This code is currently limited to P1.
             dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
             phase = sum( dhkl * xyz(:,iatom) )
-            f = atomic_scatter_factor(scatter_type_index(iatom)) &
+            f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
                   * exp(mSS4(ihkl) * tempFactor(iatom)) 
    
             f = f * cmplx(cos(phase),sin(phase), rk_)
