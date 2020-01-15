@@ -1,0 +1,316 @@
+
+          -------------------------------------------------------
+          Amber 18 SANDER                              2018
+          -------------------------------------------------------
+
+| Run on 01/15/2020 at 15:43:43
+
+|   Executable path: ../../../bin/msander.MPI
+| Working directory: /home/case/msander/test/xray/480d
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin.rism                                                             
+| MDOUT: 480d_xray.out                                                         
+|INPCRD: 4amber_480d.rst7                                                      
+|  PARM: 480d.parm7                                                            
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
+
+ Here is the input file:
+
+  single-point 3D-RISM calculation using the sander interface                  
+ &cntrl                                                                        
+    ntx=1, nstlim=5, ntpr=1,                                                   
+    tempi=0.0, ithermostat=0, dt=0.001,                                        
+ /                                                                             
+ &xray                                                                         
+   spacegroup_name='P1',                                                       
+   pdb_infile = '4phenix_480d_uc.pdb',                                         
+   ! fmtz_outfile = '480d_xray.fmtz',                                          
+   reflection_infile = '483d-sf.dat',                                          
+   atom_selection_mask = '!(@H=)',                                             
+   xray_weight = 5000.,                                                        
+   fft_method = 0,                                                             
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags: MPI                                                                    
+ getting new box info from bottom of inpcrd
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    14.975
+ NATOM  =    3492 NTYPES =      14 NBONH =    1176 MBONA  =    2592
+ NTHETH =    2688 MTHETA =    4040 NPHIH =    6020 MPHIA  =    7796
+ NHPARM =       0 NPARM  =       0 NNB   =   19512 NRES   =     108
+ NBONA  =    2592 NTHETA =    4040 NPHIA =    7796 NUMBND =      46
+ NUMANG =      94 NPTRA  =      61 NATYP =      27 NPHB   =       0
+ IFBOX  =       1 NMXRS  =      35 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              521524
+|     Hollerith          10586
+|     Integer           781125
+|     Max Pairs        1164000
+|     nblistReal         41904
+|     nblist Int        275650
+|       Total            13118 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       5
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =         5, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     Box X =   29.950   Box Y =   29.950   Box Z =   76.420
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   30       NFFT2 =   30       NFFT3 =   80
+     Cutoff=    8.000   Tol   = 0.100E-04
+     Ewald Coefficient =  0.34864
+     Interpolation order =    4
+
+X-ray Refinement Parameters:
+     PDB InFile: 4phenix_480d_uc.pdb
+     PDB Read Coordinates: F
+     PDB Use SegID: F
+     PDB Wrap Names: F
+     Spacegroup: P 1
+     Reflection InFile: 483d-sf.dat
+     Resolution Range:   50.000,   0.000
+     X-ray weight:  0.500E+04
+     Use target: ls  
+     Scale update Interval:   100
+     Solvent Mask Update Interval:   100
+     Solvent scale:   0.350, B-factor:  46.000
+     FFT method:  0
+     Atom Selection Mask: !(@H=)
+
+| MPI Timing options:
+|      profile_mpi =        0
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+PDB: All atoms read successfully.
+XRAY: UNIT CELL=    29.950   29.950   76.420  90.00  90.00  90.00
+Found   2316 atoms in !(@H=);
+| number of reflections:    25359       0   25359
+| creating k_mask with k_sol,b_sol =    0.350  46.000
+ Number of triangulated 3-point waters found:        0
+|  Atom division among processors:
+|         0    3492
+|  Coordinate  division among processors:
+|         0   10476
+
+     Sum of charges from parm topology file = ************
+     Assuming uniform neutralizing plasma
+|  Running AMBER/MPI version on    1 nodes
+
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):   10476.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =   10473.     NUM_NOSHAKE =      0     CORRECTED RNDFP =   10473.
+|  TOTAL # of degrees of freedom (RNDF) =   10473.
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
+| CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =     424436
+| TOTAL SIZE OF NONBOND LIST =     424436
+| updating isotropic scaling:      0.43891 0.29575E-07
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =    -19776.3271  EKtot   =         0.0000  EPtot      =    -19776.3271
+ BOND   =       198.9939  ANGLE   =       810.3104  DIHED      =      2446.5617
+ 1-4 NB =      1095.0244  1-4 EEL =    -11233.6779  VDWAALS    =     -2480.8480
+ EELEC  =    -11570.7883  EHBOND  =         0.0000  RESTRAINT  =       958.0967
+ EAMBER (non-restraint)  =    -20734.4238
+ Exray  =       958.0967  Rwork   =         0.4087  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =    -19776.3271  EKtot   =         0.0000  EPtot      =    -19776.3271
+ BOND   =       198.9939  ANGLE   =       810.3104  DIHED      =      2446.5617
+ 1-4 NB =      1095.0244  1-4 EEL =    -11233.6779  VDWAALS    =     -2480.8480
+ EELEC  =    -11570.7883  EHBOND  =         0.0000  RESTRAINT  =       958.0967
+ EAMBER (non-restraint)  =    -20734.4238
+ Exray  =       958.0967  Rwork   =         0.4087  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     5.51  PRESS =     0.0
+ Etot   =    -19778.3256  EKtot   =        57.2943  EPtot      =    -19835.6199
+ BOND   =       183.2069  ANGLE   =       784.7815  DIHED      =      2445.4405
+ 1-4 NB =      1092.1883  1-4 EEL =    -11243.2126  VDWAALS    =     -2488.1904
+ EELEC  =    -11567.8403  EHBOND  =         0.0000  RESTRAINT  =       958.0060
+ EAMBER (non-restraint)  =    -20793.6259
+ Exray  =       958.0060  Rwork   =         0.4087  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =    19.38  PRESS =     0.0
+ Etot   =    -19782.2132  EKtot   =       201.6957  EPtot      =    -19983.9090
+ BOND   =       154.4590  ANGLE   =       716.1316  DIHED      =      2442.2704
+ 1-4 NB =      1084.3823  1-4 EEL =    -11270.0788  VDWAALS    =     -2507.8335
+ EELEC  =    -11560.9814  EHBOND  =         0.0000  RESTRAINT  =       957.7413
+ EAMBER (non-restraint)  =    -20941.6503
+ Exray  =       957.7413  Rwork   =         0.4086  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =    36.31  PRESS =     0.0
+ Etot   =    -19784.6270  EKtot   =       377.8831  EPtot      =    -20162.5101
+ BOND   =       142.3284  ANGLE   =       625.8759  DIHED      =      2437.6043
+ 1-4 NB =      1073.4173  1-4 EEL =    -11309.6062  VDWAALS    =     -2534.1140
+ EELEC  =    -11555.3386  EHBOND  =         0.0000  RESTRAINT  =       957.3229
+ EAMBER (non-restraint)  =    -21119.8330
+ Exray  =       957.3229  Rwork   =         0.4085  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    52.55  PRESS =     0.0
+ Etot   =    -19785.3392  EKtot   =       546.8047  EPtot      =    -20332.1439
+ BOND   =       148.2992  ANGLE   =       542.7197  DIHED      =      2432.2651
+ 1-4 NB =      1061.5195  1-4 EEL =    -11355.6332  VDWAALS    =     -2561.1333
+ EELEC  =    -11556.9608  EHBOND  =         0.0000  RESTRAINT  =       956.7799
+ EAMBER (non-restraint)  =    -21288.9238
+ Exray  =       956.7799  Rwork   =         0.4084  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+      A V E R A G E S   O V E R       5 S T E P S
+
+
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    22.75  PRESS =     0.0
+ Etot   =    -19781.3664  EKtot   =       236.7356  EPtot      =    -20018.1020
+ BOND   =       165.4575  ANGLE   =       695.9638  DIHED      =      2440.8284
+ 1-4 NB =      1081.3064  1-4 EEL =    -11282.4418  VDWAALS    =     -2514.4238
+ EELEC  =    -11562.3819  EHBOND  =         0.0000  RESTRAINT  =       957.5894
+ EAMBER (non-restraint)  =    -20975.6914
+ Exray  =       956.7799  Rwork   =         0.4084  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    19.48  PRESS =     0.0
+ Etot   =         3.5149  EKtot   =       202.7492  EPtot      =       206.1068
+ BOND   =        21.8635  ANGLE   =        99.7663  DIHED      =         5.2905
+ 1-4 NB =        12.4082  1-4 EEL =        45.0879  VDWAALS    =        29.7605
+ EELEC  =         6.0236  EHBOND  =         0.0000  RESTRAINT  =         0.4859
+ EAMBER (non-restraint)  =       205.6209
+|E(PBS) =         0.0698
+ Exray  =       956.7799  Rwork   =         0.4084  Rfree      =         0.0000
+ ------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|                Build the list             0.01 (64.71% of List )
+|                Other                      0.01 (35.29% of List )
+|             List time                  0.02 (20.00% of Nonbo)
+|                   Short_ene time             0.04 (100.0% of Direc)
+|                Direct Ewald time          0.04 (58.82% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.94% of Ewald)
+|                   Fill Bspline coeffs        0.00 (16.00% of Recip)
+|                   Fill charge grid           0.00 ( 4.00% of Recip)
+|                   Scalar sum                 0.00 ( 8.00% of Recip)
+|                   Grad sum                   0.01 (24.00% of Recip)
+|                   FFT time                   0.01 (48.00% of Recip)
+|                Recip Ewald time           0.02 (36.76% of Ewald)
+|                Other                      0.00 ( 1.47% of Ewald)
+|             Ewald time                 0.07 (80.00% of Nonbo)
+|             Fcalc loop                19.74 (53.41% of Xray )
+|             Deriv loop                17.21 (46.56% of Xray )
+|          Xray restaints            36.97 (99.74% of Force)
+|       Force time                37.06 (100.0% of Runmd)
+|    Runmd Time                37.07 (99.65% of Total)
+| Total time                37.20 (100.0% of ALL  )
+
+| Highest rstack allocated:     263092
+| Highest istack allocated:       3492
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =      37.07 Per Step(ms) =    7413.20
+|         ns/day =       0.01   seconds/ns = 7413200.00
+| -----------------------------------------------------
+
+|           Job began  at 15:43:43.031  on 01/15/2020
+|           Setup done at 15:43:43.162  on 01/15/2020
+|           Run   done at 15:44:20.229  on 01/15/2020
+|     wallclock() was called     379 times
