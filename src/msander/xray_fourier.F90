@@ -86,9 +86,6 @@ contains
       ! automatic
       real(real_kind) :: f(num_atoms), angle(num_atoms)
       double precision :: time0, time1
-#ifdef MPI
-      integer hklgroup
-#endif
       logical, save :: first=.true.
 
       call wallclock( time0 )
@@ -154,7 +151,6 @@ contains
       end do
 !$omp end parallel do
       call wallclock( time1 )
-      ihkl_duration = ihkl_duration + time1 - time0
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
 
    end subroutine fourier_Fcalc
@@ -212,6 +208,7 @@ contains
 
       call wallclock( time0 )
 
+      ! TODO: does it hurt to have if statements inside the double loop?
 !$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
       ATOM: do iatom = 1,num_atoms
          REFLECTION: do ihkl = ihkl1,ihkl2
@@ -224,6 +221,7 @@ contains
    
             f = f * cmplx(cos(phase),sin(phase), rk_)
 
+#if 0
             if (present(d_occupancy)) then
                d_occupancy(iatom) = d_occupancy(iatom) + &
                  real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl))
@@ -232,6 +230,7 @@ contains
             if (present(occupancy)) then
                f = f * occupancy(iatom)
             end if
+#endif
 
             if (present(d_tempFactor)) then
                d_tempFactor(iatom) = d_tempFactor(iatom) &
@@ -248,7 +247,6 @@ contains
       end do ATOM
 !$omp end parallel do
       call wallclock( time1 )
-      dhkl_duration = dhkl_duration + time1 - time0
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
       return
 
@@ -380,6 +378,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       integer, save :: nstep=0
+      integer :: i
 
       abs_Fcalc(:) = abs(Fcalc(:))
       if( mod(nstep,scale_update_frequency) == 0 ) then
@@ -412,9 +411,11 @@ contains
       !
       ! deriv = Fcalc/abs(Fcalc) * K * ( Fobs - abs(Fcalc) )
       !      ....plus the terms arising from differentiating Fcalc_scale with
-      !      respect to Fcalc
+      !      respect to Fcalc, which are ignored here, since Fcalc_scale is
+      !      generally not updated on every step.
 
       if (present(deriv)) then
+         deriv(:) = 0._rk_  ! so no force for things unselected here
          if (present(selected)) then
             where (selected/=0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &

@@ -86,8 +86,6 @@ module xray_globals_module
 
    character(len=256) :: atom_selection_mask
 
-   real(real_kind), save :: ihkl_duration=0._rk_, dhkl_duration=0._rk_
-
    !----------------------------------------------------------------------------
    ! GLOBALS:
 

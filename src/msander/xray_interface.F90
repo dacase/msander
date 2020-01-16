@@ -697,11 +697,11 @@ contains
       real(real_kind), intent(out) :: xray_e
       real(real_kind), optional, intent(out) :: dB(num_atoms)
       ! local
-      integer, allocatable :: sel_index(:)
-      real(real_kind), allocatable :: frac_xyz(:,:)
-      real(real_kind), allocatable :: xray_dxyz(:,:), xray_dB(:)
-      real(real_kind), allocatable, target :: abs_Fcalc(:)
-      complex(real_kind), allocatable :: dF(:)
+      integer, allocatable, save :: sel_index(:)
+      real(real_kind), allocatable, save :: frac_xyz(:,:)
+      real(real_kind), allocatable, save :: xray_dxyz(:,:), xray_dB(:)
+      real(real_kind), allocatable, save :: abs_Fcalc(:)
+      complex(real_kind), allocatable, save :: dF(:)
       real(real_kind) :: phi
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i,ierr
@@ -713,24 +713,28 @@ contains
 #endif
 
       call timer_start(TIME_XRAY)
-      allocate(sel_index(num_atoms),stat=alloc_status)
-      REQUIRE(alloc_status==0)
-      call pack_index(atom_selection(:)==1 .and. atom_scatter_type(:)>0, sel_index, num_selected)
-      allocate(frac_xyz(3,num_selected),dF(num_hkl), &
-            abs_Fcalc(num_hkl), &
-            xray_dxyz(3,num_selected),xray_dB(num_selected), stat=alloc_status)
-      REQUIRE(alloc_status==0)
 
-      frac_xyz=modulo(matmul(transpose(orth_to_frac),xyz(:,sel_index(1:num_selected))),1.0_rk_)
+      if( first ) then
+         allocate(sel_index(num_atoms),stat=alloc_status)
+         REQUIRE(alloc_status==0)
+         call pack_index(atom_selection(:)==1 .and. &
+             atom_scatter_type(:)>0, sel_index, num_selected)
+         allocate(frac_xyz(3,num_selected),dF(num_hkl), abs_Fcalc(num_hkl), &
+             xray_dxyz(3,num_selected),xray_dB(num_selected), stat=alloc_status)
+         REQUIRE(alloc_status==0)
+         first = .false.
+      endif
+
+      frac_xyz=modulo(matmul(transpose(orth_to_frac), &
+                             xyz(:,sel_index(1:num_selected))),1.0_rk_)
       
-!     This call uses MPI or openmp parallel to compute Fcalc:
+      call timer_start(TIME_IHKL)
       if( fft_method == 0 ) then
          call timer_start(TIME_IHKL)
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)) )
-         call timer_stop(TIME_IHKL)
 #if 0
       else
          call FFT_Fcalc(num_hkl,Fcalc,test_flag-1, &
@@ -747,6 +751,7 @@ contains
       call mpi_allreduce( MPI_IN_PLACE, Fcalc, num_hkl, &
            MPI_DOUBLE_COMPLEX, mpi_sum, commsander, ierr)
 #endif
+      call timer_stop(TIME_IHKL)
 
       if (fave_outfile /= '') then
          ! keep a running sum of unscaled Fcalc values:
@@ -782,9 +787,8 @@ contains
                                ! both pmemd and sander interfaces
          dF = xray_weight * dF
 
+         call timer_start(TIME_DHKL)
          if( fft_method == 0 ) then
-            call timer_start(TIME_DHKL)
-            ! This call uses MPI parallel to compute xray_dxyz:
             if( present(dB) ) then
                call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
                num_selected,frac_xyz, &
@@ -798,7 +802,6 @@ contains
                atom_scatter_type(sel_index(1:num_selected)), &
                dxyz=xray_dxyz )
             endif
-            call timer_stop(TIME_DHKL)
 #if 0
          else
             call FFT_dXYZBQ_dF(num_hkl,dF,test_flag-1, &
@@ -809,11 +812,6 @@ contains
                num_scatter_types,scatter_ncoeffs,scatter_coefficients,xray_dxyz)
 #endif
          endif
-#ifdef MPI
-         ! see if following fdist can take care of this reduction:
-         ! call mpi_allreduce( MPI_IN_PLACE, xray_dxyz, 3*num_selected, &
-         !      MPI_DOUBLE_PRECISION, mpi_sum, commsander, ierr)
-#endif
 
          ! Convert xray_dxyz() back to orthogonal coordinates: 
          xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))
@@ -821,16 +819,9 @@ contains
          dxyz(:,sel_index(1:num_selected)) = dxyz(:,sel_index(1:num_selected)) &
              - xray_dxyz(:,:)
          if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
+         call timer_stop(TIME_DHKL)
 
       end if  ! from skipping target + derivatives if xray_weight is zero
-
-      ! DAC: why not allocate/deallocate just once, or make these
-      !    automatic variables?  Or is this not important?
-      deallocate(frac_xyz,dF, &
-            abs_Fcalc, xray_dxyz, xray_dB, stat=dealloc_status)
-      REQUIRE(dealloc_status==0)
-      deallocate(sel_index,stat=dealloc_status)
-      REQUIRE(dealloc_status==0)
 
       call timer_stop(TIME_XRAY)
 
