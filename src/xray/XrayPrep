@@ -1,7 +1,12 @@
 #!/bin/bash
 
-id=5l9j
+#  prepare Amber and structure factor files needed for xray3-style calculations.
+#  Single input is the pdb-identifier: code assumes that $1-sf.cif
+#      and $1.pdb are  available in the current directory
 
+id=$1
+
+#============================================================================
 echo "Running phenix.AmberPrep" 
 phenix.AmberPrep $id.pdb > $id-prep.log \
      || { echo "  $0:  Program error"; exit 1; }
@@ -16,11 +21,12 @@ add_xray -i foo.parm7 -o 5l9j_uc.parm7 >> $id-prep.log \
      || { echo "  $0:  Program error"; exit 1; }
 /bin/rm -f foo.parm7
 
+#============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
      || { echo "  $0:  Program error"; exit 1; }
 
-echo "Running phenix.refine to get R-Free_factors"
+echo "Running phenix.refine to get R-Free_factors, convert I to F"
 phenix.refine  \
    4phenix_$id.pdb $id-sf.mtz \
    refinement.input.xray_data.r_free_flags.generate=True \
@@ -29,6 +35,7 @@ phenix.refine  \
    write_geo=False cdl=True --overwrite >> $id-prep.log \
      || { echo "  $0:  Program error"; exit 1; }
 
+#============================================================================
 echo "Expanding reflections to P1 symmetry"
 # expand to P1 symmetry:
 cad hklin1 cdl_data.mtz hklout $id-P1.mtz << EOF >> $id-prep.log \
@@ -38,6 +45,7 @@ OUTLIM SPACEGROUP 1
 END
 EOF
 
+#============================================================================
 echo "Making the sf.dat file"
 #  convert to formatted file:
 phenix.mtz.dump -c -f s $id-P1.mtz  | tr ',' '\t' > $id.fmtz \
