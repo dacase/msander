@@ -586,7 +586,7 @@ contains
       solvent_mask_expand = 0.8
       solvent_mask_reflection_outfile = ''
       solvent_mask_outfile = ''
-      fft_method = 1
+      fft_method = 0
       fft_grid_size = (/0,0,0/)
       fft_grid_spacing = 0.33_rk_
       fft_bfactor_sharpen = 20
