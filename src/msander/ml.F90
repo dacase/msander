@@ -26,7 +26,8 @@ module ml_mod
                        b_vector_base
 
   ! Convenient numerical constants
-  double precision, parameter :: pi = 3.14159265359, zero = 0.0, d_tolerance = 1.e-10
+  double precision, parameter :: zero = 0.0d0, d_tolerance = 1.d-10
+  double precision, parameter :: PI      = 3.1415926535897932384626433832795d0
 
   ! h_sq, k_sq, l_sq:         Squares of H, K, and L indices (still integers)
   ! hk, kl, hl:               Products of H, K, and L indices
@@ -197,6 +198,7 @@ contains
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer:: hkl(3,num_hkl)
     double precision :: f_obs_tmp(num_hkl), sigma_tmp(num_hkl)
+    integer :: index_start, index_end
 
     N_steps = nstlim
     NRF = num_hkl
@@ -331,6 +333,9 @@ contains
     allocate(alpha_beta_wi(n_bins))
     allocate(alpha_in_zones(n_bins))
     allocate(beta_in_zones(n_bins))
+    allocate(s_squared_min_bin(n_bins))
+    allocate(s_squared_max_bin(n_bins))
+    allocate(s_squared_mean_bin(n_bins))
     allocate(alpha_beta_bj(NRF))
     A_in_zones = 0.0
     B_in_zones = 0.0
@@ -462,6 +467,13 @@ contains
     allocate(kl(NRF))
 
     do i = 1, NRF
+      s(:, i) = hkl_index(i, 1) * vas(:) &
+              + hkl_index(i, 2) * vbs(:) &
+              + hkl_index(i, 3) * vcs(:)
+      s_squared_for_scaling(i) = (s(1, i)**2 + s(2, i)**2 + s(3, i)**2)/4.d0
+      s_squared(i) = -1.0 * s_squared_for_scaling(i)
+      s(:, i) = 2 * PI * s(:, i)
+
       h_sq(i) = hkl_index(1,i) * hkl_index(1,i)
       k_sq(i) = hkl_index(2,i) * hkl_index(2,i)
       l_sq(i) = hkl_index(3,i) * hkl_index(3,i)
@@ -469,23 +481,51 @@ contains
       hl(i) = hkl_index(1,i) * hkl_index(3,i)
       kl(i) = hkl_index(2,i) * hkl_index(3,i)
     end do
-    NRF_work_sq = NRF_work * NRF_work
-    Ucryst(1, 1) = 1.0 / NRF_work
-    Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
-    Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
-    Ucryst(1, 4) = sum(1.0 * l_sq(1:NRF_work) / NRF_work_sq)
-    Ucryst(1, 5) = sum(1.0 *   hk(1:NRF_work) / NRF_work_sq)
-    Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
-    Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
 
-    ! In case if one needs only isotropic scaling
-    ! Ucryst(1, 1) = 1.0
-    ! Ucryst(1, 2) = 0.0
-    ! Ucryst(1, 3) = 0.0
-    ! Ucryst(1, 4) = 0.0
-    ! Ucryst(1, 5) = 0.0
-    ! Ucryst(1, 6) = 0.0
-    ! Ucryst(1, 7) = 0.0
+    ! set up s_squared in bins:
+    index_end = 0
+    do i = 1, n_bins
+      index_start = index_end + 1
+      index_end = index_start + bins_work_population(i) - 1
+      s_squared_min_bin(i)=minval(s_squared_for_scaling(index_start:index_end))
+      s_squared_max_bin(i)=maxval(s_squared_for_scaling(index_start:index_end))
+      s_squared_mean_bin(i)=sum(s_squared_for_scaling(index_start:index_end)) &
+                            / bins_work_population(i)
+    end do
+    do i = 1, n_bins
+      index_start = bins_free_start_indices(i)
+      index_end = bins_free_start_indices(i) + bins_free_population(i) - 1
+      s_squared_min_bin(i) = min(s_squared_min_bin(i), &
+           minval(s_squared_for_scaling(index_start:index_end)))
+      s_squared_max_bin(i) = max(s_squared_max_bin(i), &
+           maxval(s_squared_for_scaling(index_start:index_end)))
+      s_squared_mean_bin(i) = (s_squared_mean_bin(i) + &
+              sum(s_squared_for_scaling(index_start:index_end)) &
+              / bins_free_population(i)) / 2
+    end do
+
+    ! In the following, "simple" bulk solvent and "optimized" handle scaling
+    !    in different ways:
+
+    NRF_work_sq = NRF_work * NRF_work
+
+    if( bulk_solvent_model == 'simple' ) then
+       Ucryst(1, 1) = 1.0 / NRF_work
+       Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
+       Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
+       Ucryst(1, 4) = sum(1.0 * l_sq(1:NRF_work) / NRF_work_sq)
+       Ucryst(1, 5) = sum(1.0 *   hk(1:NRF_work) / NRF_work_sq)
+       Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
+       Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
+    else
+       Ucryst(1, 1) = 1.0
+       Ucryst(1, 2) = 0.0
+       Ucryst(1, 3) = 0.0
+       Ucryst(1, 4) = 0.0
+       Ucryst(1, 5) = 0.0
+       Ucryst(1, 6) = 0.0
+       Ucryst(1, 7) = 0.0
+    endif
 
     Ucryst(2, 1) = Ucryst(1, 2)
     Ucryst(3, 1) = Ucryst(1, 3)
@@ -537,9 +577,6 @@ contains
     Ucryst(7, 7) = sum(1.0 *   kl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
 
     call inverse(Ucryst, MUcryst_inv, 7)
-
-    call_est = 1
-
     return
 
   end subroutine init_ml
@@ -891,17 +928,20 @@ contains
 
     double precision :: current_r_work, r
     integer :: cycle
+    write(0,*) 'in optimize_k_scale_k_mask'
 
     r = 1.0d0
     cycle = 0
     current_r_work = 0.0
     current_r_work = r_factor_w(Fcalc)
+    write(0,*) 'current_r_work, r: ', current_r_work,r
 
     do while (r - current_r_work > 1.e-4 .and. cycle < 20)
-      write(*, *) r
+      write(0, *) r
       r = current_r_work
-      write(*, *) r
+      write(0, *) r
       if (cycle == 0) then
+        write(0,*) 's_squared_for_scaling: ', s_squared_for_scaling(1:3)
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
         call k_mask_grid_search(current_r_work)
@@ -1367,8 +1407,10 @@ contains
     double precision :: r, sc
     complex(8), dimension(NRF) :: f_m
     sc = scale(f_m)
+    write(0,*) 'sc = ', sc
     r = r_factor_w_scale(f_m, sc)
-
+    write(0,*) 'r = ', r
+    return
   end function r_factor_w
 
   function r_factor_w_selection(f_m, index_start, index_end) result(r)
