@@ -5,26 +5,29 @@
 #      and $1.pdb are  available in the current directory
 
 id=$1
+echo "XrayPrep log file for id $id" > $id-prep.log
 
 #============================================================================
 echo "Running phenix.AmberPrep" 
-phenix.AmberPrep $id.pdb > $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
+phenix.AmberPrep $id.pdb >> $id-prep.log \
+     || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
 # next only needed for ions: how to automate?
-perl -pi -e 's/CL$/Cl-1/' 5l9j_uc.pdb
+perl -pi -e 's/CL$/Cl-1/' ${id}_uc.pdb \
+     || { echo "  perl:  Program error"; exit 1; }
 
 echo "creating ${id}_uc.parm7"
-add_pdb -i 4amber_5l9j.prmtop -p 5l9j_uc.pdb -o foo.parm7 >> $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
-add_xray -i foo.parm7 -o 5l9j_uc.parm7 >> $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
+add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
+     || { echo "  add_pdb:  Program error"; exit 1; }
+add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
+     || { echo "  add_xray:  Program error"; exit 1; }
 /bin/rm -f foo.parm7
+/bin/mv 4amber_$id.rst7 ${id}_uc.rst7
 
 #============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
+     || { echo "  phenix.cif_as_mtz:  Program error"; exit 1; }
 
 echo "Running phenix.refine to get R-Free_factors, convert I to F"
 phenix.refine  \
@@ -33,13 +36,13 @@ phenix.refine  \
    refinement.main.number_of_macro_cycles=0 \
    prefix=cdl serial=1 \
    write_geo=False cdl=True --overwrite >> $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
+     || { echo "  phenix.refine:  Program error"; exit 1; }
 
 #============================================================================
 echo "Expanding reflections to P1 symmetry"
 # expand to P1 symmetry:
 cad hklin1 cdl_data.mtz hklout $id-P1.mtz << EOF >> $id-prep.log \
-     || { echo "  $0:  Program error"; exit 1; }
+     || { echo "  cad:  Program error"; exit 1; }
 LABIN FILE_NUMBER 1 ALL
 OUTLIM SPACEGROUP 1
 END
@@ -49,19 +52,28 @@ EOF
 echo "Making the sf.dat file"
 #  convert to formatted file:
 phenix.mtz.dump -c -f s $id-P1.mtz  | tr ',' '\t' > $id.fmtz \
-     || { echo "  $0:  Program error"; exit 1; }
+     || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
 
 #  make the -sf.dat file needed by xray3:
 #    note that the '-$6+1' construct takes 0->1, 1->0 to swap the meaning
 #    of Rfree-flags
 awk '{printf("%d\t%d\t%d\t%12.3f\t%12.3f\t%d\n", $1,$2,$3,$4,$5,-$6+1)}'  \
     $id.fmtz | awk 'NR>1 && $3!=0' > tmp.dat \
-     || { echo "  $0:  Program error"; exit 1; }
+     || { echo "  awk:  Program error"; exit 1; }
 
 nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
+#============================================================================
+echo "Done. Created 5 files:"
+echo "   ${id}_uc.parm7        Use this as the Amber prmtop file"
+echo "   ${id}_uc.rst77        Starting coordinates in Amber restrt format"
+echo "   ${id}_uc.pdb          Use as pdb_infile"
+echo "   ${id}-sf.dat          Use as reflections_infile"
+echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
+#============================================================================
 # clean up
-/bin/rm -f tmp.dat cdl_data.mtz $id-P1.mtz $id.fmtz cdl_00*
+/bin/rm -f tmp.dat cdl_data.mtz $id-sf.mtz $id-P1.mtz $id.fmtz \
+     cdl_00* *.order 4phenix_$id.pdb 4amber_480d.prmtop
