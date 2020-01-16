@@ -172,6 +172,9 @@ module xray_globals_module
    ! MPI distribution on reflections:
    integer, save :: ihkl1, ihkl2
 
+   ! bulk solvent model
+   character(len=10), save :: bulk_solvent_model
+
 contains
 
   !----------------------------------------------------------------------------

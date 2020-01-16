@@ -60,7 +60,7 @@ module xray_interface_module
          atom_selection_mask, &
          k_sol, b_sol,  &
          mask_update_frequency, scale_update_frequency, &
-         ml_update_frequency, xray_nstep
+         ml_update_frequency, xray_nstep, bulk_solvent_model
 
    ! Common public entities all have an xray_ prefix.
    ! Others assume localization by the module scope.
@@ -602,6 +602,8 @@ contains
       scale_update_frequency = 100
       ml_update_frequency = 100
       xray_nstep = 1
+      bulk_solvent_model = 'none'
+      return
    end subroutine xray_init_globals
 
    ! Write X-ray output files and deallocate. Bond info is included

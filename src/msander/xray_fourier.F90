@@ -503,25 +503,30 @@ contains
       double precision :: rwork_num, rwork_denom, x
       double precision :: eterm1, eterm2, rfree_num, rfree_denom
 
-#define beforev12 1
-#ifdef beforev12
-      ! step 1: get fcalc, including solvent mask contribution:
-      !  (atomic part already done in fourier_Fcalc, and passed in here.)
-      call get_solvent_contribution(nstep, crd)
+      if( bulk_solvent_model .eq. 'simple' ) then
+         ! step 1: get fcalc, including solvent mask contribution:
+         !  (atomic part already done in fourier_Fcalc, and passed in here.)
+         call get_solvent_contribution(nstep, crd)
+         call scale_Fcalc( nstep )
+         abs_Fcalc(:) = abs(Fcalc(:))
 
-      ! step 2: scaling Fcalc:
-      call scale_Fcalc( nstep )
-      abs_Fcalc(:) = abs(Fcalc(:))
-#else
-    if (mod(nstep, mask_update_frequency) == 0) then
-      call init_scales()
-      call optimize_k_scale_k_mask()
-      k_scale = k_iso * k_iso_exp * k_aniso
-    endif
-    Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-#endif
+      else if( bulk_solvent_model .eq. 'opt' ) then
+         if (mod(nstep, mask_update_frequency) == 0) then
+           call init_scales()
+           call optimize_k_scale_k_mask()
+           k_scale = k_iso * k_iso_exp * k_aniso
+         endif
+         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
 
-      ! step 3: get ml parameters and xray restraint energy:
+      else if( bulk_solvent_model .eq. 'none' ) then
+         call scale_Fcalc( nstep )
+         abs_Fcalc(:) = abs(Fcalc(:))
+         
+      else
+         write(6,*) 'Bad value for bulk_solvent_model: ', trim(bulk_solvent_model)
+      endif
+
+      ! step 3: get ml parameters
 
       if (mod(nstep, ml_update_frequency) == 0) then
         if (mytaskid == 0 ) &
