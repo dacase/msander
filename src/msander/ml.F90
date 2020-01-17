@@ -314,6 +314,7 @@ contains
     end if
     n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
     reflections_per_bin = 1.0 * NRF_free / n_bins
+    write(6, *) "adjusted reflections per bin", reflections_per_bin
 
     allocate(bin_limits(n_bins + 1))
     bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
@@ -323,6 +324,12 @@ contains
       REQUIRE (d_i /= NRF_free)
     end do
     bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
+
+    write(6, *) "resolution bins"
+    do i = 1, n_bins + 1
+      write(6, *) 1.0/sqrt(bin_limits(i))
+    end do
+
     reflection_bin = n_bins
     allocate(A_in_zones(n_bins))
     allocate(B_in_zones(n_bins))
@@ -412,7 +419,7 @@ contains
     allocate(bins_free_start_indices(n_bins))
     do i = 1, n_bins
       bins_free_start_indices(i) = counter_sort + 1
-      ! write(mdout, *) i, bins_free_start_indices(i), bins_free_population(i)
+      write(6, *) i, bins_free_start_indices(i), bins_free_population(i)
       do j = 1, bins_free_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_free_reflections(i, j)
@@ -928,29 +935,30 @@ contains
 
     double precision :: current_r_work, r
     integer :: cycle
-    write(0,*) 'in optimize_k_scale_k_mask'
+    write(6,*) 'in optimize_k_scale_k_mask'
 
     r = 1.0d0
     cycle = 0
     current_r_work = 0.0
     current_r_work = r_factor_w(Fcalc)
-    write(0,*) 'current_r_work, r: ', current_r_work,r
+    write(6,*) 'cycle, current_r_work, r: ', cycle,current_r_work,r
 
     do while (r - current_r_work > 1.e-4 .and. cycle < 20)
-      write(0, *) r
       r = current_r_work
-      write(0, *) r
       if (cycle == 0) then
-        write(0,*) 's_squared_for_scaling: ', s_squared_for_scaling(1:3)
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
+        write(6,*) 'back from fit_k_iso_exp', current_r_work
         call k_mask_grid_search(current_r_work)
+        write(6,*) 'back from k_mask_grid_search'
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
+        write(6,*) 'back from fit_k_iso_exp, run 2'
       else
         call bulk_solvent_scaling(current_r_work)
       end if
       call anisotropic_scaling(current_r_work)
+      write(6,*) 'back from anisotropic_scaling'
       cycle = cycle + 1
     end do
   end subroutine optimize_k_scale_k_mask
@@ -990,6 +998,10 @@ contains
     double precision, dimension(NRF) :: x, y, z
     integer :: i
 
+    write(6,*) 'x: ', x(1:5)
+    write(6,*) 'y: ', y(1:5)
+    write(6,*) 'z: ', z(1:5)
+
     a = 0
     p = 0
     q = 0
@@ -1019,18 +1031,16 @@ contains
       end if
     end if
 
-    ! write(*, *) a
-
     if (a(2) > -100) then
       k_iso_exp_test = a(1) * exp(s_squared * a(2))
       r = special_r_factor(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask))
-      write(*, *) 'k_iso_exp', a, r, r_start!, sum(k_iso_exp_test), sum(k_iso), sum(k_aniso), sum(k_mask)
+      write(6, *) 'k_iso_exp', a, r, r_start! , sum(k_iso_exp_test), sum(k_iso), sum(k_aniso), sum(k_mask)
       if (r < r_start) then
         k_iso_exp = k_iso_exp_test
         r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
       end if
     end if
-    write(*, *) 'k_iso_exp', r_start
+    write(6, *) 'k_iso_exp', r_start
 
   end subroutine fit_k_iso_exp
 
@@ -1095,13 +1105,11 @@ contains
     tmp_scale = k_aniso(1:NRF_work) * k_iso(1:NRF_work) * k_iso_exp(1:NRF_work)
     index_end = 0
     do i = 1, n_bins
-      !write(*, *) sum(f_mask(index_start:index_end))
       index_start = index_end + 1
       index_end = bins_work_population(i) + index_start - 1
       k_mask_best = 0.0
       k_overall_best = 1.0
       r_best = r_factor_w_selection(Fcalc * tmp_scale, index_start, index_end)
-      !write(*,*) i, r_best
       do j = 1, sampling
         k_mask_per_bin_test = k_mask_trial_range(j)
         f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
@@ -1115,7 +1123,6 @@ contains
           r_best = r
         end if
       end do
-      ! write(*,*) i, r_best, k_mask_best
       k_mask_bin(i) = k_mask_best
     end do
     k_mask_bin_orig = k_mask_bin
@@ -1126,7 +1133,7 @@ contains
     ! TO-DO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
     ! if(n_bins>2) then
     ! end if
-    write(*, *) 'end of grid search', r_start
+    return
 
   end subroutine k_mask_grid_search
 
@@ -1390,7 +1397,6 @@ contains
 
     implicit none
 
-    write(0,*) 'in init_scales: ', size(k_mask), num_hkl
     k_mask(:) = 0
     k_iso = 1
     k_iso_test = 1
@@ -1407,9 +1413,7 @@ contains
     double precision :: r, sc
     complex(8), dimension(NRF) :: f_m
     sc = scale(f_m)
-    write(0,*) 'sc = ', sc
     r = r_factor_w_scale(f_m, sc)
-    write(0,*) 'r = ', r
     return
   end function r_factor_w
 
@@ -1471,6 +1475,7 @@ contains
     double precision :: r, num, denum
     complex(8), dimension(NRF) :: f_m
     integer :: i, index_start, index_end
+
     num = sum(abs_Fobs(index_start:index_end) * abs(f_m(index_start:index_end)))
     denum = sum(abs(f_m(index_start:index_end)) * abs(f_m(index_start:index_end)))
     if (denum == 0) then
