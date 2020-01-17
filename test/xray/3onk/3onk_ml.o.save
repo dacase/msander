@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/08/2020 at 09:46:07
+| Run on 01/17/2020 at 13:40:20
 
 |   Executable path: /home/case/msander/bin/msander
 | Working directory: /home/case/msander/test/xray/3onk
@@ -50,7 +50,7 @@ Test of MD with Xray restraints
    atom_selection_mask = ':*',                                                 
    xray_weight = 1.0,                                                          
    fft_method = 0,                                                             
-   target='ml',                                                                
+   target='ml', bulk_solvent_model = 'simple',                                 
    k_sol=0.35, b_sol=46.0,                                                     
  /                                                                             
 
@@ -167,9 +167,9 @@ Found   2269 atoms in :*;
 | creating k_mask with k_sol,b_sol =    0.350  46.000
  Number of triangulated 3-point waters found:        0
 
-     Sum of charges from parm topology file =   0.99999995
+     Sum of charges from parm topology file =     1.000000
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 16
+| Running OPENMP code, with OMP_NUM_THREADS = 8
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -207,33 +207,33 @@ Found   2269 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.02 ( 3.97% of Total)
-|                Build the list             0.02 (72.73% of List )
-|                Other                      0.01 (27.27% of List )
-|             List time                  0.02 (57.89% of Nonbo)
+|    Read coords time           0.02 ( 3.40% of Total)
+|                Build the list             0.01 (73.68% of List )
+|                Other                      0.01 (26.32% of List )
+|             List time                  0.02 (55.88% of Nonbo)
 |                   Short_ene time             0.01 (100.0% of Direc)
-|                Direct Ewald time          0.01 (62.50% of Ewald)
-|                Adjust Ewald time          0.00 ( 6.25% of Ewald)
+|                Direct Ewald time          0.01 (66.67% of Ewald)
 |                   Fill charge grid           0.00 (20.00% of Recip)
 |                   Scalar sum                 0.00 (20.00% of Recip)
-|                   FFT time                   0.00 (60.00% of Recip)
-|                Recip Ewald time           0.01 (31.25% of Ewald)
-|             Ewald time                 0.02 (42.11% of Nonbo)
-|          Nonbond force              0.04 ( 8.46% of Force)
-|             Fcalc loop                 0.13 (32.76% of Xray )
-|             Deriv loop                 0.13 (32.52% of Xray )
-|             Other                      0.14 (34.72% of Xray )
-|          Xray restaints             0.41 (91.09% of Force)
-|       Force time                 0.45 (99.78% of Runmd)
-|    Runmd Time                 0.45 (85.07% of Total)
-|    Other                      0.06 (10.96% of Total)
-| Total time                 0.53 (100.0% of ALL  )
+|                   Grad sum                   0.00 (20.00% of Recip)
+|                   FFT time                   0.00 (40.00% of Recip)
+|                Recip Ewald time           0.01 (33.33% of Ewald)
+|             Ewald time                 0.02 (44.12% of Nonbo)
+|          Nonbond force              0.03 ( 6.56% of Force)
+|             Fcalc loop                 0.14 (28.22% of Xray )
+|             Deriv loop                 0.20 (41.08% of Xray )
+|             Other                      0.15 (30.71% of Xray )
+|          Xray restaints             0.48 (93.05% of Force)
+|       Force time                 0.52 (100.0% of Runmd)
+|    Runmd Time                 0.52 (87.95% of Total)
+|    Other                      0.05 ( 8.66% of Total)
+| Total time                 0.59 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     174365
 | Highest istack allocated:       2269
-|           Job began  at 09:46:07.983  on 01/08/2020
-|           Setup done at 09:46:08.063  on 01/08/2020
-|           Run   done at 09:46:08.513  on 01/08/2020
+|           Job began  at 13:40:20.637  on 01/17/2020
+|           Setup done at 13:40:20.707  on 01/17/2020
+|           Run   done at 13:40:21.226  on 01/17/2020
 |     wallclock() was called      63 times

@@ -26,7 +26,7 @@ Test of MD with Xray restraints
    atom_selection_mask = ':*',
    xray_weight = 1.0,
    fft_method = 0,
-   target='ml', 
+   target='ml', bulk_solvent_model = 'simple', 
    k_sol=0.35, b_sol=46.0,
  /
 EOF
