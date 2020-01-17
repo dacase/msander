@@ -299,7 +299,8 @@ contains
          if (mytaskid == 0 ) &
            write(6,'(a,f12.5)') '| updating bulk solvent parameters: ',k_mask(1)
       endif
-      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      if( bulk_solvent_model == 'simple') &
+         Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
       return
 
    end subroutine get_solvent_contribution
@@ -513,6 +514,7 @@ contains
 
       else if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
+           call get_solvent_contribution(nstep, crd)
            call init_scales()
            call optimize_k_scale_k_mask()
            k_scale = k_iso * k_iso_exp * k_aniso
