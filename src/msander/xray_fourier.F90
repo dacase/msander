@@ -510,7 +510,6 @@ contains
          !  (atomic part already done in fourier_Fcalc, and passed in here.)
          call get_solvent_contribution(nstep, crd)
          call scale_Fcalc( nstep )
-         abs_Fcalc(:) = abs(Fcalc(:))
 
       else if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
@@ -523,11 +522,11 @@ contains
 
       else if( bulk_solvent_model .eq. 'none' ) then
          call scale_Fcalc( nstep )
-         abs_Fcalc(:) = abs(Fcalc(:))
          
       else
          write(6,*) 'Bad value for bulk_solvent_model: ', trim(bulk_solvent_model)
       endif
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! step 3: get ml parameters
 
