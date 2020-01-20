@@ -563,6 +563,9 @@ contains
             * ( alpha_array(i)*abs_Fcalc(i) - i1_over_i0(x)*abs_Fobs(i) ) &
             / abs_Fcalc(i)
       end do
+      do i=NRF_work+1, NRF
+         deriv(i) = 0.d0
+      end do
       return
    end subroutine dTargetML_dF
 
