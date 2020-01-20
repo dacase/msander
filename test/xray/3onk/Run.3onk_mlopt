@@ -8,16 +8,11 @@ fi
 cat <<EOF > mdin
 Test of MD with Xray restraints
  &cntrl
-  imin=0, maxcyc=250,
-  ntx = 1, irest = 0, ntpr = 5,  
+  ntx = 1, ntxo = 1, irest = 0, ntpr = 1,  
   ntc = 2, ntf = 2, tol = 0.000001,
   cut = 10.0,
-  nstlim = 0, dt = 0.001,
-  ithermostat=1, therm_par=3., ig=827534,
-  temp0 = 293.0, 
- /
- &ewald
-  vdwmeth=1,
+  nstlim = 5, dt = 0.001,
+  ithermostat=0, ig=827534, 
  /
  &xray
    pdb_infile = 'final_structure_bf.pdb'
@@ -32,10 +27,10 @@ EOF
 output=3onk_mlopt.o
 
 $DO_PARALLEL $sander -O -i mdin -p 3onk.parm7 \
-    -c 4amber_3onk.rst7 -o $output \
+    -c 4amber_3onk.rst7 -o $output   \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../../dacdif $output.save $output
 
-/bin/rm mdin mdinfo restrt
+/bin/rm -f mdin mdinfo restrt
 

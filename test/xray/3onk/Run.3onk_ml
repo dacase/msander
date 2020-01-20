@@ -8,25 +8,18 @@ fi
 cat <<EOF > mdin
 Test of MD with Xray restraints
  &cntrl
-  imin=0, maxcyc=250,
-  ntx = 1, irest = 0, ntpr = 5,  
+  ntx = 1, irest = 0, ntpr = 1,  
   ntc = 2, ntf = 2, tol = 0.000001,
   cut = 10.0,
-  nstlim = 0, dt = 0.001,
-  ithermostat=1, therm_par=3., ig=827534,
-  temp0 = 293.0, 
- /
- &ewald
-  vdwmeth=1,
+  nstlim = 3, dt = 0.001,
+  ithermostat=0, ig=827534,
  /
  &xray
-   spacegroup_name='P1',
    pdb_infile = 'final_structure_bf.pdb'
-   reflection_infile = 'reflections-sf.dat',
+   reflection_infile = 'real.dat',
    atom_selection_mask = ':*',
    xray_weight = 1.0,
-   fft_method = 0,
-   target='ml', bulk_solvent_model = 'simple', 
+   target='ml', bulk_solvent_model='simple', 
    k_sol=0.35, b_sol=46.0,
  /
 EOF
