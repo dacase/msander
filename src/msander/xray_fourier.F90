@@ -322,10 +322,8 @@ contains
                       / NRF_work_sq
          b(1) = sum(b_vector_base)
          k_scale(:) = exp(b(1))
-         if(mytaskid==0) then
-           write(6,'(a)') '| updating   isotropic scaling: '
-           write(6,'(a,f10.5)') '|     ', k_scale(1)
-         endif
+         if(mytaskid==0) &
+           write(6,'(a,f10.5)') '| updating   isotropic scaling: ', k_scale(1)
 #else
          ! isotropic scaling from dtargetLS:
 
