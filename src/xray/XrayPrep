@@ -40,13 +40,9 @@ phenix.refine  \
 
 #============================================================================
 echo "Expanding reflections to P1 symmetry"
-# expand to P1 symmetry:
-cad hklin1 cdl_data.mtz hklout $id-P1.mtz << EOF >> $id-prep.log \
-     || { echo "  cad:  Program error"; exit 1; }
-LABIN FILE_NUMBER 1 ALL
-OUTLIM SPACEGROUP 1
-END
-EOF
+
+phenix.reflection_file_converter cdl_data.mtz --expand_to_p1 \
+    --label="F-obs,SIGF-obs"  --mtz=$id-P1.mtz >> $id-prep.log
 
 #============================================================================
 echo "Making the sf.dat file"
