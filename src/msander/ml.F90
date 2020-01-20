@@ -474,10 +474,10 @@ contains
     allocate(kl(NRF))
 
     do i = 1, NRF
-      s(:, i) = hkl_index(i, 1) * vas(:) &
-              + hkl_index(i, 2) * vbs(:) &
-              + hkl_index(i, 3) * vcs(:)
-      s_squared_for_scaling(i) = (s(1, i)**2 + s(2, i)**2 + s(3, i)**2)/4.d0
+      s(:, i) = hkl_index(1,i) * vas(:) &
+              + hkl_index(2,i) * vbs(:) &
+              + hkl_index(3,i) * vcs(:)
+      s_squared_for_scaling(i) = (s(1,i)**2 + s(2,i)**2 + s(3,i)**2)/4.d0
       s_squared(i) = -1.0 * s_squared_for_scaling(i)
       s(:, i) = 2 * PI * s(:, i)
 
@@ -941,24 +941,19 @@ contains
     cycle = 0
     current_r_work = 0.0
     current_r_work = r_factor_w(Fcalc)
-    write(6,*) 'cycle, current_r_work, r: ', cycle,current_r_work,r
 
     do while (r - current_r_work > 1.e-4 .and. cycle < 20)
       r = current_r_work
       if (cycle == 0) then
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
-        write(6,*) 'back from fit_k_iso_exp', current_r_work
         call k_mask_grid_search(current_r_work)
-        write(6,*) 'back from k_mask_grid_search'
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
-        write(6,*) 'back from fit_k_iso_exp, run 2'
       else
         call bulk_solvent_scaling(current_r_work)
       end if
       call anisotropic_scaling(current_r_work)
-      write(6,*) 'back from anisotropic_scaling'
       cycle = cycle + 1
     end do
   end subroutine optimize_k_scale_k_mask
