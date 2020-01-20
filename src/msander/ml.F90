@@ -314,7 +314,6 @@ contains
     end if
     n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
     reflections_per_bin = 1.0 * NRF_free / n_bins
-    write(6, *) "adjusted reflections per bin", reflections_per_bin
 
     allocate(bin_limits(n_bins + 1))
     bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
@@ -324,11 +323,6 @@ contains
       REQUIRE (d_i /= NRF_free)
     end do
     bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
-
-    write(6, *) "resolution bins"
-    do i = 1, n_bins + 1
-      write(6, *) 1.0/sqrt(bin_limits(i))
-    end do
 
     reflection_bin = n_bins
     allocate(A_in_zones(n_bins))
@@ -419,7 +413,6 @@ contains
     allocate(bins_free_start_indices(n_bins))
     do i = 1, n_bins
       bins_free_start_indices(i) = counter_sort + 1
-      write(6, *) i, bins_free_start_indices(i), bins_free_population(i)
       do j = 1, bins_free_population(i)
         counter_sort = counter_sort + 1
         index_sort = bins_free_reflections(i, j)
@@ -935,7 +928,6 @@ contains
 
     double precision :: current_r_work, r
     integer :: cycle
-    write(6,*) 'in optimize_k_scale_k_mask'
 
     r = 1.0d0
     cycle = 0
@@ -984,7 +976,6 @@ contains
       r_start = r
       k_aniso = k_aniso_test
     end if
-    write(*, *) 'aniso', r, r_start ! , r_factor_w_scale(k_aniso * f_calc_tmp, 1.0d0)
   end subroutine anisotropic_scaling
 
   subroutine fit_k_iso_exp(r_start, x, y, z)
@@ -992,10 +983,6 @@ contains
     double precision :: r_start, p, q, r, s, d, v, den, u
     double precision, dimension(NRF) :: x, y, z
     integer :: i
-
-    write(6,*) 'x: ', x(1:5)
-    write(6,*) 'y: ', y(1:5)
-    write(6,*) 'z: ', z(1:5)
 
     a = 0
     p = 0
@@ -1029,13 +1016,11 @@ contains
     if (a(2) > -100) then
       k_iso_exp_test = a(1) * exp(s_squared * a(2))
       r = special_r_factor(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask))
-      write(6, *) 'k_iso_exp', a, r, r_start! , sum(k_iso_exp_test), sum(k_iso), sum(k_aniso), sum(k_mask)
       if (r < r_start) then
         k_iso_exp = k_iso_exp_test
         r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
       end if
     end if
-    write(6, *) 'k_iso_exp', r_start
 
   end subroutine fit_k_iso_exp
 
@@ -1358,7 +1343,6 @@ contains
       r_start = r
       k_mask_bin_orig = k_mask_bin
     end if
-    write(*, *) 'end of analytical search', r_start
 
   end subroutine bulk_solvent_scaling
 
