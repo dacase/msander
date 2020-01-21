@@ -81,6 +81,7 @@ module ml_mod
 #else
       integer :: mytaskid = 0
 #endif
+
 contains
 
   !----------------------------------------------------------------------------
@@ -292,165 +293,159 @@ contains
 
     if (target(1:2) == 'ml') then
 
-    ! Sort reflections for binning
-    allocate(d_star_sq_sorted(NRF_free))
-    r_free_counter = 0
-    hi_res_shell_n = 0
-    do i = 1, NRF
-      if (test_flag(i) == 0) then
-        r_free_counter = r_free_counter + 1
-        d_star_sq_sorted(r_free_counter) = d_star_sq(i)
-      else if (1. / sqrt(d_star_sq(i)) < min(4.0d0, resolution + 1.0d0)) then
-        hi_res_shell_n = hi_res_shell_n + 1
-      end if
-    end do
-    allocate(scale_k1_indices(hi_res_shell_n))
-    scale_k1_indices = 0
-    call bubble_sort(d_star_sq_sorted)
+       ! Sort reflections for binning
+       allocate(d_star_sq_sorted(NRF_free))
+       r_free_counter = 0
+       hi_res_shell_n = 0
+       do i = 1, NRF
+         if (test_flag(i) == 0) then
+           r_free_counter = r_free_counter + 1
+           d_star_sq_sorted(r_free_counter) = d_star_sq(i)
+         else if (1. / sqrt(d_star_sq(i)) < min(4.0d0, resolution + 1.0d0)) then
+           hi_res_shell_n = hi_res_shell_n + 1
+         end if
+       end do
+       allocate(scale_k1_indices(hi_res_shell_n))
+       scale_k1_indices = 0
+       call bubble_sort(d_star_sq_sorted)
 
-    reflections_per_bin = 140.0
-    if (reflections_per_bin > NRF_free) then
-      reflections_per_bin = 1.0 * NRF_free
-    end if
-    n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
-    reflections_per_bin = 1.0 * NRF_free / n_bins
+       reflections_per_bin = 140.0
+       if (reflections_per_bin > NRF_free) then
+         reflections_per_bin = 1.0 * NRF_free
+       end if
+       n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
+       reflections_per_bin = 1.0 * NRF_free / n_bins
 
-    allocate(bin_limits(n_bins + 1))
-    bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
-    do i = 2, n_bins
-      d_i = int((i-1) * reflections_per_bin + 0.5) + 1
-      bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
-      REQUIRE (d_i /= NRF_free)
-    end do
-    bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
+       allocate(bin_limits(n_bins + 1))
+       bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
+       do i = 2, n_bins
+         d_i = int((i-1) * reflections_per_bin + 0.5) + 1
+         bin_limits(i) = d_star_sq_sorted(d_i) * (1 - d_tolerance)
+         REQUIRE (d_i /= NRF_free)
+       end do
+       bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
 
-    reflection_bin = n_bins
-    allocate(A_in_zones(n_bins))
-    allocate(B_in_zones(n_bins))
-    allocate(q_in_zones(n_bins))
-    allocate(C_in_zones(n_bins))
-    allocate(t_optimal(n_bins))
-    allocate(alpha_beta_OmegaI(n_bins))
-    allocate(alpha_beta_wi(n_bins))
-    allocate(alpha_in_zones(n_bins))
-    allocate(beta_in_zones(n_bins))
-    allocate(s_squared_min_bin(n_bins))
-    allocate(s_squared_max_bin(n_bins))
-    allocate(s_squared_mean_bin(n_bins))
-    allocate(alpha_beta_bj(NRF))
-    A_in_zones = 0.0
-    B_in_zones = 0.0
-    q_in_zones = 0.0
-    C_in_zones = 0.0
-    t_optimal = 0.0
-    alpha_beta_OmegaI = 0.0
-    alpha_beta_wi = 0.0
-    alpha_in_zones = 0.0
-    beta_in_zones = 1.0
-    alpha_beta_bj = 0.0
+       reflection_bin = n_bins
+       allocate(A_in_zones(n_bins))
+       allocate(B_in_zones(n_bins))
+       allocate(q_in_zones(n_bins))
+       allocate(C_in_zones(n_bins))
+       allocate(t_optimal(n_bins))
+       allocate(alpha_beta_OmegaI(n_bins))
+       allocate(alpha_beta_wi(n_bins))
+       allocate(alpha_in_zones(n_bins))
+       allocate(beta_in_zones(n_bins))
+       allocate(s_squared_min_bin(n_bins))
+       allocate(s_squared_max_bin(n_bins))
+       allocate(s_squared_mean_bin(n_bins))
+       allocate(alpha_beta_bj(NRF))
+       A_in_zones = 0.0
+       B_in_zones = 0.0
+       q_in_zones = 0.0
+       C_in_zones = 0.0
+       t_optimal = 0.0
+       alpha_beta_OmegaI = 0.0
+       alpha_beta_wi = 0.0
+       alpha_in_zones = 0.0
+       beta_in_zones = 1.0
+       alpha_beta_bj = 0.0
 
-    allocate(bins_work_population(n_bins))
-    allocate(bins_free_population(n_bins))
-    bins_work_population = 0
-    bins_free_population = 0
-    do i = 1, NRF
+       allocate(bins_work_population(n_bins))
+       allocate(bins_free_population(n_bins))
+       bins_work_population = 0
+       bins_free_population = 0
+       do i = 1, NRF
        
-      ! Reverse order is to compare with cctbx output
-      do j = n_bins, 2, -1
-        if (d_star_sq(i) < bin_limits(j)) then
-          reflection_bin(i) = j - 1
-        end if
-      end do
-      if (test_flag(i) == 1) then
-        bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
-      else
-        bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
-      end if
-    end do
-    allocate(bins_work_reflections(n_bins, maxval(bins_work_population)))
-    allocate(bins_free_reflections(n_bins, maxval(bins_free_population)))
-    allocate(counter_w(n_bins))
-    allocate(counter_f(n_bins))
-    bins_work_reflections = 0
-    bins_free_reflections = 0
-    counter_w = 1
-    counter_f = 1
-    do i = 1, NRF
-      if (test_flag(i) == 1) then
-        if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
-          write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
-        end if
-        bins_work_reflections(reflection_bin(i), counter_w(reflection_bin(i))) = i
-        counter_w(reflection_bin(i)) = counter_w(reflection_bin(i)) + 1
-      else
-        if (counter_f(reflection_bin(i)) > bins_free_population(reflection_bin(i))) then
-          write(mdout, *) reflection_bin(i), "something weird during resorting free happened"
-        end if
-        bins_free_reflections(reflection_bin(i), counter_f(reflection_bin(i))) = i
-        counter_f(reflection_bin(i)) = counter_f(reflection_bin(i)) + 1
-      end if
-    end do
-    counter_sort = 0
-    hi_res_shell_n_counter = 0
-    do i = 1, n_bins
-      do j = 1, bins_work_population(i)
-        counter_sort = counter_sort + 1
-        index_sort = bins_work_reflections(i, j)
-        sigma_tmp(counter_sort) = sigFobs(index_sort)
-        f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
-        if (1./sqrt(d_star_sq(index_sort)) < min(4.0d0, resolution+1.0d0)) then
-            hi_res_shell_n_counter = hi_res_shell_n_counter + 1
-            scale_k1_indices(hi_res_shell_n_counter) = counter_sort
-        end if
-        reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
-        hkl(:,counter_sort) = hkl_index(:,index_sort)
-        d_star_sq_out(counter_sort) = d_star_sq(index_sort)
-      end do
-    end do
-    if (minval(scale_k1_indices) == 0) then
-       write(*, *) 'weird hi res shell indexing'
-    end if
-    allocate(bins_free_start_indices(n_bins))
-    do i = 1, n_bins
-      bins_free_start_indices(i) = counter_sort + 1
-      do j = 1, bins_free_population(i)
-        counter_sort = counter_sort + 1
-        index_sort = bins_free_reflections(i, j)
-        sigma_tmp(counter_sort) = sigFobs(index_sort)
-        f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
-        reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
-        hkl(:,counter_sort) = hkl_index(:,index_sort)
-        d_star_sq_out(counter_sort) = d_star_sq(index_sort)
-      end do
-    end do
-    reflection_bin(:) = reflection_bin_tmp(:)
+         ! Reverse order is to compare with cctbx output
+         do j = n_bins, 2, -1
+           if (d_star_sq(i) < bin_limits(j)) reflection_bin(i) = j - 1
+         end do
+         if (test_flag(i) == 1) then
+           bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
+         else
+           bins_free_population(reflection_bin(i)) = bins_free_population(reflection_bin(i)) + 1
+         end if
+       end do
+       allocate(bins_work_reflections(n_bins, maxval(bins_work_population)))
+       allocate(bins_free_reflections(n_bins, maxval(bins_free_population)))
+       allocate(counter_w(n_bins))
+       allocate(counter_f(n_bins))
+       bins_work_reflections = 0
+       bins_free_reflections = 0
+       counter_w = 1
+       counter_f = 1
+       do i = 1, NRF
+         if (test_flag(i) == 1) then
+           if (counter_w(reflection_bin(i)) > bins_work_population(reflection_bin(i))) then
+             write(mdout, *) reflection_bin(i), "something weird during resorting work happened"
+           end if
+           bins_work_reflections(reflection_bin(i), counter_w(reflection_bin(i))) = i
+           counter_w(reflection_bin(i)) = counter_w(reflection_bin(i)) + 1
+         else
+           if (counter_f(reflection_bin(i)) > bins_free_population(reflection_bin(i))) then
+             write(mdout, *) reflection_bin(i), "something weird during resorting free happened"
+           end if
+           bins_free_reflections(reflection_bin(i), counter_f(reflection_bin(i))) = i
+           counter_f(reflection_bin(i)) = counter_f(reflection_bin(i)) + 1
+         end if
+       end do
+       counter_sort = 0
+       hi_res_shell_n_counter = 0
+       do i = 1, n_bins
+         do j = 1, bins_work_population(i)
+           counter_sort = counter_sort + 1
+           index_sort = bins_work_reflections(i, j)
+           sigma_tmp(counter_sort) = sigFobs(index_sort)
+           f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+           if (1./sqrt(d_star_sq(index_sort)) < min(4.0d0, resolution+1.0d0)) then
+               hi_res_shell_n_counter = hi_res_shell_n_counter + 1
+               scale_k1_indices(hi_res_shell_n_counter) = counter_sort
+           end if
+           reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
+           hkl(:,counter_sort) = hkl_index(:,index_sort)
+           d_star_sq_out(counter_sort) = d_star_sq(index_sort)
+         end do
+       end do
+       if (minval(scale_k1_indices) == 0) then
+          write(*, *) 'weird hi res shell indexing'
+       end if
+       allocate(bins_free_start_indices(n_bins))
+       do i = 1, n_bins
+         bins_free_start_indices(i) = counter_sort + 1
+         do j = 1, bins_free_population(i)
+           counter_sort = counter_sort + 1
+           index_sort = bins_free_reflections(i, j)
+           sigma_tmp(counter_sort) = sigFobs(index_sort)
+           f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
+           reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
+           hkl(:,counter_sort) = hkl_index(:,index_sort)
+           d_star_sq_out(counter_sort) = d_star_sq(index_sort)
+         end do
+       end do
+       reflection_bin(:) = reflection_bin_tmp(:)
 
-    ! need to put f_obs_tmp into abs_Fobs to send back to calling 
-    !   program; same for sigma_tmp, f_obs_weight(?), hkl and test_flag
+       ! need to put f_obs_tmp into abs_Fobs to send back to calling 
+       !   program; same for sigma_tmp, f_obs_weight(?), hkl and test_flag
 
-    abs_Fobs(:) = f_obs_tmp(:)
-    sigFobs(:) = sigma_tmp(:)
-    ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
-    hkl_index(:,:) = hkl(:,:)
-    test_flag(1:NRF_work) = 1
-    test_flag(NRF_work+1:NRF) = 0
+       abs_Fobs(:) = f_obs_tmp(:)
+       sigFobs(:) = sigma_tmp(:)
+       ! f_obs_weight_tmp(:) = f_obs_weight(:)   !unused for now
+       hkl_index(:,:) = hkl(:,:)
+       test_flag(1:NRF_work) = 1
+       test_flag(NRF_work+1:NRF) = 0
 
-    if (counter_sort .ne. NRF) then
-      ! Might be an error in the code?
-      write(mdout, *) "Binning went wrong. Check the reflections file"
-      stop
-    end if
+       REQUIRE( counter_sort == NRF )
 
-    do i = 1, n_bins
-      do j = bins_free_start_indices(i) + bins_free_population(i) - 1, &
-             bins_free_start_indices(i), -1
-        fo_fo = f_obs_tmp(j) * f_obs_tmp(j) ! / 2
-        B_in_zones(i) = B_in_zones(i) + 2 * fo_fo ! / coef_norm
-        q_in_zones(i) = q_in_zones(i) + 2 * fo_fo * fo_fo ! / coef_norm
-      end do
-      B_in_zones(i) = B_in_zones(i) / (2 * bins_free_population(i))
-      q_in_zones(i) = q_in_zones(i) / (2 * bins_free_population(i))
-    end do
+       do i = 1, n_bins
+         do j = bins_free_start_indices(i) + bins_free_population(i) - 1, &
+                bins_free_start_indices(i), -1
+           fo_fo = f_obs_tmp(j) * f_obs_tmp(j) ! / 2
+           B_in_zones(i) = B_in_zones(i) + 2 * fo_fo ! / coef_norm
+           q_in_zones(i) = q_in_zones(i) + 2 * fo_fo * fo_fo ! / coef_norm
+         end do
+         B_in_zones(i) = B_in_zones(i) / (2 * bins_free_population(i))
+         q_in_zones(i) = q_in_zones(i) / (2 * bins_free_population(i))
+       end do
 
     ! Re-sort due to binning ended
 
@@ -923,6 +918,10 @@ contains
 
   end subroutine estimate_alpha_beta
 
+  !----------------------------------------------------------------------------
+  !  Main driver routine to do a grid search to generate optimal parameters
+  !  for scaling and for the bulk_solvent correction
+  !----------------------------------------------------------------------------
   subroutine optimize_k_scale_k_mask()
     implicit none
 
@@ -966,7 +965,8 @@ contains
     b(6) = sum(b_vector_base * hl(1:NRF_work))
     b(7) = sum(b_vector_base * kl(1:NRF_work))
 
-    Uaniso = matmul(MUcryst_inv, b) ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
+    Uaniso = matmul(MUcryst_inv, b) 
+    ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
 
     k_aniso_test = exp(Uaniso(2) * h_sq + Uaniso(3) * k_sq + Uaniso(4) * l_sq + &
             Uaniso(5) * hk + Uaniso(6) * hl + Uaniso(7) * kl) !&
@@ -1110,7 +1110,7 @@ contains
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso, k_mask)
     r_start = r_factor_w_scale(k_iso * k_aniso * k_iso_exp * (Fcalc + k_mask * f_mask), 1.0d0)
-    ! TO-DO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
+    ! TODO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
     ! if(n_bins>2) then
     ! end if
     return
@@ -1170,27 +1170,35 @@ contains
     index_end = 0
     do i = 1, n_bins
       if (i == n_bins) then
-        ! double check that! cctbx code is weird. for some reason last argument was n_bins - 2
-        k = linear_interpolation(s_squared_min_bin(n_bins), s_squared_max_bin(n_bins), &
-                k_mask_bin(n_bins), k_mask_bin(n_bins - 1)) !! as in cctbx. is it a mistake for the last index?
+        ! double check: cctbx code is weird. for some reason last argument 
+        !    was n_bins - 2
+        k = linear_interpolation(s_squared_min_bin(n_bins), &
+                s_squared_max_bin(n_bins), &
+                k_mask_bin(n_bins), k_mask_bin(n_bins - 1)) 
+        ! as in cctbx. is it a mistake for the last index?
       else
-        k = linear_interpolation(s_squared_min_bin(i), s_squared_max_bin(i), k_mask_bin(i), k_mask_bin(i + 1))
+        k = linear_interpolation(s_squared_min_bin(i), &
+            s_squared_max_bin(i), k_mask_bin(i), k_mask_bin(i + 1))
       end if
       index_start = index_end + 1
       index_end = bins_work_population(i) + index_start - 1
-      k_mask_tmp(index_start:index_end) = max(0.0d0, k(1) * s_squared_for_scaling(index_start:index_end) + k(2))
+      k_mask_tmp(index_start:index_end) = max(0.0d0, k(1) * &
+            s_squared_for_scaling(index_start:index_end) + k(2))
 
-      r0 = 1.0d0 ! r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask * f_mask), index_start, index_end)
-      r1 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask_tmp * f_mask), index_start, index_end)
-      r2 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * (Fcalc + k_mask_bin(i) * f_mask), &
-              index_start, index_end)
-      ! write(*, *) k_mask_bin(i), k, r1, r2, r0
+      r0 = 1.0d0 
+      ! r_factor_w_selection(k_iso * k_iso_exp * k_aniso * 
+      !     (Fcalc + k_mask * f_mask), index_start, index_end)
+      r1 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * &
+           (Fcalc + k_mask_tmp * f_mask), index_start, index_end)
+      r2 = r_factor_w_selection(k_iso * k_iso_exp * k_aniso * &
+           (Fcalc + k_mask_bin(i) * f_mask), index_start, index_end)
       if (r0 > min(r1, r2)) then
         if (r1 < r2) then
           k_mask_in(index_start:index_end) = k_mask_tmp(index_start:index_end)
           index_start_ = bins_free_start_indices(i)
           index_end_ = bins_free_start_indices(i) + bins_free_population(i) - 1
-          k_mask_in(index_start_:index_end_) = k(1) * s_squared_for_scaling(index_start_:index_end_) + k(2)
+          k_mask_in(index_start_:index_end_) = k(1) * &
+               s_squared_for_scaling(index_start_:index_end_) + k(2)
         else
           k_mask_in(index_start:index_end) = k_mask_bin(i)
           index_start_ = bins_free_start_indices(i)
@@ -1237,28 +1245,28 @@ contains
 
   subroutine bulk_solvent_scaling(r_start)
     implicit none
-    double precision :: r_start, min_f_mask, a2, b2, c2, y2, a3, b3, c3, d3, y3, p, q, r, t, I, v, w, u, den, &
-            k_m_test(3), k_best, r_best, shift, k_mask_per_bin_test, k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
-            tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
+    double precision :: r_start, min_f_mask, a2, b2, c2, y2, a3, b3, c3, &
+         d3, y3, p, q, r, t, I, v, w, u, den, &
+         k_m_test(3), k_best, r_best, shift, k_mask_per_bin_test, &
+         k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
+         tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
     integer :: l, j, index_start, index_end
-    !write(*, *) 'bulk start', r_start
     shift = 0.05
     index_end = 0
     scale_k1 = estimate_scale_k1(k_iso_exp*k_aniso*(Fcalc + k_mask*f_mask))
-    !write(*, *) 'k1', scale_k1
     tmp_scale = k_aniso(1:NRF_work) * scale_k1 * k_iso_exp(1:NRF_work)
 
     do l = 1, n_bins
       index_start = index_end + 1
       index_end = bins_work_population(l) + index_start - 1
-      min_f_mask = minval(tmp_scale(index_start:index_end) * abs(f_mask(index_start:index_end)))
+      min_f_mask = minval(tmp_scale(index_start:index_end) * &
+              abs(f_mask(index_start:index_end)))
       k_best = k_mask_bin_orig(l)
       f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
               * (Fcalc(index_start:index_end) + &
               k_best * f_mask(index_start:index_end))
       k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
       r_best = r_factor_w_selection(f_calc_tmp, index_start, index_end)
-      !write(*, *) 'previous round', k_best, r_best
       a2 = 0.0d0
       b2 = 0.0d0
       c2 = 0.0d0
@@ -1289,54 +1297,53 @@ contains
           y3 = y3 + v * I
         end do
         den = d3 * y2 - c2 * c2
-        !! ASSERT(den != 0.0);
+        REQUIRE (den /= 0.0d0)
+
         !! coefficients of x**3 + ax**2 + bx + c = 0
         a = (c3 * y2 - c2 * b2 - c2 * y3) / den
         b = (b3 * y2 - c2 * a2 - y3 * b2) / den
         c = (a3 * y2 - y3 * a2) / den
         k_m_test = solve_cubic_equation(a, b, c)
-        !write(*, *) k_m_test
+
         do j = 1, 3
           if (k_m_test(j) >= 0) then
-            r = r_factor_w_selection(tmp_scale * (Fcalc + k_m_test(j) * f_mask), index_start, index_end)
+            r = r_factor_w_selection(tmp_scale * &
+                (Fcalc + k_m_test(j) * f_mask), index_start, index_end)
             if (r < r_best) then
               r_best = r
               k_best = k_m_test(j)
             end if
           end if
         end do
-        !write(*, *) 'select the best', k_best, r_best
       end if
       if (k_best > 1) then
         k_best = 1
       end if
-      r_best = r_factor_w_selection(tmp_scale * (Fcalc + k_best * f_mask), index_start, index_end)
+      r_best = r_factor_w_selection(tmp_scale * &
+               (Fcalc + k_best * f_mask), index_start, index_end)
       upper_limit = k_best + shift + 1.e-3
       ! fine-tune by grid search around
       k_mask_per_bin_test = max(0.0d0, k_best - shift)
-      !write(*, *) k_best, r_best, upper_limit, k_mask_per_bin_test
       do while (k_mask_per_bin_test <= upper_limit)
         f_calc_tmp(index_start:index_end) = &
            tmp_scale(index_start:index_end) * (Fcalc(index_start:index_end) + &
                 k_mask_per_bin_test * f_mask(index_start:index_end))
         k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
-        r = r_factor_w_selection_and_scale(f_calc_tmp, index_start, index_end, k_overall_)
-        !write(*,*) k_mask_per_bin_test, r
+        r = r_factor_w_selection_and_scale(f_calc_tmp, index_start, &
+                index_end, k_overall_)
         if (r < r_best) then
-          ! write(*,*) k_mask_per_bin_test, r
           k_best = k_mask_per_bin_test
           r_best = r
         end if
         k_mask_per_bin_test = k_mask_per_bin_test + 0.01
       end do
-      !write(*, *) 'best', k_best, r_best
       k_mask_bin(l) = k_best
     end do
-    !write(*, *) k_mask_bin
     call smooth_k_mask(k_mask_bin)
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask_test)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso_test, k_mask_test)
-    r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * (Fcalc + k_mask_test * f_mask), 1.0d0)
+    r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * &
+          (Fcalc + k_mask_test * f_mask), 1.0d0)
     if (r - r_start<0.5 / 100) then
       k_iso = k_iso_test
       k_mask = k_mask_test
@@ -1353,8 +1360,6 @@ contains
     ! overall scaling on min(best 1A shell, 500 reflection)
     min_reflections = 500
     scale_k1 = 1
-    !write(*, *) 'hi_res_shell_n', sum(f_m(scale_k1_indices(1:hi_res_shell_n)))
-#if 1
     if (hi_res_shell_n > min_reflections) then
       denum = sum(abs(f_m(scale_k1_indices(1:hi_res_shell_n))) &
                 * abs(f_m(scale_k1_indices(1:hi_res_shell_n))))
@@ -1367,8 +1372,6 @@ contains
         scale_k1 = num / denum
       end if
     end if
-#endif
-    !write(*, *) 'hi_res_shell_k1', scale_k1
 
   end function estimate_scale_k1
 
@@ -1417,7 +1420,8 @@ contains
     double precision :: r, num, denum, sc
     complex(8), dimension(NRF) :: f_m
     integer :: index_start, index_end
-    num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+    num = sum(abs(abs_Fobs(index_start:index_end) - &
+          sc * abs(f_m(index_start:index_end))))
     denum = sum(abs_Fobs(index_start:index_end))
     if (denum == 0) then
       ! make test for zero f_obs in sf.F90
@@ -1467,7 +1471,8 @@ contains
 
   function special_r_factor(f_m) result(r_best)
     implicit none
-    double precision :: r, r_best, scale, scale_best, scale_, offset_factor, step_factor, step, num, denum
+    double precision :: r, r_best, scale, scale_best, scale_, &
+        offset_factor, step_factor, step, num, denum
     complex(8), dimension(NRF) :: f_m
     offset_factor = 3.0
     step_factor = 20.0
