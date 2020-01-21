@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/12/2019 at 14:51:52
+| Run on 01/21/2020 at 09:04:13
 
 |   Executable path: ../../bin/msander
-| Working directory: /Users/case/msander/test/dhfr
+| Working directory: /home/case/msander/test/dhfr
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -135,9 +135,9 @@ Ewald parameters:
 
  Number of triangulated 3-point waters found:     6810
 
-     Sum of charges from parm topology file =  -0.00000006
+     Sum of charges from parm topology file =    -0.000000
      Forcing neutrality...
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OPENMP code, with OMP_NUM_THREADS = 8
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -333,37 +333,33 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.02 ( 0.75% of Total)
-|    Fast Water setup           0.00 ( 0.01% of Total)
-|                Build the list             0.13 (94.74% of List )
-|                Other                      0.01 ( 5.26% of List )
-|             List time                  0.14 ( 5.51% of Nonbo)
-|                   Short_ene time             1.93 (98.90% of Direc)
-|                   Other                      0.02 ( 1.10% of Direc)
-|                Direct Ewald time          1.95 (84.09% of Ewald)
-|                Adjust Ewald time          0.02 ( 1.01% of Ewald)
-|                   Fill Bspline coeffs        0.02 ( 6.30% of Recip)
-|                   Fill charge grid           0.05 (14.94% of Recip)
-|                   Scalar sum                 0.01 ( 4.22% of Recip)
-|                   Grad sum                   0.12 (33.70% of Recip)
-|                   FFT time                   0.14 (40.83% of Recip)
-|                   Other                      0.00 ( 0.01% of Recip)
-|                Recip Ewald time           0.34 (14.80% of Ewald)
-|                Other                      0.00 ( 0.10% of Ewald)
-|             Ewald time                 2.32 (94.49% of Nonbo)
-|          Nonbond force              2.46 (98.75% of Force)
-|          Bond/Angle/Dihedral        0.03 ( 1.23% of Force)
-|          Other                      0.00 ( 0.02% of Force)
-|       Force time                 2.49 (100.0% of Runmd)
-|    Runmd Time                 2.49 (91.06% of Total)
-|    Other                      0.22 ( 8.18% of Total)
-| Total time                 2.73 (100.0% of ALL  )
+|    Read coords time           0.03 ( 2.04% of Total)
+|                Build the list             0.14 (93.79% of List )
+|                Other                      0.01 ( 6.21% of List )
+|             List time                  0.14 (12.70% of Nonbo)
+|                   Short_ene time             0.48 (91.41% of Direc)
+|                   Other                      0.05 ( 8.59% of Direc)
+|                Direct Ewald time          0.52 (52.56% of Ewald)
+|                Adjust Ewald time          0.02 ( 2.31% of Ewald)
+|                   Fill Bspline coeffs        0.03 ( 6.95% of Recip)
+|                   Fill charge grid           0.07 (16.37% of Recip)
+|                   Scalar sum                 0.02 ( 4.93% of Recip)
+|                   Grad sum                   0.14 (30.94% of Recip)
+|                   FFT time                   0.18 (40.81% of Recip)
+|                Recip Ewald time           0.45 (44.73% of Ewald)
+|             Ewald time                 1.00 (87.30% of Nonbo)
+|          Nonbond force              1.14 (96.37% of Force)
+|          Bond/Angle/Dihedral        0.04 ( 3.46% of Force)
+|       Force time                 1.19 (100.0% of Runmd)
+|    Runmd Time                 1.19 (80.67% of Total)
+|    Other                      0.25 (17.22% of Total)
+| Total time                 1.47 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:    1124788
 | Highest istack allocated:      22930
-|           Job began  at 14:51:52.812  on 11/12/2019
-|           Setup done at 14:51:52.938  on 11/12/2019
-|           Run   done at 14:51:55.546  on 11/12/2019
+|           Job began  at 09:04:13.719  on 01/21/2020
+|           Setup done at 09:04:13.873  on 01/21/2020
+|           Run   done at 09:04:15.188  on 01/21/2020
 |     wallclock() was called     962 times
