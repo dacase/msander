@@ -121,7 +121,7 @@ subroutine mdread1()
          imin,drms,dele,dx0, &
          pencut,ipnlty,iscale,scalm,noeskp, &
          maxcyc,ncyc,ntmin,vlimit, &
-         mxsub,ipol,jfastw,watnam,owtnm,hwtnm1,hwtnm2, iesp, &
+         mxsub,jfastw,watnam,owtnm,hwtnm1,hwtnm2, iesp, &
          skmin, skmax, vv,vfac, tmode, ips, &
          mipsx,mipsy,mipsz,mipso,gridips,raips,dvbips, &
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
@@ -1652,19 +1652,6 @@ subroutine mdread2(x,ix,ih)
             ', chngmask=',chngmask
    end if
 
-   if( ipol > 0 ) then
-      write(6,'(/a)') 'Polarizable options:'
-      write(6,'(5x,4(a,i8))') 'indmeth =',indmeth, &
-            ', maxiter =',maxiter,', irstdip =',irstdip, &
-            ', scaldip =',scaldip
-      write(6,'(5x,3(a,f10.5))') &
-            'diptau  =',diptau,', dipmass =',dipmass
-     if ( ipol > 1 ) then
-      write(6,'(5x,3(a,f10.5))') &
-            'Default Thole coefficient = ',dipdamp
-     end if
-   end if
-
 #  ifdef MPI /* SOFT CORE */
    if( icfe /= 0 .or. ifsc/=0) then
       write(6,'(/a)') 'Free energy options:'
@@ -3182,10 +3169,6 @@ subroutine mdread2(x,ix,ih)
       write(6,'(/,a,f8.2)') ' rgbmax must be at least ', 5.d0*fsmax
       DELAYED_ERROR
    end if
-   if (icfe /= 0 .and. indmeth == 3 ) then
-      write(6,'(/,a)') ' indmeth=3 cannot be used with icfe>0'
-      DELAYED_ERROR
-   end if
    if (icfe /= 0 .and. ibelly /= 0 ) then
       write(6,'(/,a)') ' ibelly cannot be used with icfe'
       DELAYED_ERROR
@@ -3213,10 +3196,6 @@ subroutine mdread2(x,ix,ih)
 
    if (icfe /= 0 .and. (idecomp == 3 .or. idecomp == 4)) then
       write(6,'(/,a)') ' Pairwise decomposition for thermodynamic integration not implemented'
-      DELAYED_ERROR
-   end if
-   if (icfe /= 0 .and. idecomp /= 0 .and. ipol > 0) then
-      write(6,'(/,a)') ' IPOL is incompatible with IDECOMP and ICFE'
       DELAYED_ERROR
    end if
 
