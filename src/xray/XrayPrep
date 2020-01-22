@@ -64,7 +64,7 @@ cat tmp.dat >> $id-sf.dat
 #============================================================================
 echo "Done. Created 5 files:"
 echo "   ${id}_uc.parm7        Use this as the Amber prmtop file"
-echo "   ${id}_uc.rst77        Starting coordinates in Amber restrt format"
+echo "   ${id}_uc.rst7         Starting coordinates in Amber restrt format"
 echo "   ${id}_uc.pdb          Use as pdb_infile"
 echo "   ${id}-sf.dat          Use as reflections_infile"
 echo "   ${id}-prep.log        Log file: examine this if problems arise"
