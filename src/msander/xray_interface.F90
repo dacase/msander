@@ -514,11 +514,13 @@ contains
             phi_solvent = phi_solvent * 0.0174532925d0
             f_solvent(i) = cmplx( fabs_solvent*cos(phi_solvent), &
                                   fabs_solvent*sin(phi_solvent) )
+            test_flag(i) = min(test_flag(i),1)
          end do
       else
          do i = 1,num_hkl
             read(hkl_lun,*,end=1,err=1) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
+            test_flag(i) = min(test_flag(i),1)
          end do
       endif
 
