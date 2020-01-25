@@ -1271,9 +1271,9 @@ contains
     ! MPI error.
     logical :: ierr
 
-    if (this%verbose >= 1 .and. size(this%closureList) > 1) &
-         call rism_report_message("|Using "// &
-         trim(rism3d_closure_type(this%closure))//" closure")
+    !if (this%verbose >= 1 .and. size(this%closureList) > 1) &
+    !     call rism_report_message("|Using "// &
+    !     trim(rism3d_closure_type(this%closure))//" closure")
 
     ! Make initial guess for DCF.
     this%cuvres = 0
