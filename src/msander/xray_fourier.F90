@@ -209,9 +209,14 @@ contains
       call wallclock( time0 )
 
       ! TODO: does it hurt to have if statements inside the double loop?
+#ifdef MPI
+      REFLECTION: do ihkl = ihkl1,ihkl2
+         ATOM: do iatom = 1,num_atoms
+#else
 !$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
       ATOM: do iatom = 1,num_atoms
          REFLECTION: do ihkl = ihkl1,ihkl2
+#endif
 
             dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
@@ -230,22 +235,27 @@ contains
             if (present(occupancy)) then
                f = f * occupancy(iatom)
             end if
-#endif
 
             if (present(d_tempFactor)) then
                d_tempFactor(iatom) = d_tempFactor(iatom) &
                   + ( real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl)) ) &
                   * mSS4(ihkl)
             end if
+#endif
 
-            if (present(dxyz)) then
+            ! if (present(dxyz)) then
                dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
                    ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
-            end if
+            ! end if
 
+#ifdef MPI
+         end do ATOM
+      end do REFLECTION
+#else
          end do REFLECTION
       end do ATOM
 !$omp end parallel do
+#endif
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
       return
