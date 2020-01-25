@@ -17,11 +17,19 @@ perl -pi -e 's/CL$/Cl-1/' ${id}_uc.pdb \
      || { echo "  perl:  Program error"; exit 1; }
 
 echo "creating ${id}_uc.parm7"
+/bin/rm -f ${id}_uc.parm7
 add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
      || { echo "  add_pdb:  Program error"; exit 1; }
-add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
-     || { echo "  add_xray:  Program error"; exit 1; }
-/bin/rm -f foo.parm7
+add_xray -i foo.parm7 -o foo2.parm7 >> $id-prep.log \
+     || { echo "  add_xray: Program error"; exit 1; }
+parmed -n <<EOF >> $id-prep.log \
+     || { echo "  parmed:   Program error"; exit 1; }
+parm foo2.parm7
+lmod
+parmout ${id}_uc.parm7
+go
+EOF
+
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
 
 #============================================================================
@@ -72,4 +80,4 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 #============================================================================
 # clean up
 /bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz \
-     cdl_00* *.order 4phenix_$id.pdb 4amber_480d.prmtop
+     cdl_00* *.order 4phenix_$id.pdb 4amber_480d.prmtop foo.parm7 foo2.parm7
