@@ -22,7 +22,13 @@ add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
      || { echo "  add_pdb:  Program error"; exit 1; }
 add_xray -i foo.parm7 -o foo2.parm7 >> $id-prep.log \
      || { echo "  add_xray: Program error"; exit 1; }
-parmed -n <<EOF >> $id-prep.log \
+cat <<EOF > parmed
+import os
+import sys
+from parmed.scripts import clapp
+clapp()
+EOF
+phenix.python ./parmed -n <<EOF >> $id-prep.log \
      || { echo "  parmed:   Program error"; exit 1; }
 parm foo2.parm7
 lmod
@@ -37,7 +43,7 @@ echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
      || { echo "  phenix.cif_as_mtz:  Program error"; exit 1; }
 
-echo "Running zero-cycle phenix.refine, possibly convert I to F"
+echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F"
 phenix.refine  \
    4phenix_$id.pdb $id-sf.mtz \
    refinement.input.xray_data.r_free_flags.generate=True \
@@ -79,5 +85,5 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
 #============================================================================
 # clean up
-/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz \
+/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz parmed \
      cdl_00* *.order 4phenix_$id.pdb 4amber_480d.prmtop foo.parm7 foo2.parm7
