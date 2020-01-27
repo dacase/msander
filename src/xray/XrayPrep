@@ -50,8 +50,8 @@ phenix.refine  \
 #============================================================================
 echo "Expanding reflections to P1 symmetry"
 
-phenix.reflection_file_converter cdl_data.mtz --expand_to_p1 \
-    --label="F-obs,SIGF-obs" --generate_r_free_flags  \
+phenix.reflection_file_converter cdl_001.mtz --expand_to_p1 \
+    --label="F-obs-filtered,SIGF-obs-filtered" --generate_r_free_flags  \
     --r_free_flags_format=ccp4  --mtz=$id-P1.mtz >> $id-prep.log
 
 #============================================================================
