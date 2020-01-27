@@ -140,7 +140,7 @@ subroutine mdread1()
          surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
-         idecomp,temp0les,restraintmask,restraint_wt,bellymask, &
+         temp0les,restraintmask,restraint_wt,bellymask, &
          noshakemask,crgmask, &
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
@@ -512,7 +512,6 @@ subroutine mdread1()
    klambda = 1
    ievb = 0
    rbornstat = 0
-   idecomp = 0
    ! added a flag to control output of BDC/SDC synonymous with mmpbsa.py's
    ! version of the same variable.
    dec_verbose = 3
@@ -1143,7 +1142,6 @@ subroutine mdread2(x,ix,ih)
 #endif /* API */
 
    use lmod_driver, only : LMOD_NTMIN_LMOD, LMOD_NTMIN_XMIN, write_lmod_namelist
-   use decomp, only : jgroup, indx, irespw
    use findmask
 #ifdef LES
    use genbornles, only: isnucat ! gbneck2nu: check if atom belongs to nuc or protein
@@ -1481,9 +1479,9 @@ subroutine mdread2(x,ix,ih)
          ', ntrx    =',ntrx,', ntwr    =',ntwr
    write(6,'(5x,5(a,i8))') 'iwrap   =',iwrap,', ntwx    =',ntwx, &
          ', ntwv    =',ntwv,', ntwe    =',ntwe
-   write(6,'(5x,3(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
+   write(6,'(5x,2(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
          ', ntwprt  =',ntwprt, &
-         ', idecomp =',idecomp,', rbornstat=',rbornstat
+         ', rbornstat=',rbornstat
    if (ntwf > 0) &
       write(6,'(5x, a,i8)') 'ntwf    =',ntwf
    write(6,'(/a)') 'Potential function:'
@@ -3019,11 +3017,6 @@ subroutine mdread2(x,ix,ih)
       DELAYED_ERROR
    end if
 
-   if (idecomp < 0 .or. idecomp > 4) then
-      write(6,'(/2x,a)') 'IDECOMP must be 0..4'
-      DELAYED_ERROR
-   end if
-
    ! check settings related to ivcap
 
    if(ivcap == 3 .or. ivcap == 4) then
@@ -3194,11 +3187,6 @@ subroutine mdread2(x,ix,ih)
       DELAYED_ERROR
    end if
 
-   if (icfe /= 0 .and. (idecomp == 3 .or. idecomp == 4)) then
-      write(6,'(/,a)') ' Pairwise decomposition for thermodynamic integration not implemented'
-      DELAYED_ERROR
-   end if
-
 #ifdef MPI /* SOFT CORE */
    if (ifsc /= 0) then
       if (ifsc == 2) then
@@ -3262,10 +3250,6 @@ subroutine mdread2(x,ix,ih)
       DELAYED_ERROR
    end if
 
-   if (idecomp > 0 .and. (ntr > 0 .or. ibelly > 0)) then
-      write(6,'(/,a)') 'IDECOMP is not compatible with NTR or IBELLY'
-      DELAYED_ERROR
-   end if
    if (icnstph /= 0) then
 
       if ( icnstph < 0 ) then
@@ -3447,8 +3431,8 @@ subroutine mdread2(x,ix,ih)
         if (konst) then
           if( len_trim(restraintmask) <= 0 ) then
               call rgroup(natom,natc,nres,ngrp,ix(i02),ih(m02),ih(m04), &
-                          ih(m06),ih(m08),ix(icnstrgp),jgroup,indx,irespw, &
-                          npdec,x(l60),konst,dotgtmd,belly,idecomp,5,.true.)
+                          ih(m06),ih(m08),ix(icnstrgp), &
+                          npdec,x(l60),konst,dotgtmd,belly,5,.true.)
           else
               if (mask_from_ref > 0) then ! Antoine Marion : base mask on reference coordinates
                 call atommask( natom, nres, 0, ih(m04), ih(m06), &
@@ -3489,8 +3473,8 @@ subroutine mdread2(x,ix,ih)
                 call mexit(6,1)
               else  ! the following only for backward compatibility
                 call rgroup(natom,natc,nres,ngrp,ix(i02),ih(m02),ih(m04), &
-                            ih(m06),ih(m08),ix(icnstrgp),jgroup,indx,irespw, &
-                            npdec,x(l60),konst,dotgtmd,belly,idecomp,5,.true.)
+                            ih(m06),ih(m08),ix(icnstrgp), &
+                            npdec,x(l60),konst,dotgtmd,belly,5,.true.)
                 ! tgtmd atoms are now stored in nattgt, igroup -> icnstrgp
                 nattgtfit = natc
                 nattgtrms = natc
@@ -3564,8 +3548,8 @@ subroutine mdread2(x,ix,ih)
 #endif /* API */
       if( len_trim(bellymask) <= 0 ) then
          call rgroup(natom,natbel,nres,ngrp,ix(i02),ih(m02),ih(m04),ih(m06), &
-                     ih(m08),ix(ibellygp),jgroup,indx,irespw,npdec, &
-                     x(l60),konst,dotgtmd,belly,idecomp,5,.true.)
+                     ih(m08),ix(ibellygp),npdec, &
+                     x(l60),konst,dotgtmd,belly,5,.true.)
       else
          if (mask_from_ref > 0) then ! Antoine Marion : base mask on reference coordinates
            call rdrest(natom,ntrx,refc,x(lcrdr))
@@ -3612,14 +3596,6 @@ subroutine mdread2(x,ix,ih)
 
    konst = .false.
    belly = .false.
-#ifndef API /* IDECOMP cannot be nonzero in the API */
-   if(idecomp > 0) then
-      write(6,9428)
-      call rgroup(natom,ntmp,nres,ngrp,ix(i02),ih(m02),ih(m04),ih(m06), &
-                  ih(m08),ix(ibellygp),jgroup,indx,irespw,npdec, &
-                  x(l60),konst,dotgtmd,belly,idecomp,5,.true.)
-   end if
-#endif
 
    if( ibelly > 0 .and. (igb > 0 .or. ipb /= 0) ) then
 

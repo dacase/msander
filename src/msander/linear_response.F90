@@ -257,7 +257,7 @@ contains
           ineighborpt = 1
           call icosa_init(2, 3, zero)
        end if
-       sasa = sasa + icosa_sphere_approx(i,crd,radii,ineighborpt,ineighbor,0)       
+       sasa = sasa + icosa_sphere_approx(i,crd,radii,ineighborpt,ineighbor)       
        !write (6,*) 'After: ',i, sasa
     end do
 

@@ -15,7 +15,6 @@ subroutine report_min_results( nstep, gradient_rms, coordinates, &
       forces, energies, igraph, xx, ix, ih )
 
    use state
-   use decomp, only : checkdec, printdec, printpdec
    use file_io_dat
    implicit none
 
@@ -49,9 +48,6 @@ subroutine report_min_results( nstep, gradient_rms, coordinates, &
       if (imin /= 5) rewind(MDINFO_UNIT)
       call printe( nstep, gradient_rms, gradient_max, energies, &
              atom_number_of_gmax, atom_name_of_gmax )
-      if (idecomp > 0) call checkdec(idecomp)
-      if (idecomp == 1 .or. idecomp == 2) call printdec(ix)
-      if (idecomp == 3 .or. idecomp == 4) call printpdec(ix)
       if (nmropt > 0) then
          if (iredir(7) /= 0) call pcshift(-1,coordinates,forces)
          call nmrptx(6)

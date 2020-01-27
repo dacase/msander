@@ -14,9 +14,7 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
    use les_data, only : elesb, cnum
 #endif
 #ifdef MPI
-   use decomp, only : decpr
 #endif
-   use decomp, only : decpair
    use parms , only: req, rk
    use file_io_dat
 
@@ -129,21 +127,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
                df = df * oneweight
             end if
          end if
-         if(idecomp == 1 .or. idecomp == 2) then
-            if(icfe /= 0 .and. decpr) then
-               if(ifsc /= 0 .and. nsc(ii) /= 1 .and. nsc(jj) /= 1) then
-                  call decpair(4,ii,jj,eaw(jn)/(nstlim/ntpr))
-               else if(ifsc == 0) then
-                  call decpair(4,ii,jj,eaw(jn)/(nstlim/ntpr))
-               end if
-            else if(icfe == 0) then
-               call decpair(4,ii,jj,eaw(jn))
-            end if
-         end if
-#else
-         if(idecomp == 1 .or. idecomp == 2) then
-            call decpair(4,ii,jj,eaw(jn))
-         end if
 #endif
 #ifdef MPI
 #  ifdef LES
@@ -199,10 +182,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #ifdef LES
    use les_data, only : elesa, cnum
 #endif
-#ifdef MPI
-   use decomp, only : decpr
-#endif
-   use decomp, only : decangle
    use parms, only: teq, tk
    use constants, only: one, third
    use file_io_dat
@@ -335,36 +314,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
             df = df * oneweight
          end if
       end if
-      if(idecomp == 1 .or. idecomp == 2) then
-         if(icfe /= 0 .and. decpr) then
-            if(ifsc /= 0 .and. nsc(ii) /= 1 .and. nsc(jj) /= 1 &
-               .and. nsc(kk) /= 1) then
-               ii = (it(jn+ist) + 3)/3
-               jj = (jt(jn+ist) + 3)/3
-               kk = (kt(jn+ist) + 3)/3
-               call decangle(ii,jj,kk,eaw(jn)/(nstlim/ntpr))
-            else if(ifsc == 0) then
-               ii = (it(jn+ist) + 3)/3
-               jj = (jt(jn+ist) + 3)/3
-               kk = (kt(jn+ist) + 3)/3
-               call decangle(ii,jj,kk,eaw(jn)/(nstlim/ntpr))
-            end if
-         else if(icfe == 0) then
-            ii = (it(jn+ist) + 3)/3
-            jj = (jt(jn+ist) + 3)/3
-            kk = (kt(jn+ist) + 3)/3
-            call decangle(ii,jj,kk,eaw(jn))
-         end if
-      end if
-
-
-#else
-      if(idecomp == 1 .or. idecomp == 2) then
-         ii = (it(jn+ist) + 3)/3
-         jj = (jt(jn+ist) + 3)/3
-         kk = (kt(jn+ist) + 3)/3
-         call decangle(ii,jj,kk,eaw(jn))
-      end if
 #endif
 #ifdef MPI
 #  ifdef LES
@@ -444,10 +393,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
 #ifdef LES
    use les_data, only : elesd, lfac, lesfac, nlesty, lestyp, cnum
 #endif
-#ifdef MPI
-   use decomp, only : decpr
-#endif
-   use decomp, only : decpair, decphi
    use parms, only: ipn,pn,pk,gamc,gams,cn1,cn2,one_scnb, one_scee
    use charmm_mod, only : charmm_cn114,charmm_cn214, charmm_active
    use constants, only : zero, one, two, six, twelve, PI
@@ -644,32 +589,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       sinnp = sin(ct0)
       epw(jn) = (pk(ic)+cosnp*gamc(ic)+sinnp*gams(ic))*fzi(jn)
 #ifdef MPI
-      if(idecomp == 1 .or. idecomp == 2) then
-         ii = (ip(jn+ist) + 3)/3
-         jj = (jp(jn+ist) + 3)/3
-         kk = (iabs(kp(jn+ist)) + 3)/3
-         ll = (iabs(lp(jn+ist)) + 3)/3
-         if(icfe /= 0 .and. decpr) then
-            if(ifsc /= 0 .and. nsc(ii) /= 1 .and. nsc(jj) /= 1 &
-               .and. nsc(kk) /= 1 .and. nsc(ll) /= 1) then
-               call decphi(ii,jj,kk,ll,epw(jn)/(nstlim/ntpr))
-            else if(ifsc == 0) then
-               call decphi(ii,jj,kk,ll,epw(jn)/(nstlim/ntpr))
-            end if
-         else if(icfe == 0) then
-            call decphi(ii,jj,kk,ll,epw(jn))
-         end if
-      end if
-#else
-      if(idecomp == 1 .or. idecomp == 2) then
-         ii = (ip(jn+ist) + 3)/3
-         jj = (jp(jn+ist) + 3)/3
-         kk = (iabs(kp(jn+ist)) + 3)/3
-         ll = (iabs(lp(jn+ist)) + 3)/3
-         call decphi(ii,jj,kk,ll,epw(jn))
-      end if
-#endif
-#ifdef MPI
 #  ifdef LES
       if(rem == 2) then
          ii = (ip(jn+ist) + 3)/3
@@ -844,41 +763,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
            call cr_add_dcdr_factor( ii, cgj*crfac*scee0 )
            call cr_add_dcdr_factor( jj, cgi*crfac*scee0 )
         end if
-        if(idecomp > 0) then
-#          ifdef MPI
-           if(icfe /= 0 .and. decpr) then
-              if(idecomp == 1) then
-                 call decpair(4,ii,jj,sphi(jn)/(nstlim/ntpr))
-              else if(idecomp == 2) then
-                 call decpair(2,ii,jj,sphi(jn)/(nstlim/ntpr))
-              endif
-           else if(icfe == 0) then
-              if(idecomp == 1) then
-                 call decpair(4,ii,jj,sphi(jn))
-              else if(idecomp == 2) then
-                 call decpair(2,ii,jj,sphi(jn))
-                 !             else if(idecomp.eq.3) then
-                 !               --- not considered since
-                 !                     no pairwise decomp for internal energies
-              else if(idecomp == 4) then
-                 call decpair(-2,ii,jj,sphi(jn))
-              end if
-           end if
-
-
-#          else
-           if(idecomp == 1) then
-              call decpair(4,ii,jj,sphi(jn))
-           else if(idecomp == 2) then
-              call decpair(2,ii,jj,sphi(jn))
-              !             else if(idecomp.eq.3) then
-              !               --- not considered since
-              !                     no pairwise decomp for internal energies
-           else if(idecomp == 4) then
-              call decpair(-2,ii,jj,sphi(jn))
-           end if
-#          endif
-        end if
         r6 = r2*r2*r2
         r12 = r6*r6
         if (charmm_active) then
@@ -889,40 +773,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
           f2 = cn2(ic)*r6*lfac
         end if
         cphi(jn) = (f1-f2)*scnb0
-        if(idecomp > 0) then
-#          ifdef MPI
-           if(icfe /= 0 .and. decpr) then
-              if(idecomp == 1) then
-                 call decpair(4,ii,jj,cphi(jn)/(nstlim/ntpr))
-              else if(idecomp == 2) then
-                 call decpair(3,ii,jj,cphi(jn)/(nstlim/ntpr))
-              end if
-           else if(icfe == 0) then
-              if(idecomp == 1) then
-                 call decpair(4,ii,jj,cphi(jn))
-              else if(idecomp == 2) then
-                 call decpair(3,ii,jj,cphi(jn))
-                 !             else if(idecomp.eq.3) then
-                 !               --- not considered since
-                 !                     no pairwise decomp for internal energies
-              else if(idecomp == 4) then
-                 call decpair(-3,ii,jj,cphi(jn))
-              end if
-           end if
-#          else
-           if(idecomp == 1) then
-              call decpair(4,ii,jj,cphi(jn))
-           else if(idecomp == 2) then
-              call decpair(3,ii,jj,cphi(jn))
-              !             else if(idecomp.eq.3) then
-              !               --- not considered since
-              !                     no pairwise decomp for internal energies
-           else if(idecomp == 4) then
-              call decpair(-3,ii,jj,cphi(jn))
-           end if
-#          endif
-        end if
-
 #ifdef MPI
 #  ifdef LES
         if(rem == 2) then
@@ -932,7 +782,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
         endif
 #  endif
 #endif
-
         if( eedmeth == 5 ) then
            dfn =((-twelve*f1+six*f2)*scnb0-two*g*scee0)*r2
         else
@@ -1527,10 +1376,6 @@ end subroutine bellyf
 !Routine has also been simplified from the original ephi version
 subroutine ephi_ene_amd(nphiin,ip,jp,kp,lp,icp,x,ep)
 
-#ifdef MPI
-   use decomp, only : decpr
-#endif
-   use decomp, only : decpair, decphi
    use parms, only: ipn,pn,pk,gamc,gams
    use constants, only : zero, one, two, six, twelve, PI
    use file_io_dat
@@ -1697,33 +1542,6 @@ subroutine ephi_ene_amd(nphiin,ip,jp,kp,lp,icp,x,ep)
       cosnp = cos(ct0)
       sinnp = sin(ct0)
       epw(jn) = (pk(ic)+cosnp*gamc(ic)+sinnp*gams(ic))*fzi(jn)
-
-#ifdef MPI
-      if(idecomp == 1 .or. idecomp == 2) then
-         ii = (ip(jn+ist) + 3)/3
-         jj = (jp(jn+ist) + 3)/3
-         kk = (iabs(kp(jn+ist)) + 3)/3
-         ll = (iabs(lp(jn+ist)) + 3)/3
-         if(icfe /= 0 .and. decpr) then
-            if(ifsc /= 0 .and. nsc(ii) /= 1 .and. nsc(jj) /= 1 &
-               .and. nsc(kk) /= 1 .and. nsc(ll) /= 1) then
-               call decphi(ii,jj,kk,ll,epw(jn)/(nstlim/ntpr))
-            else if(ifsc == 0) then
-               call decphi(ii,jj,kk,ll,epw(jn)/(nstlim/ntpr))
-            end if
-         else if(icfe == 0) then
-            call decphi(ii,jj,kk,ll,epw(jn))
-         end if
-      end if
-#else
-      if(idecomp == 1 .or. idecomp == 2) then
-         ii = (ip(jn+ist) + 3)/3
-         jj = (jp(jn+ist) + 3)/3
-         kk = (iabs(kp(jn+ist)) + 3)/3
-         ll = (iabs(lp(jn+ist)) + 3)/3
-         call decphi(ii,jj,kk,ll,epw(jn))
-      end if
-#endif
 
 #ifdef MPI /* SOFT CORE */
       ! For dual-topology softcore runs, dihedrals involving sc atoms are modified here

@@ -1411,7 +1411,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
       ee14,enb14,one_scee,one_scnb,e14vir,nb_14_list,numnb14, &
       mytaskid,numtasks,eedmeth)
   use constants, only: zero,one
-  use decomp, only: decpr, decpair
   use crg_reloc, only: ifcr, cropt, cr_charge, cr_add_dcdr_factor
   use file_io_dat
 #ifdef MPI /* SOFT CORE */
@@ -1478,16 +1477,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
             call cr_add_dcdr_factor( i, cgj*r2inv*scee0 )
             call cr_add_dcdr_factor( j, cgi*r2inv*scee0 )
          end if
-         ! -- ti decomp
-         if(decpr .and. idecomp /= 0) then
-            if(idecomp == 1) then
-               call decpair(4,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(4,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            elseif(idecomp == 2) then
-               call decpair(2,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(3,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            endif
-         endif
          frc(1,j) = frc(1,j) + df*dx
          frc(2,j) = frc(2,j) + df*dy
          frc(3,j) = frc(3,j) + df*dz
@@ -1553,25 +1542,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
                   call cr_add_dcdr_factor( j, -cgi*rinv*scee0 )
                end if
             end if
-         endif
-
-         ! -- ti decomp
-         if(ifsc == 0) then
-            if(decpr .and. idecomp == 1) then
-               call decpair(4,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(4,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            else if(decpr .and. idecomp == 2) then
-               call decpair(2,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(3,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            endif
-         else if( nsc(i) /= 1 .or. nsc(j) /= 1 ) then
-            if(decpr .and. idecomp == 1) then
-               call decpair(4,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(4,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            else if(decpr .and. idecomp == 2) then
-               call decpair(2,i,j,scee0*g/(nstlim/ntpr))
-               call decpair(3,i,j,scnb0*(f12 - f6)/(nstlim/ntpr))
-            endif
          endif
 #endif
          frc(1,j) = frc(1,j) + df*dx

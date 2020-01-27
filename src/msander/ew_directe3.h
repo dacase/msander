@@ -36,12 +36,7 @@ do im_new = 1,icount
 
       evdw = evdw + b1 * ( denom2 - denom ) ! softcore potential is part of van der Waals energy
 
-      ! -- ti decomp
-      if(decpr .and. idecomp > 0) call decpair(3,i,j,b1*(denom2 - denom)/(nstlim/ntpr))
-
       sc_dvdl = sc_dvdl + b1 * ( 2.0d0 * scalpha * denom3 - scalpha * denom2 )
-      ! -- ti decomp
-      if(decpr .and. idecomp > 0) call decpair(3,i,j,weight1*b1*(2.0d0*scalpha*denom3 - scalpha*denom2)/(nstlim/ntpr))
 
       df = df + b1 * ( 12.0d0 * rfour * b0 * denom3 - 6.0d0 * rfour * b0 * denom2 )
 

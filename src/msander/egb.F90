@@ -182,7 +182,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    !--------------------------------------------------------------------------
 
    use icosasurf, only : icosa_init, icosa_sphere_approx
-   use decomp, only: decsasa, decpair
    use qmmm_module, only : qmmm_nml,qmmm_struct,qm2_struct
    use parms, only: cn1,cn2
    use constants, only: zero, one, two, three, four, five, six, seven, &
@@ -830,11 +829,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
            nrg_egb_tmp = nrg_egb_tmp + e
 #endif
 
-           if(idecomp == 1 .or. idecomp == 2) then
-              call decpair(1,i,j,e)
-           else if(idecomp == 3 .or. idecomp == 4) then
-              call decpair(-1,i,j,e)
-           end if
 #ifdef MPI
 #  ifdef LES
            if(rem == 2) then
@@ -984,16 +978,10 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 #ifdef LES
             nrg_ele_tmp = nrg_ele_tmp + eel
 #endif
-            if(idecomp == 1 .or. idecomp == 2) then
-               call decpair(2,i,j,eel)
-            else if(idecomp == 3 .or. idecomp == 4) then
-               call decpair(-2,i,j,eel)
-            end if
             de = de + deel
             if (oncpstep .or. oncestep) then
                dvdl = dvdl + (intdieli*rinv*dcharge(i) &
                      *dcharge(j) - eel)
-
             end if
 
             !    -- van der Waals energy:
@@ -1011,11 +999,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
                f12 = cn1(ic)*(r6inv*r6inv)
 #endif /*LES*/
                evdw = evdw + (f12 - f6)
-               if(idecomp == 1 .or. idecomp == 2) then
-                  call decpair(3,i,j,f12-f6)
-               else if(idecomp == 3 .or. idecomp == 4) then
-                  call decpair(-3,i,j,f12-f6)
-               end if
                de = de + (twelve*f12 - six*f6)*r2inv
 
             end if  ! ( ic > 0 )
@@ -1238,11 +1221,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 #ifdef LES
          nrg_egb_tmp = nrg_egb_tmp - self_e
 #endif
-         if(idecomp == 1 .or. idecomp == 2) then
-            call decpair(1,i,i,-qid2h*onereff(i))
-         else if(idecomp == 3 .or. idecomp == 4) then
-            call decpair(-1,i,i,-qid2h*onereff(i))
-         end if
 #ifdef MPI
 #  ifdef LES
          ! local REMD
@@ -1646,7 +1624,7 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
           !     call icosa_init(2, 3, zero)
           !  end if
             totsasa = totsasa + icosa_sphere_approx(i,x, &
-                   vdwrad,ineighborpt,ineighbor,idecomp)
+                   vdwrad,ineighborpt,ineighbor)
 
          end if  !  ( gbsa == 2 )
 
@@ -1782,12 +1760,6 @@ VACUUM3 &
                f6 = cn2(ic)*r6inv
                f12 = cn1(ic)*(r6inv*r6inv)
                evdw = evdw + (f12 - f6)
-
-               if(idecomp == 1 .or. idecomp == 2) then
-                 call decpair(3,i,j,f12-f6)
-               else if(idecomp == 3 .or. idecomp == 4) then
-                 call decpair(-3,i,j,f12-f6)
-               end if
                de = (twelve*f12 - six*f6)*r2inv
              end if !if ic>0
              de = de*nrespai

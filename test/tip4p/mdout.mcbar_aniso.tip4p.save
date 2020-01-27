@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/08/2020 at 10:03:09
+| Run on 01/26/2020 at 16:23:53
 
 |   Executable path: ../../bin/msander
 | Working directory: /home/case/msander/test/tip4p
@@ -97,7 +97,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      50
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       2, ntb     =       2, igb     =       0, nsnb    =      25
@@ -159,9 +159,9 @@ Ewald parameters:
 
  Number of triangulated 3-point waters found:      216
 
-     Sum of charges from parm topology file =   0.00000000
+     Sum of charges from parm topology file =     0.000000
      Forcing neutrality...
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OPENMP code, with OMP_NUM_THREADS = 8
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -718,24 +718,27 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.02 (78.57% of List )
-|                Other                      0.01 (21.43% of List )
-|             List time                  0.03 ( 5.38% of Nonbo)
-|                   Short_ene time             0.42 (99.29% of Direc)
-|                Direct Ewald time          0.42 (85.77% of Ewald)
-|                Adjust Ewald time          0.00 ( 1.02% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 9.23% of Recip)
-|                   Fill charge grid           0.01 (10.77% of Recip)
-|                   Scalar sum                 0.01 ( 9.23% of Recip)
-|                   Grad sum                   0.02 (32.31% of Recip)
-|                   FFT time                   0.02 (38.46% of Recip)
-|                Recip Ewald time           0.06 (13.21% of Ewald)
-|             Ewald time                 0.49 (94.62% of Nonbo)
-|          Nonbond force              0.52 (100.0% of Force)
-|       Force time                 0.52 (95.76% of Runmd)
-|       Verlet update time         0.02 ( 4.05% of Runmd)
-|    Runmd Time                 0.54 (98.73% of Total)
-| Total time                 0.55 (100.0% of ALL  )
+|    Read coords time           0.00 ( 1.92% of Total)
+|                Build the list             0.02 (65.63% of List )
+|                Other                      0.01 (34.37% of List )
+|             List time                  0.03 (20.00% of Nonbo)
+|                   Short_ene time             0.07 (95.95% of Direc)
+|                   Other                      0.00 ( 4.05% of Direc)
+|                Direct Ewald time          0.07 (57.81% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.34% of Ewald)
+|                   Fill Bspline coeffs        0.00 (10.00% of Recip)
+|                   Fill charge grid           0.01 (14.00% of Recip)
+|                   Scalar sum                 0.01 (12.00% of Recip)
+|                   Grad sum                   0.02 (30.00% of Recip)
+|                   FFT time                   0.02 (34.00% of Recip)
+|                Recip Ewald time           0.05 (39.06% of Ewald)
+|             Ewald time                 0.13 (80.00% of Nonbo)
+|          Nonbond force              0.16 (100.0% of Force)
+|       Force time                 0.16 (86.02% of Runmd)
+|       Verlet update time         0.02 (13.44% of Runmd)
+|    Runmd Time                 0.19 (89.42% of Total)
+|    Other                      0.02 ( 8.65% of Total)
+| Total time                 0.21 (100.0% of ALL  )
 
 | Number of list builds   :          5
 
@@ -745,11 +748,11 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.54 Per Step(ms) =      10.86
-|         ns/day =       7.96   seconds/ns =   10860.00
+|     Elapsed(s) =       0.19 Per Step(ms) =       3.72
+|         ns/day =      23.23   seconds/ns =    3720.00
 | -----------------------------------------------------
 
-|           Job began  at 10:03:09.003  on 01/08/2020
-|           Setup done at 10:03:09.009  on 01/08/2020
-|           Run   done at 10:03:09.552  on 01/08/2020
+|           Job began  at 16:23:53.214  on 01/26/2020
+|           Setup done at 16:23:53.235  on 01/26/2020
+|           Run   done at 16:23:53.422  on 01/26/2020
 |     wallclock() was called    4173 times

@@ -434,7 +434,6 @@ subroutine grad_sumrc( &
 #ifdef MPI
   use ew_bspline,only:kbot,ktop
 #endif
-  use decomp, only: decpr, decpair
   use crg_reloc, only: ifcr, cr_dcdr_tbl, cr_add_dcdr_factor
   use file_io_dat
   
@@ -626,11 +625,6 @@ subroutine grad_sumrc( &
                                            * theta3(ith3,im)
                      end if
 
-                     ! -- ti decomp
-                     if(decpr .and. idecomp > 0) then
-                        dectmp = term*theta1(ith1,im)*theta2(ith2,im)*theta3(ith3,im)*chargen*0.5d0
-                        call decpair(2,n,n,dectmp/(nstlim/ntpr))
-                     endif
                   end do
                end do
 #ifdef MPI

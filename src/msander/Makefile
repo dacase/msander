@@ -44,7 +44,7 @@ MMOBJ = \
     align.o AmberNetcdf.o amd.o amopen.o assert.o \
     barostats.o binrestart.o bintraj.o charmm.o constante.o \
     constantph.o constants.o crg_reloc.o csa.o cshf.o \
-    debug.o decnvh.o decomp.o degcnt.o dssp.o \
+    debug.o decnvh.o degcnt.o dssp.o \
     dynlib.o egb.o emap.o ene.o erfcfun.o \
     ew_box.o ew_bspline.o ew_fft.o \
     ew_force.o ew_recip.o ew_setup.o extra_pts.o \
@@ -67,7 +67,7 @@ LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o ArrayList.o \
     assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
     constante.o constantph.o constants.o crg_reloc.o csa.o \
-    cshf.o debug.o decnvh.o decomp.o degcnt.LES.o \
+    cshf.o debug.o decnvh.o degcnt.LES.o \
     dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
     erfcfun.o ew_box.LES.o ew_bspline.o \
     ew_fft.o ew_force.LES.o ew_recip.LES.o ew_setup.LES.o \
@@ -103,7 +103,7 @@ dummy:
 $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
          dummy
-	@echo "[SANDER]  FC $@"
+	@echo "[MSANDER]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	     $(FULLPIMDOBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
@@ -112,7 +112,7 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) \
          $(PLUMED_DEPENDENCIES) dummy
-	@echo "[SANDER]  FC $@"
+	@echo "[MSANDER_LES]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) \
 	     $(XRAY_OBJS) $(NFE_OBJECTS) -L$(LIBDIR) $(NETCDFLIBF) \
 	     $(FLIBS_RISMSANDER) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
@@ -128,32 +128,32 @@ libs:
     
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) \
 	        -o Plumed.o Plumed.c
 
 rand2.o:  rand2.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) -o $@ $<
 
 lmodC.o:  lmodC.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 xminC.o:  xminC.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 ArrayList.o:  ArrayList.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 KFReader.o:  KFReader.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 qm2_read_adf_results.o:  qm2_read_adf_results.c
-	@echo "[SANDER]  CC $<"
+	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 #---------------------------------------------------------------------------

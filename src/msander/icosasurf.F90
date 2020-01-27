@@ -191,14 +191,11 @@ function icosa_patch_approx(i, x, vdwrad, &
                             iatinclcnt2, iatincl2, &
                             iatinclcnt3, iatincl3, &
                             iatenvcnt, iatenv, &
-                            nof_parts, &
-                            idecomp) &
-result(ipapprox)
+                            nof_parts) result(ipapprox)
 
-      use decomp, only: decsasa_icosa
       use constants, only : FOURPI
       implicit none
-      integer i, idecomp
+      integer i
       integer iatinclcnt1, iatincl1
       integer iatinclcnt2, iatincl2
       integer iatinclcnt3, iatincl3
@@ -239,24 +236,12 @@ result(ipapprox)
         nof_exc = 0
         if(exc1) then
           nof_exc = nof_exc + 1
-        else if(idecomp.gt.0) then
-          call decsasa_icosa(i,iatinclcnt1,iatincl1, &
-                             -total_sas/3.0d0, &
-                             idecomp)
         endif
         if(exc2) then
           nof_exc = nof_exc + 1
-        else if(idecomp.gt.0) then
-          call decsasa_icosa(i,iatinclcnt2,iatincl2, &
-                             -total_sas/3.0d0,&
-                             idecomp)
         endif
         if(exc3) then
           nof_exc = nof_exc + 1
-        else if(idecomp.gt.0) then
-          call decsasa_icosa(i,iatinclcnt3,iatincl3, &
-                             -total_sas/3.0d0, &
-                             idecomp)
         endif
 
         sas = 0.0d0
@@ -323,19 +308,7 @@ result(ipapprox)
                                          iatinclcnt12, iatincl12, &
                                          iatinclcnt31, iatincl31, &
                                          iatenvcnt, iatenv, &
-                                         4 * nof_parts, &
-                                         idecomp) 
-        else if(idecomp.gt.0) then
-          !write(6,*) 'TR1 ', i, iatinclcnt1, iatinclcnt12, iatinclcnt31
-          call decsasa_icosa(i,iatinclcnt1,iatincl1, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt12,iatincl12, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt31,iatincl31, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
+                                         4 * nof_parts)
         end if
         ! ---   triangle 2
         if( exc2 .and. exc23 .and. exc12 ) then 
@@ -348,19 +321,7 @@ result(ipapprox)
                                          iatinclcnt23, iatincl23, &
                                          iatinclcnt12, iatincl12, &
                                          iatenvcnt, iatenv, &
-                                         4 * nof_parts, &
-                                         idecomp)
-        else if(idecomp.gt.0) then
-          !write(6,*) 'TR2 ', i, iatinclcnt2, iatinclcnt23, iatinclcnt12
-          call decsasa_icosa(i,iatinclcnt2,iatincl2, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt23,iatincl23, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt12,iatincl12, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
+                                         4 * nof_parts)
         end if
         ! ---   triangle 3
         if( exc3 .and. exc31 .and. exc23 ) then
@@ -373,19 +334,7 @@ result(ipapprox)
                                          iatinclcnt31, iatincl31, &
                                          iatinclcnt23, iatincl23, &
                                          iatenvcnt, iatenv, &
-                                         4 * nof_parts, &
-                                         idecomp)
-        else if(idecomp.gt.0) then
-          !write(6,*) 'TR3 ', i, iatinclcnt3, iatinclcnt31, iatinclcnt23
-          call decsasa_icosa(i,iatinclcnt3,iatincl3, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt31,iatincl31, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt23,iatincl23, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
+                                         4 * nof_parts)
         end if
         ! ---   triangle c
         if( exc12 .and. exc23 .and. exc31 ) then
@@ -398,23 +347,9 @@ result(ipapprox)
                                          iatinclcnt23, iatincl23, &
                                          iatinclcnt31, iatincl31, &
                                          iatenvcnt, iatenv, &
-                                         4 * nof_parts, &
-                                         idecomp)
-        else if(idecomp.gt.0) then
-          !write(6,*) 'TRC ', i, iatinclcnt12, iatinclcnt23, iatinclcnt31
-          call decsasa_icosa(i,iatinclcnt12,iatincl12, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt23,iatincl23, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
-          call decsasa_icosa(i,iatinclcnt31,iatincl31, &
-                             -total_sas/4.0d0/3.0d0, &
-                             idecomp)
+                                         4 * nof_parts)
         end if
-
       end if
-
       ipapprox = sas
       
       return
@@ -422,13 +357,10 @@ end function icosa_patch_approx
     
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Approximates sas of a sphere
-_REAL_ function icosa_sphere_approx(i, x, vdwrad, &
-                                    ineighborpt, ineighbor, &
-                                    idecomp)
+_REAL_ function icosa_sphere_approx(i, x, vdwrad, ineighborpt, ineighbor)
       use constants, only : FOURPI
-      use decomp, only : decsasa
       implicit none
-      integer i, j, idecomp
+      integer i, j
       integer ineighborpt, ineighbor
       integer iatenvcnt, iatenv
       integer iatinclcnt, iatincl
@@ -472,12 +404,6 @@ _REAL_ function icosa_sphere_approx(i, x, vdwrad, &
         !       to estimate to what extent atoms of neighboring residues contribute 
         !       to the burial.
 
-        if(idecomp.eq.1 .or. idecomp.eq.2) then
-          call decsasa(1,i,0,0,FOURPI*r*r)
-        else if(idecomp.eq.3 .or. idecomp.eq.4) then
-          call decsasa(-1,i,0,0,FOURPI*r*r)
-        endif
-
         ! ---   Caveat: ictri values run from 0 .. 11
 
         do j= 1,20
@@ -496,8 +422,7 @@ _REAL_ function icosa_sphere_approx(i, x, vdwrad, &
                            iatincl(ictri(j,2)*iemax+1), &
                            iatinclcnt(ictri(j,3)+1), &
                            iatincl(ictri(j,3)*iemax+1), &
-                           iatenvcnt, iatenv, 20, &
-                           idecomp)
+                           iatenvcnt, iatenv, 20)
             sas = sas + sastmp
           end if
         end do

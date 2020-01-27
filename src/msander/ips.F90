@@ -1397,7 +1397,6 @@ subroutine aips_grad_sumrc( &
 #ifdef MPI
   use ew_bspline,only:kbot,ktop
 #endif
-  use decomp, only: decpr, decpair
   use file_io_dat
   
    implicit none
@@ -1503,11 +1502,6 @@ subroutine aips_grad_sumrc( &
                      f1 = f1 - term * dtheta1(ith1,im) * f1fac
                      f2 = f2 - term *  theta1(ith1,im) * f2fac
                      f3 = f3 - term *  theta1(ith1,im) * f3fac
-                     ! -- ti decomp
-                     if(decpr .and. idecomp > 0) then
-                        dectmp = term*theta1(ith1,im)*theta2(ith2,im)*theta3(ith3,im)*0.5d0
-                        call decpair(2,n,n,dectmp/(nstlim/ntpr))
-                     endif
                   end do
                end do
 #ifdef MPI

@@ -11,7 +11,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       cn3,cn4,cn5)
    use ew_recip
    use stack
-   use decomp, only: decpr
    use nblist, only: recip, cutoffnb,nbfilter, volume, &
                      maxnblst,nucgrd1,nucgrd2,nucgrd3, &
                      adjust_imagcrds, map_coords, &
@@ -349,8 +348,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
          if ( master ) then
                call vdw_correction(ico,ntypes,nvdwcls, &
                volume,evdwr,rec_vird,cn2,cutoffnb)
-               ! -- ti decomp
-               if(decpr .and. idecomp > 0) call vdwdec_correction(natom,ntypes,iac,ico,nvdwcls,cn2,volume,cutoffnb)
          end if
       end if
       call timer_stop(TIME_SELF)
@@ -657,7 +654,6 @@ subroutine nb_adjust(charge,eea,crd, &
    use les_data, only : lfac, lestyp, lesfac, cnum, nlesty
    use nblist, only : cutoffnb
 #else
-   use decomp, only: decpr, decpair
 #endif
    implicit none
 
@@ -901,8 +897,6 @@ subroutine nb_adjust(charge,eea,crd, &
             call cr_add_dcdr_factor( i, cgk * d0 )   
             call cr_add_dcdr_factor( k, cgi * d0 )   
          end if
-         ! -- ti decomp
-         if(decpr .and. idecomp > 0) call decpair(2,i,k,cgi*cgk*d0/(nstlim/ntpr))
          df = cgi*cgk*d1
 #endif /* LES */
          dfx = delx*df
@@ -1134,7 +1128,6 @@ end subroutine nb_adjust_dipole
 !+ [Enter a one-line description of subroutine self here]
 subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    use constants, only : PI, INVSQRTPI
-   use decomp, only : decpair
    use crg_reloc, only : ifcr, cr_add_dcdr_factor
    use linear_response, only: ilrt
    use file_io_dat
@@ -1178,19 +1171,8 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
          if ( ifcr /= 0 ) then
             call cr_add_dcdr_factor( i, 2.0*cg(i)*d0 )
          end if
-         ! -- ti decomp
-         if(idecomp == 1 .or. idecomp == 2) then
-            factor = pi/(ewaldcof*ewaldcof*volume)
-            call decpair(2,i,i,cg(i)*cg(i)*d0)
-         endif
 #endif
       end do
-      ! -- ti decomp
-      if((idecomp == 1 .or. idecomp == 2) .and. -0.5d0*factor*sumq*sumq /= 0.0d0) then
-         do i = 1,numatoms
-            call decpair(2,i,i,-0.5d0*factor*sumq*sumq/numatoms) 
-         end do
-      end if
       if ( ilrt == 0 .and. ifcr == 0 ) then
          first = .false.
       else

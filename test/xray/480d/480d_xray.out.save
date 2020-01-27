@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/17/2020 at 13:54:32
+| Run on 01/26/2020 at 16:30:10
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/480d
@@ -93,7 +93,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       5
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
@@ -261,28 +261,30 @@ Found   2316 atoms in !(@H=);
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.06 ( 1.15% of Total)
+|    Read coords time           0.06 ( 1.16% of Total)
 |                Build the list             0.01 (66.67% of List )
 |                Other                      0.01 (33.33% of List )
-|             List time                  0.02 (21.69% of Nonbo)
-|                   Short_ene time             0.03 (100.0% of Direc)
-|                Direct Ewald time          0.03 (44.62% of Ewald)
-|                Adjust Ewald time          0.00 ( 4.62% of Ewald)
-|                   Fill charge grid           0.00 (16.13% of Recip)
-|                   Scalar sum                 0.00 ( 9.68% of Recip)
-|                   Grad sum                   0.01 (19.35% of Recip)
-|                   FFT time                   0.02 (54.84% of Recip)
-|                Recip Ewald time           0.03 (47.69% of Ewald)
-|                Other                      0.00 ( 3.08% of Ewald)
-|             Ewald time                 0.06 (78.31% of Nonbo)
-|          Nonbond force              0.08 ( 1.58% of Force)
-|             Fcalc loop                 2.80 (54.25% of Xray )
-|             Deriv loop                 2.34 (45.40% of Xray )
-|          Xray restaints             5.16 (98.06% of Force)
-|       Force time                 5.26 (100.0% of Runmd)
-|    Runmd Time                 5.26 (97.61% of Total)
-|    Other                      0.07 ( 1.24% of Total)
-| Total time                 5.39 (100.0% of ALL  )
+|             List time                  0.02 (17.65% of Nonbo)
+|                   Short_ene time             0.03 (94.29% of Direc)
+|                   Other                      0.00 ( 5.71% of Direc)
+|                Direct Ewald time          0.03 (41.67% of Ewald)
+|                Adjust Ewald time          0.00 ( 4.76% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 4.55% of Recip)
+|                   Fill charge grid           0.01 (13.64% of Recip)
+|                   Scalar sum                 0.00 ( 9.09% of Recip)
+|                   Grad sum                   0.01 (15.91% of Recip)
+|                   FFT time                   0.02 (56.82% of Recip)
+|                Recip Ewald time           0.04 (52.38% of Ewald)
+|                Other                      0.00 ( 1.19% of Ewald)
+|             Ewald time                 0.08 (82.35% of Nonbo)
+|          Nonbond force              0.10 ( 1.92% of Force)
+|             Fcalc loop                 2.86 (55.16% of Xray )
+|             Deriv loop                 2.30 (44.42% of Xray )
+|          Xray restaints             5.19 (97.68% of Force)
+|       Force time                 5.31 (100.0% of Runmd)
+|    Runmd Time                 5.31 (97.61% of Total)
+|    Other                      0.07 ( 1.23% of Total)
+| Total time                 5.44 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -292,11 +294,11 @@ Found   2316 atoms in !(@H=);
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       5.26 Per Step(ms) =    1052.40
-|         ns/day =       0.08   seconds/ns = 1052400.00
+|     Elapsed(s) =       5.31 Per Step(ms) =    1062.40
+|         ns/day =       0.08   seconds/ns = 1062400.00
 | -----------------------------------------------------
 
-|           Job began  at 13:54:32.342  on 01/17/2020
-|           Setup done at 13:54:32.472  on 01/17/2020
-|           Run   done at 13:54:37.734  on 01/17/2020
+|           Job began  at 16:30:10.131  on 01/26/2020
+|           Setup done at 16:30:10.261  on 01/26/2020
+|           Run   done at 16:30:15.574  on 01/26/2020
 |     wallclock() was called     328 times

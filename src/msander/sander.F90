@@ -27,16 +27,9 @@ subroutine sander()
 #ifdef MPI
   use qmmm_module, only : qmmm_nml, qmmm_struct, deallocate_qmmm, qmmm_mpi, &
                           qm2_struct, qmmm_vsolv, qm2_params, qmmm_mpi_setup
-  use decomp, only : allocate_int_decomp, allocate_real_decomp, &
-                     deallocate_int_decomp, deallocate_real_decomp, &
-                     synchronize_dec, build_dec_mask, decmask, indx, jgroup, &
-                     nat, nrs
 #else
   use qmmm_module, only : qmmm_nml, qmmm_struct, deallocate_qmmm, qmmm_mpi, &
                           qm2_struct, qmmm_vsolv, qm2_params
-  use decomp, only : allocate_int_decomp, allocate_real_decomp, &
-                     deallocate_int_decomp, deallocate_real_decomp, &
-                     nat, nrs
 #endif /* MPI */
 #ifdef LES
   use genbornles
@@ -321,22 +314,6 @@ subroutine sander()
             hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
           call allocate_gb( natom, ncopy )
         end if
-        if (idecomp > 0) then
-#ifdef MPI
-          if (ifsc > 0) then
-            call synchronize_dec(natom, nres)
-          else
-            nat = natom
-            nrs = nres
-          end if
-#else
-          nat = natom
-          nrs = nres
-#endif
-          call allocate_int_decomp(natom)
-        else
-          call allocate_int_decomp(1)
-        end if
 
         write(6,'(a,5x,a,i14)'  ) '|', 'nblistReal', nblist_allreal
         write(6,'(a,5x,a,i14)'  ) '|', 'nblist Int', nblist_allint
@@ -384,27 +361,6 @@ subroutine sander()
         call cr_read_input(natom)
         call cr_check_input(ips)
         call cr_backup_charge( x(l15), natom )
-      end if
-
-      ! Allocate memory for energy decomposition
-      ! module (needs info from mdread2)
-      if (idecomp == 1 .or. idecomp == 2) then
-        call allocate_real_decomp(nrs)
-#ifdef MPI
-        ! Thermodynamic Integration decomposition
-        if (ifsc > 0) then
-          ! following lines don't really seem to make sense(?)
-          ! partner = ieor(masterrank,1)
-          ! if (nat == natom) then
-          !    nrank = masterrank
-          ! else
-          !    nrank = partner
-          ! end if
-          call mpi_bcast(jgroup, nat, MPI_INTEGER, 0, commmaster, ier)
-        end if
-#endif
-      else if( idecomp == 3 .or. idecomp == 4 ) then
-        call allocate_real_decomp(npdec*npdec)
       end if
 
       ! Evaluate constants frommderead settings
@@ -765,11 +721,6 @@ subroutine sander()
     ! will know how much memory to allocate:
     call mpi_bcast(natom, BC_MEMORY, mpi_integer, 0, commsander, ier)
 
-    ! Thermodynamic Integration decomposition
-    call mpi_bcast(idecomp, 1, mpi_integer, 0, commsander, ier)
-    call mpi_bcast(nat, 1, mpi_integer, 0, commsander, ier)
-    call mpi_bcast(nrs, 1, mpi_integer, 0, commsander, ier)
-
     ! Set up integer stack initial size
     call mpi_bcast(lastist, 1, mpi_integer, 0, commsander, ier)
     call mpi_bcast(lastrst, 1, mpi_integer, 0, commsander, ier)
@@ -807,15 +758,6 @@ subroutine sander()
       ! Allocate space for molecule module arrays in the other nodes
       call allocate_molecule()
 
-      ! Thermodynamic Integration decomposition
-      if (idecomp > 0) then
-        call allocate_int_decomp(natom)
-        if (idecomp == 1 .or. idecomp == 2) then
-          call allocate_real_decomp(nrs)
-        else if( idecomp == 3 .or. idecomp == 4 ) then
-          call allocate_real_decomp(npdec*npdec)
-        end if
-      end if
     end if
     ! End memory allocation on non-master nodes  }}}
 
@@ -826,13 +768,6 @@ subroutine sander()
                    0, commsander, ier)
     call mpi_bcast(mol_info%atom_mass, mol_info%natom, MPI_DOUBLE_PRECISION, &
                    0, commsander, ier)
-    if (idecomp == 1 .or. idecomp == 2) then
-      call mpi_bcast(jgroup, nat, MPI_INTEGER, 0, commsander, ier)
-    end if
-    if (icfe == 0 .and. (idecomp ==3 .or. idecomp == 4)) then
-      call mpi_bcast(jgroup, natom, MPI_INTEGER, 0, commsander, ier)
-      call mpi_bcast(indx, nres, MPI_INTEGER, 0, commsander, ier)
-    end if
     call startup_groups(ier)
     call startup(x, ix, ih)
 
@@ -859,14 +794,6 @@ subroutine sander()
 
         ! Check which molecules are perturbed in NPT runs
         call sc_check_perturbed_molecules(nspm, ix(i70))
-      end if
-
-      ! Thermodynamic Integration decomposition
-      if (idecomp > 0) then
-        if (sanderrank == 0) then
-          call build_dec_mask
-        end if
-        call mpi_bcast(decmask, natom, MPI_INTEGER, 0, commsander, ier)
       end if
 
       ! Make sure all common atoms have the same v (that of V0) in TI runs
@@ -1534,14 +1461,6 @@ subroutine sander()
     ! If first_call is still true, this thread never really
     ! called the QMMM routine. E.g. more threads than PIMD replicates
     ! call deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
-  end if
-
-  if (idecomp > 0) then
-    call deallocate_real_decomp()
-    call deallocate_int_decomp()
-  end if
-  if (master .and. idecomp == 0) then
-    call deallocate_int_decomp()
   end if
 
 #ifdef MPI /* SOFT CORE */

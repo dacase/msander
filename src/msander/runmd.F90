@@ -75,13 +75,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use constants, only: third, ten_to_minus3
   use stack
 
-#ifdef MPI
-  use decomp, only: decpr, jgroup, indx, irespw, nrs, collect_dec, &
-                    checkdec, printdec
-#else
-  use decomp, only: decpr, jgroup, indx, irespw, checkdec, printdec
-#endif /* MPI */
-
   use fastwt
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
@@ -580,13 +573,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     irespa = 0
     iprint = 1
 
-!------------------------------------------------------------------------------
-    ! Thermodynamic Integration (TI) decomposition
-    if (idecomp > 0 .and. ntpr > 0) then
-      decpr = .false.
-      if (mod(nstep+1, ntpr) == 0) decpr = .true.
-    end if
-
 !----------------------------------------------------------------------------
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
@@ -1013,12 +999,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (mod(nstep+1, bar_intervall) == 0) do_mbar = .true.
   end if
 #endif
-
-!------------------------------------------------------------------------------
-  if (idecomp > 0 .and. ntpr > 0) then
-    decpr = .false.
-    if (mod(nstep+1, ntpr) == 0) decpr = .true.
-  end if
 
 !------------------------------------------------------------------------------
   ! This(!) is where the force() routine mainly gets called:
@@ -2173,11 +2153,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   ! Print averages {{{
 #ifdef MPI
-  ! Thermodynamic Integration decomposition
-  if (icfe .ne. 0 .and. idecomp .ne. 0) then
-    if (idecomp == 1 .or. idecomp == 2) call collect_dec(nrs)
-  end if
-
   ! Turn off avg. for REMD. and explicit solvent CpHMD, since it's not
   ! accumulated correctly in that case for each compiler
   if (master .and. rem == 0) then
@@ -2227,14 +2202,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         edvdl%pot%dvdl = enert%pot%dvdl  ! fix for DV/DL output
         edvdl%virvsene = 0.d0 ! virvsene should not but included here
         call prntmd(total_nstep, t, edvdl, onefac, 0, .false.)
-
-        ! Thermodynamic Integration decomposition
-        if (worldrank == 0 .and. idecomp .ne. 0) then
-          call checkdec(idecomp)
-          if (idecomp == 1 .or. idecomp == 2) then
-            call printdec(ix)
-          end if
-        end if
       end if
 #endif /* MPI */
       if (nmropt >= 1) then

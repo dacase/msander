@@ -156,7 +156,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #ifdef LES
   use les_data, only: cnum, lestyp, lestmp, lesfac, lfac, nlesty
 #endif
-  use decomp, only: decpr, decpair
   use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
                    rips12r, aipse, aipsvc, aipsva, bipse, bipsvc, bipsva, &
                    pipsec, pipsvcc, pipsvac
@@ -347,13 +346,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
-
-#if 0
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
-#endif
       dfee = comm1*b1
 #ifdef LES
 #  include "ene_decomp.h"
@@ -496,15 +488,7 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
-
-#if 0
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
-#endif
       dfee = comm1 * b1
-
 #ifdef LES
 #  include "ene_decomp.h"
 #endif
@@ -586,11 +570,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
         ! Add the full non-switched coulomb pot to the softcore energy array
         sc_ener(9) = sc_ener(9) + comm1*delrinv
 
-        ! Thermodynamic Integration decomp
-        if (decpr .and. idecomp > 0) then
-          call decpair(2, i, j, -comm1*delrinv*switch_c/(nstlim/ntpr))
-        end if
-
         ! Scaled up by oneweight
         dfee = dfee + oneweight * comm1 * delrinv * delr2inv
         if (ifcr .ne. 0) then
@@ -613,12 +592,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
           ! Soft core potential goes into main electrostatic energy
           eelt = eelt + b0 * comm1
 
-          ! Thermodynamic Integration decomposition
-          if (decpr .and. idecomp > 0) then
-            call decpair(2, i, j, b0*comm1 / (nstlim/ntpr))
-            call decpair(3, i, j, weight1 * switch / sceeorder * comm1 * &
-                         denom_n * scbeta / (nstlim/ntpr))
-          end if
           sc_dvdl_ee = sc_dvdl_ee + &
                        switch / sceeorder * comm1 * denom_n * scbeta
           dfee = -(d_switch_dx*dxdr * comm1 * denom * delrinv) + &
@@ -652,12 +625,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
           ! Soft core potential goes into main electrostatic energy
           eelt = eelt + b0 * comm1
 
-          ! Thermodynamic Integration decomposition
-          if (decpr .and. idecomp > 0) then
-            call decpair(2, i, j, b0*comm1/(nstlim/ntpr))
-            call decpair(3, i, j, weight0 * switch / sceeorder * comm1 * &
-                         denom_n * scbeta / (nstlim/ntpr))
-          end if
           sc_dvdl_ee = sc_dvdl_ee - &
                        switch / sceeorder * comm1 * denom_n * scbeta
           dfee = -(d_switch_dx*dxdr * comm1 * denom * delrinv) + &

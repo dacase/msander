@@ -13,11 +13,6 @@ do i=1,natom
       count=count+1
    else
       si = FOURPI*(vdwrad(i)*vdwrad(i))
-      if(idecomp == 1 .or. idecomp == 2) then
-         call decsasa(1,i,0,0,surften*p1(i)*si)
-      else if(idecomp == 3 .or. idecomp == 4) then
-         call decsasa(-1,i,0,0,surften*p1(i)*si)
-      end if
       sumaij            = 0.d0
       sumajk            = 0.d0
       sumaijajk         = 0.d0
@@ -67,12 +62,6 @@ do i=1,natom
          !       ----------------------------
          
          sumaij = sumaij+aij
-         if(idecomp == 1 .or. idecomp == 2) then
-            call decsasa(2,i,j,0,surften*p2(i)*aij)
-         else if(idecomp == 3 .or. idecomp == 4) then
-            call decsasa(-2,i,j,0,surften*p2(i)*aij)
-         end if
-         
          count2=icount
          sumajk2=0.d0
          sumdajkddjkdxj=0.d0
@@ -116,13 +105,6 @@ do i=1,natom
                ajk = pi*vdwrad(j)*tmpajk
                sumajk = sumajk+ajk
                sumajk2 = sumajk2+ajk
-               if(idecomp == 1 .or. idecomp == 2) then
-                  call decsasa(3,i,j,k, &
-                        surften*(p3(i)*ajk + p4(i)*aij*ajk))
-               else if(idecomp == 3 .or. idecomp == 4) then
-                  call decsasa(-3,i,j,k, &
-                        surften*(p3(i)*ajk + p4(i)*aij*ajk))
-               end if
                
                !             --- first derivatives ---
                

@@ -57,11 +57,6 @@
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = comm1 * b1
 
 #ifdef LES
@@ -137,11 +132,6 @@
 #endif
       ecur = comm1*b0        
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = comm1 * b1
 #ifdef LES
 # include "ene_decomp.h"
@@ -208,11 +198,6 @@
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = comm1 * b1
 #ifdef LES
 #  include "ene_decomp.h"
@@ -283,11 +268,6 @@
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = comm1 * b1
 #ifdef LES
 # include "ene_decomp.h"
@@ -344,11 +324,6 @@
 #endif
       ecur = b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = b0 * delr2inv
          
 #ifdef LES
@@ -411,11 +386,6 @@
 #endif
       ecur = b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = b0 * delr2inv
 #ifdef LES
 #     include "ene_decomp.h"
@@ -467,11 +437,6 @@
       end if
 #  endif /* LES */
       eelt = eelt + b0
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, b0/(nstlim/ntpr))
-      end if
       dfee = b0 * delr2inv
       cache_r2(im_new) = delr2
 
@@ -534,11 +499,6 @@
 #endif 
       ecur = b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = two * b0 * delr2inv
 
 #ifdef LES
@@ -597,11 +557,6 @@
 #endif
       ecur = b0
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = two * b0 * delr2inv
 #ifdef LES
 #     include "ene_decomp.h"
@@ -653,11 +608,6 @@
                uips2*(BIPSE(1) + uips2*(BIPSE(2) + uips2*BIPSE(3)))
       ecur = b0*(pipse - pipsec)
       eelt = eelt + ecur
-
-      ! Thermodynamic Integration decomposition
-      if (decpr .and. idecomp > 0) then
-        call decpair(2, i, j, ecur/(nstlim/ntpr))
-      end if
       dfee = -b0 * dpipse * delr2inv
       if (ifcr .ne. 0) then
         b2 = b1*(pipse - pipsec)
@@ -723,11 +673,6 @@
         b2 = b1*(pipse - pipsec)
       call cr_add_dcdr_factor(i, b2*cgj)
       call cr_add_dcdr_factor(j, b2*cgi)
-    end if
-
-    ! Thermodynamic Integration decomposition
-    if (decpr .and. idecomp > 0) then
-      call decpair(2, i, j, ecur/(nstlim/ntpr))
     end if
     dfee = -b0 * dpipse * delr2inv
 #ifdef LES

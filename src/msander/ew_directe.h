@@ -30,50 +30,12 @@ do im_new = 1,icount
       endif
    endif
 #else
-   ! if ( vdwmodel == 0 ) then
-   !    if (fswitch < 0) then
          f6 = cn2(ic)*r6
          f12 = cn1(ic)*delr12inv
-   !    else
-   !       delr3inv = delr2inv * sqrt(delr2inv)
-   !       if (delr2inv < fswitch2inv) then
-   !          p12 = cut6 / (cut6 - fswitch6)
-   !          p6 = cut3 / (cut3 - fswitch3)
-   !          f12 = cn1(ic) * p12 * (r6 - cut6inv) * (r6 - cut6inv)
-   !          f6 = cn2(ic) * p6 * (delr3inv - cut3inv) * (delr3inv - cut3inv)
-   !          df12 = 12.d0 * p12 * delr2inv * r6 * (r6 - cut6inv)
-   !          df6 = 6.d0 * p6 * (delr3inv - cut3inv) * delr3inv * delr2inv
-   !       else
-   !          f12 = cn1(ic) * delr12inv - cn1(ic) * invfswitch6cut6
-   !          f6 = cn2(ic) * r6 - cn2(ic) * invfswitch3cut3
-   !          df12 = 12.d0 * delr2inv * delr12inv
-   !          df6 = 6.d0 * delr2inv * r6
-   !       end if
-   !       df = dfee + df12 * cn1(ic) - df6 * cn2(ic)
-   !    end if
-   ! else
-   !    f6 = cn5(ic)*r6
-   !    f12 = cn4(ic)/exp(cn3(ic)/sqrt(delr2inv))
-   ! endif
 #endif
 
-   !if  (lj1264 == 1) then
-   !   mr4 = delr2inv*delr2inv
-   !   f4 = cn6(ic)*mr4
-   !   if(decpr .and. idecomp > 0) &
-   !      call decpair(3,i,j,(f12 - f6 - f4)/(nstlim/ntpr))
-   !   evdw = evdw + f12 - f6 - f4
-   !else
-   ! -- ti decomp
-   !   if(decpr .and. idecomp > 0) call decpair(3,i,j,(f12 - f6)/(nstlim/ntpr))
-      evdw = evdw + f12 - f6
-   !endif
-
-   !if (lj1264 == 1) then
-   !   df = dfee + (12.d0*f12 - 6.d0*f6 - 4.d0*f4 )*delr2inv
-   !else if (fswitch < 0) then
-      df = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
-   !endif
+   evdw = evdw + f12 - f6
+   df = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
 
    dfx = delx*df
    dfy = dely*df

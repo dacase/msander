@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/21/2020 at 09:07:24
+| Run on 01/26/2020 at 16:23:53
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/middle-scheme/MD_Unconstr_Langevin_water
@@ -93,7 +93,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
@@ -267,24 +267,23 @@ default_name
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 3.70% of Total)
-|                Build the list             0.01 (26.09% of List )
-|                Other                      0.02 (73.91% of List )
-|             List time                  0.02 (54.76% of Nonbo)
-|                   Short_ene time             0.01 (91.67% of Direc)
-|                   Other                      0.00 ( 8.33% of Direc)
-|                Direct Ewald time          0.01 (63.16% of Ewald)
-|                   Grad sum                   0.00 (28.57% of Recip)
-|                   FFT time                   0.01 (71.43% of Recip)
-|                Recip Ewald time           0.01 (36.84% of Ewald)
-|             Ewald time                 0.02 (45.24% of Nonbo)
-|          Nonbond force              0.04 (97.67% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 2.33% of Force)
-|       Force time                 0.04 (95.56% of Runmd)
-|       Verlet update time         0.00 ( 4.44% of Runmd)
-|    Runmd Time                 0.04 (83.33% of Total)
-|    Other                      0.01 (12.96% of Total)
-| Total time                 0.05 (100.0% of ALL  )
+|    Read coords time           0.00 ( 3.57% of Total)
+|                Build the list             0.00 (31.25% of List )
+|                Other                      0.01 (68.75% of List )
+|             List time                  0.02 (44.44% of Nonbo)
+|                   Short_ene time             0.01 (100.0% of Direc)
+|                Direct Ewald time          0.01 (50.00% of Ewald)
+|                   Fill charge grid           0.00 (10.00% of Recip)
+|                   Scalar sum                 0.00 (10.00% of Recip)
+|                   FFT time                   0.01 (80.00% of Recip)
+|                Recip Ewald time           0.01 (50.00% of Ewald)
+|             Ewald time                 0.02 (55.56% of Nonbo)
+|          Nonbond force              0.04 (100.0% of Force)
+|       Force time                 0.04 (97.30% of Runmd)
+|       Verlet update time         0.00 ( 2.70% of Runmd)
+|    Runmd Time                 0.04 (66.07% of Total)
+|    Other                      0.02 (30.36% of Total)
+| Total time                 0.06 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -294,11 +293,11 @@ default_name
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.04 Per Step(ms) =       4.50
-|         ns/day =      19.20   seconds/ns =    4500.00
+|     Elapsed(s) =       0.04 Per Step(ms) =       3.70
+|         ns/day =      23.35   seconds/ns =    3700.00
 | -----------------------------------------------------
 
-|           Job began  at 09:07:24.677  on 01/21/2020
-|           Setup done at 09:07:24.686  on 01/21/2020
-|           Run   done at 09:07:24.731  on 01/21/2020
+|           Job began  at 16:23:53.661  on 01/26/2020
+|           Setup done at 16:23:53.680  on 01/26/2020
+|           Run   done at 16:23:53.717  on 01/26/2020
 |     wallclock() was called     483 times

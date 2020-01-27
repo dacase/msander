@@ -3,14 +3,14 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Parse and initialize data in cards and groups from the mdin
 subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
-                  itree,igroup,jgroup,indx,irespw,npdec, &
-                  weit,konst,dotgtmd,belly,idecomp,nfu,writeout)
+                  itree,igroup,npdec, &
+                  weit,konst,dotgtmd,belly,nfu,writeout)
    
    implicit none
 #  include "rgroup.h" 
-   integer:: i, i1, i2, idecomp, iend, ifld, igroup, igrp, iii, &
-        indx, ipres, irespw, isear, isrch, istart, itime, ivar, izero, j, &
-        jfld, jgroup, jgrp, k, l, lfind, lsign, natc, natmg, natom, nf, &
+   integer:: i, i1, i2, iend, ifld, igroup, igrp, iii, &
+        ipres, isear, isrch, istart, itime, ivar, izero, j, &
+        jfld, jgrp, k, l, lfind, lsign, natc, natmg, natom, nf, &
         nfu, ngrp, npdec, nres
    _REAL_ :: fvar, weit, wt
    
@@ -56,8 +56,7 @@ subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
    common/propf/jgraph,jresnm,jsymbl,jtree,isrch
    character(len=4) title1(20)
    
-   dimension ipres(*),igroup(*),jgroup(*),indx(*),irespw(*), &
-         weit(*),igrp(MAX_RES+1),jgrp(MAX_RES+1)
+   dimension ipres(*),igroup(*), weit(*),igrp(MAX_RES+1),jgrp(MAX_RES+1)
    dimension lbres(*),igraph(*),isymbl(*),itree(*)
    character(len=4) ihol,katn,ifind,nfind,iiend,ksear,ires,ilres,irres,ktypg
    ! JMS I think only ifld and ivar need to be extended to MAX_RES_FIELDS...
@@ -176,11 +175,6 @@ subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
       k = k+2
    enddo
    if (ktypg == iiend) goto 16
-   if (idecomp > 0 .and. &
-         (ktypg /= ires .and. ktypg /= ilres .and. ktypg /= irres)) &
-         goto 36
-   if (idecomp > 0 .and. ktypg == ilres) flres = .true.
-   if (idecomp > 0 .and. ktypg == irres) frres = .true.
    if (ktypg == nfind) then
       if(writeout) write(6,199)
       isrch = 0
@@ -210,59 +204,6 @@ subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
       goto 10
    end if
    itime = itime+1
-   
-   if (idecomp > 0 .and. &
-         (ktypg == ilres .or. ktypg == irres)) then
-      
-      !         ----- CHECK LRES or RRES CARD -----
-      
-      do i = 1,MAX_RES ! Extend this to MAX_RES, JMS
-         !           --- Sign does not play a role ---
-         i1 = igrp(i)
-         if (i1 == 0) goto 10
-         if(i1 < 0) i1 = -i1
-         if(i1 > nres) goto 36
-         i2 = jgrp(i)
-         if(i2 < 0) i2 = -i2
-         if(i2 > nres) i2 = nres
-         do j = i1,i2
-            if(idecomp > 2) then
-               npdec = npdec + 1
-               indx(j) = npdec
-               irespw(npdec) = j
-            end if
-            istart = ipres(j)
-            iend = ipres(j+1)-1
-            do k = istart,iend
-               !               --- Find backbone atoms ---
-               do l = 1,isear
-                  jgraph(l) = igrap(l)
-                  jresnm(l) = imolc(l)
-                  jsymbl(l) = isymb(l)
-                  jtree(l)  = jwild
-               end do
-               isrch = isear
-               call findp(k,j,lfind,nres,ipres,lbres,isymbl,itree,igraph)
-               if (lfind == 1) then
-                  if (ktypg == irres) then
-                     jgroup(k) = nres + j
-                  else !Ligand atom
-                     jgroup(k) = -nres - j
-                  end if
-               else
-                  !                 --- Store as sidechain atoms ---
-                  if (ktypg == irres) then
-                     jgroup(k) = j
-                  else !Ligand atom
-                     jgroup(k) = -j
-                  end if
-               end if
-            end do
-         end do
-      end do
-      ngrp = ngrp - 1
-      goto 10
-   end if
    
    if (ktypg /= katn) then
       
@@ -356,54 +297,6 @@ subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
          weit(natc) = weit(i)
       end do
       
-   else if (idecomp > 0) then
-      
-      !       ----- Special treatment for energy decomposition -----
-      
-      if(.not.flres .and. .not.frres) then
-         !         --- Assign all atoms to "Protein" ---
-         !         --- Set all residues to be printed ---
-         do j = 1,nres
-            if(idecomp > 2) then
-               npdec = npdec + 1
-               indx(j) = npdec
-               irespw(npdec) = j
-            end if
-            istart = ipres(j)
-            iend = ipres(j+1)-1
-            do k = istart,iend
-               igroup(k) = 1
-               !              --- Find backbone atoms ---
-               do l = 1,isear
-                  jgraph(l) = igrap(l)
-                  jresnm(l) = imolc(l)
-                  jsymbl(l) = isymb(l)
-                  jtree(l)  = jwild
-               end do
-               isrch = isear
-               call findp(k,j,lfind,nres,ipres,lbres,isymbl,itree,igraph)
-               if (lfind == 1) then
-                  jgroup(k) = nres + j
-               else
-                  !                --- Store as sidechain atoms ---
-                  jgroup(k) = j
-               end if
-            end do
-         end do
-      end if
-
-      !       --- Print assignment of atoms ---
-      if( writeout ) then
-         do j = 1,nres
-            istart = ipres(j)
-            iend = ipres(j+1)-1
-            do k = istart,iend
-               write(6,'(a,i5,a,i5,a,i5,i5)') &
-                  'Atom ',k,' (',j,') : ',jgroup(k),igroup(k)
-            end do
-         end do
-      end if
-      
    else if (.not.belly) then
       
       !       ----- PUT THE ATOMS WHICH ARE NOT IN THE DEFINED GROUPS
@@ -480,14 +373,9 @@ subroutine rgroup(natom,natc,nres,ngrp,ipres,lbres,igraph,isymbl, &
    iloc = 0
    if(ires == 0) call findrs(iatom,ires,nres,ipres)
    do n = 1,isrch
-      if((idecomp == 0) .and. (jresnm(n) /= iwild).and.(jresnm(n) /= lbres(ires))) cycle
       if((jgraph(n) /= iwild).and.(jgraph(n) /= igraph(iatom))) cycle
       if((jtree(n) /= jwild).and.(jtree(n) /= itree(iatom))) cycle
       if((jsymbl(n) /= jwild).and.(jsymbl(n) /= isymbl(iatom))) cycle
-      if(idecomp > 0) then
-         if((jresnm(n) .eq. 'prot').and.(index(ipeps,lbres(ires)) == 0)) cycle
-         if((jresnm(n) .eq. 'nucs').and.(index(inucs,lbres(ires)) == 0)) cycle
-      end if
       iloc = 1
       exit
    end do

@@ -2011,49 +2011,6 @@ subroutine vdw_correction(ico,ntypes,nvdwclas, &
    return
 end subroutine vdw_correction 
 
-!-------------------------------------------------------------------
-
-! -- ti decomp
-subroutine vdwdec_correction(natom,ntypes,iac,ico,nvdwclas,cn2,volume,cutoffnb)
-   use constants, only: TWOPI
-   use decomp,    only: decpair
-   use file_io_dat
-
-   implicit none
-#  include "../include/md.h"
-   integer i,j,natom,ntypes,iac(*),ico(*),nvdwclas(*)
-   _REAL_  cn2(*),volume,cutoffnb
-
-   integer iaci,ic
-   _REAL_ prefac,term
-
-   prefac = -TWOPI/(3.d0*volume*(cutoffnb**3))
-
-   do i = 1, natom
-      iaci = ntypes*(iac(i)-1)
-      if(idecomp < 3) then
-         do j = 1, ntypes
-            ic = ico(iaci + j)
-            if(ic > 0) then
-               term = prefac*nvdwclas(j)*cn2(ic)
-               call decpair(3,i,i,term/(nstlim/ntpr))
-            endif
-         end do ! j = 1, ntypes
-      else
-         do j = 1, natom
-            ic = ico(iaci + iac(j))
-            if(ic > 0) then
-               term = prefac*cn2(ic)
-               call decpair(3,i,j,term/(nstlim/ntpr))
-            endif
-         end do ! j = 1, natom
-      endif
-   end do ! i = 1, natom
-
-   return
-end subroutine vdwdec_correction
-! -- ti decomp end
-
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine zero_array here]
 subroutine zero_array(array,num)

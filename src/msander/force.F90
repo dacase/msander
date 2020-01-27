@@ -96,11 +96,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                         charmm_dump_gold, &
                         do_charmm_dump_gold
   use ff11_mod, only: cmap_active, calc_cmap
-#ifdef MPI
-  use decomp, only: collect_dec2, init_dec
-#else
-  use decomp, only: init_dec
-#endif /* MPI */
   use state
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
   use les_data, only: temp0les
@@ -197,9 +192,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
 
   call timer_start(TIME_FORCE)
-  if ( idecomp /= 0 .and. icfe == 0) then
-    call init_dec
-  end if
   ene(:) = ZERO 
   call zero_pot_energy(pot)
 
@@ -946,19 +938,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       call charmm_dump_gold(f, natom, ener)
     endif 
   end if
-
-#ifdef MPI
-  ! Gather the data in dec (decomposition) arrays of slave processes
-  ! back to the master for Thermodynamic Integration.
-  if (icfe == 0) then
-    if (idecomp == 1 .or. idecomp == 2) then
-      call collect_dec2(nres)
-    end if
-    if (idecomp >= 3) then
-      call collect_dec2(npdec*npdec)
-    end if
-  end if
-#endif
 
   ! End force computations and exit
   call timer_stop(TIME_FORCE)

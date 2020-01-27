@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/21/2020 at 09:19:04
+| Run on 01/26/2020 at 16:27:15
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/480d
@@ -97,7 +97,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       2
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
@@ -179,10 +179,8 @@ Ewald parameters:
 |internal angles [°]:      90.000,     90.000,     90.000
 |inscribed sphere radius [A]:     14.975
 |Switching to KH closure
-|Using KH closure
 |RXRISM converged in    76 steps
 |Switching to PSE2 closure
-|Using PSE2 closure
 |RXRISM converged in   474 steps
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
@@ -192,7 +190,6 @@ Ewald parameters:
  EELEC  =    -11570.7883  ERISM   =       137.7018  RESTRAINT  =         0.0000
  ------------------------------------------------------------------------------
 
-|Using PSE2 closure
 |RXRISM converged in     1 steps
 
  NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
@@ -202,7 +199,6 @@ Ewald parameters:
  EELEC  =    -11570.7883  ERISM   =       137.7018  RESTRAINT  =         0.0000
  ------------------------------------------------------------------------------
 
-|Using PSE2 closure
 |RXRISM converged in   321 steps
 
  NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     4.89  PRESS =     0.0
@@ -240,31 +236,32 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (66.67% of List )
-|                Other                      0.01 (33.33% of List )
-|                   Short_ene time             0.01 (93.75% of Direc)
-|                   Other                      0.00 ( 6.25% of Direc)
-|                Direct Ewald time          0.02 (47.06% of Ewald)
-|                Adjust Ewald time          0.00 ( 8.82% of Ewald)
-|                   Fill Bspline coeffs        0.00 (20.00% of Recip)
-|                   Scalar sum                 0.00 ( 6.67% of Recip)
-|                   Grad sum                   0.00 (13.33% of Recip)
-|                   FFT time                   0.01 (60.00% of Recip)
-|                Recip Ewald time           0.02 (44.12% of Ewald)
-|                LJ Grid time              17.20 (12.66% of 3D-RI)
-|                      FFT time                  33.78 (45.54% of R1RIS)
-|                         LAPACK time                9.07 (71.24% of MDIIS)
-|                         DATA time                  3.66 (28.76% of MDIIS)
-|                      MDIIS time                12.74 (17.17% of R1RIS)
-|                      Other                     27.66 (37.29% of R1RIS)
-|                   R1RISM time               74.17 (100.0% of RXRIS)
-|                RXRISM time               74.22 (54.62% of 3D-RI)
-|                FF time                   44.03 (32.40% of 3D-RI)
-|             3D-RISM time             135.88 (100.0% of Nonbo)
-|          Nonbond force            135.93 (100.0% of Force)
-|       Force time               135.94 (100.0% of Runmd)
-|    Runmd Time               135.94 (99.59% of Total)
-| Total time               136.50 (100.0% of ALL  )
+|                Build the list             0.01 (64.71% of List )
+|                Other                      0.01 (35.29% of List )
+|                   Short_ene time             0.02 (95.00% of Direc)
+|                   Other                      0.00 ( 5.00% of Direc)
+|                Direct Ewald time          0.02 (57.14% of Ewald)
+|                Adjust Ewald time          0.00 ( 5.71% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 7.69% of Recip)
+|                   Fill charge grid           0.00 (23.08% of Recip)
+|                   Scalar sum                 0.00 ( 7.69% of Recip)
+|                   Grad sum                   0.00 (15.38% of Recip)
+|                   FFT time                   0.01 (46.15% of Recip)
+|                Recip Ewald time           0.01 (37.14% of Ewald)
+|                LJ Grid time              16.92 (10.52% of 3D-RI)
+|                      FFT time                  37.04 (37.65% of R1RIS)
+|                         LAPACK time               11.26 (70.67% of MDIIS)
+|                         DATA time                  4.67 (29.30% of MDIIS)
+|                      MDIIS time                15.93 (16.19% of R1RIS)
+|                      Other                     45.41 (46.16% of R1RIS)
+|                   R1RISM time               98.39 (100.0% of RXRIS)
+|                RXRISM time               98.45 (61.20% of 3D-RI)
+|                FF time                   45.09 (28.03% of 3D-RI)
+|             3D-RISM time             160.88 (100.0% of Nonbo)
+|          Nonbond force            160.93 (100.0% of Force)
+|       Force time               160.94 (100.0% of Runmd)
+|    Runmd Time               160.94 (99.67% of Total)
+| Total time               161.47 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -274,13 +271,13 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =     135.94 Per Step(ms) =   67970.00
+|     Elapsed(s) =     160.94 Per Step(ms) =   80468.50
 |         ns/day =       0.00   seconds/ns = **********
 | -----------------------------------------------------
 
-|           Job began  at 09:19:04.801  on 01/21/2020
-|           Setup done at 09:19:05.358  on 01/21/2020
-|           Run   done at 09:21:21.298  on 01/21/2020
+|           Job began  at 16:27:15.720  on 01/26/2020
+|           Setup done at 16:27:16.255  on 01/26/2020
+|           Run   done at 16:29:57.192  on 01/26/2020
 |     wallclock() was called    8923 times
 
 |3D-RISM memory allocation summary

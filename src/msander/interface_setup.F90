@@ -21,8 +21,6 @@
 #else
    use genborn
 #endif
-   use decomp, only : allocate_int_decomp, allocate_real_decomp, nat, nrs, &
-                      deallocate_int_decomp, deallocate_real_decomp
    use fastwt
    use les_data, only : temp0les
    use relax_mat
@@ -228,12 +226,6 @@
                     .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) &
          call allocate_gb( natom, ncopy )
 
-      if( idecomp > 0 ) then
-         nat = natom
-         nrs = nres
-         call allocate_int_decomp(natom)
-      end if
-
       ! --- finish reading the prmtop file and other user input:
 #ifdef USE_PRMTOP_FILE
       call rdparm2(x,ix,ih,8,ierr)
@@ -265,13 +257,6 @@
          call cr_read_input(natom)
          call cr_check_input( ips )
          call cr_backup_charge( x(l15), natom )
-      end if
-
-      ! --- alloc memory for decomp module that needs info from mdread2
-      if (idecomp == 1 .or. idecomp == 2) then
-         call allocate_real_decomp(nrs)
-      else if( idecomp == 3 .or. idecomp == 4 ) then
-         call allocate_real_decomp(npdec*npdec)
       end if
 
       ! ----- EVALUATE SOME CONSTANTS FROM MDREAD SETTINGS -----
@@ -634,8 +619,6 @@
    return
 
 ERROR3 continue
-   if (idecomp > 0) &
-      call deallocate_real_decomp
 
 ERROR2 continue
    if(qmmm_nml%ifqnt) then
@@ -653,8 +636,6 @@ ERROR1 continue
    if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) &
                  .or. hybridgb>0 .or. icnstph>1 .or. icnste>1) &
       call deallocate_gb
-   if (idecomp > 0) &
-      call deallocate_int_decomp
 #ifdef USE_PRMTOP_FILE
    close(8)
 #endif
