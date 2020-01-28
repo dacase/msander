@@ -2100,8 +2100,10 @@ lmodC(int *nlmodit, int *nmod, int *kmod, int *rotran, int *natm_ext,
          else
             seed3 = rseed();    /* see rand2.c */
       }
-#if defined(MPI) || defined(SCALAPACK)
+#ifndef SQM   /* -DSQM is set in msander, appears unreleated to sqm code */
+#  if defined(MPI) || defined(SCALAPACK)
       MPI_Bcast(&seed3, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#  endif
 #endif
       setseed(&seed3);          /* see rand2.c */
       goto L00;
