@@ -947,11 +947,18 @@ contains
       call anisotropic_scaling(current_r_work)
       cycle = cycle + 1
     end do
+    if( mytaskid == 0 ) then
+       write(6,'(a)') '| Optimizing scaling and solvent parameters:'
+       write(6,'(a,f12.5)') '|    Mean k_iso    :', sum(k_iso(1:NRF_work))/NRF_work
+       write(6,'(a,f12.5)') '|    Mean k_iso_exp:', sum(k_iso_exp(1:NRF_work))/NRF_work
+       write(6,'(a,f12.5)') '|    Mean k_aniso  :', sum(k_aniso(1:NRF_work))/NRF_work
+       write(6,'(a,f12.5)') '|    Mean k_mask   :', sum(k_mask(1:NRF_work))/NRF_work
+    endif
+    return
   end subroutine optimize_k_scale_k_mask
 
   subroutine anisotropic_scaling(r_start)
     implicit none
-
     double precision :: r_start, r, b(7), Uaniso(7)
 
     f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
@@ -968,17 +975,25 @@ contains
     Uaniso = matmul(MUcryst_inv, b) 
     ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
 
-    k_aniso_test = exp(Uaniso(2) * h_sq + Uaniso(3) * k_sq + Uaniso(4) * l_sq + &
-            Uaniso(5) * hk + Uaniso(6) * hl + Uaniso(7) * kl) !&
+    k_aniso_test = exp(Uaniso(2)*h_sq + Uaniso(3)*k_sq + Uaniso(4)*l_sq + &
+            Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl) !&
     ! + Uaniso(1))
     r = r_factor_w(k_aniso_test * f_calc_tmp)
+#if 0
+    if( mytaskid == 0 ) then
+         write(6,'(a,f12.5)') '| mean k_aniso: ', sum(k_aniso(1:NRF_work))/NRF_work
+         write(6,'(a,2f12.5)') '| anisotropic scaing: ', r, r_start
+    end if
+#endif
     if (r < r_start) then
       r_start = r
       k_aniso = k_aniso_test
     end if
+    return
   end subroutine anisotropic_scaling
 
   subroutine fit_k_iso_exp(r_start, x, y, z)
+    implicit none
     double precision, dimension(2) :: a
     double precision :: r_start, p, q, r, s, d, v, den, u
     double precision, dimension(NRF) :: x, y, z
@@ -1021,10 +1036,11 @@ contains
         r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
       end if
     end if
-
+    return
   end subroutine fit_k_iso_exp
 
   subroutine moving_average(x, result2)
+    implicit none
     double precision :: x(n_bins), x_(n_bins + 2), result1(n_bins + 2), result2(n_bins)
     logical :: selection(n_bins)
     integer :: cycle, i
@@ -1050,9 +1066,11 @@ contains
       x_ = result1
     end do
     result2 = result1(2:n_bins + 1)
+    return
   end subroutine moving_average
 
   subroutine smooth_k_mask(x)
+    implicit none
     double precision, dimension(n_bins) :: x, result_, result1
     double precision :: r, d
     integer :: i
@@ -1067,9 +1085,11 @@ contains
       result_(i) = r
     end do
     x = result_
+    return
   end subroutine smooth_k_mask
 
   subroutine k_mask_grid_search(r_start)
+    implicit none
     double precision :: r_start, r, k_mask_best, k_overall_best, r_best, k_mask_per_bin_test, k_overall_tmp, &
             num, denum, k_mask_test(NRF), k_overall_
     double precision, dimension(14) :: k_mask_trial_range
@@ -1114,10 +1134,10 @@ contains
     ! if(n_bins>2) then
     ! end if
     return
-
   end subroutine k_mask_grid_search
 
   subroutine bin_k_isotropic_as_scale_k1(r_start, k_iso_in, k_mask_in)
+    implicit none
     double precision :: r_start, r, num, denum, sc, k_iso_in(NRF), k_mask_in(NRF)
     integer :: i, j, index_start, index_end
     k_iso_test = 1
@@ -1144,10 +1164,11 @@ contains
         index_end = j
       end do
     end if
-
+    return
   end subroutine bin_k_isotropic_as_scale_k1
 
   function linear_interpolation(x1, x2, y1, y2) result (k)
+    implicit none
     double precision :: x1, x2, y1, y2
     double precision, dimension(2) :: k
     ! write(*, *) x1, x2, y1, y2
@@ -1156,9 +1177,11 @@ contains
       k(1) = (y2 - y1) / (x2 - x1)
     end if
     k(2) = y1 - k(1) * x1
+    return
   end function linear_interpolation
 
   subroutine populate_k_mask_linear_interpolation(k_mask_bin, k_mask_in)
+    implicit none
     double precision, dimension(n_bins) :: k_mask_bin
     double precision, dimension(NRF) :: k_mask_tmp, k_mask_in
     integer :: i, index_start, index_end, index_start_, index_end_
@@ -1207,10 +1230,11 @@ contains
         end if
       end if
     end do
-
+    return
   end subroutine populate_k_mask_linear_interpolation
 
   function solve_cubic_equation(a, b, c) result(solution)
+    implicit none
     double precision :: a, b, c, solution(3), Disc, theta, S, T, p, q, arg, eps
     solution = 0
     eps = d_tolerance * 10
@@ -1241,6 +1265,7 @@ contains
         solution(2:3) = -(S + T) / 2 - a / 3
       end if
     end if
+    return
   end function solve_cubic_equation
 
   subroutine bulk_solvent_scaling(r_start)
@@ -1350,10 +1375,11 @@ contains
       r_start = r
       k_mask_bin_orig = k_mask_bin
     end if
-
+    return
   end subroutine bulk_solvent_scaling
 
   function estimate_scale_k1(f_m) result (scale_k1)
+    implicit none
     double precision :: scale_k1, cutoff, high_res, num, denum
     integer :: i, min_reflections
     complex(8), dimension(NRF) :: f_m
@@ -1372,11 +1398,10 @@ contains
         scale_k1 = num / denum
       end if
     end if
-
+    return
   end function estimate_scale_k1
 
   subroutine init_scales()
-
     implicit none
 
     k_mask(:) = 0
@@ -1387,7 +1412,6 @@ contains
     k_aniso = 1
     k_aniso_test = 1
     return
-
   end subroutine init_scales
 
   function r_factor_w(f_m) result(r)
@@ -1443,7 +1467,9 @@ contains
     else
       r = num / r_work_factor_denominator
     end if
-
+    if( mytaskid == 0 ) &
+       write(6,'(a,3e14.5)') '| r_factor_w_scale: ', sc, num, r_work_factor_denominator
+    return
   end function r_factor_w_scale
 
   function scale(f_m) result(r)
@@ -1451,6 +1477,7 @@ contains
     double precision :: r
     complex(8), dimension(NRF) :: f_m
     r = scale_selection(f_m, 1, NRF)
+    return
   end function scale
 
   function scale_selection(f_m, index_start, index_end) result(r)
@@ -1467,6 +1494,7 @@ contains
     else
       r = num / denum
     end if
+    return
   end function scale_selection
 
   function special_r_factor(f_m) result(r_best)
@@ -1494,5 +1522,6 @@ contains
       end if
       scale_ = scale_ + step
     end do
+    return
   end function special_r_factor
 end module ml_mod
