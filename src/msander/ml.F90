@@ -1467,8 +1467,8 @@ contains
     else
       r = num / r_work_factor_denominator
     end if
-    if( mytaskid == 0 ) &
-       write(6,'(a,3e14.5)') '| r_factor_w_scale: ', sc, num, r_work_factor_denominator
+    ! if( mytaskid == 0 ) &
+    !    write(6,'(a,3e14.5)') '| r_factor_w_scale: ', sc, num, r_work_factor_denominator
     return
   end function r_factor_w_scale
 
