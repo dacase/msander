@@ -302,16 +302,6 @@ module amber_rism_interface
      integer :: maxstep
      !> Number of past cuv time steps saves.
      integer :: npropagate
-     !> Center the solute in the solvation box.
-     !!          0 - off
-     !!          1 - center of mass
-     !!          2 - center of geometry
-     !!          3 - center of mass shifted to the nearest grid point
-     !!          4 - center of geometry shifted to the nearest grid point
-     !! For negative numbers the centering translation is only
-     !! calculated for the first solution and used for subsequent
-     !! calculations.  This allows the solute to drift in the box.
-     integer :: centering
      !> 0 - Do nothing.
      !! 1 - Redistribute forces to get zero total force.
      integer :: zerofrc
@@ -622,8 +612,7 @@ contains
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'maxstep'//whtspc, rismprm%maxstep, &
                ', npropagate'//whtspc, rismprm%npropagate
-          write(outunit, '(5x, 3(a10, "=", i10))') &
-               'centering'//whtspc, rismprm%centering, &
+          write(outunit, '(5x, a10, "=", i10)') &
                ', zerofrc'//whtspc, rismprm%zerofrc
           write(outunit, '(5x, a10, "=", i10)') &
                'apply_rism_force'//whtspc, rismprm%apply_rism_force
@@ -696,7 +685,7 @@ contains
     ! in any practical way.
     call rism3d_destroy(rism_3d)
     if (rismprm%buffer >= 0) then
-       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
+       call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
             rismprm%chargeSmear, &
@@ -704,7 +693,7 @@ contains
             o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
             o_biasPotential=rismprm%biasPotential)
     else
-       call rism3d_new(rism_3d, solute, solvent, rismprm%centering, rismprm%npropagate, &
+       call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
             closurelist, rismprm%solvcut, &
             rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
             rismprm%chargeSmear, &
@@ -1625,9 +1614,6 @@ contains
        call mpi_bcast(rismprm%npropagate, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast NPROPAGATE")
-       call mpi_bcast(rismprm%centering, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast CENTERING")
        call mpi_bcast(rismprm%zerofrc, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast ZEROFRC")
@@ -1772,7 +1758,6 @@ contains
     rismprm%npropagate        = 5
 
     !imin = 1 (minimization)
-    rismprm%centering        = 1
     rismprm%zerofrc          = 1
 
     !imin = 5 (trajectory analysis)
@@ -1827,7 +1812,6 @@ contains
     _REAL_ :: mdiis_restart
     integer :: maxstep
     integer :: npropagate
-    integer :: centering
     integer :: zerofrc
     integer :: apply_rism_force
     integer :: rismnrespa
@@ -1844,7 +1828,7 @@ contains
          closure, closureOrder, biasPotential, periodic, &
          grdspc, solvcut, ng3, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
-         mdiis_restart, maxstep, npropagate, centering, zerofrc, &
+         mdiis_restart, maxstep, npropagate, zerofrc, &
          apply_rism_force, pa_orient, rmsd_orient, &
          rismnrespa, chargeSmear, molReconstruct, write_thermo, &
          saveprogress, ntwrism, verbose, progress, volfmt, selftest, &
@@ -1873,7 +1857,6 @@ contains
     mdiis_restart = rismprm%mdiis_restart
     maxstep = rismprm%maxstep
     npropagate = rismprm%npropagate
-    centering = rismprm%centering
     zerofrc = rismprm%zerofrc
     apply_rism_force = rismprm%apply_rism_force
     rismnrespa = rismprm%rismnrespa
@@ -1918,7 +1901,6 @@ contains
     rismprm%maxstep=maxstep
     rismprm%npropagate=npropagate
     ! Minimization.
-    rismprm%centering=centering
     rismprm%zerofrc=zerofrc
     ! imin=5
     rismprm%apply_rism_force=apply_rism_force

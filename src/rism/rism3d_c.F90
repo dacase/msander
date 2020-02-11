@@ -106,17 +106,6 @@ module rism3d_c
      !! been calculated.
      integer, pointer :: nsolutionNoChg => NULL()
 
-     !> Center the solute in the solvation box.
-     !! 0 - off
-     !! 1 - center of mass
-     !! 2 - center of geometry
-     !! 3 - center of mass shifted to the nearest grid point
-     !! 4 - center of geometry shifted to the nearest grid point
-     !! For negative numbers the centering translation is only
-     !! calculated the for the first solution and used for subsequent
-     !! calculations.  This allows the solute to drift in the box.
-     integer :: centering = 1
-
      !> Number of past direct correlation function time step saves.
      integer :: ncuvsteps ! numDCFsteps
 
@@ -239,7 +228,6 @@ contains
   !!   this :: new rism3d object
   !!   solu :: 3D-RISM solute object
   !!   solv :: 3D-RISM solvent object
-  !!   centering :: center the solute in the solvation box.
   !!   ncuvsteps :: number of past cuv time steps saves
   !!   closure :: list of closures. Closures may be KH, HNC or PSEn
   !!              where n is an integer. Ensure the length attribute is
@@ -258,10 +246,9 @@ contains
   !!   o_periodic :: (optional) periodic electric potential to use, if any
   !!   o_unitCellDimensions :: (optional) geometry of the system unit cell
 
-  subroutine rism3d_new(this, solute, solvent, centering, ncuvsteps, &
+  subroutine rism3d_new(this, solute, solvent, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       chargeSmear, &
-       o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
+       chargeSmear, o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions, o_biasPotential)
     use rism3d_solute_c
     use rism3d_solvent_c
@@ -273,7 +260,7 @@ contains
     type(rism3d), intent(inout) :: this
     type(rism3d_solute), intent(in), target :: solute
     type(rism3d_solvent), intent(in), target :: solvent
-    integer, intent(in) :: centering, ncuvsteps
+    integer, intent(in) :: ncuvsteps
     character(len = *), intent(in) :: closure(:)
     _REAL_, intent(in) :: cut
     integer, intent(in) :: mdiis_nvec, mdiis_method
@@ -339,9 +326,6 @@ contains
 
        call rism3d_solute_clone(solute, this%solute)
        call rism3d_solvent_clone(solvent, this%solvent)
-       this%centering = centering
-       ! Enforcing no centering when periodic.
-       if (this%periodic) this%centering = 0
        this%ncuvsteps = ncuvsteps
        nclosure = size(closure)
        t_closure => safemem_realloc(t_closure, len(closure), nclosure)
@@ -384,9 +368,6 @@ contains
     call rism3d_solute_mpi_clone(this%solute, this%mpirank, this%mpicomm)
     ! set solv on all processes
     call rism3d_solvent_mpi_clone(this%solvent, this%mpirank, this%mpicomm)
-    ! set centering on all processes
-    call mpi_bcast(this%centering, 1, mpi_integer, 0, this%mpicomm, err)
-    if (err /= 0) call rism_report_error("RISM3D: broadcast CENTERING in constructor failed")
     ! set ncuvstpes on all processes
     call mpi_bcast(this%ncuvsteps, 1, mpi_integer, 0, this%mpicomm, err)
     if (err /= 0) call rism_report_error("RISM3D: broadcast NCUVSTEPS in constructor failed")
