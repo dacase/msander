@@ -18,15 +18,6 @@ module xray_interface_module
    !  sander.f:   call xray_init()
    !  sander.f:   call xray_fini()
 
-   ! Calls from main PMEMD code:
-   !  runfiles.F90:      if (xray_active) call xray_write_md_state(6)
-   !  runmin.F90:        if (xray_active) call xray_write_min_state(6)
-   !  pme_force.F90:     if (xray_active) call xray_get_derivative(x,f,ener)
-   !  master_setup.F90:  call xray_read_mdin(mdin_lun=5)
-   !  master_setup.F90:  call xray_read_parm(prmtop, 6)
-   !  pmemd.F90:         call xray_init()
-   !  pmemd.F90:         call xray_fini()
-
    use xray_globals_module
    use bulk_solvent_mod, only: k_sol, b_sol
    implicit none

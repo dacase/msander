@@ -169,7 +169,7 @@ subroutine sander()
 
   integer numphi, nhb
 
-  ! runmin/trajene var
+  ! trajene var
   _REAL_ carrms
 
   character(len=8) initial_date, setup_end_date, final_date
@@ -1275,13 +1275,7 @@ subroutine sander()
         ! Minimization:  {{{
         !    input flag ntmin determines the method of minimization
         select case (ntmin)
-          case (0, 1, 2)
-            call runmin(x, ix, ih, ipairs, x(lcrd), x(lforce), x(lvel), &
-                        ix(iibh), ix(ijbh), x(l50), x(lwinv), ix(ibellygp), &
-                        x(l95), ene, carrms, qsetup)
 
-            ! If a conventional minimisation is being done,
-            ! the restart file is written inside the runmin routine.
           case (LMOD_NTMIN_XMIN)
             write(6,'(a)') '  LMOD XMIN Minimization.'
             write(6,'(a)') ''

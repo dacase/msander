@@ -527,14 +527,14 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 
    if (mpi_orig) then
       
-      !   when only master will be running the runmd,runmin routines:
+      !   when only master will be running the non-force routines:
       
       iparpt(0) = 0
       iparpt(1) = natom
 
    else
       
-      !   all nodes will divide the work in runmd,runmin:
+      !   all nodes will divide the work in runmd
       
       if( ntp > 0 ) then   !  constant pressure run, divide on molecules:
 

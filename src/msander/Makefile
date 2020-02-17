@@ -1,5 +1,5 @@
 
-include ../config.h
+include ../../config.h
 
 SHELL=/bin/sh
 VPATH=
@@ -58,7 +58,7 @@ MMOBJ = \
     pearsn.o printe.o qm_mm.o quench.o rand2.o \
     random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
-    runmin.o sander_lib.o sander.o scaledMD.o set.o \
+    sander_lib.o sander.o scaledMD.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
     spatial_recip.o stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o
@@ -81,7 +81,7 @@ LESOBJ= \
     parms.o pcshift.o pearsn.o printe.o \
     prn_qmmm_dipole.o qm_mm.LES.o quench.o rand2.o random.o \
     rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
-    rfree.o rgroup.o rmsgrd.o runmd.LES.o runmin.o \
+    rfree.o rgroup.o rmsgrd.o runmd.LES.o \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \

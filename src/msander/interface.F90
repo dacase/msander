@@ -745,7 +745,7 @@ subroutine api_mdread1(input_options, ierr)
    rwell = ONE
    maxcyc = 1
    ncyc = 10
-   ntmin = 1
+   ntmin = 3
    dx0 = 0.01d0
    drms = 1.0d-4
    vlimit = 20.0d0
@@ -1908,8 +1908,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
       ! Input flag ntmin determines the method of minimization
       select case ( ntmin )
-      case ( 0, 1, 2 )
-         ! no specific output
       case ( LMOD_NTMIN_XMIN, LMOD_NTMIN_LMOD )
          call write_lmod_namelist( )
       case default

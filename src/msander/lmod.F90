@@ -1248,7 +1248,7 @@ end subroutine run_xmin
 !+ Do processing associated with gradient computation for minimization.
 !-----------------------------------------------------------------------
 ! Maintain bookkeeping for calls to force; call force, ie, calculate
-! the gradient; this is based on runmin.  Shake is not performed.
+! the gradient.  Shake is not performed.
 ! Various types of nonbond pair list update control are possible.
 ! Emit a minimization progress report.
 

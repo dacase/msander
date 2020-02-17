@@ -26,10 +26,11 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
    use constants,only: one,half
    use state
    use file_io_dat, only : INPTRAJ_UNIT, inptraj, ioutfm, MDCRD_UNIT, &
-                           ntwx, title, ntwf, MDFRC_UNIT
+                           ntwx, title, ntwf, MDFRC_UNIT,ntpr
    use AmberNetcdf_mod
    use memory_module, only : lcrd, natom, lforce, lvel, iibh, ijbh, l50, &
                              lwinv, ibellygp, l95
+   use lmod_driver, only : run_xmin
 #ifdef BINTRAJ
    use netcdf
    use bintraj,only: check_atom_mismatch, end_binary_frame
@@ -45,7 +46,7 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
    logical, intent(in)  :: qsetup
 
    ! INTERNAL VARIABLES
-   integer member,j,xstop
+   integer member,j,xstop,xmin_iter
    integer newnfft1,newnfft2,newnfft3
    _REAL_ carrms,oldbox(3)
    logical loutfm, is_netcdf
@@ -206,9 +207,9 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
       write (6,'(a,i6)') 'minimizing coord set #',member
       member=member+1
 
-      call runmin(x,ix,ih,ipairs,x(lcrd),x(lforce),x(lvel), &
-            ix(iibh),ix(ijbh),x(l50),x(lwinv),ix(ibellygp), &
-            x(l95),ene,carrms,qsetup)
+      xmin_iter = 0
+      call run_xmin(x, ix, ih, ipairs, x(lcrd), x(lforce), &
+                    ene, qsetup, xmin_iter, ntpr)
 
       write (6,364) ene%pot%tot,carrms
       364 format ('minimization completed, ENE=',1x,e14.7, &
