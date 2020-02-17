@@ -383,7 +383,7 @@ fi
 #  create the config.h file: may differ for different subsets
 #--------------------------------------------------------------------------
 
-cat <<EOF > src/config.h
+cat <<EOF > config.h
 
 #  msander configuration file.
 #  Created on `date` via $command

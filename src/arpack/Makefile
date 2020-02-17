@@ -1,7 +1,7 @@
 SHELL=/bin/sh
 SRCDIR=..
 VPATH=
-include ../config.h
+include ../../config.h
 
 .f.o:
 	@echo "[ARPACK]  FC $<"

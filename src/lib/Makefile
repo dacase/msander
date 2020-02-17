@@ -1,7 +1,7 @@
 SHELL=/bin/sh
 VPATH=
 PREC=DPREC
-include ../config.h
+include ../../config.h
 .SUFFIXES: .F .o
 
 OBJ=  \

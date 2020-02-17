@@ -1,5 +1,5 @@
 SHELL=/bin/sh
-include ../config.h
+include ../../config.h
 
 
 # ------- rism3d information: ----------------------------------------------

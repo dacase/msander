@@ -1,6 +1,6 @@
 #   top-level Makefile for msander
 
-include config.h
+include ../config.h
 
 install:
 	cd msander && $(MAKE) msander
@@ -17,7 +17,7 @@ clean:
 	-(cd xray && $(MAKE) clean )
 
 uninstall: clean
-	-(/bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
+	-(cd .. && /bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
 	             $(BINDIR)/add_pdb $(BINDIR)/add_xray \
                  $(LIBDIR)/liblapack \
                  $(LIBDIR)/libblas \
@@ -25,5 +25,12 @@ uninstall: clean
                  $(LIBDIR)/libsqm \
                  $(LIBDIR)/librism \
                  $(LIBDIR)/libsys \
-                 $(INCDIR)/* config.h)
+                 $(INCDIR)/* ../config.h)
+
+distclean: clean
+	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) )
+	-(/bin/rm -f netcdf*.log )
+	-(cd netcdf-c-4.7.2 && make uninstall)
+	-(cd netcdf-f-4.5.2 && make uninstall)
+	-(cd fftw-3.3 && make uninstall)
 

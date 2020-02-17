@@ -11,3 +11,6 @@ clean::
 
 uninstall::
 	cd src && make uninstall
+
+distclean::
+	cd src && make distclean
