@@ -19,8 +19,8 @@ librism: $(LIBDIR)/librism.a
 
 $(LIBDIR)/librism.a: $(LIBOBJ)
 	@echo "[RISM]  AR $@"
-	$(VB)$(AR) $(LIBDIR)/librism.a $(LIBOBJ) > /dev/null
-	$(VB)$(RANLIB) $(LIBDIR)/librism.a
+	$(VB)$(AR) $@ $(LIBOBJ) > /dev/null
+	$(VB)$(RANLIB) $@
 
 install: librism 
 

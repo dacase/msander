@@ -30,6 +30,27 @@ QMOBJ= \
     qm2_extern_genmpi_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
+APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
+    rmsgrd.o lmod.o rand2.o \
+    lmodC.o xminC.o decomp.o icosasurf.o egb.o remd.o findmask.o \
+    relax_mat.o nmr.o multitmd.o trajene.o cshf.o nmrcal.o mtmdcall.o pearsn.o \
+    printe.o rdparm.API.o cpparm.o sander_lib.o \
+    mdread.o locmem.o runmd.o relaxmd.o quench.o getcor.o degcnt.o decnvh.o \
+    fastwt.API.o parallel.o shake.o rattle.o ene.o mdwrit.o minrit.o \
+    set.API.o dynlib.API.o mdfil.o nmlsrc.o \
+    ew_force.o ew_setup.API.o ew_box.API.o ew_bspline.o\
+    ew_fft.o nonbond_list.API.o short_ene.o ew_recip.o \
+    pcshift.o align.o csa.o rfree.o rgroup.o amopen.o \
+    debug.API.o mexit.o new_time.API.o extra_pts.API.o thermo_int.o les.o \
+    matinv.o assert.o erfcfun.o md_scheme.o \
+    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o\
+    $(SANDER_RISM_INTERFACE) AmberNetcdf.o bintraj.o binrestart.o \
+    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o \
+    molecule.o dssp.o \
+    charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
+    random.o qm_mm.API.o \
+    prmtop_type.o music_module.o wallclock.o
+
 QMAPIOBJ = \
     qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
@@ -97,15 +118,17 @@ msander: $(BINDIR)/msander$(SFX)
 
 msander.les: $(BINDIR)/msander.LES$(SFX)
 
+libsander: $(LIBDIR)/libsander.a
+
 dummy:
 
 #---------------------------------------------------------------------------
-$(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) $(FULLPIMDOBJ) \
+$(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
          dummy
 	@echo "[MSANDER]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
-	     $(FULLPIMDOBJ) $(NFE_OBJECTS) $(XRAY_OBJS) \
+	     $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
@@ -116,6 +139,24 @@ $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) \
 	     $(XRAY_OBJS) $(NFE_OBJECTS) -L$(LIBDIR) $(NETCDFLIBF) \
 	     $(FLIBS_RISMSANDER) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
+
+#---------------------------------------------------------------------------
+$(LIBDIR)/libsander.a: libs $(APIOBJ) \
+          $(QMAPIOBJ) $(INCDIR)/sander_api.mod \
+          force.o $(PLUMED_DEPENDENCIES) $(NFE_OBJECTS) $(XRAY_OBJS)
+	@echo "[MSANDER API]  AR $@"
+	$(VB)$(AR) $@  $(APIOBJ) \
+          $(QMAPIOBJ) force.o $(NFE_OBJECTS) $(XRAY_OBJS) > /dev/null
+	$(VB)$(RANLIB) $@
+
+$(INCDIR)/sander_api.mod: interface.o
+	$(VB)/bin/cp sander_api.mod $(INCDIR)
+
+$(INCDIR)/sanderles_api.mod: interface.o
+	$(VB)/bin/cp sanderles_api.mod $(INCDIR)
+
+$(INCDIR)/sander.h: sander.h
+	$(VB)/bin/cp sander.h $(INCDIR)
 
 #---------------------------------------------------------------------------
 libs:

@@ -163,6 +163,20 @@ charmm.o:   charmm.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
 
+charmm.API.o: \
+                    ../include/assert.fh\
+                    ../include/dprec.fh\
+                    ew_cntrl.h\
+                    parms.o\
+                    qmmm_module.o\
+                    parallel.h\
+                    constants.o\
+                    state.o
+
+charmm.API.o:   charmm.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
+
 constante.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -331,6 +345,31 @@ debug.o:   debug.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ debug.F90
 
+debug.API.o: \
+                    ../include/dprec.fh\
+                    ../include/assert.fh\
+                    parms.o\
+                    debug.h\
+                    nonbond_list.API.o\
+                    charmm.API.o\
+                    flocntrl.h\
+                    ../include/md.h\
+                    random.o\
+                    state.o\
+                    ../include/memory.h\
+                    extra.h\
+                    ew_frc.h\
+                    ew_cntrl.h\
+                    ew_pme_recip.h\
+                    ew_mpole.h\
+                    stack.o\
+                    parallel.h\
+                    ew_recip.o
+
+debug.API.o:   debug.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ debug.F90
+
 decnvh.o: \
                     ../include/dprec.fh
 
@@ -481,6 +520,40 @@ dynlib.PUPIL.o: \
 dynlib.PUPIL.o:   dynlib.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+
+dynlib.API.o: \
+                    ../include/dprec.fh\
+                    ../include/assert.fh\
+                    bintraj.o\
+                    constants.o\
+                    box.h\
+                    file_io_dat.o\
+                    mdfil.o\
+                    ../include/md.h\
+                    extra.h\
+                    remd.o\
+                    les.o\
+                    ../rism/amber_rism_interface.o\
+                    qmmm_module.o\
+                    xray_interface.o\
+                    xray_globals.o\
+                    state.o\
+                    charmm.API.o\
+                    crg_reloc.o\
+                    sglds.o\
+                    ips.o\
+                    emap.o\
+                    amd.o\
+                    ew_mpole.h\
+                    ew_cntrl.h\
+                    tgtmd.h\
+                    random.o\
+                    ../include/memory.h\
+                    parallel.h
+
+dynlib.API.o:   dynlib.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
 
 egb.o: \
                     ../include/assert.fh\
@@ -645,6 +718,25 @@ ew_box.LES.o: \
 ew_box.LES.o:   ew_box.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
+
+ew_box.API.o: \
+                    ../include/dprec.fh\
+                    ../include/assert.fh\
+                    nonbond_list.API.o\
+                    ew_cntrl.h\
+                    box.h\
+                    constants.o\
+                    extra.h\
+                    ew_parallel.h\
+                    parallel.h\
+                    file_io_dat.o\
+                    AmberNetcdf.o\
+                    binrestart.o\
+                    ../include/md.h
+
+ew_box.API.o:   ew_box.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
 
 ew_bspline.o: \
                     ../include/dprec.fh\
@@ -858,6 +950,37 @@ ew_setup.LES.o:   ew_setup.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
 
+ew_setup.API.o: \
+                    ../include/assert.fh\
+                    ../include/dprec.fh\
+                    constants.o\
+                    box.h\
+                    ew_cntrl.h\
+                    extra.h\
+                    nonbond_list.API.o\
+                    ew_pme_recip.h\
+                    ../include/memory.h\
+                    ew_erfc_spline.h\
+                    ew_mpole.h\
+                    ../include/md.h\
+                    parallel.h\
+                    ew_parallel.h\
+                    stack.o\
+                    qmmm_module.o\
+                    def_time.h\
+                    les.o\
+                    AmberNetcdf.o\
+                    binrestart.o\
+                    file_io_dat.o\
+                    ew_bspline.o\
+                    spatial_fft.o\
+                    sander_lib.o\
+                    ew_legal.h
+
+ew_setup.API.o:   ew_setup.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
+
 extra_pts.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -895,6 +1018,24 @@ extra_pts.LES.o:   extra_pts.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
 
+extra_pts.API.o: \
+                    ../include/dprec.fh\
+                    ../include/assert.fh\
+                    ../include/memory.h\
+                    extra_pts.h\
+                    ew_cntrl.h\
+                    constants.o\
+                    crg_reloc.o\
+                    file_io_dat.o\
+                    softcore.o\
+                    flocntrl.h\
+                    ../include/md.h\
+                    qmmm_module.o
+
+extra_pts.API.o:   extra_pts.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
+
 fastwt.o: \
                     ../include/dprec.fh\
                     qmmm_module.o\
@@ -906,6 +1047,17 @@ fastwt.o: \
 fastwt.o:   fastwt.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fastwt.F90
+
+fastwt.API.o: \
+                    ../include/dprec.fh\
+                    qmmm_module.o\
+                    parallel.h\
+                    ../include/md.h\
+                    constants.o
+
+fastwt.API.o:   fastwt.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fastwt.F90
 
 file_io_dat.o: \
                     ../include/dprec.fh
@@ -1823,6 +1975,22 @@ new_time.o:   new_time.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ new_time.F90
 
+new_time.API.o: \
+                    ../include/dprec.fh\
+                    def_time.h\
+                    new_time.h\
+                    stack.o\
+                    extra.h\
+                    parallel.h\
+                    qmmm_module.o\
+                    constantph.o\
+                    constante.o\
+                    ../include/md.h
+
+new_time.API.o:   new_time.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ new_time.F90
+
 nfe-abmd-hooks.o: \
                     nfe-utils.h\
                     nfe-config.h\
@@ -2486,6 +2654,26 @@ nonbond_list.LES.o:   nonbond_list.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
 
+nonbond_list.API.o: \
+                    ../include/assert.fh\
+                    ../include/dprec.fh\
+                    extra.h\
+                    ew_cntrl.h\
+                    ew_mpole.h\
+                    parallel.h\
+                    ew_parallel.h\
+                    def_time.h\
+                    constants.o\
+                    les.o\
+                    softcore.o\
+                    qmmm_module.o\
+                    box.h\
+                    ../include/memory.h
+
+nonbond_list.API.o:   nonbond_list.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
+
 parallel.o: \
                     ../include/dprec.fh\
                     parms.o\
@@ -2967,6 +3155,22 @@ qm_mm.LES.o:   qm_mm.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
 
+qm_mm.API.o: \
+                    ../include/dprec.fh\
+                    def_time.h\
+                    qmmm_module.o\
+                    constants.o\
+                    parms.o\
+                    nonbond_list.API.o\
+                    qm2_extern_module.o\
+                    ../include/assert.fh\
+                    qmmm_nml_module.o\
+                    qmmm_struct_module.o
+
+qm_mm.API.o:   qm_mm.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
+
 qmmm_adaptive_module.o: \
                     ../include/dprec.fh\
                     qmmm_module.o\
@@ -3074,6 +3278,30 @@ rdparm.LES.o: \
 rdparm.LES.o:   rdparm.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
+
+rdparm.API.o: \
+                    ../include/dprec.fh\
+                    ../include/assert.fh\
+                    parms.o\
+                    charmm.API.o\
+                    file_io_dat.o\
+                    constants.o\
+                    ../lib/nxtsec.h\
+                    ../include/md.h\
+                    ../include/memory.h\
+                    box.h\
+                    nmr.h\
+                    extra_pts.h\
+                    ew_cntrl.h\
+                    molecule.o\
+                    nonbond_list.API.o\
+                    les.o\
+                    dssp.o\
+                    ew_mpole.h
+
+rdparm.API.o:   rdparm.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
 
 relax_mat.o: \
                     ../include/dprec.fh\
@@ -3572,6 +3800,27 @@ set.LES.o:   set.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
 
+set.API.o: \
+                    ../include/dprec.fh\
+                    qmmm_module.o\
+                    parms.o\
+                    constants.o\
+                    file_io_dat.o\
+                    AmberNetcdf.o\
+                    binrestart.o\
+                    remd.o\
+                    ../include/md.h\
+                    ../include/memory.h\
+                    parallel.h\
+                    extra.h\
+                    nmr.h\
+                    box.h\
+                    softcore.o
+
+set.API.o:   set.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
+
 sglds.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
@@ -3768,6 +4017,7 @@ trajene.o: \
                     file_io_dat.o\
                     AmberNetcdf.o\
                     memory_module.o\
+                    lmod.o\
                     netcdf.o\
                     bintraj.o\
                     tgtmd.h\

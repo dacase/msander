@@ -431,7 +431,7 @@ subroutine api_mdread1(input_options, ierr)
 
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
-         ntb,ntt,nchain,temp0,tautp, &
+         ntb,ntt,temp0,tautp, &
          ntp,pres0,comp,taup,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
@@ -624,7 +624,6 @@ subroutine api_mdread1(input_options, ierr)
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    ntt = 0
-   nchain = 1
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
    ithermostat = 1
@@ -1921,61 +1920,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
             ', nrespa  =',nrespa
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
-
-      if ( ntt == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
-         write(6,'(/a)') 'Initial temperature generation:'
-         write(6,'(5x,a,i8)') 'ig      =',ig
-         write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ntt == 1 ) then
-         write(6,'(/a)') 'Berendsen (weak-coupling) temperature regulation:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', tautp   =', tautp
-#  ifdef LES
-         write(6,'(5x,3(a,f10.5))') 'temp0LES   =',temp0les
-#  endif
-      else if( ntt == 2 ) then
-         write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
-         write(6,'(5x,4(a,i8))') 'ig      =',ig, ', vrand   =',vrand
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
-      else if( ntt == 3 ) then
-         write(6,'(/a)') 'Langevin dynamics temperature regulation:'
-         write(6,'(5x,4(a,i8))') 'ig      =',ig
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-      else if( ntt == 4 ) then
-         write(6,'(/a)') 'Nose-Hoover chains'
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain
-      else if( ntt == 5 ) then                                       ! APJ
-         write(6,'(/a)') 'Nose-Hoover chains Langevin'               ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 6 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Langevin temperature regulation:' ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &             ! APJ
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln           ! APJ
-      else if( ntt == 7 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Nose-Hoover chains'               ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 8 ) then                                       ! APJ
-         write(6,'(/a)') 'Adaptive Nose-Hoover chains Langevin'      ! APJ
-         write(6,'(5x,4(a,i8))') 'ig      =',ig                      ! APJ
-         write(6,'(5x,(a,f10.5))') 'gamma_ln=', gamma_ln             ! APJ
-         write(6,'(5x,(a,i8))') 'number of oscillators=', nchain     ! APJ
-      else if( ntt == 9) then
-         write(6,'(/a)') 'Canonical-isokinetic ensemble regulation:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-         write(6,'(5x,2(a,i10),/)') 'nkija   =',nkija,', idistr  =',idistr
-      else if( ntt == 10) then
-         write(6,'(/a)') 'Stochastic Isokinetic Nose-Hoover RESPA (SINR) integration:'
-         write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', gamma_ln=', gamma_ln
-         write(6,'(5x,a,i10,a,f12.5,/)') 'nkija   =',nkija,', sinrtau  =',sinrtau
-      end if
 
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
@@ -3338,68 +3282,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       DELAYED_ERROR
    end if
 
-   if ( ntt==3 .or. ntt==6 ) nchain = 0 !APJ: Langevin, Adaptive-Langevin must have chain set to zero. ! APJ
-
-   if (ntt == 3 .or. ntt == 4) then
-      if ( ntb == 2) then
-        !Require gamma_ln > 0.0d0 for ntt=3 and ntb=2 - strange things happen
-        !if you run NPT with NTT=3 and gamma_ln = 0.
-        if ( gamma_ln <= 0.0d0 ) then
-          write(6,'(a)') 'gamma_ln must be > 0 for ntt=3 .or. 4 with ntb=2.'
-          DELAYED_ERROR
-        end if
-      end if
-   end if
-
-   ! Isokinetic ensemble checks
-
-   if (ntt == 9) then
-      if(gamma_ln <= 0.d0) then
-         write(6,'(a)') 'gamma_ln must be > 0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(nkija < 1) then
-         write(6,'(a)') 'nkija must be >= 1 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(idistr < 0) then
-         write(6,'(a)') 'idistr must be >= 0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(ntc /= 1 .or. ntf /= 1) then
-         write(6,'(a)') 'ntc and ntf must be = 1 when ntt = 9'
-         DELAYED_ERROR
-      end if
-      if(tempi > temp0) then
-         write(6,'(a)') 'tempi must be <= temp0 when ntt = 9'
-         DELAYED_ERROR
-      end if
-   end if
-
-   if (ntt == 10) then
-      write(6,*) ""
-      if(gamma_ln <= 0.d0) then
-         write(6,'(a)') 'gamma_ln must be > 0 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(nkija < 1) then
-         write(6,'(a)') 'nkija must be >= 1 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(ntc /= 1 .or. ntf /= 1) then
-         write(6,'(a)') 'ntc and ntf must be = 1 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(tempi > temp0) then
-         write(6,'(a)') 'tempi must be <= temp0 when ntt = 10'
-         DELAYED_ERROR
-      end if
-      if(sinrtau < 0.5) then
-         write(6,'(a)') 'sinrtau must be >= 0.5 when ntt = 10'
-         DELAYED_ERROR
-      end if
-  end if
-
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
       DELAYED_ERROR
@@ -3912,11 +3794,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
         ! VH - tgtmd change: preferably call atommask() instead of rgroup()
         if (konst) then
+#ifndef API
           if( len_trim(restraintmask) <= 0 ) then
               call rgroup(natom,natc,nres,ngrp,ix(i02),ih(m02),ih(m04), &
                           ih(m06),ih(m08),ix(icnstrgp),jgroup,indx,irespw, &
                           npdec,x(l60),konst,dotgtmd,belly,5,.true.)
           else
+#endif
               if (mask_from_ref > 0) then ! Antoine Marion : base mask on reference coordinates
                 call atommask( natom, nres, 0, ih(m04), ih(m06), &
                   ix(i02), ih(m02), x(lcrdr), restraintmask, ix(icnstrgp) )
@@ -3941,12 +3825,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #ifndef API
               write(6,'(a,a,a,i5,a)') '     Mask ', &
               restraintmask(1:len_trim(restraintmask)), ' matches ',natc,' atoms'
-#endif
           end if
+#endif
         end if
         nrc = natc
 
         if (itgtmd == 1) then
+#ifndef API
           if (len_trim(tgtfitmask) <= 0 .and. len_trim(tgtrmsmask) <= 0) then
               ! the following if-endif can be deleted when we stop
               ! supporting rgroup()
@@ -3967,6 +3852,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
                 end do
               end if
           else
+#endif
               if (ntr == 0) then  ! read tgtfitmask only if ntr=1
                 ! read in atom group for tgtmd fitting (=overlap region)
                 call atommask( natom, nres, 0, ih(m04), ih(m06), &
@@ -3994,7 +3880,9 @@ subroutine api_mdread2(x, ix, ih, ierr)
               write(6,'(a,a,a,i5,a)')  &
               '     Mask "', tgtrmsmask(1:len_trim(tgtrmsmask)-1),  &
               '" matches ',nattgtrms,' atoms'
+#ifndef API
           end if
+#endif
         end if
 
       end if ! (itgtmd == 2)
@@ -4028,12 +3916,12 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #endif /* LES */
 #ifndef API
       write(6,9418)
-#endif /* API */
       if( len_trim(bellymask) <= 0 ) then
          call rgroup(natom,natbel,nres,ngrp,ix(i02),ih(m02),ih(m04),ih(m06), &
                      ih(m08),ix(ibellygp),jgroup,indx,irespw,npdec, &
                      x(l60),konst,dotgtmd,belly,5,.true.)
       else
+#endif /* API */
          if (mask_from_ref > 0) then ! Antoine Marion : base mask on reference coordinates
            call rdrest(natom,ntrx,refc,x(lcrdr))
            call atommask( natom, nres, 0, ih(m04), ih(m06), &
@@ -4046,8 +3934,8 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #ifndef API
          write(6,'(a,a,a,i5,a)') '     Mask ', &
             bellymask(1:len_trim(bellymask)), ' matches ',natbel,' atoms'
-#endif
       end if
+#endif
    end if
    call setvar(ix,belly)
 

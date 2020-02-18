@@ -352,26 +352,6 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
       x(l96:l96+natom-1) = parmdata%screen(1:natom)
    end if
    
-!
-! IPOL is now specified in prmtop YD
-!
-   if (ipol > 0) then
-      if (igb /= 0 .or. ipb /= 0) then
-         write(0,*) 'GB/PB calculations are incompatible with polarizable force fields'
-         ierr = 1
-         return
-      end if
-      x(lpol:lpol+natom-1) = parmdata%polarizability(1:natom)
-   end if
-
-! Modified by WJM
-   if (ipol > 1) then
-      if (allocated(parmdata%dipole_damp_factor)) &
-         x(ldf:ldf+natom-1) = parmdata%dipole_damp_factor(1:natom)
-   end if
-
-   call load_ewald_pol_info(ipol, x(lpol), x(lpol2), x(ldf), natom)
-
    ! Check that every atom is assigned to a molecule for NTP simulations. If
    ! not, segfaults or chaos may ensue.
 
