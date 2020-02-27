@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/04/2020 at 21:49:39
+| Run on 02/27/2020 at 14:00:34
 
 |   Executable path: ../../../bin/msander.MPI
 | Working directory: /home/case/msander/test/softcore/complex
@@ -69,13 +69,13 @@ NPT test
 
 
 |     Memory Use     Allocated
-|     Real             1918421
+|     Real             1918381
 |     Hollerith          98905
 |     Integer          1180209
-|     Max Pairs       13257647
+|     Max Pairs        3314411
 |     nblistReal        358584
-|     nblist Int       1264532
-|       Total            79512 kbytes
+|     nblist Int       1094213
+|       Total            40006 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -102,7 +102,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       1, ntpr    =       5, ntrx    =       1, ntwr    =      20
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
@@ -156,7 +156,9 @@ Total charge of      -0.1749 removed
 
  Number of triangulated 3-point waters found:     9086
 |  Atom division among processors:
-|         0   29882
+|         0    7472   14942   22412   29882
+|  Coordinate  division among processors:
+|         0   22416   44826   67236   89646
        
      Softcore Mask :PHN@H6,O1; matches     2 atoms
      this run corresponds to V1, its softcore atoms interact fully for lambda=1
@@ -171,9 +173,9 @@ Total charge of      -0.1749 removed
      Sum of charges for TI region  2 =   0.17486081
      Assuming uniform neutralizing plasma
 
-|  Running AMBER/MPI version on    1 nodes
+|  Running AMBER/MPI version on    4 nodes
 
-|  MULTISANDER:    2 groups.    1 processors out of    2 total.
+|  MULTISANDER:    2 groups.    4 processors out of    8 total.
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -191,7 +193,7 @@ Total charge of      -0.1749 removed
 | CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
 | CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =    8261985
+| Local SIZE OF NONBOND LIST =    2060580
 | TOTAL SIZE OF NONBOND LIST =    8261985
 
  NSTEP =        5   TIME(PS) =     250.005  TEMP(K) =   297.59  PRESS =     0.0
@@ -320,7 +322,7 @@ Total charge of      -0.1749 removed
 
  NSTEP =       20   TIME(PS) =     250.020  TEMP(K) =    -0.57  PRESS =     0.0
  Etot   =       -34.6306  EKtot   =       -34.6306  EPtot      =         5.7387
- BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ BOND   =         0.0000  ANGLE   =        -0.0000  DIHED      =        -0.0000
  1-4 NB =         0.0778  1-4 EEL =        -8.1063  VDWAALS    =         1.3510
  EELEC  =        12.4162  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         5.7387
@@ -337,39 +339,47 @@ Total charge of      -0.1749 removed
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.04 ( 1.02% of Total)
-|                Build the list             0.24 (96.73% of List )
-|                Other                      0.01 ( 3.27% of List )
-|             List time                  0.24 ( 7.46% of Nonbo)
-|                   Short_ene time             2.51 (98.55% of Direc)
-|                   Other                      0.04 ( 1.45% of Direc)
-|                Direct Ewald time          2.54 (83.68% of Ewald)
-|                   Fill Bspline coeffs        0.03 ( 6.18% of Recip)
-|                   Fill charge grid           0.08 (16.42% of Recip)
-|                   Scalar sum                 0.02 ( 4.26% of Recip)
-|                   Grad sum                   0.15 (32.62% of Recip)
-|                   FFT time                   0.19 (40.51% of Recip)
-|                Recip Ewald time           0.47 (15.43% of Ewald)
-|             Ewald time                 3.04 (92.54% of Nonbo)
-|          Nonbond force              3.28 (98.83% of Force)
-|          Bond/Angle/Dihedral        0.04 ( 1.11% of Force)
-|       Force time                 3.32 (90.64% of Runmd)
-|       Verlet update time         0.30 ( 8.10% of Runmd)
-|    Runmd Time                 3.67 (93.93% of Total)
-|    Other                      0.20 ( 5.05% of Total)
-| Total time                 3.90 (100.0% of ALL  )
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Build the list             0.07 (87.04% of List )
+|                Other                      0.01 (12.96% of List )
+|             List time                  0.08 ( 7.10% of Nonbo)
+|                   Short_ene time             0.75 (97.29% of Direc)
+|                   Other                      0.02 ( 2.71% of Direc)
+|                Direct Ewald time          0.77 (77.89% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 6.26% of Recip)
+|                   Fill charge grid           0.02 (15.18% of Recip)
+|                   Scalar sum                 0.01 ( 4.55% of Recip)
+|                   Grad sum                   0.03 (22.20% of Recip)
+|                      FFT back comm time         0.01 (17.94% of FFT t)
+|                      Other                      0.05 (82.06% of FFT t)
+|                   FFT time                   0.07 (49.72% of Recip)
+|                   Other                      0.00 ( 2.09% of Recip)
+|                Recip Ewald time           0.13 (13.38% of Ewald)
+|                Force Adjust               0.08 ( 7.84% of Ewald)
+|             Ewald time                 0.98 (92.90% of Nonbo)
+|          Nonbond force              1.06 (97.76% of Force)
+|          FRC Collect time           0.01 ( 1.29% of Force)
+|       Force time                 1.08 (79.74% of Runmd)
+|       Verlet update time         0.21 (15.35% of Runmd)
+|       CRD distribute time        0.03 ( 2.35% of Runmd)
+|       Other                      0.02 ( 1.78% of Runmd)
+|    Runmd Time                 1.36 (82.97% of Total)
+|    Other                      0.27 (16.38% of Total)
+| Total time                 1.64 (100.0% of ALL  )
 
-| Highest rstack allocated:    1551768
-| Highest istack allocated:      29882
+| Number of list builds   :          1
+
+| Highest rstack allocated:     553631
+| Highest istack allocated:      11687
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       3.67 Per Step(ms) =     183.30
-|         ns/day =       0.47   seconds/ns =  183300.00
+|     Elapsed(s) =       1.42 Per Step(ms) =      71.25
+|         ns/day =       1.21   seconds/ns =   71250.00
 | -----------------------------------------------------
 
-|           Job began  at 21:49:39.525  on 01/04/2020
-|           Setup done at 21:49:39.761  on 01/04/2020
-|           Run   done at 21:49:43.428  on 01/04/2020
-|     wallclock() was called    1119 times
+|           Job began  at 14:00:34.277  on 02/27/2020
+|           Setup done at 14:00:34.556  on 02/27/2020
+|           Run   done at 14:00:35.981  on 02/27/2020
+|     wallclock() was called    1159 times

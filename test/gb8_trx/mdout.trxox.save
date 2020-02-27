@@ -3,9 +3,9 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:23:49
+| Run on 02/27/2020 at 14:00:29
 
-|   Executable path: ../../bin/msander
+|   Executable path: ../../bin/msander.MPI
 | Working directory: /home/case/msander/test/gb8_trx
 |          Hostname: Unknown
   [-O]verwriting output
@@ -27,6 +27,14 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
 
  Here is the input file:
 
@@ -41,7 +49,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags:                                                                        
+| Flags: MPI                                                                    
 |  *** cutoff > system size, list only builds once
 |Largest sphere to fit in unit cell has radius =   144.566
  NATOM  =    1654 NTYPES =      14 NBONH =     832 MBONA  =     838
@@ -55,13 +63,13 @@ File Assignments:
  Replacing prmtop screening parameters with GBn2 (igb=8) values
 
 |     Memory Use     Allocated
-|     Real              572727
+|     Real              577689
 |     Hollerith           5072
 |     Integer           172371
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             5167 kbytes
+|       Total             5206 kbytes
 | Warning: ATOMIC_NUMBER section not found
 |          Guessing atomic numbers from masses for GB parameters
 |          Remake topology file with AmberTools 12 or add ATOMIC_NUMBERS
@@ -114,8 +122,17 @@ Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
 Energy minimization:
-     maxcyc  =       5, ncyc    =      10, ntmin   =       1
+     maxcyc  =       5, ncyc    =      10, ntmin   =       3
      dx0     =   0.01000, drms    =   0.00010
+
+LMOD:
+     xmin_method                  = LBFGS
+     lbfgs_memory_depth           =       3
+     matrix_vector_product_method = forward finite difference
+     xmin_verbosity               =       0
+
+| MPI Timing options:
+|      profile_mpi =        0
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -125,16 +142,31 @@ Energy minimization:
  begin time read from input coords =  2405.000 ps
 
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+|  Atom division among processors:
+|         0     216     435     626     828    1030    1254    1447
+|      1654
+|  Coordinate  division among processors:
+|         0     648    1305    1878    2484    3090    3762    4341
+|      4962
+|  Running AMBER/MPI version on    8 nodes
+
 
 --------------------------------------------------------------------------------
    4.  RESULTS
 --------------------------------------------------------------------------------
 
+  LMOD XMIN Minimization.
+
+  Note: Owing to the behaviour of the XMIN algorithm,
+        coordinates in the trajectory and intermediate
+        restart files will not match up with energies
+        in the mdout and mdinfo files. The final energy
+        and final coordinates do match.
+
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      1      -2.1983E+03     2.2114E+01     1.2239E+02     CA       1102
+      0      -2.1983E+03     2.2114E+01     1.2239E+02     CA       1102
 
  BOND    =      631.8993  ANGLE   =      898.2543  DIHED      =      566.4453
  VDWAALS =     -768.3629  EEL     =    -7874.4913  EGB        =    -2015.2520
@@ -143,76 +175,69 @@ Energy minimization:
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      2      -2.2169E+03     2.1791E+01     1.2062E+02     CA       1102
+      1      -2.8385E+03     1.0193E+01     5.9935E+01     C         146
 
- BOND    =      618.5387  ANGLE   =      893.6988  DIHED      =      566.0210
- VDWAALS =     -768.4663  EEL     =    -7874.6006  EGB        =    -2015.1345
- 1-4 VDW =      348.6956  1-4 EEL =     5980.5137  RESTRAINT  =        0.0000
- ESURF   =       33.8333
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      3      -2.2388E+03     2.1407E+01     1.1849E+02     CA       1102
-
- BOND    =      602.8182  ANGLE   =      888.2810  DIHED      =      565.5103
- VDWAALS =     -768.5909  EEL     =    -7874.7314  EGB        =    -2014.9949
- 1-4 VDW =      348.5413  1-4 EEL =     5980.5243  RESTRAINT  =        0.0000
- ESURF   =       33.8350
+ BOND    =      220.2865  ANGLE   =      704.8123  DIHED      =      543.3377
+ VDWAALS =     -774.5330  EEL     =    -7881.9032  EGB        =    -2008.2605
+ 1-4 VDW =      342.7071  1-4 EEL =     5981.2409  RESTRAINT  =        0.0000
+ ESURF   =       33.8413
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      4      -2.2646E+03     2.0950E+01     1.1594E+02     CA       1102
+      2      -3.0682E+03     9.1461E+00     7.4584E+01     CG        143
 
- BOND    =      584.4004  ANGLE   =      881.8492  DIHED      =      564.8951
- VDWAALS =     -768.7413  EEL     =    -7874.8876  EGB        =    -2014.8293
- 1-4 VDW =      348.3570  1-4 EEL =     5980.5369  RESTRAINT  =        0.0000
- ESURF   =       33.8367
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -2.2948E+03     2.0407E+01     1.1289E+02     CA       1102
-
- BOND    =      562.9376  ANGLE   =      874.2292  DIHED      =      564.1535
- VDWAALS =     -768.9230  EEL     =    -7875.0740  EGB        =    -2014.6335
- 1-4 VDW =      348.1369  1-4 EEL =     5980.5518  RESTRAINT  =        0.0000
- ESURF   =       33.8286
-
-
-  Maximum number of minimization cycles reached.
-
-
-                    FINAL RESULTS
-
+ BOND    =      176.4945  ANGLE   =      559.2816  DIHED      =      520.5425
+ VDWAALS =     -782.0087  EEL     =    -7881.9145  EGB        =    -2010.4860
+ 1-4 VDW =      336.1092  1-4 EEL =     5980.0289  RESTRAINT  =        0.0000
+ ESURF   =       33.7958
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -2.2948E+03     2.0407E+01     1.1289E+02     CA       1102
+      3      -3.2672E+03     7.0314E+00     6.5400E+01     CG        143
 
- BOND    =      562.9376  ANGLE   =      874.2292  DIHED      =      564.1535
- VDWAALS =     -768.9230  EEL     =    -7875.0740  EGB        =    -2014.6335
- 1-4 VDW =      348.1369  1-4 EEL =     5980.5518  RESTRAINT  =        0.0000
- ESURF   =       33.8286
+ BOND    =      139.3355  ANGLE   =      426.0256  DIHED      =      509.9537
+ VDWAALS =     -789.1563  EEL     =    -7889.2944  EGB        =    -2006.5362
+ 1-4 VDW =      329.9402  1-4 EEL =     5978.7691  RESTRAINT  =        0.0000
+ ESURF   =       33.7660
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      4      -3.3613E+03     4.4886E+00     2.8798E+01     CD        724
+
+ BOND    =      110.6964  ANGLE   =      372.2379  DIHED      =      505.4698
+ VDWAALS =     -792.4571  EEL     =    -7889.2897  EGB        =    -2008.0915
+ 1-4 VDW =      327.2240  1-4 EEL =     5979.0887  RESTRAINT  =        0.0000
+ ESURF   =       33.7839
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      5      -3.4246E+03     3.5392E+00     1.5949E+01     HA        732
+
+ BOND    =       99.2750  ANGLE   =      334.3381  DIHED      =      497.9759
+ VDWAALS =     -795.2901  EEL     =    -7891.8872  EGB        =    -2007.8478
+ 1-4 VDW =      324.5882  1-4 EEL =     5980.4997  RESTRAINT  =        0.0000
+ ESURF   =       33.7822
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.21 (27.54% of Gen B)
-|                Calc gb diag               0.27 (36.10% of Gen B)
-|                Calc gb off-diag           0.19 (25.13% of Gen B)
-|                Surface area energy        0.08 (11.23% of Gen B)
-|             Gen Born time              0.75 (100.0% of Nonbo)
-|          Nonbond force              0.75 (99.20% of Force)
-|       Force time                 0.75 (100.0% of Runmd)
-|    Runmd Time                 0.75 (94.96% of Total)
-|    Other                      0.04 ( 4.91% of Total)
-| Total time                 0.79 (100.0% of ALL  )
-
-| Number of list builds   :          0
+|                Calc gb radii              0.04 (20.73% of Gen B)
+|                Communicate gb radii       0.00 ( 1.55% of Gen B)
+|                Calc gb diag               0.07 (36.27% of Gen B)
+|                Calc gb off-diag           0.06 (29.53% of Gen B)
+|                Surface area energy        0.02 (11.92% of Gen B)
+|             Gen Born time              0.19 (100.0% of Nonbo)
+|          Nonbond force              0.19 (96.50% of Force)
+|          Other                      0.01 ( 3.50% of Force)
+|       Force time                 0.20 (100.0% of Runmd)
+|    Runmd Time                 0.20 (86.21% of Total)
+|    Other                      0.03 (12.93% of Total)
+| Total time                 0.23 (100.0% of ALL  )
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 16:23:49.891  on 01/26/2020
-|           Setup done at 16:23:49.930  on 01/26/2020
-|           Run   done at 16:23:50.685  on 01/26/2020
-|     wallclock() was called     130 times
+|           Job began  at 14:00:29.683  on 02/27/2020
+|           Setup done at 14:00:29.715  on 02/27/2020
+|           Run   done at 14:00:29.915  on 02/27/2020
+|     wallclock() was called     270 times

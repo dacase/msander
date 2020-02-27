@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/05/2020 at 17:10:20
+| Run on 02/27/2020 at 14:00:41
 
 |   Executable path: ../../../bin/msander.MPI
 | Working directory: /home/case/msander/test/softcore/dynlmb
@@ -70,13 +70,13 @@ NPT production
 
 
 |     Memory Use     Allocated
-|     Real              477585
+|     Real              477545
 |     Hollerith           9048
 |     Integer            83433
-|     Max Pairs        1204555
+|     Max Pairs         602276
 |     nblistReal         32580
-|     nblist Int        112852
-|       Total             9493 kbytes
+|     nblist Int         96808
+|       Total             7077 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -103,7 +103,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       1, ntpr    =      10, ntrx    =       1, ntwr    =      90
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
@@ -153,7 +153,9 @@ Ewald parameters:
 
  Number of triangulated 3-point waters found:      900
 |  Atom division among processors:
-|         0    2715
+|         0     678    1356    2034    2715
+|  Coordinate  division among processors:
+|         0    2034    4068    6102    8145
        
      Softcore Mask :1; matches    15 atoms
      this run corresponds to V0, its softcore atoms interact fully for lambda=0
@@ -167,9 +169,9 @@ Ewald parameters:
      Sum of charges for TI region  2 =   0.00000000
      Forcing neutrality...
 
-|  Running AMBER/MPI version on    1 nodes
+|  Running AMBER/MPI version on    4 nodes
 
-|  MULTISANDER:    2 groups.    1 processors out of    2 total.
+|  MULTISANDER:    2 groups.    4 processors out of    8 total.
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -187,7 +189,7 @@ Ewald parameters:
 | CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
 | CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =     749705
+| Local SIZE OF NONBOND LIST =     187786
 | TOTAL SIZE OF NONBOND LIST =     749705
 
  NSTEP =       10   TIME(PS) =      20.020  TEMP(K) =   309.65  PRESS =     0.0
@@ -262,7 +264,7 @@ Ewald parameters:
  Etot   =       -20.5830  EKtot   =       -20.5830  EPtot      =      -126.7855
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =      -126.7855
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =      -126.7855
  ------------------------------------------------------------------------------
 
@@ -343,7 +345,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.2000
  Etot   =       -24.5434  EKtot   =       -24.5434  EPtot      =       -42.8140
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       -42.8140
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =       -42.8140
  ------------------------------------------------------------------------------
 
@@ -424,7 +426,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.3000
  Etot   =       -24.3731  EKtot   =       -24.3731  EPtot      =       -14.5345
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       -14.5345
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =       -14.5345
  ------------------------------------------------------------------------------
 
@@ -505,7 +507,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.4000
  Etot   =       -24.6163  EKtot   =       -24.6163  EPtot      =        -0.2579
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =        -0.2579
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =        -0.2579
  ------------------------------------------------------------------------------
 
@@ -586,7 +588,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.5000
  Etot   =       -21.4940  EKtot   =       -21.4940  EPtot      =         5.1019
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         5.1019
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         5.1019
  ------------------------------------------------------------------------------
 
@@ -667,7 +669,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.6000
  Etot   =       -21.6405  EKtot   =       -21.6405  EPtot      =         5.8140
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         5.8140
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         5.8140
  ------------------------------------------------------------------------------
 
@@ -748,7 +750,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.7000
  Etot   =       -24.2715  EKtot   =       -24.2715  EPtot      =         7.9919
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         7.9919
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         7.9919
  ------------------------------------------------------------------------------
 
@@ -829,7 +831,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.8000
  Etot   =       -21.3846  EKtot   =       -21.3846  EPtot      =         8.6163
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         8.6163
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         8.6163
  ------------------------------------------------------------------------------
 
@@ -910,7 +912,7 @@ Dynamically changing lambda: Increased clambda by       0.1000 to       0.9000
  Etot   =       -19.6998  EKtot   =       -19.6998  EPtot      =         9.7046
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         9.7046
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         9.7046
  ------------------------------------------------------------------------------
 
@@ -1063,7 +1065,7 @@ End of dvdl summary
  Etot   =       -22.5118  EKtot   =       -22.5118  EPtot      =       -16.3515
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       -16.3515
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EELEC  =        -0.0000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  DV/DL  =         0.0000
  ------------------------------------------------------------------------------
 
@@ -1091,36 +1093,46 @@ End of dvdl summary
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.17 (96.65% of List )
-|                Other                      0.01 ( 3.35% of List )
-|             List time                  0.18 (13.02% of Nonbo)
-|                   Short_ene time             1.03 (99.61% of Direc)
-|                Direct Ewald time          1.03 (86.29% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 6.88% of Recip)
-|                   Fill charge grid           0.03 (16.88% of Recip)
-|                   Scalar sum                 0.01 ( 5.63% of Recip)
-|                   Grad sum                   0.05 (31.88% of Recip)
-|                   FFT time                   0.06 (38.75% of Recip)
-|                Recip Ewald time           0.16 (13.38% of Ewald)
-|             Ewald time                 1.20 (86.98% of Nonbo)
-|          Nonbond force              1.38 (99.71% of Force)
-|       Force time                 1.38 (92.24% of Runmd)
-|       Verlet update time         0.09 ( 6.35% of Runmd)
-|    Runmd Time                 1.49 (97.33% of Total)
-|    Other                      0.04 ( 2.41% of Total)
-| Total time                 1.54 (100.0% of ALL  )
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Build the list             0.05 (89.40% of List )
+|                Other                      0.01 (10.60% of List )
+|             List time                  0.05 (11.95% of Nonbo)
+|                   Short_ene time             0.31 (98.87% of Direc)
+|                   Other                      0.00 ( 1.13% of Direc)
+|                Direct Ewald time          0.31 (77.24% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 9.05% of Recip)
+|                   Fill charge grid           0.01 (10.29% of Recip)
+|                   Scalar sum                 0.00 ( 6.58% of Recip)
+|                   Grad sum                   0.01 (20.58% of Recip)
+|                      FFT back comm time         0.00 (18.02% of FFT t)
+|                      Other                      0.02 (81.98% of FFT t)
+|                   FFT time                   0.03 (45.68% of Recip)
+|                   Other                      0.00 ( 7.82% of Recip)
+|                Recip Ewald time           0.06 (15.20% of Ewald)
+|                Force Adjust               0.03 ( 6.69% of Ewald)
+|             Ewald time                 0.40 (88.05% of Nonbo)
+|          Nonbond force              0.45 (99.34% of Force)
+|       Force time                 0.46 (78.52% of Runmd)
+|       Verlet update time         0.09 (15.81% of Runmd)
+|       CRD distribute time        0.02 ( 2.75% of Runmd)
+|       Other                      0.01 ( 2.15% of Runmd)
+|    Runmd Time                 0.58 (94.33% of Total)
+|    Other                      0.03 ( 5.47% of Total)
+| Total time                 0.62 (100.0% of ALL  )
 
-| Highest rstack allocated:     136713
-| Highest istack allocated:       2715
+| Number of list builds   :          9
+
+| Highest rstack allocated:      56941
+| Highest istack allocated:       1327
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       1.49 Per Step(ms) =      16.61
-|         ns/day =      10.40   seconds/ns =    8305.56
+|     Elapsed(s) =       0.58 Per Step(ms) =       6.47
+|         ns/day =      26.72   seconds/ns =    3233.33
 | -----------------------------------------------------
 
-|           Job began  at 17:10:20.062  on 01/05/2020
-|           Setup done at 17:10:20.104  on 01/05/2020
-|           Run   done at 17:10:21.599  on 01/05/2020
-|     wallclock() was called    4990 times
+|           Job began  at 14:00:41.005  on 02/27/2020
+|           Setup done at 14:00:41.040  on 02/27/2020
+|           Run   done at 14:00:41.623  on 02/27/2020
+|     wallclock() was called    5170 times

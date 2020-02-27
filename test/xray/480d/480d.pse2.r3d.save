@@ -3,9 +3,9 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:27:15
+| Run on 02/27/2020 at 14:02:49
 
-|   Executable path: ../../../bin/msander
+|   Executable path: ../../../bin/msander.MPI
 | Working directory: /home/case/msander/test/xray/480d
 |          Hostname: Unknown
   [-O]verwriting output
@@ -26,6 +26,14 @@ File Assignments:
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
+
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
 
 |   Xvv: NaCl1M_pse2.xvv
 
@@ -52,7 +60,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags:                                                                        
+| Flags: MPI                                                                    
  getting new box info from bottom of inpcrd
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    14.975
@@ -66,13 +74,13 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              511048
+|     Real              521524
 |     Hollerith          10586
 |     Integer           781125
-|     Max Pairs        1164000
+|     Max Pairs         291000
 |     nblistReal         41904
-|     nblist Int        268666
-|       Total            13008 kbytes
+|     nblist Int        224214
+|       Total             9506 kbytes
 
 | Note: 1-4 EEL scale factors are being read from the topology file.
 
@@ -120,6 +128,9 @@ Ewald parameters:
      Cutoff=    8.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.34864
      Interpolation order =    4
+
+| MPI Timing options:
+|      profile_mpi =        0
 3D-RISM:
      closure   =  KH        PSE2    
      uccoeff   =  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
@@ -131,7 +142,7 @@ Ewald parameters:
      mdiis_del =   0.50000, mdiis_nv=        10
      mdiis_meth=         2, mdiis_re=  1.00E+01
      maxstep   =     10000, npropaga=         1
-     centering =         1, zerofrc =         1
+     , zerofrc =         1
      apply_rism=         1
      rismnrespa=         1
      periodic            = pme     phineut             T
@@ -150,10 +161,17 @@ Ewald parameters:
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
+|  Atom division among processors:
+|         0     443     873    1316    1746    2189    2619    3062
+|      3492
+|  Coordinate  division among processors:
+|         0    1329    2619    3948    5238    6567    7857    9186
+|     10476
 
      Sum of charges from parm topology file =  -104.000000
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+|  Running AMBER/MPI version on    8 nodes
+
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -170,7 +188,7 @@ Ewald parameters:
 | CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
 | CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =     424436
+| Local SIZE OF NONBOND LIST =      70866
 | TOTAL SIZE OF NONBOND LIST =     424436
 ||Setting solvation box to
 |grid size:         64 X         64 X        160
@@ -236,55 +254,54 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (64.71% of List )
-|                Other                      0.01 (35.29% of List )
-|                   Short_ene time             0.02 (95.00% of Direc)
-|                   Other                      0.00 ( 5.00% of Direc)
-|                Direct Ewald time          0.02 (57.14% of Ewald)
-|                Adjust Ewald time          0.00 ( 5.71% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 7.69% of Recip)
-|                   Fill charge grid           0.00 (23.08% of Recip)
-|                   Scalar sum                 0.00 ( 7.69% of Recip)
-|                   Grad sum                   0.00 (15.38% of Recip)
-|                   FFT time                   0.01 (46.15% of Recip)
-|                Recip Ewald time           0.01 (37.14% of Ewald)
-|                LJ Grid time              16.92 (10.52% of 3D-RI)
-|                      FFT time                  37.04 (37.65% of R1RIS)
-|                         LAPACK time               11.26 (70.67% of MDIIS)
-|                         DATA time                  4.67 (29.30% of MDIIS)
-|                      MDIIS time                15.93 (16.19% of R1RIS)
-|                      Other                     45.41 (46.16% of R1RIS)
-|                   R1RISM time               98.39 (100.0% of RXRIS)
-|                RXRISM time               98.45 (61.20% of 3D-RI)
-|                FF time                   45.09 (28.03% of 3D-RI)
-|             3D-RISM time             160.88 (100.0% of Nonbo)
-|          Nonbond force            160.93 (100.0% of Force)
-|       Force time               160.94 (100.0% of Runmd)
-|    Runmd Time               160.94 (99.67% of Total)
-| Total time               161.47 (100.0% of ALL  )
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Build the list             0.00 (31.94% of List )
+|                Other                      0.01 (68.06% of List )
+|                   Short_ene time             0.00 (100.0% of Direc)
+|                Direct Ewald time          0.00 (45.83% of Ewald)
+|                Adjust Ewald time          0.00 ( 4.17% of Ewald)
+|                   Fill charge grid           0.00 ( 4.17% of Recip)
+|                   Scalar sum                 0.00 (20.83% of Recip)
+|                   FFT time                   0.00 (75.00% of Recip)
+|                Recip Ewald time           0.00 (33.33% of Ewald)
+|                Force Adjust               0.00 (16.67% of Ewald)
+|                LJ Grid time              16.25 (19.35% of 3D-RI)
+|                      FFT time                   7.78 (33.06% of R1RIS)
+|                         LAPACK time                5.50 (70.07% of MDIIS)
+|                         DATA time                  2.34 (29.88% of MDIIS)
+|                      MDIIS time                 7.85 (33.36% of R1RIS)
+|                      Other                      7.90 (33.57% of R1RIS)
+|                   R1RISM time               23.52 (100.0% of RXRIS)
+|                RXRISM time               23.53 (28.01% of 3D-RI)
+|                FF time                   44.07 (52.48% of 3D-RI)
+|             3D-RISM time              83.99 (100.0% of Nonbo)
+|          Nonbond force             84.00 (100.0% of Force)
+|       Force time                84.01 (100.0% of Runmd)
+|    Runmd Time                84.01 (99.30% of Total)
+| Total time                84.60 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
-| Highest rstack allocated:     264146
-| Highest istack allocated:       3492
+| Highest rstack allocated:      45060
+| Highest istack allocated:        756
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =     160.94 Per Step(ms) =   80468.50
+|     Elapsed(s) =      84.01 Per Step(ms) =   42003.00
 |         ns/day =       0.00   seconds/ns = **********
 | -----------------------------------------------------
 
-|           Job began  at 16:27:15.720  on 01/26/2020
-|           Setup done at 16:27:16.255  on 01/26/2020
-|           Run   done at 16:29:57.192  on 01/26/2020
-|     wallclock() was called    8923 times
+|           Job began  at 14:02:49.397  on 02/27/2020
+|           Setup done at 14:02:49.989  on 02/27/2020
+|           Run   done at 14:04:13.995  on 02/27/2020
+|     wallclock() was called    8951 times
 
 |3D-RISM memory allocation summary
 |Type          Maximum        Current   
 |Integer       0.00252 GB     0.00000 GB
-|Real          0.52437 GB     0.00000 GB
+|Real          0.63347 GB     0.00000 GB
 |Logical       0.00000 GB     0.00000 GB
 |Character     0.00000 GB     0.00000 GB
 |---------------------------------------
-|Total         0.52563 GB     0.00000 GB
+|Total         0.63473 GB     0.00000 GB

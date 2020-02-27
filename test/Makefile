@@ -1,6 +1,5 @@
 test::
 	-(cd dhfr && ./Run.dhfr)
-	-(cd dhfr && ./Run.dhfr.min)
 	-(cd dhfr && ./Run.dhfr.xmin)
 	-(cd gb8_trx && ./Run.trxox)
 	-(cd gb8_trx && ./Run.trxox_md)
