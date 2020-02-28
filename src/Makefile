@@ -4,7 +4,7 @@ include ../config.h
 
 install:
 	cd msander && $(MAKE) msander
-	@(if [ -z "$(SFX)" ] ; then cd xray && $(MAKE) xray; fi );
+	cd xray && $(MAKE) xray
 
 clean:
 	-(cd blas && $(MAKE) clean )
