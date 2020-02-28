@@ -12,29 +12,42 @@ echo "Running phenix.AmberPrep"
 phenix.AmberPrep $id.pdb >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
-# next only needed for ions: how to automate?
-perl -pi -e 's/CL$/Cl-1/' ${id}_uc.pdb \
-     || { echo "  perl:  Program error"; exit 1; }
-
-echo "creating ${id}_uc.parm7"
-/bin/rm -f ${id}_uc.parm7
-add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
-     || { echo "  add_pdb:  Program error"; exit 1; }
-add_xray -i foo.parm7 -o foo2.parm7 >> $id-prep.log \
-     || { echo "  add_xray: Program error"; exit 1; }
+# create an interactive parmed script (why?)
 cat <<EOF > parmed
 import os
 import sys
 from parmed.scripts import clapp
 clapp()
 EOF
+
+echo "creating ${id}_uc.pdb"
+cat <<EOF > build_uc
+from amber_adaptbx.utils import build_unitcell
+build_unitcell("4phenix_$id.pdb", "${id}_uc.pdb",  use_amber_unitcell=False)
+EOF
+phenix.python ./build_uc  \
+     || { echo "  build_uc:  Program error"; exit 1; }
+
+# next only needed for ions: how to automate?
+perl -pi -e 's/CL$/Cl-1/' ${id}_uc.pdb \
+     || { echo "  perl:  Program error"; exit 1; }
+
+echo "creating ${id}_uc.parm7"
+/bin/rm -f ${id}_uc.parm7
+#add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
+#     || { echo "  add_pdb:  Program error"; exit 1; }
+
 phenix.python ./parmed -n <<EOF >> $id-prep.log \
      || { echo "  parmed:   Program error"; exit 1; }
-parm foo2.parm7
+parm 4amber_$id.prmtop
+addPdb ${id}_uc.pdb elem
 lmod
-parmout ${id}_uc.parm7
+parmout foo.parm7
 go
 EOF
+
+add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
+     || { echo "  add_xray: Program error"; exit 1; }
 
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
 
@@ -86,4 +99,4 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 #============================================================================
 # clean up
 /bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz parmed \
-     cdl_00* *.order 4phenix_$id.pdb 4amber_480d.prmtop foo.parm7 foo2.parm7
+     cdl_00* *.order 4phenix_$id.pdb 4amber_$id.prmtop foo*.parm7 build_uc
