@@ -546,8 +546,8 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      call init_ml(target, nstlim, d_star_sq, resolution)
-      call init_bulk_solvent(resolution)
+      if( target == 'ml' ) call init_ml(target, nstlim, d_star_sq, resolution)
+      if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution_high)
       if( has_f_solvent > 0 ) then
          if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
@@ -622,8 +622,8 @@ contains
          do i=1,num_hkl
             write(20,'(i4,a,i4,a,i4,a,f12.3,a,f15.5,a,f15.5)') hkl_index(1,i), &
              achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-             abs_Fobs(i), achar(9), Fcalc_ave(i)%re, achar(9), &
-             Fcalc_ave(i)%im
+             abs_Fobs(i), achar(9), real(Fcalc_ave(i)), achar(9), &
+             aimag(Fcalc_ave(i))
          end do
          close(20)
       endif
@@ -642,8 +642,9 @@ contains
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                Fobs(i)%re, achar(9), Fcalc(i)%re, achar(9),  &
-                Fobs(i)%im, achar(9), Fcalc(i)%im 
+                real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
+                aimag(Fobs(i)), achar(9), aimag(Fcalc(i))
+ 
 #  else
                phi = atan2( Fcalc(i)%im, Fcalc(i)%re ) * 57.2957795d0
                write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
@@ -743,7 +744,8 @@ contains
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(xyz, deriv=dF, residual=r_work, xray_energy=xray_energy)
       else if( target(1:2) == 'ls' ) then
-         call dTargetLS_dF(selected=test_flag,deriv=dF,xray_energy=xray_energy)
+         call dTargetLS_dF(xyz, selected=test_flag, deriv=dF, &
+                           xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
          call dTargetML_dF(xyz, deriv=dF, xray_energy=xray_energy)
       else

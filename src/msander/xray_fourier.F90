@@ -376,8 +376,9 @@ contains
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
    ! -------------------------------------------------------------------------
-   subroutine dTargetLS_dF(weight,selected,deriv,xray_energy)
+   subroutine dTargetLS_dF(crd,weight,selected,deriv,xray_energy)
       implicit none
+      real(real_kind), intent(in) :: crd(3*num_atoms)
       real(real_kind), intent(in), optional :: weight (num_hkl)
       integer, intent(in), optional :: selected(num_hkl)
       complex(real_kind), intent(out), optional :: deriv(num_hkl)
@@ -388,27 +389,35 @@ contains
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       integer, save :: nstep=0
       integer :: i
+      logical :: iso_scale=.true. ! no input varible yet, just change the code
 
-      abs_Fcalc(:) = abs(Fcalc(:))
-      if( mod(nstep,scale_update_frequency) == 0 ) then
-         if (present(selected)) then
-            sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
-            sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
-            sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+      if( bulk_solvent_model .eq. 'simple' ) &
+         call get_solvent_contribution(nstep, crd)
+
+      if( iso_scale ) then
+         abs_Fcalc(:) = abs(Fcalc(:))
+         if( mod(nstep,scale_update_frequency) == 0 ) then
+            if (present(selected)) then
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
+               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+            else
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
+               sum_fo_fo = sum(abs_Fobs ** 2)
+               sum_fc_fc = sum(abs_Fcalc ** 2)
+            end if
+            Fcalc_scale = sum_fo_fc / sum_fc_fc
+            norm_scale = 1.0_rk_ / sum_fo_fo
+            if (mytaskid == 0 ) &
+               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
+                   Fcalc_scale,norm_scale
+            Fcalc(:) = Fcalc_scale * Fcalc(:)
          else
-            sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
-            sum_fo_fo = sum(abs_Fobs ** 2)
-            sum_fc_fc = sum(abs_Fcalc ** 2)
-         end if
-         Fcalc_scale = sum_fo_fc / sum_fc_fc
-         norm_scale = 1.0_rk_ / sum_fo_fo
-         if (mytaskid == 0 ) &
-            write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
-                Fcalc_scale,norm_scale
+            Fcalc_scale = 1.d0
+         endif
       endif
-      nstep = nstep + 1
 
-      Fcalc(:) = Fcalc_scale * Fcalc(:)
+      nstep = nstep + 1
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! Note: when Fcalc is approximately zero the phase is undefined, 
