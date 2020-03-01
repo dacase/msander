@@ -20,22 +20,12 @@ from parmed.scripts import clapp
 clapp()
 EOF
 
-echo "creating ${id}_uc.pdb"
-cat <<EOF > build_uc
-from amber_adaptbx.utils import build_unitcell
-build_unitcell("4phenix_$id.pdb", "${id}_uc.pdb",  use_amber_unitcell=False)
-EOF
-phenix.python ./build_uc  \
-     || { echo "  build_uc:  Program error"; exit 1; }
-
 # next only needed for ions: how to automate?
 perl -pi -e 's/CL$/Cl-1/' ${id}_uc.pdb \
      || { echo "  perl:  Program error"; exit 1; }
 
 echo "creating ${id}_uc.parm7"
-/bin/rm -f ${id}_uc.parm7
-#add_pdb -i 4amber_$id.prmtop -p ${id}_uc.pdb -o foo.parm7 >> $id-prep.log \
-#     || { echo "  add_pdb:  Program error"; exit 1; }
+/bin/rm -f ${id}_uc.parm7 foo.parm7
 
 phenix.python ./parmed -n <<EOF >> $id-prep.log \
      || { echo "  parmed:   Program error"; exit 1; }
