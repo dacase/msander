@@ -136,10 +136,10 @@ contains
 
     alloc_ = 1
     do i = 1, 3
-      x = mask_r_shrink * mask_cell_params(i + 6) * mask_grid_size(i);
+      x = mask_r_shrink * mask_cell_params(i + 6) * mask_grid_size(i)
       low(i) = int(floor(-x))
       high(i) = int(ceiling(x))
-      alloc_ = alloc_ * (high(i) - low(i))
+      alloc_ = alloc_ * (high(i) - low(i) + 1)
     end do
     allocate(grid_neighbors(alloc_))
     grid_neighbors = 0
