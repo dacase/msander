@@ -49,7 +49,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     molecule.o dssp.o \
     charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
     random.o qm_mm.API.o \
-    prmtop_type.o music_module.o wallclock.o
+    prmtop_type.o music_module.o wallclock.o veclib.o
 
 QMAPIOBJ = \
     qm_ewald.o qmmm_vsolv.o \
@@ -82,7 +82,7 @@ MMOBJ = \
     sander_lib.o sander.o scaledMD.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
     spatial_recip.o stack.o state.o thermo_int.o trajene.o \
-    wallclock.o xminC.o
+    wallclock.o xminC.o veclib.o
 
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o ArrayList.o \
@@ -106,7 +106,7 @@ LESOBJ= \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
-    xminC.o 
+    xminC.o veclib.o
 
 XRAY_OBJS = \
    xray_fourier.o xray_globals.o xray_interface.o xray_utils.o ml.o \
