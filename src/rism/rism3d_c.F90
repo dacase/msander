@@ -1151,7 +1151,7 @@ contains
   !> Interpolate the solvent-solvent susceptibility, solved on the
   !! 1D-RISM grid, to the 3D-RISM grid.
   !! @param[in,out] this rism3d object.
-  !! @param[in] xvv 1D-RISM Xvv or Xvv_dT data.
+  !! @param[in] xvv 1D-RISM Xvv
   !! @param[out] xvva Interpolated result.
   subroutine interpolateSolventSusceptibility(this, xvv, xvva)
     use rism_util, only : polynomialInterpolation

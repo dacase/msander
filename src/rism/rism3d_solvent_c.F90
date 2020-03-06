@@ -20,8 +20,6 @@ module rism3d_solvent_c
      !> Charge smear parameter required for long range
      !! electrostatics. [A]
      _REAL_ :: smear = 0
-     !> Compressibility temperature derivative. [A^3/K]
-     _REAL_ :: xikt_dT
      !> Number of solvent atom types.
      integer :: numAtomTypes = 0
      !> Number of molecular species.
@@ -55,8 +53,6 @@ module rism3d_solvent_c
      
      !> Solvent-solvent susceptibility.
      _REAL_, pointer :: xvv(:,:,:) => NULL()
-     !> Temperature derivative of the solvent-solvent susceptibility.
-     _REAL_, pointer :: xvv_dT(:,:,:) => NULL()
      !> Solvent atom charge by atom type. [sqrt(kT A)]
      _REAL_, pointer :: charge(:) => NULL()
      !> Charge of the parent molecular species for each type. [sqrt(kT A)]
@@ -78,8 +74,6 @@ module rism3d_solvent_c
      !! See eq. 20 in Kolavenko/Hirata 2000.
      !! -Lim_k->0 ( Sum_v1 Qv1 * Xv1v2(k) 4pi / k^2 - hlkv0 ) from 1D-RISM.
      _REAL_, pointer :: delhv0(:) => NULL()
-     !> Temperature derivative analogue.
-     _REAL_, pointer :: delhv0_dT(:) => NULL()
 
      !> True if the any of the solvent species has non-zero charge.
      logical :: ionic
@@ -114,7 +108,6 @@ contains
   !! @param[in] dielconst Solvent dielectric constant.
   !! @param[in] xappa Inverse Debye length [1/A].
   !! @param[in] xikt Compressibility [A^3].
-  !! @param[in] xikt_dT Compressibility temperature derivative [A^3/K].
   !! @param[in] smear ???
   !! @param[in] natom Number of solvent atom types.
   !! @param[in] nspecies Number of molecular species.
@@ -134,23 +127,23 @@ contains
   !! @param[in] eps Solvent LJ-epsilon by atom type [kT].
   !! @param[in] o_mpicomm (optional) MPI communicator.
   subroutine rism3d_solvent_new_all(this, dr, dt, temperature, dielconst, xappa, &
-       xikt, xikt_dT, smear, natom, nspecies, numAtomSpecies, nr, mult, atomName, &
+       xikt, smear, natom, nspecies, numAtomSpecies, nr, mult, atomName, &
        fourier_tbl, xvv, charge, charge_sp, density, density_sp, ljSigma, eps, delhv0, &
-       delhv0_dT, xvv_dT, coord, xvv_version,&
+       coord, xvv_version,&
        o_mpicomm)
     implicit none
 #ifdef MPI
     include 'mpif.h'
 #endif
     type(rism3d_solvent), intent(inout) :: this
-    _REAL_, intent(in) :: dr, dt, temperature, dielconst, xappa, xikt, xikt_dT, smear
+    _REAL_, intent(in) :: dr, dt, temperature, dielconst, xappa, xikt, smear
     integer, intent(in) ::  natom, nspecies, nr
     integer, intent(in) :: mult(natom), numAtomSpecies(nspecies)
     character(len = 4), intent(in) :: atomName(natom)
     _REAL_, intent(in) :: fourier_tbl(nr), xvv(nr, natom, natom), &
          charge(natom), charge_sp(natom), density(natom), density_sp(nspecies), &
          ljSigma(natom), eps(natom), delhv0(natom), &
-         delhv0_dT(natom), xvv_dT(nr, natom, natom), coord(3,maxval(mult),maxval(numAtomSpecies),nspecies)
+         coord(3,maxval(mult),maxval(numAtomSpecies),nspecies)
     integer, optional, intent(in) :: o_mpicomm
     real, intent(in) :: xvv_version
     integer :: mpicomm, mpirank, mpisize, err
@@ -187,7 +180,6 @@ contains
        call allocate_solv(this)
 
        ! After allocate so it is not overwritten with HUGE.
-       this%xikt_dT = xikt_dT 
        this%atomMultiplicity = mult
        this%numAtoms = numAtomSpecies
        this%atomName = atomName
@@ -200,8 +192,6 @@ contains
        this%ljSigma = ljSigma
        this%ljEpsilon = eps
        this%delhv0 = delhv0
-
-       this%delhv0_dT = delhv0_dT
        
        if (this%xvv_version >= 1.) then
           ! coordinates need to be allocated separately
@@ -215,15 +205,6 @@ contains
     if (mpisize /= 1)&
          call rism3d_solvent_mpi_clone(this, mpirank,mpicomm)
 #endif /*MPI*/
-    ! Optional - may not be defined.
-    if (all(this%delhv0_dT /= huge(1d0))) then
-       this%xvv_dT = xvv_dT
-    else
-       this%delhv0_dT = huge(1d0)
-       if (safemem_dealloc(this%xvv_dT) /= 0) &
-            call rism_report_error("Failed to deallocate xvv_dT")
-    end if
-
     if (sum(abs(this%charge_sp)) > 0d0) then
        this%ionic = .true.
     else
@@ -285,12 +266,6 @@ contains
        if (mpisize /= 1) &
             call rism3d_solvent_mpi_clone(this, mpirank,mpicomm)
 #endif /*MPI*/
-       ! Check if delhv0_dT has been set.  If not free xvv_dT.
-       if (any(this%delhv0_dT == huge(1d0))) then
-          this%delhv0_dT = huge(1d0)
-          if (safemem_dealloc(this%xvv_dT) /= 0) &
-               call rism_report_error("Failed to deallocate xvv_dT")
-       end if
     end if
 
     if (sum(abs(this%charge_sp)) > 0d0) then
@@ -311,11 +286,11 @@ contains
     type(rism3d_solvent),intent(in) :: this
     type(rism3d_solvent),intent(inout) :: clone
     call rism3d_solvent_new(clone, this%gridSpacingR, this%gridSpacingK, this%temperature, this%dielconst, &
-         this%xappa, this%xikt, this%xikt_dT, this%smear, &
+         this%xappa, this%xikt, this%smear, &
          this%numAtomTypes, this%numMolecules, this%numAtoms, this%numRDFpoints, this%atomMultiplicity, &
          this%atomName, this%waveNumbers, this%xvv, this%charge, this%charge_sp, &
          this%density, this%density_sp, &
-         this%ljSigma, this%ljEpsilon, this%delhv0, this%delhv0_dT, this%xvv_dT,&
+         this%ljSigma, this%ljEpsilon, this%delhv0, &
          this%coord, this%xvv_version)
   end subroutine rism3d_solvent_clone
 
@@ -363,9 +338,6 @@ contains
     call mpi_bcast(this%xikt,1,mpi_double_precision,0,comm,err)
     if (err /=0) call rism_report_error&
          ("RISM3D_SOLVENT: could not broadcast XIKT")
-    call mpi_bcast(this%xikt_dT,1,mpi_double_precision,0,comm,err)
-    if (err /=0) call rism_report_error&
-         ("RISM3D_SOLVENT: could not broadcast XIKT_DT")
     call mpi_bcast(this%smear,1,mpi_double_precision,0,comm,err)
     if (err /=0) call rism_report_error&
          ("RISM3D_SOLVENT: could not broadcast SMEAR")
@@ -434,20 +406,6 @@ contains
             ("RISM3D_SOLVENT: could not broadcast COORD")
     end if
     
-    !optional derivative data
-    call mpi_bcast(this%delhv0_dT,size(this%delhv0_dT),mpi_double_precision,0,comm,err)
-    if (err /=0) call rism_report_error&
-         ("RISM3D_SOLVENT: could not broadcast DELHV0_DT")
-    if (this%delhv0_dT(1) /=huge(1d0)) then
-       call mpi_bcast(this%xvv_dT,product(ubound(this%xvv_dT)),&
-            mpi_double_precision,0,comm,err)
-       if (err /=0) call rism_report_error&
-            ("RISM3D_SOLVENT: could not broadcast XVVDT")
-    else
-       !make sure that that this is deallocated so canCalc_dT doesn't get confused
-       if (safemem_dealloc(this%xvv_dT) /= 0) &
-            call rism_report_error("Failed to deallocate xvv_dT")
-    end if
     !non-master nodes finish initialization
     if (rank /=0) then
        call calculateWavenumbers(this)
@@ -461,22 +419,6 @@ contains
     end if
   end subroutine rism3d_solvent_mpi_clone
 #endif /*MPI*/
-
-
-!! check if we can perform a temperature derivative calculation
-!! (i.e. all the necessary information is available)
-!! IN:
-!!    this : rism3d_solvent object
-!! OUT:
-!!     .true. if we can, .false. if we can't
-
-  function rism3d_solvent_canCalc_DT(this) result(can_dT)
-    implicit none
-    type(rism3d_solvent), intent(in) :: this
-    logical :: can_dT
-
-    can_dT = associated(this%xvv_dT)
-  end function rism3d_solvent_canCalc_DT
 
 !! check if we can perform a molecular reconstruction calculation.
 !! The xvv needs to be for 3-point water and provide the coordinates
@@ -507,29 +449,25 @@ contains
     if (safemem_dealloc(this%numAtoms)/=0)&
          call rism_report_error("RISM3D_SOLVENT: failed to deallocate NATOMSPECIES")
     if (safemem_dealloc(this%atomName)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate ATOMNAME")
     if (safemem_dealloc(this%waveNumbers)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate WAVENUMBERS")
     if (safemem_dealloc(this%xvv)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
-    if (safemem_dealloc(this%xvv_dT)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate XVV")
     if (safemem_dealloc(this%charge)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate CHARGE")
     if (safemem_dealloc(this%charge_sp)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate CHARGE_SP")
     if (safemem_dealloc(this%density)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate DENSITY")
     if (safemem_dealloc(this%density_sp)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate DENSITY_SP")
     if (safemem_dealloc(this%ljSigma)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate LJSIGMA")
     if (safemem_dealloc(this%ljEpsilon)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate LJEPSILON")
     if (safemem_dealloc(this%delhv0)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
-    if (safemem_dealloc(this%delhv0_dT)/=0)&
-         call rism_report_error("RISM3D_SOLVENT: failed to deallocate MULT")
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate DELHV0")
     if (safemem_dealloc(this%coord)/=0)&
          call rism_report_error("RISM3D_SOLVENT: failed to deallocate COORD")
   end subroutine rism3d_solvent_destroy
@@ -560,11 +498,6 @@ contains
     this%density_sp => safemem_realloc(this%density_sp,this%numMolecules,.false.)
     this%delhv0 => safemem_realloc(this%delhv0,this%numAtomTypes,.false.)
 
-    this%delhv0_dT => safemem_realloc(this%delhv0_dT,this%numAtomTypes,.false.)
-    this%delhv0_dT = huge(1d0)
-    this%xvv_dT => safemem_realloc(this%xvv_dT,this%numRDFpoints,this%numAtomTypes,this%numAtomTypes,.false.)
-    this%xikt_dT = huge(1d0)    
-    
     ! Allocate integer memory.
     this%atomMultiplicity => safemem_realloc(this%atomMultiplicity,this%numAtomTypes,.false.)
     this%numAtoms => safemem_realloc(this%numAtoms, this%numMolecules, .false.)
@@ -780,39 +713,11 @@ contains
 
     ! Fields for version 1.000.
     if (this%xvv_version >= 1.) then
-       ! Temperature derivative information is optional.
-
-       fmtin = rfmt
-       type = 'DELHV0_DT'
-       call rism_parm_nxtsec(nf, rism_report_getEUnit(), 1,fmtin,  type,  fmt,  iok)
-       if (iok==0) then
-          read(nf,fmt) (this%delhv0_dT(i),i = 1,this%numAtomTypes)
-
-          fmtin = rfmt
-          type = 'XVV_DT'
-          call rism_parm_nxtsec(nf, rism_report_getEUnit(), 1,fmtin,  type,  fmt,  iok)
-          if (iok == 0) then
-             read(nf,fmt) (((this%xvv_dT(itab,iv1,iv2),itab = 1,this%numRDFpoints),iv1=1,this%numAtomTypes),iv2=1,this%numAtomTypes)
-          end if
-       end if
-
-       if (this%xvv_version >= 1.0005) then
-          fmtin = rfmt
-          type = 'THERMO_DT'
-          call rism_parm_nxtsec(nf, rism_report_getEUnit(), 0,fmtin,  type,  fmt,  iok)
-          read(nf,fmt) this%xikt_dT
-
-          fmtin = rfmt
-          type = 'RHOSP'
-          call rism_parm_nxtsec(nf, rism_report_getEUnit(), 0,fmtin,  type,  fmt,  iok)
-          read(nf,fmt) this%density_sp
-       else if (this%xvv_version >= 1.) then
-          ! Get DENSITYSP from other information.
-          do isp = 1, this%numMolecules
-             this%density_sp(isp) = this%density(sum(this%numAtoms(1:isp))) / &
-                  this%atomMultiplicity(sum(this%numAtoms(1:isp)))
-          end do
-       end if
+       ! Get DENSITYSP from other information.
+       do isp = 1, this%numMolecules
+          this%density_sp(isp) = this%density(sum(this%numAtoms(1:isp))) / &
+               this%atomMultiplicity(sum(this%numAtoms(1:isp)))
+       end do
     else
        this%density_sp = 0d0
        this%density_sp(1) = this%density(1)

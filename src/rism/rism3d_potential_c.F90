@@ -69,8 +69,6 @@ module rism3d_potential_c
 
      !> Long-range part of Huv(k) at k = 0 (2, solv%natom).
      _REAL_, pointer :: huvk0(:,:) => NULL()
-     !> Long-range part of temperature derivative Huv(k) at k = 0 (2, solv%natom).
-     _REAL_, pointer :: huvk0_dT(:,:) => NULL()
 
      !> If true, a periodic 3D-RISM calculation is performed. This
      !! mostly differs from simple 3D-RISM by using Ewald sum potential
@@ -245,8 +243,6 @@ contains
          call rism_report_error("ljCutoffs2 deallocation failed")
     if (safemem_dealloc(this%huvk0) /= 0) &
          call rism_report_error("huvk0 deallocation failed")
-    if (safemem_dealloc(this%huvk0_dT) /= 0) &
-         call rism_report_error("huvk0_dT deallocation failed")
   end subroutine rism3d_potential_destroy
 
 
