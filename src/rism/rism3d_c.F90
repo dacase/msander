@@ -1573,6 +1573,7 @@ contains
          this%oldcuv(:, :, :, :, 1), 1)
   end subroutine updateDCFguessHistory
 
+#ifndef MPI
   !> Create an electron density map from a 3D solute-solvent RDF by
   !! smearing the 3D RDF with a 1D solvent electron denisty RDF.
   !! TODO: Currently only water oxygen is supported for electron
@@ -1713,5 +1714,6 @@ contains
 !!$omp end parallel do
     call timer_stop(TIME_EDENS)
   end subroutine createElectronDensityMap
+#endif
 
 end module rism3d_c
