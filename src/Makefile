@@ -3,8 +3,8 @@
 include ../config.h
 
 install:
-	cd msander && $(MAKE) msander
-	cd xray && $(MAKE) xray
+	@cd msander && $(MAKE) msander
+	@cd xray && $(MAKE) xray
 
 clean:
 	-(cd blas && $(MAKE) clean )
