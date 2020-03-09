@@ -1454,7 +1454,7 @@ contains
     if (phineut) then
          if (this%mpirank == 0 .and. this%solute%charged .and. this%solvent%ionic ) then
            do iv = 1,this%solvent%numAtomTypes
-                this%huv(1,iv) = this%huv(1,iv) - this%potential%phineut(iv)
+                this%huv(1,iv) = this%huv(1,iv) - this%potential%phineutv(iv)
            end do
          endif
     end if 

@@ -86,7 +86,7 @@ module rism3d_potential_c
      !! for periodic solute. Applied equally to all solvent
      !! sites.
      _REAL_ :: biasPotential
-     _REAL_, pointer :: phineut(:) => NULL()
+     _REAL_ :: phineutv(10)
      ! potential energy
      
      !> Charge smearing parameter for long-range
@@ -168,8 +168,6 @@ contains
   end subroutine rism3d_potential_setcut_ljdistance
   
   !> Calculates the potential on the grid.
-  !!       Only grid points that have an approximate value greater
-  !!       than this will be computed.
   subroutine rism3d_potential_calc(this,phineut)
     use rism_util, only : checksum
     use rism3d_opendx, only : rism3d_opendx_write
@@ -936,17 +934,17 @@ contains
     _REAL_ :: q1
     integer :: iv
 
-    this%phineut => safemem_realloc(this%phineut,this%solvent%numAtomTypes, .false.)
-    this%phineut(:) =  0.0
+    this%phineutv(1:this%solvent%numAtomTypes) =  0.0
 
     if (this%solvent%ionic .and. this%periodic .and.  &
-        (this%periodicPotential == 'pme' .or. this%periodicPotential == 'ewald') ) then
+        (this%periodicPotential == 'pme' ) ) then
         q1 = 0
         do iv = 1,this%solvent%numAtomTypes
           if (this%solvent%atomName(iv) /= "O" .and. &
               this%solvent%atomName(iv) /= "H1" .and. &
               this%solvent%charge(iv) /= 0 ) then
-                q1 = q1 + this%solvent%density(iv)*this%solvent%charge(iv)*this%solvent%charge(iv)
+                q1 = q1 + this%solvent%density(iv) * this%solvent%charge(iv) &
+                          * this%solvent%charge(iv)
           end if
         end do
 
@@ -955,7 +953,7 @@ contains
         do iv = 1,this%solvent%numAtomTypes
            if (this%solvent%atomName(iv) /= "O" .and. &
                this%solvent%atomName(iv) /= "H1") then
-               this%phineut(iv)=this%solvent%charge(iv) * q1
+               this%phineutv(iv)=this%solvent%charge(iv) * q1
            end if
 
         end do
