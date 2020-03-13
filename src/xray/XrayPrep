@@ -90,5 +90,5 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
 #============================================================================
 # clean up
-/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz parmed \
+/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz $id.fmtz parmed \
      cdl_00* *.order 4phenix_$id.pdb 4amber_$id.prmtop foo*.parm7 build_uc
