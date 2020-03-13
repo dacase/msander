@@ -458,7 +458,7 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
       call reassign_rstack(routine)
    endif
    REQUIRE(rstack_ok)
-   call merge_forces(f)
+   call merge_forces(3*natom,f)
    call free_stack(ltmp,routine)
 #endif
    return
@@ -1238,7 +1238,7 @@ end subroutine force_dump
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine merge_forces here]
-subroutine merge_forces(f)
+subroutine merge_forces(nat3,f)
    implicit none
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
@@ -1247,13 +1247,16 @@ subroutine merge_forces(f)
    integer ierr
 #  include "parallel.h"
    ! needed in mpi case to put forces together
-   _REAL_ f(*)
+   integer, intent(in) :: nat3
+   _REAL_, intent (inout) ::  f(nat3)
+   _REAL_ ::  ftmp(nat3)
    call MPI_Gatherv ( f(iparpt3(sanderrank)+1), &
         rcvcnt3(sanderrank), &
         MPI_DOUBLE_PRECISION, &
-        f, rcvcnt3(0:sandersize), iparpt3(0:sandersize), &
+        ftmp, rcvcnt3(0:sandersize), iparpt3(0:sandersize), &
         MPI_DOUBLE_PRECISION, &
         0, commsander,ierr )
+   f(1:nat3) = ftmp(1:nat3)
    return
 end subroutine merge_forces 
 #endif
