@@ -3540,29 +3540,6 @@ runmd.LES.o:   runmd.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmd.F90
 
-runmin.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    fastwt.o\
-                    constants.o\
-                    qmmm_module.o\
-                    bintraj.o\
-                    file_io_dat.o\
-                    softcore.o\
-                    state.o\
-                    parallel.h\
-                    ../include/md.h\
-                    box.h\
-                    ../include/memory.h\
-                    nmr.h\
-                    extra.h\
-                    ew_cntrl.h
-
-
-runmin.o:   runmin.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmin.F90
-
 sander.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
