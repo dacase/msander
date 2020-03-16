@@ -116,6 +116,10 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
+      ! special kludge to just get bulk_solvent factors:
+      ! Fcalc(:) = 0._rk_
+      ! return
+
 !$omp parallel do private(ihkl,i,f,angle)  
       do ihkl = ihkl1, ihkl2
 
