@@ -34,7 +34,7 @@ module xray_fourier_module
 !                         and Fcalc.  (For use when phases are available,
 !                         as in cryoEM.
 !
-!  dTargetML_dF       --   Use the phenix maximum=-likelihood target function.
+!  dTargetML_dF       --  Use the phenix maximum-likelihood target function.
 !
 ! FUNCTIONS:
 !
@@ -115,6 +115,10 @@ contains
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
+
+      ! special kludge to just get bulk_solvent factors:
+      ! Fcalc(:) = 0._rk_
+      ! return
 
 !$omp parallel do private(ihkl,i,f,angle)  
       do ihkl = ihkl1, ihkl2
@@ -307,11 +311,11 @@ contains
                         mask_cell_params(16) / mask_grid_size(4)
          end do
          if (mytaskid == 0 ) &
-           write(6,'(a,5e12.5)') '| updating bulk solvent: ', &
+           write(6,'(a,5e14.6)') '| updating bulk solvent: ', &
                Fcalc(1),k_mask(1),f_mask(1)
       endif
       if( bulk_solvent_model == 'simple') &
-         Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+        Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
       return
 
    end subroutine get_solvent_contribution

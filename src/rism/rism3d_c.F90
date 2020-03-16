@@ -1151,7 +1151,7 @@ contains
   !> Interpolate the solvent-solvent susceptibility, solved on the
   !! 1D-RISM grid, to the 3D-RISM grid.
   !! @param[in,out] this rism3d object.
-  !! @param[in] xvv 1D-RISM Xvv or Xvv_dT data.
+  !! @param[in] xvv 1D-RISM Xvv
   !! @param[out] xvva Interpolated result.
   subroutine interpolateSolventSusceptibility(this, xvv, xvva)
     use rism_util, only : polynomialInterpolation
@@ -1454,7 +1454,7 @@ contains
     if (phineut) then
          if (this%mpirank == 0 .and. this%solute%charged .and. this%solvent%ionic ) then
            do iv = 1,this%solvent%numAtomTypes
-                this%huv(1,iv) = this%huv(1,iv) - this%potential%phineut(iv)
+                this%huv(1,iv) = this%huv(1,iv) - this%potential%phineutv(iv)
            end do
          endif
     end if 
@@ -1573,6 +1573,7 @@ contains
          this%oldcuv(:, :, :, :, 1), 1)
   end subroutine updateDCFguessHistory
 
+#ifndef MPI
   !> Create an electron density map from a 3D solute-solvent RDF by
   !! smearing the 3D RDF with a 1D solvent electron denisty RDF.
   !! TODO: Currently only water oxygen is supported for electron
@@ -1713,5 +1714,6 @@ contains
 !!$omp end parallel do
     call timer_stop(TIME_EDENS)
   end subroutine createElectronDensityMap
+#endif
 
 end module rism3d_c

@@ -43,9 +43,8 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-workdir=`pwd`
-AMBERHOME=`dirname $workdir`
-echo "Setting installation path to $AMBERHOME"
+MSANDERHOME=`pwd`
+echo "Setting installation path to $MSANDERHOME"
 echo " "
 
 case "$compiler" in
@@ -126,7 +125,7 @@ fi
 
 cd $MPIDIR && \
 
-./configure --prefix=$AMBERHOME \
+./configure --prefix=$MSANDERHOME \
             --enable-mpi1-compatibility \
             $static FC="$fc" FCFLAGS="$fflags $fnooptflags" \
             F77="$fc" FFLAGS="$fflags $fnooptflags" F90="$fc" \
@@ -141,7 +140,6 @@ else
 fi
 make clean
 make -j $np install
-cd ..
 
 exit
 

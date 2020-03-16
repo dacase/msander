@@ -51,9 +51,9 @@ if [ `uname -s|awk '{print $1}'` = "Darwin" ]; then
     libkind='--enable-shared --enable-sharedlibs=osx-gcc LDFLAGS=-L/usr/X11/lib'
 fi
 
-workdir=`pwd`
-MSANDERHOME=`dirname $workdir`
+MSANDERHOME=`pwd`
 echo "setting installation path to $MSANDERHOME"
+
 echo " "
 
 case "$compiler" in
@@ -167,7 +167,6 @@ fi
 make clean
 make -j $np
 make install
-cd ..
 
 exit
 

@@ -1252,7 +1252,9 @@ contains
 
     call rism_writePdfTcfDcf(this, writeVolume, step, extension)
     call rism_writeThermo(this, writeVolume, step, extension)
+#ifndef MPI
     call rism_writeSmearElectronMap(this, writeVolume, step, extension)
+#endif
     
   end subroutine rism_writeVolumetricData
 
@@ -1356,6 +1358,7 @@ contains
          call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate WORK")
   end subroutine rism_writePdfTcfDcf
 
+#ifndef MPI
   !> Outputs smeared solvent electron map.. Each distribution
   !! is written in a separate file with the step number before the
   !! suffix. 
@@ -1368,7 +1371,9 @@ contains
     use rism3d_ccp4
     use rism3d_opendx
     use rism3d_xyzv
+#ifndef MPI
     use rism3d_c, only: createElectronDensityMap
+#endif
     use safemem
     implicit none
 
@@ -1431,6 +1436,7 @@ contains
     if (safemem_dealloc(electronRDF)/= 0) &
          call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate ELECTRON_RDF")
   end subroutine rism_writeSmearElectronMap
+#endif
 
   !> Outputs thermodynamics distributions. Each distribution
   !! is written in a separate file with the step number before the
@@ -1703,9 +1709,11 @@ contains
        call mpi_bcast(solventPotentialEnergyfile, len(solventPotentialEnergyfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast POTUVFILE")
+#ifndef MPI
        call mpi_bcast(electronMapFile, len(electronMapFile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast ELECTRONMAPFILE")
+#endif
        call mpi_bcast(rismprm%molReconstruct, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MOLRECONSTRUCT")
@@ -2009,6 +2017,11 @@ contains
     if (rismprm%chargeSmear .lt. 0d0) then
        call rism_report_error('(a,g)',"'chargeSmear' must be >= 0. Got",rismprm%chargeSmear)
     end if
+#ifdef MPI
+    if (len_trim(electronMapFile)>0) then
+       call rism_report_error('Electron density maps are not supported for MPI calculations')
+    end if
+#endif    
   end subroutine sanity_check
 
   !> Writes the contents of a C string (array of chars) to a Fortran

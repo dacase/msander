@@ -213,7 +213,7 @@ contains
     type(rism3d_closure) :: this
     _REAL_, intent(in) :: cuv(:,:,:,:)
     _REAL_ :: partialMolarVolume
-    _REAL_ :: rCuv(this%solvent%numAtomTypes),rCuv_dT(this%solvent%numAtomTypes)
+    _REAL_ :: rCuv(this%solvent%numAtomTypes)
     integer ::  ix, iy, iz, iv, ierr
     rcuv = rism3d_closure_DCFintegral(this,cuv)
     partialMolarVolume = -this%solvent%xikt &

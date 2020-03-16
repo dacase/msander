@@ -192,8 +192,7 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, &
-         cross
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, cross
     use memory_module, only: i100, ix
     implicit none
     double precision, intent(in) :: resolution
@@ -211,37 +210,28 @@ contains
     allocate(atom_types(num_atoms))
     allocate(mask_cutoffs(num_atoms))
     do i = 1, num_atoms
-
       atomic_number = ix(i100+i)
-
       if( atomic_number == 6 ) then
           atom_types(i) = 2
           mask_cutoffs(i) = 1.775 + mask_r_probe
-
       elseif( atomic_number == 17 ) then
           atom_types(i) = 0
           mask_cutoffs(i) = 1.75 + mask_r_probe
-      
       elseif ( atomic_number == 7 ) then
           atom_types(i) = 3
           mask_cutoffs(i) = 1.5 + mask_r_probe
-
       elseif( atomic_number == 11 ) then
           atom_types(i) = 0
           mask_cutoffs(i) = 2.27 + mask_r_probe
-
       elseif ( atomic_number == 8 ) then
         atom_types(i) = 4
         mask_cutoffs(i) = 1.45 + mask_r_probe
-
       elseif ( atomic_number == 16 ) then
         atom_types(i) = 5
         mask_cutoffs(i) = 1.8 + mask_r_probe
-
       else
         atom_types(i) = 1
         mask_cutoffs(i) = 1.2 + mask_r_probe
-
       endif
     end do
 
@@ -320,7 +310,7 @@ contains
       k_mask(i) = k_sol * exp(b_sol * s_squared)
 
       hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
-                                hkl_index(3,i), na, nb, nc)
+             hkl_index(3,i), na, nb, nc)
       if (hkl_indexing_bs_mask(i) == -1) then
         stop 'Miller indices indexing failed'
       end if
@@ -342,16 +332,19 @@ contains
   !----------------------------------------------------------------------------
   subroutine grid_bulk_solvent(n_atom, crd)
 
-    use xray_globals_module, only : NAT_for_mask
+    use xray_globals_module, only : atom_selection
+
     implicit none
     integer :: tid, n_atom
     double precision :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
                         distsq, coas, cobs, cocs
-    integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index
+    integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index, mdi, mdj, mdk
     double precision :: frac(3)
     double precision :: crd(3, n_atom)
 
-    do tid = 1, NAT_for_mask
+    do tid = 1, n_atom
+
+      if( atom_selection(tid) == 0 ) cycle
 
       ! Cartesian to fractional coordinates
       atomX = mask_cell_params(10) * crd(1, tid) + &
@@ -377,19 +370,56 @@ contains
       do i = x_low, x_high
         frac(1) = dble(i) / mask_grid_size(1);
         dx = atomX - frac(1)
+        if (dx .lt. -0.5) then
+          dx = dx - floor(dx)
+        else if (dx .ge. 0.5) then
+          dx = dx - ceiling(dx)
+        end if
         do j = y_low, y_high
           frac(2) = dble(j) / mask_grid_size(2);
           dy = atomY - frac(2);
+          if (dy .lt. -0.5) then
+            dy = dy - floor(dy)
+          else if (dy .ge. 0.5) then
+            dy = dy - ceiling(dy)
+          end if
           do k = z_low, z_high
             frac(3) = dble(k) / mask_grid_size(3);
             dz = atomZ - frac(3);
+            if (dz .lt. -0.5) then
+              dz = dz - floor(dz)
+            else if (dz .ge. 0.5) then
+              dz = dz - ceiling(dz)
+            end if
             distsq = mask_cell_params(1)*dx*dx + mask_cell_params(2)*dy*dy + &
                      mask_cell_params(3)*dz*dz + mask_cell_params(4)*dx*dy + &
                      mask_cell_params(5)*dx*dz + mask_cell_params(6)*dy*dz
             if (distsq < cutoffsq) then
-              index = mod_grid(k,mask_grid_size(3)) + &
-                      mod_grid(j,mask_grid_size(2)) * mask_grid_size(3) + &
-                      mod_grid(i,mask_grid_size(1)) * mask_grid_size(2) * mask_grid_size(3) + 1
+              if (i .le. 0) then
+                mdi = i - &
+                      ((i - (mask_grid_size(1) - 1)) / mask_grid_size(1)) * mask_grid_size(1)
+              else if (i .gt. mask_grid_size(1)) then
+                mdi = i - (i / mask_grid_size(1)) * mask_grid_size(1)
+              else
+                mdi = i
+              end if
+              if (j .le. 0) then
+                mdj = j - &
+                      ((j - (mask_grid_size(2) - 1)) / mask_grid_size(2)) * mask_grid_size(2)
+              else if (j .gt. mask_grid_size(2)) then
+                mdj = j - (j / mask_grid_size(2)) * mask_grid_size(2)
+              else
+                mdj = j
+              end if
+              if (k .le. 0) then
+                mdk = k - &
+                      ((k - (mask_grid_size(3) - 1)) / mask_grid_size(3)) * mask_grid_size(3)
+              else if (k .gt. mask_grid_size(3)) then
+                mdk = k - (k / mask_grid_size(3)) * mask_grid_size(3)
+              else
+                mdk = k
+              end if
+              index = mdk + mask_grid_size(3) * (mdj + mdi * mask_grid_size(2)) + 1
               mask_bs_grid(index) = 0
               mask_bs_grid_tmp(index) = 0
             end if

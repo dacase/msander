@@ -1,11 +1,13 @@
 #!/bin/bash
 
 #  prepare Amber and structure factor files needed for xray3-style calculations.
-#  Single input is the pdb-identifier: code assumes that $1-sf.cif
+#  First input is the pdb-identifier: code assumes that $1-sf.cif
 #      and $1.pdb are  available in the current directory
+#  Second (optional) input would be names of cif files needed by phenix.refine
 
 id=$1
 echo "XrayPrep log file for id $id" > $id-prep.log
+ciffiles=$2
 
 #============================================================================
 echo "Running phenix.AmberPrep" 
@@ -48,7 +50,7 @@ phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
 
 echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F"
 phenix.refine  \
-   4phenix_$id.pdb $id-sf.mtz \
+   4phenix_$id.pdb $id-sf.mtz $ciffiles \
    refinement.input.xray_data.r_free_flags.generate=True \
    refinement.main.number_of_macro_cycles=0 \
    xray_data.outliers_rejection=True \
@@ -88,5 +90,5 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
 #============================================================================
 # clean up
-/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz  $id-P1.mtz $id.fmtz parmed \
+/bin/rm -f tmp.dat $id-sf.mtz cdl_data.mtz $id.fmtz parmed \
      cdl_00* *.order 4phenix_$id.pdb 4amber_$id.prmtop foo*.parm7 build_uc

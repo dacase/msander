@@ -529,19 +529,7 @@ subroutine xdist(x, tmp, size)
 
    else
 
-   ! We don't have a power of two - do things the old fashioned way.
-
-     !       --- Assume an "in-place" allgatherv works: this seems(?) to
-     !           be true everywhere....
-
-     ! RCW 2011/11/01
-     ! The inplace allgatherv is not legal and modern version of mpi - e.g.
-     ! mpich2-1.4 check for it and quit with an error.
-
-     !call mpi_allgatherv( &
-     !      x(iparpt3(mytaskid)+1),rcvcnt3(mytaskid), &
-     !      MPI_DOUBLE_PRECISION,x,rcvcnt3,iparpt3, &
-     !      MPI_DOUBLE_PRECISION,commsander, ierr)
+     ! We don't have a power of two - do things the old fashioned way.
      call mpi_allgatherv( &
            x(iparpt3(mytaskid)+1),rcvcnt3(mytaskid), &
            MPI_DOUBLE_PRECISION,tmp,rcvcnt3,iparpt3, &
