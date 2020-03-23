@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/22/2019 at 14:08:55
+| Run on 03/23/2020 at 14:42:08
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/2wcu
@@ -33,8 +33,7 @@ File Assignments:
 Standard MD run input                                                          
  &cntrl                                                                        
   ntx    = 1, ntpr   = 1, ntf    = 8,       ntb    = 1,                        
-  cut   =  8.0, imin=1, maxcyc=1, ntmin=1,                                     
-  nstlim = 5,                                                                  
+  cut   =  8.0, nstlim = 0,                                                    
  /                                                                             
  &ewald                                                                        
     vdwmeth=0,                                                                 
@@ -42,7 +41,6 @@ Standard MD run input
  &xray                                                                         
    spacegroup_name='P1',                                                       
    pdb_infile = 'SolvXtal.pdb',                                                
-   pdb_outfile = 'out.pdb',                                                    
    reflection_infile = '2wcu-sf.dat',                                          
    atom_selection_mask = '!(@H=) & !(:WAT)',                                   
    xray_weight = 10000.                                                        
@@ -74,13 +72,13 @@ Standard MD run input
 
 
 |     Memory Use     Allocated
-|     Real             1169056
+|     Real              846368
 |     Hollerith          32796
 |     Integer          1158613
 |     Max Pairs        3408000
 |     nblistReal        122688
 |     nblist Int        504927
-|       Total            30030 kbytes
+|       Total            27509 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -100,15 +98,15 @@ Standard MD run input
                                                                                 
 
 General flags:
-     imin    =       1, nmropt  =       0
+     imin    =       0, nmropt  =       0
 
 Nature and format of input:
      ntx     =       1, irest   =       0, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       5
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       8, ntb     =       1, igb     =       0, nsnb    =      25
@@ -118,13 +116,17 @@ Potential function:
 Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
-Energy minimization:
-     maxcyc  =       1, ncyc    =      10, ntmin   =       1
-     dx0     =   0.01000, drms    =   0.00010
+Molecular dynamics:
+     nstlim  =         0, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Langevin dynamics temperature regulation:
+     ig      =   71277
+     temp0   = 300.00000, tempi   =   0.00000, therm_par=   5.00000
 
 Ewald parameters:
      verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
-     vdwmeth =       0, eedmeth =       1, netfrc  =       0
+     vdwmeth =       0, eedmeth =       1, netfrc  =       1
      Box X =   38.950   Box Y =   47.444   Box Z =   55.550
      Alpha =   76.220   Beta  =   72.250   Gamma =   81.960
      NFFT1 =   40       NFFT2 =   48       NFFT3 =   60
@@ -134,7 +136,6 @@ Ewald parameters:
 
 X-ray Refinement Parameters:
      PDB InFile: SolvXtal.pdb
-     PDB OutFile:out.pdb
      PDB Read Coordinates: F
      PDB Use SegID: F
      PDB Wrap Names: F
@@ -143,21 +144,10 @@ X-ray Refinement Parameters:
      Resolution Range:   50.000,   0.000
      X-ray weight:  0.100E+05
      Use target: ls  
-     Solvent mask probe radius:    1.000
-     Solvent mask expand:    0.800
-     Solvent Mask OutFile:
-     Solvent Mask Reflection OutFile:
-     Solvent Mask Update Interval:    0
-     Solvent scale:  -1.000, B-factor:  -1.000
+     Scale update Interval:   100
+     Solvent Mask Update Interval:   100
+     Solvent scale:   0.350, B-factor:  46.000
      FFT method:  0
-     FFT Grid Size:          0         0         0
-     FFT Grid Spacing:   0.33000
-     FFT B-factor Sharpen:   20.000
-     FFT Densty Toleranec:  0.100E-03
-     FFT Reflection Tolerance:  0.100E-03
-     FFT Radius Min:   1.000, Max:    4.000
-     B-Factor Min:   1.000, Max:  999.000
-     B-factor Refinement Interval:    0
      Atom Selection Mask: !(@H=) & !(:WAT)
      Setting ifbox to 3 for non-orthogonal unit cell
 
@@ -170,12 +160,12 @@ X-ray Refinement Parameters:
 
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
-Found   2328 atoms in !(@H=) & !(:WAT);                                                                                                                                                                                                                                               
+Found   2328 atoms in !(@H=) & !(:WAT);
  Number of triangulated 3-point waters found:     1820
 
-     Sum of charges from parm topology file =  -6.00000213
+     Sum of charges from parm topology file =    -6.000002
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 6
+| Running OPENMP code, with OMP_NUM_THREADS = 16
  DEBUG FORCE!; calling force routine
  ---------------------------------------------------
  APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
@@ -186,7 +176,7 @@ Found   2328 atoms in !(@H=) & !(:WAT);
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =    2276163
 | TOTAL SIZE OF NONBOND LIST =    2276163
-At start: Fcalc_scale, norm_scale =         0.64766    0.50215E-08
+| updating isotropic scaling:      0.64766 0.50215E-08
  DEBUG FORCE!; back from force routine
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
@@ -206,7 +196,7 @@ At start: Fcalc_scale, norm_scale =         0.64766    0.50215E-08
       1   -0.51673779    -0.51673777    -0.00000002
       2    0.89751195     0.89751196    -0.00000002
       3   -0.15450740    -0.15450742     0.00000001
- RMS force error =  0.291E-07
+ RMS force error =  0.304E-07
          NUMERICAL, ANALYTICAL FORCES (diff) from atom      4740
       1    1.73427669     1.73427677    -0.00000008
       2    1.06455980     1.06455982    -0.00000003
