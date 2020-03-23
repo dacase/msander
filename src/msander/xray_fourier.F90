@@ -416,10 +416,10 @@ contains
             if (mytaskid == 0 ) &
                write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
                    Fcalc_scale,norm_scale
-            Fcalc(:) = Fcalc_scale * Fcalc(:)
-         else
-            Fcalc_scale = 1.d0
          endif
+         Fcalc(:) = Fcalc_scale * Fcalc(:)
+      else
+         Fcalc_scale = 1._rk_
       endif
 
       nstep = nstep + 1
