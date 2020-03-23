@@ -187,7 +187,7 @@ contains
     end do
   end subroutine calc_grid_neighbors
 
-  !----------------------------------------------------------------------------
+  !--------------------------------------------------------------------------------------------
   ! init_bulk_solvent: intialize the mask to one, 'solvent present here.'
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
@@ -375,6 +375,15 @@ contains
         else if (dx .ge. 0.5) then
           dx = dx - ceiling(dx)
         end if
+        if (i .le. 0) then
+          mdi = i - &
+                ((i - mask_grid_size(1)) / mask_grid_size(1)) * mask_grid_size(1)
+        else if (i .gt. mask_grid_size(1)) then
+          mdi = i - ((i - 1) / mask_grid_size(1)) * mask_grid_size(1)
+        else
+          mdi = i
+        end if
+        mdi = mdi - 1
         do j = y_low, y_high
           frac(2) = dble(j) / mask_grid_size(2);
           dy = atomY - frac(2);
@@ -383,6 +392,15 @@ contains
           else if (dy .ge. 0.5) then
             dy = dy - ceiling(dy)
           end if
+          if (j .le. 0) then
+            mdj = j - &
+                  ((j - mask_grid_size(2)) / mask_grid_size(2)) * mask_grid_size(2)
+          else if (j .gt. mask_grid_size(2)) then
+            mdj = j - ((j - 1) / mask_grid_size(2)) * mask_grid_size(2)
+          else
+            mdj = j
+          end if
+          mdj = mdj - 1
           do k = z_low, z_high
             frac(3) = dble(k) / mask_grid_size(3);
             dz = atomZ - frac(3);
@@ -395,31 +413,15 @@ contains
                      mask_cell_params(3)*dz*dz + mask_cell_params(4)*dx*dy + &
                      mask_cell_params(5)*dx*dz + mask_cell_params(6)*dy*dz
             if (distsq < cutoffsq) then
-              if (i .le. 0) then
-                mdi = i - &
-                      ((i - (mask_grid_size(1) - 1)) / mask_grid_size(1)) * mask_grid_size(1)
-              else if (i .gt. mask_grid_size(1)) then
-                mdi = i - (i / mask_grid_size(1)) * mask_grid_size(1)
-              else
-                mdi = i
-              end if
-              if (j .le. 0) then
-                mdj = j - &
-                      ((j - (mask_grid_size(2) - 1)) / mask_grid_size(2)) * mask_grid_size(2)
-              else if (j .gt. mask_grid_size(2)) then
-                mdj = j - (j / mask_grid_size(2)) * mask_grid_size(2)
-              else
-                mdj = j
-              end if
               if (k .le. 0) then
                 mdk = k - &
-                      ((k - (mask_grid_size(3) - 1)) / mask_grid_size(3)) * mask_grid_size(3)
+                      ((k - mask_grid_size(3)) / mask_grid_size(3)) * mask_grid_size(3)
               else if (k .gt. mask_grid_size(3)) then
-                mdk = k - (k / mask_grid_size(3)) * mask_grid_size(3)
+                mdk = k - ((k - 1) / mask_grid_size(3)) * mask_grid_size(3)
               else
                 mdk = k
               end if
-              index = mdk + mask_grid_size(3) * (mdj + mdi * mask_grid_size(2)) + 1
+              index = mdk + (mask_grid_size(3) * (mdj + mdi * mask_grid_size(2)))
               mask_bs_grid(index) = 0
               mask_bs_grid_tmp(index) = 0
             end if
