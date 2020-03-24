@@ -29,6 +29,7 @@ Test of MD with Xray restraints
    xray_weight = 1.0,
    target='ml', bulk_solvent_model='simple', 
    k_sol = 0.35, b_sol = 46.0,
+   resolution_high = 2.090153, 
  /
  &debugf
   do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,7,
