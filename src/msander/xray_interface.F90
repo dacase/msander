@@ -547,7 +547,13 @@ contains
       end if
 
       if( target == 'ml' ) call init_ml(target, nstlim, d_star_sq, resolution)
-      if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution_high)
+      if( bulk_solvent_model /= 'none' ) then
+         if( resolution_high < 0.5 ) then
+            write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
+            call mexit(6,1)
+         endif
+         call init_bulk_solvent(resolution_high)
+      endif
       if( has_f_solvent > 0 ) then
          if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
