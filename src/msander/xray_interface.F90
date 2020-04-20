@@ -490,7 +490,7 @@ contains
       if (fave_outfile /= '') then
          allocate(Fcalc_ave(num_hkl), stat=alloc_status)
          REQUIRE(alloc_status==0)
-         Fcalc_ave(:) = cmplx(0._rk_, 0._rk_)
+         Fcalc_ave(:) = cmplx(0._rk_, 0._rk_, rk_)
       endif
 
       !  each line contains h,k,l and two reals
@@ -504,7 +504,7 @@ contains
                fabs_solvent, phi_solvent
             phi_solvent = phi_solvent * 0.0174532925d0
             f_solvent(i) = cmplx( fabs_solvent*cos(phi_solvent), &
-                                  fabs_solvent*sin(phi_solvent) )
+                                  fabs_solvent*sin(phi_solvent), rk_ )
             test_flag(i) = min(test_flag(i),1)
          end do
       else
@@ -522,7 +522,7 @@ contains
          do i = 1,num_hkl
             !  sigFobs() here is assumed to be really phi()
             phi = sigFobs(i) * 0.0174532925d0
-            Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi) )
+            Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
          end do
       endif
 

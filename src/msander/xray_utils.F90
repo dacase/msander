@@ -162,7 +162,7 @@ contains
          phase = atan2(aimag(c),real(c)) * M_R2D
          if (phase<0) phase=phase+360.0
       end if
-      polar_c8 = cmplx(abs(c),phase)
+      polar_c8 = cmplx(abs(c),phase,8)
    end function polar_c8
 
    complex(4) elemental function complex_from_polar_c4(p) result(c)
@@ -178,7 +178,7 @@ contains
       real(8) :: phase, amplitude
       phase = aimag(p) * M_D2R
       amplitude = real(p)
-      c = amplitude*cmplx(cos(phase),sin(phase))
+      c = amplitude*cmplx(cos(phase),sin(phase),8)
    end function complex_from_polar_c8
 
    real(4) elemental function amplitude_c4(c) result(amplitude)
