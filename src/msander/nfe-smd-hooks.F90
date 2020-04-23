@@ -37,7 +37,7 @@ type, private :: colvar_t
    NFE_REAL, pointer :: harm_path(:) => null() ! master only
 
    NFE_REAL :: inst, curr, harm
-
+   
    integer :: harm_mode
    integer :: path_mode
 
@@ -66,7 +66,7 @@ private :: mode_from_string
 
 private :: lines, spline
 
-namelist / smd /     output_file, output_freq, cv_file
+namelist / smd /     output_file, output_freq, cv_file 
 
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -116,8 +116,9 @@ subroutine on_sander_init(mdin_unit, amass, acrds)
 
    rewind(mdin_unit)
    read(mdin_unit,nml=smd,err=666)
-   ncolvars = 0
 
+   ncolvars = 0
+   
    ! collective variables
    call amopen(CV_UNIT, cv_file, 'O', 'F', 'R')
 
@@ -138,7 +139,28 @@ subroutine on_sander_init(mdin_unit, amass, acrds)
    n = 1
 
    do while (n.le.ncolvars)
-      call colvar_nlread(CV_UNIT,cv(n)%parent) 
+      call colvar_nlread(CV_UNIT,cv(n)%parent)
+                       
+      if (colvar_has_refcrd(cv(n)%parent)) then           ! master reads refcrd_file    
+            refcrd_file = trim(refcrd_file)
+            refcrd_len = len_trim(refcrd_file)
+      end if
+      if (colvar_is_quaternion(cv(n)%parent)) then
+        allocate(cv(n)%parent%q_index, stat = error)
+          if (error.ne.0) &
+            NFE_OUT_OF_MEMORY
+            cv(n)%parent%q_index = q_index
+      end if
+      if (colvar_has_axis(cv(n)%parent)) then
+           allocate(cv(n)%parent%axis(3), stat = error)
+             if (error.ne.0) &
+                NFE_OUT_OF_MEMORY
+           i = 1
+           do while (i.le.3)
+             cv(n)%parent%axis(i) = axis(i)
+             i = i + 1
+           end do
+      end if 
       n = n + 1
    end do
 
@@ -149,8 +171,12 @@ subroutine on_sander_init(mdin_unit, amass, acrds)
 
    NFE_MASTER_ONLY_END
 
-#  ifdef MPI
+#ifdef MPI
    call mpi_bcast(ncolvars, 1, MPI_INTEGER, 0, commsander, error)
+   nfe_assert(error.eq.0)
+   call mpi_bcast(refcrd_len, 1, MPI_INTEGER, 0, commsander, error)           ! broadcast refcrd_file 
+   nfe_assert(error.eq.0)
+   call mpi_bcast(refcrd_file, refcrd_len, MPI_CHARACTER, 0, commsander, error)
    nfe_assert(error.eq.0)
 #endif /* MPI */
 
@@ -257,7 +283,6 @@ subroutine on_sander_init(mdin_unit, amass, acrds)
                   'CV #', n, ' : unknown path_mode = ''', trim(modestr), ''''
                call terminate()
          end if
-
          n = n + 1
    end do
    close (CV_UNIT)
@@ -332,6 +357,14 @@ fmt = '(a,a,'//pfmt(output_freq)//',a,'//pfmt(output_freq*sander_timestep(), 4)/
       write (unit = OUT_UNIT, fmt = '(a,a)', advance = 'NO') &
          NFE_INFO, ' <> harm_mode = '
       call mode_write(cv(n)%harm_mode, OUT_UNIT)
+      if (colvar_is_quaternion(cv(n)%parent)) then
+          write (unit = OUT_UNIT, fmt = '(a,a,I3)') NFE_INFO, &
+          ' <> q_index = ', cv(n)%parent%q_index
+      end if
+      if (colvar_has_axis(cv(n)%parent)) then
+          write (unit = OUT_UNIT, fmt = '(a,a,f8.4,a,f8.4,a,f8.4,a)') NFE_INFO, &
+           ' <> axis = [',cv(n)%parent%axis(1),', ', cv(n)%parent%axis(2),', ', cv(n)%parent%axis(3), ']'
+      end if
       write (unit = OUT_UNIT, fmt = '(a)') NFE_INFO
       call colvar_print(cv(n)%parent, OUT_UNIT)
       write (unit = OUT_UNIT, fmt = '(a)') NFE_INFO
@@ -395,6 +428,8 @@ subroutine on_force(x, f, wdriven, udriven, pot)
    use nfe_colvar
    use nfe_constants
    use nfe_sander_proxy
+   use nfe_colvar_type
+
 
    implicit none
 
@@ -408,9 +443,12 @@ subroutine on_force(x, f, wdriven, udriven, pot)
 
 ! Moradi end   
 
-   integer :: n
+   integer :: n, m
 
-   NFE_REAL :: position, dwork, f2, dcv, dharm
+   NFE_REAL :: position, dwork, f2, dcv, dharm, norm4(100), cv_N(4, 100)     ! assume 1 < q_index < 100 !XX!FIX ME
+   integer, DIMENSION(4) :: cv_q = (/COLVAR_QUATERNION0, COLVAR_QUATERNION1, &
+                                   COLVAR_QUATERNION2, COLVAR_QUATERNION3/)
+  
 
 #  ifdef MPI
 #     include "nfe-mpi.h"
@@ -433,15 +471,43 @@ subroutine on_force(x, f, wdriven, udriven, pot)
 ! for driven ABMD
    NFE_MASTER_ONLY_BEGIN
    udriven = ZERO
+
+!  cv_N to normalize quaternions
+   do n = 1, ncolvars
+      if (colvar_is_quaternion(cv(n)%parent)) then
+        do m = 1, 4
+         if (cv(n)%parent%type == cv_q(m)) then
+            cv_N(m, cv(n)%parent%q_index) = mode_eval(cv(n)%path_mode, cv(n)%cvar_path, position)
+         end if
+        end do
+      end if
+   end do
+   do n = 1, ncolvars
+      if (colvar_is_quaternion(cv(n)%parent)) then
+        norm4(cv(n)%parent%q_index) = sqrt(cv_N(1,cv(n)%parent%q_index)**2 &
+                                         + cv_N(2,cv(n)%parent%q_index)**2 &
+                                         + cv_N(3,cv(n)%parent%q_index)**2 &
+                                         + cv_N(4,cv(n)%parent%q_index)**2)
+      end if
+   end do
+
    do n = 1, ncolvars
       dharm = mode_eval(cv(n)%harm_mode, cv(n)%harm_path, position) - &
             cv(n)%harm
       if (nfe_real_mdstep) &
             cv(n)%harm = mode_eval(cv(n)%harm_mode, cv(n)%harm_path, position)
+
       dcv = mode_eval(cv(n)%path_mode, cv(n)%cvar_path, position) - &
             cv(n)%curr
+
       if (nfe_real_mdstep) &
             cv(n)%curr = mode_eval(cv(n)%path_mode, cv(n)%cvar_path, position)
+      if (colvar_is_quaternion(cv(n)%parent)) then
+          cv(n)%curr = cv(n)%curr / norm4(cv(n)%parent%q_index)
+      else
+          cv(n)%curr = cv(n)%curr
+      end if
+
       f2 = fcv_curr(n)
       fcv_curr(n) = cv(n)%harm*colvar_difference(cv(n)%parent,cv(n)%curr,cv(n)%inst)
       pot = pot + cv(n)%harm*colvar_difference(cv(n)%parent,cv(n)%curr,cv(n)%inst)**2/2

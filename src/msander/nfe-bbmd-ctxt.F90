@@ -164,7 +164,7 @@ subroutine ctxt_init(self, amass)
    type(umbrella_t) :: umbrella_from_file
 
    logical :: do_transfer
-   integer :: n, error, ifind
+   integer :: n, error, ifind, i
    character(len = 80) :: buf 
 
    integer :: cv_extents(UMBRELLA_MAX_NEXTENTS)
@@ -366,6 +366,27 @@ subroutine ctxt_init(self, amass)
 
             end if ! cv_periodicity(n)
          end if ! mode.eq.MODE_FLOODING
+         if (colvar_has_refcrd(self%colvars(n))) then
+            refcrd_file = trim(refcrd_file)
+            refcrd_len = len_trim(refcrd_file)         
+         end if
+         if (colvar_is_quaternion(self%colvars(n))) then 
+          allocate(self%colvars(n)%q_index, stat = error)
+           if (error.ne.0) &
+            NFE_OUT_OF_MEMORY
+            self%colvars(n)%q_index = q_index
+         end if 
+         if (colvar_has_axis(self%colvars(n))) then
+           allocate(self%colvars(n)%axis(3), stat = error)
+             if (error.ne.0) &
+                NFE_OUT_OF_MEMORY
+           i = 1
+           do while (i.le.3)
+             self%colvars(n)%axis(i) = axis(i)
+             i = i + 1
+           end do
+         end if
+
          n = n + 1
    end do
 
@@ -406,6 +427,11 @@ subroutine ctxt_init(self, amass)
 
    nfe_assert(self%ncolvars.gt.0)
    nfe_assert(self%ncolvars.le.MAX_NUMBER_OF_COLVARS)
+ 
+   call mpi_bcast(refcrd_len, 1, MPI_INTEGER, 0, commsander, error)
+   nfe_assert(error.eq.0)
+   call mpi_bcast(refcrd_file, refcrd_len, MPI_CHARACTER, 0, commsander, error)
+   nfe_assert(error.eq.0)
 
    if (multisander_numwatkeep().gt.0) &
       call fatal('numwatkeep.gt.0 is not supported')
@@ -591,6 +617,14 @@ subroutine ctxt_print(self, lun)
       write (unit = lun, fmt = '(a,a,i1)') NFE_INFO, 'CV #', n
       call colvar_print(self%colvars(n), lun)
       write (unit = lun, fmt = '(a)') NFE_INFO
+      if (colvar_is_quaternion(self%colvars(n))) then
+         write (unit = lun, fmt = '(a,a,I3)') NFE_INFO, &
+         ' q_index = ', self%colvars(n)%q_index
+      end if
+      if (colvar_has_axis(self%colvars(n))) then
+         write (unit = lun, fmt = '(a,a,f8.4,a,f8.4,a,f8.4,a)') NFE_INFO, &
+         ' axis = [', self%colvars(n)%axis(1),', ', self%colvars(n)%axis(2),',', self%colvars(n)%axis(3),']'
+      end if
    end do
 
    write (unit = lun, fmt = '(a,a,a)') NFE_INFO, &
@@ -953,9 +987,11 @@ subroutine ctxt_on_force(self, x, f, mdstep, wdriven, udriven, pot)
 
    use nfe_utils
    use nfe_colvar
+   use nfe_colvar_type
    use nfe_umbrella
    use nfe_constants
    use nfe_sander_proxy
+
 
    implicit none
 
@@ -983,7 +1019,10 @@ subroutine ctxt_on_force(self, x, f, mdstep, wdriven, udriven, pot)
 
    character(len = SL + 16) :: snapshot
 
-   integer :: n, error
+   integer :: n, error, m 
+   integer, DIMENSION(4) :: cv_q = (/COLVAR_QUATERNION0, COLVAR_QUATERNION1, &
+                                     COLVAR_QUATERNION2, COLVAR_QUATERNION3/)
+   NFE_REAL :: norm4(100), cv_N(4, 100)
 
    nfe_assert(self%initialized)
 
@@ -997,6 +1036,32 @@ subroutine ctxt_on_force(self, x, f, mdstep, wdriven, udriven, pot)
          do n = 1, self%ncolvars
             instantaneous(n) = colvar_value(self%colvars(n), x)
          end do
+         NFE_MASTER_ONLY_BEGIN
+         do n = 1, self%ncolvars
+          if (colvar_is_quaternion(self%colvars(n))) then
+           do m = 1, 4
+            if (self%colvars(n)%type == cv_q(m)) then
+              cv_N(m, self%colvars(n)%q_index) = instantaneous(n)
+            end if
+           end do
+          end if
+         end do
+         do n = 1, self%ncolvars
+          if (colvar_is_quaternion(self%colvars(n))) then
+            norm4(self%colvars(n)%q_index) = sqrt(cv_N(1,self%colvars(n)%q_index)**2 &
+                                                + cv_N(2,self%colvars(n)%q_index)**2 &
+                                                + cv_N(3,self%colvars(n)%q_index)**2 &
+                                                + cv_N(4,self%colvars(n)%q_index)**2)
+          end if
+         end do
+         do n = 1, self%ncolvars
+          if (colvar_is_quaternion(self%colvars(n))) then
+             instantaneous(n) = instantaneous(n) / norm4(self%colvars(n)%q_index)
+          else
+             instantaneous(n) = instantaneous(n)
+          end if
+         end do
+         NFE_MASTER_ONLY_END
 
          if (sanderrank.eq.0) then
             write (unit = MONITOR_UNIT, fmt = self%monitor_fmt) &
@@ -1015,6 +1080,32 @@ subroutine ctxt_on_force(self, x, f, mdstep, wdriven, udriven, pot)
    do n = 1, self%ncolvars
       instantaneous(n) = colvar_value(self%colvars(n), x)
    end do
+   NFE_MASTER_ONLY_BEGIN
+   do n = 1, self%ncolvars
+    if (colvar_is_quaternion(self%colvars(n))) then
+      do m = 1, 4
+        if (self%colvars(n)%type == cv_q(m)) then
+          cv_N(m, self%colvars(n)%q_index) = instantaneous(n)
+        end if
+      end do
+    end if
+   end do
+   do n = 1, self%ncolvars
+    if (colvar_is_quaternion(self%colvars(n))) then
+       norm4(self%colvars(n)%q_index) =sqrt(cv_N(1,self%colvars(n)%q_index)**2 &
+                                          + cv_N(2,self%colvars(n)%q_index)**2 &
+                                          + cv_N(3,self%colvars(n)%q_index)**2 &
+                                          + cv_N(4,self%colvars(n)%q_index)**2)
+    end if
+   end do
+   do n = 1, self%ncolvars
+    if (colvar_is_quaternion(self%colvars(n))) then
+      instantaneous(n) = instantaneous(n) / norm4(self%colvars(n)%q_index)
+    else
+      instantaneous(n) = instantaneous(n)
+    end if
+   end do
+   NFE_MASTER_ONLY_END
 
    if (sanderrank.eq.0) then
       call umbrella_eval_vdv(self%umbrella, instantaneous, &

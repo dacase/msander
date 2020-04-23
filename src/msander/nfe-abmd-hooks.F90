@@ -341,7 +341,7 @@ subroutine on_sander_init(mdin_unit, amass)
    logical :: umbrella_file_exists, do_transfer
    type(umbrella_t) :: umbrella_from_file
 
-   integer :: n, error
+   integer :: n, error, i
 
    integer :: cv_extents(UMBRELLA_MAX_NEXTENTS)
    logical :: cv_periodicity(UMBRELLA_MAX_NEXTENTS)
@@ -559,6 +559,27 @@ subroutine on_sander_init(mdin_unit, amass)
 
             end if ! cv_periodicity(n)
          end if ! imode.eq.MODE_FLOODING
+         if (colvar_has_refcrd(colvars(n))) then
+            refcrd_file = trim(refcrd_file)
+            refcrd_len = len_trim(refcrd_file)
+         end if
+         if (colvar_is_quaternion(colvars(n))) then 
+          allocate(colvars(n)%q_index, stat = error)
+           if (error.ne.0) &
+            NFE_OUT_OF_MEMORY
+             colvars(n)%q_index = q_index
+         end if 
+         if (colvar_has_axis(colvars(n))) then
+           allocate(colvars(n)%axis(3), stat = error)
+             if (error.ne.0) &
+                NFE_OUT_OF_MEMORY
+           i = 1
+           do while (i.le.3)
+             colvars(n)%axis(i) = axis(i)
+             i = i + 1
+           end do
+         end if
+
          n = n + 1
    end do
    close(unit=CV_UNIT)
@@ -611,6 +632,11 @@ subroutine on_sander_init(mdin_unit, amass)
 
    call mpi_bcast(ncolvars, 1, MPI_INTEGER, 0, commsander, error)
    nfe_assert(error.eq.0)
+   
+   call mpi_bcast(refcrd_len, 1, MPI_INTEGER, 0, commsander, error)
+   nfe_assert(error.eq.0)
+   call mpi_bcast(refcrd_file, refcrd_len, MPI_CHARACTER, 0, commsander, error)
+   nfe_assert(error.eq.0)
 
    call mpi_bcast(monitor_freq, 1, MPI_INTEGER, 0, commsander, error)
    nfe_assert(error.eq.0)
@@ -624,11 +650,9 @@ subroutine on_sander_init(mdin_unit, amass)
 
    if (sander_imin().ne.0) &
       call fatal('imin.ne.0 is not supported')
-
    do n = 1, ncolvars
       call colvar_bootstrap(colvars(n), n, amass)
    end do
-
 #ifdef MPI
    if( multisander_numgroup().gt.1 ) &
       call rem_checks()
@@ -759,7 +783,6 @@ subroutine on_sander_init(mdin_unit, amass)
       write (unit = MONITOR_UNIT, fmt = '(a,i1,a)', advance = 'NO') &
          'CV #', n, ', '
    end do
-
    if (imode == MODE_FLOODING) then
       write (unit = MONITOR_UNIT, fmt = '(a,i1,a,/a)') &
          'CV #', ncolvars, ', E_{bias} (kcal/mol)', '#'
@@ -803,6 +826,14 @@ subroutine on_sander_init(mdin_unit, amass)
       write (unit = LOG_UNIT, fmt = '(a,a,i1)') NFE_INFO, 'CV #', n
       call colvar_print(colvars(n), LOG_UNIT)
       write (unit = LOG_UNIT, fmt = '(a)') NFE_INFO
+      if (colvar_is_quaternion(colvars(n))) then
+       write (unit = OUT_UNIT, fmt = '(a,a,I3)') NFE_INFO, &
+          ' q_index = ', colvars(n)%q_index
+      end if
+      if (colvar_has_axis(colvars(n))) then
+        write (unit = OUT_UNIT, fmt = '(a,a,f8.4,a,f8.4,a,f8.4,a)') NFE_INFO, &
+        ' axis = [',colvars(n)%axis(1),', ', colvars(n)%axis(2),',',colvars(n)%axis(3),']'
+      end if
    end do
 
    write (unit = LOG_UNIT, fmt = '(a,a,a)') NFE_INFO, &
@@ -937,8 +968,7 @@ subroutine on_sander_init(mdin_unit, amass)
    end if
 #endif /* NFE_ENABLE_BBMD */
 ! Moradi end
-
-   write (unit = LOG_UNIT, fmt = '(a)') NFE_INFO
+   write (unit = OUT_UNIT, fmt = '(a)') NFE_INFO
    write (unit = LOG_UNIT, fmt = '(a,a/)') NFE_INFO, &
       '() () () () () () () () () () () () () () () () () () () () () () () ()'
    call flush_UNIT(LOG_UNIT)
@@ -956,7 +986,6 @@ subroutine on_sander_init(mdin_unit, amass)
    return
 666 write(unit = ERR_UNIT, fmt = '(/a,a/)') NFE_ERROR,'Cannot read &abmd namelist!'
     call terminate()
-    
 contains
 
 !.............................................................................
@@ -1037,6 +1066,7 @@ subroutine on_force(x, f, wdriven, udriven, pot)
    use nfe_umbrella
    use nfe_constants
    use nfe_sander_proxy
+   use nfe_colvar_type
 
    implicit none
 
@@ -1058,10 +1088,14 @@ subroutine on_force(x, f, wdriven, udriven, pot)
 #endif /* MPI */
 
    NFE_REAL :: u_value, u_derivative(UMBRELLA_MAX_NEXTENTS), alt
+   integer, DIMENSION(4) :: cv_q = (/COLVAR_QUATERNION0, COLVAR_QUATERNION1, &
+   COLVAR_QUATERNION2, COLVAR_QUATERNION3/)
+   NFE_REAL :: norm4(100), cv_N(4, 100)
+
 
    character(len = SL + 16) :: snapshot
 
-   integer :: n
+   integer :: n, m
 
    if (imode.eq.MODE_NONE) &
       return
@@ -1075,6 +1109,31 @@ subroutine on_force(x, f, wdriven, udriven, pot)
          end do
 
          NFE_MASTER_ONLY_BEGIN
+         do n = 1, ncolvars
+           if (colvar_is_quaternion(colvars(n))) then
+             do m = 1, 4
+                if (colvars(n)%type == cv_q(m)) then
+                   cv_N(m, colvars(n)%q_index) = instantaneous(n)
+                end if
+             end do
+           end if
+         end do
+         do n = 1, ncolvars
+           if (colvar_is_quaternion(colvars(n))) then
+              norm4(colvars(n)%q_index) = sqrt(cv_N(1,colvars(n)%q_index)**2 &
+                                             + cv_N(2,colvars(n)%q_index)**2 &
+                                             + cv_N(3,colvars(n)%q_index)**2 &
+                                             + cv_N(4,colvars(n)%q_index)**2)
+           end if
+         end do
+         do n = 1, ncolvars
+           if (colvar_is_quaternion(colvars(n))) then
+              instantaneous(n) = instantaneous(n) / norm4(colvars(n)%q_index)
+           else
+              instantaneous(n) = instantaneous(n)
+           end if
+         end do
+
          write (unit = MONITOR_UNIT, fmt = monitor_fmt) &
             sander_mdtime(), instantaneous(1:ncolvars)
          call flush_UNIT(MONITOR_UNIT)
@@ -1092,6 +1151,31 @@ subroutine on_force(x, f, wdriven, udriven, pot)
    end do
 
    NFE_MASTER_ONLY_BEGIN
+   do n = 1, ncolvars
+    if (colvar_is_quaternion(colvars(n))) then
+     do m = 1, 4
+       if (colvars(n)%type == cv_q(m)) then
+         cv_N(m, colvars(n)%q_index) = instantaneous(n)
+       end if
+     end do
+    end if
+   end do
+   do n = 1, ncolvars
+    if (colvar_is_quaternion(colvars(n))) then
+      norm4(colvars(n)%q_index) = sqrt(cv_N(1,colvars(n)%q_index)**2 &
+                                     + cv_N(2,colvars(n)%q_index)**2 &
+                                     + cv_N(3,colvars(n)%q_index)**2 &
+                                     + cv_N(4,colvars(n)%q_index)**2)
+    end if
+   end do
+   do n = 1, ncolvars
+    if (colvar_is_quaternion(colvars(n))) then
+      instantaneous(n) = instantaneous(n) / norm4(colvars(n)%q_index)
+    else
+       instantaneous(n) = instantaneous(n)
+    end if
+   end do
+
    call umbrella_eval_vdv(umbrella, instantaneous, u_value, u_derivative)
    pot = umbrella_eval_v(umbrella, instantaneous)
    NFE_MASTER_ONLY_END

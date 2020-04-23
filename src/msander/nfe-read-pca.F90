@@ -82,7 +82,7 @@ subroutine read_avgcrd(cv, avgcrd_file)
   close(CRD_UNIT1)
 end subroutine read_avgcrd
 
-subroutine read_refcrd(cv, refcrd_file)
+subroutine read_refcrd(cv, refcrd)
 
   use nfe_colvar_type
   use nfe_constants
@@ -91,14 +91,14 @@ subroutine read_refcrd(cv, refcrd_file)
 
   type(colvar_t), intent(inout)  :: cv
 
-  character(len = *), intent(in)  :: refcrd_file
+  character(len = *), intent(in)  :: refcrd
 
 !  integer, intent(in) :: first, last
 
   integer :: i
   character :: dummy
 
-  open(REF_UNIT1, FILE = refcrd_file)
+  open(REF_UNIT1, FILE = refcrd)
   ! skip the first two lines of the CRD files 
   read(REF_UNIT1, '(A1)') dummy
   read(REF_UNIT1, '(A1)') dummy

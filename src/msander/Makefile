@@ -18,7 +18,10 @@ NFE_OBJECTS = \
     nfe-pmd-hooks.o nfe-rmsd.o nfe-sander-hooks.o nfe-sander-proxy.o \
     nfe-stsm-hooks.o nfe-cv-PCA.o nfe-read-pca.o nfe-cv-SIN_OF_DIHEDRAL.o \
     nfe-cv-PAIR_DIHEDRAL.o nfe-cv-PATTERN_DIHEDRAL.o nfe-cv-DF_COM_DISTANCE.o \
-    nfe-smd-hooks.o nfe-umbrella.o nfe-utils.o nfe-value.o mt19937.o
+    nfe-smd-hooks.o nfe-umbrella.o nfe-utils.o nfe-value.o mt19937.o \
+    nfe-cv-ORIENTATION_ANGLE.o nfe-cv-ORIENTATION_PROJ.o \
+	nfe-cv-QUATERNION0.o nfe-cv-QUATERNION1.o nfe-cv-QUATERNION2.o \
+	nfe-cv-QUATERNION3.o nfe-cv-SPINANGLE.o nfe-cv-TILT.o
 
 QMOBJ= \
     qm_ewald.o qmmm_vsolv.o \

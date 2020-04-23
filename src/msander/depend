@@ -2102,6 +2102,14 @@ nfe-colvar.o: \
                     nfe-cv-PAIR_DIHEDRAL.o\
                     nfe-cv-PATTERN_DIHEDRAL.o\
                     nfe-cv-DF_COM_DISTANCE.o\
+                    nfe-cv-ORIENTATION_ANGLE.o\
+                    nfe-cv-ORIENTATION_PROJ.o\
+                    nfe-cv-SPINANGLE.o\
+                    nfe-cv-TILT.o\
+                    nfe-cv-QUATERNION1.o\
+                    nfe-cv-QUATERNION2.o\
+                    nfe-cv-QUATERNION3.o\
+                    nfe-cv-QUATERNION0.o\
                     nfe-constants.o\
                     constants.o\
                     nfe-utils.o\
@@ -2317,6 +2325,44 @@ nfe-cv-N_OF_STRUCTURES.o:   nfe-cv-N_OF_STRUCTURES.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-N_OF_STRUCTURES.F90
 
+nfe-cv-ORIENTATION_ANGLE.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-ORIENTATION_ANGLE.o:   nfe-cv-ORIENTATION_ANGLE.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-ORIENTATION_ANGLE.F90
+
+nfe-cv-ORIENTATION_PROJ.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-ORIENTATION_PROJ.o:   nfe-cv-ORIENTATION_PROJ.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-ORIENTATION_PROJ.F90
+
 nfe-cv-PAIR_DIHEDRAL.o: \
                     nfe-utils.h\
                     nfe-config.h\
@@ -2366,6 +2412,82 @@ nfe-cv-PCA.o:   nfe-cv-PCA.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-PCA.F90
 
+nfe-cv-QUATERNION0.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-QUATERNION0.o:   nfe-cv-QUATERNION0.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION0.F90
+
+nfe-cv-QUATERNION1.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-QUATERNION1.o:   nfe-cv-QUATERNION1.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION1.F90
+
+nfe-cv-QUATERNION2.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-QUATERNION2.o:   nfe-cv-QUATERNION2.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION2.F90
+
+nfe-cv-QUATERNION3.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-QUATERNION3.o:   nfe-cv-QUATERNION3.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION3.F90
+
 nfe-cv-R_OF_GYRATION.o: \
                     nfe-utils.h\
                     nfe-config.h\
@@ -2399,6 +2521,46 @@ nfe-cv-SIN_OF_DIHEDRAL.o:   nfe-cv-SIN_OF_DIHEDRAL.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-SIN_OF_DIHEDRAL.F90
 
+nfe-cv-SPINANGLE.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-colvar-math.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-SPINANGLE.o:   nfe-cv-SPINANGLE.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-SPINANGLE.F90
+
+nfe-cv-TILT.o: \
+                    nfe-utils.h\
+                    nfe-config.h\
+                    nfe-cv-priv.type\
+                    nfe-cv-priv.decl\
+                    nfe-cv-priv.impl\
+                    nfe-rmsd.o\
+                    nfe-utils.o\
+                    nfe-constants.o\
+                    nfe-colvar-type.o\
+                    nfe-colvar-math.o\
+                    nfe-mpi.h\
+                    nfe-sander-proxy.o\
+                    nfe-colvar-utils.o
+
+
+nfe-cv-TILT.o:   nfe-cv-TILT.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-TILT.F90
+
 nfe-cv-TORSION.o: \
                     nfe-utils.h\
                     nfe-config.h\
@@ -2423,8 +2585,7 @@ nfe-pmd-hooks.o: \
                     nfe-colvar.o\
                     nfe-utils.o\
                     nfe-sander-proxy.o\
-                    nfe-mpi.h\
-                    constants.o
+                    nfe-mpi.h
 
 
 nfe-pmd-hooks.o:   nfe-pmd-hooks.F90

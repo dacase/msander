@@ -32,6 +32,10 @@ public :: colvar_cleanup
 public :: colvar_bootstrap
 public :: colvar_nlread
 
+public :: colvar_is_quaternion
+public :: colvar_has_axis
+public :: colvar_has_refcrd
+
 !=============================================================================
 
 contains
@@ -45,24 +49,33 @@ function colvar_value(cv, x) result(value)
 
    use nfe_colvar_type
 
-   use nfe_cv_ANGLE,           only : v_ANGLE           => colvar_value
-   use nfe_cv_TORSION,         only : v_TORSION         => colvar_value
-   use nfe_cv_DISTANCE,        only : v_DISTANCE        => colvar_value
-   use nfe_cv_MULTI_RMSD,      only : v_MULTI_RMSD      => colvar_value
-   use nfe_cv_R_OF_GYRATION,   only : v_R_OF_GYRATION   => colvar_value
-   use nfe_cv_HANDEDNESS,      only : v_HANDEDNESS      => colvar_value
-   use nfe_cv_N_OF_BONDS,      only : v_N_OF_BONDS      => colvar_value
-   use nfe_cv_N_OF_STRUCTURES, only : v_N_OF_STRUCTURES => colvar_value
-   use nfe_cv_LCOD,            only : v_LCOD            => colvar_value
-   use nfe_cv_COS_OF_DIHEDRAL, only : v_COS_OF_DIHEDRAL => colvar_value
-   use nfe_cv_COM_ANGLE,       only : v_COM_ANGLE       => colvar_value
-   use nfe_cv_COM_TORSION,     only : v_COM_TORSION     => colvar_value
-   use nfe_cv_COM_DISTANCE,    only : v_COM_DISTANCE    => colvar_value
-   use nfe_cv_PCA,             only : v_PCA             => colvar_value 
-   use nfe_cv_SIN_OF_DIHEDRAL, only : v_SIN_OF_DIHEDRAL => colvar_value 
-   use nfe_cv_PAIR_DIHEDRAL,   only : v_PAIR_DIHEDRAL   => colvar_value 
-   use nfe_cv_PATTERN_DIHEDRAL,only : v_PATTERN_DIHEDRAL=> colvar_value    
-   use nfe_cv_DF_COM_DISTANCE, only : v_DF_COM_DISTANCE => colvar_value
+   use nfe_cv_ANGLE,              only : v_ANGLE            => colvar_value
+   use nfe_cv_TORSION,            only : v_TORSION          => colvar_value
+   use nfe_cv_DISTANCE,           only : v_DISTANCE         => colvar_value
+   use nfe_cv_MULTI_RMSD,         only : v_MULTI_RMSD       => colvar_value
+   use nfe_cv_R_OF_GYRATION,      only : v_R_OF_GYRATION    => colvar_value
+   use nfe_cv_HANDEDNESS,         only : v_HANDEDNESS       => colvar_value
+   use nfe_cv_N_OF_BONDS,         only : v_N_OF_BONDS       => colvar_value
+   use nfe_cv_N_OF_STRUCTURES,    only : v_N_OF_STRUCTURES  => colvar_value
+   use nfe_cv_LCOD,               only : v_LCOD             => colvar_value
+   use nfe_cv_COS_OF_DIHEDRAL,    only : v_COS_OF_DIHEDRAL  => colvar_value
+   use nfe_cv_COM_ANGLE,          only : v_COM_ANGLE        => colvar_value
+   use nfe_cv_COM_TORSION,        only : v_COM_TORSION      => colvar_value
+   use nfe_cv_COM_DISTANCE,       only : v_COM_DISTANCE     => colvar_value
+   use nfe_cv_PCA,                only : v_PCA              => colvar_value
+   use nfe_cv_SIN_OF_DIHEDRAL,    only : v_SIN_OF_DIHEDRAL  => colvar_value
+   use nfe_cv_PAIR_DIHEDRAL,      only : v_PAIR_DIHEDRAL    => colvar_value
+   use nfe_cv_PATTERN_DIHEDRAL,   only : v_PATTERN_DIHEDRAL => colvar_value
+   use nfe_cv_DF_COM_DISTANCE,    only : v_DF_COM_DISTANCE  => colvar_value
+   use nfe_cv_ORIENTATION_ANGLE,  only : v_ORIENTATION_ANGLE=> colvar_value
+   use nfe_cv_ORIENTATION_PROJ,   only : v_ORIENTATION_PROJ => colvar_value
+   use nfe_cv_SPINANGLE,          only : v_SPINANGLE        => colvar_value
+   use nfe_cv_TILT,               only : v_TILT             => colvar_value
+   use nfe_cv_QUATERNION1,        only : v_QUATERNION1      => colvar_value
+   use nfe_cv_QUATERNION2,        only : v_QUATERNION2      => colvar_value
+   use nfe_cv_QUATERNION3,        only : v_QUATERNION3      => colvar_value
+   use nfe_cv_QUATERNION0,        only : v_QUATERNION0      => colvar_value
+
    implicit none
 
    NFE_REAL :: value
@@ -106,7 +119,23 @@ function colvar_value(cv, x) result(value)
       case(COLVAR_PATTERN_DIHEDRAL)
          value = v_PATTERN_DIHEDRAL(cv,x)
       case(COLVAR_DF_COM_DISTANCE)
-         value = v_DF_COM_DISTANCE(cv, x)                  
+         value = v_DF_COM_DISTANCE(cv, x)
+      case(COLVAR_ORIENTATION_ANGLE)
+         value = v_ORIENTATION_ANGLE(cv,x)
+      case(COLVAR_ORIENTATION_PROJ)
+         value = v_ORIENTATION_PROJ(cv,x)
+      case(COLVAR_SPINANGLE)
+         value = v_SPINANGLE(cv,x)
+      case(COLVAR_TILT)
+         value = v_TILT(cv,x)
+      case(COLVAR_QUATERNION0)
+         value = v_QUATERNION0(cv,x)
+      case(COLVAR_QUATERNION1)
+         value = v_QUATERNION1(cv,x)
+      case(COLVAR_QUATERNION2)
+         value = v_QUATERNION2(cv,x)
+      case(COLVAR_QUATERNION3)
+         value = v_QUATERNION3(cv,x)
       case default
          nfe_assert_not_reached()
          value = NFE_TO_REAL(0)
@@ -122,24 +151,33 @@ subroutine colvar_force(cv, x, fcv, f)
 
    use nfe_colvar_type
 
-   use nfe_cv_ANGLE,           only : f_ANGLE           => colvar_force
-   use nfe_cv_TORSION,         only : f_TORSION         => colvar_force
-   use nfe_cv_DISTANCE,        only : f_DISTANCE        => colvar_force
-   use nfe_cv_MULTI_RMSD,      only : f_MULTI_RMSD      => colvar_force
-   use nfe_cv_R_OF_GYRATION,   only : f_R_OF_GYRATION   => colvar_force
-   use nfe_cv_HANDEDNESS,      only : f_HANDEDNESS      => colvar_force
-   use nfe_cv_N_OF_BONDS,      only : f_N_OF_BONDS      => colvar_force
-   use nfe_cv_N_OF_STRUCTURES, only : f_N_OF_STRUCTURES => colvar_force
-   use nfe_cv_LCOD,            only : f_LCOD            => colvar_force
-   use nfe_cv_COS_OF_DIHEDRAL, only : f_COS_OF_DIHEDRAL => colvar_force
-   use nfe_cv_COM_ANGLE,       only : f_COM_ANGLE       => colvar_force
-   use nfe_cv_COM_TORSION,     only : f_COM_TORSION     => colvar_force
-   use nfe_cv_COM_DISTANCE,    only : f_COM_DISTANCE    => colvar_force 
-   use nfe_cv_PCA,             only : f_PCA             => colvar_force  
-   use nfe_cv_SIN_OF_DIHEDRAL, only : f_SIN_OF_DIHEDRAL => colvar_force
-   use nfe_cv_PAIR_DIHEDRAL,   only : f_PAIR_DIHEDRAL   => colvar_force
-   use nfe_cv_PATTERN_DIHEDRAL,only : f_PATTERN_DIHEDRAL=> colvar_force
-   use nfe_cv_DF_COM_DISTANCE, only : f_DF_COM_DISTANCE => colvar_force
+   use nfe_cv_ANGLE,              only : f_ANGLE            => colvar_force
+   use nfe_cv_TORSION,            only : f_TORSION          => colvar_force
+   use nfe_cv_DISTANCE,           only : f_DISTANCE         => colvar_force
+   use nfe_cv_MULTI_RMSD,         only : f_MULTI_RMSD       => colvar_force
+   use nfe_cv_R_OF_GYRATION,      only : f_R_OF_GYRATION    => colvar_force
+   use nfe_cv_HANDEDNESS,         only : f_HANDEDNESS       => colvar_force
+   use nfe_cv_N_OF_BONDS,         only : f_N_OF_BONDS       => colvar_force
+   use nfe_cv_N_OF_STRUCTURES,    only : f_N_OF_STRUCTURES  => colvar_force
+   use nfe_cv_LCOD,               only : f_LCOD             => colvar_force
+   use nfe_cv_COS_OF_DIHEDRAL,    only : f_COS_OF_DIHEDRAL  => colvar_force
+   use nfe_cv_COM_ANGLE,          only : f_COM_ANGLE        => colvar_force
+   use nfe_cv_COM_TORSION,        only : f_COM_TORSION      => colvar_force
+   use nfe_cv_COM_DISTANCE,       only : f_COM_DISTANCE     => colvar_force
+   use nfe_cv_PCA,                only : f_PCA              => colvar_force
+   use nfe_cv_SIN_OF_DIHEDRAL,    only : f_SIN_OF_DIHEDRAL  => colvar_force
+   use nfe_cv_PAIR_DIHEDRAL,      only : f_PAIR_DIHEDRAL    => colvar_force
+   use nfe_cv_PATTERN_DIHEDRAL,   only : f_PATTERN_DIHEDRAL => colvar_force
+   use nfe_cv_DF_COM_DISTANCE,    only : f_DF_COM_DISTANCE  => colvar_force
+   use nfe_cv_ORIENTATION_ANGLE, only : f_ORIENTATION_ANGLE=> colvar_force
+   use nfe_cv_ORIENTATION_PROJ,  only : f_ORIENTATION_PROJ => colvar_force
+   use nfe_cv_SPINANGLE,         only : f_SPINANGLE        => colvar_force
+   use nfe_cv_TILT,              only : f_TILT             => colvar_force
+   use nfe_cv_QUATERNION0,       only : f_QUATERNION0      => colvar_force
+   use nfe_cv_QUATERNION1,       only : f_QUATERNION1      => colvar_force
+   use nfe_cv_QUATERNION2,       only : f_QUATERNION2      => colvar_force
+   use nfe_cv_QUATERNION3,       only : f_QUATERNION3      => colvar_force
+
 
    implicit none
 
@@ -185,6 +223,22 @@ subroutine colvar_force(cv, x, fcv, f)
          call f_PATTERN_DIHEDRAL(cv, x, fcv, f)      
       case(COLVAR_DF_COM_DISTANCE)
          call f_DF_COM_DISTANCE(cv, x, fcv, f)            
+         case(COLVAR_ORIENTATION_ANGLE)
+         call f_ORIENTATION_ANGLE(cv, fcv, f)
+      case(COLVAR_ORIENTATION_PROJ)
+         call f_ORIENTATION_PROJ(cv, fcv, f)
+      case(COLVAR_SPINANGLE)
+         call f_SPINANGLE(cv, fcv, f)
+      case(COLVAR_TILT)
+         call f_TILT(cv, fcv, f)
+      case(COLVAR_QUATERNION0)
+         call f_QUATERNION0(cv, fcv, f)
+      case(COLVAR_QUATERNION1)
+         call f_QUATERNION1(cv, fcv, f)
+      case(COLVAR_QUATERNION2)
+         call f_QUATERNION2(cv, fcv, f)
+      case(COLVAR_QUATERNION3)
+         call f_QUATERNION3(cv, fcv, f) 
       case default
          nfe_assert_not_reached()
    end select
@@ -224,6 +278,19 @@ function colvar_difference(cv, v1, v2) result(diff)
       end if
    end if
 
+   if (cv%type.eq.COLVAR_SPINANGLE) then
+      !nfe_assert(-180.0 < t1 < 180.0)
+      !nfe_assert(-180.0 < t2 < 180.0)
+      !print*, 't1', t1
+      !print*, 't2', t2 
+      if (diff > 180.0) then
+         diff = diff - 360.0
+      else if (diff < -180.0) then
+         diff = diff + 360.0
+      end if
+   end if
+
+
 contains
 
 function fix_value(v) result(t)
@@ -247,6 +314,7 @@ function fix_value(v) result(t)
       endif
    else
       t = v
+   !print*, 'vvv', t  
    end if
 
 end function fix_value
@@ -300,6 +368,65 @@ end function colvar_is_periodic
 
 !=============================================================================
 
+
+logical function colvar_has_axis(cv)
+
+   use nfe_colvar_type
+
+   implicit none
+
+   type(colvar_t), intent(in) :: cv
+
+   if (cv%type.eq.COLVAR_TILT.or.cv%type.eq.COLVAR_SPINANGLE) then
+      colvar_has_axis = .true.
+   else
+      colvar_has_axis = .false.
+   end if
+
+end function colvar_has_axis
+
+!=============================================================================
+
+logical function colvar_has_refcrd(cv)
+
+   use nfe_colvar_type
+
+   implicit none
+
+   type(colvar_t), intent(in) :: cv
+
+   if (cv%type.eq.COLVAR_ORIENTATION_ANGLE.or.cv%type.eq.COLVAR_ORIENTATION_PROJ &
+       .or.cv%type.eq.COLVAR_TILT.or.cv%type.eq.COLVAR_SPINANGLE &
+       .or.cv%type.eq.COLVAR_QUATERNION0.or.cv%type.eq.COLVAR_QUATERNION1 &
+       .or.cv%type.eq.COLVAR_QUATERNION2.or.cv%type.eq.COLVAR_QUATERNION3) then
+      colvar_has_refcrd = .true.
+   else
+      colvar_has_refcrd = .false.
+   end if
+
+end function colvar_has_refcrd
+
+!=============================================================================
+
+logical function colvar_is_quaternion(cv)
+
+   use nfe_colvar_type
+
+   implicit none
+
+   type(colvar_t), intent(in) :: cv
+
+   if (cv%type.eq.COLVAR_QUATERNION0.or.cv%type.eq.COLVAR_QUATERNION1 &
+      .or.cv%type.eq.COLVAR_QUATERNION2.or.cv%type.eq.COLVAR_QUATERNION3) then
+       colvar_is_quaternion = .true.
+   else
+      colvar_is_quaternion = .false.
+   end if
+
+end function colvar_is_quaternion
+
+!=============================================================================
+
 logical function colvar_has_min(cv)
 
    use nfe_colvar_type
@@ -309,6 +436,14 @@ logical function colvar_has_min(cv)
    type(colvar_t), intent(in) :: cv
 
    select case(cv%type)
+      case(COLVAR_ORIENTATION_ANGLE)
+         colvar_has_min = .true.
+      case(COLVAR_ORIENTATION_PROJ)
+         colvar_has_min = .true.
+      case(COLVAR_SPINANGLE)
+         colvar_has_min = .true.
+      case(COLVAR_TILT)
+         colvar_has_min = .true.
       case(COLVAR_ANGLE:COLVAR_R_OF_GYRATION)
          colvar_has_min = .true.
       case(COLVAR_N_OF_BONDS:COLVAR_N_OF_STRUCTURES)
@@ -329,6 +464,7 @@ NFE_REAL function colvar_min(cv)
 
    use constants, only : PI
    use nfe_constants, only : zero
+   use nfe_constants, only : ONE
    use nfe_colvar_type
 
    implicit none
@@ -338,6 +474,14 @@ NFE_REAL function colvar_min(cv)
    nfe_assert(colvar_has_min(cv))
 
    select case(cv%type)
+      case(COLVAR_ORIENTATION_ANGLE)
+         colvar_min = ZERO
+      case(COLVAR_ORIENTATION_PROJ)
+         colvar_min = -ONE
+      case(COLVAR_SPINANGLE)
+         colvar_min = -PI
+      case(COLVAR_TILT)
+         colvar_min = -ONE
       case(COLVAR_ANGLE)
          colvar_min = ZERO
       case(COLVAR_TORSION)
@@ -370,6 +514,14 @@ logical function colvar_has_max(cv)
    type(colvar_t), intent(in) :: cv
 
    select case(cv%type)
+      case(COLVAR_ORIENTATION_ANGLE)
+         colvar_has_max = .true.
+      case(COLVAR_ORIENTATION_PROJ)
+         colvar_has_max = .true.
+      case(COLVAR_SPINANGLE)
+         colvar_has_max = .true.
+      case(COLVAR_TILT)
+         colvar_has_max = .true.
       case(COLVAR_ANGLE:COLVAR_TORSION)
          colvar_has_max = .true.
       case(COLVAR_COM_ANGLE:COLVAR_COM_TORSION)
@@ -388,6 +540,7 @@ NFE_REAL function colvar_max(cv)
 
    use constants, only : PI
    use nfe_constants, only : ZERO
+   use nfe_constants, only : ONE
    use nfe_colvar_type
 
    implicit none
@@ -399,6 +552,14 @@ NFE_REAL function colvar_max(cv)
    select case(cv%type)
       case(COLVAR_ANGLE:COLVAR_TORSION)
          colvar_max = PI
+      case(COLVAR_ORIENTATION_ANGLE)
+         colvar_max = PI
+      case(COLVAR_ORIENTATION_PROJ)
+         colvar_max = ONE
+      case(COLVAR_SPINANGLE)
+         colvar_max = PI
+      case(COLVAR_TILT)
+         colvar_max = ONE
       case(COLVAR_COM_ANGLE:COLVAR_COM_TORSION)
          colvar_max = PI
       case default
@@ -417,24 +578,32 @@ subroutine colvar_print(cv, lun)
    use nfe_colvar_type
    use nfe_sander_proxy
 
-   use nfe_cv_ANGLE,           only : p_ANGLE           => print_details
-   use nfe_cv_TORSION,         only : p_TORSION         => print_details
-   use nfe_cv_DISTANCE,        only : p_DISTANCE        => print_details
-   use nfe_cv_MULTI_RMSD,      only : p_MULTI_RMSD      => print_details
-   use nfe_cv_R_OF_GYRATION,   only : p_R_OF_GYRATION   => print_details
-   use nfe_cv_HANDEDNESS,      only : p_HANDEDNESS      => print_details
-   use nfe_cv_N_OF_BONDS,      only : p_N_OF_BONDS      => print_details
-   use nfe_cv_N_OF_STRUCTURES, only : p_N_OF_STRUCTURES => print_details
-   use nfe_cv_LCOD,            only : p_LCOD            => print_details
-   use nfe_cv_COS_OF_DIHEDRAL, only : p_COS_OF_DIHEDRAL => print_details
-   use nfe_cv_COM_ANGLE,       only : p_COM_ANGLE       => print_details
-   use nfe_cv_COM_TORSION,     only : p_COM_TORSION     => print_details
-   use nfe_cv_COM_DISTANCE,    only : p_COM_DISTANCE    => print_details
-   use nfe_cv_PCA,             only : p_PCA             => print_details
-   use nfe_cv_SIN_OF_DIHEDRAL, only : p_SIN_OF_DIHEDRAL => print_details
-   use nfe_cv_PAIR_DIHEDRAL,   only : p_PAIR_DIHEDRAL   => print_details
-   use nfe_cv_PATTERN_DIHEDRAL,only : p_PATTERN_DIHEDRAL=> print_details   
-   use nfe_cv_DF_COM_DISTANCE, only : p_DF_COM_DISTANCE => print_details
+   use nfe_cv_ANGLE,              only : p_ANGLE            => print_details
+   use nfe_cv_TORSION,            only : p_TORSION          => print_details
+   use nfe_cv_DISTANCE,           only : p_DISTANCE         => print_details
+   use nfe_cv_MULTI_RMSD,         only : p_MULTI_RMSD       => print_details
+   use nfe_cv_R_OF_GYRATION,      only : p_R_OF_GYRATION    => print_details
+   use nfe_cv_HANDEDNESS,         only : p_HANDEDNESS       => print_details
+   use nfe_cv_N_OF_BONDS,         only : p_N_OF_BONDS       => print_details
+   use nfe_cv_N_OF_STRUCTURES,    only : p_N_OF_STRUCTURES  => print_details
+   use nfe_cv_LCOD,               only : p_LCOD             => print_details
+   use nfe_cv_COS_OF_DIHEDRAL,    only : p_COS_OF_DIHEDRAL  => print_details
+   use nfe_cv_COM_ANGLE,          only : p_COM_ANGLE        => print_details
+   use nfe_cv_COM_TORSION,        only : p_COM_TORSION      => print_details
+   use nfe_cv_COM_DISTANCE,       only : p_COM_DISTANCE     => print_details
+   use nfe_cv_PCA,                only : p_PCA              => print_details
+   use nfe_cv_SIN_OF_DIHEDRAL,    only : p_SIN_OF_DIHEDRAL  => print_details
+   use nfe_cv_PAIR_DIHEDRAL,      only : p_PAIR_DIHEDRAL    => print_details
+   use nfe_cv_PATTERN_DIHEDRAL,   only : p_PATTERN_DIHEDRAL => print_details
+   use nfe_cv_DF_COM_DISTANCE,    only : p_DF_COM_DISTANCE  => print_details
+   use nfe_cv_ORIENTATION_ANGLE, only : p_ORIENTATION_ANGLE=> print_details
+   use nfe_cv_ORIENTATION_PROJ,  only : p_ORIENTATION_PROJ => print_details
+   use nfe_cv_SPINANGLE,         only : p_SPINANGLE        => print_details
+   use nfe_cv_TILT,              only : p_TILT             => print_details
+   use nfe_cv_QUATERNION0,       only : p_QUATERNION0      => print_details
+   use nfe_cv_QUATERNION1,       only : p_QUATERNION1      => print_details
+   use nfe_cv_QUATERNION2,       only : p_QUATERNION2      => print_details
+   use nfe_cv_QUATERNION3,       only : p_QUATERNION3      => print_details
 
    
    implicit none
@@ -499,7 +668,31 @@ subroutine colvar_print(cv, lun)
          call p_PATTERN_DIHEDRAL(cv, lun)
       case(COLVAR_DF_COM_DISTANCE)
          write (unit = lun, fmt = '(a)') 'DF_COM_DISTANCE'''
-         call p_DF_COM_DISTANCE(cv, lun)                  
+         call p_DF_COM_DISTANCE(cv, lun)
+      case(COLVAR_ORIENTATION_ANGLE)
+         write (unit = lun, fmt = '(a)') 'ORIENTATION_ANGLE'''
+         call p_ORIENTATION_ANGLE(cv, lun)
+      case(COLVAR_ORIENTATION_PROJ)
+         write (unit = lun, fmt = '(a)') 'ORIENTATION_PROJ'''
+         call p_ORIENTATION_PROJ(cv, lun)
+      case(COLVAR_SPINANGLE)
+         write (unit = lun, fmt = '(a)') 'SPINANGLE'''
+         call p_SPINANGLE(cv, lun)
+      case(COLVAR_TILT)
+         write (unit = lun, fmt = '(a)') 'TILT'''
+         call p_TILT(cv, lun)
+      case(COLVAR_QUATERNION0)
+         write (unit = lun, fmt = '(a)') 'QUATERNION0'''
+         call p_QUATERNION0(cv, lun)
+      case(COLVAR_QUATERNION1)
+         write (unit = lun, fmt = '(a)') 'QUATERNION1'''
+         call p_QUATERNION1(cv, lun)
+      case(COLVAR_QUATERNION2)
+         write (unit = lun, fmt = '(a)') 'QUATERNION2'''
+         call p_QUATERNION2(cv, lun)
+      case(COLVAR_QUATERNION3)
+         write (unit = lun, fmt = '(a)') 'QUATERNION3'''
+         call p_QUATERNION3(cv, lun)
       case default
          nfe_assert_not_reached()
          continue
@@ -513,10 +706,18 @@ subroutine colvar_cleanup(cv)
 
    use nfe_colvar_type
 
-   use nfe_cv_MULTI_RMSD,      only : c_MULTI_RMSD      => colvar_cleanup
-   use nfe_cv_R_OF_GYRATION,   only : c_R_OF_GYRATION   => colvar_cleanup
-   use nfe_cv_N_OF_STRUCTURES, only : c_N_OF_STRUCTURES => colvar_cleanup
-   use nfe_cv_PCA,             only : c_PCA             => colvar_cleanup 
+   use nfe_cv_MULTI_RMSD,         only : c_MULTI_RMSD       => colvar_cleanup
+   use nfe_cv_R_OF_GYRATION,      only : c_R_OF_GYRATION    => colvar_cleanup
+   use nfe_cv_N_OF_STRUCTURES,    only : c_N_OF_STRUCTURES  => colvar_cleanup
+   use nfe_cv_PCA,                only : c_PCA              => colvar_cleanup
+   use nfe_cv_ORIENTATION_ANGLE, only : c_ORIENTATION_ANGLE=> colvar_cleanup
+   use nfe_cv_ORIENTATION_PROJ,  only : c_ORIENTATION_PROJ => colvar_cleanup
+   use nfe_cv_SPINANGLE,         only : c_SPINANGLE        => colvar_cleanup
+   use nfe_cv_TILT,              only : c_TILT             => colvar_cleanup
+   use nfe_cv_QUATERNION0,       only : c_QUATERNION0      => colvar_cleanup
+   use nfe_cv_QUATERNION1,       only : c_QUATERNION1      => colvar_cleanup
+   use nfe_cv_QUATERNION2,       only : c_QUATERNION2      => colvar_cleanup
+   use nfe_cv_QUATERNION3,       only : c_QUATERNION3      => colvar_cleanup
 
    implicit none
 
@@ -530,7 +731,23 @@ subroutine colvar_cleanup(cv)
       case(COLVAR_N_OF_STRUCTURES)
          call c_N_OF_STRUCTURES(cv)
       case (COLVAR_PCA) 
-         call c_PCA(cv) 
+         call c_PCA(cv)
+      case (COLVAR_ORIENTATION_ANGLE)
+         call c_ORIENTATION_ANGLE(cv)
+      case (COLVAR_ORIENTATION_PROJ)
+         call c_ORIENTATION_PROJ(cv)
+      case (COLVAR_SPINANGLE)
+         call c_SPINANGLE(cv)
+      case (COLVAR_TILT)
+         call c_TILT(cv)
+      case (COLVAR_QUATERNION0)
+         call c_QUATERNION0(cv)
+      case (COLVAR_QUATERNION1)
+         call c_QUATERNION1(cv)
+      case (COLVAR_QUATERNION2)
+         call c_QUATERNION2(cv)
+      case (COLVAR_QUATERNION3)
+         call c_QUATERNION3(cv) 
       case default
          continue
    end select
@@ -555,7 +772,13 @@ subroutine colvar_cleanup(cv)
    
    if (associated(cv%ipca_to_i)) &
       deallocate(cv%ipca_to_i) 
- 
+   
+   if (associated(cv%q_index)) &
+      deallocate(cv%q_index) 
+  
+   if (associated(cv%axis)) &
+      deallocate(cv%axis)
+
    cv%type = -1
 
 end subroutine colvar_cleanup
@@ -826,7 +1049,7 @@ end subroutine colvar_cleanup
 !              allocate(cv%state_ref(cv%i(1)), cv%state_pca(cv%i(1)), cv%ipca_to_i(cv%i(3)), stat = error)
 !              if (error /= 0) &
 !                 NFE_OUT_OF_MEMORY
-!              call read_index(cv, index_file)
+!              call read_index(cv, in, only :: ERR_UNITdex_file)
 !              write (unit = OUT_UNIT, fmt = '(a,a,a,a)', advance = 'NO') NFE_INFO, &
 !              'index_file = ', trim(index_file), ' ('
 !              write (unit = OUT_UNIT, fmt = '(a)') 'loaded)'
@@ -845,25 +1068,36 @@ subroutine colvar_bootstrap(cv, cvno, amass)
 
    use nfe_utils
    use nfe_colvar_type
+   use nfe_constants, only : ERR_UNIT
+   use nfe_sander_proxy
 
-   use nfe_cv_ANGLE,           only : b_ANGLE           => colvar_bootstrap
-   use nfe_cv_TORSION,         only : b_TORSION         => colvar_bootstrap
-   use nfe_cv_DISTANCE,        only : b_DISTANCE        => colvar_bootstrap
-   use nfe_cv_MULTI_RMSD,      only : b_MULTI_RMSD      => colvar_bootstrap
-   use nfe_cv_R_OF_GYRATION,   only : b_R_OF_GYRATION   => colvar_bootstrap
-   use nfe_cv_HANDEDNESS,      only : b_HANDEDNESS      => colvar_bootstrap
-   use nfe_cv_N_OF_BONDS,      only : b_N_OF_BONDS      => colvar_bootstrap
-   use nfe_cv_N_OF_STRUCTURES, only : b_N_OF_STRUCTURES => colvar_bootstrap
-   use nfe_cv_LCOD,            only : b_LCOD            => colvar_bootstrap
-   use nfe_cv_COS_OF_DIHEDRAL, only : b_COS_OF_DIHEDRAL => colvar_bootstrap
-   use nfe_cv_COM_ANGLE,       only : b_COM_ANGLE       => colvar_bootstrap
-   use nfe_cv_COM_TORSION,     only : b_COM_TORSION     => colvar_bootstrap
-   use nfe_cv_COM_DISTANCE,    only : b_COM_DISTANCE    => colvar_bootstrap
-   use nfe_cv_PCA,             only : b_PCA             => colvar_bootstrap
-   use nfe_cv_SIN_OF_DIHEDRAL, only : b_SIN_OF_DIHEDRAL => colvar_bootstrap
-   use nfe_cv_PAIR_DIHEDRAL,   only : b_PAIR_DIHEDRAL   => colvar_bootstrap
-   use nfe_cv_PATTERN_DIHEDRAL,only : b_PATTERN_DIHEDRAL=> colvar_bootstrap
-   use nfe_cv_DF_COM_DISTANCE, only : b_DF_COM_DISTANCE => colvar_bootstrap
+   use nfe_cv_ANGLE,              only : b_ANGLE            => colvar_bootstrap
+   use nfe_cv_TORSION,            only : b_TORSION          => colvar_bootstrap
+   use nfe_cv_DISTANCE,           only : b_DISTANCE         => colvar_bootstrap
+   use nfe_cv_MULTI_RMSD,         only : b_MULTI_RMSD       => colvar_bootstrap
+   use nfe_cv_R_OF_GYRATION,      only : b_R_OF_GYRATION    => colvar_bootstrap
+   use nfe_cv_HANDEDNESS,         only : b_HANDEDNESS       => colvar_bootstrap
+   use nfe_cv_N_OF_BONDS,         only : b_N_OF_BONDS       => colvar_bootstrap
+   use nfe_cv_N_OF_STRUCTURES,    only : b_N_OF_STRUCTURES  => colvar_bootstrap
+   use nfe_cv_LCOD,               only : b_LCOD             => colvar_bootstrap
+   use nfe_cv_COS_OF_DIHEDRAL,    only : b_COS_OF_DIHEDRAL  => colvar_bootstrap
+   use nfe_cv_COM_ANGLE,          only : b_COM_ANGLE        => colvar_bootstrap
+   use nfe_cv_COM_TORSION,        only : b_COM_TORSION      => colvar_bootstrap
+   use nfe_cv_COM_DISTANCE,       only : b_COM_DISTANCE     => colvar_bootstrap
+   use nfe_cv_PCA,                only : b_PCA              => colvar_bootstrap
+   use nfe_cv_SIN_OF_DIHEDRAL,    only : b_SIN_OF_DIHEDRAL  => colvar_bootstrap
+   use nfe_cv_PAIR_DIHEDRAL,      only : b_PAIR_DIHEDRAL    => colvar_bootstrap
+   use nfe_cv_PATTERN_DIHEDRAL,   only : b_PATTERN_DIHEDRAL => colvar_bootstrap
+   use nfe_cv_DF_COM_DISTANCE,    only : b_DF_COM_DISTANCE  => colvar_bootstrap
+   use nfe_cv_ORIENTATION_ANGLE, only : b_ORIENTATION_ANGLE=> colvar_bootstrap
+   use nfe_cv_ORIENTATION_PROJ,  only : b_ORIENTATION_PROJ => colvar_bootstrap
+   use nfe_cv_SPINANGLE,         only : b_SPINANGLE        => colvar_bootstrap
+   use nfe_cv_TILT,              only : b_TILT             => colvar_bootstrap
+   use nfe_cv_QUATERNION0,       only : b_QUATERNION0      => colvar_bootstrap
+   use nfe_cv_QUATERNION1,       only : b_QUATERNION1      => colvar_bootstrap
+   use nfe_cv_QUATERNION2,       only : b_QUATERNION2      => colvar_bootstrap
+   use nfe_cv_QUATERNION3,       only : b_QUATERNION3      => colvar_bootstrap
+
 
 
    implicit none
@@ -873,8 +1107,7 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    NFE_REAL,      intent(in)    :: amass(*)
 
 #ifdef MPI
-!   integer :: bcastdata(5), ierr  
-   integer :: bcastdata(8), ierr
+   integer :: bcastdata(10), ierr
    ! original: integer :: bcastdata(3), ierr
 #include "nfe-mpi.h"
 
@@ -888,6 +1121,13 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    else
       nfe_assert(.not. associated(cv%i))
       nfe_assert(.not. associated(cv%r))
+      if (cv%type.eq.COLVAR_QUATERNION0.or.cv%type.eq.COLVAR_QUATERNION1 &
+          .or.cv%type.eq.COLVAR_QUATERNION2.or.cv%type.eq.COLVAR_QUATERNION3) then
+          nfe_assert(.not. associated(cv%q_index))
+      endif 
+      if (cv%type.eq.COLVAR_TILT.or.cv%type.eq.COLVAR_SPINANGLE) then
+         nfe_assert(.not. associated(cv%axis))
+      endif 
       if (cv%type == COLVAR_PCA) then 
         nfe_assert(.not. associated(cv%avgcrd))
         nfe_assert(.not. associated(cv%evec))
@@ -914,7 +1154,9 @@ subroutine colvar_bootstrap(cv, cvno, amass)
       bcastdata(6) = 0
       bcastdata(7) = 0
       bcastdata(8) = 0
-     
+      bcastdata(9) = 0               !q_index 
+      bcastdata(10) = 0              !axis
+
      if (cv%type == COLVAR_PCA) then 
        
         if (associated(cv%avgcrd)) &
@@ -932,8 +1174,16 @@ subroutine colvar_bootstrap(cv, cvno, amass)
         if (associated(cv%ipca_to_i)) &
           bcastdata(8) = size(cv%ipca_to_i)  
           
-     endif 
-    
+     endif
+     if (cv%type.eq.COLVAR_QUATERNION0.or.cv%type.eq.COLVAR_QUATERNION1 &
+          .or.cv%type.eq.COLVAR_QUATERNION2.or.cv%type.eq.COLVAR_QUATERNION3) then
+        if (associated(cv%q_index)) &
+           bcastdata(9) = cv%q_index
+     endif
+     if (cv%type.eq.COLVAR_TILT.or.cv%type.eq.COLVAR_SPINANGLE) then
+       if (associated(cv%axis)) &
+         bcastdata(10) = size(cv%axis)       
+     endif
    end if ! sanderrank == 0
 
    call mpi_bcast(bcastdata, size(bcastdata), MPI_INTEGER, 0, commsander, ierr)
@@ -945,7 +1195,6 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    !
    ! cv%i
    !
-
    if (bcastdata(2) > 0) then
       if (.not. associated(cv%i)) then
          nfe_assert(sanderrank > 0)
@@ -963,7 +1212,6 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    !
    ! cv%r
    !
-
    if (bcastdata(3) > 0) then
       if (.not. associated(cv%r)) then
          nfe_assert(sanderrank > 0)
@@ -1000,7 +1248,7 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    ! 
    ! cv % evec 
    ! 
-    if (bcastdata(5) > 0) then
+   if (bcastdata(5) > 0) then
       if (.not. associated(cv%evec)) then
          nfe_assert(sanderrank > 0)
          allocate(cv%evec(bcastdata(5)), stat = ierr)
@@ -1019,7 +1267,7 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    ! 
    ! cv % state_ref 
    ! 
-    if (bcastdata(6) > 0) then
+   if (bcastdata(6) > 0) then
       if (.not. associated(cv%state_ref)) then
          nfe_assert(sanderrank > 0)
          allocate(cv%state_ref(bcastdata(6)), stat = ierr)
@@ -1038,7 +1286,7 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    ! 
    ! cv % state_pca
    ! 
-    if (bcastdata(7) > 0) then
+   if (bcastdata(7) > 0) then
       if (.not. associated(cv%state_pca)) then
          nfe_assert(sanderrank > 0)
          allocate(cv%state_pca(bcastdata(7)), stat = ierr)
@@ -1056,7 +1304,7 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    ! 
    ! cv % ipca_to_i()
    ! 
-    if (bcastdata(8) > 0) then
+   if (bcastdata(8) > 0) then
       if (.not. associated(cv%ipca_to_i)) then
          nfe_assert(sanderrank > 0)
          allocate(cv%ipca_to_i(bcastdata(8)), stat = ierr)
@@ -1070,8 +1318,41 @@ subroutine colvar_bootstrap(cv, cvno, amass)
    else
       nullify(cv%ipca_to_i)
    end if ! bcastdata(8) > 0
-
    
+   !
+   ! cv%q_index
+   !
+   if (bcastdata(9) > 0) then
+     if (.not. associated(cv%q_index)) then
+         nfe_assert(sanderrank > 0)
+         allocate(cv%q_index, stat = ierr)
+         if (ierr /= 0) &
+            NFE_OUT_OF_MEMORY
+      end if ! .not. associated(cv%q_index)
+      !cv%q_index = bcastdata(9) ?
+      call mpi_bcast(cv%q_index, 1, MPI_INTEGER, &
+                     0, commsander, ierr)
+      nfe_assert(ierr == 0)
+   else
+      nullify(cv%q_index)
+   end if ! bcastdata(9) > 0
+
+   !
+   ! cv%axis
+   !
+   if (bcastdata(10) > 0) then
+      if (.not. associated(cv%axis)) then
+         nfe_assert(sanderrank > 0)
+         allocate(cv%axis(bcastdata(10)), stat = ierr)
+         if (ierr /= 0) &
+            NFE_OUT_OF_MEMORY
+      end if ! .not. associated(cv%axis)
+      call mpi_bcast(cv%axis, bcastdata(10), MPI_DOUBLE_PRECISION, &
+                     0, commsander, ierr)
+      nfe_assert(ierr == 0)
+   else
+      nullify(cv%axis)
+   end if ! bcastdata(10) > 0
 #endif /* MPI */
 
    !
@@ -1114,7 +1395,23 @@ subroutine colvar_bootstrap(cv, cvno, amass)
       case(COLVAR_PATTERN_DIHEDRAL)
          call b_PATTERN_DIHEDRAL(cv, cvno)
       case(COLVAR_DF_COM_DISTANCE)
-         call b_DF_COM_DISTANCE(cv, cvno, amass)                  
+         call b_DF_COM_DISTANCE(cv, cvno, amass)
+      case(COLVAR_ORIENTATION_ANGLE)
+         call b_ORIENTATION_ANGLE(cv, cvno, amass)
+      case(COLVAR_ORIENTATION_PROJ)
+         call b_ORIENTATION_PROJ(cv, cvno, amass)
+      case(COLVAR_SPINANGLE)
+         call b_SPINANGLE(cv, cvno, amass)
+      case(COLVAR_TILT)
+         call b_TILT(cv, cvno, amass)
+      case(COLVAR_QUATERNION0)
+         call b_QUATERNION0(cv, cvno, amass)
+      case(COLVAR_QUATERNION1)
+         call b_QUATERNION1(cv, cvno, amass)
+      case(COLVAR_QUATERNION2)
+         call b_QUATERNION2(cv, cvno, amass)
+      case(COLVAR_QUATERNION3)
+         call b_QUATERNION3(cv, cvno, amass)
       case default
          nfe_assert_not_reached()
          continue
@@ -1137,7 +1434,7 @@ subroutine colvar_nlread(cv_unit,cv)
   integer, intent(in)           :: cv_unit
   type(colvar_t), intent(inout) :: cv
 
-  integer                    :: ifind, nsolut, error, i
+  integer                    :: ifind, nsolut, error, i 
   
   call nmlsrc('colvar', cv_unit, ifind)
 
@@ -1162,7 +1459,10 @@ subroutine colvar_nlread(cv_unit,cv)
   harm_mode = ' '
   anchor_position(:) = 0.0
   anchor_strength(:) = 0.0
-  
+  q_index = 1
+  axis = [0.0, 0.0, 1.0]
+  refcrd_file = 'inpcrd'
+
   read(cv_unit,nml=colvar,err=666)
   
   if (cv_ni.le.0) then
@@ -1236,17 +1536,38 @@ subroutine colvar_nlread(cv_unit,cv)
   else if (cv_type == 'PATTERN_DIHEDRAL') then
       cv%type = COLVAR_PATTERN_DIHEDRAL
   else if (cv_type == 'DF_COM_DISTANCE') then
-      cv%type = COLVAR_DF_COM_DISTANCE      
+      cv%type = COLVAR_DF_COM_DISTANCE
+  else if (cv_type == 'ORIENTATION_ANGLE') then
+      cv%type = COLVAR_ORIENTATION_ANGLE
+  else if (cv_type == 'ORIENTATION_PROJ') then
+      cv%type = COLVAR_ORIENTATION_PROJ
+  else if (cv_type == 'SPINANGLE') then
+      cv%type = COLVAR_SPINANGLE
+  else if (cv_type == 'TILT') then
+      cv%type = COLVAR_TILT
+  else if (cv_type == 'QUATERNION0') then
+      cv%type = COLVAR_QUATERNION0
+  else if (cv_type == 'QUATERNION1') then
+      cv%type = COLVAR_QUATERNION1
+  else if (cv_type == 'QUATERNION2') then
+      cv%type = COLVAR_QUATERNION2
+  else if (cv_type == 'QUATERNION3') then
+      cv%type = COLVAR_QUATERNION3
   else
       write (unit = ERR_UNIT, fmt = '(/a,a,a,a/)') &
             NFE_ERROR, 'CV type ''', trim(cv_type), &
             ''' is not supported so far '
       call terminate()
   end if
-    
+  
   return
+  
+  
+  
+  
 666 write(unit = ERR_UNIT, fmt = '(/a,a/)') NFE_ERROR,'Cannot read &colvar namelist!'
     call terminate()
+
 end subroutine colvar_nlread
 
 end module nfe_colvar

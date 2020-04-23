@@ -139,7 +139,7 @@ subroutine on_sander_init(mdin_unit, amass)
 
    NFE_REAL, intent(in) :: amass(*)
 
-   integer :: n, error, ifind
+   integer :: n, error, ifind, i
    character(len = 80) :: buf
 
    integer :: LOG_UNIT
@@ -204,6 +204,27 @@ subroutine on_sander_init(mdin_unit, amass)
          call colvar_nlread(CV_UNIT, cv(n))
          a_strength(n) = anchor_strength(1)
          a_position(n) = anchor_position(1)
+         if (colvar_has_refcrd(cv(n))) then
+            refcrd_file = trim(refcrd_file)
+            refcrd_len = len_trim(refcrd_file)
+         end if
+         if (colvar_is_quaternion(cv(n))) then
+          allocate(cv(n)%q_index, stat = error)
+           if (error.ne.0) &
+            NFE_OUT_OF_MEMORY
+            cv(n)%q_index = q_index
+         end if 
+         if (colvar_has_axis(cv(n))) then
+           allocate(cv(n)%axis(3), stat = error)
+             if (error.ne.0) &
+                NFE_OUT_OF_MEMORY
+           i = 1
+           do while (i.le.3)
+             cv(n)%axis(i) = axis(i)
+             i = i + 1
+           end do
+         end if
+
          n = n + 1
    end do
 
@@ -293,6 +314,11 @@ subroutine on_sander_init(mdin_unit, amass)
 
 #  ifdef MPI
    call mpi_bcast(ncolvars, 1, MPI_INTEGER, 0, commsander, error)
+   nfe_assert(error.eq.0)
+ 
+   call mpi_bcast(refcrd_len, 1, MPI_INTEGER, 0, commsander, error)
+   nfe_assert(error.eq.0)
+   call mpi_bcast(refcrd_file, refcrd_len, MPI_CHARACTER, 0, commsander, error)
    nfe_assert(error.eq.0)
 #  endif /* MPI */
 
@@ -407,6 +433,15 @@ subroutine on_sander_init(mdin_unit, amass)
          ', strength = ', a_strength(n), ' >>'
       call colvar_print(cv(n), LOG_UNIT)
       write (unit = LOG_UNIT, fmt = '(a)') NFE_INFO
+      if (colvar_is_quaternion(cv(n))) then
+          write (unit = OUT_UNIT, fmt = '(a,a,I3)') NFE_INFO, &
+          ' <> q_index = ', cv(n)%q_index
+      end if
+      if (colvar_has_axis(cv(n))) then
+           write (unit = OUT_UNIT, fmt = '(a,a,f8.4,a,f8.4,a,f8.4,a)') NFE_INFO, &
+           ' <> axis = [',cv(n)%axis(1),', ', cv(n)%axis(2),', ', cv(n)%axis(3),']'
+      end if
+
    end do
 
    write (unit = LOG_UNIT, fmt = '(a,a/)') NFE_INFO, &
@@ -440,10 +475,13 @@ end subroutine on_sander_exit
 
 subroutine on_force(x, f, pot)
 
+   NFE_USE_AFAILED
+
    use nfe_utils
    use nfe_colvar
    use nfe_constants
    use nfe_sander_proxy
+   use nfe_colvar_type
 
    implicit none
 
@@ -452,7 +490,10 @@ subroutine on_force(x, f, pot)
    NFE_REAL, intent(inout) :: f(*)
    NFE_REAL, intent(inout) :: pot
 
-   integer :: n
+   integer :: n, q
+   integer, DIMENSION(4) :: cv_q = (/COLVAR_QUATERNION0, COLVAR_QUATERNION1, &
+                                    COLVAR_QUATERNION2, COLVAR_QUATERNION3/)
+   NFE_REAL :: norm4(100), cv_N(4, 100)
 
 #  ifdef MPI
    integer :: m
@@ -478,6 +519,31 @@ subroutine on_force(x, f, pot)
    end do
 
    NFE_MASTER_ONLY_BEGIN
+   do n = 1, ncolvars
+      if (colvar_is_quaternion(cv(n))) then
+        do q = 1, 4
+         if (cv(n)%type == cv_q(q)) then
+            cv_N(q, cv(n)%q_index) = cv_inst(n)
+         end if
+        end do
+      end if
+   end do
+   do n = 1, ncolvars
+      if (colvar_is_quaternion(cv(n))) then
+       norm4(cv(n)%q_index) = sqrt(cv_N(1,cv(n)%q_index)**2 &
+                                 + cv_N(2,cv(n)%q_index)**2 &
+                                 + cv_N(3,cv(n)%q_index)**2 &
+                                 + cv_N(4,cv(n)%q_index)**2)
+      end if
+   end do
+   do n = 1, ncolvars
+      if (colvar_is_quaternion(cv(n))) then
+         cv_inst(n) = cv_inst(n) / norm4(cv(n)%q_index)
+      else
+         cv_inst(n) = cv_inst(n)
+      end if
+   end do
+
    if (mod(mdstep,run_freq).eq.0) then
       if (mod(mdstep/run_freq,num_repeats).eq.0) then
          write (unit = OUT_UNIT, fmt = '(/a,a)') &

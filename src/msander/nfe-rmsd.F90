@@ -1,4 +1,29 @@
 ! <compile=optimized>
+!----------------------------------------------------------------------
+! Copyright (C) 2004, 2005 Chaok Seok, Evangelos Coutsias and Ken Dill
+!      UCSF, Univeristy of New Mexico, Seoul National University
+! Witten by Chaok Seok and Evangelos Coutsias 2004.
+! modified by Mahmoud Moradi and Volodymyr Babin at NFE, 2007
+! The original version is at http://www.dillgroup.ucsf.edu/rmsd
+
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation; either
+! version 2.1 of the License, or (at your option) any later version.
+!
+
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the Free Software
+! Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+! MA  02110-1301  USA
+!-----------------------------------------------------------------------
+
 !
 ! make up by Mahmoud Moradi and Volodymyr Babin at NFE, Cox 308
 !
@@ -21,6 +46,7 @@ public :: rmsd_canned
 #endif /* NFE_ENABLE_RMSD_CANNED */
 
 public :: rmsd_q
+public :: orientation_q
 public :: rmsd_q1
 public :: rmsd_q2u
 public :: rmsd_q3u
@@ -146,7 +172,8 @@ subroutine rmsd_q(n, w, x1, x2, lambda, q)
             R(i,j) = R(i,j) + w(a + 1)*x1(a3 + i)*x2(a3 + j)
          end do
       end do
-   end do
+   end do   
+
 
    ! S matrix
 
@@ -173,6 +200,55 @@ subroutine rmsd_q(n, w, x1, x2, lambda, q)
    call dstmev(S, lambda, q)
 
 end subroutine rmsd_q
+
+subroutine orientation_q(n, w, x1, x2, lambda, q)   ! no need for w -- we have already considered 
+   use nfe_constants
+
+   implicit none
+
+   integer,   intent(in) :: n
+   NFE_REAL, intent(in) :: w(*), x1(*), x2(*)
+   NFE_REAL, intent(out) :: lambda(4), q(4,4)
+   NFE_REAL :: R(4,4), S(4,4)
+   integer   :: a, a3, i, j
+
+   ! calculate the R matrix (the correlation matrix)
+   R = ZERO
+   do a = 0, n - 1
+      a3 = 3*a
+      do i = 1, 3
+         do j = 1, 3
+            !R(i,j) = R(i,j) + w(a+1)*x1(a3 + i)*x2(a3 + j)
+             R(i,j) = R(i,j) + x1(a3 + i)*x2(a3 + j)
+         end do
+      end do
+   end do
+   
+   ! S matrix (overlap matrix)
+
+   S(1,1) = R(1,1) + R(2,2) + R(3,3)
+   S(2,1) = R(2,3) - R(3,2)
+   S(3,1) = R(3,1) - R(1,3)
+   S(4,1) = R(1,2) - R(2,1)
+
+   S(1,2) = S(2,1)
+   S(2,2) = R(1,1) - R(2,2) - R(3,3)
+   S(3,2) = R(1,2) + R(2,1)
+   S(4,2) = R(1,3) + R(3,1)
+
+   S(1,3) = S(3,1)
+   S(2,3) = S(3,2)
+   S(3,3) =-R(1,1) + R(2,2) - R(3,3)
+   S(4,3) = R(2,3) + R(3,2)
+
+   S(1,4) = S(4,1)
+   S(2,4) = S(4,2)
+   S(3,4) = S(4,3)
+   S(4,4) =-R(1,1) - R(2,2) + R(3,3) 
+   call dstmev4(S, lambda, q)
+
+
+end subroutine orientation_q
 
 !=============================================================================
 
@@ -337,7 +413,6 @@ subroutine rmsd_q3u(q, U)
 end subroutine rmsd_q3u
 
 !=============================================================================
-
 !
 ! a simple subroutine to compute the leading eigenvalue and eigenvector
 ! of a symmetric, traceless 4x4 matrix A by an inverse power iteration:
@@ -367,10 +442,9 @@ subroutine dstmev(A, lambda, evec)
 
    NFE_REAL :: T(4,4), V(4,4), SV(4,4), SW(4)
    NFE_REAL :: U(4,4), SVT(4,4), work(20)
-   integer :: lwork, info
+   integer :: lwork, info, iwork
 
-   integer :: i 
-   !integer :: max_loc(1)
+   integer :: i!, max_loc(1)
 
    ! (I) Convert to tridiagonal form, keeping similarity transform
    !            (a product of 3 Givens rotations)
@@ -388,12 +462,12 @@ subroutine dstmev(A, lambda, evec)
    end do
 
    lwork=size(work)
+   iwork=size(work)
    info=0
 
    ! Use lapack routine instead, svdcmp is not numerically stable at
    ! higher optimization levels
    call D_OR_S()gesvd('A', 'A', 4, 4, T, 4, SW, U, 4, SVT, 4, work, lwork, info)
-
    ! (IV) Compute singular values/vectors of SPD matrix B
    ! call svdcmp(T, SW, SV)
 
@@ -411,6 +485,113 @@ subroutine dstmev(A, lambda, evec)
    !evec = matmul(V, SV(:, max_loc(1)))
 
 end subroutine dstmev
+
+subroutine dstmev4(A, lambda, evec)
+
+   implicit none
+
+   NFE_REAL, intent(in)  :: A(4,4)
+   NFE_REAL, intent(out) :: lambda(4), evec(4,4)
+
+   !NFE_REAL :: T(4,4), V(4,4), SVT(4,4), SW(4)
+   NFE_REAL :: U(4,4), SV(4,4), work(20), SW(4), norm1, norm2
+   integer :: lwork, info, iwork, nrot
+
+   integer :: ip, iq
+
+   ! (I) Convert to tridiagonal form, keeping similarity transform
+   !            (a product of 3 Givens rotations)
+!   call givens4(A, T, V)
+
+   ! (II) Estimate lower bound of smallest eigenvalue by Gershgorin's theorem    !smallest EV
+!   lambda(1) = min(T(1,1) - abs(T(1,2)), &
+!                T(2,2) - abs(T(2,1)) - abs(T(2,3)), &
+!                T(3,3) - abs(T(3,2)) - abs(T(3,4)), &
+!                T(4,4) - abs(T(4,3)))
+
+   ! (III) Form positive definite matrix  T = lambda*I - T
+!   do i = 1, 4
+!      T(i,i) = T(i,i) - lambda(1)
+!   end do
+   lwork=size(work)
+   iwork=size(work)
+   info=0
+
+   ! Use lapack routine instead, svdcmp is not numerically stable at
+   ! higher optimization levels
+
+   ! SW are E-vals, U (or SVT) are E-vecs, and T(or A-dont need to reduce to T) our matrix
+   !call D_OR_S()gesvj('G', 'U', 'A', 4, 4, A, 4, SW, 4, SVT, 4, work, lwork, info)
+   !call D_OR_S()gesvd('A', 'A', 4, 4, A, 4, SW, U, 4, SVT, 4, work, lwork, info)
+   !call D_OR_S()gejsv('F', 'F', 'N', 'R', 'N', 'N', 4, 4, A, 4, SW, U, 4, SVT, 4, work, lwork, iwork, info)
+   ! Be independent -- define our own jacobi
+   call jacobi(A, 4, 4, SW, U, nrot)
+   ! sort, transpose, and normalize
+   call eigsrt (SW, U, 4, 4)
+   !gejsvd
+   !write(*,*), 'info= ', info
+   ! (IV) Compute singular values/vectors of SPD matrix B
+   !call svdcmp(T, SW, SV)
+
+   ! (V) Shift spectrum back
+   ! xgesvd always returns largest value in SW(1)
+   
+   !IF( info.GT.0 ) THEN
+   !      WRITE(*,*)'The algorithm computing SVD failed to converge.'
+   !      STOP
+   !END IF
+
+   !SV = transpose(SVT)
+   !SV = A
+   lambda(1) =  SW(1)
+   lambda(2) =  SW(2)
+   lambda(3) =  SW(3)
+   lambda(4) =  SW(4)
+   SV = transpose (U)
+   !SV = transpose(SVT)
+   !SV = U
+  
+   ! Normalization
+   do ip = 1, 4
+      norm2 = 0.0
+      do iq = 1, 4 
+         norm2 = norm2 + SV(ip,iq)*SV(ip,iq)
+      enddo
+      norm1 = sqrt(norm2) 
+      do iq = 1, 4
+         SV(:,iq) = SV(:,iq)/norm1 
+      enddo
+   enddo
+ 
+   !norm1 = sqrt( SV(1,1)*SV(1,1) + SV(2,1)*SV(2,1)+ &
+   !        SV(3,1)*SV(3,1) + SV(4,1)*SV(4,1))
+   !SV(:,1) = SV(:,1)/norm1
+   
+   !norm2 = sqrt(SV(1,2)*SV(1,2) + SV(2,2)*SV(2,2)+ &
+   !        SV(3,2)*SV(3,2) + SV(4,2)*SV(4,2))
+   !SV(:,2) = SV(:,2)/norm2
+   
+   !norm3 = sqrt(SV(1,3)*SV(1,3) + SV(2,3)*SV(2,3)+ &
+   !        SV(3,3)*SV(3,3) + SV(4,3)*SV(4,3))
+   !SV(:,3) = SV(:,3)/norm3
+   
+   !norm4 = sqrt(SV(1,4)*SV(1,4) + SV(2,4)*SV(2,4)+ &
+   !        SV(3,4)*SV(3,4) + SV(4,4)*SV(4,4))
+   !SV(:,4) = SV(:,4)/norm4
+
+   ! (VI) Convert eigenvector to original coordinates: (V is transposed!)
+   evec(:,1) = SV(:, 1)
+   evec(:,2) = SV(:, 2)
+   evec(:,3) = SV(:, 3)
+   evec(:,4) = SV(:, 4)
+   !if (evec(1,1) >= 0.0) then             !This is in go 'nfe-cv-QUATERNION'! 
+   !    evec(:,1) = evec(:,1)
+   !else
+   !   evec(:,1) = -1.0 * evec(:,1)
+   !endif
+   
+end subroutine dstmev4
+
 
 !=============================================================================
 
@@ -532,6 +713,137 @@ subroutine givens4(S, T, V)
 end subroutine givens4
 
 !============================================================================
+subroutine jacobi(a, n, np, d, v, nrot)
+
+   use nfe_constants
+   implicit none
+
+   integer :: n, np, nrot
+   NFE_REAL :: a(np,np), d(np), v(np,np)
+   integer :: i, ip, iq, j
+   NFE_REAL :: c, g, h, s, sm, t, tau, theta, tresh, b(n), z(n) 
+
+   do ip = 1, n                !initialze to the identity
+      do iq = 1, n
+         v(ip, iq) = 0.0
+      enddo
+      v(ip, ip) = 1.0
+   enddo
+   do ip = 1, n
+      b(ip) = a(ip,ip)       ! initialze b and d to the diagnol of a
+      d(ip) = b(ip)
+      z(ip) = 0.0
+   enddo
+   nrot = 0
+   do i = 1, 50
+      sm = 0.0
+      do ip = 1, n-1
+         do iq = ip+1, n
+            sm = sm + abs(a(ip,iq))
+         enddo
+      enddo 
+      if (sm .eq. ZERO) return
+      if (i .lt. 4) then
+         tresh = 0.2*sm/n**2
+      else
+         tresh = 0.0
+      endif
+      do ip =1, n-1
+         do iq = ip+1, n 
+            g = 100.0*abs(a(ip,iq))
+            if ((i .gt. 4) .and. (abs(d(ip))+ &
+            g.eq.abs(d(ip))).and.(abs(d(iq))+ &
+            g .eq. abs(d(iq)))) then
+               a(ip,iq) = 0.0
+            else if (abs(a(ip,iq)) .gt. tresh) then
+                 h = d(iq) - d(ip)
+                 if (abs(h) + g .eq. abs(h)) then
+                    t = a(ip,iq)/h
+                 else
+                    theta = 0.5*h/a(ip,iq)
+                    t = 1.0/(abs(theta) + sqrt(1.0+theta**2))
+                    if (theta .lt. ZERO) t = -t
+                 endif
+                 c = 1.0/sqrt(1.0+t**2)
+                 s = t*c
+                 tau = s/(1.0+c)
+                 h = t*a(ip,iq)
+                 z(ip) = z(ip) - h
+                 z(iq) = z(iq) + h
+                 d(ip) = d(ip) - h
+                 d(iq) = d(iq) + h
+                 a(ip,iq) = 0.0
+                 do j =1, ip-1
+                    g = a(j,ip)
+                    h = a(j,iq)
+                    a(j,ip) = g - s*(h+g*tau)
+                    a(j,iq) = h + s*(g-h*tau)
+                 enddo
+                 do j = ip+1, iq-1
+                    g = a(ip,j)
+                    h = a(j,iq)
+                    a(ip,j) = g-s*(h+g*tau)
+                    a(j, iq) = h+s*(g-h*tau)
+                 enddo
+                 do j = iq+1,n
+                    g = a(ip,j)
+                    h = a(iq,j)
+                    a(ip,j) = g-s*(h+g*tau)
+                    a(iq,j) = h+s*(g-h*tau)
+                 enddo
+                 do j =1, n
+                 g = v(j,ip)
+                 h = v(j,iq)
+                 v(j,ip) = g-s*(h+g*tau)
+                 v(j, iq) = h+s*(g-h*tau)
+                 enddo
+                 nrot = nrot + 1
+            endif
+         enddo
+      enddo
+      do ip = 1, n
+         b(ip) = b(ip) + z(ip)
+         d(ip) = b(ip)
+         z(ip) = 0.0
+      enddo
+   enddo
+   return
+end subroutine jacobi
+
+
+!=============================================================================
+
+subroutine eigsrt(d, v, n, np)
+
+   use nfe_constants
+   implicit none
+
+   integer :: n, np, i, j, k
+   NFE_REAL :: d(np), v(np,np), p
+
+   do i = 1, n-1
+      k = i
+      p = d(i)
+      do j = i+1, n
+         if (d(j) .ge. p)then
+            k = j
+            p = d(j)
+         endif
+      enddo
+      if (k .ne. i)then
+          d(k) = d(i)
+          d(i) = p
+          do j = 1, n
+             p = v(j,i)
+             v(j,i) = v(j,k)
+             v(j,k) = p
+          enddo
+      endif
+   enddo
+   return
+end subroutine eigsrt
+
+!=============================================================================
 
 subroutine svdcmp(a, w, v)
 
@@ -550,8 +862,6 @@ subroutine svdcmp(a, w, v)
    NFE_REAL :: anorm, c, f, g, h, s, scale, x, y, z, rv1(2*N)
 
    g = ZERO
-   f = ZERO
-   h = ZERO
    scale = ZERO
    anorm = ZERO
 
@@ -817,6 +1127,40 @@ pure NFE_REAL function pythag(a, b)
    endif
 
 end function pythag
+!============================================================================
+
+!
+! simple E-value sorting 
+!
+
+!return p,q in ascending order
+Subroutine Order(p,q)
+
+   NFE_REAL :: p,q,temp
+
+    if (p<q) then
+       temp=p
+       p=q
+       q=temp
+    end if
+  return
+
+end
+
+!sorting of array A
+Subroutine sort(A, n)
+
+   NFE_REAL :: A(1:n)
+   integer :: i,j,n 
+
+    do i=1, n
+      do j=n, i+1, -1
+        call Order(A(j-1), A(j))
+      end do
+    end do
+  return
+end
+
 
 !============================================================================
 
