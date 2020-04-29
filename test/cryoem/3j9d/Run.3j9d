@@ -36,6 +36,6 @@ $DO_PARALLEL $sander  -O -i mdin -p 3j9d_box.parm7 \
 
 /bin/rm -f mdin mdinfo restrt
 
-../../dacdif $output.save $output
+../../dacdif -r 1.e-6 $output.save $output
 
 exit 0

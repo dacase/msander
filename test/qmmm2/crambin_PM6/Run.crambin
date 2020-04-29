@@ -34,7 +34,7 @@ output=crambin.out
 $DO_PARALLEL $sander -O -c crambin.crd -o $output \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
-../../dacdif -t 1 $output.save $output
+../../dacdif -r 4.e-5 $output.save $output
 
 /bin/rm -f restrt mdin mdinfo dummy
 exit 0
