@@ -1,4 +1,4 @@
-include ../config.h
+include ../../config.h
 
 COMMON_FILES = LINE.h TOP.h TTOP.h MISC.h UNITS.h DEBUG.h T3TOP.h SIZE.h TEMP.h
 
@@ -11,6 +11,8 @@ LESOBJ = lesmain.o addspace.o readprm.o \
         getd.o    wlesprm.o lesprm.o random.o \
         les2prm.o checksz.o addspace_atm1st.o \
         mexit.o  nxtsec.o
+
+addles:  $(BINDIR)/addles$(SFX)
 
 $(BINDIR)/addles$(SFX) : $(LESOBJ) 
 	@echo "[ADDLES]  FC $@"
@@ -38,7 +40,7 @@ uninstall:
 
 $(LESOBJ) : $(COMMON_FILES)
 
-mexit.o:  ../sander/mexit.F90
+mexit.o:  ../msander/mexit.F90
 	@echo "[ADDLES]  FC $<"
 	$(VB)$(FC) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $<
 

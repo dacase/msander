@@ -5,6 +5,7 @@ include ../config.h
 install:
 	@cd msander && $(MAKE) msander
 	@cd xray && $(MAKE) xray
+	@cd addles && $(MAKE) addles
 
 clean:
 	-(cd blas && $(MAKE) clean )
@@ -15,10 +16,11 @@ clean:
 	-(cd msander && $(MAKE) clean )
 	-(cd lib && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
+	-(cd addles && $(MAKE) clean )
 
 uninstall: clean
 	-(cd .. && /bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
-	             $(BINDIR)/add_pdb $(BINDIR)/add_xray \
+	             $(BINDIR)/add_pdb $(BINDIR)/add_xray $(BINDIR)/addles \
                  $(LIBDIR)/liblapack \
                  $(LIBDIR)/libblas \
                  $(LIBDIR)/libarpack \
