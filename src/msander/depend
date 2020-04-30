@@ -4024,7 +4024,6 @@ short_ene.o: \
                     crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ene_decomp.h\
                     ips_lj.h\
                     ew_directp.h\
                     ew_directe3.h\
@@ -4054,7 +4053,6 @@ short_ene.LES.o: \
                     crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ene_decomp.h\
                     ips_lj.h\
                     ew_directp.h\
                     ew_directe3.h\

@@ -59,10 +59,6 @@
       eelt = eelt + ecur
       dfee = comm1 * b1
 
-#ifdef LES
-# include "ene_decomp.h"
-#endif
-
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -133,9 +129,6 @@
       ecur = comm1*b0        
       eelt = eelt + ecur
       dfee = comm1 * b1
-#ifdef LES
-# include "ene_decomp.h"
-#endif
 
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
@@ -199,9 +192,6 @@
       ecur = comm1 * b0
       eelt = eelt + ecur
       dfee = comm1 * b1
-#ifdef LES
-#  include "ene_decomp.h"
-#endif
 
       cache_r2(im_new)=delr2inv
       cache_df(im_new)=dfee
@@ -269,9 +259,6 @@
       ecur = comm1 * b0
       eelt = eelt + ecur
       dfee = comm1 * b1
-#ifdef LES
-# include "ene_decomp.h"
-#endif
 
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
@@ -326,9 +313,6 @@
       eelt = eelt + ecur
       dfee = b0 * delr2inv
          
-#ifdef LES
-#     include "ene_decomp.h"
-#endif 
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -387,9 +371,6 @@
       ecur = b0
       eelt = eelt + ecur
       dfee = b0 * delr2inv
-#ifdef LES
-#     include "ene_decomp.h"
-#endif         
       cache_r2(im_new)=delr2inv
       cache_df(im_new)=dfee
     end do
@@ -501,9 +482,6 @@
       eelt = eelt + ecur
       dfee = two * b0 * delr2inv
 
-#ifdef LES
-#     include "ene_decomp.h"
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -558,9 +536,6 @@
       ecur = b0
       eelt = eelt + ecur
       dfee = two * b0 * delr2inv
-#ifdef LES
-#     include "ene_decomp.h"
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
 
@@ -614,9 +589,6 @@
         call cr_add_dcdr_factor(i, b2*cgj)
         call cr_add_dcdr_factor(j, b2*cgi)
       end if
-#ifdef LES
-#     include "ene_decomp.h"
-#endif
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -675,9 +647,6 @@
       call cr_add_dcdr_factor(j, b2*cgi)
     end if
     dfee = -b0 * dpipse * delr2inv
-#ifdef LES
-#   include "ene_decomp.h"
-#endif
 
     cache_df(im_new)=dfee
   end do

@@ -17,18 +17,6 @@ do im_new = 1,icount
    lfac=lesfac(lestmp+lestyp(j))
    f6 = cn2(ic)*r6*lfac
    f12 = cn1(ic)*delr12inv*lfac
-
-   if(ipimd>0) then
-      if(cnum(i).eq.0.and.cnum(j).eq.0) then
-         nrg_all(1:nbead)=nrg_all(1:nbead) + (f12-f6)/nbead
-      else
-         if(cnum(i).ne.0) then
-            nrg_all(cnum(i)) = nrg_all(cnum(i)) + f12-f6
-         else
-            nrg_all(cnum(j)) = nrg_all(cnum(j)) + f12-f6
-         endif
-      endif
-   endif
 #else
          f6 = cn2(ic)*r6
          f12 = cn1(ic)*delr12inv

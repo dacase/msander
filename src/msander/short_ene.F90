@@ -347,9 +347,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       ecur = comm1 * b0
       eelt = eelt + ecur
       dfee = comm1*b1
-#ifdef LES
-#  include "ene_decomp.h"
-#endif
 
       delr2inv = delrinv*delrinv
       dfee = dfee*delr2inv
@@ -489,9 +486,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
       ecur = comm1 * b0
       eelt = eelt + ecur
       dfee = comm1 * b1
-#ifdef LES
-#  include "ene_decomp.h"
-#endif
 
       delr2inv = delrinv*delrinv
       dfee = dfee*delr2inv

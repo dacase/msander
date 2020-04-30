@@ -386,8 +386,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   eke = 0.d0
 
 #ifdef LES
-  aa = 0.d0
-  poly = 0.d0
   ekmhles = 0.d0
 #endif
   do_list_update = .false.

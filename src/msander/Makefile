@@ -88,7 +88,7 @@ MMOBJ = \
     wallclock.o xminC.o veclib.o
 
 LESOBJ= \
-    align.o AmberNetcdf.o amd.o amopen.o ArrayList.o \
+    align.o AmberNetcdf.o amd.o amopen.o \
     assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
     constante.o constantph.o constants.o crg_reloc.o csa.o \
     cshf.o debug.o decnvh.o degcnt.LES.o \
@@ -96,14 +96,14 @@ LESOBJ= \
     erfcfun.o ew_box.LES.o ew_bspline.o \
     ew_fft.o ew_force.LES.o ew_recip.LES.o ew_setup.LES.o \
     extra_pts.LES.o fastwt.o file_io_dat.o findmask.o force.LES.o \
-    getcor.LES.o icosasurf.o ips.o iwrap2.o KFReader.o \
+    getcor.LES.o icosasurf.o ips.o iwrap2.o \
     les.o linear_response.o lmodC.o lmod.LES.o locmem.LES.o \
     matinv.o mbar.o mdfil.LES.o mdread.LES.o md_scheme.LES.o \
     mdwrit.LES.o memory_module.o mexit.o minrit.LES.o molecule.o \
     mtmdcall.o multisander.LES.o multitmd.o music_module.o new_time.o \
     nmlsrc.o nmrcal.o nmr.LES.o nonbond_list.LES.o parallel.LES.o \
     parms.o pcshift.o pearsn.o printe.o \
-    prn_qmmm_dipole.o qm_mm.LES.o quench.o rand2.o random.o \
+    qm_mm.LES.o quench.o rand2.o random.o \
     rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
@@ -135,11 +135,11 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
-$(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(PARTPIMDOBJ) \
+$(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) \
          $(PLUMED_DEPENDENCIES) dummy
 	@echo "[MSANDER_LES]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(PARTPIMDOBJ) \
+	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(QMOBJ) \
 	     $(XRAY_OBJS) $(NFE_OBJECTS) -L$(LIBDIR) $(NETCDFLIBF) \
 	     $(FLIBS_RISMSANDER) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
