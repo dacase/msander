@@ -1,6 +1,6 @@
 # Makefile for antechamber
 
-include ../config.h
+include ../../config.h
 
 ACDOCTOROBJS = acdoctor.o eprintf.o
 AM1BCCOBJS = am1bcc.o eprintf.o
@@ -24,17 +24,18 @@ TOP2FFOBJS = top2ff.o eprintf.o
 TOP2MOL2OBJS = top2mol2.o eprintf.o
 
 # Dispatched programs are wrapper scripts of programs; these scripts
-# automatically set AMBERHOME; they live in $(BINDIR)/to_be_dispatched/
+# automatically set AMBERHOME; the programs themselves live in 
+# $(BINDIR)/x/
 DISPATCHEDPROGS = \
-	$(BINDIR)/to_be_dispatched/am1bcc$(SFX) \
-	$(BINDIR)/to_be_dispatched/antechamber$(SFX) \
-	$(BINDIR)/to_be_dispatched/atomtype$(SFX) \
-	$(BINDIR)/to_be_dispatched/bondtype$(SFX) \
-	$(BINDIR)/to_be_dispatched/espgen$(SFX) \
-	$(BINDIR)/to_be_dispatched/parmchk2$(SFX) \
-	$(BINDIR)/to_be_dispatched/prepgen$(SFX) \
-	$(BINDIR)/to_be_dispatched/residuegen$(SFX) \
-	$(BINDIR)/to_be_dispatched/respgen$(SFX) \
+	$(BINDIR)/x/am1bcc$(SFX) \
+	$(BINDIR)/x/antechamber$(SFX) \
+	$(BINDIR)/x/atomtype$(SFX) \
+	$(BINDIR)/x/bondtype$(SFX) \
+	$(BINDIR)/x/espgen$(SFX) \
+	$(BINDIR)/x/parmchk2$(SFX) \
+	$(BINDIR)/x/prepgen$(SFX) \
+	$(BINDIR)/x/residuegen$(SFX) \
+	$(BINDIR)/x/respgen$(SFX) \
 
 LOCALPROGS = \
 	am1bcc$(SFX) \
@@ -69,7 +70,7 @@ dispatch:
 
 tests: $(TESTS)
 
-antechamber: $(DISPATCHEDPROGS) dispatch
+installac: $(DISPATCHEDPROGS) dispatch
 
 clean:
 	/bin/rm -f *.o $(LOCALPROGS) $(TESTS)
@@ -89,70 +90,70 @@ $(LIBDIR)/libcifparse.a:
 #_____________________________________________________________________________
 # Dispatched Programs
 
-$(BINDIR)/to_be_dispatched/acdoctor$(SFX): acdoctor$(SFX)
+$(BINDIR)/x/acdoctor$(SFX): acdoctor$(SFX)
 	$(VB)$(MV) acdoctor$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/am1bcc$(SFX): am1bcc$(SFX)
+$(BINDIR)/x/am1bcc$(SFX): am1bcc$(SFX)
 	$(VB)$(MV) am1bcc$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/antechamber$(SFX): antechamber$(SFX)
+$(BINDIR)/x/antechamber$(SFX): antechamber$(SFX)
 	$(VB)$(MV) antechamber$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/atomtype$(SFX): atomtype$(SFX)
+$(BINDIR)/x/atomtype$(SFX): atomtype$(SFX)
 	$(VB)$(MV) atomtype$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/bondtype$(SFX): bondtype$(SFX)
+$(BINDIR)/x/bondtype$(SFX): bondtype$(SFX)
 	$(VB)$(MV) bondtype$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/bondtype.orig$(SFX): bondtype.orig$(SFX)
+$(BINDIR)/x/bondtype.orig$(SFX): bondtype.orig$(SFX)
 	$(VB)$(MV) bondtype.orig$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/charmmgen$(SFX): charmmgen$(SFX)
+$(BINDIR)/x/charmmgen$(SFX): charmmgen$(SFX)
 	$(VB)$(MV) charmmgen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/crdgrow$(SFX): crdgrow$(SFX)
+$(BINDIR)/x/crdgrow$(SFX): crdgrow$(SFX)
 	$(VB)$(MV) crdgrow$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/database$(SFX): database$(SFX)
+$(BINDIR)/x/database$(SFX): database$(SFX)
 	$(VB)$(MV) database$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/delphigen$(SFX): delphigen$(SFX)
+$(BINDIR)/x/delphigen$(SFX): delphigen$(SFX)
 	$(VB)$(MV) delphigen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/espgen$(SFX): espgen$(SFX)
+$(BINDIR)/x/espgen$(SFX): espgen$(SFX)
 	$(VB)$(MV) espgen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/match$(SFX): match$(SFX)
+$(BINDIR)/x/match$(SFX): match$(SFX)
 	$(VB)$(MV) match$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/match_atomname$(SFX): match_atomname$(SFX)
+$(BINDIR)/x/match_atomname$(SFX): match_atomname$(SFX)
 	$(VB)$(MV) match_atomname$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/parmcal$(SFX): parmcal$(SFX)
+$(BINDIR)/x/parmcal$(SFX): parmcal$(SFX)
 	$(VB)$(MV) parmcal$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/parmchk2$(SFX): parmchk2$(SFX)
+$(BINDIR)/x/parmchk2$(SFX): parmchk2$(SFX)
 	$(VB)$(MV) parmchk2$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/parmjoin$(SFX): parmjoin$(SFX)
+$(BINDIR)/x/parmjoin$(SFX): parmjoin$(SFX)
 	$(VB)$(MV) parmjoin$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/prepgen$(SFX): prepgen$(SFX)
+$(BINDIR)/x/prepgen$(SFX): prepgen$(SFX)
 	$(VB)$(MV) prepgen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/residuegen$(SFX): residuegen$(SFX)
+$(BINDIR)/x/residuegen$(SFX): residuegen$(SFX)
 	$(VB)$(MV) residuegen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/respgen$(SFX): respgen$(SFX)
+$(BINDIR)/x/respgen$(SFX): respgen$(SFX)
 	$(VB)$(MV) respgen$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/translate$(SFX): translate$(SFX)
+$(BINDIR)/x/translate$(SFX): translate$(SFX)
 	$(VB)$(MV) translate$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/top2ff$(SFX): top2ff$(SFX)
+$(BINDIR)/x/top2ff$(SFX): top2ff$(SFX)
 	$(VB)$(MV) top2ff$(SFX) $@
 
-$(BINDIR)/to_be_dispatched/top2mol2$(SFX): top2mol2$(SFX)
+$(BINDIR)/x/top2mol2$(SFX): top2mol2$(SFX)
 	$(VB)$(MV) top2mol2$(SFX) $@
 
 #_____________________________________________________________________________

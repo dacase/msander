@@ -1,9 +1,9 @@
-include ../config.h
+include ../../config.h
 LOCALFLAGS=-Wno-unused-value
 
 .c.o:
 	@echo "[TLEAP] CC $<"
-	$(VB)$(CC) -c -I$(XHOME)/include $(NETCDFINC) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
+	$(VB)$(CC) -c -I$(INCDIR) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
 
 # 
 #  Absolutely necessary routines
@@ -116,7 +116,7 @@ uninstall: clean
 
 $(BINDIR)/teLeap$(SFX): $(TLEAP_OBJ)
 	@echo "[TLEAP] CC $@"
-	$(VB)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(TLEAP_OBJ) $(LM) $(NETCDFLIB)
+	$(VB)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(TLEAP_OBJ) $(LM) $(NETCDFLIBF)
 
 $(BINDIR)/tleap:
 	cp tleap $(BINDIR)

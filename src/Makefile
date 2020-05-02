@@ -7,7 +7,7 @@ install:
 	@cd msander && $(MAKE) msander.LES
 	@cd msander && $(MAKE) libsander
 	@cd msander && $(MAKE) libsanderles
-	@cd pysander && $(MAKE) make install
+	@cd pysander && $(MAKE) make pysander
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) tleap

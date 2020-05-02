@@ -154,7 +154,7 @@ XRAY_OBJS = \
 
 msander: $(BINDIR)/msander$(SFX)
 
-msander.les: $(BINDIR)/msander.LES$(SFX)
+msander.LES: $(BINDIR)/msander.LES$(SFX)
 
 libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
 

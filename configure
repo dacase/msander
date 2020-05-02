@@ -120,6 +120,8 @@ fi
 if [ ! -d include ]; then
     mkdir include
 fi
+cp src/include/CompatibilityMacros.h include
+cp src/msander/sander.h include
 
 #------------------------------------------------------------------------------
 #  Initialize variables that are architecture specific:
@@ -463,9 +465,9 @@ PLUMED_DEPENDENCIES=Plumed.o
 
 #Python interpreter we are using and install options
 PYTHON=python
-PYTHON_INSTALL=--prefix=$(BASEDIR)
-PYTHONPATH=$(BASEDIR)/lib/python2.7/site-packages
-PYINSTALL=PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install -f $(PYTHON_INSTALL)
+PYTHON_INSTALL=--prefix=\$(BASEDIR)
+PYTHONPATH=\$(BASEDIR)/lib/python2.7/site-packages
+PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF
 

@@ -1,4 +1,4 @@
-# Note: always find header files in $AMBERHOME/include
+# Note: always find header files in $MSANDERHOME/include
 
 from distutils.core import setup, Extension
 import os
@@ -31,7 +31,7 @@ if (not os.path.isfile(sanderles_extension_source)) or os.path.getmtime(sander_e
         os.system('cp -r sander sanderles')
 
 # Retrieve value of AMBERHOME env variable. (None if not defined).
-amberhome = os.getenv('AMBERHOME')
+amberhome = os.getenv('MSANDERHOME')
 
 definitions = []
 lesdefinitions = [('LES', None)]
@@ -72,7 +72,7 @@ if amberhome is None:
         lesdepends.append(join(incdir[0], 'CompatibilityMacros.h'))
 
 else:
-    # AMBERHOME supplied.  Define new directory tree rooted at AMBERHOME.
+    # MSANDERHOME supplied.  Define new directory tree rooted at MSANDERHOME.
     incdir = [join(amberhome, 'include')]
     libdir = [join(amberhome, 'lib')]
     depends.append(join(incdir[0], 'CompatibilityMacros.h'))
@@ -97,7 +97,7 @@ pysanderles = Extension('sanderles.pysander',
                         define_macros=lesdefinitions)
 
 setup(name='sander',
-      version="16.0",
+      version="20.0",
       license='GPL v2 or later',
       author='Jason Swails',
       author_email='jason.swails -at- gmail.com',

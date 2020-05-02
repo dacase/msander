@@ -1,8 +1,8 @@
 #!/bin/sh
 
-export AMBERHOME="$(dirname "$(cd "$(dirname "$0")" && pwd)")"
+export MSANDERHOME="$(dirname "$(cd "$(dirname "$0")" && pwd)")"
 
-$AMBERHOME/bin/teLeap \
+$MSANDERHOME/bin/teLeap \
            -I$AMBERHOME/dat/leap/prep \
            -I$AMBERHOME/dat/leap/lib \
            -I$AMBERHOME/dat/leap/parm \

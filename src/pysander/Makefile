@@ -1,6 +1,6 @@
-include ../config.h
+include ../../config.h
 
-install:
+pysander:
 	AMBERHOME=$(AMBER_PREFIX) $(PYTHON) setup.py install $(PYTHON_INSTALL)
 
 clean:
