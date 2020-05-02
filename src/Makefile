@@ -4,8 +4,14 @@ include ../config.h
 
 install:
 	@cd msander && $(MAKE) msander
+	@cd msander && $(MAKE) msander.LES
+	@cd msander && $(MAKE) libsander
+	@cd msander && $(MAKE) libsanderles
+	@cd pysander && $(MAKE) make install
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
+	@cd leap && $(MAKE) tleap
+	@cd antechamber && $(MAKE) antechamber
 
 clean:
 	-(cd blas && $(MAKE) clean )
@@ -17,17 +23,17 @@ clean:
 	-(cd lib && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
+	-(cd leap && $(MAKE) clean )
+	-(cd antechamber && $(MAKE) clean )
 
 uninstall: clean
-	-(cd .. && /bin/rm -f $(BINDIR)/msander $(BINDIR)/msander.MPI \
-	             $(BINDIR)/add_pdb $(BINDIR)/add_xray $(BINDIR)/addles \
-                 $(LIBDIR)/liblapack \
-                 $(LIBDIR)/libblas \
-                 $(LIBDIR)/libarpack \
-                 $(LIBDIR)/libsqm \
-                 $(LIBDIR)/librism \
-                 $(LIBDIR)/libsys \
-                 $(INCDIR)/* ../config.h)
+	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
+        add_pdb add_xray teLeap tleap addles)
+	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
+        libarpack.a libsqm.a librism.a /libsys.a \
+        libsander.so libsanderles.so)
+	/bin/rm -f $(INCDIR)/* ../config.h
+	/bin/rm -rf $(BINDIR)/x $(LIBDIR)/python2.7
 
 distclean: clean
 	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) )

@@ -7,6 +7,41 @@ VPATH=
 # Add search paths for .mod files
 LOCALFLAGS = -I../sqm -I../rism 
 
+QMAPIOBJ = \
+    abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
+    qm2_extern_util_module.o qm2_extern_module.o \
+    qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
+    ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
+    qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
+    qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
+    qm2_extern_genmpi_module.o \
+    qmmm_adaptive_module.o prn_qmmm_dipole.o
+
+LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
+    constants.o state.o wallclock.o veclib.o \
+    rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
+    egb.LES.o remd.LES.o findmask.o relax_mat.o nmr.LES.o multitmd.o \
+    cshf.o nmrcal.o mtmdcall.o pearsn.o cpparm.LES.o \
+    printe.o nonbond_list.LESAPI.o force.LES.o rdparm.LESAPI.o \
+    mdread.LES.o locmem.LES.o runmd.LES.o relaxmd.o quench.o degcnt.LES.o decnvh.o \
+    fastwt.API.o parallel.LES.o shake.o rattle.o ene.LES.o \
+    dynlib.LESAPI.o nmlsrc.o \
+    ew_force.LES.o ew_setup.LESAPI.o ew_bspline.o\
+    ew_fft.o short_ene.LES.o ew_recip.LES.o pcshift.o \
+    align.o csa.o rfree.o rgroup.o \
+    amopen.o sander_lib.o random.o debug.API.o \
+    mexit.o new_time.API.o extra_pts.LESAPI.o thermo_int.o matinv.o assert.o \
+    erfcfun.o md_scheme.LES.o \
+    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o \
+    $(SANDER_RISM_INTERFACE) \
+    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o \
+    linear_response.o molecule.o dssp.o \
+    charmm.API.o crg_reloc.o barostats.o prmtop_type.o \
+    AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o \
+    mdwrit.LES.o lmod.LES.o trajene.o ew_box.LESAPI.o minrit.LES.o \
+    set.LESAPI.o qm_mm.LESAPI.o amd.o scaledMD.o interface.LESAPI.o \
+    music_module.o
+
 NFE_OBJECTS = \
     nfe-abmd-hooks.o nfe-bbmd-ctxt.o nfe-bbmd-hooks.o  \
     nfe-colvar.o nfe-colvar-math.o nfe-colvar-type.o nfe-colvar-utils.o \
@@ -121,7 +156,9 @@ msander: $(BINDIR)/msander$(SFX)
 
 msander.les: $(BINDIR)/msander.LES$(SFX)
 
-libsander: $(LIBDIR)/libsander.a
+libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
+
+libsanderles: $(LIBDIR)/libsanderles$(SHARED_SUFFIX)
 
 dummy:
 
@@ -141,16 +178,28 @@ $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
 	@echo "[MSANDER_LES]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LESOBJ) $(QMOBJ) \
 	     $(XRAY_OBJS) $(NFE_OBJECTS) -L$(LIBDIR) $(NETCDFLIBF) \
-	     $(FLIBS_RISMSANDER) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
+	     $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
-$(LIBDIR)/libsander.a: libs $(APIOBJ) \
+$(LIBDIR)/libsander$(SHARED_SUFFIX): libs $(APIOBJ) \
           $(QMAPIOBJ) $(INCDIR)/sander_api.mod \
           force.o $(PLUMED_DEPENDENCIES) $(NFE_OBJECTS) $(XRAY_OBJS)
+	@echo "[MSANDER API]  FC $@"
+	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  \
+        $(APIOBJ) $(QMAPIOBJ) force.o \
+        -L$(LIBDIR) -lsqm $(NFE_OBJECTS) $(XRAY_OBJS)  \
+        $(NETCDFLIBF) $(FLIBSF) $(PLUMED_LOAD)
+
+#---------------------------------------------------------------------------
+$(LIBDIR)/libsanderles$(SHARED_SUFFIX): $(LESAPIOBJ) \
+        $(QMAPIOBJ) $(INCDIR)/sanderles_api.mod \
+        $(NFE_OBJECTS) $(XRAY_OBJS) \
+        $(PLUMED_DEPENDENCIES) 
 	@echo "[MSANDER API]  AR $@"
-	$(VB)$(AR) $@  $(APIOBJ) \
-          $(QMAPIOBJ) force.o $(NFE_OBJECTS) $(XRAY_OBJS) > /dev/null
-	$(VB)$(RANLIB) $@
+	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ \
+        $(LESAPIOBJ) $(QMAPIOBJ) \
+        $(XRAY_OBJS) -L$(LIBDIR) -lsqm $(PLUMED_LOAD) \
+        $(NFE_OBJECTS) $(NETCDFLIBF) $(FLIBSF) 
 
 $(INCDIR)/sander_api.mod: interface.o
 	$(VB)/bin/cp sander_api.mod $(INCDIR)

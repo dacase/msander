@@ -16,10 +16,10 @@ rismsander="-DRISMSANDER"
 conda="no"
 
 compiler="gnu"
-cc="gcc"
+cc="gcc -fPIC"
 mpicc="mpicc"
 
-fc="gfortran"
+fc="gfortran -fPIC"
 flibs_arch="-lgfortran -w"
 flibs_la=""
 flibs_fftw="-lfftw3"
@@ -110,6 +110,9 @@ fi
 #------------------------------------------------------------------------------
 if [ ! -d bin ]; then
     mkdir bin
+fi
+if [ ! -d bin/x ]; then
+    mkdir bin/x
 fi
 if [ ! -d lib ]; then
     mkdir lib
@@ -334,7 +337,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    fi
    cd ../..
 else
-   echo "Using the existing netcdf libraries"
+   echo "skipping netcdf support"
 fi
 
 #--------------------------------------------------------------------------
@@ -457,6 +460,13 @@ RISMSANDER=$rismsander
 PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
+
+#Python interpreter we are using and install options
+PYTHON=python
+PYTHON_INSTALL=--prefix=$(BASEDIR)
+PYTHONPATH=$(BASEDIR)/lib/python2.7/site-packages
+PYINSTALL=PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install -f $(PYTHON_INSTALL)
+
 EOF
 
 

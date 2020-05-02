@@ -16,8 +16,9 @@ printf <<EOF;
 #
 EOF
 
-$LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} = $LES{"parallel" } =
-    $LES{"jnrg"} = $LES{"ene"} = $LES{"locmem"} = $LES{"ew_force"} = $LES{"ew_setup"} =
+$LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} = 
+    $LES{"parallel" } = $LES{"jnrg"} = $LES{"ene"} = $LES{"locmem"} = 
+    $LES{"ew_force"} = $LES{"ew_setup"} =
     $LES{"ew_direct"} = $LES{"enb"} = $LES{"egb"} = $LES{"pimd_verlet"} =
     $LES{"force"} = $LES{"dynlib"} = $LES{"extra_pts"} = $LES{"short_ene"} =
     $LES{"degcnt"} = $LES{"sander"} = $LES{"nmr"} = $LES{"runmd"} =
@@ -39,6 +40,10 @@ $API{"rdparm"} = $API{"debug"} = $API{"set"} = $API{"fastwt"} =
     $API{"ew_setup"} = $API{"nonbond_list"} = $API{"ew_box"} =
     $API{"new_time"} = $API{"dynlib"} = $API{"qm_mm"} = 
     $API{"extra_pts"} = $API{"charmm"} = 1;
+
+$LESAPI{"rdparm"} = $LESAPI{"set"} = $LESAPI{"ew_setup"} =
+    $LESAPI{"nonbond_list"} = $LESAPI{"ew_box"} = $LESAPI{"dynlib"} =
+    $LESAPI{"interface"} = $LESAPI{"qm_mm"} = $LESAPI{"extra_pts"} = 1;
 
 #  in order to get a mapping between module names and file names, we have
 #  have to set up the following hash. 
