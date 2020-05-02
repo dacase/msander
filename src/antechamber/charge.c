@@ -262,6 +262,69 @@ void rgaucharge(char *filename, char *chargemethod, int atomnum, ATOM atom[],
         (*minfo).icharge = intcharge(atomnum, atom);
 }
 
+void rjoutcharge(char *filename, char *chargemethod, int atomnum,
+                                ATOM atom[], MOLINFO *minfo)
+{
+        int chargeindex;
+        int num;
+        int Found_Stationary = 0;
+        int index = 0;
+	int pos = -1;
+	int i;
+        char line[MAXCHAR];
+	char tmpc1[MAXCHAR], tmpc2[MAXCHAR];
+	double c[5];
+        FILE *fpin;
+
+        if ((fpin = fopen(filename, "r")) == NULL) {
+                fprintf(stdout, "Cannot open the jaguar output file: %s in rjoutcharge(), exit\n", filename);
+                return;
+        }
+/*
+        if (strcmp(chargemethod, "mul") == 0)
+                chargeindex = 1;
+        else
+                chargeindex = 2;
+*/
+        for (;;) {
+                if (fgets(line, MAXCHAR, fpin) == NULL)
+                        break;
+		sscanf(line, "%s%s", tmpc1, tmpc2);
+		if(strcmp(tmpc1, "Atomic") == 0 && strcmp(tmpc2, "charges") == 0) 
+			pos = ftell(fpin);
+	}		
+	if(pos < 0) {
+        	fclose(fpin);
+		return;
+	} 
+        num = 0;
+        fseek(fpin, pos, 0);
+        for (;;) {
+                if (fgets(line, MAXCHAR, fpin) == NULL)
+                        break;
+		strcpy(tmpc1, "");
+		strcpy(tmpc2, "");
+		tmpc1[0]='\0';
+		tmpc2[0]='\0';
+		sscanf(line, "%s%s", tmpc1, tmpc2);
+		if(strcmp(tmpc1, "Charge") == 0) {
+			sscanf(&line[7],"%lf%lf%lf%lf%lf", &c[0], &c[1], &c[2], &c[3], &c[4]);
+			for(i=0; i< 5; i++) {
+				atom[num].charge = c[i];
+				num++;
+        			if (num > atomnum) 
+					break;
+			}
+		}
+		if(strcmp(tmpc1, "sum") == 0 && strcmp(tmpc2, "of") == 0) 
+			break;
+	}		
+	
+        fclose(fpin);
+/*      if ((*minfo).usercharge < -9990) */
+        if ((*minfo).icharge < -9990)
+       	    (*minfo).icharge = intcharge(atomnum, atom);
+}
 
 
 /*CHARGE METHOD : READ CHARGE */
@@ -362,6 +425,7 @@ void resp(char *filename, int atomnum, ATOM * atom, int bondnum, BOND * bond,
         flag = 2;
     if (strcmp(cinfo.intype, "gamess") == 0 || strcmp(cinfo.intype, "27") == 0)
         flag = 3;
+
     if (flag == 0) {
         eprintf ("Cannot generate RESP charges.\n"
                   "Invalid input selections: The RESP charge method requires\n"
@@ -539,6 +603,7 @@ void bcc(char *filename, int atomnum, ATOM atom[], int bondnum, BOND bond[], ARO
          CONTROLINFO * cinfo, MOLINFO * minfo)
 {
     char tmpchar[MAXCHAR];
+    int status = 0;
 
     if (strcmp((*cinfo).intype, "mopout") == 0 || strcmp((*cinfo).intype, "12") == 0)
         rmopcharge(filename, atomnum, atom, minfo);
@@ -583,6 +648,7 @@ void bcc(char *filename, int atomnum, ATOM atom[], int bondnum, BOND bond[], ARO
 void cm1(int atomnum, ATOM atom[], CONTROLINFO * cinfo, MOLINFO * minfo)
 {
     char tmpchar[MAXCHAR];
+    int status = 0;
 
     if ((*minfo).divcon == 0) {
         eprintf("The mopac program cannot generate CM1 charges.");
@@ -631,6 +697,7 @@ void cm2(int atomnum, ATOM atom[], CONTROLINFO * cinfo, MOLINFO * minfo)
 void mul(char *filename, int atomnum, ATOM atom[], CONTROLINFO * cinfo, MOLINFO * minfo)
 {
     char tmpchar[MAXCHAR];
+    int status = 0;
 
     if (strcmp((*cinfo).intype, "gout") == 0 || strcmp((*cinfo).intype, "11") == 0)
         rgaucharge(filename, "mul", atomnum, atom, minfo);
@@ -677,6 +744,8 @@ void esp(char *filename, int atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINFO mi
 {
     if (strcmp(cinfo.intype, "gout") == 0)
         rgaucharge(filename, "esp", atomnum, atom, &minfo);
+    else if (strcmp(cinfo.intype, "jout") == 0)
+        rjoutcharge(filename, "esp", atomnum, atom, &minfo);
     else
         eprintf ("Cannot generate Kollman ESP charges.\n"
                   "Invalid input selections: The Kollman ESP charge method requires\n"
@@ -864,6 +933,7 @@ void write_sybyl_bat(char *str)
 {
     FILE *fpout;
     char tmpchar[MAXCHAR];
+    int status = 0;
 
     fpout = efopen("antechamber_sybyl.bat", "w");
     build_dat_path(tmpchar, "charge.spl", sizeof tmpchar, 0);

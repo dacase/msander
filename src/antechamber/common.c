@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <math.h>
 #include <strings.h>
 #include <stdio.h>
@@ -77,6 +78,10 @@ void default_minfo(MOLINFO * minfo)
     strcpy((*minfo).ekeyword, "");
     strcpy((*minfo).gm, "");
     strcpy((*minfo).gn, "");
+    strcpy((*minfo).gdsk, "");
+    strcpy((*minfo).tor, "");
+    strcpy((*minfo).gopt, "");
+    strcpy((*minfo).gsp, "");
     strcpy((*minfo).resname, "MOL");
     strcpy((*minfo).atom_type_def, "gaff");
     strcpy((*minfo).resfilename, "molecule.res");
@@ -94,6 +99,10 @@ void default_minfo(MOLINFO * minfo)
     (*minfo).gv = 0;
     (*minfo).igkeyword = 0;
     (*minfo).eqcharge = -1;
+    (*minfo).igopt = 0;
+    (*minfo).igsp = 0;
+    (*minfo).itor = 0;
+    (*minfo).igdsk = 0;
 }
 
 
@@ -134,6 +143,7 @@ void default_cinfo(CONTROLINFO * cinfo)
     (*cinfo).maxring = MAXRING;
     (*cinfo).max_path_length = -1;
     (*cinfo).verify_pdb_atomname = 1;
+    (*cinfo).atseq = 1;
 }
 
 
@@ -544,6 +554,8 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 79;
                 strcpy(atom[i].element, "Au");
                 atom[i].type = 3;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'B':
@@ -551,6 +563,10 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 35;
                 strcpy(atom[i].element, "Br");
                 atom[i].type = 0;
+            } else if (! isalpha(atom[i].name[1])) {  // don't match eg BA
+                atom[i].atomicnum = 5;
+                strcpy(atom[i].element, "B");
+                atom[i].type = 2;
             } else if (atom[i].name[1] == 'a') {
                 atom[i].atomicnum = 56;
                 strcpy(atom[i].element, "Ba");
@@ -572,15 +588,17 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Bk");
                 atom[i].type = 1;
             } else {
-                atom[i].atomicnum = 5;
-                strcpy(atom[i].element, "B");
-                atom[i].type = 2;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'C':
             if (atom[i].name[1] == 'l' || atom[i].name[1] == 'L') {
                 atom[i].atomicnum = 17;
                 strcpy(atom[i].element, "Cl");
+                atom[i].type = 0;
+            } else if (! islower(atom[i].name[1])) {  // do match eg CA
+                atom[i].atomicnum = 6;
+                strcpy(atom[i].element, "C");
                 atom[i].type = 0;
             } else if (atom[i].name[1] == 'a') {
                 atom[i].atomicnum = 20;
@@ -619,13 +637,17 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Cu");
                 atom[i].type = 3;
             } else {
-                atom[i].atomicnum = 6;
-                strcpy(atom[i].element, "C");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'D':
-            if (atom[i].name[1] == 'b') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg DA
+                atom[i].atomicnum = 1;
+                strcpy(atom[i].element, "D");
+                atom[i].type = 0;
+                printf("Warning: Treating atom (%d) with name (%5s) as deuterium.\n",
+                    i + 1, atom[i].name);
+            } else if (atom[i].name[1] == 'b') {
                 atom[i].atomicnum = 105;
                 strcpy(atom[i].element, "Db");
                 atom[i].type = 3;
@@ -638,9 +660,7 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Dy");
                 atom[i].type = 4;
             } else {
-                atom[i].atomicnum = 1;
-                strcpy(atom[i].element, "D");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'E':
@@ -660,10 +680,16 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 63;
                 strcpy(atom[i].element, "Eu");
                 atom[i].type = 4;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'F':
-            if (atom[i].name[1] == 'e') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg FA
+                atom[i].atomicnum = 9;
+                strcpy(atom[i].element, "F");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'e') {
                 atom[i].atomicnum = 26;
                 strcpy(atom[i].element, "Fe");
                 atom[i].type = 3;
@@ -676,9 +702,7 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Fr");
                 atom[i].type = 1;
             } else {
-                atom[i].atomicnum = 9;
-                strcpy(atom[i].element, "F");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'G':
@@ -694,10 +718,16 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 32;
                 strcpy(atom[i].element, "Ge");
                 atom[i].type = 2;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'H':
-            if (atom[i].name[1] == 'e') {
+            if (! islower(atom[i].name[1])) {  // do match eg HA
+                atom[i].atomicnum = 1;
+                strcpy(atom[i].element, "H");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'e') {
                 atom[i].atomicnum = 2;
                 strcpy(atom[i].element, "He");
                 atom[i].type = 5;
@@ -718,43 +748,47 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Hs");
                 atom[i].type = 3;
             } else {
-                atom[i].atomicnum = 1;
-                strcpy(atom[i].element, "H");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'I':
-            if (atom[i].name[1] == 'n') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg IA
+                atom[i].atomicnum = 53;
+                strcpy(atom[i].element, "I");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'n') {
                 atom[i].atomicnum = 49;
                 strcpy(atom[i].element, "In");
                 atom[i].type = 1;
-            }
-            if (atom[i].name[1] == 'r') {
+            } else if (atom[i].name[1] == 'r') {
                 atom[i].atomicnum = 77;
                 strcpy(atom[i].element, "Ir");
                 atom[i].type = 3;
             } else {
-                atom[i].atomicnum = 53;
-                strcpy(atom[i].element, "I");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'K':
-            if (atom[i].name[1] == 'r') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg KA
+                atom[i].atomicnum = 19;
+                strcpy(atom[i].element, "K");
+                atom[i].type = 1;
+            } else if (atom[i].name[1] == 'r') {
                 atom[i].atomicnum = 36;
                 strcpy(atom[i].element, "Kr");
                 atom[i].type = 5;
             } else {
-                atom[i].atomicnum = 19;
-                strcpy(atom[i].element, "K");
-                atom[i].type = 1;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'l':
-            if (atom[i].name[1] == 'p')
+            if (atom[i].name[1] == 'p') {
                 atom[i].atomicnum = 0;
-            strcpy(atom[i].element, "lp");
-            atom[i].type = 0;
+                strcpy(atom[i].element, "lp");
+                atom[i].type = 0;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
+            }
             break;
         case 'L':
             if (atom[i].name[1] == 'i') {
@@ -777,6 +811,8 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 0;
                 strcpy(atom[i].element, "LP");
                 atom[i].type = 0;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'M':
@@ -800,10 +836,16 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 109;
                 strcpy(atom[i].element, "Mt");
                 atom[i].type = 3;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'N':
-            if (atom[i].name[1] == 'i') {
+            if (! islower(atom[i].name[1])) {  // do match eg NA
+                atom[i].atomicnum = 7;
+                strcpy(atom[i].element, "N");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'i') {
                 atom[i].atomicnum = 28;
                 strcpy(atom[i].element, "Ni");
                 atom[i].type = 3;
@@ -832,24 +874,28 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Np");
                 atom[i].type = 4;
             } else {
-                atom[i].atomicnum = 7;
-                strcpy(atom[i].element, "N");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'O':
-            if (atom[i].name[1] == 's') {
+            if (! islower(atom[i].name[1])) {  // do match eg OA
+                atom[i].atomicnum = 8;
+                strcpy(atom[i].element, "O");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 's') {
                 atom[i].atomicnum = 76;
                 strcpy(atom[i].element, "Os");
                 atom[i].type = 3;
             } else {
-                atom[i].atomicnum = 8;
-                strcpy(atom[i].element, "O");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'P':
-            if (atom[i].name[1] == 'd') {
+            if (! islower(atom[i].name[1])) {  // do match eg PA
+                atom[i].atomicnum = 15;
+                strcpy(atom[i].element, "P");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'd') {
                 atom[i].atomicnum = 46;
                 strcpy(atom[i].element, "Pd");
                 atom[i].type = 3;
@@ -882,9 +928,7 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Pu");
                 atom[i].type = 4;
             } else {
-                atom[i].atomicnum = 15;
-                strcpy(atom[i].element, "P");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'R':
@@ -916,10 +960,16 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 86;
                 strcpy(atom[i].element, "Rn");
                 atom[i].type = 5;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'S':
-            if (atom[i].name[1] == 'i' || atom[i].name[1] == 'I') {
+            if (! islower(atom[i].name[1])) {  // do match eg SA
+                atom[i].atomicnum = 16;
+                strcpy(atom[i].element, "S");
+                atom[i].type = 0;
+            } else if (atom[i].name[1] == 'i' || atom[i].name[1] == 'I') {
                 atom[i].atomicnum = 14;
                 strcpy(atom[i].element, "Si");
                 atom[i].type = 2;
@@ -952,13 +1002,17 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Sn");
                 atom[i].type = 3;
             } else {
-                atom[i].atomicnum = 16;
-                strcpy(atom[i].element, "S");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'T':
-            if (atom[i].name[1] == 'i') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg TA
+                atom[i].atomicnum = 1;
+                strcpy(atom[i].element, "T");
+                atom[i].type = 0;
+                printf("Warning: Treating atom (%d) with name (%5s) as tritium.\n",
+                    i + 1, atom[i].name);
+            } else if (atom[i].name[1] == 'i') {
                 atom[i].atomicnum = 22;
                 strcpy(atom[i].element, "Ti");
                 atom[i].type = 3;
@@ -991,42 +1045,56 @@ void atomicnum(int atomnum, ATOM * atom)
                 strcpy(atom[i].element, "Tm");
                 atom[i].type = 4;
             } else {
-                atom[i].atomicnum = 1;
-                strcpy(atom[i].element, "T");
-                atom[i].type = 0;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'U':
-            atom[i].atomicnum = 92;
-            strcpy(atom[i].element, "U");
-            atom[i].type = 4;
+            if (! isalpha(atom[i].name[1])) {  // don't match eg UA
+                atom[i].atomicnum = 92;
+                strcpy(atom[i].element, "U");
+                atom[i].type = 4;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
+            }
             break;
         case 'V':
-            atom[i].atomicnum = 23;
-            strcpy(atom[i].element, "V");
-            atom[i].type = 3;
+            if (! isalpha(atom[i].name[1])) {  // don't match eg VA
+                atom[i].atomicnum = 23;
+                strcpy(atom[i].element, "V");
+                atom[i].type = 3;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
+            }
             break;
         case 'W':
-            atom[i].atomicnum = 74;
-            strcpy(atom[i].element, "W");
-            atom[i].type = 3;
+            if (! isalpha(atom[i].name[1])) {  // don't match eg WA
+                atom[i].atomicnum = 74;
+                strcpy(atom[i].element, "W");
+                atom[i].type = 3;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
+            }
             break;
         case 'X':
             if (atom[i].name[1] == 'e') {
                 atom[i].atomicnum = 54;
                 strcpy(atom[i].element, "Xe");
                 atom[i].type = 5;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'Y':
-            if (atom[i].name[1] == 'b') {
+            if (! isalpha(atom[i].name[1])) {  // don't match eg YA
+                atom[i].atomicnum = 39;
+                strcpy(atom[i].element, "Y");
+                atom[i].type = 3;
+            } else if (atom[i].name[1] == 'b') {
                 atom[i].atomicnum = 70;
                 strcpy(atom[i].element, "Yb");
                 atom[i].type = 4;
             } else {
-                atom[i].atomicnum = 39;
-                strcpy(atom[i].element, "Y");
-                atom[i].type = 3;
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         case 'Z':
@@ -1038,16 +1106,18 @@ void atomicnum(int atomnum, ATOM * atom)
                 atom[i].atomicnum = 40;
                 strcpy(atom[i].element, "Zr");
                 atom[i].type = 3;
+            } else {
+                eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
             }
             break;
         default:
-            eprintf("Unrecognized atomic name (%5s).", atom[i].name);
+            eprintf("Unrecognized case-sensitive atomic symbol (%5s).", atom[i].name);
         }
     }
 }
 
 
-void element(int atomnum, ATOM * atom)
+void initialize_elements_in_atom_to_symbols_upto_atomnum(int atomnum, ATOM * atom)
 {
     int i;
     for (i = 0; i < atomnum; i++)

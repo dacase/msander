@@ -18,8 +18,6 @@ int rsqmcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
     numatom = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-            if (cinfo.intstatus == 2)
-                printf("Info: Finished reading file (%s).\n", filename);
             break;
         }
         sscanf(line, "%s%s", tmpchar1, tmpchar2);
@@ -62,9 +60,11 @@ int rsqmcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
             }
         }
     }
+    if (cinfo.intstatus == 2)
+        printf("Info: Finished reading file (%s); atoms read (%d).\n",
+               filename, numatom);
     fclose(fpin);
     *atomnum = numatom;
-/* printf("\n atom number is  %5d", *atomnum); */
     return overflow_flag;
 }
 
@@ -80,7 +80,7 @@ void wsqmcrt(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     fprintf(fpout, " &qmmm\n");
     fprintf(fpout, "  %s  qmcharge=%d,\n /\n", minfo.ekeyword, minfo.icharge);
 
-    /* element(atomnum, atom); */
+    /* initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom); */
 
     nelectrons = 0;
     for (i = 0; i < atomnum; i++) {

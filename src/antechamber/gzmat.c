@@ -22,7 +22,6 @@ int rgzmat(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO
     char tmpchar2[MAXCHAR];
     char line[MAXCHAR];
 
-
     fpin = efopen(filename, "r");
     bondstr = (STRNAME *) emalloc(sizeof(STRNAME) * (cinfo.maxatom + 10));
     anglestr = (STRNAME *) emalloc(sizeof(STRNAME) * (cinfo.maxatom + 10));
@@ -34,7 +33,7 @@ int rgzmat(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO
     numatom = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-/*       printf("\nFinished reading %s file.", cinfo.ifilename); */
+            /*       printf("\nFinished reading %s file.", cinfo.ifilename); */
             break;
         }
         if (spaceline(line) == 1) {
@@ -109,15 +108,15 @@ int rgzmat(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO
                        &atom[numatom].twistatom, twiststr[numatom].name);
                 if (atom[numatom].bondatom > numatom) {
                     eprintf("bond atom ID is larger than ID of current atom (ID: %d, Name: %s).",
-                         numatom + 1, atom[numatom].name);
+                            numatom + 1, atom[numatom].name);
                 }
                 if (atom[numatom].angleatom > numatom) {
                     eprintf("angle atom ID is larger than ID of current atom (ID: %d, Name: %s).",
-                         numatom + 1, atom[numatom].name);
+                            numatom + 1, atom[numatom].name);
                 }
                 if (atom[numatom].twistatom > numatom) {
                     eprintf("torsional atom ID is larger than ID of current atom (ID: %d, Name: %s).",
-                         numatom + 1, atom[numatom].name);
+                            numatom + 1, atom[numatom].name);
                 }
             }
             numatom++;
@@ -128,52 +127,29 @@ int rgzmat(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO
 
             continue;
         }
-        if (index0 == -1) {
-            if (strchr(line, '=') == NULL)
-                continue;
-            coordinate_flag = 1;
-            for (i = 0; i < strlen(line); i++)
-                if (line[i] == '=')
-                    line[i] = ' ';
-            sscanf(line, "%s %s", tmpchar1, tmpchar2);
-            for (i = 1; i < numatom; i++) {
-                findindex = 1;
-                for (j = 0; j < strlen(bondstr[i].name); j++)
-                    if (bondstr[i].name[j] != tmpchar1[j]) {
-                        findindex = 0;
-                        break;
-                    }
-                if (findindex == 1) {
-                    strcpy(bondstr[i].name, tmpchar2);
-                    break;
-                }
 
+        if (strchr(line, '=') == NULL)
+            continue;
+        coordinate_flag = 1;
+        for (i = 0; i < strlen(line); i++)
+            if (line[i] == '=')
+                line[i] = ' ';
+        sscanf(line, "%s %s", tmpchar1, tmpchar2);
+        for (i = 1; i < numatom; i++)
+            if (strcmp(bondstr[i].name, tmpchar1) == 0) {
+                strcpy(bondstr[i].name, tmpchar2);
+                break;
             }
-            for (i = 2; i < numatom; i++) {
-                findindex = 1;
-                for (j = 0; j < strlen(anglestr[i].name); j++)
-                    if (anglestr[i].name[j] != tmpchar1[j]) {
-                        findindex = 0;
-                        break;
-                    }
-                if (findindex == 1) {
-                    strcpy(anglestr[i].name, tmpchar2);
-                    break;
-                }
+        for (i = 2; i < numatom; i++)
+            if (strcmp(anglestr[i].name, tmpchar1) == 0) {
+                strcpy(anglestr[i].name, tmpchar2);
+                break;
             }
-            for (i = 3; i < numatom; i++) {
-                findindex = 1;
-                for (j = 0; j < strlen(twiststr[i].name); j++)
-                    if (twiststr[i].name[j] != tmpchar1[j]) {
-                        findindex = 0;
-                        break;
-                    }
-                if (findindex == 1) {
-                    strcpy(twiststr[i].name, tmpchar2);
-                    break;
-                }
+        for (i = 3; i < numatom; i++)
+            if (strcmp(twiststr[i].name, tmpchar1) == 0) {
+                strcpy(twiststr[i].name, tmpchar2);
+                break;
             }
-        }
     }
     atom[1].bondatom--;
     atom[2].bondatom--;
@@ -190,13 +166,12 @@ int rgzmat(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO
     for (i = 3; i < numatom; i++)
         atom[i].twist = atof(twiststr[i].name);
     *atomnum = numatom;
-/* printf("\n atom number is  %5d", *atomnum); */
+    /* printf("\n atom number is  %5d", *atomnum); */
     fclose(fpin);
     free(bondstr);
     free(anglestr);
     free(twiststr);
     return overflow_flag;
-
 }
 
 void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
@@ -204,10 +179,12 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     FILE *fpin;
     FILE *fpout;
     char *amberhome;
+    char keyword[MAXCHAR];
     char espparm_file[MAXCHAR];
     char line[MAXCHAR];
     char akeyword[MAXCHAR] = "";
     char ckeyword[MAXCHAR];
+    char spkeyword[MAXCHAR];
     char tmpchar0[MAXCHAR];
     char tmpchar1[MAXCHAR];
     char tmpchar2[MAXCHAR];
@@ -218,12 +195,14 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     int esp_flag;
     int nespparm = 0;
     int nbasisset = 0;
+    int freeze_flag = 0;
+    int i_geom_chk = 1;
     double default_radius = 1.7;
     ESPPARM espparm[120];
     BASISSET basisset[100];
 
     fpout = efopen(filename, "w");
-    intercoord(atomnum, atom);
+    intercoord(atomnum, atom, minfo.tor);
     fprintf(fpout, "%s\n", "--Link1--");
     if (strlen(minfo.gn) >= 5)
         fprintf(fpout, "%s\n", minfo.gn);
@@ -231,14 +210,21 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     if (strlen(minfo.gm) >= 4)
         fprintf(fpout, "%s\n", minfo.gm);
 
-//      check ESP-related keyword
+    /*      check if any freeze atoms specified */
+    for (i = 0; i < atomnum; i++)
+        if (atom[i].ifreeze == 1) {
+            freeze_flag = 1;
+            break;
+        }
+
+    //      check ESP-related keyword
     esp_flag = 0;
     for (i = 0; i < strlen(minfo.gkeyword); i++)
         ckeyword[i] = toupper(minfo.gkeyword[i]);
     if ((strstr(ckeyword, "POP=") != 0 || strstr(ckeyword, "POP(") != 0)
         && (strstr(ckeyword, "MK") != 0 || strstr(ckeyword, "CHELP") != 0))
         esp_flag = 1;
-//      when the default gaussian keyword is used, or esp_flag ==1, read ESP.PARM
+    //      when the default gaussian keyword is used, or esp_flag ==1, read ESP.PARM
     if (minfo.igkeyword == 0 || esp_flag == 1) {
         amberhome = egetenv("AMBERHOME");
         strcpy(espparm_file, amberhome);
@@ -255,9 +241,9 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
             }
             if (strncmp(line, "PARM", 4) == 0) {
                 sscanf(&line[4], "%d%s%lf%lf%d%d", &espparm[nespparm].atomicnum,
-                       espparm[nespparm].elem, &espparm[nespparm].vdw,
-                       &espparm[nespparm].mk, &espparm[nespparm].flag,
-                       &espparm[nespparm].bs);
+                    espparm[nespparm].elem, &espparm[nespparm].vdw,
+                    &espparm[nespparm].mk, &espparm[nespparm].flag,
+                    &espparm[nespparm].bs);
                 nespparm++;
             }
         }
@@ -279,13 +265,16 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
                 }
         }
 
-        if (minfo.igkeyword == 0) {
+        if (minfo.igkeyword == 0 && minfo.igsp == 0) {
             strcpy(minfo.gkeyword, "#HF/");
             strcat(minfo.gkeyword, basisset[ibs - 1].bs);
-            strcat(minfo.gkeyword, " SCF=tight Test Pop=MK iop(6/33=2) iop(6/42=6) opt");
+            if (freeze_flag == 1)
+                strcat(minfo.gkeyword, " SCF=tight Test Pop=MK iop(6/33=2) iop(6/42=6) popt");
+            else
+                strcat(minfo.gkeyword, " SCF=tight Test Pop=MK iop(6/33=2) iop(6/42=6) opt");
         }
     }
-//      additional keywords
+    //      additional keywords
     if (esp_flag == 1) {
         if (iradius_flag == 1) {
             if (strstr(minfo.gkeyword, "ReadRadii") == 0
@@ -301,15 +290,27 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
         }
     }
 
-    if (strlen(akeyword) >= 1) {
-        fprintf(fpout, "%s\n", minfo.gkeyword);
-        fprintf(fpout, "#%s\n", akeyword);
-        fprintf(fpout, "\n");
-    } else
-        fprintf(fpout, "%s\n\n", minfo.gkeyword);
+    if (minfo.igopt == 1 && minfo.igsp == 1) {
+        if (minfo.gopt[0] == '#')
+            fprintf(fpout, "%s\n", minfo.gopt);
+        else
+            fprintf(fpout, "#%s\n", minfo.gopt);
+    }
+    else {
+        if (minfo.gkeyword[0] == '#')
+            fprintf(fpout, "%s\n", minfo.gkeyword);
+        else
+            fprintf(fpout, "#%s\n", minfo.gkeyword);
+        if (strlen(akeyword) >= 1)
+            fprintf(fpout, "#%s\n", akeyword);
+    }
+    if (minfo.igdsk == 1)
+        fprintf(fpout, "#%s\n", minfo.gdsk);
+
+    fprintf(fpout, "\n");
     fprintf(fpout, "%s\n\n", "remark line goes here");
     fprintf(fpout, "%d%4d\n", minfo.icharge, minfo.multiplicity);
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     for (i = 0; i < atomnum; i++) {
         /* newitoa(i + 1, tmpchar0); */
         sprintf(tmpchar0, "%d", i + 1);
@@ -321,7 +322,7 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
             strcpy(tmpchar1, "b");
             strcat(tmpchar1, tmpchar0);
             fprintf(fpout, "%5s%5d%8s\n", atom[i].element, atom[i].bondatom + 1,
-                    tmpchar1);
+                tmpchar1);
             continue;
         }
         if (i == 2) {
@@ -359,8 +360,35 @@ void wgzmat(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
         strcat(tmpchar3, tmpchar0);
         fprintf(fpout, "%s= %8.4lf\n", tmpchar1, atom[i].bond);
         fprintf(fpout, "%s= %8.4lf\n", tmpchar2, atom[i].angle);
-        fprintf(fpout, "%s= %8.4lf\n", tmpchar3, atom[i].twist);
+        if (atom[i].ifreeze == 1)
+            fprintf(fpout, "%s= %8.4lf F\n", tmpchar3, atom[i].twist);
+        else
+            fprintf(fpout, "%s= %8.4lf\n", tmpchar3, atom[i].twist);
     }
+
+    if (minfo.igopt == 1 && minfo.igsp == 1) {
+        fprintf(fpout, "\n\n%s\n", "--Link1--");
+        if (strlen(minfo.gn) >= 5)
+            fprintf(fpout, "%s\n", minfo.gn);
+        fprintf(fpout, "%s%s\n", "%chk=", minfo.chkfile);
+        if (strlen(minfo.gm) >= 4)
+            fprintf(fpout, "%s\n", minfo.gm);
+        for (i = 0; i < strlen(minfo.gsp); i++)
+            spkeyword[i] = toupper(minfo.gsp[i]);
+        if (strstr(spkeyword, "geom=allcheck") == 0)
+            i_geom_chk = 0;
+        if (minfo.gsp[0] == '#')
+            fprintf(fpout, "%s\n", minfo.gsp);
+        else
+            fprintf(fpout, "#%s\n", minfo.gsp);
+        if (i_geom_chk == 0)
+            fprintf(fpout, "#geom=allcheck\n");
+        if (strlen(akeyword) >= 1)
+            fprintf(fpout, "#%s\n", akeyword);
+        if (minfo.igdsk == 1)
+            fprintf(fpout, "#%s\n", minfo.gdsk);
+    }
+
     if (esp_flag == 1) {
         if (minfo.gv == 1 && iradius_flag == 1) {
             for (i = 0; i < nespparm; i++)

@@ -25,7 +25,6 @@ int rmopcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
     numatom = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-/*       printf("\nFinished reading %s file.", cinfo.ifilename); */
             break;
         }
         index++;
@@ -47,9 +46,11 @@ int rmopcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
             overflow_flag = 1;
         }
     }
+    if (cinfo.intstatus == 2)
+        printf("Info: Finished reading file (%s); lines read (%d), atoms read (%d).\n",
+               filename, index, numatom);
     fclose(fpin);
     *atomnum = numatom;
-/* printf("\n atom number is  %5d", *atomnum); */
     return overflow_flag;
 }
 
@@ -83,12 +84,12 @@ void wmopcrt(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
         fprintf(fpout, " TRIPLET");
 /*
         The original correct statement:
-	fprintf(fpout, "\ncreated by wmopcrt() for mopac\n\n");
+    fprintf(fpout, "\ncreated by wmopcrt() for mopac\n\n");
         Temporary patch for minfo.ekeyword bug above:
 */
     fprintf(fpout, "\ncreated by wmopcrt() for mopac\n");
 
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     nelectrons = 0;
     for (i = 0; i < atomnum; i++) {
         fprintf(fpout, "%5s%12.4lf  1  %12.4lf  1  %12.4lf  1   \n", atom[i].element,

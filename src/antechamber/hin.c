@@ -94,7 +94,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -118,7 +118,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -143,7 +143,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -166,7 +166,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -189,7 +189,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -212,7 +212,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
                     numbond++;
                     if (numbond >= cinfo.maxbond && overflow_flag == 0) {
                         printf
-                            ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                            ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                         overflow_flag = 1;
                     }
                 }
@@ -220,7 +220,7 @@ int rhin(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND * bond,
             numatom++;
             if (numatom >= cinfo.maxbond && overflow_flag == 0) {
                 printf
-                    ("\nInfo: the atom number exceeds the MAXATOM, reallocate memory automatically");
+                    ("\nInfo: The atom number exceeds the MAXATOM, reallocate memory automatically");
                 overflow_flag = 1;
             }
 
@@ -259,7 +259,7 @@ void whin(char *filename, int atomnum, ATOM * atom, int bondnum, BOND * bond)
 */
     name = (ATOMNAME *) emalloc(sizeof(ATOMNAME) * (atomnum + 10));
 
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     for (i = 0; i < atomnum; i++)
         strcpy(name[i].name, atom[i].element);
     fprintf(fpout, "%s 1 \"%s\"\n", atom[i].aa, filename);

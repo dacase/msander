@@ -28,6 +28,7 @@ int rcharmm(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND bond[]
     strcpy(rtf, filename);
     numatom = 0;
     numbond = 0;
+    numatom2 = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL)
             break;

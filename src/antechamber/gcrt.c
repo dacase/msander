@@ -22,6 +22,8 @@ int rgcrt(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO 
     nameindex = -1;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
+            if (cinfo.intstatus == 2)
+                printf("Info: Finished reading file (%s).\n", filename);
             break;
         }
         if (spaceline(line) == 1 || strlen(line) <= 1) {
@@ -59,16 +61,20 @@ int rgcrt(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO 
             overflow_flag = 1;
         }
     }
+    if (cinfo.intstatus == 2)
+        printf("Info: Finished reading file (%s); atoms read (%d).\n",
+               filename, numatom);
+    fclose(fpin);
+
     *atomnum = numatom;
     if (nameindex == 0) {
-        element(*atomnum, atom);
+	initialize_elements_in_atom_to_symbols_upto_atomnum(*atomnum, atom);
         for (i = 0; i < *atomnum; i++)
             strcpy(atom[i].name, atom[i].element);
     }
     if (nameindex == 1)
         atomicnum(*atomnum, atom);
 /* printf("\n atom number is  %5d", *atomnum); */
-    fclose(fpin);
     return overflow_flag;
 }
 
@@ -81,12 +87,14 @@ void wgcrt(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     char line[MAXCHAR];
     char akeyword[MAXCHAR] = "";
     char ckeyword[MAXCHAR];
+    char spkeyword[MAXCHAR];
     int i, j;
     int iradius_flag;
     int ibs = 0;
     int esp_flag;
     int nespparm = 0;
     int nbasisset = 0;
+    int i_geom_chk = 1;
     double default_radius = 1.7;
     ESPPARM espparm[120];
     BASISSET basisset[100];
@@ -170,23 +178,56 @@ void wgcrt(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
             }
         }
     }
-
-    if (strlen(akeyword) >= 1) {
-        fprintf(fpout, "%s\n", minfo.gkeyword);
-        fprintf(fpout, "#%s\n", akeyword);
-        fprintf(fpout, "\n");
-    } else {
-        fprintf(fpout, "%s\n\n", minfo.gkeyword);
+    if(minfo.igopt == 1 && minfo.igsp == 1) {
+	if(minfo.gopt[0] == '#')
+    		fprintf(fpout, "%s\n", minfo.gopt);
+	else
+    		fprintf(fpout, "#%s\n", minfo.gopt);
     }
+    else {
+	if(minfo.gkeyword[0] == '#')
+    		fprintf(fpout, "%s\n", minfo.gkeyword);
+	else
+    		fprintf(fpout, "#%s\n", minfo.gkeyword);
+    	if (strlen(akeyword) >= 1) 
+        	fprintf(fpout, "#%s\n", akeyword);
+    }
+    if (minfo.igdsk == 1)
+    	fprintf(fpout, "#%s\n", minfo.gdsk);
+    fprintf(fpout, "\n");
     fprintf(fpout, "%s\n\n", "remark line goes here");
     fprintf(fpout, "%d%4d\n", minfo.icharge, minfo.multiplicity);
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
 
     for (i = 0; i < atomnum; i++)
 //              fprintf(fpout, "%5s%12.4lf    %12.4lf    %12.4lf     \n",
 //                              atom[i].element, atom[i].x, atom[i].y, atom[i].z);
         fprintf(fpout, "%5s%16.10lf    %16.10lf    %16.10lf     \n", atom[i].element,
                 atom[i].x, atom[i].y, atom[i].z);
+
+
+    if(minfo.igopt == 1 && minfo.igsp == 1) {
+    	fprintf(fpout, "\n\n%s\n", "--Link1--");
+    	if (strlen(minfo.gn) >= 5)
+        	fprintf(fpout, "%s\n", minfo.gn);
+    	fprintf(fpout, "%s%s\n", "%chk=", minfo.chkfile);
+    	if (strlen(minfo.gm) >= 4)
+        	fprintf(fpout, "%s\n", minfo.gm);
+    	for (i = 0; i < strlen(minfo.gsp); i++)
+        	spkeyword[i] = toupper(minfo.gsp[i]);
+        if (strstr(spkeyword, "geom=allcheck") == 0)
+                i_geom_chk = 0;
+        if(minfo.gsp[0] == '#')
+                fprintf(fpout, "%s\n", minfo.gsp);
+        else
+                fprintf(fpout, "#%s\n", minfo.gsp);
+        if(i_geom_chk == 0)
+                fprintf(fpout, "#geom=allcheck\n");
+    	if (strlen(akeyword) >= 1) 
+        	fprintf(fpout, "#%s\n", akeyword);
+    	if (minfo.igdsk == 1)
+    		fprintf(fpout, "#%s\n", minfo.gdsk);
+    }
 
     if (esp_flag == 1) {
         if (minfo.gv == 1 && iradius_flag == 1) {

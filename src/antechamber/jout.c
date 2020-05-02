@@ -75,7 +75,7 @@ int rjout(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINFO 
     }
     *atomnum = i;
     fclose(fpin);
-    element(*atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(*atomnum, atom);
     atomicnum(*atomnum, atom);
     return overflow_flag;
 }

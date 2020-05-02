@@ -639,7 +639,7 @@ static int judgebt(void)
     int i, j;
     int fail_flag;
     int flag;
-/*initalization*/
+/*initialization*/
     for (i = -1; i < vastatenum; i++) {
         if (i != -1) {
             for (j = 0; j < atomnum2; j++)
@@ -1120,7 +1120,7 @@ int main(int argc, char *argv[])
                    "[32m                   full [0m full judgement\n"
                    "[32m                   part [0m partial judgement, only do reassignment according\n"
                    "		         to known bond type information in the input file\n"
-                   "[31m                -s[0m stop running if APS (atomic penality score) is not available\n"
+                   "[31m                -s[0m stop running if APS (atomic penalty score) is not available\n"
                    "[32m                   0 [0m- no, all the related bonds are frozen, the default\n"
                    "[32m                   1 [0m- yes\n");
             exit(0);
@@ -1133,7 +1133,7 @@ int main(int argc, char *argv[])
                    "[32m                   full [0m full judgement\n"
                    "[32m                   part [0m partial judgement, only do reassignment according\n"
                    "		         to known bond type information in the input file\n"
-                   "[31m                -s[0m stop running if APS (atomic penality score) is not available\n"
+                   "[31m                -s[0m stop running if APS (atomic penalty score) is not available\n"
                    "[32m                   0 [0m- no, all the related bonds are frozen, the default\n"
                    "[32m                   1 [0m- yes\n");
             exit(1);
@@ -1152,7 +1152,7 @@ int main(int argc, char *argv[])
                 printf
                     (" 		          to known bond type information in the input file\n");
                 printf
-                    ("                -s  stop running if APS (atomic penality score) is not available\n");
+                    ("                -s  stop running if APS (atomic penalty score) is not available\n");
                 printf
                     (" 	            0 - no, all the related bonds are frozen, the default; 1 - yes\n");
                 exit(0);
@@ -1168,7 +1168,7 @@ int main(int argc, char *argv[])
             printf
                 (" 		          to known bond type information in the input file\n");
             printf
-                ("                -s  stop running if APS (atomic penality score) is not available\n");
+                ("                -s  stop running if APS (atomic penalty score) is not available\n");
             printf
                 (" 	            0 - no, all the related bonds are frozen, the default; 1 - yes\n");
             exit(1);
@@ -1399,7 +1399,7 @@ int main(int argc, char *argv[])
             }
         bondnum2 = tmpint2;
 
-/* handle those linking atoms of two residues, such as C and N in amino acid residues, replaceing those atom with H*/
+/* handle those linking atoms of two residues, such as C and N in amino acid residues, replacing those atom with H*/
         for (j = 0; j < bondnum; j++) {
             if (atom[bond[j].bondi].resno == res[i].resno
                 && atom[bond[j].bondj].resno != res[i].resno) {

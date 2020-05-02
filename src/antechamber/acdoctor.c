@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     int i, j, k;
     int index;
 
-    fprintf(stdout, "\nWelcome to acdoctor %s: check and diagnosis problems"
+    fprintf(stdout, "\nWelcome to acdoctor %s: check and diagnose problems"
             " in molecular input files.\n\n", ANTECHAMBER_VERSION);
     esetprogramname(argv[0]);
     amberhome = (char *) getenv("AMBERHOME");
@@ -757,8 +757,12 @@ int main(int argc, char *argv[])
         else
             adjustatomname(atomnum, atom, 0);
     }
-    if (atomicnum_flag)
+    if (atomicnum_flag) {
+        if (cinfo.intstatus == 2)
+            printf("Info: Determining atomic numbers from atomic symbols which "
+                   "are case sensitive.\n");
         atomicnum(atomnum, atom);
+    }
     if (atomname_flag)
         atomname(atomnum, atom);
     if (default_flag)

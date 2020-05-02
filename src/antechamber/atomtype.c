@@ -1780,7 +1780,6 @@ void jat(void)
                 ces_bond_index = 1;
                 if (strcmp(keyword8, "&") == 0)
                     ces_bond_index = 0;
-                tmpint = 0;
                 if (debug == 1)
                     printf
                         ("\nBegin a new chemical environment defination for atom %d (%s) %s %s",

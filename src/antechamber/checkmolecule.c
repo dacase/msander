@@ -137,13 +137,15 @@ void check_input_molecule()
                     atom[i].element, i + 1, atom[i].name);
     }
     if ((atomnum - numh - numn - numo - numc - nums - nump - numx) > 0) {
-        fprintf(stdout,
-                "GAFF does not have sufficient parameters for molecules having unusual\n"
-                "         elements (those other than H,C,N,O,S,P and halogens).\n"
-                "         To ensure antechamber works properly, one may need to designate\n"
-                "         bond types for bonds involved with unusual elements.\n"
-                "         To do so, simply freeze the bond types by appending \"F\" or \"f\" \n"
-                "         to the corresponding bond types in ac or mol2 files.\n");
+        eprintf("GAFF does not have sufficient parameters for molecules having unusual\n"
+                "       elements (those other than H,C,N,O,S,P and halogens).\n"
+                "       To ensure antechamber works properly, one may need to designate\n"
+                "       bond types for bonds involved with unusual elements.\n"
+                "       To do so, simply freeze the bond types by appending \"F\" or \"f\" \n"
+                "       to the corresponding bond types in ac or mol2 files\n"
+                "       and rerun antechamber without unusual element checking via:\n"
+                "       antechamber -dr no \n"
+                "       Alternatively for metals, see metalpdb2mol2.py in MCPB. \n");
     } else if (atomnum == numh + numn + numo + numc + nums + nump + numx) {
         printf("   Status: pass\n");
     }

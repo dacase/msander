@@ -100,7 +100,7 @@ void walc(char *filename, int atomnum, ATOM * atom, int bondnum, BOND * bond)
     }
     name = (ATOMNAME *) emalloc(sizeof(ATOMNAME) * (atomnum + 10));
 
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     for (i = 0; i < atomnum; i++)
         strcpy(name[i].name, atom[i].element);
 

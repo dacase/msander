@@ -56,7 +56,7 @@ int rgamess(char *filename, int *atomnum, ATOM *atom, CONTROLINFO cinfo,
 
     // Assign elements from atomic number
     // Set names to be the same as element, for now
-    element(numatom, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(numatom, atom);
     for (i = 0; i < numatom; i++) {
         strcpy(atom[i].name, atom[i].element);
     }

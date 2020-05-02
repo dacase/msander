@@ -20,7 +20,6 @@ int rdivcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
     numatom = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-/*       printf("\nFinished reading %s file.", cinfo.ifilename); */
             break;
         }
         index++;
@@ -42,9 +41,11 @@ int rdivcrt(char *filename, int *atomnum, ATOM atom[], CONTROLINFO cinfo, MOLINF
             overflow_flag = 1;
         }
     }
+    if (cinfo.intstatus == 2)
+        printf("Info: Finished reading file (%s); lines read (%d), atoms read (%d).\n",
+               filename, index, numatom);
     fclose(fpin);
     *atomnum = numatom;
-/* printf("\n atom number is  %5d", *atomnum); */
     return overflow_flag;
 }
 
@@ -74,7 +75,7 @@ void wdivcrt(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
 #endif
 */
     fprintf(fpout, "\ncreated by wmopcrt() for divcon\n");
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     nelectrons = 0;
     for (i = 0; i < atomnum; i++) {
         fprintf(fpout, "%5d %5s %12.4lf  %12.4lf  %12.4lf\n", i + 1, atom[i].element,

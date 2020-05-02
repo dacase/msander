@@ -1339,10 +1339,10 @@ int main(int argc, char *argv[])
                     if (omitno[k] == tmpint) {
                         atom[i].connum--;
                         atom[i].con[j] = -1;
-                        printf("\nInfo: there is a bond linking a non-head and non-tail "
+                        printf("\nInfo: There is a bond linking a non-head and non-tail "
                                "residue atom (%s) and an omitted atom (%s).",
                                atom[i].name, atom[omitno[k]].name);
-                        printf("\n      You need to specifically add this bond in leap "
+                        printf("\n      You need to specifically add this bond in LEaP "
                                "using the command 'bond <atom1> <atom2> [order]'");
                         printf
                             ("\n      to link %s to an atom in another residue (similar "

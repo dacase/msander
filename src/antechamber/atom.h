@@ -48,6 +48,7 @@ typedef struct {
     int aliph;
     int saturate;               /* 1: saturated; -1 unsaturated; */
     int improper;
+    int ifreeze;    /* freeze the torsional angle when this atom is the fourth atom of the torsional angle*/
 } ATOM;
 typedef struct {
     char name[10];
@@ -139,6 +140,7 @@ typedef struct {
     double length;
     double force;
     int iprint;
+    int attn;
 } BOND_FF;
 
 typedef struct {
@@ -161,10 +163,14 @@ typedef struct {
     char ekeyword[MAXCHAR];     /*empirical calculation keyword, copied from dkeyword or mkeyword */
     char gkeyword[MAXCHAR];     /*gaussian keyword */
     char gm[MAXCHAR];           /*gaussian %mem */
+    char gdsk[MAXCHAR];         /*gaussian %disk */
     char gn[MAXCHAR];           /*gaussian %nproc */
     char gesp[MAXCHAR];         /*gaussian esp file */
     char mkeyword[MAXCHAR];     /*mopac keyword */
     char skeyword[MAXCHAR];     /*sqm keyword */
+    char gopt[MAXCHAR]; /*gaussian keyword for optimization*/
+    char gsp[MAXCHAR];  /*gaussian keyword for single point calculation*/
+    char tor[MAXCHAR];  /*torsinal angles*/
     char resname[MAXCHAR];
     char chkfile[20];
     char atom_type_def[10];
@@ -179,6 +185,10 @@ typedef struct {
     int icharge;                /*integer charge */
     int usercharge;             /*user read in charge */
     int igkeyword;              /*user provides keyword or not */
+    int igopt;  /*user gopt keyword or not*/
+    int igsp;  /*user gsp keyword or not*/
+    int itor;  /*user tor keyword or not*/
+    int igdsk;  /*user gdsk keyword or not*/
     double dcharge;             /*float charge */
     int gv;                     /*gaussian version flag: 1- g09, 0- other versions */
     int eqcharge;
@@ -190,15 +200,16 @@ typedef struct {
     char atype[10];
     char chargetype[50];
     int rnindex;                /*read in residue index ? */
-    int intstatus;              /*information statius */
+    int intstatus;              /*information status */
     int pfindex;                /*purify intermediate files */
     int prediction_index;       /*the index of performing atomtype */
     int bpindex;                /*bond type prediciton index */
     int maxatom;
     int maxbond;
     int maxring;
-    int max_path_length;        /*maximum path length to judge atom equalibration */
+    int max_path_length;        /*maximum path length to judge atom equilibration */
     int verify_pdb_atomname;    /*varify pdb atom names using the possible element field in a pdb file */
+    int  atseq; 		/*atomic sequence changeable? 1 for yes or 0 for no */
 } CONTROLINFO;
 
 typedef struct {
@@ -232,7 +243,7 @@ typedef struct {
     int aps[10];
 } AV;
 
-/*parameters for calculationg bond stretching force constant*/
+/*parameters for calculating bond stretching force constant*/
 typedef struct {
     double bfkai;
     double refbondlength;
@@ -242,7 +253,7 @@ typedef struct {
     char elem2[10];
 } BLF_PARM;
 
-/*parameters for calculationg bond bending force constant*/
+/*parameters for calculating bond bending force constant*/
 typedef struct {
     double anglec;
     double anglez;

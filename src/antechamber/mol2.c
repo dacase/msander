@@ -22,7 +22,7 @@ int rmol2(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND bond[],
     int itype = 1;
     int overflow_flag = 0;
     int read_atomnum;
-    int read_bondnum;
+    int read_bondnum = 0;
     int len;
     double tmpf1, tmpf2, tmpf3, tmpf4;
     char type[MAXCHAR];
@@ -39,8 +39,6 @@ int rmol2(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND bond[],
     numbond = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-            if ((*cinfo).intstatus == 2)
-                printf("Info: Finished reading file (%s).\n", filename);
             break;
         }
 
@@ -236,6 +234,9 @@ int rmol2(char *filename, int *atomnum, ATOM atom[], int *bondnum, BOND bond[],
             }
         }
     }
+    if ((*cinfo).intstatus == 2)
+        printf("Info: Finished reading file (%s); atoms read (%d), bonds read (%d).\n",
+               filename, numatom, numbond);
     fclose(fpin);
     *atomnum = numatom;
     *bondnum = numbond;

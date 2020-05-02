@@ -70,7 +70,7 @@ int rmdl(char *filename, int *atomnum, ATOM * atom, int *bondnum, BOND * bond,
             i++;
             if (i >= cinfo.maxatom && overflow_flag == 0) {
                 printf
-                    ("\nInfo: the atom number exceeds the MAXATOM, reallocate memory automatically");
+                    ("\nInfo: The atom number exceeds the MAXATOM, reallocate memory automatically");
                 overflow_flag = 1;
             }
         }
@@ -136,14 +136,14 @@ int rmdl(char *filename, int *atomnum, ATOM * atom, int *bondnum, BOND * bond,
             j++;
             if (j >= cinfo.maxbond && overflow_flag == 0) {
                 printf
-                    ("\nInfo: the bond number exceeds the MAXBOND, reallocate memory automatically");
+                    ("\nInfo: The bond number exceeds the MAXBOND, reallocate memory automatically");
                 overflow_flag = 1;
             }
         }
     }
     *atomnum = i;
     *bondnum = j;
-/*  printf("\n Info: the atomic number is %5d%5d%5d", *atomnum,tmpint1, tmpint2); */
+/*  printf("\n Info: The atomic number is %5d%5d%5d", *atomnum,tmpint1, tmpint2); */
     fclose(fpin);
 /*
    for(i=0;i<*atomnum;i++)
@@ -178,7 +178,7 @@ void wmdl(char *filename, int atomnum, ATOM * atom, int bondnum, BOND * bond,
         tmpchar[i] = filename[i];
     }
     tmpchar[i] = '\0';
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     for (i = 0; i < atomnum; i++)
         strcpy(name[i].name, atom[i].element);
 

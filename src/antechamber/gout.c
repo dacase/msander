@@ -129,7 +129,7 @@ The order of coordinates to be used
     }
     *atomnum = numatom;
     fclose(fpin);
-    element(*atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(*atomnum, atom);
     for (i = 0; i < *atomnum; i++)
         strcpy(atom[i].name, atom[i].element);
     return overflow_flag;

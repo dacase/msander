@@ -21,8 +21,6 @@ int rmopint(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINF
     numatom = 0;
     for (;;) {
         if (fgets(line, MAXCHAR, fpin) == NULL) {
-            if (cinfo.intstatus == 2)
-                printf("Info: Finished reading file (%s).\n", filename);
             break;
         }
         index++;
@@ -61,9 +59,11 @@ int rmopint(char *filename, int *atomnum, ATOM * atom, CONTROLINFO cinfo, MOLINF
             overflow_flag = 1;
         }
     }
-    *atomnum = numatom;
-/* printf("\n atom number is  %5d", *atomnum); */
+    if (cinfo.intstatus == 2)
+        printf("Info: Finished reading file (%s); lines read (%d), atoms read (%d).\n",
+               filename, index, numatom);
     fclose(fpin);
+    *atomnum = numatom;
     return overflow_flag;
 }
 
@@ -73,11 +73,11 @@ void wmopint(char *filename, int atomnum, ATOM atom[], MOLINFO minfo)
     int i;
 
     fpout = efopen(filename, "w");
-    intercoord(atomnum, atom);
+    intercoord(atomnum, atom, minfo.tor);
     fprintf(fpout, "%s", minfo.ekeyword);
     fprintf(fpout, " CHARGE=%d\n", minfo.icharge);
     fprintf(fpout, "%s\n", "remark line goes here\n");
-    element(atomnum, atom);
+    initialize_elements_in_atom_to_symbols_upto_atomnum(atomnum, atom);
     for (i = 0; i < atomnum; i++)
         fprintf(fpout, "%5s%12.4lf  1  %12.4lf  1  %12.4lf  1  %5d%5d%5d \n",
                 atom[i].element, atom[i].bond, atom[i].angle, atom[i].twist,

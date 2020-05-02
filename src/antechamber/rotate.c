@@ -25,7 +25,7 @@ varible AngleChange should larger than 0
 */
 
     double twist = 0.0;
-    double w1=0.0, w2=0.0, w3=0.0, t;
+    double w1, w2, w3, t;
     double ya5, xc5, yd5, zd5;
     double xa, ya, za, xc, yc, zc, xd, yd, zd;
     double xa3, ya3, za3, xc3, zc3, xd3, yd3, zd3;
@@ -749,17 +749,50 @@ varible AngleChange should larger than 0
 
 
 
-void intercoord(int atomnum, ATOM atom[])
+void intercoord(int atomnum, ATOM atom[], char *torstr)
 {
-    int i, j, k, m;
+    typedef struct{
+            int at1;
+            int at2;
+            int at3;
+            int at4;
+            int ifreeze;
+    } TOR;
+
+    int i, j, k, m, n;
     int tmpint1, tmpint2, tmpint3;
+    int at1, at2, at3, at4, ifreeze;
     int *select;
     int breakindex;
-
+    TOR tor[100];
+    int pos[100];
+    char ntor = 0;
     select = (int *) emalloc(sizeof(int) * (atomnum + 10));
 
-    for (i = 0; i < atomnum; i++)
+    for (i = 0; i < atomnum; i++) {
         select[i] = -1;
+	atom[i].ifreeze = -1;
+    }
+        /* decode tor string */
+    if(strlen(torstr) > 7) {
+            pos[0]=0;
+            ntor = 1;
+            for(i=0;i<strlen(torstr)-4;i++)
+                    if(torstr[i] == ',') pos[ntor++] = i;
+            for(i=0;i<strlen(torstr);i++) {
+                    if(torstr[i] == ',') torstr[i] = ' ';
+                    if(torstr[i] == '-') torstr[i] = ' ';
+                    if(torstr[i] == ':') torstr[i] = ' ';
+            }
+            for(i=0;i<ntor;i++) {
+                    sscanf(&torstr[pos[i]], "%d%d%d%d%d", &at1, &at2, &at3, &at4, &ifreeze);
+                    tor[i].at1 = at1-1;
+                    tor[i].at2 = at2-1;
+                    tor[i].at3 = at3-1;
+                    tor[i].at4 = at4-1;
+                    tor[i].ifreeze = ifreeze;
+            }
+    }
 
     atom[0].bond = 0.0;
     atom[0].angle = 0.0;
@@ -819,10 +852,8 @@ void intercoord(int atomnum, ATOM atom[])
                                 tmpint3 = atom[i].twistatom;
                                 if (tmpint3 == -1)
                                     continue;
-                                if (tmpint3 != -1 && tmpint2 != -1 && tmpint3 != -1) {
-                                    breakindex = 1;
-                                    break;
-                                }
+                                breakindex = 1;
+                                break;
                             }
                         if (breakindex == 1)
                             break;
@@ -841,6 +872,27 @@ void intercoord(int atomnum, ATOM atom[])
                     atom[i].twistatom = atom[tmpint1].con[j];
                 break;
             }
+        for(n=0;n<ntor;n++) {
+                at1=tor[n].at1;
+                at2=tor[n].at2;
+                at3=tor[n].at3;
+                at4=tor[n].at4;
+                if(i==at1 && select[at1] < 0 && select[at2] > 0 && select[at3] > 0 && select[at4] > 0){
+                        atom[i].bondatom = at2;
+                        atom[i].angleatom = at3;
+                        atom[i].twistatom = at4;
+                        if(tor[n].ifreeze == 1)
+                                atom[i].ifreeze = 1;
+                }
+                if(i==at4 && select[at4] < 0 && select[at3] > 0 && select[at2] > 0 && select[at1] > 0){
+                        atom[i].bondatom = at3;
+                        atom[i].angleatom = at2;
+                        atom[i].twistatom = at1;
+                        if(tor[n].ifreeze == 1)
+                                atom[i].ifreeze = 1;
+                }
+        }
+
         select[i] = 1;
         atom[i].bond = distance(atom[i], atom[atom[i].bondatom]);
         atom[i].angle =
@@ -848,10 +900,10 @@ void intercoord(int atomnum, ATOM atom[])
         atom[i].twist =
             rotate(atom[i], atom[atom[i].bondatom], atom[atom[i].angleatom],
                    &atom[atom[i].twistatom]);
-/*		      printf("\n%5s%5d%5d%5d%8.3lf%8.3lf%8.3lf",
+/*		      printf("\n%5s%5d%5d%5d%8.3lf%8.3lf%8.3lf%5d",
 		      atom[i].name, atom[i].bondatom, atom[i].angleatom,
 		      atom[i].twistatom, atom[i].bond, atom[i].angle,
-		      atom[i].twist); */
+		      atom[i].twist, atom[i].ifreeze); */
     }
 }
 
@@ -941,7 +993,7 @@ int connect(char *connect_file, int atomnum, ATOM * atom, int *bondnum, BOND * b
                         numbond++;
                         if (numbond >= maxbond && overflow_flag == 0) {
                             printf
-                                ("\nInfo: the bond number exceeds MAXBOND, reallocate memory automatically\n");
+                                ("\nInfo: The bond number exceeds MAXBOND, reallocate memory automatically\n");
                             overflow_flag = 1;
                         }
                     }
@@ -1078,7 +1130,7 @@ void alignx(ATOM obj1, ATOM obj2, ATOM atom[], int atomnum)
         atom[i].y = -coordx * sin(w1) + coordy * cos(w1);
     }
     x2 = x * cos(w1) + y * sin(w1);
-    // y2 = -x * sin(w1) + y * cos(w1);
+//    y2 = -x * sin(w1) + y * cos(w1);
     z2 = z;
 
     /* rotating Obj1 clockwise about Y axis a w2 degree then
@@ -1143,7 +1195,7 @@ void aligny(ATOM obj1, ATOM obj2, ATOM atom[], int atomnum)
     }
     x2 = x;
     y2 = y * cos(w1) + z * sin(w1);
-    // z2 = -y * sin(w1) + z * cos(w1);
+//    z2 = -y * sin(w1) + z * cos(w1);
 
     /* rotating Point1 clockwise about Z axis a w2 degree then
        it is lying the Y axis */
@@ -1210,7 +1262,7 @@ void alignz(ATOM obj1, ATOM obj2, ATOM atom[], int atomnum)
     }
 
     x2 = x * cos(w1) + y * sin(w1);
-    // y2 = -x * sin(w1) + y * cos(w1);
+//    y2 = -x * sin(w1) + y * cos(w1);
     z2 = z;
 
     /* rotating Obj1 clockwise about Y axis a w2 degree then

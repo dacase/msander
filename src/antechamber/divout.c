@@ -73,7 +73,7 @@ int rdivout(char *filename, int *atomnum, ATOM * atom, CONTROLINFO * cinfo,
             number++;
             if (number >= (*cinfo).maxatom && overflow_flag == 0) {
                 printf
-                    ("\nInfo: the atom number exceeds the MAXATOM, reallocate memory automatically");
+                    ("\nInfo: The atom number exceeds the MAXATOM, reallocate memory automatically");
                 overflow_flag = 1;
             }
         }

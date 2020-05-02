@@ -443,6 +443,9 @@ void respin(int method)
                 }
             }
         }
+        if (tmpnum == -1) {
+            fprintf(fpout, "\n");
+        }
 
         if (tmpnum > 0) {
             if (tmpnum != tcount) {
