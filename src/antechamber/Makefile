@@ -69,7 +69,7 @@ dispatch:
 
 tests: $(TESTS)
 
-install: $(DISPATCHEDPROGS) dispatch
+antechamber: $(DISPATCHEDPROGS) dispatch
 
 clean:
 	/bin/rm -f *.o $(LOCALPROGS) $(TESTS)
