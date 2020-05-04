@@ -195,7 +195,7 @@ $(LIBDIR)/libsanderles$(SHARED_SUFFIX): $(LESAPIOBJ) \
         $(QMAPIOBJ) $(INCDIR)/sanderles_api.mod \
         $(NFE_OBJECTS) $(XRAY_OBJS) \
         $(PLUMED_DEPENDENCIES) 
-	@echo "[MSANDER API]  AR $@"
+	@echo "[MSANDER API]  FC $@"
 	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ \
         $(LESAPIOBJ) $(QMAPIOBJ) \
         $(XRAY_OBJS) -L$(LIBDIR) -lsqm $(PLUMED_LOAD) \

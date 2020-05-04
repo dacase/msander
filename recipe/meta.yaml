@@ -1,12 +1,23 @@
 package:
   name: amber_phenix
-  version: 0.9.6
+  version: 0.9.9
 
 source:
   path: ../
   
 build:
   number: 0
+
+requirements:
+  build:
+    - {{ compiler('fortran') }}
+    - {{ compiler('c') }}
+    - ld64 409.12 h3c32e8a_4   # [osx]
+    - flex
+    - bison
+    - make
+  host:
+  run:
 
 about:
     home: https://ambermd.org

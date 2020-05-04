@@ -1,19 +1,17 @@
 #!/bin/sh
 
-export AMBERHOME=`pwd`
-./configure_ambermini --conda --no-netcdf --no-rism
+export MSANDERHOME=`pwd`
+./configure 
 
-cd AmberTools/src 
-make -f Makefile.ambermini install
-make -f Makefile.ambermini clean
-cd ../..
+make install
+make clean
 
-if [ `uname` == "Darwin" ]; then
-    mkdir -p lib/amber_3rd_party # to avoid overwritten by other programs
-    python ./recipe_ap/copy_and_fix_gfortran.py \
-        /usr/local/gfortran/lib lib/amber_3rd_party
-    mkdir -p $PREFIX/lib
-    rsync -av lib/amber_3rd_party $PREFIX/lib
-fi
+#if [ `uname` == "Darwin" ]; then
+#    mkdir -p lib/amber_3rd_party # to avoid overwritten by other programs
+#    python ./recipe_ap/copy_and_fix_gfortran.py \
+#        /usr/local/gfortran/lib lib/amber_3rd_party
+#    mkdir -p $PREFIX/lib
+#    rsync -av lib/amber_3rd_party $PREFIX/lib
+#fi
 
-rsync -av bin dat lib AmberTools $PREFIX
+rsync -av bin dat lib $PREFIX
