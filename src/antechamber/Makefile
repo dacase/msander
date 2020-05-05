@@ -105,9 +105,6 @@ $(BINDIR)/x/atomtype$(SFX): atomtype$(SFX)
 $(BINDIR)/x/bondtype$(SFX): bondtype$(SFX)
 	$(VB)$(MV) bondtype$(SFX) $@
 
-$(BINDIR)/x/bondtype.orig$(SFX): bondtype.orig$(SFX)
-	$(VB)$(MV) bondtype.orig$(SFX) $@
-
 $(BINDIR)/x/charmmgen$(SFX): charmmgen$(SFX)
 	$(VB)$(MV) charmmgen$(SFX) $@
 
@@ -183,14 +180,6 @@ bondtype$(SFX): $(BONDTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(BONDTYPEOBJS) $(LM) -o $@
-
-bondtype.orig.o: bondtype.cpp
-	@echo "[ANTECHAMBER]  CC $@"
-	$(VB)$(CXX) -c $(CXXNOOPTFLAGS) $(CXXFLAGS) $(AMBERCXXFLAGS) -o bondtype.orig.o bondtype.cpp
-
-bondtype.orig$(SFX): bondtype.orig.o
-	@echo "[ANTECHAMBER]  CC $@"
-	$(VB)$(CXX) $(CXXFLAGS) $(AMBERCXXFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) bondtype.orig.o $(LM) -o $@
 
 charmmgen$(SFX): $(CHARMMGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
@@ -288,9 +277,6 @@ $(BINDIR)/atomtype$(SFX): atomtype$(SFX)
 
 $(BINDIR)/bondtype$(SFX): bondtype$(SFX)
 	$(VB)$(MV) bondtype$(SFX) $@
-
-$(BINDIR)/bondtype.orig$(SFX): bondtype.orig$(SFX)
-	$(VB)$(MV) bondtype.orig$(SFX) $@
 
 $(BINDIR)/charmmgen$(SFX): charmmgen$(SFX)
 	$(VB)$(MV) charmmgen$(SFX) $@

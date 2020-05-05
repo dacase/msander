@@ -12,7 +12,7 @@ install:
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) tleap
-	@cd antechamber && $(MAKE) antechamber
+	@cd antechamber && $(MAKE) installac
 	@cd sqm && $(MAKE) sqmprog
 	@cd ../bin && ln -s -f msander sander
 	@cd ../bin && ln -s -f msander.LES sander.LES

@@ -12,12 +12,17 @@ requirements:
   build:
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
     - ld64 409.12 h3c32e8a_4   # [osx]
     - flex
     - bison
     - make
   host:
+    - python
+    - numpy
   run:
+    - python
+    - numpy
 
 about:
     home: https://ambermd.org
