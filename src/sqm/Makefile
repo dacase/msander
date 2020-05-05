@@ -3,6 +3,17 @@ include ../../config.h
 SHELL=/bin/sh
 VPATH=
 
+#SQMOBJ = Objects specific to the standalone SQM
+SQMOBJ= file_io_dat.o constants.o findmask.o sqm.SQM.o \
+	xmin.o xminC.o \
+	mexit.o assert.o wallclock.o veclib.o \
+	timer_dummy.o nmlsrc.o \
+	qm_print_info.SQM.o \
+	qm2_energy.SQM.o \
+	qm2_read_nm_and_alloc.SQM.o \
+	qm2_scf.SQM.o \
+	qm2_dftb_scf.SQM.o
+
 #LIBQMOBJ = Objects specific to building as a library.
 LIBQMOBJ = qm_print_info.o \
 	qm2_energy.o \
@@ -44,12 +55,39 @@ QMOBJ = qm2_allocate_e_repul.o qm2_calc_charges.o qm2_calc_dipole.o \
 	qm2_fock_d.o MNDOChargeSeparation.o qm2_print_energy.o \
 	qm2_dftb_get_dftb3_parameters.o qm2_dftb_gamma_dftb3.o
 
+sqmprog: $(BINDIR)/sqm$(SFX)
+
+$(BINDIR)/sqm$(SFX): $(SQMOBJ) $(QMOBJ) libs
+	@echo "[SQM]  FC $@"
+	$(VB)$(FC) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ \
+        $(SQMOBJ) $(QMOBJ) -L$(LIBDIR) $(FLIBSF) $(LDFLAGS)
+
+#---------------------------------------------------------------------------
+libs:
+	$(VB)cd ../blas && $(MAKE) $(BLAS)
+	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
+	$(VB)cd ../arpack && $(MAKE) libarpack
+	$(VB)cd ../rism && $(MAKE) librism
+	$(VB)cd ../lib && $(MAKE) libsys
+    
 
 #-----------LIBS
 
 xminC.o:  ../sff/xminC.c
 	@echo "[SQM]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o xminC.o ../sff/xminC.c
+
+mexit.o: ../msander/mexit.F90
+	@echo "[SQM]  FC $<"
+	$(VB)$(FC) -c $(FFLAGS) -o $@ $< 
+
+wallclock.o: ../msander/wallclock.F90
+	@echo "[SQM]  FC $<"
+	$(VB)$(FC) -c $(FFLAGS) -o $@ $< 
+
+veclib.o: ../msander/veclib.F90
+	@echo "[SQM]  FC $<"
+	$(VB)$(FC) -c $(FOPTFLAGS) $(FFLAGS) -o $@ $< 
 
 libsqm: $(LIBDIR)/libsqm.a
 

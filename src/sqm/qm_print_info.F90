@@ -228,7 +228,7 @@ subroutine qm_write_pdb(filename)
 !Local
   integer :: i,j
 
-  call amopen(23,trim(filename),'R','F','W')
+  open(unit=23,file=trim(filename),action='write')
   write(23,'(a)') 'REMARK'
   do i=1,qmmm_struct%nquant_nlink
     write(23,60) i,elementSymbol(qmmm_struct%iqm_atomic_numbers(i)),1, &

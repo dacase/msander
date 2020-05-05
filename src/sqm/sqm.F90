@@ -102,8 +102,8 @@ program sqm
    end do  !  while (iarg < last_arg_index)
 
    igb = 0
-   call amopen(5,mdin,'O','F','R')
-   call amopen(6,mdout,owrite,'F','W')
+   open(5,file=mdin,action='read')
+   open(6,file=mdout,status='unknown',action='write')
 
    write(6,*) '           --------------------------------------------------------'
    write(6,*) '                            AMBER SQM VERSION 19'

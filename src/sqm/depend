@@ -2,14 +2,6 @@
 #   Please do not edit the "depend" file directly, since it is created by the
 #   "makedepend" script.  If changes are needed, edit "makedepend" itself.
 #
-amopen.o: \
-                    copyright.h
-
-
-amopen.o:   amopen.F90
-	@echo '[SQM]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ amopen.F90
-
 assert.o: \
                     copyright.h\
                     ../include/assert.fh
@@ -54,14 +46,6 @@ findmask.o: \
 findmask.o:   findmask.F90
 	@echo '[SQM]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ findmask.F90
-
-mexit.o: \
-                    copyright.h
-
-
-mexit.o:   mexit.F90
-	@echo '[SQM]  FC $<'
-	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ mexit.F90
 
 MNDOChargeSeparation.o: \
                     ../include/dprec.fh\
