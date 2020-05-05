@@ -1541,7 +1541,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    integer noshakegp( natom ), natnos
    integer iwrap_maskgp( natom ) , ier
    logical errFlag
-   _REAL_ emtmd
+   _REAL_ emtmd, wallc
 #ifndef LES
    logical newstyle
 #endif /* LES */
@@ -1667,7 +1667,10 @@ subroutine api_mdread2(x, ix, ih, ierr)
      !longer synchronized the random numbers between streams when
      !running in parallel giving better scaling.
      no_ntt3_sync = 1
-     call microsec(ig)
+     ! call microsec(ig)
+     call wallclock( wallc ) ! GNU fortran yields wallc to milliseconds
+     wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
+     ig = wallc
 #ifdef MPI
      write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
@@ -4283,7 +4286,6 @@ subroutine sander_cleanup()
    if (charmm_active) call charmm_deallocate_arrays()
    charmm_active = .false.
    ! Reset all of the "first"
-   call AM_RUNMD_reset
    call mdeng_reset
    call mdwrit_reset
    call minwrit_reset

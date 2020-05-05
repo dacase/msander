@@ -8,10 +8,14 @@ install:
 	@cd msander && $(MAKE) libsander
 	@cd msander && $(MAKE) libsanderles
 	@cd pysander && $(MAKE) pysander
+	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) antechamber
+	@cd sqm && $(MAKE) sqmprog
+	@cd ../bin && ln -s -f msander sander
+	@cd ../bin && ln -s -f msander.LES sander.LES
 
 clean:
 	-(cd blas && $(MAKE) clean )

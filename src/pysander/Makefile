@@ -1,7 +1,7 @@
 include ../../config.h
 
 pysander:
-	AMBERHOME=$(AMBER_PREFIX) $(PYTHON) setup.py install $(PYTHON_INSTALL)
+	MSANDERHOME=$(BASEDIR) $(PYTHON) setup.py install $(PYTHON_INSTALL)
 
 clean:
 	/bin/rm -fr build/

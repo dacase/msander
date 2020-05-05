@@ -32,6 +32,7 @@ if (not os.path.isfile(sanderles_extension_source)) or os.path.getmtime(sander_e
 
 # Retrieve value of AMBERHOME env variable. (None if not defined).
 amberhome = os.getenv('MSANDERHOME')
+print('using amberhome as %s' % amberhome)
 
 definitions = []
 lesdefinitions = [('LES', None)]
