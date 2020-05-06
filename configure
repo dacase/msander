@@ -351,13 +351,21 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
        [ "$openmp" == "yes" -a ! -s "lib/libfftw3_omp.a" ]; then
        printf "\nConfiguring fftw-3.3..."
-       enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
+
+       if [ "$openmp" == "no" ]; then
+          enableomp=""
+       else
+          enableomp="--enable-openmp"
+       fi
+
+       # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes"
+
        # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
        #   be required for Intel compilers.
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
-           --libdir=$msanderhome/lib --enable-openmp $fftw_flags \
+           --libdir=$msanderhome/lib $enableomp $fftw_flags \
            --enable-static --enable-sse2=yes MPICC="$mpicc" \
            CC="$cc" CFLAGS="$gccsys -O2"  F77="$fc" FFLAGS="-O2" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
