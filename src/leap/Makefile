@@ -141,8 +141,7 @@ utilLib2Pdb$(SFX): $(UL2P_OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(UL2P_OBJ) $(LM)
 
 clean::
-	-rm -f *.o $(PROGS) *\~
-	-rm -f *.gprof
+	-rm -f *.o $(PROGS)
 	-rm -f helptext.c parser.c
 
 parser.c:       parser.y parser.h
