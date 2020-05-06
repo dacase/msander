@@ -70,7 +70,8 @@ dispatch:
 
 tests: $(TESTS)
 
-installac: $(DISPATCHEDPROGS) dispatch
+.PHONY: ac
+ac: $(DISPATCHEDPROGS) dispatch
 
 clean:
 	/bin/rm -f *.o $(LOCALPROGS) $(TESTS)
@@ -88,174 +89,108 @@ $(LIBDIR)/libcifparse.a:
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
 
 #_____________________________________________________________________________
-# Dispatched Programs
+# compilation rules.
 
-$(BINDIR)/x/acdoctor$(SFX): acdoctor$(SFX)
-	$(VB)$(MV) acdoctor$(SFX) $@
-
-$(BINDIR)/x/am1bcc$(SFX): am1bcc$(SFX)
-	$(VB)$(MV) am1bcc$(SFX) $@
-
-$(BINDIR)/x/antechamber$(SFX): antechamber$(SFX)
-	$(VB)$(MV) antechamber$(SFX) $@
-
-$(BINDIR)/x/atomtype$(SFX): atomtype$(SFX)
-	$(VB)$(MV) atomtype$(SFX) $@
-
-$(BINDIR)/x/bondtype$(SFX): bondtype$(SFX)
-	$(VB)$(MV) bondtype$(SFX) $@
-
-$(BINDIR)/x/charmmgen$(SFX): charmmgen$(SFX)
-	$(VB)$(MV) charmmgen$(SFX) $@
-
-$(BINDIR)/x/crdgrow$(SFX): crdgrow$(SFX)
-	$(VB)$(MV) crdgrow$(SFX) $@
-
-$(BINDIR)/x/database$(SFX): database$(SFX)
-	$(VB)$(MV) database$(SFX) $@
-
-$(BINDIR)/x/delphigen$(SFX): delphigen$(SFX)
-	$(VB)$(MV) delphigen$(SFX) $@
-
-$(BINDIR)/x/espgen$(SFX): espgen$(SFX)
-	$(VB)$(MV) espgen$(SFX) $@
-
-$(BINDIR)/x/match$(SFX): match$(SFX)
-	$(VB)$(MV) match$(SFX) $@
-
-$(BINDIR)/x/match_atomname$(SFX): match_atomname$(SFX)
-	$(VB)$(MV) match_atomname$(SFX) $@
-
-$(BINDIR)/x/parmcal$(SFX): parmcal$(SFX)
-	$(VB)$(MV) parmcal$(SFX) $@
-
-$(BINDIR)/x/parmchk2$(SFX): parmchk2$(SFX)
-	$(VB)$(MV) parmchk2$(SFX) $@
-
-$(BINDIR)/x/parmjoin$(SFX): parmjoin$(SFX)
-	$(VB)$(MV) parmjoin$(SFX) $@
-
-$(BINDIR)/x/prepgen$(SFX): prepgen$(SFX)
-	$(VB)$(MV) prepgen$(SFX) $@
-
-$(BINDIR)/x/residuegen$(SFX): residuegen$(SFX)
-	$(VB)$(MV) residuegen$(SFX) $@
-
-$(BINDIR)/x/respgen$(SFX): respgen$(SFX)
-	$(VB)$(MV) respgen$(SFX) $@
-
-$(BINDIR)/x/translate$(SFX): translate$(SFX)
-	$(VB)$(MV) translate$(SFX) $@
-
-$(BINDIR)/x/top2ff$(SFX): top2ff$(SFX)
-	$(VB)$(MV) top2ff$(SFX) $@
-
-$(BINDIR)/x/top2mol2$(SFX): top2mol2$(SFX)
-	$(VB)$(MV) top2mol2$(SFX) $@
-
-#_____________________________________________________________________________
-# Local Programs, i.e., compilation rules.
-
-acdoctor$(SFX): $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/x/acdoctor$(SFX): $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ACDOCTOROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-am1bcc$(SFX): $(AM1BCCOBJS)
+$(BINDIR)/x/am1bcc$(SFX): $(AM1BCCOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(AM1BCCOBJS) \
 	    $(LM) -o $@
 
-antechamber$(SFX): $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/x/antechamber$(SFX): $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ANTECHAMBEROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-atomtype$(SFX): $(ATOMTYPEOBJS)
+$(BINDIR)/x/atomtype$(SFX): $(ATOMTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ATOMTYPEOBJS) $(LM) -o $@
 
-bondtype$(SFX): $(BONDTYPEOBJS)
+$(BINDIR)/x/bondtype$(SFX): $(BONDTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(BONDTYPEOBJS) $(LM) -o $@
 
-charmmgen$(SFX): $(CHARMMGENOBJS)
+$(BINDIR)/x/charmmgen$(SFX): $(CHARMMGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CHARMMGENOBJS) $(LM) -o $@
 
-crdgrow$(SFX): $(CRDGROWOBJS)
+$(BINDIR)/x/crdgrow$(SFX): $(CRDGROWOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CRDGROWOBJS) $(LM) -o $@
 
-database$(SFX): $(DATABASEOBJS)
+$(BINDIR)/x/database$(SFX): $(DATABASEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DATABASEOBJS) $(LM) -o $@
 
-delphigen$(SFX): $(DELPHIGENOBJS)
+$(BINDIR)/x/delphigen$(SFX): $(DELPHIGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DELPHIGENOBJS) -o $@
 
-espgen$(SFX): $(ESPGENOBJS)
+$(BINDIR)/x/espgen$(SFX): $(ESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ESPGENOBJS) $(LM) -o $@
 
-match$(SFX): $(MATCHOBJS)
+$(BINDIR)/x/match$(SFX): $(MATCHOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCHOBJS) $(LM) -o $@
 
-match_atomname$(SFX): $(MATCH_ATOMNAMEOBJS)
+$(BINDIR)/x/match_atomname$(SFX): $(MATCH_ATOMNAMEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCH_ATOMNAMEOBJS) $(LM) -o $@
 
-parmcal$(SFX): $(PARMCALOBJS)
+$(BINDIR)/x/parmcal$(SFX): $(PARMCALOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCALOBJS) $(LM) -o $@
 
-parmchk2$(SFX): $(PARMCHK2OBJS)
+$(BINDIR)/x/parmchk2$(SFX): $(PARMCHK2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCHK2OBJS) $(LM) -o $@
 
-parmjoin$(SFX): parmjoin.o
+$(BINDIR)/x/parmjoin$(SFX): parmjoin.o
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) parmjoin.o -o $@
 
-prepgen$(SFX): $(PREPGENOBJS)
+$(BINDIR)/x/prepgen$(SFX): $(PREPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PREPGENOBJS) $(LM) -o $@
 
-residuegen$(SFX): $(RESIDUEGENOBJS)
+$(BINDIR)/x/residuegen$(SFX): $(RESIDUEGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESIDUEGENOBJS) $(LM) -o $@
 
-respgen$(SFX): $(RESPGENOBJS)
+$(BINDIR)/x/respgen$(SFX): $(RESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESPGENOBJS) $(LM) -o $@
 
-translate$(SFX): $(TRANSLATEOBJS)
+$(BINDIR)/x/translate$(SFX): $(TRANSLATEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TRANSLATEOBJS) $(LM) -o $@
 
-top2ff$(SFX): $(TOP2FFOBJS)
+$(BINDIR)/x/top2ff$(SFX): $(TOP2FFOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2FFOBJS) $(LM) -o $@
 
-top2mol2$(SFX): $(TOP2MOL2OBJS)
+$(BINDIR)/x/top2mol2$(SFX): $(TOP2MOL2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2MOL2OBJS) $(LM) -o $@

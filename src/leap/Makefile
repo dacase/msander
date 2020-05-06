@@ -3,7 +3,7 @@ LOCALFLAGS=-Wno-unused-value
 
 .c.o:
 	@echo "[TLEAP] CC $<"
-	$(VB)$(CC) -c -I$(INCDIR) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
+	$(VB)$(CC) -c -I$(INCDIR) $(CFLAGS) $(LOCALFLAGS) -o $@ $<
 
 # 
 #  Absolutely necessary routines

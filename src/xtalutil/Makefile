@@ -1,4 +1,4 @@
-include ../config.h
+include ../../config.h
 
 LOCALFLAGS=-Wno-unused-result
 
@@ -9,7 +9,7 @@ LOCALFLAGS=-Wno-unused-result
 OBJS = crdmanip.o grid.o listRead.o matrix.o pdbRead.o QuatAlign.o ran2.o \
        topRead.o vector.o
 
-install: $(BINDIR)/ChBox$(SFX) $(BINDIR)/UnitCell$(SFX) \
+xtalutil: $(BINDIR)/ChBox$(SFX) $(BINDIR)/UnitCell$(SFX) \
      $(BINDIR)/AddToBox$(SFX) $(BINDIR)/PropPDB$(SFX)
 
 $(BINDIR)/AddToBox$(SFX): AddToBox.o $(OBJS)

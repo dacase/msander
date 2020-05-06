@@ -30,8 +30,6 @@ $(BINDIR)/addles$(SFX) : $(LESOBJ)
 
 #-----------LIBS
 
-install: $(BINDIR)/addles$(SFX)
-
 clean:
 	-rm -f *.o
 

@@ -10,10 +10,11 @@ install:
 	@cd pysander && $(MAKE) pysander
 	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
 	@cd xray && $(MAKE) xray
+	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) tleap
-	@cd antechamber && $(MAKE) installac
-	@cd sqm && $(MAKE) sqmprog
+	@cd antechamber && $(MAKE) ac
+	@cd sqm && $(MAKE) sqm
 	@cd ../bin && ln -s -f msander sander
 	@cd ../bin && ln -s -f msander.LES sander.LES
 
