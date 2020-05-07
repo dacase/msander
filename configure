@@ -62,9 +62,9 @@ for var in "$@"; do
             fc="x86_64-w64-mingw32-gfortran --static";;
         --intel)
             compiler="intel"
-            cc="icc"
+            cc="icc -fPIC"
             mpicc="$msanderhome/bin/mpicc"
-            fc="ifort"
+            fc="ifort -fPIC"
             mpif90="$msanderhome/bin/mpif90"
             gccsys="-gcc-sys "
             optflags="-g -O3 -fast"
