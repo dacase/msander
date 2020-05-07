@@ -15,8 +15,6 @@ install:
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
 	@cd sqm && $(MAKE) sqm
-	@cd ../bin && ln -s -f msander sander
-	@cd ../bin && ln -s -f msander.LES sander.LES
 
 clean:
 	-(cd blas && $(MAKE) clean )
