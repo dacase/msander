@@ -6,9 +6,9 @@ MD NVE
   imin = 0, irest=1, ntx=5, ioutfm=0,
   cut=9.0,
   ntc=2, ntf=2, tol=0.0000005
-  nstlim=100, dt=0.001,
+  nstlim=500, dt=0.001,
   ithermostat=0, ntb =1,
-  ntpr = 10,
+  ntpr = 50,
  /
  &ewald
  dsum_tol = 0.000001
@@ -16,8 +16,8 @@ MD NVE
 eof
 
 output=uucg_msander.o
-msander -O -i mdin -p uucg_tip4pew_10.parm7 -c restrt.26_dyn -o $output 
+../../bin/msander -O -i mdin -p uucg_tip4pew_10.parm7 -c restrt.26_dyn -o $output
 
-/bin/rm mdin mdcrd restrt mdinfo
+/bin/rm mdin restrt mdinfo
 
 
