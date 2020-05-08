@@ -1,0 +1,23 @@
+#!/bin/bash -f
+
+cat <<eof >mdin
+MD NVE
+ &cntrl
+  imin = 0, irest=1, ntx=5, ioutfm=0,
+  cut=9.0,
+  ntc=2, ntf=2, tol=0.0000005
+  nstlim=500, dt=0.001,
+  ntt=0, ntb =1,
+  ntpr = 50,
+ /
+ &ewald
+ dsum_tol = 0.000001
+ /
+eof
+
+output=uucg_pmemd.o
+pmemd -O -i mdin -p uucg_tip4pew_10.parm7 -c restrt.26_dyn -o $output 
+
+/bin/rm mdin restrt mdinfo
+
+

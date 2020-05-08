@@ -1,0 +1,3 @@
+To carry out all the tests, simply run ./compile_run_tests.bash
+To run individual tests, do
+source test.sh
