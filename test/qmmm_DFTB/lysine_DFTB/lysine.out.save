@@ -1,14 +1,13 @@
 
           -------------------------------------------------------
-          Amber 14 SANDER                              2014
+          Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/25/2015 at 16:03:41
+| Run on 05/07/2020 at 21:55:26
 
-|   Executable path: ../sander
-| Working directory: /usr/local/amber/test/qmmm_DFTB/lysine_DFTB
-|          Hostname: caffeine.sdsc.edu
-
+|   Executable path: ../../../bin/msander
+| Working directory: /home/case/msander/test/qmmm_DFTB/lysine_DFTB
+|          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
@@ -49,8 +48,8 @@ Lysine: 5 cycles minimization, one methylene group QM, has link atoms
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
-| New format PARM file being parsed.
-| Version =    1.000 Date = 03/18/12 Time = 15:08:08
+|  *** cutoff > system size, list only builds once
+|Largest sphere to fit in unit cell has radius =    98.469
  NATOM  =      22 NTYPES =       8 NBONH =      13 MBONA  =       8
  NTHETH =      30 MTHETA =       8 NPHIH =      44 MPHIA  =       7
  NHPARM =       0 NPARM  =       0 NNB   =     112 NRES   =       1
@@ -61,13 +60,13 @@ Lysine: 5 cycles minimization, one methylene group QM, has link atoms
 
 
 |     Memory Use     Allocated
-|     Real                5089
+|     Real              451626
 |     Hollerith             69
 |     Integer            21027
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total              122 kbytes
+|       Total             3610 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -92,7 +91,7 @@ Nature and format of input:
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
      iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       0, igb     =       6, nsnb    =      25
@@ -103,8 +102,14 @@ Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
 Energy minimization:
-     maxcyc  =       5, ncyc    =      10, ntmin   =       1
+     maxcyc  =       5, ncyc    =      10, ntmin   =       3
      dx0     =   0.01000, drms    =   0.00500
+
+LMOD:
+     xmin_method                  = LBFGS
+     lbfgs_memory_depth           =       3
+     matrix_vector_product_method = forward finite difference
+     xmin_verbosity               =       0
 
 QMMM options:
              ifqnt = True       nquant =        3
@@ -115,15 +120,13 @@ QMMM options:
           qm_theory =    DFTB verbosity =        0
             qmqmdx = Analytical
       tight_p_conv = False (converge density to 0.05xSqrt[SCFCRT])
-           scfconv = 0.100E-07  itrmax =     1000
+           scfconv =  0.100E-07  itrmax =     1000
       printcharges = False      printdipole = False      peptide_corr = False
     qmmmrij_incore = False
   qmqm_erep_incore = False
        pseudo_diag = False
       diag_routine =        0
           qm_ewald =        0 qm_pme = False 
-|  INFO: Old style inpcrd file read
-
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -133,6 +136,10 @@ LYS
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
+
+| QMMM(OpenMP): SMP Multithreading is in use for matrix diagonalization routines.
+| QMMM(OpenMP):    1 threads will be spawned by the master MPI thread as needed.
+
 QMMM: ADJUSTING CHARGES
 QMMM: ----------------------------------------------------------------------
 QMMM: adjust_q = 2
@@ -142,6 +149,14 @@ QMMM: QM atom RESP charge sum (inc MM link) =   -0.018
 QMMM: Adjusting each MM atom resp charge by =   -0.001
 QMMM:          Sum of MM + QM region is now =    1.000
 QMMM: ----------------------------------------------------------------------
+  LMOD XMIN Minimization.
+
+  Note: Owing to the behaviour of the XMIN algorithm,
+        coordinates in the trajectory and intermediate
+        restart files will not match up with energies
+        in the mdout and mdinfo files. The final energy
+        and final coordinates do match.
+
 
 QMMM: Link Atom Information
 QMMM: ------------------------------------------------------------------------
@@ -169,6 +184,9 @@ QMMM: ------------------------------------------------------------------------
 | QMMM: DFTB Calculation - Additional citation for AMBER DFTB QMMM Run:
 | QMMM:   Seabra, G.M., Walker, R.C. et al., J. PHYS. CHEM. A., 111, 5655, (2007)
 
+| QMMM: Please cite also the appropriate references for the DFTB parameters
+| QMMM: that you are using (see the manual and www.dftb.org).
+
 
 QMMM: SINGLET STATE CALCULATION
 QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
@@ -176,10 +194,10 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 
  Parameter files:
      TYP (AT)  TYP (AT)     SK integral FILE
-|  1  1  (C )   1  (C )     /usr/local/amber/dat/slko/C-C.skf
-|  2  1  (C )   2  (H )     /usr/local/amber/dat/slko/C-H.skf
-|  3  2  (H )   1  (C )     /usr/local/amber/dat/slko/H-C.skf
-|  4  2  (H )   2  (H )     /usr/local/amber/dat/slko/H-H.skf
+|  1  1  (C )   1  (C )     /home/case/amber20/dat/slko/mio-1-1/C-C.skf
+|  2  1  (C )   2  (H )     /home/case/amber20/dat/slko/mio-1-1/C-H.skf
+|  3  2  (H )   1  (C )     /home/case/amber20/dat/slko/mio-1-1/H-C.skf
+|  4  2  (H )   2  (H )     /home/case/amber20/dat/slko/mio-1-1/H-H.skf
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
@@ -217,7 +235,7 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      1      -3.7385E+02     4.3680E+00     1.5479E+01     N           1
+      0      -3.7385E+02     4.3680E+00     1.5479E+01     N           1
 
  BOND    =        0.0016  ANGLE   =        0.3736  DIHED      =        0.0026
  VDWAALS =        0.1908  EEL     =       -4.8553  EGB        =        0.0000
@@ -226,98 +244,72 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      2      -3.7420E+02     3.0407E+00     1.3244E+01     C          21
+      1      -3.7441E+02     3.6068E+00     1.5083E+01     O          22
 
- BOND    =        0.0615  ANGLE   =        0.2820  DIHED      =        0.0022
- VDWAALS =        0.1283  EEL     =       -4.9209  EGB        =        0.0000
- 1-4 VDW =        3.6106  1-4 EEL =       65.3800  RESTRAINT  =        0.0000
- DFTBESCF=     -438.7387
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      3      -3.7451E+02     2.4936E+00     1.2281E+01     C          21
-
- BOND    =        0.1453  ANGLE   =        0.2346  DIHED      =        0.0024
- VDWAALS =        0.0586  EEL     =       -4.9703  EGB        =        0.0000
- 1-4 VDW =        3.5005  1-4 EEL =       65.2679  RESTRAINT  =        0.0000
- DFTBESCF=     -438.7464
+ BOND    =        0.4160  ANGLE   =        0.2064  DIHED      =        0.0023
+ VDWAALS =        0.0318  EEL     =       -5.0289  EGB        =        0.0000
+ 1-4 VDW =        3.4623  1-4 EEL =       65.2440  RESTRAINT  =        0.0000
+ DFTBESCF=     -438.7484
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      4      -3.7483E+02     2.1527E+00     1.1155E+01     C          21
+      2      -3.7517E+02     3.7521E+00     1.3822E+01     C          21
 
- BOND    =        0.1594  ANGLE   =        0.2252  DIHED      =        0.0031
- VDWAALS =       -0.0166  EEL     =       -5.0010  EGB        =        0.0000
- 1-4 VDW =        3.3898  1-4 EEL =       65.1611  RESTRAINT  =        0.0000
- DFTBESCF=     -438.7512
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -3.7516E+02     1.8587E+00     9.8397E+00     C          21
-
- BOND    =        0.1999  ANGLE   =        0.2214  DIHED      =        0.0039
- VDWAALS =       -0.1080  EEL     =       -5.0520  EGB        =        0.0000
- 1-4 VDW =        3.2650  1-4 EEL =       65.0614  RESTRAINT  =        0.0000
- DFTBESCF=     -438.7544
-
-
-  Maximum number of minimization cycles reached.
-
-
-                    FINAL RESULTS
-
+ BOND    =        0.5722  ANGLE   =        0.3605  DIHED      =        0.0065
+ VDWAALS =       -0.1757  EEL     =       -5.0892  EGB        =        0.0000
+ 1-4 VDW =        3.1084  1-4 EEL =       64.7956  RESTRAINT  =        0.0000
+ DFTBESCF=     -438.7498
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -3.7516E+02     1.8587E+00     9.8397E+00     C          21
+      3      -3.7572E+02     2.7967E+00     1.1490E+01     C          21
 
- BOND    =        0.1999  ANGLE   =        0.2214  DIHED      =        0.0039
- VDWAALS =       -0.1080  EEL     =       -5.0520  EGB        =        0.0000
- 1-4 VDW =        3.2650  1-4 EEL =       65.0614  RESTRAINT  =        0.0000
- DFTBESCF=     -438.7544
+ BOND    =        0.6318  ANGLE   =        0.4455  DIHED      =        0.0086
+ VDWAALS =       -0.3701  EEL     =       -5.1879  EGB        =        0.0000
+ 1-4 VDW =        2.8593  1-4 EEL =       64.6466  RESTRAINT  =        0.0000
+ DFTBESCF=     -438.7500
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      4      -3.7600E+02     1.8028E+00     5.7613E+00     HB2         6
+
+ BOND    =        0.4917  ANGLE   =        0.5607  DIHED      =        0.0107
+ VDWAALS =       -0.4377  EEL     =       -5.2382  EGB        =        0.0000
+ 1-4 VDW =        2.7681  1-4 EEL =       64.5977  RESTRAINT  =        0.0000
+ DFTBESCF=     -438.7482
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      5      -3.7631E+02     1.5165E+00     5.5918E+00     HB2         6
+
+ BOND    =        0.3554  ANGLE   =        0.8616  DIHED      =        0.0157
+ VDWAALS =       -0.5532  EEL     =       -5.3830  EGB        =        0.0000
+ 1-4 VDW =        2.6251  1-4 EEL =       64.5162  RESTRAINT  =        0.0000
+ DFTBESCF=     -438.7498
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 1.34% of Total)
-|    Fast Water setup           0.00 ( 0.04% of Total)
-|                Calc gb off-diag           0.00 (64.10% of Gen B)
-|                Other                      0.00 (35.90% of Gen B)
-|             Gen Born time              0.00 (97.29% of Nonbo)
-|             IPS excludes               0.00 ( 2.71% of Nonbo)
-|          Nonbond force              0.00 ( 1.06% of Force)
-|             QMMM setup                 0.01 (85.05% of QMMM )
-|             QMMM list build            0.00 ( 0.20% of QMMM )
-|             QMMM prep coords           0.00 ( 0.24% of QMMM )
-|             QMMM RIJ Eqns Calc         0.00 ( 0.07% of QMMM )
-|                   QMMM full matrix dia       0.00 (46.71% of QMMM )
-|                   Other                      0.00 (53.29% of QMMM )
-|                QMMM scf                   0.00 (92.98% of QMMM )
-|                QMMM GB energy             0.00 ( 0.82% of QMMM )
-|                Other                      0.00 ( 6.20% of QMMM )
-|             QMMM energy                0.00 (10.64% of QMMM )
-|                QMMM DFTB Repul Grad       0.00 ( 2.73% of QMMM )
-|                QMMM DFTB Hzero Grad       0.00 (86.30% of QMMM )
-|                QMMM DFTB Gamma Grad       0.00 ( 5.12% of QMMM )
-|                Other                      0.00 ( 5.84% of QMMM )
-|             QMMM QM-QM force           0.00 ( 2.48% of QMMM )
-|             QMMM QM-MM force           0.00 ( 0.20% of QMMM )
-|             QMMM Collate Forces        0.00 ( 0.14% of QMMM )
-|             Other                      0.00 ( 0.98% of QMMM )
-|          QMMM                       0.01 (97.10% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 1.67% of Force)
-|          Other                      0.00 ( 0.18% of Force)
-|       Force time                 0.01 (100.0% of Runmd)
-|    Runmd Time                 0.01 (78.82% of Total)
-|    Other                      0.00 (19.80% of Total)
-| Total time                 0.01 (95.22% of ALL  )
+|    Read coords time           0.00 ( 1.35% of Total)
+|             QMMM setup                 0.02 (25.76% of QMMM )
+|                QMMM scf                   0.05 (100.0% of QMMM )
+|             QMMM energy                0.05 (69.70% of QMMM )
+|                QMMM DFTB Hzero Grad       0.00 (50.00% of QMMM )
+|                QMMM DFTB Gamma Grad       0.00 (50.00% of QMMM )
+|             QMMM QM-QM force           0.00 ( 3.03% of QMMM )
+|             Other                      0.00 ( 1.52% of QMMM )
+|          QMMM                       0.07 (100.0% of Force)
+|       Force time                 0.07 (100.0% of Runmd)
+|    Runmd Time                 0.07 (89.19% of Total)
+|    Other                      0.01 ( 9.46% of Total)
+| Total time                 0.07 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 16:03:41.512  on 11/25/2015
-|           Setup done at 16:03:41.515  on 11/25/2015
-|           Run   done at 16:03:41.526  on 11/25/2015
-|     wallclock() was called     338 times
+|           Job began  at 21:55:26.242  on 05/07/2020
+|           Setup done at 21:55:26.248  on 05/07/2020
+|           Run   done at 21:55:26.316  on 05/07/2020
+|     wallclock() was called     572 times

@@ -11,6 +11,7 @@ test.general:
 	-(cd middle-scheme/MD_Unconstr_Langevin_water && ./Run.LGV_LF)
 	-(cd middle-scheme/QMMM_Constr_ALA_Methol && Run.qmmm)
 	-(cd softcore && ./Run_sc)
+	-(cd qmmm_DFTB/lysine_DFTB && ./Run.lysine)
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin)
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin_md)
 
