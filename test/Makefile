@@ -1,4 +1,7 @@
-test: test.general test.rism test.xray
+test:
+	@./run_tests.sh
+
+test.all: test.general test.rism test.xray
 
 test.general:
 	-(cd dhfr && ./Run.dhfr)
