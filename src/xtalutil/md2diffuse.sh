@@ -1,19 +1,31 @@
 #!/bin/bash
 
-#  Overview of workflow to take MD snapshots and computer diffuse and Bragg
-#    scattering.  The expectation is that this file will be copied to
+#  Overview of workflow to take MD snapshots and compute diffuse and Bragg
+#    scattering.  Output is an mtz file (or formatted analog) containing
+#    Bragg and diffuse scattering intensities.  An average electron density
+#    map can also be created.
+
+#  This script requires ccp4 programs to be in the PATH: sfall, f2mtz,
+#    fft, cad, mtzdump.  It also requires a set of PDB-format files
+#    from an MD (or other) ensemble;  Amber's cpptraj program is used
+#    in the example to generate these, but other tools could replace that.
+
+#  The expectation is that this file will be copied to your
 #    working directory, and edited and run there.  Each major section is
 #    enclosed in an "if" block, since one will often want to run things
 #    step by step.  Keeping the edited version of this script around provdes
 #    a record of what was done.
 
-pdbprefix="../PDBdata/4lzt_343uc"   # pdbfiles will be called
-                                  # $pdbprefix.$frame.pdb
-dprefix="4lzt_343uc"     # basename for final output files
-cell=
+#  Input variables: edit these to match your problem:
+
+pdbprefix="../PDBdata/4lzt_343uc"     # pdbfiles will be called
+                                      # $pdbprefix.$frame.pdb
+dprefix="4lzt_343uc"                  # basename for final output files
+cell=                                 # unit cell parameters; see step 6
 title="Diffuse/Bragg for 4lzt_343uc"  # for mtz and map files
-vf000=""  #  cell volume and number of electrons
-grid=""  # grid dimensions for final map
+vf000=""                              # cell volume and number of electrons
+grid=""                               # grid dimensions for final map
+                                      # (see step 7 for vf000 and grid)
 
 #=============================================================================
 #  1.  Run cpptraj to prepare PDB files
@@ -45,7 +57,7 @@ fi
 
 if false; then
 
-sfall xyzin 7-7-7.pdb hklout tmp.mtz memsize 10000000 <<EOF > sfall.log
+sfall xyzin $pdbprefix.1.pdb hklout tmp.mtz memsize 10000000 <<EOF > sfall.log
 mode sfcalc xyzin
 symm P1
 reso 1.0
@@ -54,7 +66,7 @@ end
 EOF
 
 #  (note:  not sure if this step is really needed for current workflow....)
-cad hklin1 tmp.mtz hklout 7-7-7.mtz <<EOF
+cad hklin1 tmp.mtz hklout frame1.mtz <<EOF
 labin file 1 E1=FC E2=PHIC
 labou file 1 E1=FP E2=SIGFP
 ctypin file 1 E2=Q
@@ -78,7 +90,7 @@ while (<STDIN>){
 }
 EOF
 
-mtzdump hklin 7-7-7.mtz <<EOF | perl ./format_mtzdump.pl > 7-7-7.hkl
+mtzdump hklin frame1.mtz <<EOF | perl ./format_mtzdump.pl > frame1.hkl
 NREF -1
 LRESO
 GO
@@ -197,8 +209,8 @@ for frame in `seq 1102 1 1250`; do
 #  set all b-factors to 15:
 ./modify_pdb < ${pdbprefix}.$frame.pdb > $frame.pdb
 
-#  second SFALL run with the bigger cell:
-sfall xyzin $frame.pdb hklin 7-7-7.mtz hklout $frame.pdb.mtz \
+#  run SFALL to get structure factors:
+sfall xyzin $frame.pdb hklin frame1.mtz hklout $frame.pdb.mtz \
      memsize 10000000 <<EOF > $frame.sfall2.log
 mode sfcalc xyzin hklin
 symm P1
@@ -217,7 +229,7 @@ echo Done with frame $frame at `date` >> progress
 
 done
 
-#/bin/rm modify_pdb mtz2fcphic.c mtz2fcphic
+/bin/rm modify_pdb mtz2fcphic.c mtz2fcphic
 
 fi
 
@@ -341,7 +353,7 @@ EOF
 
 gcc -std=gnu99  -O3 -o diffuse1 diffuse1.c
 
-./diffuse1 1 1250 1 7-7-7.mtz  > $dprefix.1.ihklb
+./diffuse1 1 1250 1 frame1.mtz  > $dprefix.1.ihklb
 
 /bin/rm -f diffuse1 diffuse1.c
 
@@ -350,7 +362,7 @@ fi
 #=============================================================================
 #  5.  combine (if needed) several intermediate .ihkl files into a total:
 
-if true; then
+if false; then
 
 cat <<EOF > diffuse2.c
 #include <stdlib.h>
@@ -439,9 +451,6 @@ int main( int argc, char** argv )
    double bs2over2, fav, phiav, fav2, fsqav, idiff;
    double RAD_TO_DEG = 57.29577951;
    int dh, dk, dl, hb, kb, lb, check;
-   int hgrid = 7;
-   int kgrid = 7;
-   int lgrid = 7;
 
    for( int i=0; i<nrec; i++ ){
       //  un-do B-factor. broadening:
@@ -452,13 +461,18 @@ int main( int argc, char** argv )
       fsqav = fsqsum[i]*bs2over2/nfiles;
       idiff = fsqav - fav2;
 
-#if 0
+#if 1
       printf( "%d\t%d\t%d\t%10.5f\t%12.4f\t%12.4f\t%12.4f\t%10.4f\n", 
          h[i],k[i],l[i],q[i], idiff, fav2, fav, phiav );
 
 #else  /* here for oversampled data: hardwire grids for now... */
 
-      // note: steve's code does these, so we may be able to skip this.
+       /* if one has multiple unit cells, and wishes to index the outputs
+          according to the primary cell, turn this section on and enter
+          the muliples in the h,k,l directions here:  */
+       int hgrid = 7;
+       int kgrid = 7;
+       int lgrid = 7;
 
       //  find the central Bragg indices and offsets:
       hb = h[i]/hgrid;  dh = h[i]%hgrid; 
@@ -486,7 +500,7 @@ int main( int argc, char** argv )
 EOF
 gcc -std=gnu99  -O -o diffuse2 diffuse2.c
 
-./diffuse2 7-7-7.hkl $dprefix.1.ihklb > $dprefix.1.dhkl
+./diffuse2 frame1.hkl $dprefix.1.ihklb > $dprefix.1.dhkl
 
 /bin/rm -f diffuse2 diffuse2.c
 
@@ -506,8 +520,12 @@ TITLE $title
 END
 EOF
 
+fi
+
 #=============================================================================
 #  7.  Also get an average map file
+
+if false; then 
 
 /bin/rm -f $dprefix.map
 fft hklin $dprefix.mtz mapout $dprefix.map <<EOF >> makemap.log
