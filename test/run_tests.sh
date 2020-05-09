@@ -8,7 +8,9 @@ difffile="${logprefix}.diff"
 
 mkdir -p ${logdir}
 
-(make -k test.all 2>&1) | tee ${logfile}
+(make -k test.general 2>&1) | tee ${logfile}
+(make -k test.rism 2>&1) | tee -a ${logfile}
+(make -k test.xray 2>&1) | tee -a ${logfile}
 
 passed_count=`grep PASS ${logfile} | wc -l`
 questionable_count=`grep "FAILURE:" ${logfile} | wc -l`
