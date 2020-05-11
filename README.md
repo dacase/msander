@@ -1,14 +1,16 @@
 
 This directory tree contains "msander", a "modern" version of parts of
-sander.
+sander, plus other pieces of AmberTools needed for basic building and
+simulations of biomolecules..
 
 # Design goals:
 
-* This project is a fork of the `sander` code in `AmberTools`.  It tries to
-(greatly) simplify the code base, choosing the best and most useful parts of
-the code, and to serve as a test bed for how modern Fortran coding techniques
-can be used.  Key application areas are expected to be in structure
-refinements using NMR, cryoEM or Xray diffraction information.
+* This project began as a fork of the `sander` code in `AmberTools`.  
+It tries to (greatly) simplify the code base, choosing the best and 
+most useful parts of the code, and to serve as a test bed for how 
+modern Fortran coding techniques can be used.  Key application areas 
+are expected to be in structure refinements using NMR, cryoEM or 
+Xray diffraction information.
 
 * Some pieces are missing from the sander program in AmberTools:
 
@@ -41,7 +43,7 @@ simulations
 
 *Conda build:
 ```
-   conda build recipe  [N.B: not yet tested!]
+   conda build recipe #configured especially to create an amber_phenix package
 ```
 
 *Non-conda build:  (MacOSX, Linux)
