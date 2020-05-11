@@ -1,7 +1,11 @@
 
 This directory tree contains "msander", a "modern" version of parts of
 sander, plus other pieces of AmberTools needed for basic building and
-simulations of biomolecules..
+simulations of biomolecules.  Tools inlcuded are:
+
+   addles  antechamber  tleap  msander  parmed  sqm
+
+Also included are the API's to msander, and various X-ray-related utilities
 
 # Design goals:
 
