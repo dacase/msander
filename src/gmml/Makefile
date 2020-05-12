@@ -29,7 +29,6 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = gmml1.0.0
-DISTDIR       = $(LIBDIR)
 LINK          = g++
 LFLAGS        = -Wl,-O1 -shared -Wl,-soname,libgmml.so.1
 LIBS          = $(SUBLIBS)  
@@ -40,204 +39,6 @@ STRIP         = strip
 
 ####### Files
 
-SOURCES       = src/CodeUtils/codetests.cc \
-		src/GeometryTopology/cell.cc \
-		src/GeometryTopology/coordinate.cc \
-		src/GeometryTopology/geometrytopology.cc \
-		src/GeometryTopology/grid.cc \
-		src/GeometryTopology/plane.cc \
-		src/GeometryTopology/rotation.cc \
-		src/Glycan/glycosidiclinkage.cc \
-		src/Glycan/monosaccharide.cc \
-		src/Glycan/oligosaccharide.cc \
-		src/MolecularMetadata/element.cc \
-		src/MolecularMetadata/guesses.cc \
-		src/MolecularModeling/atom.cc \
-		src/MolecularModeling/atomnode.cc \
-		src/MolecularModeling/dockingatom.cc \
-		src/MolecularModeling/moleculardynamicatom.cc \
-		src/MolecularModeling/molecule.cc \
-		src/MolecularModeling/oligosaccharidedetectionatom.cc \
-		src/MolecularModeling/overlaps.cc \
-		src/MolecularModeling/quantommechanicatom.cc \
-		src/MolecularModeling/ring_shape_detection.cc \
-		src/MolecularModeling/superimposition.cc \
-		src/GeometryTopology/ResidueLinkages/residue_linkage.cc \
-		src/GeometryTopology/ResidueLinkages/rotatable_dihedral.cc \
-		src/InputSet/CifFileSpace/ciffile.cc \
-		src/InputSet/CifFileSpace/ciffileatom.cc \
-		src/InputSet/CifFileSpace/ciffileprocessingexception.cc \
-		src/InputSet/CondensedSequenceSpace/carbohydratebuilder.cc \
-		src/InputSet/CondensedSequenceSpace/carbohydratebuilderjsonparser.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequence.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceresidue.cc \
-		src/InputSet/CondensedSequenceSpace/sequencestring.cpp \
-		src/InputSet/CoordinateFileSpace/coordinatefile.cc \
-		src/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.cc \
-		src/InputSet/PdbFileSpace/pdbatomcard.cc \
-		src/InputSet/PdbFileSpace/pdbatomsection.cc \
-		src/InputSet/PdbFileSpace/pdbauthorsection.cc \
-		src/InputSet/PdbFileSpace/pdbcaveatsection.cc \
-		src/InputSet/PdbFileSpace/pdbcispeptidecard.cc \
-		src/InputSet/PdbFileSpace/pdbcispeptidesection.cc \
-		src/InputSet/PdbFileSpace/pdbcompoundsection.cc \
-		src/InputSet/PdbFileSpace/pdbcompoundspecification.cc \
-		src/InputSet/PdbFileSpace/pdbconnectsection.cc \
-		src/InputSet/PdbFileSpace/pdbcrystallographiccard.cc \
-		src/InputSet/PdbFileSpace/pdbdatabasereference.cc \
-		src/InputSet/PdbFileSpace/pdbdatabasereferencesection.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfidebondsection.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfideresiduebond.cc \
-		src/InputSet/PdbFileSpace/pdbexperimentaldatasection.cc \
-		src/InputSet/PdbFileSpace/pdbfile.cc \
-		src/InputSet/PdbFileSpace/pdbfileprocessingexception.cc \
-		src/InputSet/PdbFileSpace/pdbformulacard.cc \
-		src/InputSet/PdbFileSpace/pdbformulasection.cc \
-		src/InputSet/PdbFileSpace/pdbheadercard.cc \
-		src/InputSet/PdbFileSpace/pdbhelixcard.cc \
-		src/InputSet/PdbFileSpace/pdbhelixresidue.cc \
-		src/InputSet/PdbFileSpace/pdbhelixsection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogenatomsection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogencard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogennamecard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogennamesection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensynonymcard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensynonymsection.cc \
-		src/InputSet/PdbFileSpace/pdbjournalsection.cc \
-		src/InputSet/PdbFileSpace/pdbkeywordssection.cc \
-		src/InputSet/PdbFileSpace/pdblinkcard.cc \
-		src/InputSet/PdbFileSpace/pdblinkcardresidue.cc \
-		src/InputSet/PdbFileSpace/pdblinksection.cc \
-		src/InputSet/PdbFileSpace/pdbmastercard.cc \
-		src/InputSet/PdbFileSpace/pdbmatrixncard.cc \
-		src/InputSet/PdbFileSpace/pdbmatrixnsection.cc \
-		src/InputSet/PdbFileSpace/pdbmodelcard.cc \
-		src/InputSet/PdbFileSpace/pdbmodelresidueset.cc \
-		src/InputSet/PdbFileSpace/pdbmodelsection.cc \
-		src/InputSet/PdbFileSpace/pdbmodeltypesection.cc \
-		src/InputSet/PdbFileSpace/pdbnummodelcard.cc \
-		src/InputSet/PdbFileSpace/pdbobsoletecard.cc \
-		src/InputSet/PdbFileSpace/pdbobsoletesection.cc \
-		src/InputSet/PdbFileSpace/pdboriginxncard.cc \
-		src/InputSet/PdbFileSpace/pdboriginxnsection.cc \
-		src/InputSet/PdbFileSpace/pdbremarksection.cc \
-		src/InputSet/PdbFileSpace/pdbresidue.cc \
-		src/InputSet/PdbFileSpace/pdbresiduemodificationcard.cc \
-		src/InputSet/PdbFileSpace/pdbresiduemodificationsection.cc \
-		src/InputSet/PdbFileSpace/pdbresiduesequencecard.cc \
-		src/InputSet/PdbFileSpace/pdbresiduesequencesection.cc \
-		src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc \
-		src/InputSet/PdbFileSpace/pdbrevisiondatasection.cc \
-		src/InputSet/PdbFileSpace/pdbscalencard.cc \
-		src/InputSet/PdbFileSpace/pdbscalensection.cc \
-		src/InputSet/PdbFileSpace/pdbsequenceadvancedcard.cc \
-		src/InputSet/PdbFileSpace/pdbsequenceadvancedsection.cc \
-		src/InputSet/PdbFileSpace/pdbsheetcard.cc \
-		src/InputSet/PdbFileSpace/pdbsheetsection.cc \
-		src/InputSet/PdbFileSpace/pdbsheetstrand.cc \
-		src/InputSet/PdbFileSpace/pdbsheetstrandresidue.cc \
-		src/InputSet/PdbFileSpace/pdbsitecard.cc \
-		src/InputSet/PdbFileSpace/pdbsiteresidue.cc \
-		src/InputSet/PdbFileSpace/pdbsitesection.cc \
-		src/InputSet/PdbFileSpace/pdbsourcecard.cc \
-		src/InputSet/PdbFileSpace/pdbsourcesection.cc \
-		src/InputSet/PdbFileSpace/pdbsplitsection.cc \
-		src/InputSet/PdbFileSpace/pdbsupersededentriescard.cc \
-		src/InputSet/PdbFileSpace/pdbsupersededentriessection.cc \
-		src/InputSet/PdbFileSpace/pdbtitlesection.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtatom.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtfile.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodel.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.cc \
-		src/InputSet/TopologyFileSpace/topologyangle.cc \
-		src/InputSet/TopologyFileSpace/topologyangletype.cc \
-		src/InputSet/TopologyFileSpace/topologyassembly.cc \
-		src/InputSet/TopologyFileSpace/topologyatom.cc \
-		src/InputSet/TopologyFileSpace/topologyatompair.cc \
-		src/InputSet/TopologyFileSpace/topologybond.cc \
-		src/InputSet/TopologyFileSpace/topologybondtype.cc \
-		src/InputSet/TopologyFileSpace/topologydihedral.cc \
-		src/InputSet/TopologyFileSpace/topologydihedraltype.cc \
-		src/InputSet/TopologyFileSpace/topologyfile.cc \
-		src/InputSet/TopologyFileSpace/topologyfileprocessingexception.cc \
-		src/InputSet/TopologyFileSpace/topologyresidue.cc \
-		src/InputSet/Utilities/response.cc \
-		src/MolecularMetadata/GLYCAM/amberatomtypeinfo.cpp \
-		src/MolecularMetadata/GLYCAM/amberelements.cpp \
-		src/MolecularMetadata/GLYCAM/bondlengthbytypepair.cpp \
-		src/MolecularMetadata/GLYCAM/dihedralangledata.cc \
-		src/MolecularMetadata/GLYCAM/glycam06residuecodes.cc \
-		src/MolecularMetadata/GLYCAM/glycam06residueinfo.cpp \
-		src/MolecularModeling/Assembly/assembly.cc \
-		src/MolecularModeling/Assembly/assemblybuilder.cc \
-		src/MolecularModeling/Assembly/geometryoperation.cc \
-		src/MolecularModeling/Assembly/glycamnaming.cc \
-		src/MolecularModeling/Assembly/ionization.cc \
-		src/MolecularModeling/Assembly/manipulationoperation.cc \
-		src/MolecularModeling/Assembly/selection.cc \
-		src/MolecularModeling/Assembly/solvation.cc \
-		src/MolecularModeling/Assembly/structurebuilder.cc \
-		src/MolecularModeling/Graph/edge.cc \
-		src/MolecularModeling/Graph/graph.cc \
-		src/MolecularModeling/Graph/node.cc \
-		src/MolecularModeling/Residue/residue.cc \
-		src/MolecularModeling/Residue/residue3dtemplatelibrary.cc \
-		src/MolecularModeling/Residue/residuebuilder.cc \
-		src/MolecularModeling/Residue/residuenode.cc \
-		src/MolecularModeling/Residue/residueproperties.cc \
-		src/MolecularModeling/Selections/selections.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfile.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileatom.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileresidue.cc \
-		src/ParameterSet/OffFileSpace/offfile.cc \
-		src/ParameterSet/OffFileSpace/offfileatom.cc \
-		src/ParameterSet/OffFileSpace/offfileresidue.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfile.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileangle.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileatom.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfilebond.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfiledihedral.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.cc \
-		src/ParameterSet/PrepFileSpace/prepfile.cc \
-		src/ParameterSet/PrepFileSpace/prepfileatom.cc \
-		src/ParameterSet/PrepFileSpace/prepfileprocessingexception.cc \
-		src/ParameterSet/PrepFileSpace/prepfileresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessor.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.cc \
-		src/MolecularModeling/Assembly/Ontology/analysis.cc \
-		src/MolecularModeling/Assembly/Ontology/gf_query.cc \
-		src/MolecularModeling/Assembly/Ontology/population.cc \
-		src/MolecularModeling/Assembly/Ontology/query.cc \
-		src/MolecularModeling/Assembly/Output/coordinatebuilder.cc \
-		src/MolecularModeling/Assembly/Output/librarybuilder.cc \
-		src/MolecularModeling/Assembly/Output/pdbbuilder.cc \
-		src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc \
-		src/MolecularModeling/Assembly/Output/prepbuilder.cc \
-		src/MolecularModeling/Assembly/Output/topologybuilder.cc \
-		src/MolecularModeling/Assembly/SugarIdentification/oligosaccharidedetection.cc \
-		src/MolecularModeling/Assembly/SugarIdentification/ringperception.cc 
 OBJECTS       = build/codetests.o \
 		build/cell.o \
 		build/coordinate.o \
@@ -436,695 +237,28 @@ OBJECTS       = build/codetests.o \
 		build/topologybuilder.o \
 		build/oligosaccharidedetection.o \
 		build/ringperception.o
-DIST= \
-		gmml.pro includes/common.hpp \
-		includes/generictypedefs.hpp \
-		includes/gmml.hpp \
-		includes/utils.hpp \
-		includes/CodeUtils/codetests.hpp \
-		includes/External_Libraries/json.hpp \
-		includes/GeometryTopology/cell.hpp \
-		includes/GeometryTopology/coordinate.hpp \
-		includes/GeometryTopology/geometrytopology.hpp \
-		includes/GeometryTopology/grid.hpp \
-		includes/GeometryTopology/plane.hpp \
-		includes/GeometryTopology/rotation.hpp \
-		includes/Glycan/chemicalcode.hpp \
-		includes/Glycan/glycosidiclinkage.hpp \
-		includes/Glycan/monosaccharide.hpp \
-		includes/Glycan/note.hpp \
-		includes/Glycan/oligosaccharide.hpp \
-		includes/Glycan/ontologyvocabulary.hpp \
-		includes/Glycan/sugarname.hpp \
-		includes/MolecularMetadata/element.hpp \
-		includes/MolecularMetadata/elementattributes.hpp \
-		includes/MolecularMetadata/guesses.hpp \
-		includes/MolecularMetadata/molecularmetadata.hpp \
-		includes/MolecularMetadata/ruleset.hpp \
-		includes/MolecularModeling/assembly.hpp \
-		includes/MolecularModeling/atom.hpp \
-		includes/MolecularModeling/atomnode.hpp \
-		includes/MolecularModeling/dockingatom.hpp \
-		includes/MolecularModeling/moleculardynamicatom.hpp \
-		includes/MolecularModeling/molecule.hpp \
-		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
-		includes/MolecularModeling/overlaps.hpp \
-		includes/MolecularModeling/quantommechanicatom.hpp \
-		includes/MolecularModeling/residue.hpp \
-		includes/MolecularModeling/residue3dtemplatelibrary.hpp \
-		includes/MolecularModeling/residuenode.hpp \
-		includes/MolecularModeling/residueproperties.hpp \
-		includes/MolecularModeling/ring_shape_detection.hpp \
-		includes/MolecularModeling/solvation.hpp \
-		includes/MolecularModeling/superimposition.hpp \
-		includes/External_Libraries/PCG/pcg_extras.hpp \
-		includes/External_Libraries/PCG/pcg_random.hpp \
-		includes/GeometryTopology/ResidueLinkages/residue_linkage.hpp \
-		includes/GeometryTopology/ResidueLinkages/rotatable_dihedral.hpp \
-		includes/InputSet/CifFileSpace/ciffile.hpp \
-		includes/InputSet/CifFileSpace/ciffileatom.hpp \
-		includes/InputSet/CifFileSpace/ciffileprocessingexception.hpp \
-		includes/InputSet/CondensedSequenceSpace/carbohydratebuilder.hpp \
-		includes/InputSet/CondensedSequenceSpace/condensedsequence.hpp \
-		includes/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.hpp \
-		includes/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.hpp \
-		includes/InputSet/CondensedSequenceSpace/condensedsequenceresidue.hpp \
-		includes/InputSet/CondensedSequenceSpace/sequencestring.hpp \
-		includes/InputSet/CoordinateFileSpace/coordinatefile.hpp \
-		includes/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.hpp \
-		includes/InputSet/PdbFileSpace/inputfile.hpp \
-		includes/InputSet/PdbFileSpace/pdbatomcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbatomsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbauthorsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbcaveatsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbcispeptidecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbcispeptidesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbcompoundsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbcompoundspecification.hpp \
-		includes/InputSet/PdbFileSpace/pdbconnectsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbcrystallographiccard.hpp \
-		includes/InputSet/PdbFileSpace/pdbdatabasereference.hpp \
-		includes/InputSet/PdbFileSpace/pdbdatabasereferencesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbdisulfidebondsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbdisulfideresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdbdisulfideresiduebond.hpp \
-		includes/InputSet/PdbFileSpace/pdbexperimentaldatasection.hpp \
-		includes/InputSet/PdbFileSpace/pdbfile.hpp \
-		includes/InputSet/PdbFileSpace/pdbfileprocessingexception.hpp \
-		includes/InputSet/PdbFileSpace/pdbformulacard.hpp \
-		includes/InputSet/PdbFileSpace/pdbformulasection.hpp \
-		includes/InputSet/PdbFileSpace/pdbheadercard.hpp \
-		includes/InputSet/PdbFileSpace/pdbhelixcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbhelixresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdbhelixsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogenatomsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogencard.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogennamecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogennamesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogensection.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogensynonymcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbheterogensynonymsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbjournalsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbkeywordssection.hpp \
-		includes/InputSet/PdbFileSpace/pdblinkcard.hpp \
-		includes/InputSet/PdbFileSpace/pdblinkcardresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdblinksection.hpp \
-		includes/InputSet/PdbFileSpace/pdbmastercard.hpp \
-		includes/InputSet/PdbFileSpace/pdbmatrixncard.hpp \
-		includes/InputSet/PdbFileSpace/pdbmatrixnsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbmodelcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbmodelresidueset.hpp \
-		includes/InputSet/PdbFileSpace/pdbmodelsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbmodeltypesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbnummodelcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbobsoletecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbobsoletesection.hpp \
-		includes/InputSet/PdbFileSpace/pdboriginxncard.hpp \
-		includes/InputSet/PdbFileSpace/pdboriginxnsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbremarksection.hpp \
-		includes/InputSet/PdbFileSpace/pdbresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdbresiduemodificationcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbresiduemodificationsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbresiduesequencecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbresiduesequencesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbrevisiondatacard.hpp \
-		includes/InputSet/PdbFileSpace/pdbrevisiondatasection.hpp \
-		includes/InputSet/PdbFileSpace/pdbscalencard.hpp \
-		includes/InputSet/PdbFileSpace/pdbscalensection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsequenceadvancedcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbsequenceadvancedsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsheetcard.hpp \
-		includes/InputSet/PdbFileSpace/pdbsheetsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsheetstrand.hpp \
-		includes/InputSet/PdbFileSpace/pdbsheetstrandresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdbsitecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbsiteresidue.hpp \
-		includes/InputSet/PdbFileSpace/pdbsitesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsourcecard.hpp \
-		includes/InputSet/PdbFileSpace/pdbsourcesection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsplitsection.hpp \
-		includes/InputSet/PdbFileSpace/pdbsupersededentriescard.hpp \
-		includes/InputSet/PdbFileSpace/pdbsupersededentriessection.hpp \
-		includes/InputSet/PdbFileSpace/pdbtitlesection.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtatom.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtatomcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtbranchcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtcompoundcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtfile.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtmodel.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtmodelcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtremarkcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqtrootcard.hpp \
-		includes/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.hpp \
-		includes/InputSet/TopologyFileSpace/topologyangle.hpp \
-		includes/InputSet/TopologyFileSpace/topologyangletype.hpp \
-		includes/InputSet/TopologyFileSpace/topologyassembly.hpp \
-		includes/InputSet/TopologyFileSpace/topologyatom.hpp \
-		includes/InputSet/TopologyFileSpace/topologyatompair.hpp \
-		includes/InputSet/TopologyFileSpace/topologybond.hpp \
-		includes/InputSet/TopologyFileSpace/topologybondtype.hpp \
-		includes/InputSet/TopologyFileSpace/topologydihedral.hpp \
-		includes/InputSet/TopologyFileSpace/topologydihedraltype.hpp \
-		includes/InputSet/TopologyFileSpace/topologyfile.hpp \
-		includes/InputSet/TopologyFileSpace/topologyfileprocessingexception.hpp \
-		includes/InputSet/TopologyFileSpace/topologyresidue.hpp \
-		includes/InputSet/Utilities/response.hpp \
-		includes/MolecularMetadata/AMBER/amberelements.hpp \
-		includes/MolecularMetadata/GLYCAM/amberatomtypeinfo.hpp \
-		includes/MolecularMetadata/GLYCAM/bondlengthbytypepair.hpp \
-		includes/MolecularMetadata/GLYCAM/dihedralangledata.hpp \
-		includes/MolecularMetadata/GLYCAM/glycam06.hpp \
-		includes/MolecularMetadata/GLYCAM/glycam06residuecodes.hpp \
-		includes/MolecularMetadata/GLYCAM/glycam06residueinfo.hpp \
-		includes/MolecularMetadata/Sugars/glycode.hpp \
-		includes/MolecularModeling/Graph/edge.hpp \
-		includes/MolecularModeling/Graph/graph.hpp \
-		includes/MolecularModeling/Graph/node.hpp \
-		includes/MolecularModeling/Selections/selections.hpp \
-		includes/ParameterSet/LibraryFileSpace/libraryfile.hpp \
-		includes/ParameterSet/LibraryFileSpace/libraryfileatom.hpp \
-		includes/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.hpp \
-		includes/ParameterSet/LibraryFileSpace/libraryfileresidue.hpp \
-		includes/ParameterSet/OffFileSpace/offfile.hpp \
-		includes/ParameterSet/OffFileSpace/offfileatom.hpp \
-		includes/ParameterSet/OffFileSpace/offfileprocessingexception.hpp \
-		includes/ParameterSet/OffFileSpace/offfileresidue.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfile.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfileangle.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfilebond.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfiledihedral.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.hpp \
-		includes/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.hpp \
-		includes/ParameterSet/PrepFileSpace/prepfile.hpp \
-		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
-		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp \
-		includes/ParameterSet/PrepFileSpace/prepfileresidue.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessor.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.hpp \
-		includes/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.hpp \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Cholesky/LDLT.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Cholesky/LLT.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Cholesky/LLT_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/CholmodSupport/CholmodSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Array.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ArrayBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ArrayWrapper.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Assign.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Assign_MKL.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/AssignEvaluator.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/BandMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Block.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/BooleanRedux.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CommaInitializer.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ConditionEstimator.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CoreEvaluators.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CoreIterators.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CwiseBinaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CwiseNullaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CwiseTernaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CwiseUnaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/CwiseUnaryView.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/DenseBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/DenseCoeffsBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/DenseStorage.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Diagonal.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/DiagonalMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/DiagonalProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Dot.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/EigenBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ForceAlignedAccess.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Fuzzy.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/GeneralProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/GenericPacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/GlobalFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Inverse.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/IO.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Map.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/MapBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/MathFunctionsImpl.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Matrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/MatrixBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/NestByValue.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/NoAlias.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/NumTraits.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/PermutationMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/PlainObjectBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Product.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ProductEvaluators.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Random.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Redux.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Ref.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Replicate.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/ReturnByValue.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Reverse.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Select.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/SelfAdjointView.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/SelfCwiseBinaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Solve.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/SolverBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/SolveTriangular.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/StableNorm.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Stride.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Swap.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Transpose.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Transpositions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/TriangularMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/VectorBlock.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/VectorwiseOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/Visitor.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/ComplexEigenSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/ComplexSchur.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/ComplexSchur_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/EigenSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/GeneralizedEigenSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/HessenbergDecomposition.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/MatrixBaseEigenvalues.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/RealQZ.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/RealSchur.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/RealSchur_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/SelfAdjointEigenSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Eigenvalues/Tridiagonalization.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/AlignedBox.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/AngleAxis.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/EulerAngles.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Homogeneous.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Hyperplane.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/OrthoMethods.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/ParametrizedLine.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Quaternion.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Rotation2D.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/RotationBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Scaling.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Transform.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Translation.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/Umeyama.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Householder/BlockHouseholder.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Householder/Householder.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Householder/HouseholderSequence.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/BasicPreconditioners.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/BiCGSTAB.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/ConjugateGradient.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/IncompleteCholesky.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/IncompleteLUT.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/IterativeSolverBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/IterativeLinearSolvers/SolveWithGuess.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Jacobi/Jacobi.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/Determinant.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/FullPivLU.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/InverseImpl.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/PartialPivLU.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/PartialPivLU_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/MetisSupport/MetisSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/blas.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/Image.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/Kernel.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/lapack.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/lapacke.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/lapacke_mangling.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/misc/RealSvd2x2.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/OrderingMethods/Amd.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/OrderingMethods/Eigen_Colamd.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/OrderingMethods/Ordering.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/PardisoSupport/PardisoSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/PaStiXSupport/PaStiXSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/ArrayCwiseBinaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/ArrayCwiseUnaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/BlockMethods.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/CommonCwiseBinaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/CommonCwiseUnaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/MatrixCwiseBinaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/plugins/MatrixCwiseUnaryOps.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/ColPivHouseholderQR.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/ColPivHouseholderQR_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/CompleteOrthogonalDecomposition.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/FullPivHouseholderQR.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/HouseholderQR.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/QR/HouseholderQR_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCholesky/SimplicialCholesky.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCholesky/SimplicialCholesky_impl.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/AmbiVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/CompressedStorage.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/ConservativeSparseSparseProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/MappedSparseMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseAssign.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseBlock.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseColEtree.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseCompressedBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseCwiseBinaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseCwiseUnaryOp.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseDenseProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseDiagonalProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseDot.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseFuzzy.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseMap.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseMatrixBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparsePermutation.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseRedux.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseRef.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseSelfAdjointView.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseSolverBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseSparseProductWithPruning.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseTranspose.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseTriangularView.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseUtil.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/SparseView.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseCore/TriangularSolver.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_column_bmod.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_column_dfs.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_copy_to_ucol.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_gemm_kernel.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_heap_relax_snode.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_kernel_bmod.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_Memory.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_panel_bmod.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_panel_dfs.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_pivotL.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_pruneL.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_relax_snode.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_Structs.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_SupernodalMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLU_Utils.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseLU/SparseLUImpl.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SparseQR/SparseQR.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SPQRSupport/SuiteSparseQRSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/StlSupport/details.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/StlSupport/StdDeque.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/StlSupport/StdList.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/StlSupport/StdVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SuperLUSupport/SuperLUSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SVD/BDCSVD.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SVD/JacobiSVD.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SVD/JacobiSVD_LAPACKE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SVD/SVDBase.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/SVD/UpperBidiagonalization.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/UmfPackSupport/UmfPackSupport.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/AssignmentFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/BinaryFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/NullaryFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/StlFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/TernaryFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/functors/UnaryFunctors.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralBlockPanelKernel.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixMatrix_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixMatrixTriangular.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixMatrixTriangular_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/GeneralMatrixVector_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/Parallelizer.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointMatrixMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointMatrixMatrix_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointMatrixVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointMatrixVector_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointProduct.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/SelfadjointRank2Update.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularMatrixMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularMatrixMatrix_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularMatrixVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularMatrixVector_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularSolverMatrix.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularSolverMatrix_BLAS.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/products/TriangularSolverVector.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/BlasUtil.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/Constants.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/DisableStupidWarnings.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/ForwardDeclarations.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/Macros.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/Memory.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/Meta.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/MKL_support.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/NonMPL2.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/ReenableStupidWarnings.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/StaticAssert.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/util/XprHelper.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Geometry/arch/Geometry_SSE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/LU/arch/Inverse_SSE.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AltiVec/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AltiVec/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AltiVec/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX/TypeCasting.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX512/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/AVX512/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/Half.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/PacketMathHalf.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/CUDA/TypeCasting.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/Default/Settings.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/NEON/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/NEON/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/NEON/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/SSE/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/SSE/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/SSE/PacketMath.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/SSE/TypeCasting.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/ZVector/Complex.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/ZVector/MathFunctions.h \
-		includes/External_Libraries/Eigen_Algebra_Template_Library/src/Core/arch/ZVector/PacketMath.h src/CodeUtils/codetests.cc \
-		src/GeometryTopology/cell.cc \
-		src/GeometryTopology/coordinate.cc \
-		src/GeometryTopology/geometrytopology.cc \
-		src/GeometryTopology/grid.cc \
-		src/GeometryTopology/plane.cc \
-		src/GeometryTopology/rotation.cc \
-		src/Glycan/glycosidiclinkage.cc \
-		src/Glycan/monosaccharide.cc \
-		src/Glycan/oligosaccharide.cc \
-		src/MolecularMetadata/element.cc \
-		src/MolecularMetadata/guesses.cc \
-		src/MolecularModeling/atom.cc \
-		src/MolecularModeling/atomnode.cc \
-		src/MolecularModeling/dockingatom.cc \
-		src/MolecularModeling/moleculardynamicatom.cc \
-		src/MolecularModeling/molecule.cc \
-		src/MolecularModeling/oligosaccharidedetectionatom.cc \
-		src/MolecularModeling/overlaps.cc \
-		src/MolecularModeling/quantommechanicatom.cc \
-		src/MolecularModeling/ring_shape_detection.cc \
-		src/MolecularModeling/superimposition.cc \
-		src/GeometryTopology/ResidueLinkages/residue_linkage.cc \
-		src/GeometryTopology/ResidueLinkages/rotatable_dihedral.cc \
-		src/InputSet/CifFileSpace/ciffile.cc \
-		src/InputSet/CifFileSpace/ciffileatom.cc \
-		src/InputSet/CifFileSpace/ciffileprocessingexception.cc \
-		src/InputSet/CondensedSequenceSpace/carbohydratebuilder.cc \
-		src/InputSet/CondensedSequenceSpace/carbohydratebuilderjsonparser.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequence.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.cc \
-		src/InputSet/CondensedSequenceSpace/condensedsequenceresidue.cc \
-		src/InputSet/CondensedSequenceSpace/sequencestring.cpp \
-		src/InputSet/CoordinateFileSpace/coordinatefile.cc \
-		src/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.cc \
-		src/InputSet/PdbFileSpace/pdbatomcard.cc \
-		src/InputSet/PdbFileSpace/pdbatomsection.cc \
-		src/InputSet/PdbFileSpace/pdbauthorsection.cc \
-		src/InputSet/PdbFileSpace/pdbcaveatsection.cc \
-		src/InputSet/PdbFileSpace/pdbcispeptidecard.cc \
-		src/InputSet/PdbFileSpace/pdbcispeptidesection.cc \
-		src/InputSet/PdbFileSpace/pdbcompoundsection.cc \
-		src/InputSet/PdbFileSpace/pdbcompoundspecification.cc \
-		src/InputSet/PdbFileSpace/pdbconnectsection.cc \
-		src/InputSet/PdbFileSpace/pdbcrystallographiccard.cc \
-		src/InputSet/PdbFileSpace/pdbdatabasereference.cc \
-		src/InputSet/PdbFileSpace/pdbdatabasereferencesection.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfidebondsection.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc \
-		src/InputSet/PdbFileSpace/pdbdisulfideresiduebond.cc \
-		src/InputSet/PdbFileSpace/pdbexperimentaldatasection.cc \
-		src/InputSet/PdbFileSpace/pdbfile.cc \
-		src/InputSet/PdbFileSpace/pdbfileprocessingexception.cc \
-		src/InputSet/PdbFileSpace/pdbformulacard.cc \
-		src/InputSet/PdbFileSpace/pdbformulasection.cc \
-		src/InputSet/PdbFileSpace/pdbheadercard.cc \
-		src/InputSet/PdbFileSpace/pdbhelixcard.cc \
-		src/InputSet/PdbFileSpace/pdbhelixresidue.cc \
-		src/InputSet/PdbFileSpace/pdbhelixsection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogenatomsection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogencard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogennamecard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogennamesection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensection.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensynonymcard.cc \
-		src/InputSet/PdbFileSpace/pdbheterogensynonymsection.cc \
-		src/InputSet/PdbFileSpace/pdbjournalsection.cc \
-		src/InputSet/PdbFileSpace/pdbkeywordssection.cc \
-		src/InputSet/PdbFileSpace/pdblinkcard.cc \
-		src/InputSet/PdbFileSpace/pdblinkcardresidue.cc \
-		src/InputSet/PdbFileSpace/pdblinksection.cc \
-		src/InputSet/PdbFileSpace/pdbmastercard.cc \
-		src/InputSet/PdbFileSpace/pdbmatrixncard.cc \
-		src/InputSet/PdbFileSpace/pdbmatrixnsection.cc \
-		src/InputSet/PdbFileSpace/pdbmodelcard.cc \
-		src/InputSet/PdbFileSpace/pdbmodelresidueset.cc \
-		src/InputSet/PdbFileSpace/pdbmodelsection.cc \
-		src/InputSet/PdbFileSpace/pdbmodeltypesection.cc \
-		src/InputSet/PdbFileSpace/pdbnummodelcard.cc \
-		src/InputSet/PdbFileSpace/pdbobsoletecard.cc \
-		src/InputSet/PdbFileSpace/pdbobsoletesection.cc \
-		src/InputSet/PdbFileSpace/pdboriginxncard.cc \
-		src/InputSet/PdbFileSpace/pdboriginxnsection.cc \
-		src/InputSet/PdbFileSpace/pdbremarksection.cc \
-		src/InputSet/PdbFileSpace/pdbresidue.cc \
-		src/InputSet/PdbFileSpace/pdbresiduemodificationcard.cc \
-		src/InputSet/PdbFileSpace/pdbresiduemodificationsection.cc \
-		src/InputSet/PdbFileSpace/pdbresiduesequencecard.cc \
-		src/InputSet/PdbFileSpace/pdbresiduesequencesection.cc \
-		src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc \
-		src/InputSet/PdbFileSpace/pdbrevisiondatasection.cc \
-		src/InputSet/PdbFileSpace/pdbscalencard.cc \
-		src/InputSet/PdbFileSpace/pdbscalensection.cc \
-		src/InputSet/PdbFileSpace/pdbsequenceadvancedcard.cc \
-		src/InputSet/PdbFileSpace/pdbsequenceadvancedsection.cc \
-		src/InputSet/PdbFileSpace/pdbsheetcard.cc \
-		src/InputSet/PdbFileSpace/pdbsheetsection.cc \
-		src/InputSet/PdbFileSpace/pdbsheetstrand.cc \
-		src/InputSet/PdbFileSpace/pdbsheetstrandresidue.cc \
-		src/InputSet/PdbFileSpace/pdbsitecard.cc \
-		src/InputSet/PdbFileSpace/pdbsiteresidue.cc \
-		src/InputSet/PdbFileSpace/pdbsitesection.cc \
-		src/InputSet/PdbFileSpace/pdbsourcecard.cc \
-		src/InputSet/PdbFileSpace/pdbsourcesection.cc \
-		src/InputSet/PdbFileSpace/pdbsplitsection.cc \
-		src/InputSet/PdbFileSpace/pdbsupersededentriescard.cc \
-		src/InputSet/PdbFileSpace/pdbsupersededentriessection.cc \
-		src/InputSet/PdbFileSpace/pdbtitlesection.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtatom.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtfile.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodel.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc \
-		src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.cc \
-		src/InputSet/TopologyFileSpace/topologyangle.cc \
-		src/InputSet/TopologyFileSpace/topologyangletype.cc \
-		src/InputSet/TopologyFileSpace/topologyassembly.cc \
-		src/InputSet/TopologyFileSpace/topologyatom.cc \
-		src/InputSet/TopologyFileSpace/topologyatompair.cc \
-		src/InputSet/TopologyFileSpace/topologybond.cc \
-		src/InputSet/TopologyFileSpace/topologybondtype.cc \
-		src/InputSet/TopologyFileSpace/topologydihedral.cc \
-		src/InputSet/TopologyFileSpace/topologydihedraltype.cc \
-		src/InputSet/TopologyFileSpace/topologyfile.cc \
-		src/InputSet/TopologyFileSpace/topologyfileprocessingexception.cc \
-		src/InputSet/TopologyFileSpace/topologyresidue.cc \
-		src/InputSet/Utilities/response.cc \
-		src/MolecularMetadata/GLYCAM/amberatomtypeinfo.cpp \
-		src/MolecularMetadata/GLYCAM/amberelements.cpp \
-		src/MolecularMetadata/GLYCAM/bondlengthbytypepair.cpp \
-		src/MolecularMetadata/GLYCAM/dihedralangledata.cc \
-		src/MolecularMetadata/GLYCAM/glycam06residuecodes.cc \
-		src/MolecularMetadata/GLYCAM/glycam06residueinfo.cpp \
-		src/MolecularModeling/Assembly/assembly.cc \
-		src/MolecularModeling/Assembly/assemblybuilder.cc \
-		src/MolecularModeling/Assembly/geometryoperation.cc \
-		src/MolecularModeling/Assembly/glycamnaming.cc \
-		src/MolecularModeling/Assembly/ionization.cc \
-		src/MolecularModeling/Assembly/manipulationoperation.cc \
-		src/MolecularModeling/Assembly/selection.cc \
-		src/MolecularModeling/Assembly/solvation.cc \
-		src/MolecularModeling/Assembly/structurebuilder.cc \
-		src/MolecularModeling/Graph/edge.cc \
-		src/MolecularModeling/Graph/graph.cc \
-		src/MolecularModeling/Graph/node.cc \
-		src/MolecularModeling/Residue/residue.cc \
-		src/MolecularModeling/Residue/residue3dtemplatelibrary.cc \
-		src/MolecularModeling/Residue/residuebuilder.cc \
-		src/MolecularModeling/Residue/residuenode.cc \
-		src/MolecularModeling/Residue/residueproperties.cc \
-		src/MolecularModeling/Selections/selections.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfile.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileatom.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.cc \
-		src/ParameterSet/LibraryFileSpace/libraryfileresidue.cc \
-		src/ParameterSet/OffFileSpace/offfile.cc \
-		src/ParameterSet/OffFileSpace/offfileatom.cc \
-		src/ParameterSet/OffFileSpace/offfileresidue.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfile.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileangle.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileatom.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfilebond.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfiledihedral.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.cc \
-		src/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.cc \
-		src/ParameterSet/PrepFileSpace/prepfile.cc \
-		src/ParameterSet/PrepFileSpace/prepfileatom.cc \
-		src/ParameterSet/PrepFileSpace/prepfileprocessingexception.cc \
-		src/ParameterSet/PrepFileSpace/prepfileresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessor.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.cc \
-		src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.cc \
-		src/MolecularModeling/Assembly/Ontology/analysis.cc \
-		src/MolecularModeling/Assembly/Ontology/gf_query.cc \
-		src/MolecularModeling/Assembly/Ontology/population.cc \
-		src/MolecularModeling/Assembly/Ontology/query.cc \
-		src/MolecularModeling/Assembly/Output/coordinatebuilder.cc \
-		src/MolecularModeling/Assembly/Output/librarybuilder.cc \
-		src/MolecularModeling/Assembly/Output/pdbbuilder.cc \
-		src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc \
-		src/MolecularModeling/Assembly/Output/prepbuilder.cc \
-		src/MolecularModeling/Assembly/Output/topologybuilder.cc \
-		src/MolecularModeling/Assembly/SugarIdentification/oligosaccharidedetection.cc \
-		src/MolecularModeling/Assembly/SugarIdentification/ringperception.cc
 
 TARGETA       = $(LIBDIR)/libgmml.a
-
 
 ####### Build rules
 
 gmml: $(TARGETA) $(BINDIR)/pdb2glycam
 
 $(BINDIR)/pdb2glycam: $(TARGETA) pdb2glycam.cc
-	g++ -std=c++0x -I./includes/ -L$(LIBDIR) pdb2glycam.cc \
+	@echo "[GMML] CXX $@"
+	$(VB)$(CXX) -std=c++0x -I./includes/ -L$(LIBDIR) pdb2glycam.cc \
         -lgmml -lpthread -o $@
 
 $(TARGETA):  $(OBJECTS) $(OBJCOMP) 
-	-$(DEL_FILE) $(TARGETA) 
-	$(AR) $(TARGETA) $(OBJECTS)
+	@$(DEL_FILE) $(TARGETA) 
+	@echo "[GMML] AR $@"
+	$(VB)$(AR) $(TARGETA) $(OBJECTS)
 
-clean: compiler_clean 
+clean:
 	-$(DEL_FILE) $(OBJECTS)
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGETA)
-
-####### Sub-libraries
-
-compiler_clean: 
 
 ####### Compile
 
@@ -1138,7 +272,8 @@ build/codetests.o: src/CodeUtils/codetests.cc includes/CodeUtils/codetests.hpp \
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/codetests.o src/CodeUtils/codetests.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/codetests.o src/CodeUtils/codetests.cc
 
 build/cell.o: src/GeometryTopology/cell.cc includes/GeometryTopology/cell.hpp \
 		includes/common.hpp \
@@ -1186,7 +321,8 @@ build/cell.o: src/GeometryTopology/cell.cc includes/GeometryTopology/cell.hpp \
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/cell.o src/GeometryTopology/cell.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/cell.o src/GeometryTopology/cell.cc
 
 build/coordinate.o: src/GeometryTopology/coordinate.cc includes/GeometryTopology/coordinate.hpp \
 		includes/common.hpp \
@@ -1198,7 +334,8 @@ build/coordinate.o: src/GeometryTopology/coordinate.cc includes/GeometryTopology
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinate.o src/GeometryTopology/coordinate.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinate.o src/GeometryTopology/coordinate.cc
 
 build/geometrytopology.o: src/GeometryTopology/geometrytopology.cc includes/GeometryTopology/geometrytopology.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -1401,7 +538,9 @@ build/geometrytopology.o: src/GeometryTopology/geometrytopology.cc includes/Geom
 		includes/common.hpp \
 		includes/generictypedefs.hpp \
 		includes/Glycan/sugarname.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/geometrytopology.o src/GeometryTopology/geometrytopology.cc
+	@echo "[GMML] CXX $<"
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/geometrytopology.o src/GeometryTopology/geometrytopology.cc
 
 build/grid.o: src/GeometryTopology/grid.cc includes/GeometryTopology/coordinate.hpp \
 		includes/GeometryTopology/cell.hpp \
@@ -1449,7 +588,8 @@ build/grid.o: src/GeometryTopology/grid.cc includes/GeometryTopology/coordinate.
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/grid.o src/GeometryTopology/grid.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/grid.o src/GeometryTopology/grid.cc
 
 build/plane.o: src/GeometryTopology/plane.cc includes/GeometryTopology/plane.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1461,7 +601,8 @@ build/plane.o: src/GeometryTopology/plane.cc includes/GeometryTopology/plane.hpp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/plane.o src/GeometryTopology/plane.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/plane.o src/GeometryTopology/plane.cc
 
 build/rotation.o: src/GeometryTopology/rotation.cc includes/GeometryTopology/rotation.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1474,7 +615,8 @@ build/rotation.o: src/GeometryTopology/rotation.cc includes/GeometryTopology/rot
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/rotation.o src/GeometryTopology/rotation.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/rotation.o src/GeometryTopology/rotation.cc
 
 build/glycosidiclinkage.o: src/Glycan/glycosidiclinkage.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1520,7 +662,8 @@ build/glycosidiclinkage.o: src/Glycan/glycosidiclinkage.cc includes/MolecularMod
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycosidiclinkage.o src/Glycan/glycosidiclinkage.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycosidiclinkage.o src/Glycan/glycosidiclinkage.cc
 
 build/monosaccharide.o: src/Glycan/monosaccharide.cc includes/MolecularModeling/atom.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1567,7 +710,8 @@ build/monosaccharide.o: src/Glycan/monosaccharide.cc includes/MolecularModeling/
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp \
 		includes/MolecularModeling/ring_shape_detection.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/monosaccharide.o src/Glycan/monosaccharide.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/monosaccharide.o src/Glycan/monosaccharide.cc
 
 build/oligosaccharide.o: src/Glycan/oligosaccharide.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1613,10 +757,12 @@ build/oligosaccharide.o: src/Glycan/oligosaccharide.cc includes/MolecularModelin
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharide.o src/Glycan/oligosaccharide.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharide.o src/Glycan/oligosaccharide.cc
 
 build/element.o: src/MolecularMetadata/element.cc includes/MolecularMetadata/element.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/element.o src/MolecularMetadata/element.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/element.o src/MolecularMetadata/element.cc
 
 build/guesses.o: src/MolecularMetadata/guesses.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1662,7 +808,8 @@ build/guesses.o: src/MolecularMetadata/guesses.cc includes/MolecularModeling/ass
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/guesses.o src/MolecularMetadata/guesses.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/guesses.o src/MolecularMetadata/guesses.cc
 
 build/atom.o: src/MolecularModeling/atom.cc includes/MolecularModeling/atom.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1680,7 +827,8 @@ build/atom.o: src/MolecularModeling/atom.cc includes/MolecularModeling/atom.hpp 
 		includes/ParameterSet/PrepFileSpace/prepfileresidue.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/atom.o src/MolecularModeling/atom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/atom.o src/MolecularModeling/atom.cc
 
 build/atomnode.o: src/MolecularModeling/atomnode.cc includes/MolecularModeling/atomnode.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -1699,10 +847,12 @@ build/atomnode.o: src/MolecularModeling/atomnode.cc includes/MolecularModeling/a
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/atomnode.o src/MolecularModeling/atomnode.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/atomnode.o src/MolecularModeling/atomnode.cc
 
 build/dockingatom.o: src/MolecularModeling/dockingatom.cc includes/MolecularModeling/dockingatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/dockingatom.o src/MolecularModeling/dockingatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/dockingatom.o src/MolecularModeling/dockingatom.cc
 
 build/moleculardynamicatom.o: src/MolecularModeling/moleculardynamicatom.cc includes/MolecularModeling/moleculardynamicatom.hpp \
 		includes/common.hpp \
@@ -1713,7 +863,8 @@ build/moleculardynamicatom.o: src/MolecularModeling/moleculardynamicatom.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moleculardynamicatom.o src/MolecularModeling/moleculardynamicatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moleculardynamicatom.o src/MolecularModeling/moleculardynamicatom.cc
 
 build/molecule.o: src/MolecularModeling/molecule.cc includes/MolecularModeling/molecule.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -1731,10 +882,12 @@ build/molecule.o: src/MolecularModeling/molecule.cc includes/MolecularModeling/m
 		includes/ParameterSet/PrepFileSpace/prepfileresidue.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/molecule.o src/MolecularModeling/molecule.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/molecule.o src/MolecularModeling/molecule.cc
 
 build/oligosaccharidedetectionatom.o: src/MolecularModeling/oligosaccharidedetectionatom.cc includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharidedetectionatom.o src/MolecularModeling/oligosaccharidedetectionatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharidedetectionatom.o src/MolecularModeling/oligosaccharidedetectionatom.cc
 
 build/overlaps.o: src/MolecularModeling/overlaps.cc includes/MolecularModeling/overlaps.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -1747,10 +900,12 @@ build/overlaps.o: src/MolecularModeling/overlaps.cc includes/MolecularModeling/o
 		includes/generictypedefs.hpp \
 		includes/common.hpp \
 		includes/Glycan/sugarname.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/overlaps.o src/MolecularModeling/overlaps.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/overlaps.o src/MolecularModeling/overlaps.cc
 
 build/quantommechanicatom.o: src/MolecularModeling/quantommechanicatom.cc includes/MolecularModeling/quantommechanicatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/quantommechanicatom.o src/MolecularModeling/quantommechanicatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/quantommechanicatom.o src/MolecularModeling/quantommechanicatom.cc
 
 build/ring_shape_detection.o: src/MolecularModeling/ring_shape_detection.cc includes/MolecularModeling/ring_shape_detection.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -1797,7 +952,8 @@ build/ring_shape_detection.o: src/MolecularModeling/ring_shape_detection.cc incl
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ring_shape_detection.o src/MolecularModeling/ring_shape_detection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ring_shape_detection.o src/MolecularModeling/ring_shape_detection.cc
 
 build/superimposition.o: src/MolecularModeling/superimposition.cc includes/MolecularModeling/superimposition.hpp \
 		includes/External_Libraries/Eigen_Algebra_Template_Library/Geometry \
@@ -2034,7 +1190,8 @@ build/superimposition.o: src/MolecularModeling/superimposition.cc includes/Molec
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/superimposition.o src/MolecularModeling/superimposition.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/superimposition.o src/MolecularModeling/superimposition.cc
 
 build/residue_linkage.o: src/GeometryTopology/ResidueLinkages/residue_linkage.cc includes/GeometryTopology/ResidueLinkages/residue_linkage.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -2061,7 +1218,8 @@ build/residue_linkage.o: src/GeometryTopology/ResidueLinkages/residue_linkage.cc
 		includes/External_Libraries/PCG/pcg_extras.hpp \
 		includes/External_Libraries/PCG/pcg_random.hpp \
 		includes/MolecularMetadata/GLYCAM/glycam06residuecodes.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue_linkage.o src/GeometryTopology/ResidueLinkages/residue_linkage.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue_linkage.o src/GeometryTopology/ResidueLinkages/residue_linkage.cc
 
 build/rotatable_dihedral.o: src/GeometryTopology/ResidueLinkages/rotatable_dihedral.cc includes/GeometryTopology/ResidueLinkages/rotatable_dihedral.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -2086,7 +1244,8 @@ build/rotatable_dihedral.o: src/GeometryTopology/ResidueLinkages/rotatable_dihed
 		includes/External_Libraries/PCG/pcg_random.hpp \
 		includes/External_Libraries/PCG/pcg_extras.hpp \
 		includes/GeometryTopology/geometrytopology.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/rotatable_dihedral.o src/GeometryTopology/ResidueLinkages/rotatable_dihedral.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/rotatable_dihedral.o src/GeometryTopology/ResidueLinkages/rotatable_dihedral.cc
 
 build/ciffile.o: src/InputSet/CifFileSpace/ciffile.cc includes/InputSet/CifFileSpace/ciffile.hpp \
 		includes/utils.hpp \
@@ -2100,7 +1259,8 @@ build/ciffile.o: src/InputSet/CifFileSpace/ciffile.cc includes/InputSet/CifFileS
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/InputSet/CifFileSpace/ciffileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffile.o src/InputSet/CifFileSpace/ciffile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffile.o src/InputSet/CifFileSpace/ciffile.cc
 
 build/ciffileatom.o: src/InputSet/CifFileSpace/ciffileatom.cc includes/InputSet/CifFileSpace/ciffileatom.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -2113,7 +1273,8 @@ build/ciffileatom.o: src/InputSet/CifFileSpace/ciffileatom.cc includes/InputSet/
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffileatom.o src/InputSet/CifFileSpace/ciffileatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffileatom.o src/InputSet/CifFileSpace/ciffileatom.cc
 
 build/ciffileprocessingexception.o: src/InputSet/CifFileSpace/ciffileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -2126,7 +1287,8 @@ build/ciffileprocessingexception.o: src/InputSet/CifFileSpace/ciffileprocessinge
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/InputSet/CifFileSpace/ciffileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffileprocessingexception.o src/InputSet/CifFileSpace/ciffileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ciffileprocessingexception.o src/InputSet/CifFileSpace/ciffileprocessingexception.cc
 
 build/carbohydratebuilder.o: src/InputSet/CondensedSequenceSpace/carbohydratebuilder.cc includes/InputSet/CondensedSequenceSpace/carbohydratebuilder.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequence.hpp \
@@ -2181,7 +1343,8 @@ build/carbohydratebuilder.o: src/InputSet/CondensedSequenceSpace/carbohydratebui
 		includes/External_Libraries/json.hpp \
 		includes/ParameterSet/OffFileSpace/offfile.hpp \
 		includes/MolecularMetadata/elementattributes.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/carbohydratebuilder.o src/InputSet/CondensedSequenceSpace/carbohydratebuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/carbohydratebuilder.o src/InputSet/CondensedSequenceSpace/carbohydratebuilder.cc
 
 build/carbohydratebuilderjsonparser.o: src/InputSet/CondensedSequenceSpace/carbohydratebuilderjsonparser.cc includes/InputSet/CondensedSequenceSpace/carbohydratebuilder.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequence.hpp \
@@ -2229,7 +1392,8 @@ build/carbohydratebuilderjsonparser.o: src/InputSet/CondensedSequenceSpace/carbo
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp \
 		includes/External_Libraries/json.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/carbohydratebuilderjsonparser.o src/InputSet/CondensedSequenceSpace/carbohydratebuilderjsonparser.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/carbohydratebuilderjsonparser.o src/InputSet/CondensedSequenceSpace/carbohydratebuilderjsonparser.cc
 
 build/condensedsequence.o: src/InputSet/CondensedSequenceSpace/condensedsequence.cc includes/InputSet/CondensedSequenceSpace/condensedsequence.hpp \
 		includes/common.hpp \
@@ -2279,7 +1443,8 @@ build/condensedsequence.o: src/InputSet/CondensedSequenceSpace/condensedsequence
 		includes/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.hpp \
 		includes/MolecularMetadata/GLYCAM/glycam06residueinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequence.o src/InputSet/CondensedSequenceSpace/condensedsequence.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequence.o src/InputSet/CondensedSequenceSpace/condensedsequence.cc
 
 build/condensedsequenceglycam06residue.o: src/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.cc includes/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.hpp \
@@ -2293,7 +1458,8 @@ build/condensedsequenceglycam06residue.o: src/InputSet/CondensedSequenceSpace/co
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceglycam06residue.o src/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceglycam06residue.o src/InputSet/CondensedSequenceSpace/condensedsequenceglycam06residue.cc
 
 build/condensedsequenceprocessingexception.o: src/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -2306,7 +1472,8 @@ build/condensedsequenceprocessingexception.o: src/InputSet/CondensedSequenceSpac
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceprocessingexception.o src/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceprocessingexception.o src/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.cc
 
 build/condensedsequenceresidue.o: src/InputSet/CondensedSequenceSpace/condensedsequenceresidue.cc includes/InputSet/CondensedSequenceSpace/condensedsequenceresidue.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequence.hpp \
@@ -2323,10 +1490,12 @@ build/condensedsequenceresidue.o: src/InputSet/CondensedSequenceSpace/condenseds
 		includes/InputSet/Utilities/response.hpp \
 		includes/InputSet/CondensedSequenceSpace/condensedsequenceprocessingexception.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceresidue.o src/InputSet/CondensedSequenceSpace/condensedsequenceresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/condensedsequenceresidue.o src/InputSet/CondensedSequenceSpace/condensedsequenceresidue.cc
 
 build/sequencestring.o: src/InputSet/CondensedSequenceSpace/sequencestring.cpp includes/InputSet/CondensedSequenceSpace/sequencestring.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/sequencestring.o src/InputSet/CondensedSequenceSpace/sequencestring.cpp
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/sequencestring.o src/InputSet/CondensedSequenceSpace/sequencestring.cpp
 
 build/coordinatefile.o: src/InputSet/CoordinateFileSpace/coordinatefile.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -2340,7 +1509,8 @@ build/coordinatefile.o: src/InputSet/CoordinateFileSpace/coordinatefile.cc inclu
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/InputSet/CoordinateFileSpace/coordinatefile.hpp \
 		includes/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatefile.o src/InputSet/CoordinateFileSpace/coordinatefile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatefile.o src/InputSet/CoordinateFileSpace/coordinatefile.cc
 
 build/coordinatefileprocessingexception.o: src/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -2353,7 +1523,8 @@ build/coordinatefileprocessingexception.o: src/InputSet/CoordinateFileSpace/coor
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatefileprocessingexception.o src/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatefileprocessingexception.o src/InputSet/CoordinateFileSpace/coordinatefileprocessingexception.cc
 
 build/pdbatomcard.o: src/InputSet/PdbFileSpace/pdbatomcard.cc includes/InputSet/PdbFileSpace/pdbatomcard.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -2366,7 +1537,8 @@ build/pdbatomcard.o: src/InputSet/PdbFileSpace/pdbatomcard.cc includes/InputSet/
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbatomcard.o src/InputSet/PdbFileSpace/pdbatomcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbatomcard.o src/InputSet/PdbFileSpace/pdbatomcard.cc
 
 build/pdbatomsection.o: src/InputSet/PdbFileSpace/pdbatomsection.cc includes/InputSet/PdbFileSpace/pdbatomsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbatomcard.hpp \
@@ -2380,7 +1552,8 @@ build/pdbatomsection.o: src/InputSet/PdbFileSpace/pdbatomsection.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbatomsection.o src/InputSet/PdbFileSpace/pdbatomsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbatomsection.o src/InputSet/PdbFileSpace/pdbatomsection.cc
 
 build/pdbauthorsection.o: src/InputSet/PdbFileSpace/pdbauthorsection.cc includes/InputSet/PdbFileSpace/pdbauthorsection.hpp \
 		includes/utils.hpp \
@@ -2393,7 +1566,8 @@ build/pdbauthorsection.o: src/InputSet/PdbFileSpace/pdbauthorsection.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbauthorsection.o src/InputSet/PdbFileSpace/pdbauthorsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbauthorsection.o src/InputSet/PdbFileSpace/pdbauthorsection.cc
 
 build/pdbcaveatsection.o: src/InputSet/PdbFileSpace/pdbcaveatsection.cc includes/InputSet/PdbFileSpace/pdbcaveatsection.hpp \
 		includes/utils.hpp \
@@ -2406,7 +1580,8 @@ build/pdbcaveatsection.o: src/InputSet/PdbFileSpace/pdbcaveatsection.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcaveatsection.o src/InputSet/PdbFileSpace/pdbcaveatsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcaveatsection.o src/InputSet/PdbFileSpace/pdbcaveatsection.cc
 
 build/pdbcispeptidecard.o: src/InputSet/PdbFileSpace/pdbcispeptidecard.cc includes/InputSet/PdbFileSpace/pdbcispeptidecard.hpp \
 		includes/utils.hpp \
@@ -2419,7 +1594,8 @@ build/pdbcispeptidecard.o: src/InputSet/PdbFileSpace/pdbcispeptidecard.cc includ
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcispeptidecard.o src/InputSet/PdbFileSpace/pdbcispeptidecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcispeptidecard.o src/InputSet/PdbFileSpace/pdbcispeptidecard.cc
 
 build/pdbcispeptidesection.o: src/InputSet/PdbFileSpace/pdbcispeptidesection.cc includes/InputSet/PdbFileSpace/pdbcispeptidesection.hpp \
 		includes/InputSet/PdbFileSpace/pdbcispeptidecard.hpp \
@@ -2433,7 +1609,8 @@ build/pdbcispeptidesection.o: src/InputSet/PdbFileSpace/pdbcispeptidesection.cc 
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcispeptidesection.o src/InputSet/PdbFileSpace/pdbcispeptidesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcispeptidesection.o src/InputSet/PdbFileSpace/pdbcispeptidesection.cc
 
 build/pdbcompoundsection.o: src/InputSet/PdbFileSpace/pdbcompoundsection.cc includes/InputSet/PdbFileSpace/pdbcompoundsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbcompoundspecification.hpp \
@@ -2447,7 +1624,8 @@ build/pdbcompoundsection.o: src/InputSet/PdbFileSpace/pdbcompoundsection.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcompoundsection.o src/InputSet/PdbFileSpace/pdbcompoundsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcompoundsection.o src/InputSet/PdbFileSpace/pdbcompoundsection.cc
 
 build/pdbcompoundspecification.o: src/InputSet/PdbFileSpace/pdbcompoundspecification.cc includes/InputSet/PdbFileSpace/pdbcompoundspecification.hpp \
 		includes/utils.hpp \
@@ -2460,7 +1638,8 @@ build/pdbcompoundspecification.o: src/InputSet/PdbFileSpace/pdbcompoundspecifica
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcompoundspecification.o src/InputSet/PdbFileSpace/pdbcompoundspecification.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcompoundspecification.o src/InputSet/PdbFileSpace/pdbcompoundspecification.cc
 
 build/pdbconnectsection.o: src/InputSet/PdbFileSpace/pdbconnectsection.cc includes/InputSet/PdbFileSpace/pdbconnectsection.hpp \
 		includes/utils.hpp \
@@ -2473,7 +1652,8 @@ build/pdbconnectsection.o: src/InputSet/PdbFileSpace/pdbconnectsection.cc includ
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbconnectsection.o src/InputSet/PdbFileSpace/pdbconnectsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbconnectsection.o src/InputSet/PdbFileSpace/pdbconnectsection.cc
 
 build/pdbcrystallographiccard.o: src/InputSet/PdbFileSpace/pdbcrystallographiccard.cc includes/InputSet/PdbFileSpace/pdbcrystallographiccard.hpp \
 		includes/utils.hpp \
@@ -2486,7 +1666,8 @@ build/pdbcrystallographiccard.o: src/InputSet/PdbFileSpace/pdbcrystallographicca
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcrystallographiccard.o src/InputSet/PdbFileSpace/pdbcrystallographiccard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbcrystallographiccard.o src/InputSet/PdbFileSpace/pdbcrystallographiccard.cc
 
 build/pdbdatabasereference.o: src/InputSet/PdbFileSpace/pdbdatabasereference.cc includes/InputSet/PdbFileSpace/pdbdatabasereference.hpp \
 		includes/utils.hpp \
@@ -2499,7 +1680,8 @@ build/pdbdatabasereference.o: src/InputSet/PdbFileSpace/pdbdatabasereference.cc 
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdatabasereference.o src/InputSet/PdbFileSpace/pdbdatabasereference.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdatabasereference.o src/InputSet/PdbFileSpace/pdbdatabasereference.cc
 
 build/pdbdatabasereferencesection.o: src/InputSet/PdbFileSpace/pdbdatabasereferencesection.cc includes/InputSet/PdbFileSpace/pdbdatabasereferencesection.hpp \
 		includes/InputSet/PdbFileSpace/pdbdatabasereference.hpp \
@@ -2513,7 +1695,8 @@ build/pdbdatabasereferencesection.o: src/InputSet/PdbFileSpace/pdbdatabaserefere
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdatabasereferencesection.o src/InputSet/PdbFileSpace/pdbdatabasereferencesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdatabasereferencesection.o src/InputSet/PdbFileSpace/pdbdatabasereferencesection.cc
 
 build/pdbdisulfidebondsection.o: src/InputSet/PdbFileSpace/pdbdisulfidebondsection.cc includes/InputSet/PdbFileSpace/pdbdisulfidebondsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbdisulfideresiduebond.hpp \
@@ -2527,7 +1710,8 @@ build/pdbdisulfidebondsection.o: src/InputSet/PdbFileSpace/pdbdisulfidebondsecti
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfidebondsection.o src/InputSet/PdbFileSpace/pdbdisulfidebondsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfidebondsection.o src/InputSet/PdbFileSpace/pdbdisulfidebondsection.cc
 
 build/pdbdisulfideresidue.o: src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc includes/InputSet/PdbFileSpace/pdbdisulfideresidue.hpp \
 		includes/common.hpp \
@@ -2539,7 +1723,8 @@ build/pdbdisulfideresidue.o: src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc in
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfideresidue.o src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfideresidue.o src/InputSet/PdbFileSpace/pdbdisulfideresidue.cc
 
 build/pdbdisulfideresiduebond.o: src/InputSet/PdbFileSpace/pdbdisulfideresiduebond.cc includes/InputSet/PdbFileSpace/pdbdisulfideresiduebond.hpp \
 		includes/InputSet/PdbFileSpace/pdbdisulfideresidue.hpp \
@@ -2553,7 +1738,8 @@ build/pdbdisulfideresiduebond.o: src/InputSet/PdbFileSpace/pdbdisulfideresiduebo
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfideresiduebond.o src/InputSet/PdbFileSpace/pdbdisulfideresiduebond.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbdisulfideresiduebond.o src/InputSet/PdbFileSpace/pdbdisulfideresiduebond.cc
 
 build/pdbexperimentaldatasection.o: src/InputSet/PdbFileSpace/pdbexperimentaldatasection.cc includes/InputSet/PdbFileSpace/pdbexperimentaldatasection.hpp \
 		includes/utils.hpp \
@@ -2566,7 +1752,8 @@ build/pdbexperimentaldatasection.o: src/InputSet/PdbFileSpace/pdbexperimentaldat
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbexperimentaldatasection.o src/InputSet/PdbFileSpace/pdbexperimentaldatasection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbexperimentaldatasection.o src/InputSet/PdbFileSpace/pdbexperimentaldatasection.cc
 
 build/pdbfile.o: src/InputSet/PdbFileSpace/pdbfile.cc includes/InputSet/PdbFileSpace/pdbfile.hpp \
 		includes/InputSet/PdbFileSpace/inputfile.hpp \
@@ -2680,7 +1867,8 @@ build/pdbfile.o: src/InputSet/PdbFileSpace/pdbfile.cc includes/InputSet/PdbFileS
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbfile.o src/InputSet/PdbFileSpace/pdbfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbfile.o src/InputSet/PdbFileSpace/pdbfile.cc
 
 build/pdbfileprocessingexception.o: src/InputSet/PdbFileSpace/pdbfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -2693,7 +1881,8 @@ build/pdbfileprocessingexception.o: src/InputSet/PdbFileSpace/pdbfileprocessinge
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/InputSet/PdbFileSpace/pdbfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbfileprocessingexception.o src/InputSet/PdbFileSpace/pdbfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbfileprocessingexception.o src/InputSet/PdbFileSpace/pdbfileprocessingexception.cc
 
 build/pdbformulacard.o: src/InputSet/PdbFileSpace/pdbformulacard.cc includes/InputSet/PdbFileSpace/pdbformulacard.hpp \
 		includes/common.hpp \
@@ -2706,7 +1895,8 @@ build/pdbformulacard.o: src/InputSet/PdbFileSpace/pdbformulacard.cc includes/Inp
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbformulacard.o src/InputSet/PdbFileSpace/pdbformulacard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbformulacard.o src/InputSet/PdbFileSpace/pdbformulacard.cc
 
 build/pdbformulasection.o: src/InputSet/PdbFileSpace/pdbformulasection.cc includes/InputSet/PdbFileSpace/pdbformulacard.hpp \
 		includes/InputSet/PdbFileSpace/pdbformulasection.hpp \
@@ -2720,7 +1910,8 @@ build/pdbformulasection.o: src/InputSet/PdbFileSpace/pdbformulasection.cc includ
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbformulasection.o src/InputSet/PdbFileSpace/pdbformulasection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbformulasection.o src/InputSet/PdbFileSpace/pdbformulasection.cc
 
 build/pdbheadercard.o: src/InputSet/PdbFileSpace/pdbheadercard.cc includes/InputSet/PdbFileSpace/pdbheadercard.hpp \
 		includes/utils.hpp \
@@ -2733,7 +1924,8 @@ build/pdbheadercard.o: src/InputSet/PdbFileSpace/pdbheadercard.cc includes/Input
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheadercard.o src/InputSet/PdbFileSpace/pdbheadercard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheadercard.o src/InputSet/PdbFileSpace/pdbheadercard.cc
 
 build/pdbhelixcard.o: src/InputSet/PdbFileSpace/pdbhelixcard.cc includes/InputSet/PdbFileSpace/pdbhelixcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbhelixresidue.hpp \
@@ -2747,7 +1939,8 @@ build/pdbhelixcard.o: src/InputSet/PdbFileSpace/pdbhelixcard.cc includes/InputSe
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixcard.o src/InputSet/PdbFileSpace/pdbhelixcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixcard.o src/InputSet/PdbFileSpace/pdbhelixcard.cc
 
 build/pdbhelixresidue.o: src/InputSet/PdbFileSpace/pdbhelixresidue.cc includes/InputSet/PdbFileSpace/pdbhelixresidue.hpp \
 		includes/common.hpp \
@@ -2759,7 +1952,8 @@ build/pdbhelixresidue.o: src/InputSet/PdbFileSpace/pdbhelixresidue.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixresidue.o src/InputSet/PdbFileSpace/pdbhelixresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixresidue.o src/InputSet/PdbFileSpace/pdbhelixresidue.cc
 
 build/pdbhelixsection.o: src/InputSet/PdbFileSpace/pdbhelixsection.cc includes/InputSet/PdbFileSpace/pdbhelixcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbhelixsection.hpp \
@@ -2773,7 +1967,8 @@ build/pdbhelixsection.o: src/InputSet/PdbFileSpace/pdbhelixsection.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixsection.o src/InputSet/PdbFileSpace/pdbhelixsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbhelixsection.o src/InputSet/PdbFileSpace/pdbhelixsection.cc
 
 build/pdbheterogenatomsection.o: src/InputSet/PdbFileSpace/pdbheterogenatomsection.cc includes/InputSet/PdbFileSpace/pdbheterogenatomsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbatomcard.hpp \
@@ -2787,7 +1982,8 @@ build/pdbheterogenatomsection.o: src/InputSet/PdbFileSpace/pdbheterogenatomsecti
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogenatomsection.o src/InputSet/PdbFileSpace/pdbheterogenatomsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogenatomsection.o src/InputSet/PdbFileSpace/pdbheterogenatomsection.cc
 
 build/pdbheterogencard.o: src/InputSet/PdbFileSpace/pdbheterogencard.cc includes/InputSet/PdbFileSpace/pdbheterogencard.hpp \
 		includes/common.hpp \
@@ -2800,7 +1996,8 @@ build/pdbheterogencard.o: src/InputSet/PdbFileSpace/pdbheterogencard.cc includes
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogencard.o src/InputSet/PdbFileSpace/pdbheterogencard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogencard.o src/InputSet/PdbFileSpace/pdbheterogencard.cc
 
 build/pdbheterogennamecard.o: src/InputSet/PdbFileSpace/pdbheterogennamecard.cc includes/InputSet/PdbFileSpace/pdbheterogennamecard.hpp \
 		includes/utils.hpp \
@@ -2813,7 +2010,8 @@ build/pdbheterogennamecard.o: src/InputSet/PdbFileSpace/pdbheterogennamecard.cc 
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogennamecard.o src/InputSet/PdbFileSpace/pdbheterogennamecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogennamecard.o src/InputSet/PdbFileSpace/pdbheterogennamecard.cc
 
 build/pdbheterogennamesection.o: src/InputSet/PdbFileSpace/pdbheterogennamesection.cc includes/InputSet/PdbFileSpace/pdbheterogennamecard.hpp \
 		includes/InputSet/PdbFileSpace/pdbheterogennamesection.hpp \
@@ -2827,7 +2025,8 @@ build/pdbheterogennamesection.o: src/InputSet/PdbFileSpace/pdbheterogennamesecti
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogennamesection.o src/InputSet/PdbFileSpace/pdbheterogennamesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogennamesection.o src/InputSet/PdbFileSpace/pdbheterogennamesection.cc
 
 build/pdbheterogensection.o: src/InputSet/PdbFileSpace/pdbheterogensection.cc includes/InputSet/PdbFileSpace/pdbheterogencard.hpp \
 		includes/InputSet/PdbFileSpace/pdbheterogensection.hpp \
@@ -2841,7 +2040,8 @@ build/pdbheterogensection.o: src/InputSet/PdbFileSpace/pdbheterogensection.cc in
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensection.o src/InputSet/PdbFileSpace/pdbheterogensection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensection.o src/InputSet/PdbFileSpace/pdbheterogensection.cc
 
 build/pdbheterogensynonymcard.o: src/InputSet/PdbFileSpace/pdbheterogensynonymcard.cc includes/InputSet/PdbFileSpace/pdbheterogensynonymcard.hpp \
 		includes/utils.hpp \
@@ -2854,7 +2054,8 @@ build/pdbheterogensynonymcard.o: src/InputSet/PdbFileSpace/pdbheterogensynonymca
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensynonymcard.o src/InputSet/PdbFileSpace/pdbheterogensynonymcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensynonymcard.o src/InputSet/PdbFileSpace/pdbheterogensynonymcard.cc
 
 build/pdbheterogensynonymsection.o: src/InputSet/PdbFileSpace/pdbheterogensynonymsection.cc includes/InputSet/PdbFileSpace/pdbheterogensynonymcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbheterogensynonymsection.hpp \
@@ -2868,7 +2069,8 @@ build/pdbheterogensynonymsection.o: src/InputSet/PdbFileSpace/pdbheterogensynony
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensynonymsection.o src/InputSet/PdbFileSpace/pdbheterogensynonymsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbheterogensynonymsection.o src/InputSet/PdbFileSpace/pdbheterogensynonymsection.cc
 
 build/pdbjournalsection.o: src/InputSet/PdbFileSpace/pdbjournalsection.cc includes/InputSet/PdbFileSpace/pdbjournalsection.hpp \
 		includes/utils.hpp \
@@ -2881,7 +2083,8 @@ build/pdbjournalsection.o: src/InputSet/PdbFileSpace/pdbjournalsection.cc includ
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbjournalsection.o src/InputSet/PdbFileSpace/pdbjournalsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbjournalsection.o src/InputSet/PdbFileSpace/pdbjournalsection.cc
 
 build/pdbkeywordssection.o: src/InputSet/PdbFileSpace/pdbkeywordssection.cc includes/InputSet/PdbFileSpace/pdbkeywordssection.hpp \
 		includes/utils.hpp \
@@ -2894,7 +2097,8 @@ build/pdbkeywordssection.o: src/InputSet/PdbFileSpace/pdbkeywordssection.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbkeywordssection.o src/InputSet/PdbFileSpace/pdbkeywordssection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbkeywordssection.o src/InputSet/PdbFileSpace/pdbkeywordssection.cc
 
 build/pdblinkcard.o: src/InputSet/PdbFileSpace/pdblinkcard.cc includes/InputSet/PdbFileSpace/pdblinkcard.hpp \
 		includes/InputSet/PdbFileSpace/pdblinkcardresidue.hpp \
@@ -2908,7 +2112,8 @@ build/pdblinkcard.o: src/InputSet/PdbFileSpace/pdblinkcard.cc includes/InputSet/
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinkcard.o src/InputSet/PdbFileSpace/pdblinkcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinkcard.o src/InputSet/PdbFileSpace/pdblinkcard.cc
 
 build/pdblinkcardresidue.o: src/InputSet/PdbFileSpace/pdblinkcardresidue.cc includes/InputSet/PdbFileSpace/pdblinkcardresidue.hpp \
 		includes/common.hpp \
@@ -2920,7 +2125,8 @@ build/pdblinkcardresidue.o: src/InputSet/PdbFileSpace/pdblinkcardresidue.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinkcardresidue.o src/InputSet/PdbFileSpace/pdblinkcardresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinkcardresidue.o src/InputSet/PdbFileSpace/pdblinkcardresidue.cc
 
 build/pdblinksection.o: src/InputSet/PdbFileSpace/pdblinksection.cc includes/InputSet/PdbFileSpace/pdblinkcard.hpp \
 		includes/InputSet/PdbFileSpace/pdblinksection.hpp \
@@ -2934,7 +2140,8 @@ build/pdblinksection.o: src/InputSet/PdbFileSpace/pdblinksection.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinksection.o src/InputSet/PdbFileSpace/pdblinksection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdblinksection.o src/InputSet/PdbFileSpace/pdblinksection.cc
 
 build/pdbmastercard.o: src/InputSet/PdbFileSpace/pdbmastercard.cc includes/InputSet/PdbFileSpace/pdbmastercard.hpp \
 		includes/utils.hpp \
@@ -2947,7 +2154,8 @@ build/pdbmastercard.o: src/InputSet/PdbFileSpace/pdbmastercard.cc includes/Input
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmastercard.o src/InputSet/PdbFileSpace/pdbmastercard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmastercard.o src/InputSet/PdbFileSpace/pdbmastercard.cc
 
 build/pdbmatrixncard.o: src/InputSet/PdbFileSpace/pdbmatrixncard.cc includes/InputSet/PdbFileSpace/pdbmatrixncard.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -2960,7 +2168,8 @@ build/pdbmatrixncard.o: src/InputSet/PdbFileSpace/pdbmatrixncard.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmatrixncard.o src/InputSet/PdbFileSpace/pdbmatrixncard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmatrixncard.o src/InputSet/PdbFileSpace/pdbmatrixncard.cc
 
 build/pdbmatrixnsection.o: src/InputSet/PdbFileSpace/pdbmatrixnsection.cc includes/InputSet/PdbFileSpace/pdbmatrixnsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbmatrixncard.hpp \
@@ -2974,7 +2183,8 @@ build/pdbmatrixnsection.o: src/InputSet/PdbFileSpace/pdbmatrixnsection.cc includ
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmatrixnsection.o src/InputSet/PdbFileSpace/pdbmatrixnsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmatrixnsection.o src/InputSet/PdbFileSpace/pdbmatrixnsection.cc
 
 build/pdbmodelcard.o: src/InputSet/PdbFileSpace/pdbmodelcard.cc includes/InputSet/PdbFileSpace/pdbmodelresidueset.hpp \
 		includes/InputSet/PdbFileSpace/pdbmodelcard.hpp \
@@ -2988,7 +2198,8 @@ build/pdbmodelcard.o: src/InputSet/PdbFileSpace/pdbmodelcard.cc includes/InputSe
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelcard.o src/InputSet/PdbFileSpace/pdbmodelcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelcard.o src/InputSet/PdbFileSpace/pdbmodelcard.cc
 
 build/pdbmodelresidueset.o: src/InputSet/PdbFileSpace/pdbmodelresidueset.cc includes/InputSet/PdbFileSpace/pdbmodelresidueset.hpp \
 		includes/InputSet/PdbFileSpace/pdbatomsection.hpp \
@@ -3003,7 +2214,8 @@ build/pdbmodelresidueset.o: src/InputSet/PdbFileSpace/pdbmodelresidueset.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelresidueset.o src/InputSet/PdbFileSpace/pdbmodelresidueset.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelresidueset.o src/InputSet/PdbFileSpace/pdbmodelresidueset.cc
 
 build/pdbmodelsection.o: src/InputSet/PdbFileSpace/pdbmodelsection.cc includes/InputSet/PdbFileSpace/pdbmodelcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbmodelsection.hpp \
@@ -3017,7 +2229,8 @@ build/pdbmodelsection.o: src/InputSet/PdbFileSpace/pdbmodelsection.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelsection.o src/InputSet/PdbFileSpace/pdbmodelsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodelsection.o src/InputSet/PdbFileSpace/pdbmodelsection.cc
 
 build/pdbmodeltypesection.o: src/InputSet/PdbFileSpace/pdbmodeltypesection.cc includes/InputSet/PdbFileSpace/pdbmodeltypesection.hpp \
 		includes/utils.hpp \
@@ -3030,7 +2243,8 @@ build/pdbmodeltypesection.o: src/InputSet/PdbFileSpace/pdbmodeltypesection.cc in
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodeltypesection.o src/InputSet/PdbFileSpace/pdbmodeltypesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbmodeltypesection.o src/InputSet/PdbFileSpace/pdbmodeltypesection.cc
 
 build/pdbnummodelcard.o: src/InputSet/PdbFileSpace/pdbnummodelcard.cc includes/InputSet/PdbFileSpace/pdbnummodelcard.hpp \
 		includes/utils.hpp \
@@ -3043,7 +2257,8 @@ build/pdbnummodelcard.o: src/InputSet/PdbFileSpace/pdbnummodelcard.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbnummodelcard.o src/InputSet/PdbFileSpace/pdbnummodelcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbnummodelcard.o src/InputSet/PdbFileSpace/pdbnummodelcard.cc
 
 build/pdbobsoletecard.o: src/InputSet/PdbFileSpace/pdbobsoletecard.cc includes/InputSet/PdbFileSpace/pdbobsoletecard.hpp \
 		includes/common.hpp \
@@ -3056,7 +2271,8 @@ build/pdbobsoletecard.o: src/InputSet/PdbFileSpace/pdbobsoletecard.cc includes/I
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbobsoletecard.o src/InputSet/PdbFileSpace/pdbobsoletecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbobsoletecard.o src/InputSet/PdbFileSpace/pdbobsoletecard.cc
 
 build/pdbobsoletesection.o: src/InputSet/PdbFileSpace/pdbobsoletesection.cc includes/InputSet/PdbFileSpace/pdbobsoletecard.hpp \
 		includes/InputSet/PdbFileSpace/pdbobsoletesection.hpp \
@@ -3070,7 +2286,8 @@ build/pdbobsoletesection.o: src/InputSet/PdbFileSpace/pdbobsoletesection.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbobsoletesection.o src/InputSet/PdbFileSpace/pdbobsoletesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbobsoletesection.o src/InputSet/PdbFileSpace/pdbobsoletesection.cc
 
 build/pdboriginxncard.o: src/InputSet/PdbFileSpace/pdboriginxncard.cc includes/InputSet/PdbFileSpace/pdboriginxncard.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -3083,7 +2300,8 @@ build/pdboriginxncard.o: src/InputSet/PdbFileSpace/pdboriginxncard.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdboriginxncard.o src/InputSet/PdbFileSpace/pdboriginxncard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdboriginxncard.o src/InputSet/PdbFileSpace/pdboriginxncard.cc
 
 build/pdboriginxnsection.o: src/InputSet/PdbFileSpace/pdboriginxnsection.cc includes/InputSet/PdbFileSpace/pdboriginxnsection.hpp \
 		includes/InputSet/PdbFileSpace/pdboriginxncard.hpp \
@@ -3097,7 +2315,8 @@ build/pdboriginxnsection.o: src/InputSet/PdbFileSpace/pdboriginxnsection.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdboriginxnsection.o src/InputSet/PdbFileSpace/pdboriginxnsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdboriginxnsection.o src/InputSet/PdbFileSpace/pdboriginxnsection.cc
 
 build/pdbremarksection.o: src/InputSet/PdbFileSpace/pdbremarksection.cc includes/InputSet/PdbFileSpace/pdbremarksection.hpp \
 		includes/utils.hpp \
@@ -3110,10 +2329,12 @@ build/pdbremarksection.o: src/InputSet/PdbFileSpace/pdbremarksection.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbremarksection.o src/InputSet/PdbFileSpace/pdbremarksection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbremarksection.o src/InputSet/PdbFileSpace/pdbremarksection.cc
 
 build/pdbresidue.o: src/InputSet/PdbFileSpace/pdbresidue.cc includes/InputSet/PdbFileSpace/pdbresidue.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresidue.o src/InputSet/PdbFileSpace/pdbresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresidue.o src/InputSet/PdbFileSpace/pdbresidue.cc
 
 build/pdbresiduemodificationcard.o: src/InputSet/PdbFileSpace/pdbresiduemodificationcard.cc includes/InputSet/PdbFileSpace/pdbresiduemodificationcard.hpp \
 		includes/common.hpp \
@@ -3126,7 +2347,8 @@ build/pdbresiduemodificationcard.o: src/InputSet/PdbFileSpace/pdbresiduemodifica
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduemodificationcard.o src/InputSet/PdbFileSpace/pdbresiduemodificationcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduemodificationcard.o src/InputSet/PdbFileSpace/pdbresiduemodificationcard.cc
 
 build/pdbresiduemodificationsection.o: src/InputSet/PdbFileSpace/pdbresiduemodificationsection.cc includes/InputSet/PdbFileSpace/pdbresiduemodificationcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbresiduemodificationsection.hpp \
@@ -3140,7 +2362,8 @@ build/pdbresiduemodificationsection.o: src/InputSet/PdbFileSpace/pdbresiduemodif
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduemodificationsection.o src/InputSet/PdbFileSpace/pdbresiduemodificationsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduemodificationsection.o src/InputSet/PdbFileSpace/pdbresiduemodificationsection.cc
 
 build/pdbresiduesequencecard.o: src/InputSet/PdbFileSpace/pdbresiduesequencecard.cc includes/InputSet/PdbFileSpace/pdbresiduesequencecard.hpp \
 		includes/common.hpp \
@@ -3153,7 +2376,8 @@ build/pdbresiduesequencecard.o: src/InputSet/PdbFileSpace/pdbresiduesequencecard
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduesequencecard.o src/InputSet/PdbFileSpace/pdbresiduesequencecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduesequencecard.o src/InputSet/PdbFileSpace/pdbresiduesequencecard.cc
 
 build/pdbresiduesequencesection.o: src/InputSet/PdbFileSpace/pdbresiduesequencesection.cc includes/InputSet/PdbFileSpace/pdbresiduesequencecard.hpp \
 		includes/InputSet/PdbFileSpace/pdbresiduesequencesection.hpp \
@@ -3167,7 +2391,8 @@ build/pdbresiduesequencesection.o: src/InputSet/PdbFileSpace/pdbresiduesequences
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduesequencesection.o src/InputSet/PdbFileSpace/pdbresiduesequencesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbresiduesequencesection.o src/InputSet/PdbFileSpace/pdbresiduesequencesection.cc
 
 build/pdbrevisiondatacard.o: src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc includes/InputSet/PdbFileSpace/pdbrevisiondatacard.hpp \
 		includes/utils.hpp \
@@ -3180,7 +2405,8 @@ build/pdbrevisiondatacard.o: src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc in
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbrevisiondatacard.o src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbrevisiondatacard.o src/InputSet/PdbFileSpace/pdbrevisiondatacard.cc
 
 build/pdbrevisiondatasection.o: src/InputSet/PdbFileSpace/pdbrevisiondatasection.cc includes/InputSet/PdbFileSpace/pdbrevisiondatasection.hpp \
 		includes/InputSet/PdbFileSpace/pdbrevisiondatacard.hpp \
@@ -3194,7 +2420,8 @@ build/pdbrevisiondatasection.o: src/InputSet/PdbFileSpace/pdbrevisiondatasection
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbrevisiondatasection.o src/InputSet/PdbFileSpace/pdbrevisiondatasection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbrevisiondatasection.o src/InputSet/PdbFileSpace/pdbrevisiondatasection.cc
 
 build/pdbscalencard.o: src/InputSet/PdbFileSpace/pdbscalencard.cc includes/InputSet/PdbFileSpace/pdbscalencard.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -3207,7 +2434,8 @@ build/pdbscalencard.o: src/InputSet/PdbFileSpace/pdbscalencard.cc includes/Input
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbscalencard.o src/InputSet/PdbFileSpace/pdbscalencard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbscalencard.o src/InputSet/PdbFileSpace/pdbscalencard.cc
 
 build/pdbscalensection.o: src/InputSet/PdbFileSpace/pdbscalensection.cc includes/InputSet/PdbFileSpace/pdbscalensection.hpp \
 		includes/InputSet/PdbFileSpace/pdbscalencard.hpp \
@@ -3221,7 +2449,8 @@ build/pdbscalensection.o: src/InputSet/PdbFileSpace/pdbscalensection.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbscalensection.o src/InputSet/PdbFileSpace/pdbscalensection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbscalensection.o src/InputSet/PdbFileSpace/pdbscalensection.cc
 
 build/pdbsequenceadvancedcard.o: src/InputSet/PdbFileSpace/pdbsequenceadvancedcard.cc includes/InputSet/PdbFileSpace/pdbsequenceadvancedcard.hpp \
 		includes/utils.hpp \
@@ -3234,7 +2463,8 @@ build/pdbsequenceadvancedcard.o: src/InputSet/PdbFileSpace/pdbsequenceadvancedca
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsequenceadvancedcard.o src/InputSet/PdbFileSpace/pdbsequenceadvancedcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsequenceadvancedcard.o src/InputSet/PdbFileSpace/pdbsequenceadvancedcard.cc
 
 build/pdbsequenceadvancedsection.o: src/InputSet/PdbFileSpace/pdbsequenceadvancedsection.cc includes/InputSet/PdbFileSpace/pdbsequenceadvancedsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbsequenceadvancedcard.hpp \
@@ -3248,7 +2478,8 @@ build/pdbsequenceadvancedsection.o: src/InputSet/PdbFileSpace/pdbsequenceadvance
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsequenceadvancedsection.o src/InputSet/PdbFileSpace/pdbsequenceadvancedsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsequenceadvancedsection.o src/InputSet/PdbFileSpace/pdbsequenceadvancedsection.cc
 
 build/pdbsheetcard.o: src/InputSet/PdbFileSpace/pdbsheetcard.cc includes/InputSet/PdbFileSpace/pdbsheetcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbsheetstrand.hpp \
@@ -3263,7 +2494,8 @@ build/pdbsheetcard.o: src/InputSet/PdbFileSpace/pdbsheetcard.cc includes/InputSe
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetcard.o src/InputSet/PdbFileSpace/pdbsheetcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetcard.o src/InputSet/PdbFileSpace/pdbsheetcard.cc
 
 build/pdbsheetsection.o: src/InputSet/PdbFileSpace/pdbsheetsection.cc includes/InputSet/PdbFileSpace/pdbsheetcard.hpp \
 		includes/InputSet/PdbFileSpace/pdbsheetsection.hpp \
@@ -3277,7 +2509,8 @@ build/pdbsheetsection.o: src/InputSet/PdbFileSpace/pdbsheetsection.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetsection.o src/InputSet/PdbFileSpace/pdbsheetsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetsection.o src/InputSet/PdbFileSpace/pdbsheetsection.cc
 
 build/pdbsheetstrand.o: src/InputSet/PdbFileSpace/pdbsheetstrand.cc includes/InputSet/PdbFileSpace/pdbsheetstrand.hpp \
 		includes/InputSet/PdbFileSpace/pdbsheetstrandresidue.hpp \
@@ -3291,7 +2524,8 @@ build/pdbsheetstrand.o: src/InputSet/PdbFileSpace/pdbsheetstrand.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetstrand.o src/InputSet/PdbFileSpace/pdbsheetstrand.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetstrand.o src/InputSet/PdbFileSpace/pdbsheetstrand.cc
 
 build/pdbsheetstrandresidue.o: src/InputSet/PdbFileSpace/pdbsheetstrandresidue.cc includes/InputSet/PdbFileSpace/pdbsheetstrandresidue.hpp \
 		includes/common.hpp \
@@ -3303,7 +2537,8 @@ build/pdbsheetstrandresidue.o: src/InputSet/PdbFileSpace/pdbsheetstrandresidue.c
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetstrandresidue.o src/InputSet/PdbFileSpace/pdbsheetstrandresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsheetstrandresidue.o src/InputSet/PdbFileSpace/pdbsheetstrandresidue.cc
 
 build/pdbsitecard.o: src/InputSet/PdbFileSpace/pdbsitecard.cc includes/InputSet/PdbFileSpace/pdbsitecard.hpp \
 		includes/InputSet/PdbFileSpace/pdbsiteresidue.hpp \
@@ -3317,7 +2552,8 @@ build/pdbsitecard.o: src/InputSet/PdbFileSpace/pdbsitecard.cc includes/InputSet/
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsitecard.o src/InputSet/PdbFileSpace/pdbsitecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsitecard.o src/InputSet/PdbFileSpace/pdbsitecard.cc
 
 build/pdbsiteresidue.o: src/InputSet/PdbFileSpace/pdbsiteresidue.cc includes/InputSet/PdbFileSpace/pdbsiteresidue.hpp \
 		includes/utils.hpp \
@@ -3330,7 +2566,8 @@ build/pdbsiteresidue.o: src/InputSet/PdbFileSpace/pdbsiteresidue.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsiteresidue.o src/InputSet/PdbFileSpace/pdbsiteresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsiteresidue.o src/InputSet/PdbFileSpace/pdbsiteresidue.cc
 
 build/pdbsitesection.o: src/InputSet/PdbFileSpace/pdbsitesection.cc includes/InputSet/PdbFileSpace/pdbsitesection.hpp \
 		includes/InputSet/PdbFileSpace/pdbsitecard.hpp \
@@ -3344,7 +2581,8 @@ build/pdbsitesection.o: src/InputSet/PdbFileSpace/pdbsitesection.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsitesection.o src/InputSet/PdbFileSpace/pdbsitesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsitesection.o src/InputSet/PdbFileSpace/pdbsitesection.cc
 
 build/pdbsourcecard.o: src/InputSet/PdbFileSpace/pdbsourcecard.cc includes/InputSet/PdbFileSpace/pdbsourcecard.hpp \
 		includes/utils.hpp \
@@ -3357,7 +2595,8 @@ build/pdbsourcecard.o: src/InputSet/PdbFileSpace/pdbsourcecard.cc includes/Input
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsourcecard.o src/InputSet/PdbFileSpace/pdbsourcecard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsourcecard.o src/InputSet/PdbFileSpace/pdbsourcecard.cc
 
 build/pdbsourcesection.o: src/InputSet/PdbFileSpace/pdbsourcesection.cc includes/InputSet/PdbFileSpace/pdbsourcesection.hpp \
 		includes/InputSet/PdbFileSpace/pdbsourcecard.hpp \
@@ -3371,7 +2610,8 @@ build/pdbsourcesection.o: src/InputSet/PdbFileSpace/pdbsourcesection.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsourcesection.o src/InputSet/PdbFileSpace/pdbsourcesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsourcesection.o src/InputSet/PdbFileSpace/pdbsourcesection.cc
 
 build/pdbsplitsection.o: src/InputSet/PdbFileSpace/pdbsplitsection.cc includes/InputSet/PdbFileSpace/pdbsplitsection.hpp \
 		includes/utils.hpp \
@@ -3384,7 +2624,8 @@ build/pdbsplitsection.o: src/InputSet/PdbFileSpace/pdbsplitsection.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsplitsection.o src/InputSet/PdbFileSpace/pdbsplitsection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsplitsection.o src/InputSet/PdbFileSpace/pdbsplitsection.cc
 
 build/pdbsupersededentriescard.o: src/InputSet/PdbFileSpace/pdbsupersededentriescard.cc includes/InputSet/PdbFileSpace/pdbsupersededentriescard.hpp \
 		includes/utils.hpp \
@@ -3397,7 +2638,8 @@ build/pdbsupersededentriescard.o: src/InputSet/PdbFileSpace/pdbsupersededentries
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsupersededentriescard.o src/InputSet/PdbFileSpace/pdbsupersededentriescard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsupersededentriescard.o src/InputSet/PdbFileSpace/pdbsupersededentriescard.cc
 
 build/pdbsupersededentriessection.o: src/InputSet/PdbFileSpace/pdbsupersededentriessection.cc includes/InputSet/PdbFileSpace/pdbsupersededentriessection.hpp \
 		includes/InputSet/PdbFileSpace/pdbsupersededentriescard.hpp \
@@ -3411,7 +2653,8 @@ build/pdbsupersededentriessection.o: src/InputSet/PdbFileSpace/pdbsupersededentr
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsupersededentriessection.o src/InputSet/PdbFileSpace/pdbsupersededentriessection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbsupersededentriessection.o src/InputSet/PdbFileSpace/pdbsupersededentriessection.cc
 
 build/pdbtitlesection.o: src/InputSet/PdbFileSpace/pdbtitlesection.cc includes/InputSet/PdbFileSpace/pdbtitlesection.hpp \
 		includes/utils.hpp \
@@ -3424,7 +2667,8 @@ build/pdbtitlesection.o: src/InputSet/PdbFileSpace/pdbtitlesection.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbtitlesection.o src/InputSet/PdbFileSpace/pdbtitlesection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbtitlesection.o src/InputSet/PdbFileSpace/pdbtitlesection.cc
 
 build/pdbqtatom.o: src/InputSet/PdbqtFileSpace/pdbqtatom.cc includes/InputSet/PdbqtFileSpace/pdbqtatom.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -3437,7 +2681,8 @@ build/pdbqtatom.o: src/InputSet/PdbqtFileSpace/pdbqtatom.cc includes/InputSet/Pd
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtatom.o src/InputSet/PdbqtFileSpace/pdbqtatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtatom.o src/InputSet/PdbqtFileSpace/pdbqtatom.cc
 
 build/pdbqtatomcard.o: src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc includes/InputSet/PdbqtFileSpace/pdbqtatomcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtatom.hpp \
@@ -3451,7 +2696,8 @@ build/pdbqtatomcard.o: src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtatomcard.o src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtatomcard.o src/InputSet/PdbqtFileSpace/pdbqtatomcard.cc
 
 build/pdbqtbranchcard.o: src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc includes/InputSet/PdbqtFileSpace/pdbqtbranchcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtatomcard.hpp \
@@ -3466,7 +2712,8 @@ build/pdbqtbranchcard.o: src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtbranchcard.o src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtbranchcard.o src/InputSet/PdbqtFileSpace/pdbqtbranchcard.cc
 
 build/pdbqtcompoundcard.o: src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc includes/InputSet/PdbqtFileSpace/pdbqtcompoundcard.hpp \
 		includes/utils.hpp \
@@ -3479,7 +2726,8 @@ build/pdbqtcompoundcard.o: src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc incl
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtcompoundcard.o src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtcompoundcard.o src/InputSet/PdbqtFileSpace/pdbqtcompoundcard.cc
 
 build/pdbqtfile.o: src/InputSet/PdbqtFileSpace/pdbqtfile.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -3503,7 +2751,8 @@ build/pdbqtfile.o: src/InputSet/PdbqtFileSpace/pdbqtfile.cc includes/utils.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtrootcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtbranchcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtfile.o src/InputSet/PdbqtFileSpace/pdbqtfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtfile.o src/InputSet/PdbqtFileSpace/pdbqtfile.cc
 
 build/pdbqtfileprocessingexception.o: src/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -3515,7 +2764,8 @@ build/pdbqtfileprocessingexception.o: src/InputSet/PdbqtFileSpace/pdbqtfileproce
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtfileprocessingexception.o src/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtfileprocessingexception.o src/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.cc
 
 build/pdbqtmodel.o: src/InputSet/PdbqtFileSpace/pdbqtmodel.cc includes/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.hpp \
@@ -3533,7 +2783,8 @@ build/pdbqtmodel.o: src/InputSet/PdbqtFileSpace/pdbqtmodel.cc includes/InputSet/
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodel.o src/InputSet/PdbqtFileSpace/pdbqtmodel.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodel.o src/InputSet/PdbqtFileSpace/pdbqtmodel.cc
 
 build/pdbqtmodelcard.o: src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc includes/InputSet/PdbqtFileSpace/pdbqtmodel.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtmodelcard.hpp \
@@ -3547,7 +2798,8 @@ build/pdbqtmodelcard.o: src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc includes/I
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodelcard.o src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodelcard.o src/InputSet/PdbqtFileSpace/pdbqtmodelcard.cc
 
 build/pdbqtmodelresidueset.o: src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.cc includes/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtbranchcard.hpp \
@@ -3563,7 +2815,8 @@ build/pdbqtmodelresidueset.o: src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.c
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodelresidueset.o src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtmodelresidueset.o src/InputSet/PdbqtFileSpace/pdbqtmodelresidueset.cc
 
 build/pdbqtremarkcard.o: src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc includes/InputSet/PdbqtFileSpace/pdbqtremarkcard.hpp \
 		includes/utils.hpp \
@@ -3576,7 +2829,8 @@ build/pdbqtremarkcard.o: src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtremarkcard.o src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtremarkcard.o src/InputSet/PdbqtFileSpace/pdbqtremarkcard.cc
 
 build/pdbqtrootcard.o: src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc includes/InputSet/PdbqtFileSpace/pdbqtrootcard.hpp \
 		includes/InputSet/PdbqtFileSpace/pdbqtatomcard.hpp \
@@ -3590,7 +2844,8 @@ build/pdbqtrootcard.o: src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc includes/Inp
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtrootcard.o src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtrootcard.o src/InputSet/PdbqtFileSpace/pdbqtrootcard.cc
 
 build/pdbqttorsionaldofcard.o: src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.cc includes/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.hpp \
 		includes/utils.hpp \
@@ -3603,19 +2858,23 @@ build/pdbqttorsionaldofcard.o: src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqttorsionaldofcard.o src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqttorsionaldofcard.o src/InputSet/PdbqtFileSpace/pdbqttorsionaldofcard.cc
 
 build/topologyangle.o: src/InputSet/TopologyFileSpace/topologyangle.cc includes/InputSet/TopologyFileSpace/topologyangle.hpp \
 		includes/InputSet/TopologyFileSpace/topologyangletype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyangle.o src/InputSet/TopologyFileSpace/topologyangle.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyangle.o src/InputSet/TopologyFileSpace/topologyangle.cc
 
 build/topologyangletype.o: src/InputSet/TopologyFileSpace/topologyangletype.cc includes/InputSet/TopologyFileSpace/topologyangletype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyangletype.o src/InputSet/TopologyFileSpace/topologyangletype.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyangletype.o src/InputSet/TopologyFileSpace/topologyangletype.cc
 
 build/topologyassembly.o: src/InputSet/TopologyFileSpace/topologyassembly.cc includes/InputSet/TopologyFileSpace/topologyassembly.hpp \
 		includes/InputSet/TopologyFileSpace/topologyresidue.hpp \
 		includes/InputSet/TopologyFileSpace/topologyatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyassembly.o src/InputSet/TopologyFileSpace/topologyassembly.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyassembly.o src/InputSet/TopologyFileSpace/topologyassembly.cc
 
 build/topologyatom.o: src/InputSet/TopologyFileSpace/topologyatom.cc includes/InputSet/TopologyFileSpace/topologyatom.hpp \
 		includes/InputSet/TopologyFileSpace/topologyatompair.hpp \
@@ -3628,24 +2887,30 @@ build/topologyatom.o: src/InputSet/TopologyFileSpace/topologyatom.cc includes/In
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyatom.o src/InputSet/TopologyFileSpace/topologyatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyatom.o src/InputSet/TopologyFileSpace/topologyatom.cc
 
 build/topologyatompair.o: src/InputSet/TopologyFileSpace/topologyatompair.cc includes/InputSet/TopologyFileSpace/topologyatompair.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyatompair.o src/InputSet/TopologyFileSpace/topologyatompair.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyatompair.o src/InputSet/TopologyFileSpace/topologyatompair.cc
 
 build/topologybond.o: src/InputSet/TopologyFileSpace/topologybond.cc includes/InputSet/TopologyFileSpace/topologybond.hpp \
 		includes/InputSet/TopologyFileSpace/topologybondtype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybond.o src/InputSet/TopologyFileSpace/topologybond.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybond.o src/InputSet/TopologyFileSpace/topologybond.cc
 
 build/topologybondtype.o: src/InputSet/TopologyFileSpace/topologybondtype.cc includes/InputSet/TopologyFileSpace/topologybondtype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybondtype.o src/InputSet/TopologyFileSpace/topologybondtype.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybondtype.o src/InputSet/TopologyFileSpace/topologybondtype.cc
 
 build/topologydihedral.o: src/InputSet/TopologyFileSpace/topologydihedral.cc includes/InputSet/TopologyFileSpace/topologydihedral.hpp \
 		includes/InputSet/TopologyFileSpace/topologydihedraltype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologydihedral.o src/InputSet/TopologyFileSpace/topologydihedral.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologydihedral.o src/InputSet/TopologyFileSpace/topologydihedral.cc
 
 build/topologydihedraltype.o: src/InputSet/TopologyFileSpace/topologydihedraltype.cc includes/InputSet/TopologyFileSpace/topologydihedraltype.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologydihedraltype.o src/InputSet/TopologyFileSpace/topologydihedraltype.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologydihedraltype.o src/InputSet/TopologyFileSpace/topologydihedraltype.cc
 
 build/topologyfile.o: src/InputSet/TopologyFileSpace/topologyfile.cc includes/InputSet/TopologyFileSpace/topologyfile.hpp \
 		includes/InputSet/TopologyFileSpace/topologyatompair.hpp \
@@ -3669,7 +2934,8 @@ build/topologyfile.o: src/InputSet/TopologyFileSpace/topologyfile.cc includes/In
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyfile.o src/InputSet/TopologyFileSpace/topologyfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyfile.o src/InputSet/TopologyFileSpace/topologyfile.cc
 
 build/topologyfileprocessingexception.o: src/InputSet/TopologyFileSpace/topologyfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -3682,7 +2948,8 @@ build/topologyfileprocessingexception.o: src/InputSet/TopologyFileSpace/topology
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/InputSet/TopologyFileSpace/topologyfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyfileprocessingexception.o src/InputSet/TopologyFileSpace/topologyfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyfileprocessingexception.o src/InputSet/TopologyFileSpace/topologyfileprocessingexception.cc
 
 build/topologyresidue.o: src/InputSet/TopologyFileSpace/topologyresidue.cc includes/InputSet/TopologyFileSpace/topologyresidue.hpp \
 		includes/InputSet/TopologyFileSpace/topologyatom.hpp \
@@ -3695,17 +2962,21 @@ build/topologyresidue.o: src/InputSet/TopologyFileSpace/topologyresidue.cc inclu
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyresidue.o src/InputSet/TopologyFileSpace/topologyresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologyresidue.o src/InputSet/TopologyFileSpace/topologyresidue.cc
 
 build/response.o: src/InputSet/Utilities/response.cc includes/InputSet/Utilities/response.hpp \
 		includes/Glycan/note.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/response.o src/InputSet/Utilities/response.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/response.o src/InputSet/Utilities/response.cc
 
 build/amberatomtypeinfo.o: src/MolecularMetadata/GLYCAM/amberatomtypeinfo.cpp includes/MolecularMetadata/GLYCAM/amberatomtypeinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/amberatomtypeinfo.o src/MolecularMetadata/GLYCAM/amberatomtypeinfo.cpp
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/amberatomtypeinfo.o src/MolecularMetadata/GLYCAM/amberatomtypeinfo.cpp
 
 build/amberelements.o: src/MolecularMetadata/GLYCAM/amberelements.cpp includes/MolecularMetadata/AMBER/amberelements.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/amberelements.o src/MolecularMetadata/GLYCAM/amberelements.cpp
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/amberelements.o src/MolecularMetadata/GLYCAM/amberelements.cpp
 
 build/bondlengthbytypepair.o: src/MolecularMetadata/GLYCAM/bondlengthbytypepair.cpp includes/MolecularMetadata/GLYCAM/bondlengthbytypepair.hpp \
 		includes/common.hpp \
@@ -3717,7 +2988,8 @@ build/bondlengthbytypepair.o: src/MolecularMetadata/GLYCAM/bondlengthbytypepair.
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/bondlengthbytypepair.o src/MolecularMetadata/GLYCAM/bondlengthbytypepair.cpp
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/bondlengthbytypepair.o src/MolecularMetadata/GLYCAM/bondlengthbytypepair.cpp
 
 build/dihedralangledata.o: src/MolecularMetadata/GLYCAM/dihedralangledata.cc includes/MolecularMetadata/GLYCAM/dihedralangledata.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -3736,13 +3008,16 @@ build/dihedralangledata.o: src/MolecularMetadata/GLYCAM/dihedralangledata.cc inc
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp \
 		includes/MolecularMetadata/GLYCAM/glycam06residueinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/dihedralangledata.o src/MolecularMetadata/GLYCAM/dihedralangledata.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/dihedralangledata.o src/MolecularMetadata/GLYCAM/dihedralangledata.cc
 
 build/glycam06residuecodes.o: src/MolecularMetadata/GLYCAM/glycam06residuecodes.cc includes/MolecularMetadata/GLYCAM/glycam06residuecodes.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycam06residuecodes.o src/MolecularMetadata/GLYCAM/glycam06residuecodes.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycam06residuecodes.o src/MolecularMetadata/GLYCAM/glycam06residuecodes.cc
 
 build/glycam06residueinfo.o: src/MolecularMetadata/GLYCAM/glycam06residueinfo.cpp includes/MolecularMetadata/GLYCAM/glycam06residueinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycam06residueinfo.o src/MolecularMetadata/GLYCAM/glycam06residueinfo.cpp
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycam06residueinfo.o src/MolecularMetadata/GLYCAM/glycam06residueinfo.cpp
 
 build/assembly.o: src/MolecularModeling/Assembly/assembly.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -3824,7 +3099,8 @@ build/assembly.o: src/MolecularModeling/Assembly/assembly.cc includes/MolecularM
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/assembly.o src/MolecularModeling/Assembly/assembly.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/assembly.o src/MolecularModeling/Assembly/assembly.cc
 
 build/assemblybuilder.o: src/MolecularModeling/Assembly/assemblybuilder.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -3916,7 +3192,8 @@ build/assemblybuilder.o: src/MolecularModeling/Assembly/assemblybuilder.cc inclu
 		includes/ParameterSet/ParameterFileSpace/parameterfilebond.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedral.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/assemblybuilder.o src/MolecularModeling/Assembly/assemblybuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/assemblybuilder.o src/MolecularModeling/Assembly/assemblybuilder.cc
 
 build/geometryoperation.o: src/MolecularModeling/Assembly/geometryoperation.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4000,7 +3277,8 @@ build/geometryoperation.o: src/MolecularModeling/Assembly/geometryoperation.cc i
 		includes/MolecularMetadata/GLYCAM/bondlengthbytypepair.hpp \
 		includes/MolecularMetadata/GLYCAM/amberatomtypeinfo.hpp \
 		includes/MolecularMetadata/GLYCAM/glycam06residueinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/geometryoperation.o src/MolecularModeling/Assembly/geometryoperation.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/geometryoperation.o src/MolecularModeling/Assembly/geometryoperation.cc
 
 build/glycamnaming.o: src/MolecularModeling/Assembly/glycamnaming.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4080,7 +3358,8 @@ build/glycamnaming.o: src/MolecularModeling/Assembly/glycamnaming.cc includes/Mo
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycamnaming.o src/MolecularModeling/Assembly/glycamnaming.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/glycamnaming.o src/MolecularModeling/Assembly/glycamnaming.cc
 
 build/ionization.o: src/MolecularModeling/Assembly/ionization.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4160,7 +3439,8 @@ build/ionization.o: src/MolecularModeling/Assembly/ionization.cc includes/Molecu
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ionization.o src/MolecularModeling/Assembly/ionization.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ionization.o src/MolecularModeling/Assembly/ionization.cc
 
 build/manipulationoperation.o: src/MolecularModeling/Assembly/manipulationoperation.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4240,7 +3520,8 @@ build/manipulationoperation.o: src/MolecularModeling/Assembly/manipulationoperat
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/manipulationoperation.o src/MolecularModeling/Assembly/manipulationoperation.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/manipulationoperation.o src/MolecularModeling/Assembly/manipulationoperation.cc
 
 build/selection.o: src/MolecularModeling/Assembly/selection.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4320,7 +3601,8 @@ build/selection.o: src/MolecularModeling/Assembly/selection.cc includes/Molecula
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/selection.o src/MolecularModeling/Assembly/selection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/selection.o src/MolecularModeling/Assembly/selection.cc
 
 build/solvation.o: src/MolecularModeling/Assembly/solvation.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4400,7 +3682,8 @@ build/solvation.o: src/MolecularModeling/Assembly/solvation.cc includes/Molecula
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/solvation.o src/MolecularModeling/Assembly/solvation.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/solvation.o src/MolecularModeling/Assembly/solvation.cc
 
 build/structurebuilder.o: src/MolecularModeling/Assembly/structurebuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4480,19 +3763,23 @@ build/structurebuilder.o: src/MolecularModeling/Assembly/structurebuilder.cc inc
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/structurebuilder.o src/MolecularModeling/Assembly/structurebuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/structurebuilder.o src/MolecularModeling/Assembly/structurebuilder.cc
 
 build/edge.o: src/MolecularModeling/Graph/edge.cc includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/Graph/node.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/edge.o src/MolecularModeling/Graph/edge.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/edge.o src/MolecularModeling/Graph/edge.cc
 
 build/graph.o: src/MolecularModeling/Graph/graph.cc includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/graph.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/graph.o src/MolecularModeling/Graph/graph.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/graph.o src/MolecularModeling/Graph/graph.cc
 
 build/node.o: src/MolecularModeling/Graph/node.cc includes/MolecularModeling/Graph/node.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/node.o src/MolecularModeling/Graph/node.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/node.o src/MolecularModeling/Graph/node.cc
 
 build/residue.o: src/MolecularModeling/Residue/residue.cc includes/MolecularModeling/residue.hpp \
 		includes/MolecularModeling/residueproperties.hpp \
@@ -4539,10 +3826,12 @@ build/residue.o: src/MolecularModeling/Residue/residue.cc includes/MolecularMode
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp \
 		includes/MolecularModeling/overlaps.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue.o src/MolecularModeling/Residue/residue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue.o src/MolecularModeling/Residue/residue.cc
 
 build/residue3dtemplatelibrary.o: src/MolecularModeling/Residue/residue3dtemplatelibrary.cc 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue3dtemplatelibrary.o src/MolecularModeling/Residue/residue3dtemplatelibrary.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residue3dtemplatelibrary.o src/MolecularModeling/Residue/residue3dtemplatelibrary.cc
 
 build/residuebuilder.o: src/MolecularModeling/Residue/residuebuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4595,7 +3884,8 @@ build/residuebuilder.o: src/MolecularModeling/Residue/residuebuilder.cc includes
 		includes/GeometryTopology/cell.hpp \
 		includes/MolecularMetadata/GLYCAM/bondlengthbytypepair.hpp \
 		includes/MolecularMetadata/GLYCAM/amberatomtypeinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residuebuilder.o src/MolecularModeling/Residue/residuebuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residuebuilder.o src/MolecularModeling/Residue/residuebuilder.cc
 
 build/residuenode.o: src/MolecularModeling/Residue/residuenode.cc includes/MolecularModeling/atom.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -4613,10 +3903,12 @@ build/residuenode.o: src/MolecularModeling/Residue/residuenode.cc includes/Molec
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residuenode.o src/MolecularModeling/Residue/residuenode.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residuenode.o src/MolecularModeling/Residue/residuenode.cc
 
 build/residueproperties.o: src/MolecularModeling/Residue/residueproperties.cc includes/MolecularModeling/residueproperties.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residueproperties.o src/MolecularModeling/Residue/residueproperties.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/residueproperties.o src/MolecularModeling/Residue/residueproperties.cc
 
 build/selections.o: src/MolecularModeling/Selections/selections.cc includes/MolecularModeling/Selections/selections.hpp \
 		includes/MolecularModeling/atom.hpp \
@@ -4663,7 +3955,8 @@ build/selections.o: src/MolecularModeling/Selections/selections.cc includes/Mole
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/selections.o src/MolecularModeling/Selections/selections.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/selections.o src/MolecularModeling/Selections/selections.cc
 
 build/libraryfile.o: src/ParameterSet/LibraryFileSpace/libraryfile.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -4679,11 +3972,13 @@ build/libraryfile.o: src/ParameterSet/LibraryFileSpace/libraryfile.cc includes/u
 		includes/ParameterSet/LibraryFileSpace/libraryfileatom.hpp \
 		includes/ParameterSet/LibraryFileSpace/libraryfileresidue.hpp \
 		includes/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfile.o src/ParameterSet/LibraryFileSpace/libraryfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfile.o src/ParameterSet/LibraryFileSpace/libraryfile.cc
 
 build/libraryfileatom.o: src/ParameterSet/LibraryFileSpace/libraryfileatom.cc includes/ParameterSet/LibraryFileSpace/libraryfileatom.hpp \
 		includes/GeometryTopology/coordinate.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileatom.o src/ParameterSet/LibraryFileSpace/libraryfileatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileatom.o src/ParameterSet/LibraryFileSpace/libraryfileatom.cc
 
 build/libraryfileprocessingexception.o: src/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4696,7 +3991,8 @@ build/libraryfileprocessingexception.o: src/ParameterSet/LibraryFileSpace/librar
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileprocessingexception.o src/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileprocessingexception.o src/ParameterSet/LibraryFileSpace/libraryfileprocessingexception.cc
 
 build/libraryfileresidue.o: src/ParameterSet/LibraryFileSpace/libraryfileresidue.cc includes/ParameterSet/LibraryFileSpace/libraryfileresidue.hpp \
 		includes/ParameterSet/LibraryFileSpace/libraryfileatom.hpp \
@@ -4709,7 +4005,8 @@ build/libraryfileresidue.o: src/ParameterSet/LibraryFileSpace/libraryfileresidue
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileresidue.o src/ParameterSet/LibraryFileSpace/libraryfileresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/libraryfileresidue.o src/ParameterSet/LibraryFileSpace/libraryfileresidue.cc
 
 build/offfile.o: src/ParameterSet/OffFileSpace/offfile.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -4759,11 +4056,13 @@ build/offfile.o: src/ParameterSet/OffFileSpace/offfile.cc includes/utils.hpp \
 		includes/MolecularMetadata/elementattributes.hpp \
 		includes/ParameterSet/OffFileSpace/offfileresidue.hpp \
 		includes/ParameterSet/OffFileSpace/offfileatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfile.o src/ParameterSet/OffFileSpace/offfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfile.o src/ParameterSet/OffFileSpace/offfile.cc
 
 build/offfileatom.o: src/ParameterSet/OffFileSpace/offfileatom.cc includes/ParameterSet/OffFileSpace/offfileatom.hpp \
 		includes/GeometryTopology/coordinate.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfileatom.o src/ParameterSet/OffFileSpace/offfileatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfileatom.o src/ParameterSet/OffFileSpace/offfileatom.cc
 
 build/offfileresidue.o: src/ParameterSet/OffFileSpace/offfileresidue.cc includes/ParameterSet/OffFileSpace/offfileresidue.hpp \
 		includes/ParameterSet/OffFileSpace/offfileatom.hpp \
@@ -4776,7 +4075,8 @@ build/offfileresidue.o: src/ParameterSet/OffFileSpace/offfileresidue.cc includes
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfileresidue.o src/ParameterSet/OffFileSpace/offfileresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/offfileresidue.o src/ParameterSet/OffFileSpace/offfileresidue.cc
 
 build/parameterfile.o: src/ParameterSet/ParameterFileSpace/parameterfile.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -4795,7 +4095,8 @@ build/parameterfile.o: src/ParameterSet/ParameterFileSpace/parameterfile.cc incl
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedral.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfile.o src/ParameterSet/ParameterFileSpace/parameterfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfile.o src/ParameterSet/ParameterFileSpace/parameterfile.cc
 
 build/parameterfileangle.o: src/ParameterSet/ParameterFileSpace/parameterfileangle.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4807,7 +4108,8 @@ build/parameterfileangle.o: src/ParameterSet/ParameterFileSpace/parameterfileang
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfileangle.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileangle.o src/ParameterSet/ParameterFileSpace/parameterfileangle.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileangle.o src/ParameterSet/ParameterFileSpace/parameterfileangle.cc
 
 build/parameterfileatom.o: src/ParameterSet/ParameterFileSpace/parameterfileatom.cc includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/common.hpp \
@@ -4819,7 +4121,8 @@ build/parameterfileatom.o: src/ParameterSet/ParameterFileSpace/parameterfileatom
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileatom.o src/ParameterSet/ParameterFileSpace/parameterfileatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileatom.o src/ParameterSet/ParameterFileSpace/parameterfileatom.cc
 
 build/parameterfilebond.o: src/ParameterSet/ParameterFileSpace/parameterfilebond.cc includes/ParameterSet/ParameterFileSpace/parameterfilebond.hpp \
 		includes/common.hpp \
@@ -4831,7 +4134,8 @@ build/parameterfilebond.o: src/ParameterSet/ParameterFileSpace/parameterfilebond
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfilebond.o src/ParameterSet/ParameterFileSpace/parameterfilebond.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfilebond.o src/ParameterSet/ParameterFileSpace/parameterfilebond.cc
 
 build/parameterfiledihedral.o: src/ParameterSet/ParameterFileSpace/parameterfiledihedral.cc includes/ParameterSet/ParameterFileSpace/parameterfiledihedral.hpp \
 		includes/common.hpp \
@@ -4844,7 +4148,8 @@ build/parameterfiledihedral.o: src/ParameterSet/ParameterFileSpace/parameterfile
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfiledihedral.o src/ParameterSet/ParameterFileSpace/parameterfiledihedral.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfiledihedral.o src/ParameterSet/ParameterFileSpace/parameterfiledihedral.cc
 
 build/parameterfiledihedralterm.o: src/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4856,7 +4161,8 @@ build/parameterfiledihedralterm.o: src/ParameterSet/ParameterFileSpace/parameter
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfiledihedralterm.o src/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfiledihedralterm.o src/ParameterSet/ParameterFileSpace/parameterfiledihedralterm.cc
 
 build/parameterfileprocessingexception.o: src/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4869,7 +4175,8 @@ build/parameterfileprocessingexception.o: src/ParameterSet/ParameterFileSpace/pa
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileprocessingexception.o src/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/parameterfileprocessingexception.o src/ParameterSet/ParameterFileSpace/parameterfileprocessingexception.cc
 
 build/prepfile.o: src/ParameterSet/PrepFileSpace/prepfile.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4885,7 +4192,8 @@ build/prepfile.o: src/ParameterSet/PrepFileSpace/prepfile.cc includes/common.hpp
 		includes/ParameterSet/PrepFileSpace/prepfileresidue.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfile.o src/ParameterSet/PrepFileSpace/prepfile.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfile.o src/ParameterSet/PrepFileSpace/prepfile.cc
 
 build/prepfileatom.o: src/ParameterSet/PrepFileSpace/prepfileatom.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4897,7 +4205,8 @@ build/prepfileatom.o: src/ParameterSet/PrepFileSpace/prepfileatom.cc includes/co
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileatom.o src/ParameterSet/PrepFileSpace/prepfileatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileatom.o src/ParameterSet/PrepFileSpace/prepfileatom.cc
 
 build/prepfileprocessingexception.o: src/ParameterSet/PrepFileSpace/prepfileprocessingexception.cc includes/common.hpp \
 		includes/generictypedefs.hpp \
@@ -4910,7 +4219,8 @@ build/prepfileprocessingexception.o: src/ParameterSet/PrepFileSpace/prepfileproc
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp \
 		includes/utils.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileprocessingexception.o src/ParameterSet/PrepFileSpace/prepfileprocessingexception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileprocessingexception.o src/ParameterSet/PrepFileSpace/prepfileprocessingexception.cc
 
 build/prepfileresidue.o: src/ParameterSet/PrepFileSpace/prepfileresidue.cc includes/utils.hpp \
 		includes/common.hpp \
@@ -4928,7 +4238,8 @@ build/prepfileresidue.o: src/ParameterSet/PrepFileSpace/prepfileresidue.cc inclu
 		includes/MolecularModeling/residueproperties.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfile.hpp \
 		includes/ParameterSet/PrepFileSpace/prepfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileresidue.o src/ParameterSet/PrepFileSpace/prepfileresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepfileresidue.o src/ParameterSet/PrepFileSpace/prepfileresidue.cc
 
 build/pdbpreprocessor.o: src/Resolver/PdbPreprocessor/pdbpreprocessor.cc includes/Resolver/PdbPreprocessor/pdbpreprocessor.hpp \
 		includes/InputSet/PdbFileSpace/pdbresidue.hpp \
@@ -4963,10 +4274,12 @@ build/pdbpreprocessor.o: src/Resolver/PdbPreprocessor/pdbpreprocessor.cc include
 		includes/ParameterSet/PrepFileSpace/prepfileatom.hpp \
 		includes/InputSet/PdbFileSpace/pdbatomsection.hpp \
 		includes/InputSet/PdbFileSpace/pdbfileprocessingexception.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessor.o src/Resolver/PdbPreprocessor/pdbpreprocessor.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessor.o src/Resolver/PdbPreprocessor/pdbpreprocessor.cc
 
 build/pdbpreprocessoralternateresidue.o: src/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.cc includes/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessoralternateresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessoralternateresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessoralternateresidue.cc
 
 build/pdbpreprocessorchaintermination.o: src/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.hpp \
 		includes/common.hpp \
@@ -4978,10 +4291,12 @@ build/pdbpreprocessorchaintermination.o: src/Resolver/PdbPreprocessor/pdbpreproc
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorchaintermination.o src/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorchaintermination.o src/Resolver/PdbPreprocessor/pdbpreprocessorchaintermination.cc
 
 build/pdbpreprocessordisulfidebond.o: src/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.cc includes/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessordisulfidebond.o src/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessordisulfidebond.o src/Resolver/PdbPreprocessor/pdbpreprocessordisulfidebond.cc
 
 build/pdbpreprocessorhistidinemapping.o: src/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.hpp \
 		includes/common.hpp \
@@ -4993,7 +4308,8 @@ build/pdbpreprocessorhistidinemapping.o: src/Resolver/PdbPreprocessor/pdbpreproc
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorhistidinemapping.o src/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorhistidinemapping.o src/Resolver/PdbPreprocessor/pdbpreprocessorhistidinemapping.cc
 
 build/pdbpreprocessormissingresidue.o: src/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.cc includes/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.hpp \
 		includes/common.hpp \
@@ -5005,19 +4321,24 @@ build/pdbpreprocessormissingresidue.o: src/Resolver/PdbPreprocessor/pdbpreproces
 		includes/MolecularModeling/quantommechanicatom.hpp \
 		includes/MolecularModeling/dockingatom.hpp \
 		includes/MolecularModeling/oligosaccharidedetectionatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessormissingresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessormissingresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessormissingresidue.cc
 
 build/pdbpreprocessorreplacedhydrogen.o: src/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorreplacedhydrogen.o src/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorreplacedhydrogen.o src/Resolver/PdbPreprocessor/pdbpreprocessorreplacedhydrogen.cc
 
 build/pdbpreprocessorresidueinfo.o: src/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorresidueinfo.o src/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorresidueinfo.o src/Resolver/PdbPreprocessor/pdbpreprocessorresidueinfo.cc
 
 build/pdbpreprocessorunrecognizedheavyatom.o: src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorunrecognizedheavyatom.o src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorunrecognizedheavyatom.o src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedheavyatom.cc
 
 build/pdbpreprocessorunrecognizedresidue.o: src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.cc includes/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorunrecognizedresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbpreprocessorunrecognizedresidue.o src/Resolver/PdbPreprocessor/pdbpreprocessorunrecognizedresidue.cc
 
 build/analysis.o: src/MolecularModeling/Assembly/Ontology/analysis.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5097,7 +4418,8 @@ build/analysis.o: src/MolecularModeling/Assembly/Ontology/analysis.cc includes/M
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/analysis.o src/MolecularModeling/Assembly/Ontology/analysis.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/analysis.o src/MolecularModeling/Assembly/Ontology/analysis.cc
 
 build/gf_query.o: src/MolecularModeling/Assembly/Ontology/gf_query.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5143,7 +4465,8 @@ build/gf_query.o: src/MolecularModeling/Assembly/Ontology/gf_query.cc includes/M
 		includes/MolecularModeling/Graph/node.hpp \
 		includes/MolecularModeling/Graph/edge.hpp \
 		includes/MolecularModeling/residuenode.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gf_query.o src/MolecularModeling/Assembly/Ontology/gf_query.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gf_query.o src/MolecularModeling/Assembly/Ontology/gf_query.cc
 
 build/population.o: src/MolecularModeling/Assembly/Ontology/population.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5223,7 +4546,8 @@ build/population.o: src/MolecularModeling/Assembly/Ontology/population.cc includ
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/population.o src/MolecularModeling/Assembly/Ontology/population.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/population.o src/MolecularModeling/Assembly/Ontology/population.cc
 
 build/query.o: src/MolecularModeling/Assembly/Ontology/query.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5303,7 +4627,8 @@ build/query.o: src/MolecularModeling/Assembly/Ontology/query.cc includes/Molecul
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/query.o src/MolecularModeling/Assembly/Ontology/query.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/query.o src/MolecularModeling/Assembly/Ontology/query.cc
 
 build/coordinatebuilder.o: src/MolecularModeling/Assembly/Output/coordinatebuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5383,7 +4708,8 @@ build/coordinatebuilder.o: src/MolecularModeling/Assembly/Output/coordinatebuild
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatebuilder.o src/MolecularModeling/Assembly/Output/coordinatebuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/coordinatebuilder.o src/MolecularModeling/Assembly/Output/coordinatebuilder.cc
 
 build/librarybuilder.o: src/MolecularModeling/Assembly/Output/librarybuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5463,7 +4789,8 @@ build/librarybuilder.o: src/MolecularModeling/Assembly/Output/librarybuilder.cc 
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/librarybuilder.o src/MolecularModeling/Assembly/Output/librarybuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/librarybuilder.o src/MolecularModeling/Assembly/Output/librarybuilder.cc
 
 build/pdbbuilder.o: src/MolecularModeling/Assembly/Output/pdbbuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5543,7 +4870,8 @@ build/pdbbuilder.o: src/MolecularModeling/Assembly/Output/pdbbuilder.cc includes
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbbuilder.o src/MolecularModeling/Assembly/Output/pdbbuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbbuilder.o src/MolecularModeling/Assembly/Output/pdbbuilder.cc
 
 build/pdbqtbuilder.o: src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5623,7 +4951,8 @@ build/pdbqtbuilder.o: src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc incl
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtbuilder.o src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/pdbqtbuilder.o src/MolecularModeling/Assembly/Output/pdbqtbuilder.cc
 
 build/prepbuilder.o: src/MolecularModeling/Assembly/Output/prepbuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5703,7 +5032,8 @@ build/prepbuilder.o: src/MolecularModeling/Assembly/Output/prepbuilder.cc includ
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepbuilder.o src/MolecularModeling/Assembly/Output/prepbuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/prepbuilder.o src/MolecularModeling/Assembly/Output/prepbuilder.cc
 
 build/topologybuilder.o: src/MolecularModeling/Assembly/Output/topologybuilder.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5783,7 +5113,8 @@ build/topologybuilder.o: src/MolecularModeling/Assembly/Output/topologybuilder.c
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybuilder.o src/MolecularModeling/Assembly/Output/topologybuilder.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/topologybuilder.o src/MolecularModeling/Assembly/Output/topologybuilder.cc
 
 build/oligosaccharidedetection.o: src/MolecularModeling/Assembly/SugarIdentification/oligosaccharidedetection.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5864,7 +5195,8 @@ build/oligosaccharidedetection.o: src/MolecularModeling/Assembly/SugarIdentifica
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp \
 		includes/MolecularModeling/ring_shape_detection.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharidedetection.o src/MolecularModeling/Assembly/SugarIdentification/oligosaccharidedetection.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/oligosaccharidedetection.o src/MolecularModeling/Assembly/SugarIdentification/oligosaccharidedetection.cc
 
 build/ringperception.o: src/MolecularModeling/Assembly/SugarIdentification/ringperception.cc includes/MolecularModeling/assembly.hpp \
 		includes/GeometryTopology/coordinate.hpp \
@@ -5944,5 +5276,6 @@ build/ringperception.o: src/MolecularModeling/Assembly/SugarIdentification/ringp
 		includes/ParameterSet/ParameterFileSpace/parameterfileatom.hpp \
 		includes/GeometryTopology/grid.hpp \
 		includes/GeometryTopology/cell.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ringperception.o src/MolecularModeling/Assembly/SugarIdentification/ringperception.cc
+	@echo "[GMML] CXX $<"
+	$(VB)$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/ringperception.o src/MolecularModeling/Assembly/SugarIdentification/ringperception.cc
 
