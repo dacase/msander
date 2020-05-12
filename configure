@@ -30,7 +30,8 @@ optflags="-g -O3 -mtune=native"
 openmp='no'
 ompflag=""
 fftw_flags=""
-mkl=""
+mkl="no"
+installtype="serial"
 
 lapack="skip"
 blas="skip"
@@ -60,6 +61,8 @@ for var in "$@"; do
             cc="x86_64-w64-mingw32-gcc --static"
             cxx="x86_64-w64-mingw32-g++ --static"
             fc="x86_64-w64-mingw32-gfortran --static";;
+        --mkl)
+            mkl="yes";;
         --intel)
             compiler="intel"
             cc="icc -fPIC"
@@ -78,6 +81,7 @@ for var in "$@"; do
             mpiflag="-DMPI"
             flibs_fftw="-lfftw3_mpi -lfftw3 -lmpi"
             short_ene=short_ene.o
+            installtype="parallel"
             sfx=".MPI";;
         *)
             echo "Option $var not recognized"
@@ -92,6 +96,7 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
+	printf " --mkl          use MKL routines from $MKLROOT \n"
     exit 0
 fi
 
@@ -462,6 +467,7 @@ CP=cp
 MAKE=make --no-print-directory
 SFX=$sfx
 VB=$verbose
+INSTALLTYPE=$installtype
 
 # RISM:
 RISMSANDER=$rismsander
