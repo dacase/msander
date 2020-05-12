@@ -2,7 +2,9 @@
 
 include ../config.h
 
-install:
+install: $(INSTALLTYPE)
+
+serial:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
 	@cd msander && $(MAKE) libsander
@@ -15,6 +17,11 @@ install:
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
 	@cd sqm && $(MAKE) sqm
+	@cd gmml && $(MAKE) gmml
+
+parallel:
+	@cd msander && $(MAKE) msander
+	@cd msander && $(MAKE) msander.LES
 
 clean:
 	-(cd blas && $(MAKE) clean )
@@ -28,6 +35,8 @@ clean:
 	-(cd addles && $(MAKE) clean )
 	-(cd leap && $(MAKE) clean )
 	-(cd antechamber && $(MAKE) clean )
+	-(cd sqm && $(MAKE) clean )
+	-(cd gmml && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
@@ -39,7 +48,7 @@ uninstall: clean
 	/bin/rm -rf $(BINDIR)/x $(LIBDIR)/python2.7
 
 distclean: clean
-	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) )
+	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) logs config.h)
 	-(/bin/rm -f netcdf*.log )
 	-(cd netcdf-c-4.7.2 && make uninstall)
 	-(cd netcdf-f-4.5.2 && make uninstall)
