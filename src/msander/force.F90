@@ -131,9 +131,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   include 'mpif.h'
   integer gb_rad_mpistart, j3, j, i3
   _REAL_ :: temp_amd_totdih
-#  ifdef LES
-  _REAL_ :: vel0_nrg_sum
-#  endif /* LES */
 #endif /* MPI */
 
   logical belly
@@ -161,10 +158,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   _REAL_                     :: ene(30)    !Used locally ONLY
   type(potential_energy_rec) :: pot        !Used locally ONLY
   logical, save :: first=.true.
-
-#if defined(LES) && defined(MPI)
-  _REAL_  :: nrg_bead(nbead)
-#endif /* LES && MPI */
 
 #ifndef LES
   _REAL_ escf
@@ -920,17 +913,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! If a bellymask is being used, set the belly atom forces to zero.
   if (belly) call bellyf(natom,ix(ibellygp),f)
-
-  ! Interface to EVB
-#ifdef MPI
-#  ifdef LES
-  if (nbead > 0) then
-    call mpi_allreduce (nrg_all, nrg_bead, nbead, MPI_DOUBLE_PRECISION, &
-                        MPI_SUM, commsander, ierr)
-    nrg_all(:) = nrg_bead(:)
-  end if
-#  endif /* LES */
-#endif /* MPI */
 
   ! Dump forces in CHARMM format if appropriate and requested
   if (charmm_active) then
