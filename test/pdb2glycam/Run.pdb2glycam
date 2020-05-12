@@ -1,0 +1,10 @@
+#!/bin/bash
+
+printf "Testing pdb2glycam and molecule subgraph matching...\n"
+
+../../bin/pdb2glycam 4YG0.pdb \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../dacdif pdb2glycam_output.pdb.save pdb2glycam_output.pdb
+../dacdif ring_conformations.txt.save ring_conformations.txt
+exit 0
