@@ -1,0 +1,36 @@
+#!/bin/sh 
+
+#=============================================================================
+#    Running RISM
+#    (copy this script to your working directory, and edit it as needed.
+#
+#    (This example uses a KH closure and pure water as a solvent, just
+#    to illustrate the ideas. There is next to no error checking.)
+#=============================================================================
+
+id=$1    # identifier for this calculation
+         # inputs: $id.parm7, $id.rst7
+xvv=$2   # xvv file for the solvent to be used
+
+cat > mdin.rism <<EOF
+  single-point 3D-RISM calculation using the sander interface
+ &cntrl
+    ntx=1, nstlim=0, irism=1,
+ /
+ &rism
+    periodic='pme',
+    closure='kh', tolerance=1e-6,
+    grdspc=0.35,0.35,0.35, centering=0,
+    mdiis_del=0.4, mdiis_nvec=20, maxstep=5000, mdiis_restart=50,
+    solvcut=9.0,
+    verbose=2, npropagate=0,
+    apply_rism_force=0,
+    volfmt='ccp4', ntwrism=1,
+ /
+EOF
+
+sander -O -i mdin.rism -o $id.kh.r3d \
+    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id.kh
+
+/bin/rm -f mdin.rism restrt mdinfo 
+

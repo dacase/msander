@@ -1,0 +1,123 @@
+#!/bin/bash 
+
+resolution=2.4
+
+
+if false; then
+
+#--------------------------------------------------------------------------
+#  1. Use metatwist to create a solvent density file from guv files:
+#--------------------------------------------------------------------------
+
+metatwist --dx guv.O.0.ccp4  --species O2-  --odx rho.O.0.ccp4  \
+    --map rhoelreal --bulkdens 55.55 > metatwist.log
+metatwist --dx guv.Na+.0.ccp4  --species Na+  --odx rho.Na+.0.ccp4  \
+    --map rhoelreal --bulkdens 1.0 >> metatwist.log
+metatwist --dx guv.Cl-.0.ccp4  --species Cl-  --odx rho.Cl-.0.ccp4  \
+    --map rhoelreal --bulkdens 1.0 >> metatwist.log
+
+metatwist --dx rho.O.0.ccp4 rho.Na+.0.ccp4 rho.Cl-.0.ccp4 \
+     --odx solvent.ccp4 --species none >> metatwist.log
+
+
+# ================== convert to proper axis order for SFALL
+mapmask mapin solvent.ccp4 mapout a.map <<EOF > maps.log
+AXIS Z X Y
+EOF
+
+grid=`echo | mapdump mapin a.map | awk '/Grid sampling on x, y, z ../{print $8,$9,$10}'`
+
+# =================== run SFALL
+sfall mapin a.map hklout sfalled.mtz <<EOF >> maps.log
+mode sfcalc mapin
+EOF
+
+
+# =================== rename column labels for refmac
+cad hklin1 sfalled.mtz hklout solvent.mtz <<EOF >> maps.log
+labin file 1 E1=FC E2=PHIC
+labou file 1 E1=Fpart1 E2=PHIpart1
+EOF
+
+# =================== convert back into a map for sanity check
+fft hklin solvent.mtz mapout fftback.map <<EOF >> maps.log
+labin F1=Fpart1 PHI=PHIpart1
+grid $grid
+EOF
+
+# =========== compute Pearson CC between original and re-calculated map
+correlate.com a.map fftback.map > correlation.log
+
+fi
+
+if true; then
+#--------------------------------------------------------------------------
+#  3. Run refmac with and without the solvent map contribution:
+#--------------------------------------------------------------------------
+
+# ========  combine observed data with solvent density as Fpart for refmac
+cad hklin1 ../XrayPrep/2qus-P1.mtz hklin2 solvent.mtz hklout refme.mtz << EOF > cad.log
+labin file 1 all
+labin file 2 all
+resolution over_all $resolution
+EOF
+
+# ========== run refmac with the md-derived solvent and 
+#            disable the default flat bulk solvent
+refmac5 hklin refme.mtz xyzin 2qus_uc.pdb xyzout refmac_rism.pdb \
+   hklout refmac_rism.mtz  tlsin tlsin << EOF > refmac_rism.log 
+LABIN FP=F-obs-filtered SIGFP=SIGF-obs-filtered FPART1=Fpart1 PHIP1=PHIpart1 FREE=R-free-flags
+SOLVENT NO
+MAKE NEWLigand Noexit
+SCPART 1
+NCYC 40
+REFI BREF MIXED
+EOF
+
+# ========== as a control, run refmac with the defaults
+refmac5 hklin refme.mtz xyzin 2qus_uc.pdb xyzout refmac_flat.pdb \
+    hklout refmac_flat.mtz  tlsin tlsin << EOF > refmac_flat.log
+LABIN FP=F-obs-filtered SIGFP=SIGF-obs-filtered FREE=R-free-flags
+MAKE NEWLigand Noexit
+NCYC 40
+REFI BREF MIXED
+EOF
+fi
+
+if false; then
+#--------------------------------------------------------------------------
+#  4. Run refmac with original (or pdb_redo) inputs:
+#--------------------------------------------------------------------------
+
+refmac5 hklin pdb_redo/${id}_final.mtz xyzin pdb_redo/${id}_final.pdb \
+        xyzout refmac_redo.pdb hklout refmac_redo.mtz \
+        tlsin tlsin tlsout refmac_redo.tlsout << EOF > refmac_redo.log
+LABIN FP=FP SIGFP=SIGFP FREE=FREE
+NCYC 40
+REFI TLSC 3
+TLSOUT ADDU
+EOF
+fi
+
+if false; then
+#--------------------------------------------------------------------------
+#  5. Give phenix a try:
+#--------------------------------------------------------------------------
+
+phenix.refine  \
+   $1.pdb.orig $1.mtz \
+   refinement.input.xray_data.r_free_flags.generate=True \
+   c_beta_restraints=False discard_psi_phi=False \
+   strategy=individual_sites+individual_adp+occupancies \
+   flip_symmetric_amino_acids=True nqh_flips=True \
+   refinement.main.number_of_macro_cycles=10 \
+   prefix=cdl serial=1 \
+   write_geo=False cdl=True
+
+/bin/mv cdl_data.mtz $1_data.mtz
+fi
+
+# --- clean up:
+/bin/rm -f fftback.map refme.mtz sfalled.mtz a.map cad.log maps.log \
+           overlap.log tlsin
+
