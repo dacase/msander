@@ -2597,7 +2597,7 @@ subroutine mdread2(x,ix,ih)
    end if ! ( ilrt /= 0 )
 
    !------------------------------------------------------------------------
-   ! If user has requested Poisson-Boltzmann electrostatics, set up variables
+   ! If user has requested constantpH or constantE, set up variables
    !------------------------------------------------------------------------
 
    if (icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) then
@@ -2732,10 +2732,10 @@ subroutine mdread2(x,ix,ih)
    end if
    if (ievb>0) then
 #ifdef MPI
-!KFW  if( numgroup /= 2 ) then
-!KFW     write(6,*) 'numgroup must be 2 if ievb is set'
-!KFW     DELAYED_ERROR
-!KFW  end if
+  if( numgroup /= 2 ) then
+     write(6,*) 'numgroup must be 2 if ievb is set'
+     DELAYED_ERROR
+  end if
 #else
       write(6,'(/2x,a)') 'Setting ievb>0 requires compilation with MPI'
       DELAYED_ERROR
@@ -2959,6 +2959,14 @@ subroutine mdread2(x,ix,ih)
    if (ntf < 1 .or. ntf > 8) then
       write(6,'(/2x,a,i3,a)') 'NTF (',ntf,') must be in 1..8.'
       DELAYED_ERROR
+   end if
+
+   if (imin > 0 .and. ntf > 1) then
+      write(6,'(a)') '| Setting ntf=1 for minimization'
+   end if
+
+   if (imin > 0 .and. ntc > 1) then
+      write(6,'(a)') '| Setting ntc=1 for minimization'
    end if
 
    if (ioutfm /= 0 .and. ioutfm /= 1) then
