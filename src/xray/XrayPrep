@@ -11,15 +11,12 @@ ciffiles=$2
 
 #============================================================================
 echo "Running phenix.AmberPrep" 
-phenix.AmberPrep $id.pdb >> $id-prep.log \
+phenix.AmberPrep $id.pdb minimise=amber_all >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
-#  Here we need to edit the 4phenix_xxxx.pdb file to undo any changes
+#  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
 #     that were made to handle carbodyrates; just change residue and
 #     atom names: no changes in order are allowed.
-
-/bin/mv 4phenix_$id.pdb 4phenix_${id}.pdb~
-/bin/cp ../phenix_amber/4phenix_$id.pdb .
 
 #============================================================================
 echo "creating ${id}_uc.parm7"
