@@ -15,6 +15,7 @@ struct pdbmol {
   int aug;
   int AnisouRec;
   int* res_nums;
+  char* icode;
   int* atom_nums;
   int* res_lims;
   int* termini;

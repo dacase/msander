@@ -9,36 +9,36 @@ LOCALFLAGS=-Wno-unused-result
 OBJS = crdmanip.o grid.o listRead.o matrix.o pdbRead.o QuatAlign.o ran2.o \
        topRead.o vector.o
 
-xtalutil: $(BINDIR)/ChBox$(SFX) $(BINDIR)/UnitCell$(SFX) \
-     $(BINDIR)/AddToBox$(SFX) $(BINDIR)/PropPDB$(SFX)
+xtalutil: $(BINDIR)/ChBox $(BINDIR)/UnitCell \
+     $(BINDIR)/AddToBox $(BINDIR)/PropPDB
 
-$(BINDIR)/AddToBox$(SFX): AddToBox.o $(OBJS)
+$(BINDIR)/AddToBox: AddToBox.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
-$(BINDIR)/ChBox$(SFX): ChBox.o $(OBJS)
+$(BINDIR)/ChBox: ChBox.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
-$(BINDIR)/CheckMD$(SFX): CheckMD.o $(OBJS)
+$(BINDIR)/CheckMD: CheckMD.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
-$(BINDIR)/PropPDB$(SFX): PropPDB.o $(OBJS)
+$(BINDIR)/PropPDB: PropPDB.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
-$(BINDIR)/UnitCell$(SFX): UnitCell.o $(OBJS)
+$(BINDIR)/UnitCell: UnitCell.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
-$(BINDIR)/pdb2rdf$(SFX): pdb2rdf.o $(OBJS)
+$(BINDIR)/pdb2rdf: pdb2rdf.o $(OBJS)
 	@echo "[XTALUTIL]  CC $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
 
 uninstall:
-	/bin/rm -f $(BINDIR)/AddToBox$(SFX) $(BINDIR)/ChBox$(SFX) \
-       $(BINDIR)/PropPDB$(SFX) $(BINDIR)/UnitCell$(SFX)
+	/bin/rm -f $(BINDIR)/AddToBox $(BINDIR)/ChBox \
+       $(BINDIR)/PropPDB $(BINDIR)/UnitCell
 
 clean:
 	/bin/rm -f *.o

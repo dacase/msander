@@ -44,6 +44,7 @@ void GetPDB(pdb *thispdb, int verbosity, int pqr_format)
   thispdb->res_nums = (int*)malloc(thispdb->n_atoms*sizeof(int));
   thispdb->atom_nums = (int*)malloc(thispdb->n_atoms*sizeof(int));
   thispdb->chain = (char*)malloc(thispdb->n_atoms*sizeof(char));
+  thispdb->icode = (char*)malloc(thispdb->n_atoms*sizeof(char));
   thispdb->alt = (char*)malloc(thispdb->n_atoms*sizeof(char));
   thispdb->element = (char*)malloc(2*thispdb->n_atoms*sizeof(char));
   thispdb->atom_names = (char*)malloc(4*thispdb->n_atoms*sizeof(char));
@@ -82,6 +83,7 @@ void GetPDB(pdb *thispdb, int verbosity, int pqr_format)
           sscanf(&line[16], "%1c",&thispdb->alt[i]);
           sscanf(&line[21], "%1c",&thispdb->chain[i]);
           sscanf(&line[22], "%4d",&thispdb->res_nums[i]);
+          sscanf(&line[26], "%1c",&thispdb->icode[i]);
           sscanf(&line[30], "%8lf",&thispdb->crds[i*3]);
           sscanf(&line[38], "%8lf",&thispdb->crds[i*3+1]);
           sscanf(&line[46], "%8lf",&thispdb->crds[i*3+2]);
@@ -243,10 +245,11 @@ void PutPDB(pdb *thispdb, symT *S, char* filename, char* pdb_form,
       exit(1);
 #endif
       sprintf(line, 
-   "ATOM %6d %.4s%c%.4s%c%4d    %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf          %c%c\n",
+   "ATOM %6d %.4s%c%.4s%c%4d%c   %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf          %c%c\n",
           (thispdb->atom_nums[i]+1) % 100000, ctmp, 
           thispdb->alt[i], ctm2p, thispdb->chain[i],
-          (thispdb->res_nums[i]+1) % 10000, dtmp[0], dtmp[1], dtmp[2],
+          (thispdb->res_nums[i]+1) % 10000, 
+          thispdb->icode[i],dtmp[0], dtmp[1], dtmp[2],
           thispdb->charges[i], thispdb->radii[i], 
           thispdb->element[2*i], thispdb->element[2*i+1]);
     }
