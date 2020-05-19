@@ -2963,10 +2963,12 @@ subroutine mdread2(x,ix,ih)
 
    if (imin > 0 .and. ntf > 1) then
       write(6,'(a)') '| Setting ntf=1 for minimization'
+      ntf = 1
    end if
 
    if (imin > 0 .and. ntc > 1) then
       write(6,'(a)') '| Setting ntc=1 for minimization'
+      ntc = 1
    end if
 
    if (ioutfm /= 0 .and. ioutfm /= 1) then
