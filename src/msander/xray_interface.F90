@@ -659,15 +659,16 @@ contains
 #  endif
             end do
          else
-            write(20,'(11a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
-               'fobs',achar(9),'fcalc',achar(9),'rfree-flag'
-            write(20,'(11a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-               '15N',achar(9),'15N',achar(9),'3N'
+            write(20,'(13a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+               'd',achar(9),'fobs',achar(9),'fcalc',achar(9),'rfree-flag'
+            write(20,'(13a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               '15N',achar(9),'15N',achar(9),'15N',achar(9),'3N'
             do i=1,num_hkl
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,i1)') hkl_index(1,i), &
+               write(20,'(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,i1)') &
+                hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                abs_Fobs(i), achar(9), abs(Fcalc(i)),achar(9), &
-                test_flag(i)
+                1./sqrt(d_star_sq(i)),achar(9),abs_Fobs(i), achar(9), &
+                abs(Fcalc(i)),achar(9), test_flag(i)
             end do
          endif
          close(20)
