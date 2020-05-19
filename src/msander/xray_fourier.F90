@@ -280,8 +280,7 @@ contains
       if (present(selected)) then
          denom = sum(abs_Fobs, selected/=0)
          if( denom > 0._rk_ ) then
-            residual = sum( abs(abs_Fobs - abs_Fcalc), &
-               selected/=0) / denom
+            residual = sum( abs(abs_Fobs - abs_Fcalc), selected/=0) / denom
          else
             residual = 0._rk_
          endif
@@ -524,8 +523,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer, save :: nstep = 0
       integer :: i
-      double precision :: rwork_num, rwork_denom, x
-      double precision :: eterm1, eterm2, rfree_num, rfree_denom
+      double precision :: eterm1, eterm2, x
 
       if( bulk_solvent_model .eq. 'simple' ) then
          ! step 1: get fcalc, including solvent mask contribution:
