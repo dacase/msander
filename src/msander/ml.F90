@@ -282,7 +282,6 @@ contains
         r_free_factor_denominator = r_free_factor_denominator + abs_Fobs(i)
       endif
       d_star_sq(i) = d_star
-      ! f_obs_weight(i) = 1.0 ! (1.0/sigFobs(i))**2
     enddo
 
     NRF_free = NRF - NRF_work

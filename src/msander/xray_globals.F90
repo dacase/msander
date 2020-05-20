@@ -109,7 +109,7 @@ module xray_globals_module
    integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
 
    real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:), &
-         d_star_sq(:)
+         d_star_sq(:), f_weight(:)
    real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
    integer, allocatable, save :: test_flag(:)
    integer, save :: has_f_solvent, scale_update_frequency, &

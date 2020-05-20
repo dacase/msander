@@ -479,7 +479,8 @@ contains
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), &
-            Fcalc(num_hkl), k_scale(num_hkl), stat=alloc_status)
+            Fcalc(num_hkl), k_scale(num_hkl), f_weight(num_hkl), &
+            stat=alloc_status)
       REQUIRE(alloc_status==0)
 
       if (has_f_solvent > 0 ) then
@@ -506,12 +507,14 @@ contains
             f_solvent(i) = cmplx( fabs_solvent*cos(phi_solvent), &
                                   fabs_solvent*sin(phi_solvent), rk_ )
             test_flag(i) = min(test_flag(i),1)
+            f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       else
          do i = 1,num_hkl
             read(hkl_lun,*,end=1,err=1) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
             test_flag(i) = min(test_flag(i),1)
+            f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
 
@@ -605,8 +608,7 @@ contains
       return
    end subroutine xray_init_globals
 
-   ! Write X-ray output files and deallocate. Bond info is included
-   ! here only to check for places to insert TER in PDB output files.
+   ! Write X-ray output files and deallocate.
    subroutine xray_fini()
       implicit none
 #     include "extra.h"

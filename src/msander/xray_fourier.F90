@@ -440,24 +440,24 @@ contains
          deriv(:) = 0._rk_  ! so no force for things unselected here
          if (present(selected)) then
             where (selected/=0 .and. abs_Fcalc > 1.d-3)
-               deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
+               deriv(:) = - 2.0_rk_ * f_weight(:) * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
                   ( Fcalc_scale/abs_Fcalc(:) )
             end where
          else ! no selected
-            where( abs_Fcalc > 1.d-3 )
-               deriv(:) = - 2.0_rk_ * Fcalc(:) * norm_scale * &
+            ! where( abs_Fcalc > 1.d-3 )
+               deriv(:) = - 2.0_rk_ * f_weight(:) * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
                   ( Fcalc_scale/abs_Fcalc(:) ) 
-            end where
+            ! end where
          end if
       end if
 
       if (present(selected)) then
          xray_energy = norm_scale * &
-              sum((abs_Fobs - abs_Fcalc)**2, selected/=0)
+              sum(f_weight*(abs_Fobs - abs_Fcalc)**2, selected/=0)
       else
-         xray_energy = norm_scale * sum((abs_Fobs - abs_Fcalc)**2)
+         xray_energy = norm_scale * sum(f_weight*(abs_Fobs - abs_Fcalc)**2)
       end if
 
    end subroutine dTargetLS_dF
