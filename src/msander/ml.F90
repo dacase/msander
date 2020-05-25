@@ -177,20 +177,20 @@ contains
   ! init_ml: gateway to the maximum-likelihood target function
   !          this routine also intializes anisotropic scaling data
   !----------------------------------------------------------------------------
-  subroutine init_ml(target, nstlim, d_star_sq_out, resolution)
+  subroutine init_ml(target, nstlim, d_star_sq, resolution)
 
     implicit none
 
     character(len=4), intent(in) :: target
     integer, intent(in) :: nstlim
-    double precision, dimension(num_hkl), intent(out) :: d_star_sq_out
+    double precision, dimension(num_hkl), intent(inout) :: d_star_sq
     double precision, intent(out) :: resolution
 
     double precision :: a, b, c, alpha, beta, gamma, V, &
                         d, d_star, reflections_per_bin, fo_fo
     double precision :: cosa, sina, cosb, sinb, cosg, sing
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
-    double precision, dimension(:), allocatable :: d_star_sq, &
+    double precision, dimension(:), allocatable :: d_star_sq_tmp, &
                                                    d_star_sq_sorted, bin_limits
     integer, dimension(:), allocatable :: counter_w, counter_f, &
                                           reflection_bin_tmp
@@ -217,7 +217,7 @@ contains
     allocate(s_squared_for_scaling(NRF))
     allocate(scat_factors_precalc(5, NRF))
 
-    allocate(d_star_sq(NRF))
+    allocate(d_star_sq_tmp(NRF))
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
     allocate(delta_array(NRF))
@@ -282,6 +282,7 @@ contains
         r_free_factor_denominator = r_free_factor_denominator + abs_Fobs(i)
       endif
       d_star_sq(i) = d_star
+      d_star_sq_tmp(i) = d_star
     enddo
 
     NRF_free = NRF - NRF_work
@@ -299,8 +300,8 @@ contains
        do i = 1, NRF
          if (test_flag(i) == 0) then
            r_free_counter = r_free_counter + 1
-           d_star_sq_sorted(r_free_counter) = d_star_sq(i)
-         else if (1. / sqrt(d_star_sq(i)) < min(4.0d0, resolution + 1.0d0)) then
+           d_star_sq_sorted(r_free_counter) = d_star_sq_tmp(i)
+         else if (1. / sqrt(d_star_sq_tmp(i)) < min(4.0d0, resolution + 1.0d0)) then
            hi_res_shell_n = hi_res_shell_n + 1
          end if
        end do
@@ -324,6 +325,7 @@ contains
        end do
        bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
 
+       deallocate(d_star_sq_sorted)
        reflection_bin = n_bins
        allocate(A_in_zones(n_bins))
        allocate(B_in_zones(n_bins))
@@ -357,7 +359,7 @@ contains
        
          ! Reverse order is to compare with cctbx output
          do j = n_bins, 2, -1
-           if (d_star_sq(i) < bin_limits(j)) reflection_bin(i) = j - 1
+           if (d_star_sq_tmp(i) < bin_limits(j)) reflection_bin(i) = j - 1
          end do
          if (test_flag(i) == 1) then
            bins_work_population(reflection_bin(i)) = bins_work_population(reflection_bin(i)) + 1
@@ -396,13 +398,13 @@ contains
            index_sort = bins_work_reflections(i, j)
            sigma_tmp(counter_sort) = sigFobs(index_sort)
            f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
-           if (1./sqrt(d_star_sq(index_sort)) < min(4.0d0, resolution+1.0d0)) then
+           if (1./sqrt(d_star_sq_tmp(index_sort)) < min(4.0d0, resolution+1.0d0)) then
                hi_res_shell_n_counter = hi_res_shell_n_counter + 1
                scale_k1_indices(hi_res_shell_n_counter) = counter_sort
            end if
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
-           d_star_sq_out(counter_sort) = d_star_sq(index_sort)
+           d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
          end do
        end do
        if (minval(scale_k1_indices) == 0) then
@@ -418,10 +420,11 @@ contains
            f_obs_tmp(counter_sort) = abs_Fobs(index_sort)
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
-           d_star_sq_out(counter_sort) = d_star_sq(index_sort)
+           d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
          end do
        end do
        reflection_bin(:) = reflection_bin_tmp(:)
+       deallocate(d_star_sq_tmp)
 
        ! need to put f_obs_tmp into abs_Fobs to send back to calling 
        !   program; same for sigma_tmp, f_obs_weight(?), hkl and test_flag

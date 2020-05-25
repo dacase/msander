@@ -411,7 +411,7 @@ contains
                sum_fc_fc = sum(abs_Fcalc ** 2)
             end if
             Fcalc_scale = sum_fo_fc / sum_fc_fc
-            norm_scale = 1.0_rk_ / sum_fo_fo
+            norm_scale = 1.0_rk_  / sum_fo_fo
             if (mytaskid == 0 ) &
                write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
                    Fcalc_scale,norm_scale

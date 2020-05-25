@@ -517,6 +517,7 @@ contains
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
+      if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
@@ -549,7 +550,8 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      if( target == 'ml' ) call init_ml(target, nstlim, d_star_sq, resolution)
+      ! if( target(1:2) == 'ml' ) call init_ml(target, nstlim, d_star_sq, resolution)
+      call init_ml(target, nstlim, d_star_sq, resolution)
       if( bulk_solvent_model /= 'none' ) then
          if( resolution_high < 0.5 ) then
             write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
@@ -640,16 +642,19 @@ contains
          open(20,file=trim(fmtz_outfile),action='write')
          if( target(1:3) == 'vls' ) then
             ! rdb header:
-            write(20,'(13a)') 'h', achar(9), 'k', achar(9), 'l', achar(9), &
-               'Fobsr', achar(9), 'Fcalcr', achar(9), 'Fobsi', achar(9), &
-               'Fcalci' 
-            write(20,'(13a)') '4N', achar(9), '4N', achar(9), '4N', achar(9), &
-               '15N', achar(9), '15N', achar(9), '15N', achar(9), '15N' 
+            write(20,'(15a)') 'h', achar(9), 'k', achar(9), 'l', achar(9), &
+               'd', achar(9), 'Fobsr', achar(9), 'Fcalcr', achar(9), &
+               'Fobsi', achar(9), 'Fcalci' 
+            write(20,'(15a)') '4N', achar(9), '4N', achar(9), '4N', achar(9), &
+               '15N', achar(9), '15N', achar(9), '15N', achar(9), &
+               '15N', achar(9), '15N' 
             do i=1,num_hkl
 #  if 1
-               write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+               write(20, &
+               '(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
+                1./sqrt(d_star_sq(i)), achar(9), &
                 real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
                 aimag(Fobs(i)), achar(9), aimag(Fcalc(i))
  
@@ -752,7 +757,7 @@ contains
 
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(xyz, deriv=dF, residual=r_work, xray_energy=xray_energy)
-      else if( target(1:2) == 'ls' ) then
+      else if( target(1:2) == 'ls' .or. target(1:3) == 'wls' ) then
          call dTargetLS_dF(xyz, selected=test_flag, deriv=dF, &
                            xray_energy=xray_energy)
       else if(target(1:2) == 'ml' ) then
