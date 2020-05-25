@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sander=/home/case/msander/bin/msander
+sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
 fi
