@@ -66,9 +66,9 @@ for var in "$@"; do
         --intel)
             compiler="intel"
             cc="icc -fPIC"
-            mpicc="$msanderhome/bin/mpicc"
+            mpicc="/home/case/mpich_intel/bin/mpicc"
             fc="ifort -fPIC"
-            mpif90="$msanderhome/bin/mpif90"
+            mpif90="/home/case/mpich_intel/bin/mpif90"
             gccsys="-gcc-sys "
             optflags="-g -O3 -fast"
             flibs_arch="-lifport -lifcore -lsvml";;
