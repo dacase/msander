@@ -220,11 +220,6 @@ contains
     allocate(d_star_sq_tmp(NRF))
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
-    allocate(delta_array(NRF))
-    allocate(alpha_array(NRF))
-    alpha_array(:) = 1.0
-    allocate(beta_array(NRF))
-    beta_array(:) = 1.0
 
     r_work_factor_denominator = zero
     r_free_factor_denominator = zero
@@ -292,6 +287,12 @@ contains
 
 
     if (target(1:2) == 'ml') then
+
+       allocate(delta_array(NRF))
+       allocate(alpha_array(NRF))
+       alpha_array(:) = 1.0
+       allocate(beta_array(NRF))
+       beta_array(:) = 1.0
 
        ! Sort reflections for binning
        allocate(d_star_sq_sorted(NRF_free))
