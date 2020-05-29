@@ -550,8 +550,8 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      ! if( target(1:2) == 'ml' ) call init_ml(target, nstlim, d_star_sq, resolution)
       call init_ml(target, nstlim, d_star_sq, resolution)
+
       if( bulk_solvent_model /= 'none' ) then
          if( resolution_high < 0.5 ) then
             write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
