@@ -329,7 +329,7 @@ contains
       real(real_kind) :: b(7), Uaniso(7)
 
       if (mod(nstep, scale_update_frequency) == 0) then
-#if 1
+
          ! isotropic scaling for Fcalc, with same general notation:
          NRF_work_sq = NRF_work * NRF_work
          b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
@@ -338,15 +338,6 @@ contains
          k_scale(:) = exp(b(1))
          if(mytaskid==0) &
            write(6,'(a,f10.5)') '| updating   isotropic scaling: ', k_scale(1)
-#else
-         ! isotropic scaling from dtargetLS:
-
-         sum_fo_fc = sum(abs_Fobs(1:NRF_work) * abs(Fcalc(1:NRF_work)))
-         sum_fc_fc = sum(abs(Fcalc(1:NRF_work)) ** 2)
-         Fcalc_scale = sum_fo_fc / sum_fc_fc
-         if (mytaskid == 0 ) &
-            write(6,'(a,f12.5)') '| simple   isotropic scaling: ',Fcalc_scale
-         k_scale(:) = Fcalc_scale
 
          ! anisotropic scaling for Fcalc:
          NRF_work_sq = NRF_work * NRF_work
@@ -369,7 +360,6 @@ contains
            write(6,'(a,2f10.5)')  '|     ', exp(b(1))
            write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
          endif
-#endif
       endif
 
       Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
@@ -467,6 +457,9 @@ contains
    ! Fobs
 
    subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
+      use ml_mod, only : &
+           init_scales, optimize_k_scale_k_mask, k_iso, k_iso_exp, k_aniso
+      use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(:)
@@ -476,32 +469,49 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
-      ! step 1: get fcalc, including solvent mask contribution:
-      !  (atomic part already done in fourier_Fcalc)
-      ! assume for now that cryoEM won't need a solvent contribution
-      ! call get_solvent_contribution(nstep, crd)
+      if(    bulk_solvent_model .eq. 'simple' &
+        .or. bulk_solvent_model .eq. 'none'   ) then
 
-      ! step 2: isotropic scaling:
-      if (scale_update_frequency > 0 ) then
-         if (mod(nstep,scale_update_frequency) == 0) then
-            Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-            norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
-            if (mytaskid == 0 ) &
-              write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ',&
-                   Fcalc_scale, norm_scale
+         ! step 1: get fcalc, including solvent mask contribution:
+         !  (atomic part already done in fourier_Fcalc, and passed in here.)
+         if( bulk_solvent_model .eq. 'simple') &
+             call get_solvent_contribution(nstep, crd)
+
+         ! step 2: isotropic scaling:
+         if (scale_update_frequency > 0 ) then
+            if (mod(nstep,scale_update_frequency) == 0) then
+               Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+               if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+                 '| updating isotropic scaling: ', Fcalc_scale
+            endif
+         else
+            Fcalc_scale = 1.0_rk_
          endif
+         Fcalc(:) = Fcalc_scale * Fcalc(:)
+
+      else if( bulk_solvent_model .eq. 'opt' ) then
+
+         ! N.B.: this is scaling based on abs(Fobs), not Fobs as complex
+         if (mod(nstep, mask_update_frequency) == 0) then
+           call get_solvent_contribution(nstep, crd)
+           call init_scales()
+           call optimize_k_scale_k_mask()
+           k_scale = k_iso * k_iso_exp * k_aniso
+         endif
+         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
+
       else
-         if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
-         Fcalc_scale = 1.0_rk_
+         write(6,*) 'Bad value for bulk_solvent_model: ', trim(bulk_solvent_model)
       endif
 
-      Fcalc(:) = Fcalc_scale * Fcalc(:)
+      if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
       nstep = nstep + 1
 
       vecdif(:) = Fobs(:) - Fcalc(:)
       xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
       deriv(:) = - norm_scale * 2._rk_ * Fcalc_scale * vecdif(:)
       residual = sum (abs(vecdif)) / sum(abs_Fobs)
+      ! write(6,*) 'in dTargetV_dF, residual = ', residual
 
    end subroutine dTargetV_dF
 
