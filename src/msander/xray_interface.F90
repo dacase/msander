@@ -66,7 +66,7 @@ contains
    subroutine xray_read_mdin(mdin_lun)
       implicit none
       integer, intent(in) :: mdin_lun
-      integer :: stat
+      integer :: stat, inerr
       call xray_init_globals()
       if (.not.xray_active) return
       rewind(mdin_lun)
@@ -75,7 +75,30 @@ contains
          write(stdout,'(A)') 'Error reading namelist &xray.'
          call mexit(stdout,1)
       end if
-      !write(unit=6,nml=xray)
+
+      ! some basic input checks:
+
+      inerr = 0
+      if( target /= 'ls' .and. target /= 'ml' .and. target /= 'vls' ) then
+         write( 6, '(a,a)' ) 'Bad value for target: ', target
+         inerr = 1
+      end if
+      if( mask_update_frequency < 1 ) then
+         write( 6, '(a)' ) 'mask_update_frequency must be > 0'
+         inerr = 1
+      end if
+      if( scale_update_frequency < 1 ) then
+         write( 6, '(a)' ) 'scale_update_frequency must be > 0'
+         inerr = 1
+      end if
+      if( ml_update_frequency < 1 ) then
+         write( 6, '(a)' ) 'ml_update_frequency must be > 0'
+         inerr = 1
+      end if
+
+      if( inerr > 0 ) call mexit(6,1)
+
+      return
    end subroutine xray_read_mdin
 
    subroutine xray_write_options()
@@ -494,7 +517,7 @@ contains
          Fcalc_ave(:) = cmplx(0._rk_, 0._rk_, rk_)
       endif
 
-      !  each line contains h,k,l and two reals
+      !  each line contains h,k,l two reals, and an r-free flag
       !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
@@ -552,6 +575,7 @@ contains
 
       call init_ml(target, nstlim, d_star_sq, resolution)
 
+      write(6,*) 'back from init_ml: ', bulk_solvent_model, has_f_solvent
       if( bulk_solvent_model /= 'none' ) then
          if( resolution_high < 0.5 ) then
             write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
