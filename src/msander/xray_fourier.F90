@@ -15,7 +15,7 @@ module xray_fourier_module
 !
 !  get_residual      --   Compute standard r_work/r_free statistics
 !
-!  scale_Fcalc       --   Carry out scaling (just anisotropic for now)
+!  scale_Fcalc       --   Carry out scaling (only for ml + simple/none for now)
 !
 !  get_solvent_contribution -- bulk_solvent mask or other models
 !
@@ -300,6 +300,8 @@ contains
 
       integer :: i
 
+      if( bulk_solvent_model == 'none' ) return
+
       if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
          call grid_bulk_solvent(num_atoms, crd)
          call shrink_bulk_solvent()
@@ -313,8 +315,8 @@ contains
            write(6,'(a,5e14.6)') '| updating bulk solvent: ', &
                Fcalc(1),k_mask(1),f_mask(1)
       endif
-      if( bulk_solvent_model == 'simple') &
-        Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+
+      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
       return
 
    end subroutine get_solvent_contribution
@@ -385,8 +387,7 @@ contains
       integer :: i
       logical :: iso_scale=.true. ! no input varible yet, just change the code
 
-      if( bulk_solvent_model .eq. 'simple' ) &
-         call get_solvent_contribution(nstep, crd)
+      call get_solvent_contribution(nstep, crd)
 
       if( iso_scale ) then
          abs_Fcalc(:) = abs(Fcalc(:))
@@ -469,27 +470,7 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
-      if(    bulk_solvent_model .eq. 'simple' &
-        .or. bulk_solvent_model .eq. 'none'   ) then
-
-         ! step 1: get fcalc, including solvent mask contribution:
-         !  (atomic part already done in fourier_Fcalc, and passed in here.)
-         if( bulk_solvent_model .eq. 'simple') &
-             call get_solvent_contribution(nstep, crd)
-
-         ! step 2: isotropic scaling:
-         if (scale_update_frequency > 0 ) then
-            if (mod(nstep,scale_update_frequency) == 0) then
-               Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-               if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-                 '| updating isotropic scaling: ', Fcalc_scale
-            endif
-         else
-            Fcalc_scale = 1.0_rk_
-         endif
-         Fcalc(:) = Fcalc_scale * Fcalc(:)
-
-      else if( bulk_solvent_model .eq. 'opt' ) then
+      if( bulk_solvent_model .eq. 'opt' ) then
 
          ! N.B.: this is scaling based on abs(Fobs), not Fobs as complex
          if (mod(nstep, mask_update_frequency) == 0) then
@@ -501,7 +482,15 @@ contains
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
 
       else
-         write(6,*) 'Bad value for bulk_solvent_model: ', trim(bulk_solvent_model)
+
+         call get_solvent_contribution(nstep, crd)
+         if (mod(nstep,scale_update_frequency) == 0) then
+            Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+              '| updating isotropic scaling: ', Fcalc_scale
+         endif
+         Fcalc(:) = Fcalc_scale * Fcalc(:)
+
       endif
 
       if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
@@ -535,13 +524,7 @@ contains
       integer :: i
       double precision :: eterm1, eterm2, x
 
-      if( bulk_solvent_model .eq. 'simple' ) then
-         ! step 1: get fcalc, including solvent mask contribution:
-         !  (atomic part already done in fourier_Fcalc, and passed in here.)
-         call get_solvent_contribution(nstep, crd)
-         call scale_Fcalc( nstep )
-
-      else if( bulk_solvent_model .eq. 'opt' ) then
+      if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
            call get_solvent_contribution(nstep, crd)
            call init_scales()
@@ -550,15 +533,14 @@ contains
          endif
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
 
-      else if( bulk_solvent_model .eq. 'none' ) then
+      else 
+         call get_solvent_contribution(nstep, crd)
          call scale_Fcalc( nstep )
          
-      else
-         write(6,*) 'Bad value for bulk_solvent_model: ', trim(bulk_solvent_model)
       endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
-      ! step 3: get ml parameters
+      ! get ml parameters
 
       if (mod(nstep, ml_update_frequency) == 0) then
         if (mytaskid == 0 ) &
@@ -588,7 +570,7 @@ contains
 
       nstep = nstep + 1
 
-      ! step 4: put dTargetML/dF into deriv(:)
+      ! put dTargetML/dF into deriv(:)
       do i=1,NRF_work
          x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
          deriv(i) = k_scale(i)*Fcalc(i)*2.d0*delta_array(i) &
