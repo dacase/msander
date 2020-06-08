@@ -268,7 +268,7 @@ program add_pdb
    rewind(in_lun)
    do
       read(in_lun,'(A)',end=1) buf
-      write(out_lun,'(A)') trim(buf)
+      write(out_lun,'(A)') buf(1:80)
    end do
    1 continue
    close(in_lun)

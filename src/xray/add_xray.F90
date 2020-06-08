@@ -159,7 +159,7 @@ program add_xray
    rewind(infile_lun)
    do
       read(infile_lun,'(A)',end=1) buf
-      write(outfile_lun,'(A)') trim(buf)
+      write(outfile_lun,'(A)') buf(1:80)
    end do
    1 continue
    close(infile_lun)
