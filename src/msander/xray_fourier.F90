@@ -330,7 +330,7 @@ contains
       real(real_kind) :: sum_fo_fc, sum_fc_fc
       real(real_kind) :: b(7), Uaniso(7)
 
-      if (mod(nstep, scale_update_frequency) == 0) then
+      if (mod(nstep, scale_update_frequency) == 0 ) then
 
          ! isotropic scaling for Fcalc, with same general notation:
          NRF_work_sq = NRF_work * NRF_work
@@ -338,8 +338,8 @@ contains
                       / NRF_work_sq
          b(1) = sum(b_vector_base)
          k_scale(:) = exp(b(1))
-         if(mytaskid==0) &
-           write(6,'(a,f10.5)') '| updating   isotropic scaling: ', k_scale(1)
+         if(mytaskid==0) write(6,'(a,f10.5)') &
+            '| updating   isotropic scaling: ', k_scale(1)
 
          ! anisotropic scaling for Fcalc:
          NRF_work_sq = NRF_work * NRF_work
@@ -362,6 +362,7 @@ contains
            write(6,'(a,2f10.5)')  '|     ', exp(b(1))
            write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
          endif
+
       endif
 
       Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
@@ -385,11 +386,24 @@ contains
       real(real_kind), parameter :: F_EPSILON = 1.0e-20_rk_
       integer, save :: nstep=0
       integer :: i
-      logical :: iso_scale=.true. ! no input varible yet, just change the code
 
       call get_solvent_contribution(nstep, crd)
 
-      if( iso_scale ) then
+      if( inputscale ) then
+         ! scale using phenix-like approximation:
+         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
+         if( nstep == 0 ) then
+            k_scale(:) = k_tot * exp( b_tot * mss4(:))
+            sum_fo_fo = sum(abs_Fobs ** 2)
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if( mytaskid == 0 ) &
+               write(6,'(a,2f10.5,e12.5)') &
+                 '| setting k_scale using k_tot/b_tot: ', &
+                 k_tot, b_tot, norm_scale
+         endif
+         Fcalc(:) = k_scale(:) * Fcalc(:)
+      else
+         ! scale to fobs:
          abs_Fcalc(:) = abs(Fcalc(:))
          if( mod(nstep,scale_update_frequency) == 0 ) then
             if (present(selected)) then
@@ -401,15 +415,13 @@ contains
                sum_fo_fo = sum(abs_Fobs ** 2)
                sum_fc_fc = sum(abs_Fcalc ** 2)
             end if
-            Fcalc_scale = sum_fo_fc / sum_fc_fc
+            k_scale(:) = sum_fo_fc / sum_fc_fc
             norm_scale = 1.0_rk_  / sum_fo_fo
             if (mytaskid == 0 ) &
                write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
-                   Fcalc_scale,norm_scale
+                   k_scale(1),norm_scale
          endif
-         Fcalc(:) = Fcalc_scale * Fcalc(:)
-      else
-         Fcalc_scale = 1._rk_
+         Fcalc(:) = k_scale(:) * Fcalc(:)
       endif
 
       nstep = nstep + 1
@@ -423,8 +435,8 @@ contains
       ! to become a unit vector.
       !
       ! deriv = Fcalc/abs(Fcalc) * K * ( Fobs - abs(Fcalc) )
-      !      ....plus the terms arising from differentiating Fcalc_scale with
-      !      respect to Fcalc, which are ignored here, since Fcalc_scale is
+      !      ....plus the terms arising from differentiating k_scale with
+      !      respect to Fcalc, which are ignored here, since k_scale is
       !      generally not updated on every step.
 
       if (present(deriv)) then
@@ -433,13 +445,13 @@ contains
             where (selected/=0 .and. abs_Fcalc > 1.d-3)
                deriv(:) = - 2.0_rk_ * f_weight(:) * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
-                  ( Fcalc_scale/abs_Fcalc(:) )
+                  ( k_scale(:)/abs_Fcalc(:) )
             end where
          else ! no selected
             ! where( abs_Fcalc > 1.d-3 )
                deriv(:) = - 2.0_rk_ * f_weight(:) * Fcalc(:) * norm_scale * &
                   ( abs_Fobs(:) - abs_Fcalc(:) ) *  &
-                  ( Fcalc_scale/abs_Fcalc(:) ) 
+                  ( k_scale(:)/abs_Fcalc(:) ) 
             ! end where
          end if
       end if
@@ -485,11 +497,11 @@ contains
 
          call get_solvent_contribution(nstep, crd)
          if (mod(nstep,scale_update_frequency) == 0) then
-            Fcalc_scale = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+            k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
             if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-              '| updating isotropic scaling: ', Fcalc_scale
+              '| updating isotropic scaling: ', k_scale(1)
          endif
-         Fcalc(:) = Fcalc_scale * Fcalc(:)
+         Fcalc(:) = k_scale(:) * Fcalc(:)
 
       endif
 
@@ -498,7 +510,7 @@ contains
 
       vecdif(:) = Fobs(:) - Fcalc(:)
       xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
-      deriv(:) = - norm_scale * 2._rk_ * Fcalc_scale * vecdif(:)
+      deriv(:) = - norm_scale * 2._rk_ * k_scale(:) * vecdif(:)
       residual = sum (abs(vecdif)) / sum(abs_Fobs)
       ! write(6,*) 'in dTargetV_dF, residual = ', residual
 
@@ -591,7 +603,6 @@ contains
              * exp(mss4*coeffs(2,1:scatter_ncoeffs-1)))
    end function atom_scatter_factor_mss4
 
-   !dac addition:
    subroutine get_mss4(num_hkl,hkl_index,mSS4)
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl_index(3,num_hkl)

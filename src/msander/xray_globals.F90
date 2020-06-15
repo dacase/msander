@@ -86,6 +86,10 @@ module xray_globals_module
 
    character(len=256) :: atom_selection_mask
 
+   ! parameters describing scaling options for Fcalc:
+   logical :: inputscale = .false.
+   real(real_kind) :: k_tot, b_tot
+
    !----------------------------------------------------------------------------
    ! GLOBALS:
 
@@ -105,7 +109,7 @@ module xray_globals_module
    ! Reflection data:
 
    integer, save :: num_hkl
-   real(real_kind), save :: Fcalc_scale, norm_scale
+   real(real_kind), save :: norm_scale
    integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
 
    real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:), &

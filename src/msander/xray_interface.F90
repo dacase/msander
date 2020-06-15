@@ -49,7 +49,7 @@ module xray_interface_module
          bfactor_min, bfactor_max, &
          bfactor_refinement_interval, &
          atom_selection_mask, &
-         k_sol, b_sol,  &
+         k_sol, b_sol, k_tot, b_tot, inputscale,  &
          mask_update_frequency, scale_update_frequency, &
          ml_update_frequency, xray_nstep, bulk_solvent_model
 
@@ -575,7 +575,6 @@ contains
 
       call init_ml(target, nstlim, d_star_sq, resolution)
 
-      write(6,*) 'back from init_ml: ', bulk_solvent_model, has_f_solvent
       if( bulk_solvent_model /= 'none' ) then
          if( resolution_high < 0.5 ) then
             write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
@@ -734,7 +733,7 @@ contains
       real(real_kind), allocatable :: xray_dxyz(:,:), xray_dB(:)
       real(real_kind), allocatable, target :: abs_Fcalc(:)
       complex(real_kind), allocatable :: dF(:)
-      real(real_kind) :: phi
+      real(real_kind) :: phi, gradnorm_amber, gradnorm_xray
       integer :: status, alloc_status, num_selected, dealloc_status
       integer :: i,ierr
       logical, save :: first=.true.
@@ -838,6 +837,17 @@ contains
          ! Convert xray_dxyz() back to orthogonal coordinates: 
          xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))
 
+         ! compute norm of gradient from Amber, and from xray: this
+         !   information could be used to estimate xray_weight:
+         if ( first ) then
+            gradnorm_amber = norm2(dxyz(:,sel_index(1:num_selected)))
+            gradnorm_xray  = norm2(xray_dxyz(:,:))
+            write(6,'(a,3e12.5)') '| gradient norms, amber/xray: ', &
+               gradnorm_amber, gradnorm_xray, gradnorm_amber/gradnorm_xray
+            first = .false.
+         endif
+
+         ! combine xray forces (-xray_dxyz) into the force array:
          dxyz(:,sel_index(1:num_selected)) = dxyz(:,sel_index(1:num_selected)) &
              - xray_dxyz(:,:)
          if( present(dB) ) dB(sel_index(1:num_selected)) = - xray_dB(:)
