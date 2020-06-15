@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 03/23/2020 at 14:42:08
+| Run on 06/15/2020 at 15:27:47
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/xray/2wcu
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Standard MD run input                                                          
  &cntrl                                                                        
   ntx    = 1, ntpr   = 1, ntf    = 8,       ntb    = 1,                        
@@ -161,11 +161,12 @@ X-ray Refinement Parameters:
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
 Found   2328 atoms in !(@H=) & !(:WAT);
+| number of reflections:    24614       0   24614
  Number of triangulated 3-point waters found:     1820
 
      Sum of charges from parm topology file =    -6.000002
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 16
+| Running OPENMP code, with OMP_NUM_THREADS = 4
  DEBUG FORCE!; calling force routine
  ---------------------------------------------------
  APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
@@ -177,29 +178,30 @@ Found   2328 atoms in !(@H=) & !(:WAT);
 | Local SIZE OF NONBOND LIST =    2276163
 | TOTAL SIZE OF NONBOND LIST =    2276163
 | updating isotropic scaling:      0.64766 0.50215E-08
+| gradient norms, amber/xray:  0.00000E+00 0.13493E+02 0.00000E+00
  DEBUG FORCE!; back from force routine
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =      1203.6149  EKtot   =         0.0000  EPtot      =      1203.6149
+ Etot   =       254.9421  EKtot   =         0.0000  EPtot      =       254.9421
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =      1203.6149
+ EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =       254.9421
  EAMBER (non-restraint)  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     94701.3168
                                                     Density    =         1.1575
- Exray  =      1203.6149  Rwork   =         0.2824  Rfree      =         0.0000
+ Exray  =       254.9421  Rwork   =         0.2824  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
  Checking numerical force for user chosen atoms
  ----------------------------------------------
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         1
-      1   -0.51673779    -0.51673777    -0.00000002
-      2    0.89751195     0.89751196    -0.00000002
-      3   -0.15450740    -0.15450742     0.00000001
- RMS force error =  0.304E-07
+      1   -0.08683661    -0.08683661    -0.00000000
+      2    0.08547914     0.08547914     0.00000000
+      3   -0.32302358    -0.32302359     0.00000001
+ RMS force error =  0.223E-07
          NUMERICAL, ANALYTICAL FORCES (diff) from atom      4740
-      1    1.73427669     1.73427677    -0.00000008
-      2    1.06455980     1.06455982    -0.00000003
-      3    2.18723099     2.18723150    -0.00000051
- RMS force error =  0.173E-06
+      1    0.48251631     0.48251631    -0.00000000
+      2    0.05940815     0.05940815    -0.00000000
+      3    0.15345618     0.15345620    -0.00000002
+ RMS force error =  0.441E-07
  --------------------------------------------
