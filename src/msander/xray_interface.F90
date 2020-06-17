@@ -837,6 +837,7 @@ contains
          ! Convert xray_dxyz() back to orthogonal coordinates: 
          xray_dxyz(:,:) = matmul(orth_to_frac,xray_dxyz(:,:))
 
+#ifndef MPI
          ! compute norm of gradient from Amber, and from xray: this
          !   information could be used to estimate xray_weight:
          if ( first ) then
@@ -846,6 +847,7 @@ contains
                gradnorm_amber, gradnorm_xray, gradnorm_amber/gradnorm_xray
             first = .false.
          endif
+#endif
 
          ! combine xray forces (-xray_dxyz) into the force array:
          dxyz(:,sel_index(1:num_selected)) = dxyz(:,sel_index(1:num_selected)) &
