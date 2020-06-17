@@ -47,8 +47,8 @@ module xray_globals_module
    ! Resolution limits for all X-ray calculations
    real(real_kind), save :: resolution_low, resolution_high
 
-   ! Weight term for X-ray force:
-   real(real_kind), save :: xray_weight
+   ! Weight term and offset for X-ray force:
+   real(real_kind), save :: xray_weight = 1.0, xray_offset = 0.0
 
    ! Solvent mask generation parameters
    real(real_kind), save :: solvent_mask_probe_radius, solvent_mask_expand

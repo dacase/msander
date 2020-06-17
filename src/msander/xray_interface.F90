@@ -33,7 +33,7 @@ module xray_interface_module
          reflection_infile, &
          resolution_low, &
          resolution_high, &
-         xray_weight, &
+         xray_weight, xray_offset, &
          target, &
          solvent_mask_probe_radius, &
          solvent_mask_expand, &
@@ -801,7 +801,7 @@ contains
          xray_energy = 0._rk_
          xray_e = 0._rk_
       else
-         xray_energy = xray_weight * xray_energy
+         xray_energy = xray_weight * xray_energy - xray_offset
          xray_e = xray_energy  ! energy get sent back both through the argument
                                ! list and via xray_globals, to accommodate
                                ! both pmemd and sander interfaces
