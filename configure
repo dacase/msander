@@ -29,6 +29,7 @@ optflags="-g -O3 -mtune=native"
 
 openmp='no'
 ompflag=""
+ldflags=""
 fftw_flags=""
 mkl="no"
 installtype="serial"
@@ -63,6 +64,8 @@ for var in "$@"; do
             fc="x86_64-w64-mingw32-gfortran --static";;
         --mkl)
             mkl="yes";;
+        --static)
+            ldflags="-static";;
         --intel)
             compiler="intel"
             cc="icc -fPIC"
@@ -96,7 +99,8 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
-	printf " --mkl          use MKL routines from $MKLROOT \n"
+	printf " --mkl          use MKL routines from $MKLROOT\n"
+	printf " --static       use static linking\n"
     exit 0
 fi
 
@@ -154,13 +158,11 @@ if [ "$OS" = "Darwin" ]; then
    make_shared=-dynamiclib
    libgfortran=`$msanderhome/src/libgfortran.sh`
    lm=
-   ldflags=
 else
    is_mac='no'
    shared_suffix=.so
    make_shared=-shared
    lm=-lm
-   ldflags=
 fi
 
 #--------------------------------------------------------------------------
