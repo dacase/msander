@@ -373,10 +373,9 @@ contains
    ! This routine computes the force gradient on Fcalc as a harmonic
    ! restraint on the magnitudes of Fobs and Fcalc
    ! -------------------------------------------------------------------------
-   subroutine dTargetLS_dF(crd,weight,selected,deriv,xray_energy)
+   subroutine dTargetLS_dF(crd,selected,deriv,xray_energy)
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
-      real(real_kind), intent(in), optional :: weight (num_hkl)
       integer, intent(in), optional :: selected(num_hkl)
       complex(real_kind), intent(out), optional :: deriv(num_hkl)
       real(real_kind), intent(out), optional :: xray_energy
