@@ -540,7 +540,7 @@ contains
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
-      ! if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
+      if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
