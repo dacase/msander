@@ -185,7 +185,7 @@ contains
   !> Calculate the Fourier coefficients of the cardinal b-spline.
   subroutine cardinal_bspline_Fourier_coefficients( &
        maxIndex, order, weights, fourierCoefficients, half)
-    use constants, only : pi
+    use constants_rism, only : pi
     implicit none
     integer, intent(in) :: maxIndex !< Largest Fourier coefficient index to compute.
     integer, intent(in) :: order !< 

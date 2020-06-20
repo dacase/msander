@@ -43,6 +43,8 @@ contains
     integer :: iv, ir, ix, iy, iz, ig 
     _REAL_ :: exponent
 
+!$omp parallel do private(iv,ix,iy,iz,ig,exponent)  &
+!$omp&        num_threads(this%pot%solvent%numAtomTypes)
     do iv = 1,this%pot%solvent%numAtomTypes
        do iz = 1, this%grid%localDimsR(3)
           do iy = 1, this%grid%localDimsR(2)
@@ -54,14 +56,6 @@ contains
                 ig = ix + (iy-1)*this%grid%localDimsR(1) + &
                     (iz-1)*this%grid%localDimsR(1)*this%grid%localDimsR(2)
 #endif /*defined(MPI)*/
-                ! exponent = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv) &
-                !      - this%pot%tcfBackgroundChargeCorrection(iv)
-                ! if (exponent >= 0d0) then
-                !    guv(ig,iv) = 1d0 + exponent + this%pot%tcfBackgroundChargeCorrection(iv)
-                ! else
-                !    guv(ig,iv) = exp(exponent) + this%pot%tcfBackgroundChargeCorrection(iv)
-                ! end if
-                !FIXME: Below is the non-periodic case.
                 exponent = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
                 if (exponent >= 0d0) then
                    guv(ig,iv) = 1d0 + exponent
@@ -72,6 +66,7 @@ contains
           end do
        end do
     end do
+!$omp end parallel do
   end subroutine rism3d_kh_guv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

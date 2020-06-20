@@ -45,6 +45,8 @@
       integer :: iv, ir, ix, iy, iz, ig
       _REAL_ :: exponent
 
+!$omp parallel do private(iv,ix,iy,iz,ig,exponent)  &
+!$omp&        num_threads(this%pot%solvent%numAtomTypes)
       do iv = 1,this%pot%solvent%numAtomTypes
          do iz = 1, this%grid%localDimsR(3)
             do iy = 1, this%grid%localDimsR(2)
@@ -62,6 +64,7 @@
             end do
          end do
       end do
+!$omp end parallel do
     end subroutine rism3d_hnc_guv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -17,7 +17,7 @@
 !!   and Dave Case (TSRI, 2002).
 !! Converted into a Fortran 90 module by: Ross Walker (TSRI, 2005).
 !! Expanded by others including: Matthew Clark, Andreas Goetz.
-module constants
+module constants_rism
 
   implicit none
 
@@ -251,6 +251,8 @@ module constants
   integer, parameter :: NO_INPUT_VALUE = 12344321
   _REAL_, parameter  :: NO_INPUT_VALUE_FLOAT = 12344321.d0
 
+  integer, save :: omp_num_threads = 1
+
 contains
 
   function BinomialCoefficient(m, n) result (bioCoeff)
@@ -281,5 +283,17 @@ contains
     bioCoeff = one * bc(m, n)
   end function BinomialCoefficient
 
-end module constants
+#ifdef OPENMP
+  subroutine set_omp_num_threads()
+    implicit none
+    character(len=5) :: omp_threads
+    integer :: ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+  end subroutine set_omp_num_threads
+#endif
+
+end module constants_rism
 

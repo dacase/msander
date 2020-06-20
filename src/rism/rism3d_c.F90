@@ -637,7 +637,7 @@ contains
   !!          tolerance per closure in the closure list.
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
           tolerance, phineut, ng3)
-    use constants, only : pi
+    use constants_rism, only : pi
     implicit none
 #if defined(MPI)
     include 'mpif.h'
@@ -933,7 +933,7 @@ contains
   !!
   !! @param[in] this rism3d object
   subroutine resizeBox(this,ng3)
-    use constants, only : PI
+    use constants_rism, only : PI
     use rism_util, only : isprime, lcm, isFactorable, largestPrimeFactor
     implicit none
 #if defined(MPI)
@@ -1050,7 +1050,7 @@ contains
   !! @param[in] ngr Number of grid points along each axis.
   !! @param[in] grdspc Grid spacing along each axis.
   subroutine reallocateBox(this, ngr, grdspc)
-    use constants, only : pi
+    use constants_rism, only : pi
     use rism3d_fft_c
     use safemem
     implicit none
@@ -1351,7 +1351,7 @@ contains
       periodic, phineut )
 
     use rism3d_fft_c
-    use constants, only : PI, FOURPI
+    use constants_rism, only : PI, FOURPI, omp_num_threads
     implicit none
 #include "def_time.h"
 #if defined(MPI)
@@ -1379,6 +1379,7 @@ contains
     ! DAC: why is the storage of cuv and guv different?
     ! --------------------------------------------------------------
 
+    call timer_start(TIME_RISMFFTB)
 #if defined(MPI)
     do iv = 1, this%solvent%numAtomTypes
        do igz = 1, this%grid%localDimsR(3)
@@ -1414,6 +1415,7 @@ contains
     end do
 !$omp end parallel do
 #endif /*defined(MPI)*/
+    call timer_stop(TIME_RISMFFTB)
 
     ! --------------------------------------------------------------
     ! [Short-range part of] Cuv(r) FFT>K.
@@ -1431,10 +1433,10 @@ contains
     ! --------------------------------------------------------------
     ! Huv(k) by RISM.
     ! --------------------------------------------------------------
-!$omp parallel do private(iv1,iv2,ig1,iga)  &
-!$omp&        num_threads(this%solvent%numAtomTypes)
-    do iv1 = 1, this%solvent%numAtomTypes
-       do ig1 = 1, this%grid%totalLocalPointsK
+    call timer_start(TIME_RISMHUVK)
+!$omp parallel do private(iv1,iv2,ig1,iga) num_threads(omp_num_threads)
+    do ig1 = 1, this%grid%totalLocalPointsK
+       do iv1 = 1, this%solvent%numAtomTypes
           this%huv(ig1, iv1) = 0d0
           iga = this%grid%waveVectorWaveNumberMap((ig1 + 1) / 2)
           do iv2 = 1, this%solvent%numAtomTypes
@@ -1447,6 +1449,7 @@ contains
        end do
     end do
 !$omp end parallel do
+    call timer_stop(TIME_RISMHUVK)
 
     ! ---------------------------------------------------------------
     ! Remove the background charge effect from periodic calculations.
@@ -1472,14 +1475,17 @@ contains
 #endif /*defined(MPI)*/
     call timer_stop(TIME_RISMFFT)
 
+    call timer_start(TIME_CLOSURE)
     ! --------------------------------------------------------------
     ! Solve the closure for the RDF.
     ! --------------------------------------------------------------
     call rism3d_closure_guv(this%closure, this%guv, this%huv, this%cuv)
+    call timer_stop(TIME_CLOSURE)
 
     ! --------------------------------------------------------------
     ! Calculate TCF residual for use in estimating DCF residual.
     ! --------------------------------------------------------------
+    call timer_start(TIME_RISMRESID)
     this%cuvres(:, :) = 0
 !$omp parallel do private(iv,igx,igy,igz,ig1,igk)  &
 !$omp&        num_threads(this%solvent%numAtomTypes)
@@ -1501,6 +1507,7 @@ contains
        end do
     end do
 !$omp end parallel do
+    call timer_stop(TIME_RISMRESID)
 
     ! --------------------------------------------------------------
     ! MDIIS
@@ -1572,148 +1579,5 @@ contains
     call dcopy(this%grid%totalLocalPointsR * this%solvent%numAtomTypes, this%cuv(:, :, :, :), 1, &
          this%oldcuv(:, :, :, :, 1), 1)
   end subroutine updateDCFguessHistory
-
-#ifndef MPI
-  !> Create an electron density map from a 3D solute-solvent RDF by
-  !! smearing the 3D RDF with a 1D solvent electron denisty RDF.
-  !! TODO: Currently only water oxygen is supported for electron
-  !! smearing.
-  !! @param[in] this rism3d object.
-  !! @param[in] electronRDF Solvent 1D electron density map.
-  !! @param[in] totalSolventElectrons Total electrons in solvent. Ex.: for water, Z = 10.
-  !! @param[out] electronMap Resulting smeared electron density map.
-  subroutine createElectronDensityMap(this, iv, electronRDF, &
-       electronRDFGridSpacing, totalSolventElectrons, density, electronMap)
-    implicit none
-    type(rism3d), intent(in) :: this
-    integer, intent(in) :: iv
-    _REAL_, intent(in) :: electronRDF(:)
-    _REAL_, intent(in) :: electronRDFGridSpacing
-    integer, intent(in) :: totalSolventElectrons
-    _REAL_, intent(in) :: density
-    _REAL_, intent(out) :: electronMap(:,:,:)
-
-#include "def_time.h"
-    integer :: numSmearGridPoints(3)
-    integer :: igx, igy, igz, igk, igxCenter, igyCenter, igzCenter
-    integer :: igCenter
-    _REAL_ :: rx(3), ry(3), rz(3), rxCenter(3), ryCenter(3), rzCenter(3)
-    _REAL_ :: distance
-    _REAL_ :: numElectronsAtGridCenter
-    integer :: numUnitCells(3)
-
-    _REAL_ :: electronRDFSum
-    integer :: centerGridIndex(3), smearGridIndex(3)
-    _REAL_ :: centerGridPoint(3), smearGridPoint(3)
-    _REAL_ :: distanceVector(3)
-    integer :: rdfIndex
-
-    !TODO: Make this user defined?
-    _REAL_, parameter :: cutoff = 2.0
-    ! Value near zero.
-    _REAL_, parameter :: nearZero = 1E-10
-
-    call timer_start(TIME_EDENS)
-    electronMap(:,:,:) = 0
-
-    ! Number of grid points to smear in each direction.
-    numSmearGridPoints = floor(cutoff / this%grid%spacing)
-
-    ! Determine how many electrons to place in the center grid point.
-    do igz = -numSmearGridPoints(3), numSmearGridPoints(3)
-       rz = igz * this%grid%voxelVectorsR(3, :)
-       do igy = -numSmearGridPoints(2), numSmearGridPoints(2)
-          ry = igy * this%grid%voxelVectorsR(2, :)
-          do igx = -numSmearGridPoints(1), numSmearGridPoints(1)
-             rx = igx * this%grid%voxelVectorsR(1, :)
-
-             if (igx == 0 .and. igy == 0 .and. igz == 0) cycle
-
-             distance = sqrt(dot_product((/ rx, ry, rz /), (/ rx, ry, rz /)))
-             rdfIndex = ceiling(distance / electronRDFGridSpacing)
-             ! If the rdfIndex falls outside the range then assume
-             ! there are no electron outside, which is reasonable for
-             ! an RDF with a 4 Angstrom maximum distance.
-             if (rdfIndex <= size(electronRDF)) then
-                electronRDFSum = electronRDFSum + &
-                     electronRDF(rdfIndex) * this%grid%voxelVolume
-             end if
-          end do
-       end do
-    end do
-    ! Sum contains all contribution from grid points within the cutoff
-    ! EXCEPT the center grid point.
-    numElectronsAtGridCenter = totalSolventElectrons - electronRDFSum
-
-!  following code seems correct, but doesn't offer mjch speedup:
-!    (for 480d, 4 threads seems best)
-!!$omp parallel do private(igxCenter, igyCenter, igzCenter, rxCenter, &
-!!$omp&  ryCenter, rzCenter, igCenter, centerGridIndex, centerGridPoint, &
-!!$omp&  igx, igy, igz, rx, ry, rz, smearGridIndex, smearGridPoint, &
-!!$omp&  distanceVector, distance, numUnitCells, rdfIndex)
-    do igzCenter = 0, this%grid%globalDimsR(3) - 1
-       rzCenter = igzCenter * this%grid%voxelVectorsR(3, :)
-       do igyCenter = 0, this%grid%globalDimsR(2) - 1
-          ryCenter = igyCenter * this%grid%voxelVectorsR(2, :)
-          do igxCenter = 0, this%grid%globalDimsR(1) - 1
-             rxCenter = igxCenter * this%grid%voxelVectorsR(1, :)
-
-             igCenter = 1 + igxCenter + igyCenter * this%grid%globalDimsR(1) + &
-                  igzCenter * this%grid%globalDimsR(2) * this%grid%globalDimsR(1)
-
-             centerGridIndex = (/ igxCenter, igyCenter, igzCenter /)
-             centerGridPoint = rxCenter + ryCenter + rzCenter
-
-             if (this%guv(igCenter, iv) > nearZero) then
-                ! Center grid.
-                electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) = &
-                     electronMap(igxCenter + 1, igyCenter + 1, igzCenter + 1) + &
-                     numElectronsAtGridCenter * &
-                     this%guv(igCenter, iv) * density
-                do igz = igzCenter - numSmearGridPoints(3), igzCenter + numSmearGridPoints(3)
-                   rz = igz * this%grid%voxelVectorsR(3, :)
-                   do igy = igyCenter - numSmearGridPoints(2), igyCenter + numSmearGridPoints(2)
-                      ry = igy * this%grid%voxelVectorsR(2, :)
-                      do igx = igxCenter - numSmearGridPoints(1), igxCenter + numSmearGridPoints(1)
-                         rx = igx * this%grid%voxelVectorsR(1, :)
-
-                         smearGridIndex = (/ igx, igy, igz /)
-                         smearGridPoint = rx + ry + rz
-
-                         distanceVector = smearGridPoint - centerGridPoint
-                         distance = sqrt(dot_product(distanceVector, distanceVector))
-                         if (distance .le. cutoff) then
-                            ! Outside of box?
-                            if (any(smearGridIndex < 0) .or. any(smearGridIndex >= this%grid%globalDimsR)) then
-                               ! Jump to grid image inside box.
-                               numUnitCells = floor(real(smearGridIndex) / this%grid%globalDimsR)
-                               smearGridIndex = smearGridIndex - numUnitCells * this%grid%globalDimsR
-                            ! Skip center grid point.
-                            else if (all(smearGridIndex == centerGridIndex)) then
-                               cycle
-                            end if
-
-                            rdfIndex = ceiling(distance / electronRDFGridSpacing)
-                            if (rdfIndex .le. size(electronRDF)) then
-                               smearGridIndex = smearGridIndex + 1
-!!$omp critical
-                               electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) = &
-                                    electronMap(smearGridIndex(1), smearGridIndex(2), smearGridIndex(3)) &
-                                    + electronRDF(rdfIndex) * this%grid%voxelVolume &
-                                    * this%guv(igCenter, iv) * density
-!!$omp end critical
-                            end if
-                         end if
-                      end do
-                   end do
-                end do
-             end if
-          end do
-       end do
-    end do
-!!$omp end parallel do
-    call timer_stop(TIME_EDENS)
-  end subroutine createElectronDensityMap
-#endif
 
 end module rism3d_c

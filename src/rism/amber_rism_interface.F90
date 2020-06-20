@@ -504,7 +504,7 @@ contains
        atomTypeIndex, nonbondedParmIndex)
     use amber_rism_interface
     use rism_io, only : readUnitCellDimensionsFromCrd
-    use constants, only : KB
+    use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -519,11 +519,9 @@ contains
     integer :: i, stat, err
     !iclosure :: counter for closures
     !iclosurechar :: current index in the closurechar array from sff
-    integer :: iclosure, iclosurechar
+    integer :: iclosure, iclosurechar, un, ier
     logical :: op
-    integer ::  un
-    integer :: numtasks, ier
-    character(len=5) omp_num_threads
+    character(len=5) omp_threads
 
     write(whtspc, '(a16)')" "
 
@@ -559,18 +557,12 @@ contains
 
     ! Initialize 3D-RISM solute and solvent.
 
-#if 0  /* right now, we are always using MKL for multithreaded FFTW */
+#ifdef OPENMP
+    call set_omp_num_threads()
+    ! comment out the following for MKL(?)
     ier = fftw_init_threads()
     write(6,*) 'fftw_init_threads() returns ', ier
-
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-    write(6,'(a,i3,a)') '| Running OpenMP with ',numtasks,' threads'
-    call fftw_plan_with_nthreads(numtasks)
+    call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 
     call rism3d_solvent_new(solvent, xvvfile)    
@@ -756,7 +748,7 @@ contains
   !!     processes.
   subroutine rism_force(atomPositions_md, frc, epol, irespa, imin)
     use amber_rism_interface
-    use constants, only : KB
+    use constants_rism, only : KB
     use rism3d_c, only : rism3d_calculateSolution
     use rism_util, only: corr_drift
     implicit none
@@ -891,7 +883,7 @@ contains
   !!    must be destroyed later.
   subroutine rism_solvdist_thermo_calc(writedist, step)
     use amber_rism_interface
-    use constants, only : kb, COULOMB_CONST_E
+    use constants_rism, only : kb, COULOMB_CONST_E
     implicit none
 #ifdef MPI
     include "mpif.h"
@@ -940,7 +932,7 @@ contains
   !!                    potential.
   subroutine rism_thermo_print(description, soluPot)
     use amber_rism_interface
-    use constants, only : kb, COULOMB_CONST_E, PI
+    use constants_rism, only : kb, COULOMB_CONST_E, PI
     implicit none
     logical*4, intent(in) :: description
     _REAL_, intent(in) :: soluPot(25)
@@ -1206,7 +1198,7 @@ contains
   !! @param[in,out] this 3D-RISM object.
   !! @param[in] step Step number used as a suffix.
   subroutine rism_writeVolumetricData(this, step)
-    use constants, only : COULOMB_CONST_E, KB, PI
+    use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
     use rism3d_ccp4
@@ -1252,9 +1244,6 @@ contains
 
     call rism_writePdfTcfDcf(this, writeVolume, step, extension)
     call rism_writeThermo(this, writeVolume, step, extension)
-#ifndef MPI
-    call rism_writeSmearElectronMap(this, writeVolume, step, extension)
-#endif
     
   end subroutine rism_writeVolumetricData
 
@@ -1264,7 +1253,7 @@ contains
   !! @param[in,out] this 3D-RISM object.
   !! @param[in] step Step number used as a suffix.
   subroutine rism_writePdfTcfDcf(this, writeVolume, step, extension)
-    use constants, only : COULOMB_CONST_E, KB, PI
+    use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
     use rism3d_ccp4
@@ -1358,93 +1347,13 @@ contains
          call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate WORK")
   end subroutine rism_writePdfTcfDcf
 
-#ifndef MPI
-  !> Outputs smeared solvent electron map.. Each distribution
-  !! is written in a separate file with the step number before the
-  !! suffix. 
-  !! @param[in,out] this 3D-RISM object.
-  !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeSmearElectronMap(this, writeVolume, step, extension)
-    use constants, only : COULOMB_CONST_E, KB, PI
-    use amber_rism_interface
-    use rism_io
-    use rism3d_ccp4
-    use rism3d_opendx
-    use rism3d_xyzv
-#ifndef MPI
-    use rism3d_c, only: createElectronDensityMap
-#endif
-    use safemem
-    implicit none
-
-    type(rism3d), intent(inout) :: this
-    character(len=*), intent(in) :: extension
-    integer, intent(in) :: step
-    procedure (writeVolumeInterface) :: writeVolume 
-    
-    character(len=64) :: suffix
-    character(len=16) :: cstep
-
-    integer :: i, j, k, iv, elec_tot, msander_index
-    _REAL_, pointer :: electronRDF(:) => NULL()
-    _REAL_ :: electronRDFGridSpacing
-    character(len=1024) :: msanderhome, rdfFilename
-    
-    if (len_trim(electronMapFile) == 0) return
-
-    call get_command_argument(0, msanderhome)
-    msander_index = index( msanderhome, 'msander' )
-    REQUIRE( msander_index > 0 )
-
-    write(cstep, '(i16)') step
-    cstep = adjustl(cstep)
-
-!!$omp parallel do default(firstprivate) num_threads(this%solvent%numAtomTypes)
-    do iv = 1, this%solvent%numAtomTypes
-       suffix = '.'//trim(rism_3d%solvent%atomName(iv))//'.'//trim(cstep)
-       suffix = trim(suffix)//extension
-       
-       ! Smeared solvent electron map.
-
-       ! dac strategy: do this for all values of iv, skipping H,
-       !   assumed to be in water for now.  This will potentially
-       !   create more files than we need, but they could be summed
-       !   in a separate script later to create a full map.
-
-       if( rism_3d%solvent%atomName(iv)(1:1) .eq. 'H' ) cycle
-
-       rdfFilename = msanderhome(1:msander_index -1) &
-            // 'msander/dat/rism3d/electron_rdf/' & 
-            // trim(rism_3d%solvent%atomName(iv)) // '.rdf'
-       call readRDF1D(trim(rdfFilename), elec_tot,  &
-            electronRDF, electronRDFGridSpacing)
-
-       call createElectronDensityMap(this, iv, electronRDF, &
-            electronRDFGridSpacing, elec_tot, &
-            this%solvent%density(iv),  this%electronMap)
-       call writeVolume(trim(electronMapFile)//suffix, &
-            this%electronMap(:, :, :), &
-            this%grid, this%solute, mpirank, mpisize, mpicomm)
-       if (safemem_dealloc(electronRDF) /= 0) then
-          call rism_report_error( &
-             "rism_writeVolumetricData: Deallocate of electron RDF failed.")
-       end if
-
-    end do
-!!$omp end parallel do
-
-    if (safemem_dealloc(electronRDF)/= 0) &
-         call rism_report_error("RISM_WRITESOLVEDIST: failed to deallocate ELECTRON_RDF")
-  end subroutine rism_writeSmearElectronMap
-#endif
-
   !> Outputs thermodynamics distributions. Each distribution
   !! is written in a separate file with the step number before the
   !! suffix. 
   !! @param[in,out] this 3D-RISM object.
   !! @param[in] step Step number used as a suffix.
   subroutine rism_writeThermo(this, writeVolume, step, extension)
-    use constants, only : COULOMB_CONST_E, KB, PI
+    use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
     use rism3d_ccp4

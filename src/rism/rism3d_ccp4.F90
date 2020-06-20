@@ -27,7 +27,7 @@ contains
   !! @param[in] o_nproc (optional) MPI number of processes.
   !! @param[in] o_comm (optional) MPI communicator.
   subroutine rism3d_ccp4_map_write (file, data, grid, solute, o_rank, o_nproc, o_comm)
-    use constants, only: PI
+    use constants_rism, only: PI
     use rism_util, only : freeUnit, rmExPrec
     use rism3d_grid_c
     use rism3d_solute_c

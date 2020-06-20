@@ -119,7 +119,7 @@ contains
   subroutine rism3d_solute_new_sander (this, numAtoms, numTypes, atomTypeIndex, &
        nonbondedParmIndex, charge, ljA, ljB, mass, temperature, &
        o_mpicomm)
-    use constants, only: KB, COULOMB_CONST_E, BOLTZMANN, &
+    use constants_rism, only: KB, COULOMB_CONST_E, BOLTZMANN, &
          AVOGADRO, AMBER_ELECTROSTATIC, PI
     implicit none
 #ifdef MPI

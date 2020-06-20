@@ -203,8 +203,7 @@ contains
     this%uuv = 0
 
     call timer_start(TIME_UCOULU)
-    if (this%solute%charged) &
-        call uvPMErecip(this, this%uuv)
+    if (this%solute%charged) call uvPMErecip(this, this%uuv)
     call timer_stop(TIME_UCOULU)
 
     call timer_start(TIME_ULJUV)
@@ -346,6 +345,7 @@ contains
   !! @param[in] this potential object
   !! @param[in,out] ulj grid to add potential to
   subroutine uvLJrEwaldMinImage(this, ulj)
+    use constants_rism, only : omp_num_threads
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -363,17 +363,6 @@ contains
     _REAL_ :: solutePosition(3)
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
-#ifdef OPENMP
-    integer :: numtasks, ier
-    character(len=5) omp_num_threads
-
-    call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, status=ier)
-    if( ier .eq. 1 ) then
-       numtasks = 1   ! OMP_NUM_THREADS not set
-    else
-       read( omp_num_threads, * ) numtasks
-    endif
-#endif
 
     beta = 1.d0/this%chargeSmear
     do iu = 1, this%solute%numAtoms
@@ -383,7 +372,7 @@ contains
     end do
 
 !$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd,sr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu) num_threads(numtasks)
+!$omp&   igx,igy,igz,iu) num_threads(omp_num_threads)
 
     do igz = 1, this%grid%localDimsR(3)
        rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
@@ -416,73 +405,11 @@ contains
 !$omp end parallel do
   end subroutine uvLJrEwaldMinImage
 
-  !> Short-range portion of the Ewald sum electric potential.
-  subroutine uvEwaldSumShortRangePotential(this, ucu)
-    use constants, only: pi
-    use rism3d_opendx, only : rism3d_opendx_write
-    implicit none
-    type(rism3d_potential), intent(inout) :: this
-    _REAL_, intent(inout) :: ucu(:,:,:,:)
-
-    ! Minimum distance to prevent division by zero.
-    _REAL_, parameter :: minDistance = 0.001
-    _REAL_, parameter :: minDistance2 = minDistance**2
-    integer :: igx, igy, igz
-    integer :: ig
-    integer :: iu, cnt
-
-    _REAL_ :: rx(3), ry(3), rz(3)
-    _REAL_ :: gridPoint(3), solutePosition(3)
-    _REAL_ :: soluteDistance, soluteDistance2
-    _REAL_ :: sr
-
-
-    ! Calculate short-range term of Ewald sum and combine with
-    ! previously calculated long-range term.
-
-    do iu = 1, this%solute%numAtoms
-       do igz = 1, this%grid%localDimsR(3)
-          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
-          do igy = 1, this%grid%localDimsR(2)
-             ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
-             do igx = 1, this%grid%localDimsR(1)
-                rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-                gridPoint = rx + ry + rz
-
-                ! Solute atom position relative to a grid point.
-                solutePosition = gridPoint - this%solute%position(:, iu)
-
-                ! Apply minimum image convention.
-                solutePosition = minimumImage(this, solutePosition)
-
-                ! Distance from solute atom to gridpoint.
-                !soluteDistance = sqrt(dot_product(solutePosition, solutePosition))
-                soluteDistance2 = dot_product(solutePosition, solutePosition)
-
-                !if (soluteDistance2 < minDistance2) soluteDistance = minDistance
-                if (soluteDistance2 < minDistance2) soluteDistance2 = minDistance2
-
-                ! Short-range term of Ewald sum.
-                !if (soluteDistance < this%cutoff) then
-                if (soluteDistance2 < this%cutoff2) then
-                   soluteDistance = sqrt(soluteDistance2)
-                   sr = this%solute%charge(iu) &
-                           * erfc(soluteDistance / this%chargeSmear) / soluteDistance
-                   ucu(igx , igy , igz , 1) = ucu(igx , igy , igz , 1) + sr
-                end if
-
-             end do
-          end do
-       end do
-    end do
-  end subroutine uvEwaldSumShortRangePotential
-
-
   !> Long-range portion of the Particle Mesh Ewald (PME) electric potential.
   subroutine uvPMErecip(this, ucu)
     use, intrinsic :: iso_c_binding
     use bspline
-    use constants, only : pi
+    use constants_rism, only : pi
     use FFTW3
     use rism3d_opendx, only : rism3d_opendx_write
     use rism_util, only: r2c_pointer

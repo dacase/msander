@@ -87,7 +87,7 @@ end function erf
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine get_ee_func here]
 subroutine get_ee_func(x,switch,d_switch_dx,ee_type)
-   use constants, only : zero, one, two, INVSQRTPI
+   use constants_rism, only : zero, one, two, INVSQRTPI
    implicit none
    _REAL_ x,switch,d_switch_dx
    integer ee_type

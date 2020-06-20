@@ -511,7 +511,7 @@ contains
   !> Pre-calculate reciprocal grid spacing and wave numbers.
   !! @param[in,out] this solvent object.
   subroutine calculateWavenumbers(this)
-    use constants, only : PI
+    use constants_rism, only : PI
     implicit none
     type(rism3d_solvent), intent(inout) :: this
     integer :: ir
@@ -587,7 +587,7 @@ contains
 !!    nf   : Fortran unit number of an open file
 
   subroutine readxvv2(this, nf)
-    use constants, only : COULOMB_CONST_E, KB, BOLTZMANN, AVOGADRO
+    use constants_rism, only : COULOMB_CONST_E, KB, BOLTZMANN, AVOGADRO
     use rism_parm
     implicit none
     type(rism3d_solvent), intent(inout) :: this

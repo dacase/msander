@@ -253,7 +253,7 @@ contains
   !!   box or a periodic unit.
   !! isolated simulation box
   subroutine rism3d_grid_setUnitCellDimensions(this, unitCellDimensions, periodic)
-    use constants, only: PI
+    use constants_rism, only: PI
     use rism_util, only: cross ! rotationMatrixFromEulerAngles
     implicit none
     type(rism3d_grid), intent(inout) :: this
@@ -321,7 +321,7 @@ contains
   !! @param[in] vectorsLabel Text briefly describing the unit cell
   !!                         vectors.
   subroutine printUnitCellVectorProperties(vectors, vectorsLabel)
-    use constants, only: PI
+    use constants_rism, only: PI
     use rism_util, only: magnitude
     implicit none
     _REAL_, intent(in) :: vectors(3, 3)
@@ -382,7 +382,7 @@ contains
   !!  - Allocates memory for the wave number array.
   !! @param[in,out] this rism3d_grid object.
   subroutine setup_wavevector(this)
-    use constants, only : PI
+    use constants_rism, only : PI
     use safemem
     use rism_util, only: indexArray, checksum
     implicit none

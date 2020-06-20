@@ -11,7 +11,7 @@ subroutine fill_timer_array()
    ! add a call to add_timer
    ! the arguments are the index of the timer, the
    ! index of its parent timer (must have been added before
-   ! unless its -1) and an output string <= 20 characters
+   ! unless it is -1) and an output string <= 20 characters
 
    call add_timer(TIME_TOTAL,-1,'Total time')
    call add_timer(TIME_RDPARM, TIME_TOTAL,'Read topology time')
@@ -80,9 +80,12 @@ subroutine fill_timer_array()
    call add_timer(TIME_RISM,TIME_NONBON,'3D-RISM time')
    call add_timer(TIME_ULJUV,TIME_RISM,'LJ Grid time')
    call add_timer(TIME_UCOULU,TIME_RISM,'Ewald Grid time')
-   call add_timer(TIME_ASYMP,TIME_RISM,'Asymptotics time')
    call add_timer(TIME_RXRISM,TIME_RISM,'RXRISM time')
    call add_timer(TIME_R1RISM,TIME_RXRISM,'R1RISM time')
+   call add_timer(TIME_RISMFFTB,TIME_R1RISM,'FFTB time')
+   call add_timer(TIME_RISMHUVK,TIME_R1RISM,'HUVK time')
+   call add_timer(TIME_RISMRESID,TIME_R1RISM,'RESID time')
+   call add_timer(TIME_CLOSURE,TIME_R1RISM,'CLOSURE time')
    call add_timer(TIME_RISMFFT,TIME_R1RISM,'FFT time')
    call add_timer(TIME_MDIIS,TIME_R1RISM,'MDIIS time')
    call add_timer(TIME_MDIIS_LAPACK,TIME_MDIIS,'LAPACK time')
@@ -264,7 +267,7 @@ subroutine add_timer(index,par_index,string)
 #ifndef API /* Let timers be 'added' multiple times in the API */
    if ( t_added(index) /= 0 )then
       write(6,8)index,string
-      8 format(1x,'add_timer: timer (',i2,1x,a,') already added! ')
+      8 format(1x,'add_timer: timer (',i3,1x,a,') already added! ')
       call mexit(6,1)
    end if
 #endif
