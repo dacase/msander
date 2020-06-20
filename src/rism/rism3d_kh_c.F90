@@ -17,7 +17,6 @@ module rism3d_kh_c
   public rism3d_kh_new, rism3d_kh_destroy!, rism3d_kh_guv
   
 contains
-  
 
   !> Initializes the KH closure.
   !! @param[in,out] this KH object.
@@ -29,13 +28,13 @@ contains
     this%grid => this%pot%grid
   end subroutine rism3d_kh_new
 
-
   !> Calculates Guv from Uuv, Huv, and Cuv using the KH closure.
   !! @param[in] this KH closure object.
   !! @param[out] guv Site-site pair correlation function.
   !! @param[in] huv Site-site total correlation function.
   !! @param[in] cuv Site-site direct correlation function.
   subroutine rism3d_kh_guv(this, guv, huv, cuv)
+    use constants_rism, only: omp_num_threads
     implicit none
     type(rism3d_kh), intent(in) :: this
     _REAL_, intent(out) :: guv(:,:)
@@ -43,19 +42,20 @@ contains
     integer :: iv, ir, ix, iy, iz, ig 
     _REAL_ :: exponent
 
+    ig = 0
 !$omp parallel do private(iv,ix,iy,iz,ig,exponent)  &
-!$omp&        num_threads(this%pot%solvent%numAtomTypes)
-    do iv = 1,this%pot%solvent%numAtomTypes
-       do iz = 1, this%grid%localDimsR(3)
-          do iy = 1, this%grid%localDimsR(2)
-             do ix = 1, this%grid%localDimsR(1)
+!$omp&        num_threads(omp_num_threads)
+    do iz = 1, this%grid%localDimsR(3)
+       do iy = 1, this%grid%localDimsR(2)
+          do ix = 1, this%grid%localDimsR(1)
 #if defined(MPI)
-                ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
-                    (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
+             ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
+                 (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
 #else
-                ig = ix + (iy-1)*this%grid%localDimsR(1) + &
-                    (iz-1)*this%grid%localDimsR(1)*this%grid%localDimsR(2)
+             ig = ix + (iy-1)*this%grid%localDimsR(1) + &
+                 (iz-1)*this%grid%localDimsR(1)*this%grid%localDimsR(2)
 #endif /*defined(MPI)*/
+             do iv = 1,this%pot%solvent%numAtomTypes
                 exponent = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
                 if (exponent >= 0d0) then
                    guv(ig,iv) = 1d0 + exponent
