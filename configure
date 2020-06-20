@@ -373,8 +373,8 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $enableomp $fftw_flags \
-           --enable-static --enable-sse2=yes MPICC="$mpicc" \
-           CC="$cc" CFLAGS="$gccsys -O2"  F77="$fc" FFLAGS="-O2" \
+           --enable-static $enable_sse MPICC="$mpicc" \
+           CC="$cc" CFLAGS="$gccsys $optflags"  F77="$fc" FFLAGS="$optflags" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
