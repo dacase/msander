@@ -28,6 +28,7 @@ cat > mdin <<EOF
     npropagate=0,
     mdiis_del=0.7, mdiis_nvec=5, tolerance=1e-8,
     apply_rism_force=0,
+    phineut = .true.,
  /
 EOF
 

@@ -19,8 +19,8 @@ cat > mdin <<EOF
  /
  &rism
     periodic='pme',
-    closure='kh',
-    ng3 = 36,48,50,
+    closure='kh', phineut = .true.,
+    ng3 = 36,48,56,
     solvcut=8.d0,
     verbose=1,
     write_thermo=0,
