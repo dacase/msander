@@ -83,10 +83,6 @@ module rism3d_grid_c
      _REAL_ :: voxelVectorsR(3, 3)
      _REAL_ :: voxelVectorsK(3, 3)
 
-     ! !> Unit cell lattice vectors in frequency space.
-     ! !! TODO: This should be equivalent to unitCellVectorsK, no?
-     ! _REAL_ :: unitCellRecipVectors(3, 3)
-
      _REAL_ :: inscribedSphereRadius
 
      !> MPI rank number.

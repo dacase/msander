@@ -1366,7 +1366,7 @@ contains
     _REAL_ :: earg, tuv0, tvvr
     integer :: istep
 
-    integer ::  ig1, iga, iv, iv1, iv2, igx, igy, igz, igk
+    integer ::  ig1, iga, iv, iv1, iv2, igx, igy, igz, igk, ig
 #ifdef FFW_THREADS
     integer :: nthreads, totthreads
     integer, external :: OMP_get_max_threads, OMP_get_num_threads
@@ -1486,27 +1486,27 @@ contains
     ! Calculate TCF residual for use in estimating DCF residual.
     ! --------------------------------------------------------------
     call timer_start(TIME_RISMRESID)
-    this%cuvres(:, :) = 0
-!$omp parallel do private(iv,igx,igy,igz,ig1,igk)  &
-!$omp&        num_threads(this%solvent%numAtomTypes)
+#ifdef MPI
     do iv = 1, this%solvent%numAtomTypes
        do igz = 1, this%grid%localDimsR(3)
           do igy = 1, this%grid%localDimsR(2)
              do igx = 1, this%grid%localDimsR(1)
                 ig1 = igx + (igy - 1) * this%grid%localDimsR(1) + &
                      (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
                 igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
                      + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                igk = ig1
-#endif /*defined(MPI)*/
                 this%cuvres(ig1, iv) = this%guv(igk, iv) - 1d0 - this%huv(igk, iv)
              end do
           end do
        end do
     end do
+#else
+!$omp parallel do num_threads(omp_num_threads)
+    do ig=1,this%grid%totalLocalPointsR
+       this%cuvres(ig,:) = this%guv(ig,:) - 1d0 - this%huv(ig,:)
+    end do
 !$omp end parallel do
+#endif
     call timer_stop(TIME_RISMRESID)
 
     ! --------------------------------------------------------------

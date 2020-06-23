@@ -563,9 +563,14 @@ contains
 
 #ifdef OPENMP
     call set_omp_num_threads()
-    ! comment out the following for MKL(?)
     ier = fftw_init_threads()
-    write(6,*) 'fftw_init_threads() returns ', ier
+    if( ier == 0 ) then
+       write(6,*) 'failure in fftw_plan_with_nthreads'
+       call mexit(6,1)
+    else
+       write(6,'(a,i2,a)') '| calling fftw_plan_with_nthreads(', &
+          omp_num_threads,')'
+    end if
     call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 

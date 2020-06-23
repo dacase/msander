@@ -421,9 +421,10 @@ contains
     _REAL_, parameter :: minDistance2 = minDistance**2
     _REAL_ :: gridPoint(3), solutePosition(3)
     _REAL_ :: sd, sd2, sd2inv, sdinv
+    ! Base term in LJ equation (ratio of sigma and distance).
+    _REAL_ :: ljBaseTerm, dUlj_dr
 
     _REAL_ :: qall
-    _REAL_ :: ljBaseTerm, dUlj_dr
 
     smear = this%chargeSmear
     zeta = smear * smear
@@ -511,7 +512,8 @@ contains
     ixyz = 1
     do iz = 0, this%grid%localDimsR(3) - 1
        do iy = 0, this%grid%localDimsR(2) - 1
-          byz = bsplineFourierCoeffY(iy + 1) * bsplineFourierCoeffZ(iz + 1 + this%grid%offsetR(3))
+          byz = bsplineFourierCoeffY(iy + 1) * &
+             bsplineFourierCoeffZ(iz + 1 + this%grid%offsetR(3))
           do ix = 0, gridDimX_k - 1
 
              bxyz = bsplineFourierCoeffX(ix + 1) * byz
@@ -556,18 +558,15 @@ contains
     rho_r = 0d0
     rho_c = 0d0
 
+#ifdef MPI
     do iv = 1, this%solvent%numAtomTypes
        do igz = 1, this%grid%localDimsR(3)
           do igy = 1, this%grid%localDimsR(2)
              do igx = 1, this%grid%localDimsR(1)
                 ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
                      (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
-#if defined(MPI)
                    igk = igx + (igy - 1) * (this%grid%localDimsR(1) + 2) &
                         + (igz - 1) * this%grid%localDimsR(2) * (this%grid%localDimsR(1) + 2)
-#else
-                   igk = ig1
-#endif /*defined(MPI)*/
                    rho_r(igx,igy,igz) = rho_r(igx,igy,igz) &
                      + this%solvent%charge(iv) &
                      * guv(igk,iv) * this%solvent%density(iv)
@@ -575,15 +574,32 @@ contains
           end do
        end do
     end do
+#else
+!$omp parallel do private(iv,igz,igy,igx,ig1) num_threads(omp_num_threads)
+    do igz = 1, this%grid%localDimsR(3)
+       do igy = 1, this%grid%localDimsR(2)
+          do igx = 1, this%grid%localDimsR(1)
+             do iv = 1, this%solvent%numAtomTypes
+                ig1 = igx + (igy-1) * this%grid%localDimsR(1) + &
+                   (igz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
+                   rho_r(igx,igy,igz) = rho_r(igx,igy,igz) &
+                     + this%solvent%charge(iv) &
+                     * guv(ig1,iv) * this%solvent%density(iv)
+             end do
+          end do
+       end do
+    end do
+!$omp end parallel do
+#endif
 
     rho_r = rho_r * this%grid%voxelVolume
 
     !
-    ! short range part of PME.
+    ! short range part of PME (plus the Lennard-Jones terms).
     !
 
-!$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd, &
-!$omp&   igx,igy,igz,iu) num_threads(omp_num_threads)
+!$omp parallel do private (rx,ry,rz,solutePosition,sd2,sd,sd2inv,sdinv, &
+!$omp&   dUlj_dr,ljBaseTerm,igx,igy,igz,iu,iv,ig) num_threads(omp_num_threads)
 
     do iu =1, this%solute%numAtoms
        do igz = 1, this%grid%localDimsR(3)
