@@ -504,7 +504,11 @@ contains
        atomTypeIndex, nonbondedParmIndex)
     use amber_rism_interface
     use rism_io, only : readUnitCellDimensionsFromCrd
+#ifdef OPENMP
     use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
+#else
+    use constants_rism, only : KB
+#endif
     implicit none
 #ifdef MPI
     include 'mpif.h'
