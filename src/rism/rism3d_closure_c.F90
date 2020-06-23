@@ -309,7 +309,7 @@ contains
     integer :: k, iat
 
     ff = 0
-    call LJforce(this%potential, ff, guv)
+    ! call LJforce(this%potential, ff, guv)
     call PMEforce(this%potential, ff, guv)
 
   end subroutine rism3d_closure_force
@@ -364,13 +364,12 @@ contains
     ! Distance of grid point from solute.
     _REAL_ :: sd2
     ! Base term in LJ equation (ratio of sigma and distance).
-    _REAL_ :: ljBaseTerm
+    _REAL_ :: ljBaseTerm, dUlj_dr
     ! Minimum distance to prevent divide by zero.
     _REAL_, parameter :: minDistance = 0.002d0
     _REAL_, parameter :: minDistanceSquared = minDistance**2
     _REAL_ :: solutePosition(3)
     ! Lennard-Jones force between two particles.
-    _REAL_ :: dUlj_dr
     _REAL_ :: debugenergy, time0, time1
     call wallclock(time0)
 
@@ -450,7 +449,7 @@ contains
 
     integer :: i, j, k
     integer :: ix, iy, iz, ixyz
-    integer :: igx, igy, igz
+    integer :: igx, igy, igz, ig
     integer :: igk, igk_fort, igk_cpp, igk_fort_global, igk_cpp_global
     integer :: id
     integer :: iu, iv, ig1
@@ -504,9 +503,10 @@ contains
     _REAL_, parameter :: minDistance = 0.002
     _REAL_, parameter :: minDistance2 = minDistance**2
     _REAL_ :: gridPoint(3), solutePosition(3)
-    _REAL_ :: sd, sd2
+    _REAL_ :: sd, sd2, sd2inv, sdinv
 
     _REAL_ :: qall
+    _REAL_ :: ljBaseTerm, dUlj_dr
 
     _REAL_ :: time0, time1
 
@@ -673,26 +673,60 @@ contains
 !$omp&   igx,igy,igz,iu) num_threads(omp_num_threads)
 
     do iu =1, this%solute%numAtoms
-        do igz = 1, this%grid%localDimsR(3)
-           rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
-           do igy = 1, this%grid%localDimsR(2)
-              ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
-              do igx = 1, this%grid%localDimsR(1)
-                 rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-                 solutePosition = rx + ry + rz - this%solute%position(:, iu)
-                 solutePosition = minimumImage(this, solutePosition)
-                 sd2 = dot_product(solutePosition, solutePosition)
-                 sd2 = max(minDistance2,sd2)
-                 if (sd2 < this%cutoff2) then
-                    sd = sqrt(sd2)
-                    ff(:,iu) = ff(:,iu) - rho_r(igx,igy,igz) * this%solute%charge(iu) * &
-                          (( factor * exp(-sd2 / smear2) &
-                          + erfc(sd / this%chargeSmear) &
-                          / sd )/ sd2) * solutePosition
-                 end if 
-              end do
-           end do
-        end do
+       do igz = 1, this%grid%localDimsR(3)
+          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
+          do igy = 1, this%grid%localDimsR(2)
+             ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
+             do igx = 1, this%grid%localDimsR(1)
+                rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
+#ifdef MPI
+                ig = 1 + (igx - 1) + (igy -1) * (this%grid%globalDimsR(1) + 2) &
+                       + (igz - 1) * this%grid%globalDimsR(2) &
+                             * (this%grid%globalDimsR(1) + 2)
+#else
+                ig = 1 + (igx - 1) + (igy - 1) * this%grid%globalDimsR(1) &
+                       + (igz - 1) * this%grid%globalDimsR(2) &
+                                   * this%grid%globalDimsR(1)
+#endif
+                
+                solutePosition = rx + ry + rz - this%solute%position(:, iu)
+                solutePosition = minimumImage(this, solutePosition)
+                sd2 = dot_product(solutePosition, solutePosition)
+                sd2 = max(minDistance2,sd2)
+                if (sd2 < this%cutoff2) then
+                   sd = sqrt(sd2)
+                   sd2inv = 1d0/sd2
+                   sdinv = 1d0/sd
+#if 0
+                   ff(:,iu) = ff(:,iu) - rho_r(igx,igy,igz) * this%solute%charge(iu) * &
+                         (( factor * exp(-sd2 / smear2) &
+                         + erfc(sd / this%chargeSmear) &
+                         / sd )/ sd2) * solutePosition
+#endif
+                   dUlj_dr = 0
+                   do iv = 1, this%solvent%numAtomTypes
+                      ljBaseTerm = sd2 / this%ljSigmaUV(iu, iv)**2
+                      ljBaseTerm = 1d0 / ljBaseTerm**3
+                      dUlj_dr = dUlj_dr + this%ljEpsilonUV(iu, iv) &
+                           * ljBaseTerm * (ljBaseTerm - 1.d0) &
+                           * this%solvent%density(iv) * guv(ig, iv)
+                   end do
+#if 0
+                   ff(:, iu) = ff(:, iu) &
+                        - (dUlj_dr * solutePosition(:) / sd2) &
+                          * this%grid%voxelVolume *12d0
+#endif
+#if 1
+                   ff(:,iu) = ff(:,iu) - solutePosition* sd2inv  &
+                          *  ( (rho_r(igx,igy,igz) * this%solute%charge(iu) &
+                               *  (( factor * exp(-sd2 / smear2) &
+                                   + erfc(sd / this%chargeSmear) * sdinv ))) &
+                               + dUlj_dr * this%grid%voxelVolume *12d0 )
+#endif
+                end if 
+             end do
+          end do
+       end do
     end do
 !$omp end parallel do
 
