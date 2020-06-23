@@ -346,7 +346,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    fi
    cd ../..
 else
-   echo "skipping netcdf support"
+   echo "Using the existing netcdf libraries"
 fi
 
 #--------------------------------------------------------------------------
