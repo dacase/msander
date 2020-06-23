@@ -48,7 +48,7 @@ module rism3d_closure_c
      type(rism3d_solute), pointer :: solute => NULL()
   end type rism3d_closure
 
-  private LJforce, PMEforce
+  private PMEforce
   
 contains
 
@@ -309,7 +309,6 @@ contains
     integer :: k, iat
 
     ff = 0
-    ! call LJforce(this%potential, ff, guv)
     call PMEforce(this%potential, ff, guv)
 
   end subroutine rism3d_closure_force
@@ -342,91 +341,9 @@ contains
 
   !!                         PRIVATE
 
-  !> Periodic solute-solvent 12-6 Lennard-Jones force 
-  !! subject to the minimum image convention.
-  subroutine LJforce(this, ff, guv)
-    use constants_rism, only : PI, KB, omp_num_threads
-    use rism_util, only : checksum
-    implicit none
-#ifdef MPI
-    include 'mpif.h'
-#endif
-    type(rism3d_potential), intent(in) :: this !> potential object.
-    _REAL_, intent(inout) :: ff(3, this%solute%numAtoms) !> Force on each atom.
-    _REAL_, intent(in) :: guv(:, :) !< Site-site pair correlation function.
-    
-    ! Amount to offset the grid in the z-axis (when using MPI).
-    _REAL_ :: offset
-    ! Grid, solute, slovent, and dimension indices.
-    integer :: igx, igy, igz, ig, iu, iv, id
-    ! Grid point position.
-    _REAL_ :: rx(3), ry(3), rz(3)
-    ! Distance of grid point from solute.
-    _REAL_ :: sd2
-    ! Base term in LJ equation (ratio of sigma and distance).
-    _REAL_ :: ljBaseTerm, dUlj_dr
-    ! Minimum distance to prevent divide by zero.
-    _REAL_, parameter :: minDistance = 0.002d0
-    _REAL_, parameter :: minDistanceSquared = minDistance**2
-    _REAL_ :: solutePosition(3)
-    ! Lennard-Jones force between two particles.
-    _REAL_ :: debugenergy, time0, time1
-    call wallclock(time0)
-
-!$omp parallel do private (rx,ry,rz,solutePosition,sd2,dUlj_dr,ljBaseTerm, &
-!$omp&   igx,igy,igz,iu,iv,ig) num_threads(omp_num_threads)
-
-    do iu = 1, this%solute%numAtoms
-       do igz = 1, this%grid%localDimsR(3)
-          rz = (igz - 1 + this%grid%offsetR(3)) * this%grid%voxelVectorsR(3, :)
-          do igy = 1, this%grid%localDimsR(2)
-             ry = (igy - 1) * this%grid%voxelVectorsR(2, :)
-             do igx = 1, this%grid%localDimsR(1)
-                rx = (igx - 1) * this%grid%voxelVectorsR(1, :)
-
-#ifdef MPI
-                ig = 1 + (igx - 1) + (igy -1) * (this%grid%globalDimsR(1) + 2) &
-                       + (igz - 1) * this%grid%globalDimsR(2) &
-                             * (this%grid%globalDimsR(1) + 2)
-#else
-                ig = 1 + (igx - 1) + (igy - 1) * this%grid%globalDimsR(1) &
-                       + (igz - 1) * this%grid%globalDimsR(2) &
-                                   * this%grid%globalDimsR(1)
-#endif
-                
-                ! Vector from solute atom to grid point, in real space.
-                solutePosition = rx + ry + rz - this%solute%position(:, iu)
-                
-                ! Adjust distance to be to the closest solute atom
-                ! image, which may be in an adjacent cell.
-                solutePosition = minimumImage(this, solutePosition)
-   
-                sd2 = dot_product(solutePosition, solutePosition)
-                sd2 = max (minDistanceSquared, sd2)
-
-                if (sd2 < this%cutoff2) then
-                   dUlj_dr = 0
-                   do iv = 1, this%solvent%numAtomTypes
-                      ljBaseTerm = sd2 / this%ljSigmaUV(iu, iv)**2
-                      ljBaseTerm = 1d0 / ljBaseTerm**3
-                      dUlj_dr = dUlj_dr + this%ljEpsilonUV(iu, iv) &
-                           * ljBaseTerm * (ljBaseTerm - 1.d0) &
-                            * this%solvent%density(iv) * guv(ig, iv)
-                   end do
-                   ff(:, iu) = ff(:, iu) &
-                        - dUlj_dr * solutePosition(:) / sd2
-                end if
-             end do
-          end do
-       end do
-    end do
-!$omp end parallel do
-    ff = ff * this%grid%voxelVolume *12d0
-    call wallclock(time1)
-  end subroutine LJforce
-
 ! Computes the PME reciprocal, long range part of electrostatic forces exerted 
-! by the solvent charge density onto the solute.
+! by the solvent charge density onto the solute.  Plus the LJ and short-range
+! PME parts as well
   subroutine PMEforce (this,ff,guv)
     use, intrinsic :: iso_c_binding
     use bspline
@@ -507,10 +424,6 @@ contains
 
     _REAL_ :: qall
     _REAL_ :: ljBaseTerm, dUlj_dr
-
-    _REAL_ :: time0, time1
-
-    call wallclock(time0)
 
     smear = this%chargeSmear
     zeta = smear * smear
@@ -697,12 +610,6 @@ contains
                    sd = sqrt(sd2)
                    sd2inv = 1d0/sd2
                    sdinv = 1d0/sd
-#if 0
-                   ff(:,iu) = ff(:,iu) - rho_r(igx,igy,igz) * this%solute%charge(iu) * &
-                         (( factor * exp(-sd2 / smear2) &
-                         + erfc(sd / this%chargeSmear) &
-                         / sd )/ sd2) * solutePosition
-#endif
                    dUlj_dr = 0
                    do iv = 1, this%solvent%numAtomTypes
                       ljBaseTerm = sd2 / this%ljSigmaUV(iu, iv)**2
@@ -711,18 +618,11 @@ contains
                            * ljBaseTerm * (ljBaseTerm - 1.d0) &
                            * this%solvent%density(iv) * guv(ig, iv)
                    end do
-#if 0
-                   ff(:, iu) = ff(:, iu) &
-                        - (dUlj_dr * solutePosition(:) / sd2) &
-                          * this%grid%voxelVolume *12d0
-#endif
-#if 1
                    ff(:,iu) = ff(:,iu) - solutePosition* sd2inv  &
                           *  ( (rho_r(igx,igy,igz) * this%solute%charge(iu) &
                                *  (( factor * exp(-sd2 / smear2) &
                                    + erfc(sd / this%chargeSmear) * sdinv ))) &
                                + dUlj_dr * this%grid%voxelVolume *12d0 )
-#endif
                 end if 
              end do
           end do
@@ -825,26 +725,26 @@ contains
     call fftw_destroy_plan(planbwd)
 
     if (safemem_dealloc(kxi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(kyi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(kzi) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
 
     if (safemem_dealloc(bsplineFourierCoeffX) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(bsplineFourierCoeffY) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(bsplineFourierCoeffZ) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     if (safemem_dealloc(gaussianFourierCoeff) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
     call fftw_free(rho_r_cptr)
     call fftw_free(rho_c_cptr)
@@ -854,10 +754,8 @@ contains
     end if
 #endif
     if (safemem_dealloc(kernel) /= 0) then
-       call rism_report_error("uvParticleMeshEwaldPotential: Failed to deallocate arrays.")
+       call rism_report_error("PMEforce: Failed to deallocate arrays.")
     end if
-    call wallclock(time1)
-    ! write(6,*) 'short-range PME force: ', time1 - time0
 
   end subroutine PMEforce 
 
