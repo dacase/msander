@@ -255,10 +255,10 @@ $(TARGETA):  $(OBJECTS) $(OBJCOMP)
 	$(VB)$(AR) $(TARGETA) $(OBJECTS)
 
 clean:
-	-$(DEL_FILE) $(OBJECTS)
+	$(VB)$(DEL_FILE) $(OBJECTS)
 
 distclean: clean 
-	-$(DEL_FILE) $(TARGETA)
+	$(VB)$(DEL_FILE) $(TARGETA)
 
 ####### Compile
 
