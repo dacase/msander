@@ -14,6 +14,7 @@ bintraj="-DBINTRAJ"
 rism="-lrism"
 rismsander="-DRISMSANDER"
 conda="no"
+openblas="no"
 
 compiler="gnu"
 cc="gcc -fPIC"
@@ -64,6 +65,8 @@ for var in "$@"; do
             fc="x86_64-w64-mingw32-gfortran --static";;
         --mkl)
             mkl="yes";;
+        --openblas)
+            openblas="yes";;
         --static)
             ldflags="-static";;
         --intel)
@@ -100,6 +103,7 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
 	printf " --mkl          use MKL routines from $MKLROOT\n"
+	printf " --openblas     use BLAS routines from $GOTO\n"
 	printf " --static       use static linking\n"
     exit 0
 fi
@@ -179,7 +183,7 @@ fi
 
 if [ -z "$mklroot" -o "$mkl" == "no" ] ; then
 
-   if [ ! -z "$GOTO" ]; then
+   if [ ! -z "$GOTO" -a "$openblas" == "yes" ]; then
       echo "using OpenBLAS libraries in $GOTO"
       flibs_la="$GOTO -lpthread"
    else
@@ -278,13 +282,8 @@ else
     fi
 
   else
-
     # ----- Use simple flag for Intel compilers ------------
-    if [ "$openmp" = 'yes' ]; then
-      flibs_la='-mkl'
-    else
-      flibs_la='-mkl=sequential'
-    fi
+    flibs_la='-mkl'
   fi
 fi
 
