@@ -155,7 +155,6 @@ module rism3d_c
      ! oldcuvChg  :: previous solutions for the standard charged system
      ! oldcuvNoChg :: previous solutions for the chargeless system.  This is only allocated
      !                if _unsetCharges() is called
-     ! electronMap :: smeared solvent electron density map.
      _REAL_, pointer :: xvva(:) => NULL(), &
           oldcuv(:, :, :, :, :) => NULL(), &
           oldcuvChg(:, :, :, :, :) => NULL(), &
@@ -165,8 +164,6 @@ module rism3d_c
 
 
      _REAL_, pointer :: guv(:, :) => NULL(), huv(:, :) => NULL()
-
-     _REAL_, pointer :: electronMap(:, :, :) => NULL()
 
      ! cuvk        :: k-space Cuv solution from 3D-RISM
      !               solution. NOTE: we should consider using Huv or
@@ -915,8 +912,6 @@ contains
          call rism_report_error("RISM3D: failed to deallocate HUV")
     if (safemem_dealloc(this%cuvk, o_aligned = .true.) /= 0) &
          call rism_report_error("RISM3D: failed to deallocate CUVK")
-    if (safemem_dealloc(this%electronMap) /= 0) &
-         call rism_report_error("RISM3D: failed to deallocate electronMap")
     call rism3d_fft_destroy(this%fft)
     call rism3d_fft_global_finalize()
   end subroutine rism3d_destroy
@@ -1105,11 +1100,6 @@ contains
     this%cuvresWRK => safemem_realloc(this%cuvresWRK, this%grid%totalLocalPointsR, this%solvent%numAtomTypes, &
          this%NVec, .false.)
     this%xvva => safemem_realloc(this%xvva, this%grid%waveNumberArraySize * (this%solvent%numAtomTypes)**2, .false.)
-    !  dac: only need three dimensions here, since the electronMap
-    !  is written to disk as soon as it is calculated
-    this%electronMap => safemem_realloc(this%electronMap, &
-         this%grid%globalDimsR(1), this%grid%globalDimsR(2), &
-         this%grid%globalDimsR(3), o_preserve = .false.)
 
     call rism3d_fft_destroy(this%fft)
     call rism3d_fft_new(this%fft, &
@@ -1375,8 +1365,7 @@ contains
     integer :: ierr, irank
 
     ! --------------------------------------------------------------
-    ! Cuv(r) is then loaded into the guv array.
-    ! DAC: why is the storage of cuv and guv different?
+    ! Cuv(r) is loaded into the guv array.
     ! --------------------------------------------------------------
 
     call timer_start(TIME_RISMFFTB)
@@ -1418,7 +1407,7 @@ contains
     call timer_stop(TIME_RISMFFTB)
 
     ! --------------------------------------------------------------
-    ! [Short-range part of] Cuv(r) FFT>K.
+    ! Cuv(r) FFT->K.
     ! --------------------------------------------------------------
     call timer_start(TIME_RISMFFT)
 #if defined(MPI)
@@ -1463,7 +1452,7 @@ contains
     end if 
 
     ! --------------------------------------------------------------
-    ! Short-range part of Huv(k) FFT>R.
+    ! Huv(k) FFT->R.
     ! --------------------------------------------------------------
     call timer_start(TIME_RISMFFT)
 #if defined(MPI)

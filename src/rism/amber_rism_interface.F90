@@ -409,15 +409,13 @@ module amber_rism_interface
   !solvationEnergyfile   : (output) solvation energy map [kcal/mol/A^3]. Volumetric file.
   !entropyfile   : (output) solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
   !solventPotentialEnergyfile     : (output) solvent-solute potential energy map [kcal/mol/A^3]. Volumetric file.
-  !electronMapFile : (output) solvent electron density map. Volumetric file.
   !periodicPotential : Specify periodic potential used for periodic calculations.
   !                    Either 'ewald' or 'pme' or 'pmekh'.
   !volfmt        : either 'ccp4', 'dx', or 'xyzv'
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
        uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
-       solventPotentialEnergyfile='', electronMapFile='', &
-       volfmt='dx', crdFile=''
+       solventPotentialEnergyfile='', volfmt='dx', crdFile=''
 
   integer :: mpirank = 0, mpisize = 1, mpicomm = 0
 
@@ -476,9 +474,6 @@ contains
   !! @param[in] solventPotentialEnergylen Length of solventPotentialEnergychar array.
   !! @param[in] solventPotentialEnergychar Character array for solute-solvent potential
   !!   energy output file name.
-  !! @param[in] electronMaplen Length of electronMapchar array.
-  !! @param[in] electronMapchar Character array for the smeared
-  !!   electron density map.
   !! @param[in] volfmtlen Length of volfmtchar array.
   !! @param[in] volfmtchar Character array for the format type for
   !!   volumetric data.
@@ -1627,11 +1622,6 @@ contains
        call mpi_bcast(solventPotentialEnergyfile, len(solventPotentialEnergyfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast POTUVFILE")
-#ifndef MPI
-       call mpi_bcast(electronMapFile, len(electronMapFile), mpi_character, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ELECTRONMAPFILE")
-#endif
        call mpi_bcast(rismprm%molReconstruct, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MOLRECONSTRUCT")
@@ -1935,11 +1925,6 @@ contains
     if (rismprm%chargeSmear .lt. 0d0) then
        call rism_report_error('(a,g)',"'chargeSmear' must be >= 0. Got",rismprm%chargeSmear)
     end if
-#ifdef MPI
-    if (len_trim(electronMapFile)>0) then
-       call rism_report_error('Electron density maps are not supported for MPI calculations')
-    end if
-#endif    
   end subroutine sanity_check
 
   !> Writes the contents of a C string (array of chars) to a Fortran
