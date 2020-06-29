@@ -28,7 +28,7 @@ subroutine mdfil(VERSION, version_requested)
    !     excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
    !     excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile, &
    !     excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile, &
-   !     solventPotentialEnergyfile, electronMapFile, crdFile
+   !     solventPotentialEnergyfile, crdFile
 #endif
 
    implicit none
@@ -140,7 +140,6 @@ subroutine mdfil(VERSION, version_requested)
    solvationEnergyfile   = ''
    entropyfile   = ''
    solventPotentialEnergyfile     = ''
-   electronMapFile = ''
    crdFile = ''
    rismcrdfil    = ''
    rismfrcfil    = ''
@@ -381,9 +380,6 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-potUV') then
          iarg = iarg + 1
          call getarg_wrap(iarg,solventPotentialEnergyfile)
-      else if (arg == '-electronMap') then
-         iarg = iarg + 1
-         call getarg_wrap(iarg,electronMapFile)
       else if (arg == '-rismcrd') then
          iarg = iarg + 1
          call getarg_wrap(iarg,rismcrdfil)
