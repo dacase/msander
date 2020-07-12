@@ -10,9 +10,9 @@ build:
 
 requirements:
   build:
-    - {{ compiler('fortran') }}
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
+#    - {{ compiler('fortran') }}
+#    - {{ compiler('c') }}
+#    - {{ compiler('cxx') }}
     - ld64 409.12 h3c32e8a_4   # [osx]
     - flex
     - bison
