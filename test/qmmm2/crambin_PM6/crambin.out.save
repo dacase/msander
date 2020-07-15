@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 02/27/2020 at 14:00:46
+| Run on 07/15/2020 at 13:20:10
 
 |   Executable path: ../../../bin/msander.MPI
-| Working directory: /home/case/msander/test/qmmm2/crambin_PM6
+| Working directory: /home/case/msander_gnu/test/qmmm2/crambin_PM6
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -155,35 +155,25 @@ QMMM options:
 
  Number of triangulated 3-point waters found:        0
 |  Atom division among processors:
-|         0      94     169     253     321     420     489     563
-|       642
+|         0     169     321     489     642
 |  Coordinate  division among processors:
-|         0     282     507     759     963    1260    1467    1689
-|      1926
+|         0     507     963    1467    1926
 
-|QMMM: Running QMMM calculation in parallel mode on    8 threads.
+|QMMM: Running QMMM calculation in parallel mode on    4 threads.
 |QMMM: All atom division among threads:
 |QMMM:                  Start       End      Count
-|QMMM: Thread(   0):        1->      81  (      81)
-|QMMM: Thread(   1):       82->     162  (      81)
-|QMMM: Thread(   2):      163->     243  (      81)
-|QMMM: Thread(   3):      244->     324  (      81)
-|QMMM: Thread(   4):      325->     405  (      81)
-|QMMM: Thread(   5):      406->     486  (      81)
-|QMMM: Thread(   6):      487->     567  (      81)
-|QMMM: Thread(   7):      568->     642  (      75)
+|QMMM: Thread(   0):        1->     161  (     161)
+|QMMM: Thread(   1):      162->     322  (     161)
+|QMMM: Thread(   2):      323->     483  (     161)
+|QMMM: Thread(   3):      484->     642  (     159)
 
 |QMMM: Quantum atom + link atom division among threads:
 |QMMM:                  Start       End      Count
-|QMMM: Thread(   0):        1->      10  (      10)
-|QMMM: Thread(   1):       11->      20  (      10)
-|QMMM: Thread(   2):       21->      30  (      10)
-|QMMM: Thread(   3):       31->      40  (      10)
-|QMMM: Thread(   4):       41->      50  (      10)
-|QMMM: Thread(   5):       51->      60  (      10)
-|QMMM: Thread(   6):       61->      70  (      10)
-|QMMM: Thread(   7):       71->      88  (      18)
-|  Running AMBER/MPI version on    8 nodes
+|QMMM: Thread(   0):        1->      20  (      20)
+|QMMM: Thread(   1):       21->      40  (      20)
+|QMMM: Thread(   2):       41->      60  (      20)
+|QMMM: Thread(   3):       61->      88  (      28)
+|  Running AMBER/MPI version on    4 nodes
 
   LMOD XMIN Minimization.
 
@@ -328,19 +318,17 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | QMMM:                              norbs =      184
 | QMMM:    diag iterations used for timing =        5
 | QMMM:
-| QMMM:              Internal diag routine = 0.052000 seconds
-| QMMM:                 Dspev diag routine = 0.073000 seconds
-| QMMM:                Dspevd diag routine = 0.013000 seconds
-| QMMM:                Dspevx diag routine = 0.097000 seconds
-| QMMM:                 Dsyev diag routine = 0.017000 seconds
-| QMMM:                Dsyevd diag routine = 0.012000 seconds
-| QMMM:                Dsyevr diag routine = 0.017000 seconds
+| QMMM:              Internal diag routine = 0.048000 seconds
+| QMMM:                 Dspev diag routine = 0.053000 seconds
+| QMMM:                Dspevd diag routine = 0.037000 seconds
+| QMMM:                Dspevx diag routine = 0.155000 seconds
+| QMMM:                 Dsyev diag routine = 0.058000 seconds
+| QMMM:                Dsyevd diag routine = 0.041000 seconds
+| QMMM:                Dsyevr diag routine = 0.041000 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.027000 seconds
-| QMMM: Pseudo diagonalization appears to be slower than regular
-| QMMM: diagonalization. Setting pseudo_diag=0 for optimum performance.
+| QMMM:                Pseudo diag routine = 0.026000 seconds
 | QMMM:
-| QMMM: Using dsyevd routine (diag_routine=6).
+| QMMM: Using dspevd routine (diag_routine=3).
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
@@ -360,16 +348,16 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | QMMM: Fock2 Density Matrix Workspace :        11264 bytes
 | QMMM:                    Fock Matrix :       136160 bytes
 | QMMM:           Eigen Vector Storage :       270848 bytes
-| QMMM: QM-QM Elec Repulsion Integrals :        84304 bytes
+| QMMM: QM-QM Elec Repulsion Integrals :       168432 bytes
 | QMMM:  QM 2-Elec Repulsion Integrals :       552480 bytes
 | QMMM:              1-Electron Matrix :       136160 bytes
 | QMMM:       _REAL_ parameter storage :        76096 bytes
 | QMMM:      integer parameter storage :         2528 bytes
-| QMMM:         QM-MM RIJ Eqns storage :       375584 bytes
-| QMMM:          _REAL_ Scratch arrays :       708712 bytes
-| QMMM:         Integer Scratch arrays :        12100 bytes
+| QMMM:         QM-MM RIJ Eqns storage :       717024 bytes
+| QMMM:          _REAL_ Scratch arrays :      1054032 bytes
+| QMMM:         Integer Scratch arrays :        79612 bytes
 | QMMM: ---------------------------------------------------
-| QMMM:        Total Dynamic Memory Usage:      2.568 Mb
+| QMMM:        Total Dynamic Memory Usage:      3.367 Mb
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -401,13 +389,13 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  BOND    =       25.1364  ANGLE   =       75.9279  DIHED      =      174.6667
  VDWAALS =      -90.7135  EEL     =    -3310.8548  EGB        =        0.0000
  1-4 VDW =      175.8378  1-4 EEL =     2316.1387  RESTRAINT  =        0.0000
- PM6ESCF =     -129.4350
+ PM6ESCF =     -129.4351
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
       3      -9.1281E+02     8.6733E+00     1.2025E+02     CG        592
 
- BOND    =       22.3114  ANGLE   =       83.7331  DIHED      =      173.0798
+ BOND    =       22.3115  ANGLE   =       83.7331  DIHED      =      173.0798
  VDWAALS =     -240.3650  EEL     =    -3302.2610  EGB        =        0.0000
  1-4 VDW =      176.1501  1-4 EEL =     2311.0669  RESTRAINT  =        0.0000
  PM6ESCF =     -136.5270
@@ -423,41 +411,41 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -9.4424E+02     3.5908E+00     3.2742E+01     CG        592
+      5      -9.3468E+02     3.5923E+00     3.2730E+01     CG        592
 
- BOND    =       10.8694  ANGLE   =       79.2608  DIHED      =      172.7613
- VDWAALS =     -247.2711  EEL     =    -3295.2616  EGB        =        0.0000
- 1-4 VDW =      173.9353  1-4 EEL =     2305.3227  RESTRAINT  =        0.0000
- PM6ESCF =     -143.8580
+ BOND    =       10.8686  ANGLE   =       79.2584  DIHED      =      172.7613
+ VDWAALS =     -247.2764  EEL     =    -3285.6817  EGB        =        0.0000
+ 1-4 VDW =      173.9335  1-4 EEL =     2305.3183  RESTRAINT  =        0.0000
+ PM6ESCF =     -143.8606
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb off-diag           0.00 (71.43% of Gen B)
-|                Other                      0.00 (28.57% of Gen B)
+|                Calc gb off-diag           0.01 (100.0% of Gen B)
 |             Gen Born time              0.01 (100.0% of Nonbo)
-|             QMMM setup                 0.32 (19.07% of QMMM )
-|                   QMMM hcore QM-QM           0.02 (78.26% of QMMM )
-|                   QMMM hcore QM-MM           0.01 (21.74% of QMMM )
-|                QMMM hcore calc            0.02 ( 1.76% of QMMM )
-|                   QMMM fock build            0.36 (28.29% of QMMM )
-|                   QMMM fock dist             0.04 ( 2.81% of QMMM )
-|                   QMMM full matrix dia       0.67 (52.07% of QMMM )
-|                   QMMM density build         0.18 (14.19% of QMMM )
-|                   QMMM density dist          0.02 ( 1.79% of QMMM )
-|                QMMM scf                   1.28 (98.01% of QMMM )
-|             QMMM energy                1.31 (78.01% of QMMM )
-|             QMMM QM-QM force           0.02 ( 1.37% of QMMM )
-|          QMMM                       1.68 (99.29% of Force)
-|       Force time                 1.69 (100.0% of Runmd)
-|    Runmd Time                 1.69 (98.60% of Total)
-|    Other                      0.02 ( 1.40% of Total)
-| Total time                 1.71 (100.0% of ALL  )
+|             QMMM setup                 0.47 (14.54% of QMMM )
+|                   QMMM hcore QM-QM           0.03 (93.10% of QMMM )
+|                   QMMM hcore QM-MM           0.00 ( 6.90% of QMMM )
+|                QMMM hcore calc            0.03 ( 1.08% of QMMM )
+|                   QMMM fock build            0.39 (14.49% of QMMM )
+|                   QMMM fock dist             0.05 ( 1.73% of QMMM )
+|                   QMMM full matrix dia       1.28 (47.94% of QMMM )
+|                   QMMM pseudo matrix d       0.74 (27.67% of QMMM )
+|                   QMMM density build         0.17 ( 6.42% of QMMM )
+|                   QMMM density dist          0.03 ( 1.01% of QMMM )
+|                QMMM scf                   2.66 (98.92% of QMMM )
+|             QMMM energy                2.69 (83.30% of QMMM )
+|             QMMM QM-QM force           0.04 ( 1.24% of QMMM )
+|          QMMM                       3.23 (99.57% of Force)
+|       Force time                 3.25 (100.0% of Runmd)
+|    Runmd Time                 3.25 (98.84% of Total)
+|    Other                      0.04 ( 1.10% of Total)
+| Total time                 3.28 (100.0% of ALL  )
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 14:00:46.601  on 02/27/2020
-|           Setup done at 14:00:46.624  on 02/27/2020
-|           Run   done at 14:00:48.316  on 02/27/2020
-|     wallclock() was called    5801 times
+|           Job began  at 13:20:10.729  on 07/15/2020
+|           Setup done at 13:20:10.764  on 07/15/2020
+|           Run   done at 13:20:14.014  on 07/15/2020
+|     wallclock() was called    6713 times
