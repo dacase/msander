@@ -47,6 +47,7 @@ simulations
 
 *Conda build:
 ```
+   cd recipe && ln -s meta.yaml.{osx or linux} meta.yaml
    conda build recipe #configured especially to create an amber_phenix package
 ```
 
