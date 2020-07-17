@@ -39,7 +39,8 @@ lapack="skip"
 blas="skip"
 inc="-I$msanderhome/include"
 netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
-short_ene=short_ene_omp.o
+#short_ene=short_ene_omp.o
+short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
 
 #  process command-line flags:
 for var in "$@"; do
