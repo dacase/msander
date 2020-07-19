@@ -759,7 +759,8 @@ contains
          call fourier_Fcalc(num_hkl,hkl_index,Fcalc,mSS4, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &
-            atom_scatter_type(sel_index(1:num_selected)) )
+            atom_scatter_type(sel_index(1:num_selected)) , &
+            atom_occupancy(sel_index(1:num_selected)) )
 #if 0
       else
          call FFT_Fcalc(num_hkl,Fcalc,test_flag-1, &

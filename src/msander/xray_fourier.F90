@@ -79,7 +79,7 @@ contains
       real(real_kind), intent(in) :: tempFactor(num_atoms)
       ! index into the scatter - type coeffs table for each atom:
       integer, intent(in), target :: scatter_type_index(num_atoms) 
-      real(real_kind), intent(in), target, optional :: occupancy(num_atoms)
+      real(real_kind), intent(in), target :: occupancy(num_atoms)
 
       ! locals
       integer :: ihkl, i, ier, ierr
@@ -143,10 +143,8 @@ contains
          !    j = 1,num_selected_atoms
 
          f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
-              * atomic_scatter_factor(ihkl,scatter_type_index(:))
-         if (present(occupancy)) then
-            f(:) = f(:)*occupancy(:)
-         endif
+              * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
+              * occupancy(:)
          angle(:) = matmul(M_TWOPI * hkl(1:3,ihkl),xyz(1:3,:))
 
          Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
