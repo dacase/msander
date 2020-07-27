@@ -86,6 +86,10 @@ void check_input_file_format(char *filename, char *format)
 
     } else if (strcmp(format, "gcrt") == 0) {
 
+    } else if (strcmp(format, "orcinp") == 0) {
+
+    } else if (strcmp(format, "orcout") == 0) {
+
     } else if (strcmp(format, "gzmat") == 0) {
 
     } else if (strcmp(format, "gout") == 0) {
@@ -365,6 +369,19 @@ void read_and_validate_input_file()
         default_flag = 2;
         connect_flag = 1;
         bondtype_flag = 2;
+    } else if (strcmp("orcinp", cinfo.intype) == 0 || strcmp("29", cinfo.intype) == 0) {
+        check_input_file_format(ifilename, cinfo.intype);
+        overflow_flag = rorca(ifilename, &atomnum, atom, cinfo, minfo);
+        if (overflow_flag) {
+            cinfo.maxatom = atomnum + 10;
+            cinfo.maxbond = bondnum + 10;
+            memory(7, cinfo.maxatom, cinfo.maxbond, cinfo.maxring);
+            overflow_flag = rorca(ifilename, &atomnum, atom, cinfo, minfo);
+        }
+        atomname_flag = 1;
+        default_flag = 2;
+        connect_flag = 1;
+        bondtype_flag = 2;
     } else if (strcmp("gcrt", cinfo.intype) == 0 || strcmp("8", cinfo.intype) == 0) {
         check_input_file_format(ifilename, cinfo.intype);
         overflow_flag = rgcrt(ifilename, &atomnum, atom, cinfo, minfo);
@@ -393,6 +410,21 @@ void read_and_validate_input_file()
         default_flag = 2;
         connect_flag = 1;
         bondtype_flag = 2;
+
+     } else if (strcmp("orcout", cinfo.intype) == 0 || strcmp("30", cinfo.intype) == 0) {
+        check_input_file_format(ifilename, cinfo.intype);
+        overflow_flag = rorcout(ifilename, &atomnum, atom, cinfo, &minfo);
+        if (overflow_flag) {
+            cinfo.maxatom = atomnum + 10;
+            cinfo.maxbond = bondnum + 10;
+            memory(7, cinfo.maxatom, cinfo.maxbond, cinfo.maxring);
+            overflow_flag = rorcout(ifilename, &atomnum, atom, cinfo, &minfo);
+        }
+        atomname_flag = 1;
+        default_flag = 2;
+        connect_flag = 1;
+        bondtype_flag = 2;
+   
     } else if (strcmp("gout", cinfo.intype) == 0 || strcmp("11", cinfo.intype) == 0) {
         check_input_file_format(ifilename, cinfo.intype);
         overflow_flag = rgout(ifilename, &atomnum, atom, cinfo, &minfo);

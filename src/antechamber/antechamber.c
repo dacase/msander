@@ -26,8 +26,10 @@ char *amberhome;
 # include "mopout.c"
 # include "divout.c"
 # include "gcrt.c"
+# include "orca.c"
 # include "gzmat.c"
 # include "gout.c"
+# include "orcout.c"
 # include "gamess.c"
 # include "pdb.c"
 # include "csd.c"
@@ -253,11 +255,12 @@ void list()
              "\n		Alchemy            alc     13  | CSD                csd    14 "
              "\n		MDL                mdl     15  | Hyper              hin    16 "
              "\n		AMBER Restart      rst     17  | Jaguar Cartesian   jcrt   18 "
-             "\n		Jaguar Z-Matrix    jzmat   19  | Jaguar Output      jout   20"
-             "\n		Divcon Input       divcrt  21  | Divcon Output      divout 22"
-             "\n		SQM Input          sqmcrt  23  | SQM Output         sqmout 24"
-             "\n		Charmm             charmm  25  | Gaussian ESP       gesp   26"
-             "\n		Component cif      ccif    27  | GAMESS dat         gamess 28                            "
+             "\n		Jaguar Z-Matrix    jzmat   19  | Jaguar Output      jout   20 "
+             "\n		Divcon Input       divcrt  21  | Divcon Output      divout 22 "
+             "\n		SQM Input          sqmcrt  23  | SQM Output         sqmout 24 "
+             "\n		Charmm             charmm  25  | Gaussian ESP       gesp   26 "
+             "\n		Component cif      ccif    27  | GAMESS dat         gamess 28 "
+             "\n		Orca input         orcinp  29  | Orca output        orcout 30 "
              "\n		--------------------------------------------------------------\n"
                "                AMBER restart file can only be read in as additional file.\n"
              "\n	         	    [31m List of the Charge Methods [0m \n"
@@ -282,11 +285,12 @@ void list()
              "\n		Alchemy            alc     13  | CSD                csd    14 "
              "\n		MDL                mdl     15  | Hyper              hin    16 "
              "\n		AMBER Restart      rst     17  | Jaguar Cartesian   jcrt   18 "
-             "\n		Jaguar Z-Matrix    jzmat   19  | Jaguar Output      jout   20"
-             "\n		Divcon Input       divcrt  21  | Divcon Output      divout 22"
-             "\n		SQM Input          sqmcrt  23  | SQM Output         sqmout 24"
-             "\n		Charmm             charmm  25  | Gaussian ESP       gesp   26"
-             "\n		Component cif      ccif    27  | GAMESS dat         gamess 28                            "
+             "\n		Jaguar Z-Matrix    jzmat   19  | Jaguar Output      jout   20 "
+             "\n		Divcon Input       divcrt  21  | Divcon Output      divout 22 "
+             "\n		SQM Input          sqmcrt  23  | SQM Output         sqmout 24 "
+             "\n		Charmm             charmm  25  | Gaussian ESP       gesp   26 "
+             "\n		Component cif      ccif    27  | GAMESS dat         gamess 28 "
+             "\n		Orca input         orcinp  29  | Orca output        orcout 30 "
              "\n		--------------------------------------------------------------\n"
                "                AMBER restart file can only be read in as additional file.\n"
              "\n	         	     List of the Charge Methods \n"
@@ -804,6 +808,15 @@ int main(int argc, char *argv[])
                 exit(1);
             }
         }
+
+        if (strcmp("orcinp", cinfo.atype) == 0 || strcmp("29", cinfo.atype) == 0) {
+            overflow_flag = rorca(afilename, &atomnum_tmp, atom_tmp, cinfo, minfo);
+            if (overflow_flag) {
+                fprintf(stderr, "Overflow happens for additional files, exit");
+                exit(1);
+            }
+        }
+
         if (strcmp("gcrt", cinfo.atype) == 0 || strcmp("8", cinfo.atype) == 0) {
             overflow_flag = rgcrt(afilename, &atomnum_tmp, atom_tmp, cinfo, minfo);
             if (overflow_flag) {
@@ -813,6 +826,14 @@ int main(int argc, char *argv[])
         }
         if (strcmp("gzmat", cinfo.atype) == 0 || strcmp("7", cinfo.atype) == 0) {
             overflow_flag = rgzmat(afilename, &atomnum_tmp, atom_tmp, cinfo, minfo);
+            if (overflow_flag) {
+                fprintf(stderr, "Overflow happens for additional files, exit");
+                exit(1);
+            }
+        }
+
+        if (strcmp("orcout", cinfo.atype) == 0 || strcmp("30", cinfo.atype) == 0) {
+            overflow_flag = rorcout(afilename, &atomnum_tmp, atom_tmp, cinfo, &minfo);
             if (overflow_flag) {
                 fprintf(stderr, "Overflow happens for additional files, exit");
                 exit(1);
@@ -1114,7 +1135,8 @@ int main(int argc, char *argv[])
         || strcmp("3", cinfo.outtype) == 0 || strcmp("8", cinfo.outtype) == 0
         || strcmp("10", cinfo.outtype) == 0 || strcmp("11", cinfo.outtype) == 0
         || strcmp("12", cinfo.outtype) == 0 || strcmp("17", cinfo.outtype) == 0
-        || strcmp("18", cinfo.outtype) == 0 || strcmp("20", cinfo.outtype) == 0) {
+        || strcmp("18", cinfo.outtype) == 0 || strcmp("20", cinfo.outtype) == 0
+        || strcmp("29", cinfo.outtype) == 0 || strcmp("30", cinfo.outtype) == 0) {
         connect_flag = 0;
         bondtype_flag = 0;
         atomtype_flag = 0;
@@ -1248,6 +1270,8 @@ int main(int argc, char *argv[])
         wmopcrt(ofilename, atomnum, atom, minfo);
     } else if (strcmp("mopout", cinfo.outtype) == 0 || strcmp("12", cinfo.outtype) == 0) {
         wmopout(ofilename, atomnum, atom, cinfo, minfo);
+    } else if (strcmp("orcinp", cinfo.outtype) == 0 || strcmp("29", cinfo.outtype) == 0) {
+        worca(ofilename, atomnum, atom, minfo);
     } else if (strcmp("gcrt", cinfo.outtype) == 0 || strcmp("8", cinfo.outtype) == 0) {
         wgcrt(ofilename, atomnum, atom, minfo);
     } else if (strcmp("gzmat", cinfo.outtype) == 0 || strcmp("7", cinfo.outtype) == 0) {

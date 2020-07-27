@@ -20,8 +20,10 @@ char *amberhome;
 # include "sqmout.c"
 # include "gesp.c"
 # include "gcrt.c"
+# include "orca.c"
 # include "gzmat.c"
 # include "gout.c"
+# include "orcout.c"
 # include "pdb.c"
 # include "csd.c"
 # include "mdl.c"
@@ -101,6 +103,7 @@ void usage()
             ("\n		Charmm             charmm  25  | Gaussian ESP       gesp   26 ");
         printf
             ("\n		Component cif      ccif    27  |                              ");
+
         printf
             ("\n		--------------------------------------------------------------\n");
     } else {
@@ -134,11 +137,11 @@ void usage()
         printf
             ("\n            Divcon Input       divcrt  21  | Divcon Output      divout 22 ");
         printf
-            ("\n	       SQM Input          sqmcrt  23  | SQM Output         sqmout 24 ");
+            ("\n	        SQM Input          sqmcrt  23  | SQM Output         sqmout 24 ");
         printf
-            ("\n	       Charmm             charmm  25  | Gaussian ESP       gesp   26 ");
+            ("\n	        Charmm             charmm  25  | Gaussian ESP       gesp   26 ");
         printf
-            ("\n	       Component cif      ccif    27  |                              ");
+            ("\n	        Component cif      ccif    27  |                              ");
         printf
             ("\n            --------------------------------------------------------------\n");
     }
@@ -374,6 +377,22 @@ int main(int argc, char *argv[])
         bondtype_flag = 2;
     }
 
+    if (strcmp("orcinp", cinfo.intype) == 0 || strcmp("29", cinfo.intype) == 0) {
+
+        check_input_file_format(ifilename, "orcinp");
+        overflow_flag = rorca(ifilename, &atomnum, atom, cinfo, minfo);
+        if (overflow_flag) {
+            cinfo.maxatom = atomnum + 10;
+            cinfo.maxbond = bondnum + 10;
+            memory(7, cinfo.maxatom, cinfo.maxbond, cinfo.maxring);
+            overflow_flag = rorca(ifilename, &atomnum, atom, cinfo, minfo);
+        }
+        atomname_flag = 1;
+        default_flag = 1;
+        connect_flag = 1;
+        bondtype_flag = 2;
+    }
+
     if (strcmp("gcrt", cinfo.intype) == 0 || strcmp("8", cinfo.intype) == 0) {
 
         check_input_file_format(ifilename, "gcrt");
@@ -407,6 +426,23 @@ int main(int argc, char *argv[])
         connect_flag = 1;
         bondtype_flag = 2;
     }
+
+    if (strcmp("orcout", cinfo.intype) == 0 || strcmp("30", cinfo.intype) == 0) {
+
+        check_input_file_format(ifilename, "orcout");
+        overflow_flag = rorcout(ifilename, &atomnum, atom, cinfo, &minfo);
+        if (overflow_flag) {
+            cinfo.maxatom = atomnum + 10;
+            cinfo.maxbond = bondnum + 10;
+            memory(7, cinfo.maxatom, cinfo.maxbond, cinfo.maxring);
+            overflow_flag = rorcout(ifilename, &atomnum, atom, cinfo, &minfo);
+        }
+        atomname_flag = 1;
+        default_flag = 1;
+        connect_flag = 1;
+        bondtype_flag = 2;
+    }
+
 
     if (strcmp("gout", cinfo.intype) == 0 || strcmp("11", cinfo.intype) == 0) {
 

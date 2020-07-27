@@ -203,6 +203,59 @@ void rdivcharge(char *filename, int atomnum, ATOM atom[], MOLINFO * minfo, int f
         (*minfo).icharge = intcharge(atomnum, atom);
 }
 
+void rorccharge(char *filename, int atomnum, ATOM atom[], MOLINFO * minfo)
+{
+    int numatom = 0;
+    int read_flag = 0;
+    char line[MAXCHAR];
+    FILE *fpin;
+
+    fpin = efopen(filename, "r");
+    for (;;) {
+        if (!fgets(line, MAXCHAR, fpin))
+            eprintf("Premature end of file");
+        if (read_flag == 0) {
+            if ((strncmp(line,"                 *** FINAL ENERGY", 33) == 0) ||
+                (strncmp(line,"                       * Single Point ", 38) == 0)) {
+            read_flag = 1;
+            continue;
+            }
+            }
+        
+        if (read_flag == 1) {
+            if (strncmp(line, "MULLIKEN ATOMIC CHARGES", 23) == 0 ) {
+ //               printf("READING CHARGES\n");
+                read_flag = 2;
+            }
+            continue;
+            }
+        if (read_flag == 2) {
+            if (line[0] == '-') {
+                continue;
+            }
+            else if (line[0] == 'S') {
+                sscanf(line, "%*s%*s%*s%*s%lf", &minfo->dcharge);
+                minfo->icharge = (int) minfo->dcharge;
+//               printf("%f\n",minfo->dcharge);
+//                printf("%f\n",minfo->icharge);
+                break;
+            }
+            sscanf(line, "%*d%*s%*s%lf", &atom[numatom].charge);
+//            printf("%d %f\n",numatom, atom[numatom].charge);
+            numatom++;
+            continue;
+        }
+    }
+    fclose(fpin);
+    if (numatom == 0) {
+        eprintf("Unable to find Orca charges in file (%s).\n"
+                "Verify the filename and the file contents.", filename);
+    }
+//      if ((*minfo).usercharge < -9990)
+    if ((*minfo).icharge < -9990)
+        (*minfo).icharge = intcharge(atomnum, atom);
+}
+
 void rgaucharge(char *filename, char *chargemethod, int atomnum, ATOM atom[],
                 MOLINFO * minfo)
 {
@@ -701,6 +754,8 @@ void mul(char *filename, int atomnum, ATOM atom[], CONTROLINFO * cinfo, MOLINFO 
 
     if (strcmp((*cinfo).intype, "gout") == 0 || strcmp((*cinfo).intype, "11") == 0)
         rgaucharge(filename, "mul", atomnum, atom, minfo);
+    else if (strcmp((*cinfo).intype, "orcout") == 0 || strcmp((*cinfo).intype, "29") == 0)
+        rorccharge(filename, atomnum, atom, minfo);
     else if (strcmp((*cinfo).intype, "mopout") == 0 || strcmp((*cinfo).intype, "12") == 0)
         rmopcharge(filename, atomnum, atom, minfo);
     else if (strcmp((*cinfo).intype, "divout") == 0 || strcmp((*cinfo).intype, "22") == 0)
