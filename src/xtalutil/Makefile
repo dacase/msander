@@ -4,7 +4,7 @@ LOCALFLAGS=-Wno-unused-result
 
 .c.o:
 	@echo "[XTALUTIL]  CC $<"
-	@$(CC) -c $(COPTFLAGS) $(CFLAGS) -o $@ $< 
+	@$(CC) -c $(COPTFLAGS) $(CFLAGS) $(LOCALFLAGS) -o $@ $< 
 
 OBJS = crdmanip.o grid.o listRead.o matrix.o pdbRead.o QuatAlign.o ran2.o \
        topRead.o vector.o

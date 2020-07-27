@@ -4,8 +4,7 @@ PREC=DPREC
 include ../../config.h
 .SUFFIXES: .F .o
 
-OBJ=  \
-nxtsec.o rgroup.o rfree.o 
+OBJ=  nxtsec.o 
 
 #  default rules for Fortran and C compilation:
 

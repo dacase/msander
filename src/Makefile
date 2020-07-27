@@ -17,7 +17,7 @@ serial:
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
 	@cd sqm && $(MAKE) sqm
-	@cd gmml && $(MAKE) gmml
+#	@cd gmml && $(MAKE) gmml
 
 parallel:
 	@cd msander && $(MAKE) msander
