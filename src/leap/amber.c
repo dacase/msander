@@ -207,33 +207,42 @@ STRING          sHybridization;
 
 
 
-/*
- *      zAmberReadParmSetBonds
- *
- *      Read the bond parameter terms.
- */
-static void
-zAmberReadParmSetBonds( PARMSET psParms, FILE *fIn )
+//---------------------------------------------------------------------------------------------
+// zAmberReadParmSetBonds: read the parameters for bonds between atom types from an Amber
+//                         format parameter file (i.e. parm10.dat).
+//
+// Arguments:
+//   psParms:    the developing parameter set
+//   fIn:        the input Amber parameters file
+//---------------------------------------------------------------------------------------------
+static void zAmberReadParmSetBonds(PARMSET psParms, FILE *fIn)
 {
-STRING          sLine;
-int             iRead;
-STRING          saStr[10];
-double          dKb, dR0;
+  int    iRead;
+  STRING sLine;
+  STRING saStr[10];
+  double dKb, dR0, dKpull, dRpull0, dKpress, dRpress0;
 
-    memset(saStr, 0, sizeof(saStr));                    /* for Purify */
-    while (1) {
-        FGETS( sLine, fIn );
-        NODASHES(sLine);
-        iRead = sscanf( sLine, "%s %s %lf %lf", saStr[0], saStr[1], 
-                                &dKb, &dR0 );
-        if ( iRead<=0 ) break;
-        MESSAGE(( "Read: %s\n", sLine ));
-        iParmSetAddBond( psParms, saStr[0], saStr[1], dKb, dR0, "" );
-    } 
-       
-} 
-
-
+  // For Purify
+  memset(saStr, 0, sizeof(saStr));
+  while (1) {
+    FGETS(sLine, fIn);
+    NODASHES(sLine);
+    iRead = sscanf(sLine, "%s %s %lf %lf %lf %lf %lf %lf", saStr[0], saStr[1], &dKb, &dR0,
+                   &dKpull, &dRpull0, &dKpress, &dRpress0);
+    if (iRead <= 0) {
+      break;
+    }
+    if (iRead != 8) {
+      dKpull   =   0.0;
+      dKpress  =   0.0;
+      dRpull0  = 100.0;
+      dRpress0 =   0.0;
+    }
+    MESSAGE(( "Read: %s\n", sLine ));
+    iParmSetAddBond(psParms, saStr[0], saStr[1], dKb, dR0, dKpull, dRpull0, dKpress, dRpress0,
+                    "");
+  }
+}
 
 /*
  *      zAmberReadParmSetAngles
@@ -379,35 +388,37 @@ zAmberReadParmSetCMAP( VARARRAY *vaFoo, FILE *fIn )
                     cmap->residx[3]= 0;
                     cmap->residx[4]= 1;
 
-                    cmap->nresidx[0]= 0;
-                    cmap->nresidx[1]= 0;
-                    cmap->nresidx[2]= 0;
-                    cmap->nresidx[3]= 0;
-                    cmap->nresidx[4]= 1;
+                    // In ff18SB,there's no CMAP that should be applied to termini residues. This can be reactivated in the future when there're CMAPs trained for termini resiudes.
+                    //cmap->nresidx[0]= 0;
+                    //cmap->nresidx[1]= 0;
+                    //cmap->nresidx[2]= 0;
+                    //cmap->nresidx[3]= 0;
+                    //cmap->nresidx[4]= 1;
 
-                    cmap->cresidx[0]=-1;
-                    cmap->cresidx[1]= 0;
-                    cmap->cresidx[2]= 0;
-                    cmap->cresidx[3]= 0;
-                    cmap->cresidx[4]= 0;
+                    //cmap->cresidx[0]=-1;
+                    //cmap->cresidx[1]= 0;
+                    //cmap->cresidx[2]= 0;
+                    //cmap->cresidx[3]= 0;
+                    //cmap->cresidx[4]= 0;
 
                     strcpy(cmap->atmname[0],"C");
                     strcpy(cmap->atmname[1],"N");
                     strcpy(cmap->atmname[2],"CA");
                     strcpy(cmap->atmname[3],"C");
                     strcpy(cmap->atmname[4],"N");
+                     
+                    // In ff18SB,there's no CMAP that should be applied to termini residues. This can be reactivated in the future when there're CMAPs trained for termini resiudes.
+                    //strcpy(cmap->natmname[0],"H1");
+                    //strcpy(cmap->natmname[1],"N");
+                    //strcpy(cmap->natmname[2],"CA");
+                    //strcpy(cmap->natmname[3],"C");
+                    //strcpy(cmap->natmname[4],"N");
 
-                    strcpy(cmap->natmname[0],"H1");
-                    strcpy(cmap->natmname[1],"N");
-                    strcpy(cmap->natmname[2],"CA");
-                    strcpy(cmap->natmname[3],"C");
-                    strcpy(cmap->natmname[4],"N");
-
-                    strcpy(cmap->catmname[0],"C");
-                    strcpy(cmap->catmname[1],"N");
-                    strcpy(cmap->catmname[2],"CA");
-                    strcpy(cmap->catmname[3],"C");
-                    strcpy(cmap->catmname[4],"OXT");
+                    //strcpy(cmap->catmname[0],"C");
+                    //strcpy(cmap->catmname[1],"N");
+                    //strcpy(cmap->catmname[2],"CA");
+                    //strcpy(cmap->catmname[3],"C");
+                    //strcpy(cmap->catmname[4],"OXT");
 
                     cmap->termmap = 1; // assume applicable to terminal residues by default
 
@@ -654,8 +665,8 @@ BOOL            bPrintLine;
          *      led to wrong values (e.g. IDIVF offset)
          */
         bPrintLine = FALSE;
-        if ( dKp <= 0.0 ) {
-            VPWARN(( "Expected Improper Torsion PK>0 (%f)\n", dKp ));
+        if ( dKp < 0.0 ) {
+            VPWARN(( "Expected Improper Torsion PK>=0 (%f)\n", dKp ));
             bPrintLine = TRUE;
         }
         if ( dP0 < 179.999  ||  dP0 > 180.001 ) {
