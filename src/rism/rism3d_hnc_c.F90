@@ -74,37 +74,41 @@
 !!!   huv  : site-site total correlation function
 !!!   cuv  : site-site direct correlation function
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    function rism3d_hnc_excessChemicalPotential(this, huv, cuv) result(excessChemicalPotential)
-      implicit none
-      type(rism3d_hnc), intent(in) :: this
-      _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
-      _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
-      _REAL_ :: tuv
-      integer :: ix, iy, iz, iv, ig, igk
-      excessChemicalPotential = 0.d0
-      do iv=1,this%pot%solvent%numAtomTypes
-         do iz=1,this%grid%localDimsR(3)
-            do iy=1,this%grid%localDimsR(2)
-               do ix=1,this%grid%localDimsR(1)
-                  ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                       (iz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
+  function rism3d_hnc_excessChemicalPotential(this, huv, cuv) result(excessChemicalPotential)
+    implicit none
+    type(rism3d_hnc), intent(in) :: this
+    _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
+    _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
+    _REAL_ :: tuv, phineut
+    integer :: ix, iy, iz, iv, ig, igk
+    excessChemicalPotential = 0.d0
+!$omp parallel do private (iv,iz,iy,ix,ig,igk,tuv,phineut) &
+!$omp&   num_threads(this%pot%solvent%numAtomTypes)
+    do iv=1,this%pot%solvent%numAtomTypes
+       phineut = this%pot%phineutv(iv)/2.0
+       do iz=1,this%grid%localDimsR(3)
+          do iy=1,this%grid%localDimsR(2)
+             do ix=1,this%grid%localDimsR(1)
+                ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
+                     (iz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
 #if defined(MPI)
-                  igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
-                      (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
+                igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
+                   (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
 #else
-                  igk = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                       (iz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
+                igk = ix + (iy - 1) * this%grid%localDimsR(1) + &
+                    (iz - 1) * this%grid%localDimsR(2) * this%grid%localDimsR(1)
 #endif /*defined(MPI)*/
-                  tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
-                  excessChemicalPotential(iv) = excessChemicalPotential(iv) + &
-                       0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)
-               end do
-            end do
-         end do
-         excessChemicalPotential(iv) =  this%pot%solvent%density(iv)&
-              *excessChemicalPotential(iv)*this%grid%voxelVolume
-      enddo
-    end function rism3d_hnc_excessChemicalPotential
+                tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
+                excessChemicalPotential(iv) = excessChemicalPotential(iv) + &
+                     0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)*(1.d0 - phineut)
+             end do
+          end do
+       end do
+       excessChemicalPotential(iv) =  this%pot%solvent%density(iv)&
+            *excessChemicalPotential(iv)*this%grid%voxelVolume
+    enddo
+!$omp end parallel do
+  end function rism3d_hnc_excessChemicalPotential
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!Frees memory and resets the HNC closure

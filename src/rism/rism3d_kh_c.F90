@@ -48,13 +48,13 @@ contains
     do iz = 1, this%grid%localDimsR(3)
        do iy = 1, this%grid%localDimsR(2)
           do ix = 1, this%grid%localDimsR(1)
-#if defined(MPI)
+#ifdef MPI
              ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
                  (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
 #else
              ig = ix + (iy-1)*this%grid%localDimsR(1) + &
                  (iz-1)*this%grid%localDimsR(1)*this%grid%localDimsR(2)
-#endif /*defined(MPI)*/
+#endif
              do iv = 1,this%pot%solvent%numAtomTypes
                 exponent = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
                 if (exponent >= 0d0) then
@@ -91,13 +91,13 @@ contains
        do iz=1,this%grid%localDimsR(3)
           do iy=1,this%grid%localDimsR(2)
              do ix=1,this%grid%localDimsR(1)
-#if defined(MPI)
+#ifdef MPI
                 igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
                    (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
 #else
                 igk = ix + (iy-1)*this%grid%localDimsR(1) + &
                     (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
-#endif /*defined(MPI)*/
+#endif
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 if (huv(igk,iv) > 0d0) then
                    excessChemicalPotential(iv) = excessChemicalPotential(iv) &

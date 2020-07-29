@@ -67,44 +67,45 @@
 !!!   huv  : site-site total correlation function
 !!!   cuv  : site-site direct correlation function
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine rism3d_psen_guv(this,guv, huv, cuv)
-      implicit none
-      type(rism3d_psen), intent(in) :: this
-      _REAL_, intent(out) :: guv(:,:)
-      _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
-      integer :: i, iv, ir, ix, iy, iz, ig
-      _REAL_ :: tuv, orderfac
+  subroutine rism3d_psen_guv(this,guv, huv, cuv)
+    implicit none
+    type(rism3d_psen), intent(in) :: this
+    _REAL_, intent(out) :: guv(:,:)
+    _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
+    integer :: i, iv, ir, ix, iy, iz, ig
+    _REAL_ :: tuv, orderfac
 
 !$omp parallel do private(iv,ix,iy,iz,ig,orderfac,tuv)  &
 !$omp&        num_threads(this%pot%solvent%numAtomTypes)
-      do iv = 1,this%pot%solvent%numAtomTypes
-         do iz = 1, this%grid%localDimsR(3)
-            do iy = 1, this%grid%localDimsR(2)
-               do ix = 1, this%grid%localDimsR(1)
-#if defined(MPI)
-                  ig = ix + (iy - 1) * (this%grid%localDimsR(1) + 2) &
-                       + (iz - 1) * (this%grid%localDimsR(1) + 2) * this%grid%localDimsR(2)
+    do iv = 1,this%pot%solvent%numAtomTypes
+       do iz = 1, this%grid%localDimsR(3)
+          do iy = 1, this%grid%localDimsR(2)
+             do ix = 1, this%grid%localDimsR(1)
+#ifdef MPI
+                ig = ix + (iy - 1) * (this%grid%localDimsR(1) + 2) &
+                     + (iz - 1) * (this%grid%localDimsR(1) + 2) &
+                                * this%grid%localDimsR(2)
 #else
-                  ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                       (iz - 1) * this%grid%localDimsR(1) * this%grid%localDimsR(2)
-#endif /*defined(MPI)*/
-                  tuv = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
-                  if(tuv >= 0d0)then
-                     guv(ig,iv) = 1d0
-                     orderfac = 1d0
-                     do i=1,this%order
-                        orderfac = orderfac*i
-                        guv(ig,iv) = guv(ig,iv) + (tuv**i)/orderfac
-                     end do
-                  else
-                     guv(ig,iv) = exp(tuv)
-                  endif
-               end do
-            end do
-         end do
-      end do
+                ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
+                    (iz - 1) * this%grid%localDimsR(1) * this%grid%localDimsR(2)
+#endif
+                tuv = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
+                if(tuv >= 0d0)then
+                   guv(ig,iv) = 1d0
+                   orderfac = 1d0
+                   do i=1,this%order
+                      orderfac = orderfac*i
+                      guv(ig,iv) = guv(ig,iv) + (tuv**i)/orderfac
+                   end do
+                else
+                   guv(ig,iv) = exp(tuv)
+                endif
+             end do
+          end do
+       end do
+    end do
 !$omp end parallel do
-    end subroutine rism3d_psen_guv
+  end subroutine rism3d_psen_guv
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!Calculates the excess chemical potential in kT for each site
@@ -113,36 +114,44 @@
 !!!   huv  : site-site total correlation function
 !!!   cuv  : site-site direct correlation function
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    function rism3d_psen_excessChemicalPotential(this, huv, cuv) result(excessChemicalPotential)
-      implicit none
-      type(rism3d_psen), intent(in) :: this
-      _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
-      _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
-      _REAL_ :: tuv, tsuv
-      integer :: ix, iy, iz, iv, igk
-      excessChemicalPotential = 0.d0
-      do iv=1,this%pot%solvent%numAtomTypes
-         do iz=1,this%grid%localDimsR(3)
-            do iy=1,this%grid%localDimsR(2)
-               do ix=1,this%grid%localDimsR(1)
-#if defined(MPI)
-                  igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) + (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
+  function rism3d_psen_excessChemicalPotential(this, huv, cuv) result(excessChemicalPotential)
+    implicit none
+    type(rism3d_psen), intent(in) :: this
+    _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
+    _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
+    _REAL_ :: tuv, tsuv, phineut
+    integer :: ix, iy, iz, iv, igk
+    excessChemicalPotential = 0.d0
+!$omp parallel do private (iv,iz,iy,ix,igk,tuv,phineut,tsuv) &
+!$omp&   num_threads(this%pot%solvent%numAtomTypes)
+    do iv=1,this%pot%solvent%numAtomTypes
+       phineut = this%pot%phineutv(iv)/2.0
+       do iz=1,this%grid%localDimsR(3)
+          do iy=1,this%grid%localDimsR(2)
+             do ix=1,this%grid%localDimsR(1)
+#ifdef MPI
+                igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) &
+                   + (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
 #else
-                  igk = ix + (iy-1)*this%grid%localDimsR(1) + (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
-#endif /*defined(MPI)*/
-                  tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
-                  excessChemicalPotential(iv) = excessChemicalPotential(iv) + 0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)
-                  if (huv(igk,iv) > 0d0)  then
-                     tsuv = tuv - this%pot%uuv(ix,iy,iz,iv)
-                     excessChemicalPotential(iv) = excessChemicalPotential(iv) - tsuv**(this%order1)/this%order1fac
-                  endif
-               end do
-            end do
-         end do
-         excessChemicalPotential(iv) =  this%pot%solvent%density(iv)*&
-              excessChemicalPotential(iv)*this%grid%voxelVolume
-      enddo
-    end function rism3d_psen_excessChemicalPotential
+                igk = ix + (iy-1)*this%grid%localDimsR(1) &
+                   + (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
+#endif
+                tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
+                excessChemicalPotential(iv) = excessChemicalPotential(iv) &
+                  + 0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)*(1.d0 - phineut)
+                if (huv(igk,iv) > 0d0)  then
+                   tsuv = tuv - this%pot%uuv(ix,iy,iz,iv)
+                   excessChemicalPotential(iv) = excessChemicalPotential(iv) &
+                       - tsuv**(this%order1)/this%order1fac
+                endif
+             end do
+          end do
+       end do
+       excessChemicalPotential(iv) =  this%pot%solvent%density(iv)*&
+            excessChemicalPotential(iv)*this%grid%voxelVolume
+    enddo
+!$omp end parallel do
+  end function rism3d_psen_excessChemicalPotential
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!Frees memory and resets the PSEN closure
