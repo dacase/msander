@@ -1691,7 +1691,7 @@ contains
     rismprm%progress         = 1
     volfmt                   = 'dx'
     rismprm%selftest         = .false.
-    rismprm%phineut          = .false.
+    rismprm%phineut          = .true.
 
     ! molecular reconstruction
     rismprm%molReconstruct = .false.
