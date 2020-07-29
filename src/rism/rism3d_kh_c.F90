@@ -87,7 +87,7 @@ contains
 !$omp parallel do private (iv,iz,iy,ix,igk,tuv,phineut) &
 !$omp&   num_threads(this%pot%solvent%numAtomTypes)
     do iv=1,this%pot%solvent%numAtomTypes
-       phineut = this%pot%phineutv(iv)/2.0
+       phineut = 1.d0 - this%pot%phineutv(iv)/2.d0
        do iz=1,this%grid%localDimsR(3)
           do iy=1,this%grid%localDimsR(2)
              do ix=1,this%grid%localDimsR(1)
@@ -101,11 +101,10 @@ contains
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 if (huv(igk,iv) > 0d0) then
                    excessChemicalPotential(iv) = excessChemicalPotential(iv) &
-                        - (1.d0 - phineut + 0.5d0 * huv(igk,iv)) * cuv(ix,iy,iz,iv)
+                        - (phineut + 0.5d0*huv(igk,iv)) * cuv(ix,iy,iz,iv)
                 else
                    excessChemicalPotential(iv) = excessChemicalPotential(iv) &
-                        + 0.5d0 * huv(igk,iv) * tuv &
-                        - (1.d0 - phineut) * cuv(ix,iy,iz,iv)
+                        + 0.5d0*huv(igk,iv)*tuv - phineut*cuv(ix,iy,iz,iv)
                 end if
 
              end do
