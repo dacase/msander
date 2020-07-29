@@ -183,6 +183,8 @@ contains
     integer :: ix, iy, iz, ierr
     character(len=30) :: filename
     integer :: iu 
+    logical, save :: first = .true.
+
     ! Ensure a grid size has been set.
     if (.not. associated(this%grid%waveVectors)) then
        call rism_report_error("rism3d_potential_calc: grid size not set")
@@ -210,8 +212,8 @@ contains
     call uvLJrEwaldMinImage(this, this%uuv)
     call timer_stop(TIME_ULJUV)
 
-    ! TODO: this routine should only need to be called once at the beginning:
-    if( phineut ) call getnojellywt(this)
+    if( phineut .and. first ) call getnojellywt(this)
+    first = .false.
 
   end subroutine rism3d_potential_calc
 
@@ -882,6 +884,7 @@ contains
                this%solvent%atomName(iv) /= "H1") then
                this%phineutv(iv)=this%solvent%charge(iv) * q1
            end if
+           write(6,'(a,i3,e12.5)') '| Setting phineut: ', iv, this%phineutv(iv)
 
         end do
     end if
