@@ -280,13 +280,9 @@ module amber_rism_interface
      !> Coefficients for the temperature dependent universal correction.
      !! a,b,a1,b1
      _REAL_ :: uccoeff(4)
-     !> Uniform bias applied to the electrostic potential.
-     _REAL_ :: biasPotential
-
      !> Charge smearing parameter for long-range asymtotics and Ewald,
      !! typically eta in the literature
      _REAL_ :: chargeSmear
-     
      !> For backwards compatibility, we still need to read this.
      integer :: closureOrder
      !> Number of grid points in each dimension.
@@ -629,8 +625,6 @@ contains
                'progress'//whtspc, rismprm%progress
           write(outunit, '(5x, a14, "=", f6.3)') &
                'chargeSmear'//whtspc, rismprm%chargeSmear
-          write(outunit, '(5x, a10, "=", f10.5)') &
-               'biasPotential'//whtspc, rismprm%biasPotential
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        end if
        call flush(outunit)
@@ -682,20 +676,22 @@ contains
     call rism3d_destroy(rism_3d)
     if (rismprm%buffer >= 0) then
        call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
-            closurelist, rismprm%solvcut, &
-            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%chargeSmear, &
-            o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
-            o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions, &
-            o_biasPotential=rismprm%biasPotential)
+          closurelist, rismprm%solvcut, &
+          rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
+          rismprm%mdiis_restart, &
+          rismprm%chargeSmear, &
+          o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
+          o_periodic=periodicPotential,&
+          o_unitCellDimensions=unitCellDimensions)
     else
        call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
-            closurelist, rismprm%solvcut, &
-            rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, rismprm%mdiis_restart, &
-            rismprm%chargeSmear, &
-            o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
-            o_periodic=periodicPotential, o_unitCellDimensions=unitCellDimensions,&
-            o_biasPotential=rismprm%biasPotential)
+          closurelist, rismprm%solvcut, &
+          rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
+          rismprm%mdiis_restart, &
+          rismprm%chargeSmear, &
+          o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
+          o_periodic=periodicPotential, &
+          o_unitCellDimensions=unitCellDimensions)
     end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
 
@@ -1524,9 +1520,6 @@ contains
        call mpi_bcast(rismprm%pcplusCorrection, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast pcplusCorrection")
-       call mpi_bcast(rismprm%biasPotential, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast BIASPOTENTIAL")
        call mpi_bcast(rismprm%maxstep, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MAXSTEP")
@@ -1648,7 +1641,6 @@ contains
     closurelist(1)            = 'KH'
     rismprm%closureOrder      = 1
     rismprm%uccoeff           = 0d0
-    rismprm%biasPotential     = 0
     rismprm%polarDecomp       = 0
     rismprm%entropicDecomp    = 0
     rismprm%gfCorrection     = 0
@@ -1716,7 +1708,6 @@ contains
     integer :: pcplusCorrection
     character(len=8) :: periodic
     _REAL_ :: uccoeff(size(rismprm%uccoeff))
-    _REAL_ :: biasPotential
     _REAL_ :: solvcut
     _REAL_ :: buffer
     _REAL_ :: grdspc(3)
@@ -1741,7 +1732,7 @@ contains
     _REAL_ :: chargeSmear
     integer :: write_thermo
     namelist /rism/ &
-         closure, closureOrder, biasPotential, periodic, &
+         closure, closureOrder, periodic, &
          grdspc, solvcut, ng3, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
          mdiis_restart, maxstep, npropagate, zerofrc, &
@@ -1761,7 +1752,6 @@ contains
     pcplusCorrection = rismprm%pcplusCorrection
     periodic = periodicPotential
     uccoeff = rismprm%uccoeff
-    biasPotential = rismprm%biasPotential
     solvcut = rismprm%solvcut
     buffer = rismprm%buffer
     grdspc= rismprm%grdspc
@@ -1802,7 +1792,6 @@ contains
     rismprm%pcplusCorrection = pcplusCorrection
     periodicPotential = periodic
     rismprm%uccoeff = uccoeff
-    rismprm%biasPotential = biasPotential
     ! Solvation box.
     rismprm%buffer=buffer
     rismprm%grdspc=grdspc

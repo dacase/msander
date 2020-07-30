@@ -246,7 +246,7 @@ contains
   subroutine rism3d_new(this, solute, solvent, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
        chargeSmear, o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
-       o_periodic, o_unitCellDimensions, o_biasPotential)
+       o_periodic, o_unitCellDimensions)
     use rism3d_solute_c
     use rism3d_solvent_c
     use safemem
@@ -268,7 +268,6 @@ contains
     integer, optional, intent(in) :: o_mpicomm
     character(len = *), optional, intent(in) :: o_periodic
     _REAL_, optional, intent(in) :: o_unitCellDimensions(6)
-    _REAL_, optional, intent(in) :: o_biasPotential
     _REAL_, intent(in) :: chargeSmear
     ! temporary copies
     character(len = len(closure)), pointer :: t_closure(:)
@@ -407,8 +406,7 @@ contains
     call rism3d_grid_new(this%grid, this%mpicomm)
     call rism3d_setmdiis(this, t_mdiis_nvec, t_mdiis_del, t_mdiis_method, t_mdiis_restart)
     call rism3d_potential_new(this%potential, this%grid, this%solvent, this%solute, 0d0, &
-         this%fft, this%periodicPotential, o_biasPotential,&
-         chargeSmear)
+         this%fft, this%periodicPotential, chargeSmear)
 
 #ifdef MPI
     call mdiis_new_mpi(this%mdiis_o, this%mdiis_method, &

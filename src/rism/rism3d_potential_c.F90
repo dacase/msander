@@ -82,12 +82,9 @@ module rism3d_potential_c
      !!   'pme'   = Particle Mesh Ewald potential
      character(len=256) :: periodicPotential = ''
 
-     !> User specified uniform potential bias.  Currently only used
-     !! for periodic solute. Applied equally to all solvent
-     !! sites.
-     _REAL_ :: biasPotential
+     !> "Shifting" potential to generate a neutral cell if the
+     !! solute is charged.
      _REAL_ :: phineutv(10) = 0.d0
-     ! potential energy
      
      !> Charge smearing parameter for long-range
      !! asymtotics and Ewald, typically eta in the literature
@@ -113,12 +110,10 @@ contains
   !! @param[in] cut Cutoff.
   !! @param[in] fft Fast Fourier Transform object.
   !! @param[in] periodic True when calculating potentials for periodic solute.
-  !! @param[in] biasPotential Uniform bias to the electrostatic potential (Coulomb or Ewald sum).
   !! @param[in] chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
-  subroutine rism3d_potential_new(this, grid, solv, solu, cut, fft, periodicPotential, &
-       biasPotential,&
-       chargeSmear)
+  subroutine rism3d_potential_new(this, grid, solv, solu, cut, fft, &
+       periodicPotential, chargeSmear)
     implicit none
     type(rism3d_potential), intent(inout) :: this
     type(rism3d_grid), target, intent(in) :: grid
@@ -127,7 +122,6 @@ contains
     _REAL_, intent(in):: cut
     type(rism3d_fft), target, intent(in) :: fft
     character(len=*), intent(in) :: periodicPotential
-    _REAL_, intent(in) :: biasPotential
     _REAL_, intent(in) :: chargeSmear
     this%grid => grid
     this%solvent => solv
@@ -137,7 +131,6 @@ contains
     if (this%periodicPotential /= '') then
        this%periodic = .true.
     end if
-    this%biasPotential = biasPotential
     this%chargeSmear = chargeSmear
     this%ljCutoffs2 => safemem_realloc(this%ljCutoffs2, this%solute%numAtoms, this%solvent%numAtomTypes, .false.)
     this%ljSigmaUV => safemem_realloc(this%ljSigmaUV, this%solute%numAtoms, this%solvent%numAtomTypes, .false.)
@@ -753,7 +746,6 @@ contains
 
     chargeCorrection = - pi * (this%solute%totalCharge/this%grid%boxVolume) &
             * zeta
-    ! write (6,*) "PME charge correction: ", chargeCorrection, " with biasPotential: ", this%biasPotential
     do igz = 0, local_N - 1
        do igy = 0, M - 1
           do igx = 0, L - 1
