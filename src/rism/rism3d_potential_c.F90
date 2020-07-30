@@ -86,7 +86,7 @@ module rism3d_potential_c
      !! for periodic solute. Applied equally to all solvent
      !! sites.
      _REAL_ :: biasPotential
-     _REAL_ :: phineutv(10)
+     _REAL_ :: phineutv(10) = 0.d0
      ! potential energy
      
      !> Charge smearing parameter for long-range
@@ -101,7 +101,7 @@ module rism3d_potential_c
   private mixSoluteSolventLJParameters
   private uvCoulombicPotential
   private uvLennardJonesPotentialWithCutoff 
-  private getnojellywt, uvLJrEwaldMinImage, uvPMErecip
+  private getphineut, uvLJrEwaldMinImage, uvPMErecip
 contains
 
 
@@ -212,7 +212,7 @@ contains
     call uvLJrEwaldMinImage(this, this%uuv)
     call timer_stop(TIME_ULJUV)
 
-    if( phineut .and. first ) call getnojellywt(this)
+    if( phineut .and. first ) call getphineut(this)
     first = .false.
 
   end subroutine rism3d_potential_calc
@@ -857,7 +857,7 @@ contains
     end do
   end function minimumImage
 
-  subroutine getnojellywt(this)
+  subroutine getphineut(this)
     implicit none
     type(rism3d_potential), intent(inout) :: this !< potential object.
     _REAL_ :: q1
@@ -866,7 +866,8 @@ contains
     this%phineutv(1:this%solvent%numAtomTypes) =  0.0
 
     if (this%solvent%ionic .and. this%periodic .and.  &
-        (this%periodicPotential == 'pme' ) ) then
+        this%periodicPotential == 'pme' .and. &
+        this%solute%totalCharge .ne. 0.d0 ) then
         q1 = 0
         do iv = 1,this%solvent%numAtomTypes
           if (this%solvent%atomName(iv) /= "O" .and. &
@@ -884,12 +885,13 @@ contains
                this%solvent%atomName(iv) /= "H1") then
                this%phineutv(iv)=this%solvent%charge(iv) * q1
            end if
-           write(6,'(a,i3,e12.5)') '| Setting phineut: ', iv, this%phineutv(iv)
+           if( this%grid%mpirank == 0 )  &
+           write(6,'(a,i3,e14.5)') '| Setting phineut: ', iv, this%phineutv(iv)
 
         end do
     end if
     
-  end subroutine getnojellywt
+  end subroutine getphineut
 
 end module rism3d_potential_c
 
