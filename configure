@@ -73,9 +73,7 @@ for var in "$@"; do
         --intel)
             compiler="intel"
             cc="icc -fPIC"
-            mpicc="/home/case/mpich_intel/bin/mpicc"
             fc="ifort -fPIC"
-            mpif90="/home/case/mpich_intel/bin/mpif90"
             gccsys="-gcc-sys "
             optflags="-g -O3 -fast"
             flibs_arch="-lifport -lifcore -lsvml";;
@@ -117,6 +115,7 @@ if [ "$compiler" == "intel" -a "$openmp" == "yes" ]; then
 fi
 if [ "$mpi" == "yes" ]; then
   fc="$mpif90"
+  cc="$mpicc"
 fi
 
 #------------------------------------------------------------------------------
@@ -357,7 +356,7 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
     if [ ! -s "lib/libfftw3.a" ] || \
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
        [ "$openmp" == "yes" -a ! -s "lib/libfftw3_omp.a" ]; then
-       printf "\nConfiguring fftw-3.3..."
+       printf "\nConfiguring fftw-3.3 with $cc and $fc..."
 
        if [ "$openmp" == "no" ]; then
           enableomp=""
@@ -374,7 +373,7 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $enableomp $fftw_flags \
            --enable-static $enable_sse MPICC="$mpicc" \
-           CC="$cc" CFLAGS="$gccsys $optflags"  F77="$fc" FFLAGS="$optflags" \
+           CC="$cc" CFLAGS="$gccsys -O3"  F77="$fc" FFLAGS="-O3" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
