@@ -309,41 +309,6 @@ contains
 
   end subroutine rism3d_grid_setUnitCellDimensions
 
-  
-  !> Print the properties of a set of unit cell axis vectors,
-  !! including the vectors themselves, their magnitudes, and angles.
-  !! Currently only used for debugging.
-  !! @param[in] vectors Set of three unit cell axis vectors.
-  !! @param[in] vectorsLabel Text briefly describing the unit cell
-  !!                         vectors.
-  subroutine printUnitCellVectorProperties(vectors, vectorsLabel)
-    use constants_rism, only: PI
-    use rism_util, only: magnitude
-    implicit none
-    _REAL_, intent(in) :: vectors(3, 3)
-    character(len=*), intent(in) :: vectorsLabel
-    integer :: id, ie
-    
-    print *, vectorsLabel, " vectors: ", vectors(1, :)
-    print *, vectors(2, :)
-    print *, vectors(3, :)
-
-    print *, vectorsLabel, " vector magnitudes: "
-    do id = 1, 3
-       print *, magnitude(vectors(id, :))
-    end do
-
-    print *, vectorsLabel, " vector angles: "
-    do id = 1, 2
-       do ie = 2, 3
-          print *, id, ie, acos(dot_product(vectors(id, :), vectors(ie, :)) &
-               / (magnitude(vectors(id, :)) * magnitude(vectors(ie, :)))) &
-               * 180 / PI
-       end do
-    end do
-  end subroutine printUnitCellVectorProperties
-  
-
   !> Destroys a rism3d_grid object.
   !! @param[in,out] this Grid object.
   subroutine rism3d_grid_destroy(this)
