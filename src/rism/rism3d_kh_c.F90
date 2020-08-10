@@ -42,7 +42,6 @@ contains
     integer :: iv, ir, ix, iy, iz, ig 
     _REAL_ :: exponent
 
-    ig = 0
 !$omp parallel do private(iv,ix,iy,iz,ig,exponent)  &
 !$omp&        num_threads(omp_num_threads)
     do iz = 1, this%grid%localDimsR(3)
@@ -61,7 +60,7 @@ contains
                    guv(ig,iv) = 1d0 + exponent
                 else
                    guv(ig,iv) = exp(exponent)
-                end if
+                endif
              end do
           end do
        end do
@@ -96,7 +95,7 @@ contains
                    (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
 #else
                 igk = ix + (iy-1)*this%grid%localDimsR(1) + &
-                    (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
+                   (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
 #endif
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 if (huv(igk,iv) > 0d0) then

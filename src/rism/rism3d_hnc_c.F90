@@ -38,6 +38,7 @@
 !!!   cuv  : site-site direct correlation function
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism3d_hnc_guv(this,guv, huv, cuv)
+      use constants_rism, only: omp_num_threads
       implicit none
       type(rism3d_hnc), intent(in) :: this
       _REAL_, intent(out) :: guv(:,:)
@@ -46,18 +47,18 @@
       _REAL_ :: exponent
 
 !$omp parallel do private(iv,ix,iy,iz,ig,exponent)  &
-!$omp&        num_threads(this%pot%solvent%numAtomTypes)
-      do iv = 1,this%pot%solvent%numAtomTypes
-         do iz = 1, this%grid%localDimsR(3)
-            do iy = 1, this%grid%localDimsR(2)
-               do ix = 1, this%grid%localDimsR(1)
+!$omp&        num_threads(omp_num_threads)
+      do iz = 1, this%grid%localDimsR(3)
+         do iy = 1, this%grid%localDimsR(2)
+            do ix = 1, this%grid%localDimsR(1)
 #if defined(MPI)
-                  ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
-                     (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
+               ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
+                  (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
 #else
-                  ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                       (iz - 1) * this%grid%localDimsR(1) * this%grid%localDimsR(2)
+               ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
+                    (iz - 1) * this%grid%localDimsR(1) * this%grid%localDimsR(2)
 #endif /*defined(MPI)*/
+               do iv = 1,this%pot%solvent%numAtomTypes
                   exponent = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
                   guv(ig,iv) = exp(exponent)
                end do

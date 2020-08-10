@@ -68,6 +68,7 @@
 !!!   cuv  : site-site direct correlation function
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine rism3d_psen_guv(this,guv, huv, cuv)
+    use constants_rism, only: omp_num_threads
     implicit none
     type(rism3d_psen), intent(in) :: this
     _REAL_, intent(out) :: guv(:,:)
@@ -75,20 +76,19 @@
     integer :: i, iv, ir, ix, iy, iz, ig
     _REAL_ :: tuv, orderfac
 
-!$omp parallel do private(iv,ix,iy,iz,ig,orderfac,tuv)  &
-!$omp&        num_threads(this%pot%solvent%numAtomTypes)
-    do iv = 1,this%pot%solvent%numAtomTypes
-       do iz = 1, this%grid%localDimsR(3)
-          do iy = 1, this%grid%localDimsR(2)
-             do ix = 1, this%grid%localDimsR(1)
+!$omp parallel do private(iv,ix,iy,iz,ig,i,orderfac,tuv)  &
+!$omp&        num_threads(omp_num_threads)
+    do iz = 1, this%grid%localDimsR(3)
+       do iy = 1, this%grid%localDimsR(2)
+          do ix = 1, this%grid%localDimsR(1)
 #ifdef MPI
-                ig = ix + (iy - 1) * (this%grid%localDimsR(1) + 2) &
-                     + (iz - 1) * (this%grid%localDimsR(1) + 2) &
-                                * this%grid%localDimsR(2)
+             ig = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
+                 (iz-1)*(this%grid%localDimsR(1)+2)*this%grid%localDimsR(2)
 #else
-                ig = ix + (iy - 1) * this%grid%localDimsR(1) + &
-                    (iz - 1) * this%grid%localDimsR(1) * this%grid%localDimsR(2)
+             ig = ix + (iy-1)*this%grid%localDimsR(1) + &
+                 (iz-1)*this%grid%localDimsR(1)*this%grid%localDimsR(2)
 #endif
+             do iv = 1,this%pot%solvent%numAtomTypes
                 tuv = -this%pot%uuv(ix,iy,iz,iv) + huv(ig,iv) - cuv(ix,iy,iz,iv)
                 if(tuv >= 0d0)then
                    guv(ig,iv) = 1d0
@@ -130,11 +130,11 @@
           do iy=1,this%grid%localDimsR(2)
              do ix=1,this%grid%localDimsR(1)
 #ifdef MPI
-                igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) &
-                   + (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
+                igk = ix + (iy-1)*(this%grid%localDimsR(1)+2) + &
+                   (iz-1)*this%grid%localDimsR(2)*(this%grid%localDimsR(1)+2)
 #else
-                igk = ix + (iy-1)*this%grid%localDimsR(1) &
-                   + (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
+                igk = ix + (iy-1)*this%grid%localDimsR(1) + &
+                   (iz-1)*this%grid%localDimsR(2)*this%grid%localDimsR(1)
 #endif
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 excessChemicalPotential(iv) = excessChemicalPotential(iv) &
