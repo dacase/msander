@@ -79,7 +79,8 @@ contains
       ! some basic input checks:
 
       inerr = 0
-      if( target /= 'ls' .and. target /= 'ml' .and. target /= 'vls' ) then
+      if( target /= 'ls' .and. target /= 'ml' .and. target /= 'vls' &
+           .and. target /= 'wls' ) then
          write( 6, '(a,a)' ) 'Bad value for target: ', target
          inerr = 1
       end if
@@ -518,8 +519,8 @@ contains
       endif
 
       !  each line contains h,k,l two reals, and an r-free flag
-      !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
-      !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
+      !  if target /= "vls"  reals are Fobs, sigFobs (for diffraction)
+      !  if target == "vls", reals are Fobs, phiFobs (for cryoEM)
 
       if( has_f_solvent > 0 ) then
          do i = 1,num_hkl
@@ -540,7 +541,9 @@ contains
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
-      if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
+      ! 'ls' is an unweighted least-squares target; use 'wls' for
+      !    weighted least-squares
+      if( target(1:2) == 'ls' .or. target == 'vls' ) f_weight(:) = 1.0_rk_
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
