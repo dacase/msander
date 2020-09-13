@@ -300,7 +300,7 @@ contains
 
       if( bulk_solvent_model == 'none' ) return
 
-      if (has_f_solvent == 0 .and. mod(nstep, mask_update_frequency) == 0) then
+      if (.not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
          call grid_bulk_solvent(num_atoms, crd)
          call shrink_bulk_solvent()
          call fft_bs_mask()

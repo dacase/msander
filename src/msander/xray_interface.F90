@@ -39,6 +39,7 @@ module xray_interface_module
          solvent_mask_expand, &
          solvent_mask_outfile, &
          solvent_mask_reflection_outfile, &
+         user_fmask, &
          fft_method, &
          fft_grid_size, &
          fft_grid_spacing, &
@@ -499,7 +500,7 @@ contains
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
-      read(hkl_lun,*,end=1,err=1) num_hkl, has_f_solvent
+      read(hkl_lun,*,end=1,err=1) num_hkl
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             mSS4(num_hkl),test_flag(num_hkl),d_star_sq(num_hkl), &
@@ -507,7 +508,7 @@ contains
             stat=alloc_status)
       REQUIRE(alloc_status==0)
 
-      if (has_f_solvent > 0 ) then
+      if ( user_fmask ) then
          allocate(f_solvent(num_hkl), stat=alloc_status)
          REQUIRE(alloc_status==0)
       endif
@@ -522,7 +523,7 @@ contains
       !  if target /= "vls"  reals are Fobs, sigFobs (for diffraction)
       !  if target == "vls", reals are Fobs, phiFobs (for cryoEM)
 
-      if( has_f_solvent > 0 ) then
+      if( user_fmask ) then
          do i = 1,num_hkl
             read(hkl_lun,*,end=1,err=1) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
@@ -585,7 +586,7 @@ contains
          endif
          call init_bulk_solvent(resolution_high)
       endif
-      if( has_f_solvent > 0 ) then
+      if( user_fmask ) then
          if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
          deallocate( f_solvent )

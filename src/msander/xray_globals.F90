@@ -87,7 +87,7 @@ module xray_globals_module
    character(len=256) :: atom_selection_mask
 
    ! parameters describing scaling options for Fcalc:
-   logical :: inputscale = .false.
+   logical :: inputscale = .false., user_fmask = .false.
    real(real_kind) :: k_tot, b_tot
 
    !----------------------------------------------------------------------------
