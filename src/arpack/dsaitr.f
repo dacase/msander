@@ -366,7 +366,8 @@ c
          if (msglvl .gt. 2) then
             call ivout (logfil, 1, [j], ndigit, 
      &                  '_saitr: generating Arnoldi vector no.')
-            call dvout (logfil, 1, rnorm, ndigit, 
+            xtemp(1) = rnorm
+            call dvout (logfil, 1, xtemp, ndigit, 
      &                  '_saitr: B-norm of the current residual =')
          end if
 c 
