@@ -18,14 +18,17 @@
 
 #  Input variables: edit these to match your problem:
 
-pdbprefix="../PDBdata/4lzt_343uc"     # pdbfiles will be called
+pdbprefix="PDBdata/2oiu_sol"     # pdbfiles will be called
                                       # $pdbprefix.$frame.pdb
-dprefix="4lzt_343uc"                  # basename for final output files
-cell=                                 # unit cell parameters; see step 6
-title="Diffuse/Bragg for 4lzt_343uc"  # for mtz and map files
+dprefix="2oiu_sol"                  # basename for final output files
+cell="CRYST1   45.290  100.018   71.930  90.00 104.42  90.00 P 1           1\n"
+                                # should take this from the first pdb file
+title="Diffuse/Bragg for 2oiu_sol"  # for mtz and map files
 vf000=""                              # cell volume and number of electrons
 grid=""                               # grid dimensions for final map
                                       # (see step 7 for vf000 and grid)
+resolution=2.5
+resolutionm=2.45
 
 #=============================================================================
 #  1.  Run cpptraj to prepare PDB files
@@ -35,15 +38,13 @@ if false; then
 cpptraj <<EOF
 #  sample cpptraj script to create pdb snapshots for diffuse scattering analysis
 # 
-parm ../1ahoa.pdb
-reference ../md-1.x
-trajin ../md3.nc 2 last 2
-trajin ../md4.nc 2 last 2
-trajin ../md5.nc 2 last 2
-trajin ../md6.nc 2 last 2
-rms reference @C,CA,N norotate out fit.dat time 0.4
+parm prmtop
+reference md-1.x
+trajin md_res_2.nc
+trajin md_res_3.nc
+strip :1-284
 image byatom
-trajout ../PDBdata/md3-6.wat.pdb pdb multi pdbv3 keepext sg "P 1"
+trajout PDBdata/2oiu_sol.pdb pdb multi pdbv3 keepext sg "P 1"
 go
 EOF
 
@@ -60,7 +61,7 @@ if false; then
 sfall xyzin $pdbprefix.1.pdb hklout tmp.mtz memsize 10000000 <<EOF > sfall.log
 mode sfcalc xyzin
 symm P1
-reso 1.0
+reso $resolution
 NOSCALE
 end
 EOF
@@ -105,6 +106,8 @@ fi
 
 if false; then
 
+mkdir -p save_hkl
+
 #  script to add constant bfact to input snapshot PDB file:
 cat <<EOF > modify_pdb
 #!/usr/bin/perl -n
@@ -136,8 +139,7 @@ printf
         \$x,\$y,\$z, \$occ, \$bfact, \$element, \$charge;
 
 } elsif ( \$_ =~ /^CRYST1/) {   # make sure we have a common record
-    print
-    "CRYST1  190.680  223.090  239.610  88.52 108.53 111.89 P 1           1\n";
+    print "$cell";
 } else {
    print;
 }
@@ -204,7 +206,7 @@ gcc -std=gnu99  -o mtz2fcphic mtz2fcphic.c
 
 #  Loop over input files:
 
-for frame in `seq 1102 1 1250`; do
+for frame in {1..750}; do
 
 #  set all b-factors to 15:
 ./modify_pdb < ${pdbprefix}.$frame.pdb > $frame.pdb
@@ -214,9 +216,8 @@ sfall xyzin $frame.pdb hklin frame1.mtz hklout $frame.pdb.mtz \
      memsize 10000000 <<EOF > $frame.sfall2.log
 mode sfcalc xyzin hklin
 symm P1
-RESOLUTION 0.95
+RESOLUTION $resolutionm
 NOSCALE
-VDWR 3.0
 end
 EOF
 
@@ -241,6 +242,7 @@ if false; then
 cat <<EOF > diffuse1.c
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <math.h>
 
@@ -252,7 +254,7 @@ int main( int argc, char** argv )
 {
 
    int head_loc;   // location in MTZ file of header
-   char head_string[200];
+   char head_string[4000];
    int ncol, nrec, nbatch, nread, nwrite;
    int *h, *k, *l;
    char filename[250];
@@ -268,11 +270,13 @@ int main( int argc, char** argv )
    fseek( ref, 4, SEEK_SET );
    fread( &head_loc, sizeof(head_loc), 1, ref );
 
-   fseek( ref, 4*head_loc + 160, SEEK_SET );
-   fread( head_string, 1, 49, ref );
-   head_string[49] = '\0';
-   sscanf( head_string, "%d %d %d", &ncol, &nrec, &nbatch );
-   fprintf( stderr, "%s: %d %d\n", argv[4], ncol, nrec );
+   fseek( ref, 4*head_loc, SEEK_SET );
+   nread = fread( head_string, 1, 3999, ref );
+   head_string[nread] = '\0';
+   // fprintf( stderr, "|%s|\n", head_string );
+   char* buf = strstr( head_string, "NCOL" );  assert( buf );
+   sscanf( buf+4, "%d %d %d", &ncol, &nrec, &nbatch );
+   // fprintf( stderr, "ncol, nrec, nbatch: %d,%d,%d\n", ncol, nrec, nbatch );
 
    h = malloc( sizeof(int) * nrec );
    k = malloc( sizeof(int) * nrec );
@@ -353,7 +357,7 @@ EOF
 
 gcc -std=gnu99  -O3 -o diffuse1 diffuse1.c
 
-./diffuse1 1 1250 1 frame1.mtz  > $dprefix.1.ihklb
+./diffuse1 1 750 1 frame1.mtz  > $dprefix.1.ihklb
 
 /bin/rm -f diffuse1 diffuse1.c
 
@@ -362,7 +366,7 @@ fi
 #=============================================================================
 #  5.  combine (if needed) several intermediate .ihkl files into a total:
 
-if false; then
+if true; then
 
 cat <<EOF > diffuse2.c
 #include <stdlib.h>
@@ -439,7 +443,7 @@ int main( int argc, char** argv )
 
    //  dump averages to formatted file:
 
-#if 0
+#if 1
    printf( "h\tk\tl\tq\tIdiff\tIBragg\tfav\tphiav\n" );
    printf( "4N\t4N\t4N\t10N\t15N\t15N\t12N\t12N\n" );
 #else
