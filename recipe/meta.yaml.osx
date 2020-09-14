@@ -10,9 +10,30 @@ build:
 
 requirements:
   build:
-#   - {{ compiler('fortran') }}
-#   - {{ compiler('c') }}
-#   - {{ compiler('cxx') }}
+   - {{ compiler('fortran') }}
+   - {{ compiler('c') }}
+#  - {{ compiler('cxx') }}
+   - make
+   - python
+
+host:
+   - python
+   - bzip2
+   - zlib
+#  - libnetcdf
+#  - netcdf-fortran
+#  - libblas
+#  - liblapack
+#  - arpack
+#  - fftw
+
+run:
+   - python
+#  - libnetcdf
+#  - netcdf-fortran
+#  - fftw
+#  - libblas
+#  - liblapack
 
 about:
     home: https://www.phenix-online.org/documentation/reference/amber.html
