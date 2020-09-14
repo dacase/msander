@@ -26,7 +26,7 @@ flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
 gccsys=""
-optflags="-g -O3 -mtune=native"
+optflags="-g -Ofast -mtune=native"
 
 openmp='no'
 ompflag=""
@@ -373,7 +373,7 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $enableomp $fftw_flags \
            --enable-static $enable_sse MPICC="$mpicc" \
-           CC="$cc" CFLAGS="$gccsys -O3"  F77="$fc" FFLAGS="-O3" \
+           CC="$cc" CFLAGS="$gccsys $optflags"  F77="$fc" FFLAGS="$optflags" \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
@@ -481,7 +481,7 @@ PLUMED_DEPENDENCIES=Plumed.o
 #Python interpreter we are using and install options
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python2.7/site-packages
+PYTHONPATH=\$(BASEDIR)/lib/python3.8/site-packages
 PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF
@@ -513,6 +513,8 @@ else
 fi
 /bin/rm -f testp.c testp.o testp
 
+
+if [ "$conda" == "no" ]; then
 #--------------------------------------------------------------------------
 #  Test if the Fortran compiler works:
 #--------------------------------------------------------------------------
@@ -536,8 +538,7 @@ else
 	printf "OK\n"
 fi
 /bin/rm -f testp.f testp.o testp
-
-if [ "$conda" == "no" ]; then
-   printf "\nThe next step is to type 'make clean && make install'\n\n"
+printf "\nThe next step is to type 'make clean && make install'\n\n"
 fi
+
 exit 0
