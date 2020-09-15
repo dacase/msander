@@ -12,7 +12,7 @@ requirements:
   build:
    - {{ compiler('fortran') }}
    - {{ compiler('c') }}
-#  - {{ compiler('cxx') }}
+   - {{ compiler('cxx') }}
    - make
    - python
 
