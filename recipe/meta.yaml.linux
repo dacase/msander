@@ -12,6 +12,7 @@ requirements:
   build:
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
 
 about:
     home: https://www.phenix-online.org/documentation/reference/amber.html
