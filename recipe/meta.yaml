@@ -1,1 +1,44 @@
-meta.yaml.osx
+package:
+  name: amber_phenix
+  version: 1.1.0
+
+source:
+  path: ../
+  
+build:
+  number: 0
+
+requirements:
+  build:
+   - {{ compiler('fortran') }}
+   - {{ compiler('c') }}
+   - {{ compiler('cxx') }}
+   - make
+   - llvm-openmp  # [osx]
+
+  host:
+   - python
+   - setuptools
+   - bzip2
+   - zlib
+#  - libnetcdf
+#  - netcdf-fortran
+   - libblas
+   - liblapack
+#  - arpack
+#  - fftw
+   - llvm-openmp  # [osx]
+
+  run:
+   - python
+#  - libnetcdf
+#  - netcdf-fortran
+#  - fftw
+   - libblas
+   - liblapack
+   - llvm-openmp  # [osx]
+
+about:
+    home: https://www.phenix-online.org/documentation/reference/amber.html
+    license: GNU General Public License (GPL/LGPL)
+    summary: Parts of AmberTools that are needed for interaction with the phenix crystallographic refinement package.
