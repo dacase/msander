@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MSANDERHOME=`pwd`
-./configure  --conda  --no-netcdf --verbose
+./configure_conda --no-netcdf --verbose
 
 make install.ap
 make clean
