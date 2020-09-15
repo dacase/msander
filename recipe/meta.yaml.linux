@@ -1,6 +1,6 @@
 package:
   name: amber_phenix
-  version: 1.0.0
+  version: 1.1.0
 
 source:
   path: ../
@@ -13,6 +13,13 @@ requirements:
     - {{ compiler('fortran') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - flex
+    - bison
+    - make
+  host:
+#   - fftw
+  run:
+#   - fftw
 
 about:
     home: https://www.phenix-online.org/documentation/reference/amber.html
