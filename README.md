@@ -59,7 +59,7 @@ simulations
 ```
 
 # License
-This project is generally licensed under the GNU General Public License,
-version 3 (GPL v3).  Some components use different, but compatible, open
-source licenses.  See the LICENSE file for more information.
+This project is generally licensed under the GNU (Lesser) General Public 
+License, version 3 (GPL/LGPL v3).  Some components use different, but 
+compatible, open source licenses.  See the LICENSE file for more information.
 
