@@ -47,8 +47,8 @@ simulations
 
 *Conda build:
 ```
-   cd recipe && ln -s meta.yaml.{osx or linux} meta.yaml
-   conda build recipe #configured especially to create an amber_phenix package
+   edit configure_conda to set PYTHONPATH to match the python you will use
+   conda build -c conda-forge --python 2.7 recipe 
 ```
 
 *Non-conda build:  (MacOSX, Linux)

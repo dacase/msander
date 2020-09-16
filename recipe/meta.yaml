@@ -23,8 +23,8 @@ requirements:
    - zlib
 #  - libnetcdf
 #  - netcdf-fortran
-   - libblas
-   - liblapack
+#  - libblas
+#  - liblapack
 #  - arpack
 #  - fftw
    - llvm-openmp  # [osx]
@@ -34,8 +34,8 @@ requirements:
 #  - libnetcdf
 #  - netcdf-fortran
 #  - fftw
-   - libblas
-   - liblapack
+#  - libblas
+#  - liblapack
    - llvm-openmp  # [osx]
 
 about:

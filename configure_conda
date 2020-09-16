@@ -163,6 +163,8 @@ fi
 #--------------------------------------------------------------------------
 
 flibs_la="-llapack -lblas"
+lapack=liblapack
+blas=libblas
 
 #--------------------------------------------------------------------------
 #  Configure and build FFTW3:
@@ -183,13 +185,12 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
        # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes"
 
-       # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
-       #   be required for Intel compilers.
        cd src/fftw-3.3 && \
            ./configure --disable-doc --prefix=$msanderhome \
            --libdir=$msanderhome/lib $enableomp $fftw_flags \
            --enable-static $enable_sse MPICC="$mpicc" \
-           CFLAGS="$gccsys $optflags"  F77="$FC" FFLAGS="$optflags" \
+           CFLAGS="$optflags -fPIC"  \
+           FFLAGS="$optflags -fPIC"  \
            FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
          ncerror=$?
        if [ $ncerror -gt 0 ]; then
@@ -258,7 +259,7 @@ BLAS=$blas
 #  (4)  C compiler
 
 # CC=$cc
-CFLAGS=$bintraj
+CFLAGS=$bintraj -fPIC
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -267,7 +268,7 @@ COPTFLAGS=$optflags
 #  (5)  Fortran compiler
 
 # FC=$fc
-FFLAGS=$bintraj $inc $ompflag $mpiflag
+FFLAGS=$bintraj $inc $ompflag $mpiflag -fPIC
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
