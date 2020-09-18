@@ -11,7 +11,7 @@ ciffiles=$2
 
 #============================================================================
 echo "Running phenix.AmberPrep" 
-phenix.AmberPrep $id.pdb minimise=amber_all >> $id-prep.log \
+phenix.AmberPrep $id.pdb >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
 #  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
@@ -30,7 +30,7 @@ clapp()
 EOF
 
 # next only needed for ions: how to automate?
-perl -pi -e 's/CL$/Cl-1/;s/MG$/Mg+2/;' ${id}_uc.pdb \
+perl -pi -e 's/CL  $/Cl-1/;s/MG  $/Mg+2/;' ${id}_uc.pdb \
      || { echo "  perl:  Program error"; exit 1; }
 
 /bin/rm -f ${id}_uc.parm7 foo1.parm7 foo.parm7
@@ -50,8 +50,6 @@ $MSANDERHOME/bin/add_xray -i foo1.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
      || { echo "  add_xray: Program error"; exit 1; }
 
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
-
-exit
 
 #============================================================================
 echo "Making input mtz file"
@@ -122,8 +120,10 @@ LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
 LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
 EOF
 
+ambpdb -p ${id}_uc.parm7 -c ${id}_uc.rst7 -bres > tmp_uc.pdb
+
 phenix.refine  \
-   ${id}_uc.pdb $id-P1.mtz $ciffiles \
+   tmp_uc.pdb $id-P1.mtz $ciffiles \
    refinement.main.number_of_macro_cycles=0 \
    prefix=cdl serial=2 \
    write_geo=False cdl=True --overwrite >> $id-prep.log \
@@ -141,4 +141,4 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 #============================================================================
 # clean up
 /bin/rm -f tmp* $id-sf.mtz cdl_data.mtz $id.fmtz $id-P1.fmtz parmed \
-     cdl_00* foo*.parm7 build_uc
+     cdl_00* foo*.parm7 build_uc tmp_uc.pdb 4amber_$id.prmtop
