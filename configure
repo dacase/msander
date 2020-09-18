@@ -483,7 +483,7 @@ PLUMED_DEPENDENCIES=Plumed.o
 #Python interpreter we are using and install options
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python3.7/site-packages
+PYTHONPATH=\$(BASEDIR)/lib/python3.8/site-packages
 PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF
