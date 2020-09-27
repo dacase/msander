@@ -11,6 +11,8 @@
 id=$1    # identifier for this calculation
          # inputs: $id.parm7, $id.rst7, $id.pdb
 
+xvv=$2   # xvv file to be used for 3D-RISM
+
 thresh=0.5  # threshold for including explicit waters at the centers
             # of negative Laplacian regions.  These will be in order
             # with the most probable ones first, so you can edit the
@@ -52,8 +54,8 @@ cat > mdin.rism <<EOF
  /
 EOF
 
-sander -O -i mdin.rism -o $id.kh.r3d \
-    -p $id.parm7 -c $id.rst7 -xvv cSPCE_kh.xvv -guv $id.kh
+sander -O -i mdin.rism -o $id.r3d \
+    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id
 
 /bin/rm -f mdin.rism restrt mdinfo $id.kh.H1.0.ccp4
 
@@ -61,16 +63,16 @@ fi
 
 if false; then
 #---------------------------------------------------------------------------
-# 2.  Run metatwist to to a Lapacian analysis on the oxygen distribution:
+# 2.  Run metatwist to to a Lapacian analysis on the solvent distributions:
 #---------------------------------------------------------------------------
 
-metatwist --dx guv.O.0.ccp4 --species O  \
+metatwist --dx $id.O.0.ccp4 --species O  \
      --convolve 4 --sigma 1.0 --odx $id.O.lp.ccp4 > $id.O.lp
 
-metatwist --dx guv.MG.0.ccp4 --species Mg2+  \
+metatwist --dx $id.MG.0.ccp4 --species Mg2+  \
      --convolve 4 --sigma 1.0 --odx $id.MG.lp.ccp4 > $id.MG.lp
 
-metatwist --dx guv.K+.0.ccp4 --species K+  \
+metatwist --dx $id.K+.0.ccp4 --species K+  \
      --convolve 4 --sigma 1.0 --odx $id.K+.lp.ccp4 > $id.K+.lp
 
 fi
@@ -81,17 +83,35 @@ if false; then
 # 3.  Place water molecules at the centers of the negative Laplacians:
 #---------------------------------------------------------------------------
 
-metatwist --dx $id.kh.O.0.ccp4 \
-      --ldx convolution-$id.kh.O.ccp4 --map blobsper \
+metatwist --dx $id.O.0.ccp4 \
+      --ldx convolution-$id.O.lp.ccp4 --map blobsper \
       --species O WAT --bulk 55.55 --threshold $thresh  > $id.blobs 
 
-grep -v TER $id.kh.O.0-convolution-$id.kh.O-blobs-centroid.pdb > wats.pdb
+grep -v TER $id.O.0-convolution-$id.O.lp-blobs-centroid.pdb > wats.pdb
 
 # ===== Add hydrogens using gwh
 
-sed 's/END/TER/' $id.amber.pdb > $id.wat.pdb
-gwh -p $id.parm7 -w wats.pdb < $id.amber.pdb >> $id.wat.pdb 2>> $id.blobs
+sed 's/END/TER/' $id.pdb > $id.wat.pdb
+gwh -p $id.parm7 -w wats.pdb < $id.pdb >> $id.wat.pdb 2>> $id.blobs
   
 fi
 
-#/bin/rm -f $id..kh.O.0-convolut* convolu*
+if true; then
+#---------------------------------------------------------------------------
+# 3.  Place ions at the centers of the negative Laplacians:
+#---------------------------------------------------------------------------
+
+metatwist --dx $id.MG.0.ccp4 \
+      --ldx convolution-$id.MG.lp.ccp4 --map blobsper \
+      --species MG MG --bulk 0.005 --threshold 0.7  > $id.MG.blobs.0.7
+
+grep -v TER $id.MG.0-convolution-$id.MG.lp-blobs-centroid.pdb > MG.pdb
+
+metatwist --dx $id.K+.0.ccp4 \
+      --ldx convolution-$id.K+.lp.ccp4 --map blobsper \
+      --species K K --bulk 0.100 --threshold 0.7  > $id.K+.blobs.0.7
+
+grep -v TER $id.K+.0-convolution-$id.K+.lp-blobs-centroid.pdb > K+.pdb
+
+fi
+/bin/rm -f $id.MG.0-convolut* 
