@@ -17,6 +17,7 @@ serial:
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
 	@cd sqm && $(MAKE) sqm
+	@cd moft && $(MAKE) install
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
@@ -36,6 +37,7 @@ clean:
 	-(cd leap && $(MAKE) clean )
 	-(cd antechamber && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
+	-(cd moft && $(MAKE) clean )
 	-(cd gmml && $(MAKE) clean )
 
 uninstall: clean

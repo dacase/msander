@@ -15,6 +15,7 @@ rism="-lrism"
 rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
+boost="no"
 
 compiler="gnu"
 cc="gcc -fPIC"
@@ -399,6 +400,46 @@ if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
       echo "Using the existing fftw3  libraries"
    fi
 fi
+
+#--------------------------------------------------------------------------
+#  Configure boost
+#--------------------------------------------------------------------------
+
+if [ ! -s "lib/libboost_system.a" ]; then
+
+   printf "\nConfiguring boost (may be time-consuming)..."
+   cd src/boost
+   if [ "$compiler" = 'intel' ]; then
+       ./bootstrap.sh --prefix=$msanderhome --with-toolset=intel-linux > ../boost_config.log
+       ncerror=$?
+   else
+       ./bootstrap.sh --prefix=$msanderhome > ../boost_config.log
+       ncerror=$?
+   fi
+
+   if [ $ncerror -gt 0 ]; then
+       printf "\nError: Boost bootstrap returned $ncerror\n"
+       printf "       Check src/boost_config.log\n"
+       exit 1
+   else
+       printf "OK\n"
+       printf "Compiling boost (may be time-consuming)..."
+       ./b2 --with-program_options --with-iostreams --with-regex \
+            --with-system --with-timer --with-chrono --with-filesystem \
+            --with-graph --with-thread link=static install >> ../boost_config.log
+       if [ $? -ne 0 ]; then
+          printf "\nError: Boost compile failed.\n"
+          printf "       Check src/boost_config.log\n"
+          exit 1
+       else
+          printf "OK\n"
+       fi
+   fi
+   cd ../..
+else
+   echo "Using the existing boost  libraries"
+fi
+
 
 #--------------------------------------------------------------------------
 #  create the config.h file: may differ for different subsets
