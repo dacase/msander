@@ -17,7 +17,7 @@ serial:
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
 	@cd sqm && $(MAKE) sqm
-	@cd moft && $(MAKE) install
+	@cd moft && $(MAKE) moft
 #	@cd gmml && $(MAKE) gmml
 
 parallel:

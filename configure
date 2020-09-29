@@ -19,6 +19,7 @@ boost="no"
 
 compiler="gnu"
 cc="gcc -fPIC"
+cxx="g++"
 mpicc="mpicc"
 
 fc="gfortran -fPIC"
@@ -74,6 +75,7 @@ for var in "$@"; do
         --intel)
             compiler="intel"
             cc="icc -fPIC"
+            cxx="icpc"
             fc="ifort -fPIC"
             gccsys="-gcc-sys "
             optflags="-g -O3 -fast"
@@ -485,6 +487,7 @@ BLAS=$blas
 #  (4)  C compiler
 
 CC=$cc
+CXX=$cxx
 CFLAGS=$bintraj
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
@@ -522,9 +525,11 @@ PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 
 #Python interpreter we are using and install options
+#   (need to figure out dynamically what python we have, and set PYTHONPATH
+#    accordingly.)
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python3.8/site-packages
+PYTHONPATH=\$(BASEDIR)/lib/python3.7/site-packages
 PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF

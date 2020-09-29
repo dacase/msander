@@ -20,11 +20,11 @@ HEADERS= \
 
 BOOSTLIB=-lboost_program_options -lboost_iostreams -lboost_regex -lboost_system -lboost_timer -lboost_chrono -lboost_filesystem -lboost_graph
 
-install: $(BINDIR)/metatwist
+moft: $(BINDIR)/metatwist
 
 metatwist.o:  metatwist.cpp $(HEADERS)
 	@echo "[MoFT]  CXX $<"
-	$(VB)$(CXX) $(CXXFLAGS) -c -std=c++0x -I. -I$(INCDIR) -o $@ $<
+	$(VB)$(CXX) $(CXXFLAGS) -c -std=c++0x -I. -I$(INCDIR) $(FFLAGS) -o $@ $<
 
 $(BINDIR)/metatwist:  metatwist.o
 	@echo "[MoFT]  CXX $@"
