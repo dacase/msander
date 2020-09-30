@@ -3,17 +3,8 @@
 export MSANDERHOME=`pwd`
 ./configure_conda --no-netcdf --verbose
 
-make install.ap
-make clean
-
-if false; then
-if [ `uname` == "Darwin" ]; then
-    mkdir -p lib/amber_3rd_party # to avoid overwritten by other programs
-    /Users/case/miniconda/bin/python ./recipe/copy_and_fix_gfortran.py \
-        /usr/local/gfortran/lib lib/amber_3rd_party
-    mkdir -p $PREFIX/lib
-    rsync -av lib/amber_3rd_party $PREFIX/lib
-fi
-fi
+cd src
+make -f Makefile.ap install
+cd ..
 
 rsync -av bin dat lib $PREFIX

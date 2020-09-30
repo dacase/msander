@@ -21,16 +21,16 @@ requirements:
    - setuptools
    - bzip2
    - zlib
+   - openblas
 #  - libnetcdf
 #  - netcdf-fortran
-#  - libblas
-#  - liblapack
 #  - arpack
 #  - fftw
    - llvm-openmp  # [osx]
 
   run:
    - python
+   - openblas
 #  - libnetcdf
 #  - netcdf-fortran
 #  - fftw

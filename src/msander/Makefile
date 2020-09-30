@@ -188,18 +188,18 @@ $(LIBDIR)/libsander$(SHARED_SUFFIX): libs $(APIOBJ) \
 	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  \
         $(APIOBJ) $(QMAPIOBJ) force.o \
         -L$(LIBDIR) -lsqm $(NFE_OBJECTS) $(XRAY_OBJS)  \
-        $(NETCDFLIBF) $(FLIBSF) $(PLUMED_LOAD)
+        $(NETCDFLIBF) $(LDFLAGS) $(FLIBSF) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
 $(LIBDIR)/libsanderles$(SHARED_SUFFIX): $(LESAPIOBJ) \
         $(QMAPIOBJ) $(INCDIR)/sanderles_api.mod \
         $(NFE_OBJECTS) $(XRAY_OBJS) \
         $(PLUMED_DEPENDENCIES) 
-	@echo "[MSANDER API]  FC $@"
+	@echo "[MSANDER_LES API]  FC $@"
 	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ \
         $(LESAPIOBJ) $(QMAPIOBJ) \
         $(XRAY_OBJS) -L$(LIBDIR) -lsqm $(PLUMED_LOAD) \
-        $(NFE_OBJECTS) $(NETCDFLIBF) $(FLIBSF) 
+        $(NFE_OBJECTS) $(NETCDFLIBF) $(LDFLAGS) $(FLIBSF) 
 
 $(INCDIR)/sander_api.mod: interface.o
 	$(VB)/bin/cp sander_api.mod $(INCDIR)

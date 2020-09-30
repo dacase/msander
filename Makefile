@@ -3,9 +3,6 @@
 install::
 	cd src && make install
 
-install.ap::
-	cd src && make -f Makefile.ap install
-
 test::
 	cd test && make test
 
