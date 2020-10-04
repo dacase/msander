@@ -121,6 +121,15 @@ program add_xray
    call nxtsec(infile_lun,STDOUT,0,'*','ATOM_ELEMENT',fmt,iok)
    read(infile_lun,fmt) atom_element
 
+   ! fix up ion elements to match those in scattering tables:
+   do i = 1,num_atoms
+      if( atom_element(i) == 'CA  ' ) atom_element(i) = 'Ca+2'
+      if( atom_element(i) == 'MG  ' ) atom_element(i) = 'Mg+2'
+      if( atom_element(i) == 'NA  ' ) atom_element(i) = 'Na+1'
+      if( atom_element(i) == ' K  ' ) atom_element(i) = ' K+1'
+      if( atom_element(i) == 'CL  ' ) atom_element(i) = 'Cl-1'
+   end do
+
    num_scatter_types=1
    scatter_types(1)=atom_element(1)
    do i=2,num_atoms
@@ -192,11 +201,12 @@ program add_xray
    write(outfile_lun,'(2A)') '%FORMAT',fmt
    write(outfile_lun,fmt) scatter_coefficients
    
+#if 0
    fmt='(I4)'
    write(outfile_lun,'(A)') '%FLAG XRAY_NUM_SYMMOPS'
    write(outfile_lun,'(A)') '%COMMENT INTEGER, DIMENSION(1)'
    write(outfile_lun,'(2A)') '%FORMAT',fmt
-   write(outfile_lun,fmt) num_scatter_types
+   write(outfile_lun,fmt) num_symmops
    
    fmt='(3F12.8)'
    write(outfile_lun,'(A)') '%FLAG XRAY_SYMMOPS'
@@ -205,6 +215,7 @@ program add_xray
          '%COMMENT Each symmop is a 3x3 rotation matrix and a 3x1 translation'
    write(outfile_lun,'(2A)') '%FORMAT',fmt
    write(outfile_lun,fmt) symmop(:,:,1:num_symmops)
+#endif
    
    close(outfile_lun)
    
