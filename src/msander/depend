@@ -410,6 +410,11 @@ degcnt.LES.o:   degcnt.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ degcnt.F90
 
+
+dsarpack.o:   dsarpack.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dsarpack.F90
+
 dssp.o: \
                     ../include/dprec.fh
 
@@ -3785,6 +3790,15 @@ remd.LES.o: \
 remd.LES.o:   remd.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ remd.F90
+
+resamplekin.o: \
+                    ../include/assert.fh\
+                    random.o
+
+
+resamplekin.o:   resamplekin.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ resamplekin.F90
 
 rfree.o: \
                     ../include/dprec.fh\

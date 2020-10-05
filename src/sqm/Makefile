@@ -67,7 +67,7 @@ $(BINDIR)/sqm$(SFX): $(SQMOBJ) $(QMOBJ) libs
 libs:
 	$(VB)cd ../blas && $(MAKE) $(BLAS)
 	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
-	$(VB)cd ../arpack && $(MAKE) libarpack
+	$(VB)cd ../arpack && $(MAKE) $(ARPACK)
 	$(VB)cd ../rism && $(MAKE) librism
 	$(VB)cd ../lib && $(MAKE) libsys
     

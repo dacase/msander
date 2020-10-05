@@ -156,6 +156,7 @@ fi
 flibs_la="-lopenblas"
 lapack=skip
 blas=skip
+arpack=skip
 
 #--------------------------------------------------------------------------
 #  create the config.h file: may differ for different subsets
@@ -195,6 +196,7 @@ NETCDFLIBF=$netcdflibf
 
 LAPACK=$lapack
 BLAS=$blas
+ARPACK=$arpack
 
 ###############################################################################
 
