@@ -22,16 +22,16 @@ requirements:
    - bzip2
    - zlib
    - openblas
-#  - libnetcdf
-#  - netcdf-fortran
+   - libnetcdf
+   - netcdf-fortran
    - fftw
    - llvm-openmp  # [osx]
 
   run:
    - python
    - openblas
-#  - libnetcdf
-#  - netcdf-fortran
+   - libnetcdf
+   - netcdf-fortran
    - fftw
    - llvm-openmp  # [osx]
 

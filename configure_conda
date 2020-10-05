@@ -37,7 +37,7 @@ installtype="serial"
 lapack="skip"
 blas="skip"
 inc="-I$msanderhome/include"
-netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
+netcdflibf="-lnetcdff -lnetcdf"
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
 
@@ -202,8 +202,8 @@ BLAS=$blas
 
 # CC=$cc
 # CFLAGS=$bintraj -fPIC
-CNOOPTFLAGS=-g -O0
-COPTFLAGS=$optflags
+CNOOPTFLAGS=-g -O0 $bintraj
+COPTFLAGS=$optflags $bintraj
 
 ###############################################################################
 
@@ -212,8 +212,8 @@ COPTFLAGS=$optflags
 # FC=$fc
 # FFLAGS=$bintraj $inc $ompflag $mpiflag -fPIC
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
-FNOOPTFLAGS= -O0 -g $inc $ompflag -I$PREFIX/include
-FOPTFLAGS=$optflags $inc $ompflag -I$PREFIX/include
+FNOOPTFLAGS= -O0 -g $inc $ompflag -I$PREFIX/include $bintraj
+FOPTFLAGS=$optflags $inc $ompflag -I$PREFIX/include $bintraj
 SHORT_ENE=$short_ene
 
 ###############################################################################
