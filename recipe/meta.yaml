@@ -24,8 +24,7 @@ requirements:
    - openblas
 #  - libnetcdf
 #  - netcdf-fortran
-#  - arpack
-#  - fftw
+   - fftw
    - llvm-openmp  # [osx]
 
   run:
@@ -33,9 +32,7 @@ requirements:
    - openblas
 #  - libnetcdf
 #  - netcdf-fortran
-#  - fftw
-#  - libblas
-#  - liblapack
+   - fftw
    - llvm-openmp  # [osx]
 
 about:
