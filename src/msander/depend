@@ -146,7 +146,7 @@ bulk_solvent.o: \
 
 bulk_solvent.o:   bulk_solvent.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bulk_solvent.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bulk_solvent.F90
 
 charmm.o: \
                     ../include/assert.fh\

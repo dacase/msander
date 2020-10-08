@@ -1,4 +1,3 @@
-! <compile=optimized>
 module bulk_solvent_mod
 
   implicit none
