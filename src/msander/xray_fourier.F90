@@ -308,6 +308,13 @@ contains
          do i=1,num_hkl
             f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
                         mask_cell_params(16) / mask_grid_size(4)
+#if 0
+            write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
+               hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
+               hkl_index(3,i),char(9), &
+               real(f_mask(i)),char(9), &
+               aimag(f_mask(i)),char(9),abs(f_mask(i))
+#endif
          end do
          if (mytaskid == 0 ) &
            write(6,'(a,5e14.6)') '| updating bulk solvent: ', &
