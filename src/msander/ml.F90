@@ -907,6 +907,32 @@ contains
 
   end subroutine alpha_beta_all
 
+#if 0
+  !---------------------------------------------------------------------------
+  !
+  ! Arguments:
+  !   f_calc:    the initial computed structure factors (these will be modified with results
+  !              from this routine)
+  !   pot_ene:   potential energies (this is geared towards PME only)
+  !   nstep:     the number of steps, passed down all the way from runmd
+  !---------------------------------------------------------------------------
+  subroutine estimate_ml_parameters(f_calc)
+
+      integer :: i, j, index_sort, counter_sort
+      double precision :: mean_delta, restraint
+      complex(8) :: f_calc(NRF)
+      double precision :: r_work_factor_numerator, r_free_factor_numerator
+
+      call estimate_alpha_beta(f_calc)
+
+      delta_array = alpha_array / beta_array
+      mean_delta = sum(delta_array) / NRF
+
+      f_calc_abs = abs(f_calc)
+      r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
+
+#endif
+
   !----------------------------------------------------------------------------
   ! estimate_alpha_beta:  estimate alpha and beta in resolution bins,
   !      as described in https://doi.org/10.1107/S010876739500688X, Appendix A:
@@ -1114,45 +1140,104 @@ contains
     double precision, dimension(NRF_work) :: tmp_scale
     integer :: i, j, sampling, index_start, index_end
 
+    write(6,*) 'n_bins: ', n_bins
     allocate(k_mask_bin_orig(n_bins))
     sampling = 14
     do i = 1, sampling
-      k_mask_trial_range(i) = (i - 1) * 50.0 / 1000.
+      k_mask_trial_range(i) = (i - 1) * 0.05d0
     end do
     k_mask_bin = 0
     tmp_scale = k_aniso(1:NRF_work) * k_iso(1:NRF_work) * k_iso_exp(1:NRF_work)
+    write(6,*) 'tmp_scale: ', k_aniso(1), k_iso(1), k_iso_exp(1)
     index_end = 0
+    write(*, '(a,f8.6)') 'k_mask_grid_search, starting r_factor = ', r_start
     do i = 1, n_bins
       index_start = index_end + 1
       index_end = bins_work_population(i) + index_start - 1
       k_mask_best = 0.0
       k_overall_best = 1.0
-      r_best = r_factor_w_selection(Fcalc * tmp_scale, index_start, index_end)
+      r_best = r_factor_w_selection_and_modified_fobs(Fcalc, tmp_scale, index_start,index_end)
+      write(6,*) 'i, r_best:', i, r_best, k_mask_best
       do j = 1, sampling
         k_mask_per_bin_test = k_mask_trial_range(j)
         f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
                 * (Fcalc(index_start:index_end) + &
                 k_mask_per_bin_test * f_mask(index_start:index_end))
+#if 0
         k_overall_ = scale_selection(f_calc_tmp, index_start, index_end)
         r = r_factor_w_selection(k_overall_ * f_calc_tmp, index_start, index_end)
+#else
+        k_overall_ = scale_selection_with_modified_fobs(f_calc_tmp, tmp_scale, index_start, index_end)
+        r = r_factor_w_selection_and_modified_fobs_and_scale(f_calc_tmp, tmp_scale, k_overall_, index_start, index_end)
+#endif
+        write(6,*) 'sampling: ', k_mask_per_bin_test, k_overall_, r
         if (r < r_best) then
           k_mask_best = k_mask_per_bin_test
           k_overall_best = k_overall_
           r_best = r
+          write(6,*) 'reset r_best:        ', r_best, k_mask_best
         end if
       end do
       k_mask_bin(i) = k_mask_best
     end do
     k_mask_bin_orig = k_mask_bin
     call smooth_k_mask(k_mask_bin)
+    write(6, '(a)') 'k_mask_grid_search, smoothed k_mask in resolution bins'
+    do i = 1, n_bins
+        write(6, '(i20,a,f8.4)') i, ' ', k_mask_bin(i)
+    end do
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso, k_mask)
     r_start = r_factor_w_scale(k_iso * k_aniso * k_iso_exp * (Fcalc + k_mask * f_mask), 1.0d0)
     ! TODO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
     ! if(n_bins>2) then
     ! end if
+    write(6, '(a,f8.6)') 'k_mask_grid_search, final r_factor = ', r_start
     return
   end subroutine k_mask_grid_search
+
+  function scale_selection_with_modified_fobs(f_m, modifier, index_start, index_end) result(r)
+      double precision :: r, num, denum, modifier(NRF)
+      complex(8), dimension(NRF) :: f_m
+      integer :: i, index_start, index_end
+      num = sum(abs_Fobs(index_start: index_end)/modifier(index_start: index_end) * abs(f_m(index_start: index_end)))
+      denum = sum(abs(f_m(index_start: index_end)) * abs(f_m(index_start: index_end)))
+      if (denum == 0) then
+          ! make test for zero f_obs in sf.F90
+          r = 0d0
+      else
+          r = num / denum
+      end if
+  end function scale_selection_with_modified_fobs
+
+  function r_factor_w_selection_and_modified_fobs(f_m, modifier, index_start, index_end) result(r)
+      double precision :: r, num, denum, sc, modifier(NRF)
+      complex(8), dimension(NRF) :: f_m
+      integer :: index_start, index_end
+      sc = scale_selection_with_modified_fobs(f_m, modifier, index_start, index_end)
+      num = sum(abs(abs_Fobs(index_start:index_end)/modifier(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+      denum = sum(abs_Fobs(index_start:index_end)/modifier(index_start:index_end))
+      if (denum == 0) then
+          ! make test for zero f_obs in sf.F90
+          r = 9999999
+      else
+          r = num / denum
+      end if
+  end function r_factor_w_selection_and_modified_fobs
+
+  function r_factor_w_selection_and_modified_fobs_and_scale(f_m, modifier, sc, index_start, index_end) result(r)
+      double precision :: r, num, denum, sc, modifier(NRF)
+      complex(8), dimension(NRF) :: f_m
+      integer :: index_start, index_end
+      num = sum(abs(abs_Fobs(index_start:index_end)/modifier(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+      denum = sum(abs_Fobs(index_start:index_end)/modifier(index_start:index_end))
+      if (denum == 0) then
+          ! make test for zero f_obs in sf.F90
+          r = 9999999
+      else
+          r = num / denum
+      end if
+  end function r_factor_w_selection_and_modified_fobs_and_scale
 
   subroutine bin_k_isotropic_as_scale_k1(r_start, k_iso_in, k_mask_in)
     implicit none
@@ -1294,6 +1379,8 @@ contains
          k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
          tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
     integer :: l, j, index_start, index_end
+    write(6, '(a,f8.6)') &
+        'bulk_solvent_scaling (simulteneous k_iso and k_mask analytical determination), starting r_factor = ', r_start
     shift = 0.05d0
     index_end = 0
     scale_k1 = estimate_scale_k1(k_iso_exp*k_aniso*(Fcalc + k_mask*f_mask))
@@ -1383,7 +1470,7 @@ contains
       k_mask_bin(l) = k_best
     end do
     call smooth_k_mask(k_mask_bin)
-    write(*, '(a)') 'bulk_solvent_scaling, smoothed k_mask in resolution bins'
+    write(6, '(a)') 'bulk_solvent_scaling, smoothed k_mask in resolution bins'
     do j = 1, n_bins
         write(6, '(i20,a,f8.4)') j, ' ', k_mask_bin(j)
     end do
@@ -1391,13 +1478,13 @@ contains
     call bin_k_isotropic_as_scale_k1(r_start, k_iso_test, k_mask_test)
     r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * &
           (Fcalc + k_mask_test * f_mask), 1.0d0)
-    if (r - r_start < 0.5d0/100) then
+    if (r - r_start < 0.005d0) then
       k_iso = k_iso_test
       k_mask = k_mask_test
       r_start = r
       k_mask_bin_orig = k_mask_bin
     end if
-    write(*, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
+    write(6, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
     return
   end subroutine bulk_solvent_scaling
 
