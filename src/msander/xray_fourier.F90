@@ -572,23 +572,13 @@ contains
       endif
 
       ! ML target function
-#if 0
-      xray_energy = 0._rk_
-      do i=1,NRF_work
-         x = 2.d0*delta_array(i)*abs_Fcalc(i)*abs_Fobs(i)
-         eterm1 = alpha_array(i)*delta_array(i)*abs_Fcalc(i)*abs_Fcalc(i)
-         eterm2 = ln_of_i0(x)
-         xray_energy = xray_energy + eterm1 - eterm2
-      enddo
-#else
-      ! Oleg new version, Dec. 2019:
+      !    (Oleg new version, Dec. 2019)
       xray_energy = sum(abs_Fobs(1:NRF_work)**2 / beta_array(1:NRF_work) - &
             log(2*abs_Fobs(1:NRF_work)/beta_array(1:NRF_work)) +  &
             alpha_array(1:NRF_work) * delta_array(1:NRF_work) * &
             abs_Fcalc(1:NRF_work) * abs_Fcalc(1:NRF_work) - &
             ln_of_i0(2 * delta_array(1:NRF_work) * abs_Fcalc(1:NRF_work) * &
             abs_Fobs(1:NRF_work)))
-#endif
 
       nstep = nstep + 1
 
