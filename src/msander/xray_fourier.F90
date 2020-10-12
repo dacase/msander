@@ -548,6 +548,12 @@ contains
            k_scale = k_iso * k_iso_exp * k_aniso
          endif
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
+#if 0
+        write(6, '(a, f10.8)') '  xray rwork: ', &
+        r_factor_w_selection(scale_selection(Fcalc, 1,NRF_work)*Fcalc, 1, NRF_work)
+        write(6, '(a, f10.8)') '  xray rfree: ', &
+        r_factor_w_selection(scale_selection(Fcalc, 1 + NRF_work, NRF)*Fcalc, 1 + NRF_work, NRF)
+#endif
 
       else 
          call get_solvent_contribution(nstep, crd)

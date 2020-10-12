@@ -286,7 +286,7 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-#if 0
+#if 1
     write(6, *) 'resolution', resolution
     write(6, *) 'mask_cell_params', mask_cell_params
     write(6, *) 'mask_grid_steps', mask_grid_steps
@@ -305,7 +305,7 @@ contains
     do i = 1, num_hkl
       s(:) = hkl_index(1,i) * vas(:) + hkl_index(2,i) * vbs(:) &
            + hkl_index(3,i) * vcs(:)
-      s_squared = -0.25 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
+      s_squared = -0.25d0 * (s(1) ** 2 + s(2) ** 2 + s(3) ** 2)
       k_mask(i) = k_sol * exp(b_sol * s_squared)
 
       hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
@@ -343,7 +343,7 @@ contains
 
     do tid = 1, n_atom
 
-      if( atom_selection(tid) == 0 ) cycle
+      ! if( atom_selection(tid) == 0 ) cycle
 
       ! Cartesian to fractional coordinates
       atomX = mask_cell_params(10) * crd(1, tid) + &
@@ -366,6 +366,7 @@ contains
       z_high = int(ceiling((atomZ + cocs) * mask_grid_size(3)))
 
       ! Grid point is 0 if inside sphere and 1 if outside
+#if 0
       do i = x_low, x_high
         frac(1) = dble(i) / mask_grid_size(1);
         dx = atomX - frac(1)
@@ -427,8 +428,34 @@ contains
           end do
         end do
       end do
+#else
+      ! version from sf.F90.orig:
+      do i = x_low, x_high
+        frac(1) = dble(i) / mask_grid_size(1);
+        dx = atomX - frac(1)
+        do j = y_low, y_high
+          frac(2) = dble(j) / mask_grid_size(2);
+          dy = atomY - frac(2);
+          do k = z_low, z_high
+            frac(3) = dble(k) / mask_grid_size(3);
+            dz = atomZ - frac(3);
+            distsq = mask_cell_params(1)*dx*dx + mask_cell_params(2)*dy*dy + &
+                     mask_cell_params(3)*dz*dz + mask_cell_params(4)*dx*dy + &
+                     mask_cell_params(5)*dx*dz + mask_cell_params(6)*dy*dz
+            if (distsq < cutoffsq) then
+              index = mod_grid(k,mask_grid_size(3)) + &
+                      mod_grid(j,mask_grid_size(2)) * mask_grid_size(3) + &
+                      mod_grid(i,mask_grid_size(1)) * mask_grid_size(2) * &
+                                 mask_grid_size(3) + 1
+              mask_bs_grid(index) = 0
+              mask_bs_grid_tmp(index) = 0
+            end if
+          end do
+        end do
+      end do
+#endif
     end do
-  end subroutine
+  end subroutine grid_bulk_solvent
 
   !----------------------------------------------------------------------------
   ! shrink_bulk_solvent: shave off the outermost layer of masking, expanding 

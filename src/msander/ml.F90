@@ -306,6 +306,7 @@ contains
            hi_res_shell_n = hi_res_shell_n + 1
          end if
        end do
+       write(6,*) 'hi_res_shell_n: ', hi_res_shell_n
        allocate(scale_k1_indices(hi_res_shell_n))
        scale_k1_indices = 0
        call bubble_sort(d_star_sq_sorted)
@@ -315,7 +316,9 @@ contains
          reflections_per_bin = 1.0 * NRF_free
        end if
        n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
+       write(6,*) 'n_bins: ', n_bins
        reflections_per_bin = 1.0 * NRF_free / n_bins
+       write(6,*) 'adjusted reflections per bin', reflections_per_bin
 
        allocate(bin_limits(n_bins + 1))
        bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
@@ -325,6 +328,10 @@ contains
          REQUIRE (d_i /= NRF_free)
        end do
        bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
+            write(6, *) "resolution bins"
+            do i = 1, n_bins + 1
+                write(6, *) 1.0d0 / sqrt(bin_limits(i))
+            end do
 
        deallocate(d_star_sq_sorted)
        reflection_bin = n_bins
@@ -933,10 +940,11 @@ contains
 
     r = 1.0d0
     cycle = 0
-    current_r_work = 0.0
     current_r_work = r_factor_w(Fcalc)
+    write(6, '(a,f8.6)') 'starting r_factor = ', current_r_work
 
     do while (r - current_r_work > 1.e-4 .and. cycle < 20)
+      write(6, '(a,i3)') 'CYCLE ', cycle
       r = current_r_work
       if (cycle == 0) then
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
@@ -965,6 +973,7 @@ contains
     double precision :: r_start, r, b(7), Uaniso(7)
 
     f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
+     write(6, '(a,f8.6)') 'k_aniso, starting r_factor = ', r_start
 
     b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
     b(1) = sum(b_vector_base)
@@ -992,6 +1001,7 @@ contains
       r_start = r
       k_aniso = k_aniso_test
     end if
+    write(6, '(a,f8.6)') 'k_aniso, final r_factor = ', r_start
     return
   end subroutine anisotropic_scaling
 
@@ -1007,6 +1017,7 @@ contains
     q = 0
     r = 0
     s = 0
+    write(6, '(a,f8.6)') 'k_iso_exp, starting r_factor = ', r_start
 
     ! fit over all work reflections
     do i = 1, NRF_work
@@ -1039,6 +1050,9 @@ contains
         r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
       end if
     end if
+     write(*, '(a,f9.6,a,f9.6,a,f8.6,a,f8.6)') 'k_iso_exp: k_a = ', a(1), &
+            ' k_b = ', a(2),&
+            ' r_factor in hi_res_shell = ', r, ' final r_factor = ', r_start
     return
   end subroutine fit_k_iso_exp
 
@@ -1096,10 +1110,11 @@ contains
     double precision :: r_start, r, k_mask_best, k_overall_best, r_best, k_mask_per_bin_test, k_overall_tmp, &
             num, denum, k_mask_test(NRF), k_overall_
     double precision, dimension(14) :: k_mask_trial_range
-    double precision, dimension(n_bins) :: k_mask_bin, k_mask_bin_
+    double precision, dimension(n_bins) :: k_mask_bin
     double precision, dimension(NRF_work) :: tmp_scale
     integer :: i, j, sampling, index_start, index_end
 
+    allocate(k_mask_bin_orig(n_bins))
     sampling = 14
     do i = 1, sampling
       k_mask_trial_range(i) = (i - 1) * 50.0 / 1000.
@@ -1279,7 +1294,7 @@ contains
          k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
          tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
     integer :: l, j, index_start, index_end
-    shift = 0.05
+    shift = 0.05d0
     index_end = 0
     scale_k1 = estimate_scale_k1(k_iso_exp*k_aniso*(Fcalc + k_mask*f_mask))
     tmp_scale = k_aniso(1:NRF_work) * scale_k1 * k_iso_exp(1:NRF_work)
@@ -1368,16 +1383,21 @@ contains
       k_mask_bin(l) = k_best
     end do
     call smooth_k_mask(k_mask_bin)
+    write(*, '(a)') 'bulk_solvent_scaling, smoothed k_mask in resolution bins'
+    do j = 1, n_bins
+        write(6, '(i20,a,f8.4)') j, ' ', k_mask_bin(j)
+    end do
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask_test)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso_test, k_mask_test)
     r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * &
           (Fcalc + k_mask_test * f_mask), 1.0d0)
-    if (r - r_start<0.5 / 100) then
+    if (r - r_start < 0.5d0/100) then
       k_iso = k_iso_test
       k_mask = k_mask_test
       r_start = r
       k_mask_bin_orig = k_mask_bin
     end if
+    write(*, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
     return
   end subroutine bulk_solvent_scaling
 
