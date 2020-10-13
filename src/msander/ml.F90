@@ -994,7 +994,6 @@ contains
     return
   end function scale_selection
 
-#if 1
   !----------------------------------------------------------------------------
   !  Main driver routine to do a grid search to generate optimal parameters
   !  for scaling and for the bulk_solvent correction
@@ -1008,10 +1007,10 @@ contains
     r = 1.0d0
     cycle = 0
     current_r_work = r_factor_w(Fcalc)
-    write(6, '(a,f8.6)') 'starting r_factor = ', current_r_work
+    ! write(6, '(a,f8.6)') 'starting r_factor = ', current_r_work
 
     do while (r - current_r_work > 1.e-4 .and. cycle < 20)
-      write(6, '(a,i3)') 'CYCLE ', cycle
+      ! write(6, '(a,i3)') 'CYCLE ', cycle
       r = current_r_work
       if (cycle == 0) then
         call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), &
@@ -1041,7 +1040,7 @@ contains
     double precision :: r_start, r, b(7), Uaniso(7), u_star(6)
 
     f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
-     write(6, '(a,f8.6)') 'k_aniso, starting r_factor = ', r_start
+     ! write(6, '(a,f8.6)') 'k_aniso, starting r_factor = ', r_start
 
     b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) / NRF_work_sq
     b(1) = sum(b_vector_base)
@@ -1072,7 +1071,7 @@ contains
       r_start = r
       k_aniso = k_aniso_test
     end if
-    write(6, '(a,f8.6)') 'k_aniso, final r_factor = ', r_start
+    ! write(6, '(a,f8.6)') 'k_aniso, final r_factor = ', r_start
     return
   end subroutine anisotropic_scaling
 
@@ -1088,7 +1087,7 @@ contains
     q = 0
     r = 0
     s = 0
-    write(6, '(a,f8.6)') 'k_iso_exp, starting r_factor = ', r_start
+    ! write(6, '(a,f8.6)') 'k_iso_exp, starting r_factor = ', r_start
 
     ! fit over all work reflections
     do i = 1, NRF_work
@@ -1185,7 +1184,7 @@ contains
     double precision, dimension(NRF_work) :: tmp_scale
     integer :: i, j, sampling, index_start, index_end
 
-    write(6,*) 'n_bins: ', n_bins
+    ! write(6,*) 'n_bins: ', n_bins
     allocate(k_mask_bin_orig(n_bins))
     sampling = 14
     do i = 1, sampling
@@ -1193,7 +1192,7 @@ contains
     end do
     k_mask_bin = 0
     tmp_scale = k_aniso(1:NRF_work) * k_iso(1:NRF_work) * k_iso_exp(1:NRF_work)
-    write(6,*) 'tmp_scale: ', k_aniso(1), k_iso(1), k_iso_exp(1)
+    ! write(6,*) 'tmp_scale: ', k_aniso(1), k_iso(1), k_iso_exp(1)
     index_end = 0
     write(*, '(a,f8.6)') 'k_mask_grid_search, starting r_factor = ', r_start
     do i = 1, n_bins
@@ -1202,7 +1201,7 @@ contains
       k_mask_best = 0.0
       k_overall_best = 1.0
       r_best = r_factor_w_selection_and_modified_fobs(Fcalc, tmp_scale, index_start,index_end)
-      write(6,*) 'i, r_best:', i, r_best, k_mask_best
+      ! write(6,*) 'i, r_best:', i, r_best, k_mask_best
       do j = 1, sampling
         k_mask_per_bin_test = k_mask_trial_range(j)
         f_calc_tmp(index_start:index_end) = tmp_scale(index_start:index_end) &
@@ -1215,29 +1214,31 @@ contains
         k_overall_ = scale_selection_with_modified_fobs(f_calc_tmp, tmp_scale, index_start, index_end)
         r = r_factor_w_selection_and_modified_fobs_and_scale(f_calc_tmp, tmp_scale, k_overall_, index_start, index_end)
 #endif
-        write(6,*) 'sampling: ', k_mask_per_bin_test, k_overall_, r
+        ! write(6,*) 'sampling: ', k_mask_per_bin_test, k_overall_, r
         if (r < r_best) then
           k_mask_best = k_mask_per_bin_test
           k_overall_best = k_overall_
           r_best = r
-          write(6,*) 'reset r_best:        ', r_best, k_mask_best
+          ! write(6,*) 'reset r_best:        ', r_best, k_mask_best
         end if
       end do
       k_mask_bin(i) = k_mask_best
     end do
     k_mask_bin_orig = k_mask_bin
     call smooth_k_mask(k_mask_bin)
+#if 0
     write(6, '(a)') 'k_mask_grid_search, smoothed k_mask in resolution bins'
     do i = 1, n_bins
         write(6, '(i20,a,f8.4)') i, ' ', k_mask_bin(i)
     end do
+#endif
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso, k_mask)
     r_start = r_factor_w_scale(k_iso * k_aniso * k_iso_exp * (Fcalc + k_mask * f_mask), 1.0d0)
     ! TODO: Gauss fit of k_iso in bins based on mid sqrt(s_squared)
     ! if(n_bins>2) then
     ! end if
-    write(6, '(a,f8.6)') 'k_mask_grid_search, final r_factor = ', r_start
+    ! write(6, '(a,f8.6)') 'k_mask_grid_search, final r_factor = ', r_start
     return
   end subroutine k_mask_grid_search
 
@@ -1424,8 +1425,8 @@ contains
          k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
          tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
     integer :: l, j, index_start, index_end
-    write(6, '(a,f8.6)') &
-        'bulk_solvent_scaling (simulteneous k_iso and k_mask analytical determination), starting r_factor = ', r_start
+    ! write(6, '(a,f8.6)') &
+    !     'bulk_solvent_scaling (simulteneous k_iso and k_mask analytical determination), starting r_factor = ', r_start
     shift = 0.05d0
     index_end = 0
     scale_k1 = estimate_scale_k1(k_iso_exp*k_aniso*(Fcalc + k_mask*f_mask))
@@ -1515,10 +1516,12 @@ contains
       k_mask_bin(l) = k_best
     end do
     call smooth_k_mask(k_mask_bin)
+#if 0
     write(6, '(a)') 'bulk_solvent_scaling, smoothed k_mask in resolution bins'
     do j = 1, n_bins
         write(6, '(i20,a,f8.4)') j, ' ', k_mask_bin(j)
     end do
+#endif
     call populate_k_mask_linear_interpolation(k_mask_bin, k_mask_test)
     call bin_k_isotropic_as_scale_k1(r_start, k_iso_test, k_mask_test)
     r = r_factor_w_scale(k_iso_test * k_aniso * k_iso_exp * &
@@ -1529,7 +1532,7 @@ contains
       r_start = r
       k_mask_bin_orig = k_mask_bin
     end if
-    write(6, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
+    ! write(6, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
     return
   end subroutine bulk_solvent_scaling
 
@@ -1615,7 +1618,5 @@ contains
     end do
     return
   end function special_r_factor
-
-#endif
 
 end module ml_mod
