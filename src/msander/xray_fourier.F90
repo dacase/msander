@@ -581,7 +581,7 @@ contains
             abs_Fobs(1:NRF_work)))
 
       nstep = nstep + 1
-      write(6,*) '| in dTargetML_dF, nstep = ', nstep
+      ! write(6,*) '| in dTargetML_dF, nstep = ', nstep
 
       ! put dTargetML/dF into deriv(:)
       do i=1,NRF_work
