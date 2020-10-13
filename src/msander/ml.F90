@@ -349,6 +349,7 @@ contains
        allocate(s_squared_min_bin(n_bins))
        allocate(s_squared_max_bin(n_bins))
        allocate(s_squared_mean_bin(n_bins))
+       allocate(k_mask_bin_orig(n_bins))
        allocate(alpha_beta_bj(NRF))
        A_in_zones = 0.0
        B_in_zones = 0.0
@@ -418,7 +419,7 @@ contains
          end do
        end do
        if (minval(scale_k1_indices) == 0) then
-          write(*, *) 'weird hi res shell indexing'
+          write(0, *) 'weird hi res shell indexing'
        end if
        allocate(bins_free_start_indices(n_bins))
        do i = 1, n_bins
@@ -1055,7 +1056,7 @@ contains
     ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
     u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
     u_star(4:6) = u_star(4:6) / 2.0d0
-    write(*, '(a,6f14.8)')  'u_star(11,22,33,12,13,23): ', u_star
+    ! write(6, '(a,6f14.8)')  'u_star(11,22,33,12,13,23): ', u_star
 
     k_aniso_test = exp(Uaniso(2)*h_sq + Uaniso(3)*k_sq + Uaniso(4)*l_sq + &
             Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl) !&
@@ -1120,9 +1121,9 @@ contains
         r_start = r_factor_w_scale(k_iso_exp_test * k_iso * k_aniso * (Fcalc + k_mask * f_mask), 1.0d0)
       end if
     end if
-     write(*, '(a,f9.6,a,f9.6,a,f8.6,a,f8.6)') 'k_iso_exp: k_a = ', a(1), &
-            ' k_b = ', a(2),&
-            ' r_factor in hi_res_shell = ', r, ' final r_factor = ', r_start
+    ! write(6, '(a,f9.6,a,f9.6,a,f8.6,a,f8.6)') 'k_iso_exp: k_a = ', a(1), &
+    !        ' k_b = ', a(2),&
+    !        ' r_factor in hi_res_shell = ', r, ' final r_factor = ', r_start
     return
   end subroutine fit_k_iso_exp
 
@@ -1185,7 +1186,6 @@ contains
     integer :: i, j, sampling, index_start, index_end
 
     ! write(6,*) 'n_bins: ', n_bins
-    allocate(k_mask_bin_orig(n_bins))
     sampling = 14
     do i = 1, sampling
       k_mask_trial_range(i) = (i - 1) * 0.05d0
@@ -1194,7 +1194,7 @@ contains
     tmp_scale = k_aniso(1:NRF_work) * k_iso(1:NRF_work) * k_iso_exp(1:NRF_work)
     ! write(6,*) 'tmp_scale: ', k_aniso(1), k_iso(1), k_iso_exp(1)
     index_end = 0
-    write(*, '(a,f8.6)') 'k_mask_grid_search, starting r_factor = ', r_start
+    ! write(6, '(a,f8.6)') 'k_mask_grid_search, starting r_factor = ', r_start
     do i = 1, n_bins
       index_start = index_end + 1
       index_end = bins_work_population(i) + index_start - 1
@@ -1320,7 +1320,6 @@ contains
     implicit none
     double precision :: x1, x2, y1, y2
     double precision, dimension(2) :: k
-    ! write(*, *) x1, x2, y1, y2
     k(1) = 0
     if(x1 /=x2) then
       k(1) = (y2 - y1) / (x2 - x1)
