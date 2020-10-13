@@ -930,7 +930,71 @@ contains
 
   end subroutine estimate_alpha_beta
 
-#if 0
+  subroutine init_scales()
+    implicit none
+
+    k_mask(:) = 0
+    k_iso = 1
+    k_iso_test = 1
+    k_iso_exp = 1
+    k_iso_exp_test = 1
+    k_aniso = 1
+    k_aniso_test = 1
+    return
+  end subroutine init_scales
+
+  function r_factor_w(f_m) result(r)
+    implicit none
+    double precision :: r, sc
+    complex(8), dimension(NRF) :: f_m
+    sc = scale(f_m)
+    r = r_factor_w_scale(f_m, sc)
+    return
+  end function r_factor_w
+
+  function r_factor_w_scale(f_m, sc) result(r)
+    implicit none
+    double precision :: r, num, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: i
+    num = sum(abs(abs_Fobs(1:NRF_work) - sc * abs(f_m(1:NRF_work))))
+    if (r_work_factor_denominator == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / r_work_factor_denominator
+    end if
+    ! if( mytaskid == 0 ) &
+    !    write(6,'(a,3e14.5)') '| r_factor_w_scale: ', sc, num, r_work_factor_denominator
+    return
+  end function r_factor_w_scale
+
+  function scale(f_m) result(r)
+    implicit none
+    double precision :: r
+    complex(8), dimension(NRF) :: f_m
+    r = scale_selection(f_m, 1, NRF)
+    return
+  end function scale
+
+  function scale_selection(f_m, index_start, index_end) result(r)
+    implicit none
+    double precision :: r, num, denum
+    complex(8), dimension(NRF) :: f_m
+    integer :: i, index_start, index_end
+
+    num = sum(abs_Fobs(index_start:index_end) * abs(f_m(index_start:index_end)))
+    denum = sum(abs(f_m(index_start:index_end)) * abs(f_m(index_start:index_end)))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 0
+    else
+      r = num / denum
+    end if
+    return
+  end function scale_selection
+
+#if 1
   !----------------------------------------------------------------------------
   !  Main driver routine to do a grid search to generate optimal parameters
   !  for scaling and for the bulk_solvent correction
@@ -950,10 +1014,11 @@ contains
       write(6, '(a,i3)') 'CYCLE ', cycle
       r = current_r_work
       if (cycle == 0) then
-        call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
-                abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
+        call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), &
+                abs_Fobs, abs(Fcalc) )
         call k_mask_grid_search(current_r_work)
-        call fit_k_iso_exp(current_r_work, sqrt(s_squared_for_scaling), abs_Fobs, &
+        call fit_k_iso_exp(current_r_work, &
+                sqrt(s_squared_for_scaling), abs_Fobs, &
                 abs(k_iso * k_aniso * (Fcalc + k_mask * f_mask)))
       else
         call bulk_solvent_scaling(current_r_work)
@@ -1490,73 +1555,7 @@ contains
     end if
     return
   end function estimate_scale_k1
-#endif
 
-  subroutine init_scales()
-    implicit none
-
-    k_mask(:) = 0
-    k_iso = 1
-    k_iso_test = 1
-    k_iso_exp = 1
-    k_iso_exp_test = 1
-    k_aniso = 1
-    k_aniso_test = 1
-    return
-  end subroutine init_scales
-
-  function r_factor_w(f_m) result(r)
-    implicit none
-    double precision :: r, sc
-    complex(8), dimension(NRF) :: f_m
-    sc = scale(f_m)
-    r = r_factor_w_scale(f_m, sc)
-    return
-  end function r_factor_w
-
-  function r_factor_w_scale(f_m, sc) result(r)
-    implicit none
-    double precision :: r, num, sc
-    complex(8), dimension(NRF) :: f_m
-    integer :: i
-    num = sum(abs(abs_Fobs(1:NRF_work) - sc * abs(f_m(1:NRF_work))))
-    if (r_work_factor_denominator == 0) then
-      ! make test for zero f_obs in sf.F90
-      r = 9999999
-    else
-      r = num / r_work_factor_denominator
-    end if
-    ! if( mytaskid == 0 ) &
-    !    write(6,'(a,3e14.5)') '| r_factor_w_scale: ', sc, num, r_work_factor_denominator
-    return
-  end function r_factor_w_scale
-
-  function scale(f_m) result(r)
-    implicit none
-    double precision :: r
-    complex(8), dimension(NRF) :: f_m
-    r = scale_selection(f_m, 1, NRF)
-    return
-  end function scale
-
-  function scale_selection(f_m, index_start, index_end) result(r)
-    implicit none
-    double precision :: r, num, denum
-    complex(8), dimension(NRF) :: f_m
-    integer :: i, index_start, index_end
-
-    num = sum(abs_Fobs(index_start:index_end) * abs(f_m(index_start:index_end)))
-    denum = sum(abs(f_m(index_start:index_end)) * abs(f_m(index_start:index_end)))
-    if (denum == 0) then
-      ! make test for zero f_obs in sf.F90
-      r = 0
-    else
-      r = num / denum
-    end if
-    return
-  end function scale_selection
-
-#if 0
   function r_factor_w_selection(f_m, index_start, index_end) result(r)
     implicit none
     double precision :: r, num, denum, sc
@@ -1616,6 +1615,7 @@ contains
     end do
     return
   end function special_r_factor
+
 #endif
 
 end module ml_mod

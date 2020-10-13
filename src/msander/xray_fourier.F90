@@ -288,13 +288,14 @@ contains
       return
    end subroutine get_residual
 
-   subroutine get_solvent_contribution(nstep,crd)
+   subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
           hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
       implicit none
       integer, intent(in) :: nstep
       real(real_kind), intent(in) :: crd(3*num_atoms)
+      logical, intent(in) :: update_Fcalc
 
       integer :: i
 
@@ -319,7 +320,8 @@ contains
          if (mytaskid == 0 ) write(6,'(a,5e14.6)') '| updating fmask'
       endif
 
-      Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+      if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+
       return
 
    end subroutine get_solvent_contribution
@@ -394,7 +396,7 @@ contains
       integer, save :: nstep=0
       integer :: i
 
-      call get_solvent_contribution(nstep, crd)
+      call get_solvent_contribution(nstep, crd, .true.)
 
       if( inputscale ) then
          ! scale using phenix-like approximation:
@@ -493,7 +495,7 @@ contains
 
          ! N.B.: this is scaling based on abs(Fobs), not Fobs as complex
          if (mod(nstep, mask_update_frequency) == 0) then
-           call get_solvent_contribution(nstep, crd)
+           call get_solvent_contribution(nstep, crd, .false.)
            call init_scales()
            call optimize_k_scale_k_mask()
            k_scale = k_iso * k_iso_exp * k_aniso
@@ -503,7 +505,7 @@ contains
       else
 #endif
 
-         call get_solvent_contribution(nstep, crd)
+         call get_solvent_contribution(nstep, crd, .true.)
          if (mod(nstep,scale_update_frequency) == 0) then
             k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
             if (mytaskid == 0 ) write(6,'(a,f12.5)') &
@@ -533,7 +535,8 @@ contains
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
-           init_scales, k_iso, k_iso_exp, k_aniso
+           init_scales, k_iso, k_iso_exp, k_aniso, &
+           optimize_k_scale_k_mask
       use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
@@ -545,24 +548,18 @@ contains
       integer :: i
       double precision :: eterm1, eterm2, x
 
-#if 0
       if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
-           call get_solvent_contribution(nstep, crd)
+           call get_solvent_contribution(nstep, crd, .false.)
            call init_scales()
            call optimize_k_scale_k_mask()
            k_scale = k_iso * k_iso_exp * k_aniso
          endif
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
       else 
-#endif
-
-         call get_solvent_contribution(nstep, crd)
+         call get_solvent_contribution(nstep, crd, .true.)
          call scale_Fcalc( nstep )
-         
-#if 0
       endif
-#endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! get ml parameters
