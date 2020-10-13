@@ -306,7 +306,7 @@ contains
            hi_res_shell_n = hi_res_shell_n + 1
          end if
        end do
-       write(6,*) 'hi_res_shell_n: ', hi_res_shell_n
+       ! write(6,*) 'hi_res_shell_n: ', hi_res_shell_n
        allocate(scale_k1_indices(hi_res_shell_n))
        scale_k1_indices = 0
        call bubble_sort(d_star_sq_sorted)
@@ -316,9 +316,9 @@ contains
          reflections_per_bin = 1.0 * NRF_free
        end if
        n_bins = max(1, int(NRF_free / reflections_per_bin + 0.5))
-       write(6,*) 'n_bins: ', n_bins
+       ! write(6,*) 'n_bins: ', n_bins
        reflections_per_bin = 1.0 * NRF_free / n_bins
-       write(6,*) 'adjusted reflections per bin', reflections_per_bin
+       ! write(6,*) 'adjusted reflections per bin', reflections_per_bin
 
        allocate(bin_limits(n_bins + 1))
        bin_limits(1) = 1 / (low_res * low_res) * (1 - d_tolerance)
@@ -328,10 +328,12 @@ contains
          REQUIRE (d_i /= NRF_free)
        end do
        bin_limits(n_bins + 1) = 1 / (resolution * resolution) * (1 + d_tolerance)
-            write(6, *) "resolution bins"
-            do i = 1, n_bins + 1
-                write(6, *) 1.0d0 / sqrt(bin_limits(i))
-            end do
+#if 0
+       write(6, *) "resolution bins"
+       do i = 1, n_bins + 1
+           write(6, *) 1.0d0 / sqrt(bin_limits(i))
+       end do
+#endif
 
        deallocate(d_star_sq_sorted)
        reflection_bin = n_bins
@@ -907,32 +909,6 @@ contains
 
   end subroutine alpha_beta_all
 
-#if 0
-  !---------------------------------------------------------------------------
-  !
-  ! Arguments:
-  !   f_calc:    the initial computed structure factors (these will be modified with results
-  !              from this routine)
-  !   pot_ene:   potential energies (this is geared towards PME only)
-  !   nstep:     the number of steps, passed down all the way from runmd
-  !---------------------------------------------------------------------------
-  subroutine estimate_ml_parameters(f_calc)
-
-      integer :: i, j, index_sort, counter_sort
-      double precision :: mean_delta, restraint
-      complex(8) :: f_calc(NRF)
-      double precision :: r_work_factor_numerator, r_free_factor_numerator
-
-      call estimate_alpha_beta(f_calc)
-
-      delta_array = alpha_array / beta_array
-      mean_delta = sum(delta_array) / NRF
-
-      f_calc_abs = abs(f_calc)
-      r_work_factor_numerator = sum(abs(f_calc_abs(1:NRF_work) - f_obs(1:NRF_work)))
-
-#endif
-
   !----------------------------------------------------------------------------
   ! estimate_alpha_beta:  estimate alpha and beta in resolution bins,
   !      as described in https://doi.org/10.1107/S010876739500688X, Appendix A:
@@ -954,6 +930,7 @@ contains
 
   end subroutine estimate_alpha_beta
 
+#if 0
   !----------------------------------------------------------------------------
   !  Main driver routine to do a grid search to generate optimal parameters
   !  for scaling and for the bulk_solvent correction
@@ -996,7 +973,7 @@ contains
 
   subroutine anisotropic_scaling(r_start)
     implicit none
-    double precision :: r_start, r, b(7), Uaniso(7)
+    double precision :: r_start, r, b(7), Uaniso(7), u_star(6)
 
     f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
      write(6, '(a,f8.6)') 'k_aniso, starting r_factor = ', r_start
@@ -1012,12 +989,15 @@ contains
 
     Uaniso = matmul(MUcryst_inv, b) 
     ! in Phenix it is u_star  multiplied by (-2 *pi *pi), b(5:7) are doubled
+    u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
+    u_star(4:6) = u_star(4:6) / 2.0d0
+    write(*, '(a,6f14.8)')  'u_star(11,22,33,12,13,23): ', u_star
 
     k_aniso_test = exp(Uaniso(2)*h_sq + Uaniso(3)*k_sq + Uaniso(4)*l_sq + &
             Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl) !&
-    ! + Uaniso(1))
+    !     + Uaniso(1))
     r = r_factor_w(k_aniso_test * f_calc_tmp)
-#if 0
+#if 1
     if( mytaskid == 0 ) then
          write(6,'(a,f12.5)') '| mean k_aniso: ', sum(k_aniso(1:NRF_work))/NRF_work
          write(6,'(a,2f12.5)') '| anisotropic scaing: ', r, r_start
@@ -1510,6 +1490,7 @@ contains
     end if
     return
   end function estimate_scale_k1
+#endif
 
   subroutine init_scales()
     implicit none
@@ -1532,38 +1513,6 @@ contains
     r = r_factor_w_scale(f_m, sc)
     return
   end function r_factor_w
-
-  function r_factor_w_selection(f_m, index_start, index_end) result(r)
-    implicit none
-    double precision :: r, num, denum, sc
-    complex(8), dimension(NRF) :: f_m
-    integer :: index_start, index_end
-    sc = scale_selection(f_m, index_start, index_end)
-    num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
-    denum = sum(abs_Fobs(index_start:index_end))
-    if (denum == 0) then
-      ! make test for zero f_obs in sf.F90
-      r = 9999999
-    else
-      r = num / denum
-    end if
-  end function r_factor_w_selection
-
-  function r_factor_w_selection_and_scale(f_m, index_start, index_end, sc) result(r)
-    implicit none
-    double precision :: r, num, denum, sc
-    complex(8), dimension(NRF) :: f_m
-    integer :: index_start, index_end
-    num = sum(abs(abs_Fobs(index_start:index_end) - &
-          sc * abs(f_m(index_start:index_end))))
-    denum = sum(abs_Fobs(index_start:index_end))
-    if (denum == 0) then
-      ! make test for zero f_obs in sf.F90
-      r = 9999999
-    else
-      r = num / denum
-    end if
-  end function r_factor_w_selection_and_scale
 
   function r_factor_w_scale(f_m, sc) result(r)
     implicit none
@@ -1607,6 +1556,39 @@ contains
     return
   end function scale_selection
 
+#if 0
+  function r_factor_w_selection(f_m, index_start, index_end) result(r)
+    implicit none
+    double precision :: r, num, denum, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: index_start, index_end
+    sc = scale_selection(f_m, index_start, index_end)
+    num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
+    denum = sum(abs_Fobs(index_start:index_end))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / denum
+    end if
+  end function r_factor_w_selection
+
+  function r_factor_w_selection_and_scale(f_m, index_start, index_end, sc) result(r)
+    implicit none
+    double precision :: r, num, denum, sc
+    complex(8), dimension(NRF) :: f_m
+    integer :: index_start, index_end
+    num = sum(abs(abs_Fobs(index_start:index_end) - &
+          sc * abs(f_m(index_start:index_end))))
+    denum = sum(abs_Fobs(index_start:index_end))
+    if (denum == 0) then
+      ! make test for zero f_obs in sf.F90
+      r = 9999999
+    else
+      r = num / denum
+    end if
+  end function r_factor_w_selection_and_scale
+
   function special_r_factor(f_m) result(r_best)
     implicit none
     double precision :: r, r_best, scale, scale_best, scale_, &
@@ -1634,4 +1616,6 @@ contains
     end do
     return
   end function special_r_factor
+#endif
+
 end module ml_mod

@@ -286,7 +286,7 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-#if 1
+#if 0
     write(6, *) 'resolution', resolution
     write(6, *) 'mask_cell_params', mask_cell_params
     write(6, *) 'mask_grid_steps', mask_grid_steps

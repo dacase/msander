@@ -316,9 +316,7 @@ contains
                aimag(f_mask(i)),char(9),abs(f_mask(i))
 #endif
          end do
-         if (mytaskid == 0 ) &
-           write(6,'(a,5e14.6)') '| updating bulk solvent: ', &
-               Fcalc(1),k_mask(1),f_mask(1)
+         if (mytaskid == 0 ) write(6,'(a,5e14.6)') '| updating fmask'
       endif
 
       Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
@@ -333,7 +331,8 @@ contains
       integer, intent(in) :: nstep
 
       real(real_kind) :: sum_fo_fc, sum_fc_fc
-      real(real_kind) :: b(7), Uaniso(7)
+      real(real_kind) :: b(7), Uaniso(7), u_star(6)
+      double precision, parameter :: pi = 3.14159265359d0
 
       if (mod(nstep, scale_update_frequency) == 0 ) then
 
@@ -359,13 +358,17 @@ contains
          b(7) = sum(b_vector_base * kl(1:NRF_work))
 
          Uaniso = matmul(MUcryst_inv, b)
+         u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
+         u_star(4:6) = u_star(4:6) / 2.0d0
+
          k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
              Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
          if (mytaskid == 0 ) then
-           write(6,'(a)') '| updating anisotropic scaling: '
-           write(6,'(a,7f10.5)') '|     ', Uaniso
-           write(6,'(a,2f10.5)')  '|     ', exp(b(1))
-           write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
+           write(6,'(a)') '| updating anisotropic scaling'
+           ! write(6,'(a,7f10.5)') '|     ', Uaniso
+           ! write(6, '(a,6f13.8)')  '| u_star: ', u_star
+           ! write(6,'(a,2f10.5)')  '|     ', exp(b(1))
+           ! write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
          endif
 
       endif
@@ -405,7 +408,6 @@ contains
                  '| setting k_scale using k_tot/b_tot: ', &
                  k_tot, b_tot, norm_scale
          endif
-         Fcalc(:) = k_scale(:) * Fcalc(:)
       else
          ! scale to fobs:
          abs_Fcalc(:) = abs(Fcalc(:))
@@ -425,8 +427,8 @@ contains
                write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
                    k_scale(1),norm_scale
          endif
-         Fcalc(:) = k_scale(:) * Fcalc(:)
       endif
+      Fcalc(:) = k_scale(:) * Fcalc(:)
 
       nstep = nstep + 1
       abs_Fcalc(:) = abs(Fcalc(:))
@@ -475,7 +477,7 @@ contains
 
    subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
       use ml_mod, only : &
-           init_scales, optimize_k_scale_k_mask, k_iso, k_iso_exp, k_aniso
+           init_scales, k_iso, k_iso_exp, k_aniso
       use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
@@ -486,6 +488,7 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
+#if 0
       if( bulk_solvent_model .eq. 'opt' ) then
 
          ! N.B.: this is scaling based on abs(Fobs), not Fobs as complex
@@ -498,6 +501,7 @@ contains
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
 
       else
+#endif
 
          call get_solvent_contribution(nstep, crd)
          if (mod(nstep,scale_update_frequency) == 0) then
@@ -507,7 +511,9 @@ contains
          endif
          Fcalc(:) = k_scale(:) * Fcalc(:)
 
+#if 0
       endif
+#endif
 
       if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
       nstep = nstep + 1
@@ -527,8 +533,7 @@ contains
       use ml_mod, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
-           init_scales, optimize_k_scale_k_mask, k_iso, k_iso_exp, &
-           k_aniso
+           init_scales, k_iso, k_iso_exp, k_aniso
       use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
@@ -540,6 +545,7 @@ contains
       integer :: i
       double precision :: eterm1, eterm2, x
 
+#if 0
       if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
            call get_solvent_contribution(nstep, crd)
@@ -548,18 +554,15 @@ contains
            k_scale = k_iso * k_iso_exp * k_aniso
          endif
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-#if 0
-        write(6, '(a, f10.8)') '  xray rwork: ', &
-        r_factor_w_selection(scale_selection(Fcalc, 1,NRF_work)*Fcalc, 1, NRF_work)
-        write(6, '(a, f10.8)') '  xray rfree: ', &
-        r_factor_w_selection(scale_selection(Fcalc, 1 + NRF_work, NRF)*Fcalc, 1 + NRF_work, NRF)
+      else 
 #endif
 
-      else 
          call get_solvent_contribution(nstep, crd)
          call scale_Fcalc( nstep )
          
+#if 0
       endif
+#endif
       abs_Fcalc(:) = abs(Fcalc(:))
 
       ! get ml parameters
@@ -581,6 +584,7 @@ contains
             abs_Fobs(1:NRF_work)))
 
       nstep = nstep + 1
+      write(6,*) '| in dTargetML_dF, nstep = ', nstep
 
       ! put dTargetML/dF into deriv(:)
       do i=1,NRF_work
