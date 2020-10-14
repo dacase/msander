@@ -16,6 +16,7 @@ serial:
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) tleap
 	@cd antechamber && $(MAKE) ac
+	@cd ambpdb && $(MAKE) ambpdb
 	@cd sqm && $(MAKE) sqm
 	@cd moft && $(MAKE) moft
 #	@cd gmml && $(MAKE) gmml
@@ -35,10 +36,11 @@ clean:
 	-(cd xray && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
 	-(cd leap && $(MAKE) clean )
+	-(cd ambpdb && $(MAKE) clean )
 	-(cd antechamber && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
 	-(cd moft && $(MAKE) clean )
-	-(cd gmml && $(MAKE) clean )
+#	-(cd gmml && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \

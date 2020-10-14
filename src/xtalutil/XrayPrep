@@ -102,7 +102,7 @@ echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
 #============================================================================
-if false; then
+if true; then
 echo "Running zero-cycle phenix.refine on P1-expanded structure:"
 
 cad hklin1 tmp.mtz hklout $id.mtz <<EOF >> $id-prep.log
@@ -118,7 +118,7 @@ EOF
 ambpdb -p ${id}_uc.parm7 -c ${id}_uc.rst7 -ext -bres > tmp.pdb
 
 phenix.refine  \
-   $tmp.pdb $id-P1.mtz $ciffiles \
+   tmp.pdb $id-P1.mtz $ciffiles \
    refinement.main.number_of_macro_cycles=0 \
    prefix=cdl serial=2 \
    write_geo=False cdl=True --overwrite >> $id-prep.log \
