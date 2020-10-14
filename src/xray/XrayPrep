@@ -102,6 +102,7 @@ echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
 #============================================================================
+if false; then
 echo "Running zero-cycle phenix.refine on P1-expanded structure:"
 
 cad hklin1 tmp.mtz hklout $id.mtz <<EOF >> $id-prep.log
@@ -114,12 +115,15 @@ LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
 LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
 EOF
 
+ambpdb -p ${id}_uc.parm7 -c ${id}_uc.rst7 -ext -bres > tmp.pdb
+
 phenix.refine  \
-   ${id}_uc.pdb $id-P1.mtz $ciffiles \
+   $tmp.pdb $id-P1.mtz $ciffiles \
    refinement.main.number_of_macro_cycles=0 \
    prefix=cdl serial=2 \
    write_geo=False cdl=True --overwrite >> $id-prep.log \
      || { echo "  phenix.refine:  Program error"; exit 1; }
+fi
 
 #============================================================================
 echo "Done. Created 6 files:"
