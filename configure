@@ -78,7 +78,7 @@ for var in "$@"; do
             cxx="icpc"
             fc="ifort -fPIC"
             gccsys="-gcc-sys "
-            optflags="-g -O3 -fast"
+            optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
         --no-rism)
             rismsander=""
