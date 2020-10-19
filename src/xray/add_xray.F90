@@ -128,6 +128,7 @@ program add_xray
       if( atom_element(i) == 'NA  ' ) atom_element(i) = 'Na+1'
       if( atom_element(i) == ' K  ' ) atom_element(i) = ' K+1'
       if( atom_element(i) == 'CL  ' ) atom_element(i) = 'Cl-1'
+      if( atom_element(i) == 'FE  ' ) atom_element(i) = 'Fe+2'
    end do
 
    num_scatter_types=1

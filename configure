@@ -11,6 +11,7 @@ verbose="@"
 enablempi=
 requested_help="no"
 bintraj="-DBINTRAJ"
+clangf=""
 rism="-lrism"
 rismsander="-DRISMSANDER"
 conda="no"
@@ -80,6 +81,13 @@ for var in "$@"; do
             gccsys="-gcc-sys "
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
+        --clang)
+            compiler="clang"
+            clangf="-DCLANG"
+            cc="clang-10 -fPIC"
+            cxx="clang++-10 -fPIC"
+            fc="flang -fPIC"
+            optflags="-g -O3";;
         --no-rism)
             rismsander=""
             rism="";;
@@ -212,7 +220,7 @@ else
   fi
 
   # Determine how we are linking MKL
-  if  [ "$compiler" = 'gnu' ] ; then
+  if  [ "$compiler" = 'gnu' -o "$compiler" = 'clang' ] ; then
     link_type='line'
   else
     link_type='mkl'   #assuming Intel
@@ -280,7 +288,7 @@ else
       flibs_la="-L$mkll $mkll/$mklinterfacelayer $mklthread $mkll/libmkl_core.a $mklomp -lpthread"
     fi
     # GNU compilers with MKL requires -ldl
-    if [ "$compiler" = 'gnu' ]; then
+    if [ "$compiler" = 'gnu' -o "$compiler" = 'clang' ]; then
       flibs_la="$flibs_la -ldl"
     fi
 
@@ -488,7 +496,7 @@ BLAS=$blas
 
 CC=$cc
 CXX=$cxx
-CFLAGS=$bintraj
+CFLAGS=$bintraj $clangf
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -497,7 +505,7 @@ COPTFLAGS=$optflags
 #  (5)  Fortran compiler
 
 FC=$fc
-FFLAGS=$bintraj $inc $ompflag $mpiflag
+FFLAGS=$bintraj $clangf $inc $ompflag $mpiflag
 FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags

@@ -3,7 +3,7 @@ include ../../config.h
 SRC = add_xray.F90 add_pdb.F90
 OBJ = add_xray.o add_pdb.o
 
-xray: $(BINDIR)/add_xray$(SFX) $(BINDIR)/add_pdb$(SFX) $(BINDIR)/XrayPrep
+xray: $(BINDIR)/add_xray$(SFX) $(BINDIR)/add_pdb$(SFX)
 
 $(BINDIR)/add_xray$(SFX): add_xray.o 
 	@echo "[XRAY]  FC $@"
@@ -13,10 +13,6 @@ $(BINDIR)/add_pdb$(SFX): add_pdb.o $(LIBS)
 	@echo "[XRAY]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) $< $(LIBDIR)/libsys.a
 
-$(BINDIR)/XrayPrep: XrayPrep
-	@echo "[XRAY]  install $@"
-	$(VB)cp XrayPrep $(BINDIR)
-	
 clean:
 	/bin/rm -f $(OBJ)
 

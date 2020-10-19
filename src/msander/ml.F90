@@ -190,6 +190,7 @@ contains
                         d, d_star, reflections_per_bin, fo_fo
     double precision :: cosa, sina, cosb, sinb, cosg, sing
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
+    double precision :: norm2_vas, norm2_vbs, norm2_vcs
     double precision, dimension(:), allocatable :: d_star_sq_tmp, &
                                                    d_star_sq_sorted, bin_limits
     integer, dimension(:), allocatable :: counter_w, counter_f, &
@@ -200,6 +201,9 @@ contains
     integer:: hkl(3,num_hkl)
     double precision :: f_obs_tmp(num_hkl), sigma_tmp(num_hkl)
     integer :: index_start, index_end
+
+    double precision :: ddot
+    external :: ddot
 
     N_steps = nstlim
     NRF = num_hkl
@@ -254,15 +258,18 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
+    norm2_vas = sqrt( ddot(3,vas,1,vas,1) )
+    norm2_vbs = sqrt( ddot(3,vbs,1,vbs,1) )
+    norm2_vcs = sqrt( ddot(3,vcs,1,vcs,1) )
 
     ! start of block to separate work and free reflections, and sort into bins
 
     resolution = 50.d0
     low_res = 0.d0
     do i = 1, NRF
-      d_star =  (square(hkl_index(1,i) * norm2(vas)) + &
-                 square(hkl_index(2,i) * norm2(vbs)) + &
-                 square(hkl_index(3,i) * norm2(vcs)) + &
+      d_star =  (square(hkl_index(1,i) * norm2_vas) + &
+                 square(hkl_index(2,i) * norm2_vbs) + &
+                 square(hkl_index(3,i) * norm2_vcs) + &
                  2 * hkl_index(2,i) * hkl_index(3,i) * dot_product(vbs, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(2,i) * dot_product(vbs, vas))

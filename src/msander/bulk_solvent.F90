@@ -201,6 +201,10 @@ contains
     double precision :: a,b,c,alpha,beta,gamma
     double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
+    double precision :: norm2_vas, norm2_vbs, norm2_vcs
+
+    double precision :: ddot
+    external :: ddot
 
     allocate(k_mask(num_hkl))
     allocate(f_mask(num_hkl))
@@ -264,6 +268,9 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
+    norm2_vas = sqrt( ddot(3,vas,1,vas,1) )
+    norm2_vbs = sqrt( ddot(3,vbs,1,vbs,1) )
+    norm2_vcs = sqrt( ddot(3,vcs,1,vcs,1) )
 
     temp_grid = resolution / 4.0
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
@@ -277,7 +284,7 @@ contains
     ! cart-to-frac matrix (10:15), cell volume (16)
 
     mask_cell_params = (/a*a, b*b, c*c, 2*a*b*cos(gamma), 2*a*c*cos(beta), &
-                        2*b*c*cos(alpha), norm2(vas), norm2(vbs), norm2(vcs), &
+                        2*b*c*cos(alpha), norm2_vas, norm2_vbs, norm2_vcs, &
                         1.0 / a, -cos(gamma) / (sin(gamma)* a), &
                         (cos(alpha) * cos(gamma) - cos(beta)) / (V * sin(gamma)) * b * c, &
                         1 / (sin(gamma) * b), &

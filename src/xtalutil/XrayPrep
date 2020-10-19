@@ -9,9 +9,10 @@ id=$1
 echo "XrayPrep log file for id $id" > $id-prep.log
 ciffiles=$2
 
+if true; then
 #============================================================================
 echo "Running phenix.AmberPrep" 
-phenix.AmberPrep $id.pdb >> $id-prep.log \
+phenix.AmberPrep $id.pdb use_reduce=False >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
 #  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
@@ -44,6 +45,7 @@ $MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
      || { echo "  add_xray: Program error"; exit 1; }
 
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
+fi
 
 #============================================================================
 echo "Making input mtz file"
@@ -54,6 +56,7 @@ echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F
 phenix.refine  \
    4phenix_$id.pdb $id-sf.mtz $ciffiles \
    refinement.input.xray_data.r_free_flags.generate=True \
+   refinement.input.symmetry_safety_check=warning \
    refinement.main.number_of_macro_cycles=0 \
    xray_data.outliers_rejection=True \
    prefix=cdl serial=1 \
@@ -137,4 +140,4 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 #============================================================================
 # clean up
 /bin/rm -f tmp* $id-sf.mtz cdl_data.mtz $id.fmtz $id-P1.fmtz parmed \
-     cdl_00* foo*.parm7 build_uc
+     cdl_00* foo*.parm7 build_uc 4amber_$i.prmtop
