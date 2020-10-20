@@ -49,7 +49,7 @@ module xray_interface_module
          fft_radius_min, fft_radius_max, &
          bfactor_min, bfactor_max, &
          bfactor_refinement_interval, &
-         atom_selection_mask, &
+         atom_selection_mask, solute_selection_mask, &
          k_sol, b_sol, k_tot, b_tot, inputscale,  &
          mask_update_frequency, scale_update_frequency, &
          ml_update_frequency, xray_nstep, bulk_solvent_model
@@ -141,7 +141,8 @@ contains
       endif
       ! write(stdout,'(5X,2(A,F8.3))') 'B-Factor Min:',bfactor_min,', Max: ',bfactor_max
       ! write(stdout,'(5X,A,I4)') 'B-factor Refinement Interval: ',bfactor_refinement_interval
-      write(stdout,'(5X,2A)') 'Atom Selection Mask: ',trim(atom_selection_mask)
+      write(stdout,'(5X,2A)') 'Atom Selection Mask:   ',trim(atom_selection_mask)
+      write(stdout,'(5X,2A)') 'Solute Selection Mask: ',trim(solute_selection_mask)
       return
    end subroutine xray_write_options
 
@@ -168,9 +169,9 @@ contains
          num_residues = nres
 
          allocate(atom_bfactor(natom), atom_occupancy(natom), &
-               atom_selection(natom), residue_chainid(nres), residue_icode(nres), &
-               atom_element(natom), atom_altloc(natom), residue_number(nres), &
-               stat=alloc_status)
+            atom_selection(natom), residue_chainid(nres), residue_icode(nres), &
+            atom_element(natom), atom_altloc(natom), residue_number(nres), &
+            solute_selection(natom), stat=alloc_status)
          REQUIRE(alloc_status==0)
 
          call nxtsec_reset()
@@ -559,23 +560,28 @@ contains
 
       ! if( fft_method > 0 ) call FFT_setup()
 
-      if (atom_selection_mask/='') then
-         call atommask(natom=natom,nres=nres,prnlev=0, &
-               igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
-               lbres=ih(m02),crd=x(lcrd), &
-               maskstr=atom_selection_mask,mask=atom_selection)
-         NAT_for_mask1 = sum(atom_selection)
-         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
-              ' atoms in ', trim(atom_selection_mask)
-         !  also ignore any atoms with zero occupancy:
-         do i=1,natom
-            if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
-         end do
-         NAT_for_mask = sum(atom_selection)
-         if( master .and. NAT_for_mask1 /= NAT_for_mask ) &
-            write(6,'(a,i4,a)') 'Removing ',NAT_for_mask1 - NAT_for_mask, &
-              ' additional atoms with zero occupancy'
-      end if
+      call atommask(natom=natom,nres=nres,prnlev=0, &
+            igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
+            lbres=ih(m02),crd=x(lcrd), &
+            maskstr=atom_selection_mask,mask=atom_selection)
+      NAT_for_mask1 = sum(atom_selection)
+      if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
+           ' atoms in ', trim(atom_selection_mask)
+      !  also ignore any atoms with zero occupancy:
+      do i=1,natom
+         if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
+      end do
+      NAT_for_mask = sum(atom_selection)
+      if( master .and. NAT_for_mask1 /= NAT_for_mask ) &
+         write(6,'(a,i4,a)') 'Removing ',NAT_for_mask1 - NAT_for_mask, &
+           ' additional atoms with zero occupancy'
+
+      call atommask(natom=natom,nres=nres,prnlev=0, &
+            igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
+            lbres=ih(m02),crd=x(lcrd), &
+            maskstr=solute_selection_mask,mask=solute_selection)
+      if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(solute_selection), &
+           ' atoms in ', trim(solute_selection_mask)
 
       call init_ml(target, nstlim, d_star_sq, resolution)
 
@@ -629,6 +635,7 @@ contains
       bfactor_max = 999.0
       bfactor_refinement_interval = 0
       atom_selection_mask = '!@H='
+      solute_selection_mask = ':*'
       mask_update_frequency = 100
       scale_update_frequency = 100
       ml_update_frequency = 100

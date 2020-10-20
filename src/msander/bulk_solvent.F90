@@ -338,7 +338,7 @@ contains
   !----------------------------------------------------------------------------
   subroutine grid_bulk_solvent(n_atom, crd)
 
-    use xray_globals_module, only : atom_selection
+    use xray_globals_module, only : solute_selection
 
     implicit none
     integer :: tid, n_atom
@@ -350,7 +350,7 @@ contains
 
     do tid = 1, n_atom
 
-      ! if( atom_selection(tid) == 0 ) cycle
+      if( solute_selection(tid) == 0 ) cycle
 
       ! Cartesian to fractional coordinates
       atomX = mask_cell_params(10) * crd(1, tid) + &

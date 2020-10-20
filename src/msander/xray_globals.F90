@@ -84,7 +84,7 @@ module xray_globals_module
 
    integer, save :: bfactor_refinement_interval
 
-   character(len=256) :: atom_selection_mask
+   character(len=256) :: atom_selection_mask, solute_selection_mask
 
    ! parameters describing scaling options for Fcalc:
    logical :: inputscale = .false., user_fmask = .false.
@@ -98,7 +98,7 @@ module xray_globals_module
    integer, save :: num_atoms, num_residues, NAT_for_mask
    real(real_kind), allocatable, save :: atom_bfactor(:), atom_occupancy(:)
    integer, allocatable, save :: atom_scatter_type(:)
-   integer, allocatable, save :: atom_selection(:)
+   integer, allocatable, save :: atom_selection(:), solute_selection(:)
 
    ! Residue and atom data that may become SANDER globals:
    character(len=4), allocatable, save :: residue_chainid(:), residue_icode(:)
