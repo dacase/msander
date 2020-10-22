@@ -490,32 +490,13 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
-#if 0
-      if( bulk_solvent_model .eq. 'opt' ) then
-
-         ! N.B.: this is scaling based on abs(Fobs), not Fobs as complex
-         if (mod(nstep, mask_update_frequency) == 0) then
-           call get_solvent_contribution(nstep, crd, .false.)
-           call init_scales()
-           call optimize_k_scale_k_mask()
-           k_scale = k_iso * k_iso_exp * k_aniso
-         endif
-         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-
-      else
-#endif
-
-         call get_solvent_contribution(nstep, crd, .true.)
-         if (mod(nstep,scale_update_frequency) == 0) then
-            k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-              '| updating isotropic scaling: ', k_scale(1)
-         endif
-         Fcalc(:) = k_scale(:) * Fcalc(:)
-
-#if 0
+      call get_solvent_contribution(nstep, crd, .true.)
+      if (mod(nstep,scale_update_frequency) == 0) then
+         k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+         if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+           '| updating isotropic scaling: ', k_scale(1)
       endif
-#endif
+      Fcalc(:) = k_scale(:) * Fcalc(:)
 
       if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
       nstep = nstep + 1
