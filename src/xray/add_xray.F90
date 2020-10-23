@@ -60,19 +60,25 @@ program add_xray
    character(len=PATH_MAX) :: ambhome
    integer :: argc, iarg, amblength
    integer :: iargc
+   logical :: electronsf = .false.
 
    ! begin
 
-   call get_environment_variable( 'AMBERHOME', ambhome, amblength )
+   call get_environment_variable( 'MSANDERHOME', ambhome, amblength )
    if( amblength > 0 ) then
      symmop_filename = ambhome(1:amblength) // '/dat/xray/symop.lib'
    else
      symmop_filename = ' '
    endif
    if( amblength > 0 ) then
-     scatter_filename = ambhome(1:amblength) // '/dat/xray/atomsf.lib'
+      if (electronsf) then
+         scatter_filename = ambhome(1:amblength) // &
+            '/dat/xray/atomsf_electron.lib'
+      else
+         scatter_filename = ambhome(1:amblength) // '/dat/xray/atomsf.lib'
+      endif
    else
-     scatter_filename = ' '
+      scatter_filename = ' '
    endif
 
    argc = command_argument_count()
@@ -88,18 +94,31 @@ program add_xray
          call get_next_arg(prmtop_infile)
       case('-o')
          call get_next_arg(prmtop_outfile)
-      case('-sf')
-         call get_next_arg(scatter_filename)
       case('-symm')
          call get_next_arg(symmop_filename)
       case('-sg')
          call get_next_arg(spacegroup_name)
+      case('-electronsf')
+         electronsf = .true.
       case default
          write(*,*) 'Unrecognize option: ',trim(arg)
          call usage()
       end select
    end do
    
+   call get_environment_variable( 'MSANDERHOME', ambhome, amblength )
+   if( amblength .le. 0 ) then
+      write(0,*) 'Error: MSANDERHOME is not set!'
+      stop
+   endif
+
+   symmop_filename = ambhome(1:amblength) // '/dat/xray/symop.lib'
+   if (electronsf) then
+      scatter_filename = ambhome(1:amblength) // '/dat/xray/atomsf_electron.lib'
+   else
+      scatter_filename = ambhome(1:amblength) // '/dat/xray/atomsf.lib'
+   endif
+
    open(unit=infile_lun,file=prmtop_infile,status='OLD', &
          action='READ',form='FORMATTED')
    open(unit=outfile_lun,file=prmtop_outfile,status='UNKNOWN', &
@@ -121,16 +140,24 @@ program add_xray
    call nxtsec(infile_lun,STDOUT,0,'*','ATOM_ELEMENT',fmt,iok)
    read(infile_lun,fmt) atom_element
 
-   ! fix up ion elements to match those in scattering tables:
+   ! scattering tables use element names like Fe, not FE:
    do i = 1,num_atoms
-      if( atom_element(i) == 'CA  ' ) atom_element(i) = 'Ca+2'
-      if( atom_element(i) == 'MG  ' ) atom_element(i) = 'Mg+2'
-      if( atom_element(i) == 'NA  ' ) atom_element(i) = 'Na+1'
-      if( atom_element(i) == ' K  ' ) atom_element(i) = ' K+1'
-      if( atom_element(i) == 'CL  ' ) atom_element(i) = 'Cl-1'
-      if( atom_element(i) == 'FE  ' ) atom_element(i) = 'Fe+2'
-      if( atom_element(i) == 'ZN  ' ) atom_element(i) = 'Zn+2'
+      if( atom_element(i)(1:1) .ne. ' ' ) &
+          atom_element(i)(2:2) = achar(iachar(atom_element(i)(2:2)) + 32)
    end do
+
+   ! fix up ion elements to match those in X-ray scattering tables:
+   if( .not. electronsf ) then
+      do i = 1,num_atoms
+         if( atom_element(i) == 'Ca  ' ) atom_element(i) = 'Ca+2'
+         if( atom_element(i) == 'Mg  ' ) atom_element(i) = 'Mg+2'
+         if( atom_element(i) == 'Na  ' ) atom_element(i) = 'Na+1'
+         if( atom_element(i) == ' K  ' ) atom_element(i) = ' K+1'
+         if( atom_element(i) == 'Cl  ' ) atom_element(i) = 'Cl-1'
+         if( atom_element(i) == 'Fe  ' ) atom_element(i) = 'Fe+2'
+         if( atom_element(i) == 'Zn  ' ) atom_element(i) = 'Zn+2'
+      end do
+   end if
 
    num_scatter_types=1
    scatter_types(1)=atom_element(1)
