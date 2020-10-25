@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MSANDERHOME=`pwd`
-./configure_conda --verbose
+./configure_conda --verbose --no-netcdf
 
 cd src
 make -f Makefile.ap install
