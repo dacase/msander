@@ -22,12 +22,12 @@ phenix.map_box $id.pdb $emdmap keep_map_size=True resolution=$resolution \
 echo "Making the -sf.dat file"
 
 #  convert to formatted file:
-phenix.mtz.dump -c -f s ${id}_box.mtz  | tr ',' '\t' > $id.fmtz \
+phenix.mtz.dump -c -f s ${id}_box.mtz  | tr ',' '\t' > ${id}_box.fmtz \
      || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
 
 #  make the -sf.dat file needed by xray3:
-awk '{printf("%d\t%d\t%d\t%s\t%s\n", \
-      $1,$2,$3,$4,$5)}'  $id.fmtz | tail +2 > tmp.dat \
+awk '{printf("%d\t%d\t%d\t%s\t%s\t1\n", \
+      $1,$2,$3,$4,$5)}'  ${id}_box.fmtz | tail +2 > tmp.dat \
      || { echo "  awk:  Program error"; exit 1; }
 
 nrefl=`wc -l tmp.dat | awk '{print $1}'`
@@ -37,8 +37,9 @@ cat tmp.dat >> $id-sf.dat
 if true; then
 #============================================================================
 echo "Running phenix.AmberPrep" 
-phenix.AmberPrep ${id}_box.pdb use_reduce=False >> $id-prep.log \
+phenix.AmberPrep ${id}_box.pdb >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
+
 /bin/mv ${id}_box_uc.pdb ${id}_box.pdb
 
 #  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
@@ -67,10 +68,13 @@ parmout foo.parm7
 go
 EOF
 
-$MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_box.parm7 >> $id-prep.log \
+$MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_box.parm7 \
+     -electronsf >> $id-prep.log \
      || { echo "  add_xray: Program error"; exit 1; }
 
 /bin/mv 4amber_${id}_box.rst7 ${id}_box.rst7
+
+# $MSANDERHOME/bin/ambpdb -p ${id}_box.parm7 -ext < ${id}_box.rst7 > ${id}_box.pdb
 fi
 
 
@@ -79,12 +83,11 @@ echo "Done. Created 5 files:"
 echo "   ${id}_box.parm7       Use this as the Amber prmtop file"
 echo "   ${id}_box.rst7        Starting coordinates in Amber restrt format"
 echo "   ${id}_box.pdb         Use as pdb_infile"
-echo "   ${id}-sf.dat          Use as alternate reflections_infile"
+echo "   ${id}-sf.dat          Use as reflections_infile"
 echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
 #============================================================================
 
 # clean up
-/bin/rm -f tmp* $id.fmtz parmed foo*.parm7 4amber_${id}_box.prmtop \
-    ${id}_box.ccp4 ${id}_box.mtz tleap_uc.in 4amber_${id}_box.order \
-    4phenix_${id}_box.pdb
+/bin/rm -f tmp* parmed foo*.parm7 4amber_${id}_box.prmtop \
+    tleap_uc.in 4amber_${id}_box.order 4phenix_${id}_box.pdb 
