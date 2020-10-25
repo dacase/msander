@@ -10,7 +10,7 @@ id=$1    # identifier for this calculation
          # inputs: $id.parm7, $id.rst7
 xvv=$2   # xvv file for the solvent to be used
 
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=16
 sander=/home/case/msander/bin/msander
 
 cat > mdin.rism <<EOF
@@ -30,8 +30,8 @@ cat > mdin.rism <<EOF
  /
 EOF
 
-$sander -O -i mdin.rism -o $id.kh.r3d \
-    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id.kh
+$sander -O -i mdin.rism -o $id.pse2.r3d \
+    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id.pse2
 
 /bin/rm -f mdin.rism restrt mdinfo 
 
