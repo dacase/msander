@@ -419,9 +419,9 @@ int main(int argc, char *argv[])
     fprintf(stdout, "\nWelcome to antechamber %s: molecular input file processor.\n\n",
             ANTECHAMBER_VERSION);
     esetprogramname(argv[0]);
-    amberhome = (char *) getenv("AMBERHOME");
+    amberhome = (char *) getenv("MSANDERHOME");
     if (amberhome == NULL) {
-        eprintf("AMBERHOME is not set.");
+        eprintf("MSANDERHOME is not set.");
     }
     if (argc == 2) {
         if (strncmp(argv[1], "-h", 2) == 0 || strncmp(argv[1], "-H", 2) == 0) {

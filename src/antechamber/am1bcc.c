@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     char command_bt[2 * MAXCHAR];
     int overflow_flag = 0;      /*if overflow_flag ==1, reallocate memory */
 
-    amberhome = egetenv("AMBERHOME");
+    amberhome = egetenv("MSANDERHOME");
     default_cinfo(&cinfo);
     default_minfo(&minfo);
 

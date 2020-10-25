@@ -2173,10 +2173,10 @@ The command-line options for starting tleap and xleap are:
 The tleap and xleap shell scripts automatically provide
 
 
-        -I$AMBERHOME/dat -I$AMBERHOME/dat/leap/lib -I$AMBERHOME/dat/leap/cmd
+        -I$MSANDERHOME/dat -I$MSANDERHOME/dat/leap/lib -I$MSANDERHOME/dat/leap/cmd
 
-where $AMBERHOME/dat contains 'parm.dat' force field files,
-      $AMBERHOME/dat/leap/lib contains residue libraries and
-      $AMBERHOME/dat/leap/cmd contains the default leaprc and other scripts.
+where $MSANDERHOME/dat contains 'parm.dat' force field files,
+      $MSANDERHOME/dat/leap/lib contains residue libraries and
+      $MSANDERHOME/dat/leap/cmd contains the default leaprc and other scripts.
 
 @@endHelp
