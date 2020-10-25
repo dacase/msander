@@ -13,9 +13,7 @@ __all__ = ['InputOptions', 'QmInputOptions', 'setup', 'cleanup', 'pme_input',
 try:
     from . import pysander as _pys
 except ImportError:
-    _stderr.write('Could not import the compiled Python-sander interface. Make '
-                  'sure you have the Python development libraries installed '
-                  'and that you have sourced amber.sh or amber.csh')
+    _stderr.write('Could not import the compiled Python-sander interface.')
     raise
 
 # If set to True, units are applied to the resulting output. Otherwise,
