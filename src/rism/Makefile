@@ -33,6 +33,10 @@ clean:
 depend::
 	./makedepend > depend
 
+skip::
+	/bin/rm -f amber_rism_interface.o
+	touch amber_rism_interface.o
+
 include depend
 
 # DO NOT DELETE

@@ -12,7 +12,7 @@ enablempi=
 requested_help="no"
 bintraj="-DBINTRAJ"
 clangf=""
-rism="-lrism"
+rism="librism"
 rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
@@ -27,6 +27,7 @@ fc="gfortran -fPIC"
 flibs_arch="-lgfortran -w"
 flibs_la=""
 flibs_fftw="-lfftw3"
+flibs_rism="-lrism"
 mpif90="mpif90"
 gccsys=""
 optflags="-g -Ofast -mtune=native"
@@ -89,8 +90,10 @@ for var in "$@"; do
             fc="flang -fPIC"
             optflags="-g -O3";;
         --no-rism)
+            # flibs_fftw=""
+            flibs_rism=""
             rismsander=""
-            rism="";;
+            rism="skip";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
@@ -298,7 +301,6 @@ else
   fi
 fi
 
-if [ "$conda" == "no" ]; then
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
 #--------------------------------------------------------------------------
@@ -356,15 +358,12 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
        echo "OK"
    fi
    cd ../..
-else
-   echo "Using the existing netcdf libraries"
-fi
 fi
 
 #--------------------------------------------------------------------------
 #  Configure and build FFTW3:
 #--------------------------------------------------------------------------
-if [ "$mpi" == "yes" -o -z "$mklroot" -o "$mkl" == "no" ]; then
+if [ "$flibs_fftw" != "" ]; then
 
     if [ ! -s "lib/libfftw3.a" ] || \
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
@@ -506,7 +505,7 @@ COPTFLAGS=$optflags
 
 FC=$fc
 FFLAGS=$bintraj $clangf $inc $ompflag $mpiflag
-FLIBSF= $rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
+FLIBSF= $flibs_rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
 SHORT_ENE=$short_ene
@@ -526,6 +525,7 @@ INSTALLTYPE=$installtype
 
 # RISM:
 RISMSANDER=$rismsander
+RISM=$rism
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
