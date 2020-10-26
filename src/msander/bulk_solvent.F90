@@ -203,9 +203,6 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
 
-    double precision :: ddot
-    external :: ddot
-
     allocate(k_mask(num_hkl))
     allocate(f_mask(num_hkl))
     allocate(hkl_indexing_bs_mask(num_hkl))
@@ -268,9 +265,9 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
-    norm2_vas = sqrt( ddot(3,vas,1,vas,1) )
-    norm2_vbs = sqrt( ddot(3,vbs,1,vbs,1) )
-    norm2_vcs = sqrt( ddot(3,vcs,1,vcs,1) )
+    norm2_vas = sqrt( dot_product(vas,vas) )
+    norm2_vbs = sqrt( dot_product(vbs,vbs) )
+    norm2_vcs = sqrt( dot_product(vcs,vcs) )
 
     temp_grid = resolution / 4.0
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)

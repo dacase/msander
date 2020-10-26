@@ -1072,8 +1072,8 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    ! BPR :: so "ntpr2" is used to avoid confusion
    integer, intent(in)    :: ntpr2          ! print frequency
    ! ------ External functions -----------------
-   _REAL_   xminc,ddot
-   external xminc,ddot
+   _REAL_   xminc
+   external xminc
 
 #include "extra.h"
 #include "../include/md.h"

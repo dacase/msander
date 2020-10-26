@@ -202,9 +202,6 @@ contains
     double precision :: f_obs_tmp(num_hkl), sigma_tmp(num_hkl)
     integer :: index_start, index_end
 
-    double precision :: ddot
-    external :: ddot
-
     N_steps = nstlim
     NRF = num_hkl
 
@@ -258,9 +255,9 @@ contains
     vas(1:3) = vas(1:3) / V
     vbs(1:3) = vbs(1:3) / V
     vcs(1:3) = vcs(1:3) / V
-    norm2_vas = sqrt( ddot(3,vas,1,vas,1) )
-    norm2_vbs = sqrt( ddot(3,vbs,1,vbs,1) )
-    norm2_vcs = sqrt( ddot(3,vcs,1,vcs,1) )
+    norm2_vas = sqrt( dot_product(vas,vas) )
+    norm2_vbs = sqrt( dot_product(vbs,vbs) )
+    norm2_vcs = sqrt( dot_product(vcs,vcs) )
 
     ! start of block to separate work and free reflections, and sort into bins
 
