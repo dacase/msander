@@ -16,7 +16,9 @@ rism="librism"
 rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
-boost="no"
+boost="yes"
+moft="moft"
+pythonv=`python --version | cut -c 8-10`
 
 compiler="gnu"
 cc="gcc -fPIC"
@@ -94,6 +96,9 @@ for var in "$@"; do
             flibs_rism=""
             rismsander=""
             rism="skip";;
+        --no-boost)
+            boost="no"
+            moft="skip";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
@@ -112,6 +117,7 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --no-netcdf    disable NetCDF support\n"
 	printf " --no-rism      disable 3D-RISM support\n"
+	printf " --no-boost     disable moft support\n"
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
@@ -414,41 +420,42 @@ fi
 #  Configure boost
 #--------------------------------------------------------------------------
 
-if [ ! -s "lib/libboost_system.a" ]; then
+if [ "$boost" == "yes" ]; then
+   if [ ! -s "lib/libboost_system.a" ]; then
 
-   printf "\nConfiguring boost (may be time-consuming)..."
-   cd src/boost
-   if [ "$compiler" = 'intel' ]; then
-       ./bootstrap.sh --prefix=$msanderhome --with-toolset=intel-linux > ../boost_config.log
-       ncerror=$?
-   else
-       ./bootstrap.sh --prefix=$msanderhome > ../boost_config.log
-       ncerror=$?
-   fi
+      printf "\nConfiguring boost (may be time-consuming)..."
+      cd src/boost
+      if [ "$compiler" = 'intel' ]; then
+          ./bootstrap.sh --prefix=$msanderhome --with-toolset=intel-linux > ../boost_config.log
+          ncerror=$?
+      else
+          ./bootstrap.sh --prefix=$msanderhome > ../boost_config.log
+          ncerror=$?
+      fi
 
-   if [ $ncerror -gt 0 ]; then
-       printf "\nError: Boost bootstrap returned $ncerror\n"
-       printf "       Check src/boost_config.log\n"
-       exit 1
-   else
-       printf "OK\n"
-       printf "Compiling boost (may be time-consuming)..."
-       ./b2 --with-program_options --with-iostreams --with-regex \
-            --with-system --with-timer --with-chrono --with-filesystem \
-            --with-graph --with-thread link=static install >> ../boost_config.log
-       if [ $? -ne 0 ]; then
-          printf "\nError: Boost compile failed.\n"
+      if [ $ncerror -gt 0 ]; then
+          printf "\nError: Boost bootstrap returned $ncerror\n"
           printf "       Check src/boost_config.log\n"
           exit 1
-       else
+      else
           printf "OK\n"
-       fi
+          printf "Compiling boost (may be time-consuming)..."
+          ./b2 --with-program_options --with-iostreams --with-regex \
+               --with-system --with-timer --with-chrono --with-filesystem \
+               --with-graph --with-thread link=static install >> ../boost_config.log
+          if [ $? -ne 0 ]; then
+             printf "\nError: Boost compile failed.\n"
+             printf "       Check src/boost_config.log\n"
+             exit 1
+          else
+             printf "OK\n"
+          fi
+      fi
+      cd ../..
+   else
+      echo "Using the existing boost  libraries"
    fi
-   cd ../..
-else
-   echo "Using the existing boost  libraries"
 fi
-
 
 #--------------------------------------------------------------------------
 #  create the config.h file: may differ for different subsets
@@ -527,17 +534,20 @@ INSTALLTYPE=$installtype
 RISMSANDER=$rismsander
 RISM=$rism
 
+# BOOST:
+BOOST=$boost
+MOFT=$moft
+
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 
 #Python interpreter we are using and install options
-#   (need to figure out dynamically what python we have, and set PYTHONPATH
-#    accordingly.)
+#   assumes python in the path is the version we want
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python3.7/site-packages
+PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
 PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF

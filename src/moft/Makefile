@@ -30,5 +30,7 @@ $(BINDIR)/metatwist:  metatwist.o
 	@echo "[MoFT]  CXX $@"
 	$(VB)$(CXX) -std=c++0x -o $@ $< -L$(LIBDIR) $(BOOSTLIB) $(FLIBSF) -lz -lbz2
 
+skip::
+
 clean:
 	/bin/rm -f *.o

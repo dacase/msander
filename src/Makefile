@@ -18,7 +18,7 @@ serial:
 	@cd antechamber && $(MAKE) ac
 	@cd ambpdb && $(MAKE) ambpdb
 	@cd sqm && $(MAKE) sqm
-	@cd moft && $(MAKE) moft
+	@cd moft && $(MAKE) $(MOFT)
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
