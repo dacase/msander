@@ -1,10 +1,10 @@
 #!/bin/sh
 
 export MSANDERHOME=`pwd`
-./configure_conda --verbose --no-netcdf
+./configure --conda --no-netcdf --no-rism --no-boost
 
 cd src
-make -f Makefile.ap install
+make install
 cd ..
 
 rsync -av bin dat lib $PREFIX

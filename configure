@@ -21,11 +21,11 @@ moft="moft"
 pythonv=`python --version | cut -c 8-10`
 
 compiler="gnu"
-cc="gcc -fPIC"
+cc="gcc"
 cxx="g++"
 mpicc="mpicc"
 
-fc="gfortran -fPIC"
+fc="gfortran"
 flibs_arch="-lgfortran -w"
 flibs_la=""
 flibs_fftw="-lfftw3"
@@ -58,6 +58,7 @@ for var in "$@"; do
         --verbose)
             verbose="";;
         --conda)
+            optflags="-g -O3"
             conda="yes";;
         --openmp)
             ompflag='-fopenmp -DOPENMP';
@@ -78,18 +79,18 @@ for var in "$@"; do
             ldflags="-static";;
         --intel)
             compiler="intel"
-            cc="icc -fPIC"
+            cc="icc"
             cxx="icpc"
-            fc="ifort -fPIC"
+            fc="ifort"
             gccsys="-gcc-sys "
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
             clangf="-DCLANG"
-            cc="clang-10 -fPIC"
-            cxx="clang++-10 -fPIC"
-            fc="flang -fPIC"
+            cc="clang-10"
+            cxx="clang++-10"
+            fc="flang"
             optflags="-g -O3";;
         --no-rism)
             # flibs_fftw=""
@@ -374,7 +375,6 @@ if [ "$flibs_fftw" != "" ]; then
     if [ ! -s "lib/libfftw3.a" ] || \
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
        [ "$openmp" == "yes" -a ! -s "lib/libfftw3_omp.a" ]; then
-       printf "\nConfiguring fftw-3.3 with $cc and $fc..."
 
        if [ "$openmp" == "no" ]; then
           enableomp=""
@@ -385,20 +385,40 @@ if [ "$flibs_fftw" != "" ]; then
        # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes"
 
-       # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
-       #   be required for Intel compilers.
-       cd src/fftw-3.3 && \
-           ./configure --disable-doc --prefix=$msanderhome \
-           --libdir=$msanderhome/lib $enableomp $fftw_flags \
-           --enable-static $enable_sse MPICC="$mpicc" \
-           CC="$cc" CFLAGS="$gccsys $optflags"  F77="$fc" FFLAGS="$optflags" \
-           FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
-         ncerror=$?
-       if [ $ncerror -gt 0 ]; then
-           echo "Error: FFTW configure returned $ncerror"
-           exit 1
+       if [ "$conda" == "yes" ]; then
+          printf "\nConfiguring fftw-3.3 with $CC and $FC..."
+          cd src/fftw-3.3 && \
+              ./configure --disable-doc --prefix=$msanderhome \
+              --libdir=$msanderhome/lib $enableomp $fftw_flags \
+              --enable-static $enable_sse MPICC="$mpicc" \
+              CFLAGS="$optflags -fPIC"  \
+              FFLAGS="$optflags -fPIC"  \
+              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
+            ncerror=$?
+          if [ $ncerror -gt 0 ]; then
+              echo "Error: FFTW configure returned $ncerror"
+              exit 1
+          else
+              echo "OK"
+          fi
        else
-           echo "OK"
+          # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
+          #   be required for Intel compilers.
+          printf "\nConfiguring fftw-3.3 with $cc and $fc..."
+          cd src/fftw-3.3 && \
+              ./configure --disable-doc --prefix=$msanderhome \
+              --libdir=$msanderhome/lib $enableomp $fftw_flags \
+              --enable-static $enable_sse MPICC="$mpicc" \
+              CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
+              F77="$fc" FFLAGS="$optflags -fPIC" \
+              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
+            ncerror=$?
+          if [ $ncerror -gt 0 ]; then
+              echo "Error: FFTW configure returned $ncerror"
+              exit 1
+          else
+              echo "OK"
+          fi
        fi
 
        # Build FFTW3
@@ -461,10 +481,31 @@ fi
 #  create the config.h file: may differ for different subsets
 #--------------------------------------------------------------------------
 
+if [ "$conda" == "yes" ]; then
+
 cat <<EOF > config.h
 
 #  msander configuration file.
 #  Created on `date` via $command
+EOF
+
+else
+
+cat <<EOF > config.h
+
+#  msander configuration file.
+#  Created on `date` via $command
+
+CC=$cc
+CXX=$cxx
+FC=$fc
+LDFLAGS=$ldflags
+
+EOF
+
+fi
+
+cat <<EOF >> config.h
 
 ###############################################################################
 
@@ -485,7 +526,6 @@ LOGDIR=\$(BASEDIR)/logs
 SHARED_SUFFIX=$shared_suffix
 MAKE_SHARED=$make_shared
 LM=$lm
-LDFLAGS=$ldflags
 
 ###############################################################################
 
@@ -500,9 +540,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
-CC=$cc
-CXX=$cxx
-CFLAGS=$bintraj $clangf
+CFLAGS=$bintraj $clangf -fPIC
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -510,8 +548,7 @@ COPTFLAGS=$optflags
 
 #  (5)  Fortran compiler
 
-FC=$fc
-FFLAGS=$bintraj $clangf $inc $ompflag $mpiflag
+FFLAGS=$bintraj $clangf $inc $ompflag $mpiflag -fPIC
 FLIBSF= $flibs_rism -lsqm -larpack -lsys $flibs_fftw $flibs_la $ompflag 
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
@@ -552,6 +589,7 @@ PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INS
 
 EOF
 
+if [ "$conda" == "no" ]; then
 
 #--------------------------------------------------------------------------
 #  Test if the C compiler works:
@@ -579,8 +617,6 @@ else
 fi
 /bin/rm -f testp.c testp.o testp
 
-
-if [ "$conda" == "no" ]; then
 #--------------------------------------------------------------------------
 #  Test if the Fortran compiler works:
 #--------------------------------------------------------------------------
@@ -605,6 +641,7 @@ else
 fi
 /bin/rm -f testp.f testp.o testp
 printf "\nThe next step is to type 'make clean && make install'\n\n"
+
 fi
 
 exit 0

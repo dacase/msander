@@ -12,31 +12,31 @@ requirements:
   build:
    - {{ compiler('fortran') }}
    - {{ compiler('c') }}
-   - {{ compiler('cxx') }}
-   - make
-   - llvm-openmp  # [osx]
+#  - {{ compiler('cxx') }}
+#  - llvm-openmp  # [osx]
 
   host:
    - python
+   - numpy
    - setuptools
    - bzip2
    - zlib
 #  - libnetcdf
 #  - netcdf-fortran
-#  - libblas
-#  - liblapack
+#  - openblas
 #  - arpack
 #  - fftw
-   - llvm-openmp  # [osx]
+#  - llvm-openmp  # [osx]
 
   run:
    - python
+   - numpy
 #  - libnetcdf
 #  - netcdf-fortran
 #  - fftw
-#  - libblas
-#  - liblapack
-   - llvm-openmp  # [osx]
+#  - openblas
+#  - arpack
+#  - llvm-openmp  # [osx]
 
 about:
     home: https://www.phenix-online.org/documentation/reference/amber.html

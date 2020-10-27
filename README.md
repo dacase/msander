@@ -47,8 +47,7 @@ simulations
 
 *Conda build:
 ```
-   edit configure_conda to set PYTHONPATH to match the python you will use
-   conda build -c conda-forge --python 2.7 recipe 
+   conda build -c conda-forge [ --python x.x ] recipe 
 ```
 
 *Non-conda build:  (MacOSX, Linux)
