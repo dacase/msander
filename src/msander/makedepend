@@ -70,6 +70,12 @@ $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
 $modulefile{"ml_mod"} = "ml";
 
+# ignore certain modules:
+
+# There exist modules, for example, defined by the fortran standard.
+# Ignore these for dependencies
+$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
+
 foreach $file ( <*.F90> ){
     next if $file =~ /^_/;
     ($fileroot) = $file =~ /(.+)\.F90$/;
@@ -111,7 +117,7 @@ foreach $file ( <*.F90> ){
             ($head,$usee) = /( *use) +(\w*)/;
 #            printf STDERR "     usee: $usee; modulefile is $modulefile{$usee}\n";
             
-            next if $usee eq "mpi";
+            next if defined $ignore{$usee};
             if( !defined $modulefile{$usee} ){
                 printf STDERR "No file name associated with module $usee\n";
                 exit(1);
