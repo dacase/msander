@@ -370,69 +370,6 @@ contains
       z_high = int(ceiling((atomZ + cocs) * mask_grid_size(3)))
 
       ! Grid point is 0 if inside sphere and 1 if outside
-#if 0
-      do i = x_low, x_high
-        frac(1) = dble(i) / mask_grid_size(1);
-        dx = atomX - frac(1)
-        if (dx .lt. -0.5) then
-          dx = dx - floor(dx)
-        else if (dx .ge. 0.5) then
-          dx = dx - ceiling(dx)
-        end if
-        if (i .le. 0) then
-          mdi = i - &
-                ((i - mask_grid_size(1)) / mask_grid_size(1)) * mask_grid_size(1)
-        else if (i .gt. mask_grid_size(1)) then
-          mdi = i - ((i - 1) / mask_grid_size(1)) * mask_grid_size(1)
-        else
-          mdi = i
-        end if
-        mdi = mdi - 1
-        do j = y_low, y_high
-          frac(2) = dble(j) / mask_grid_size(2);
-          dy = atomY - frac(2);
-          if (dy .lt. -0.5) then
-            dy = dy - floor(dy)
-          else if (dy .ge. 0.5) then
-            dy = dy - ceiling(dy)
-          end if
-          if (j .le. 0) then
-            mdj = j - &
-                  ((j - mask_grid_size(2)) / mask_grid_size(2)) * mask_grid_size(2)
-          else if (j .gt. mask_grid_size(2)) then
-            mdj = j - ((j - 1) / mask_grid_size(2)) * mask_grid_size(2)
-          else
-            mdj = j
-          end if
-          mdj = mdj - 1
-          do k = z_low, z_high
-            frac(3) = dble(k) / mask_grid_size(3);
-            dz = atomZ - frac(3);
-            if (dz .lt. -0.5) then
-              dz = dz - floor(dz)
-            else if (dz .ge. 0.5) then
-              dz = dz - ceiling(dz)
-            end if
-            distsq = mask_cell_params(1)*dx*dx + mask_cell_params(2)*dy*dy + &
-                     mask_cell_params(3)*dz*dz + mask_cell_params(4)*dx*dy + &
-                     mask_cell_params(5)*dx*dz + mask_cell_params(6)*dy*dz
-            if (distsq < cutoffsq) then
-              if (k .le. 0) then
-                mdk = k - &
-                      ((k - mask_grid_size(3)) / mask_grid_size(3)) * mask_grid_size(3)
-              else if (k .gt. mask_grid_size(3)) then
-                mdk = k - ((k - 1) / mask_grid_size(3)) * mask_grid_size(3)
-              else
-                mdk = k
-              end if
-              index = mdk + (mask_grid_size(3) * (mdj + mdi * mask_grid_size(2)))
-              mask_bs_grid(index) = 0
-              mask_bs_grid_tmp(index) = 0
-            end if
-          end do
-        end do
-      end do
-#else
       ! version from sf.F90.orig:
       do i = x_low, x_high
         frac(1) = dble(i) / mask_grid_size(1);
@@ -457,7 +394,6 @@ contains
           end do
         end do
       end do
-#endif
     end do
   end subroutine grid_bulk_solvent
 
