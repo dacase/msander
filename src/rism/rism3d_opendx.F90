@@ -1,5 +1,34 @@
 !<compile=optimized>
 
+! The 3D-RISM-KH software found here is copyright (c) 2010-2012 by 
+! Andriy Kovalenko, Tyler Luchko and David A. Case.
+! 
+! This program is free software: you can redistribute it and/or modify it
+! under the terms of the GNU General Public License as published by the Free
+! Software Foundation, either version 3 of the License, or (at your option)
+! any later version.
+! 
+! This program is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+! or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+! for more details.
+! 
+! You should have received a copy of the GNU General Public License in the
+! ../../LICENSE file.  If not, see <http://www.gnu.org/licenses/>.
+! 
+! Users of the 3D-RISM capability found here are requested to acknowledge
+! use of the software in reports and publications.  Such acknowledgement
+! should include the following citations:
+! 
+! 1) A. Kovalenko and F. Hirata. J. Chem. Phys., 110:10095-10112  (1999); 
+! ibid. 112:10391-10417 (2000).   
+! 
+! 2) A. Kovalenko,  in:  Molecular  Theory  of  Solvation,  edited  by  
+! F. Hirata  (Kluwer Academic Publishers, Dordrecht, 2003), pp.169-275.  
+! 
+! 3) T. Luchko, S. Gusarov, D.R. Roe, C. Simmerling, D.A. Case, J. Tuszynski,
+! and  A. Kovalenko, J. Chem. Theory Comput., 6:607-624 (2010). 
+
 #include "../include/dprec.fh"
 
 !> Minimal support for text format OpenDX rectangular grid output.
@@ -361,7 +390,10 @@ contains
     end if
     count = 0
 #if defined(MPI)
-    z_data => safemem_realloc(z_data, grid%globalDimsR(3), .false.)
+    ! WE SHOULD ONLY NEED TO ALLOCATE THIS ON RANK-0.  IT USES A LOT OF MEMORY OTHERWISE.
+    if (rank .eq. 0) then
+       z_data => safemem_realloc(z_data, grid%globalDimsR(3), .false.)
+    end if
     call mpi_gather(grid%localDimsR(3), 1, mpi_integer, nz_local, 1, mpi_integer, 0, comm, err)
     if (err /= 0) call rism_report_error&
          ("RISM3D_OPENDX: could not gather N")
