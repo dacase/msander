@@ -1300,6 +1300,12 @@ contains
       index_start = index_end + 1
       index_end = bins_work_population(i) + index_start - 1
       k_iso_test(index_start:index_end) = scale_selection(f_calc_tmp, index_start, index_end)
+      j = index_end
+      sc = k_iso_test(index_start)
+      index_start = bins_free_start_indices(i)
+      index_end = bins_free_start_indices(i) + bins_free_population(i) -
+      k_iso_test(index_start:index_end) = sc
+      index_end = j
     end do
     r = r_factor_w(f_calc_tmp * k_iso_test)
     if (r < r_start) then
@@ -1387,36 +1393,40 @@ contains
 
   function solve_cubic_equation(a, b, c) result(solution)
     implicit none
-    double precision :: a, b, c, solution(3), Disc, theta, S, T, p, q, arg, eps
+    double precision :: a, b, c, residual, solution(3), Disc, theta, S, T, p, q, arg, eps
     solution = 0
-    eps = d_tolerance * 10
-    p = (3 * b - square(a)) / 3
-    q = (2 * square(a) * a - 9 * a * b + 27 * c) / 27
-    Disc = square(p / 3) * p / 3 + square(q / 2)
+    eps = d_tolerance * 10d0
+    p = (3 * b - square(a)) / 3d0
+    q = (2 * square(a) * a - 9d0 * a * b + 27d0 * c) / 27d0
+    Disc = square(p / 3d0) * p / 3d0 + square(q / 2d0)
     if (abs(p)<eps .and. abs(q)<eps .and. abs(Disc)<eps) then
-      solution(1:3) = - sign(abs(c)**(1. / 3.), c)
+      solution(1:3) = - sign(abs(c)**(1.d0 / 3.d0), c)
     else if (Disc < 0) then
       ! theta = acos(-q/2/(sqrt(abs((p/3)**3))))
-      arg = (q / p)**2 * 27 / (4 * p)
+      arg = (q / p)**2 * 27d0 / (4d0 * p)
       if (abs(1 - abs(arg))<1.e-9) then
-        arg = 1
+        arg = 1d0
       end if
-      if (q>0) then
+      if (q>0d0) then
         theta = acos(-arg)
       else
         theta = acos(arg)
       end if
-      solution(1) = 2 * (sqrt(abs(p / 3)) * cos(theta / 3)) - a / 3
-      solution(2) = - 2 * (sqrt(abs(p / 3)) * cos((theta + 2 * pi) / 3)) - a / 3
-      solution(3) = - 2 * (sqrt(abs(p / 3)) * cos((theta - 2 * pi) / 3)) - a / 3
+      solution(1) = 2 * (sqrt(abs(p / 3d0)) * cos(theta / 3d0)) - a / 3d0
+      solution(2) = - 2 * (sqrt(abs(p / 3d0)) * cos((theta + 2d0 * pi) / 3d0)) - a / 3d0
+      solution(3) = - 2 * (sqrt(abs(p / 3d0)) * cos((theta - 2d0 * pi) / 3d0)) - a / 3d0
     else
-      S = sign(abs(-q / 2 + sqrt(Disc))**(1. / 3.), -q / 2 + sqrt(Disc))
-      T = sign(abs(-q / 2 - sqrt(Disc))**(1. / 3.), -q / 2 - sqrt(Disc))
-      solution(1:3) = S + T - a / 3
+      S = sign(abs(-q / 2d0 + sqrt(Disc))**(1.d0 / 3.d0), -q / 2d0 + sqrt(Disc))
+      T = sign(abs(-q / 2d0 - sqrt(Disc))**(1.d0 / 3.d0), -q / 2d0 - sqrt(Disc))
+      solution(1:3) = S + T - a / 3d0
       if (Disc <= eps) then
-        solution(2:3) = -(S + T) / 2 - a / 3
+        solution(2:3) = -(S + T) / 2d0 - a / 3d0
       end if
     end if
+    do i = 1, 3
+       residual = solution(i)**3 + a * solution(i)**2 + b * solution(i) + c
+       if (residual >= 1.e-4 .or. solution(i) < 0) solution(i) = 0d0
+    end do
     return
   end function solve_cubic_equation
 
@@ -1426,6 +1436,7 @@ contains
          d3, y3, p, q, r, t, I, v, w, u, den, &
          k_m_test(3), k_best, r_best, shift, k_mask_per_bin_test, &
          k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
+         k_mask_bin_orig_tmp(n_bins), &
          tmp_scale(NRF_work), a, b, c, scale_k1, upper_limit, k_mask_test(NRF)
     integer :: l, j, index_start, index_end
     ! write(6, '(a,f8.6)') &
@@ -1488,7 +1499,7 @@ contains
           if (k_m_test(j) >= 0) then
             r = r_factor_w_selection(tmp_scale * &
                 (Fcalc + k_m_test(j) * f_mask), index_start, index_end)
-            if (r < r_best) then
+            if (r >= 0 .and. r < r_best) then
               r_best = r
               k_best = k_m_test(j)
             end if
@@ -1518,6 +1529,7 @@ contains
       end do
       k_mask_bin(l) = k_best
     end do
+    k_mask_bin_orig_tmp = k_mask_bin
     call smooth_k_mask(k_mask_bin)
 #if 0
     write(6, '(a)') 'bulk_solvent_scaling, smoothed k_mask in resolution bins'
@@ -1533,7 +1545,7 @@ contains
       k_iso = k_iso_test
       k_mask = k_mask_test
       r_start = r
-      k_mask_bin_orig = k_mask_bin
+      k_mask_bin_orig = k_mask_bin_orig_tmp
     end if
     ! write(6, '(a,f8.6)') 'bulk_solvent_scaling, final r_factor = ', r_start
     return
@@ -1609,7 +1621,8 @@ contains
       scale = 0.0d0
     end if
     scale_ = scale - scale / offset_factor
-    r_best = r_factor_w_scale(f_m, scale_)
+    r_best = r_factor_w_scale(f_m, scale)
+    scale_best = scale
     step = scale / step_factor
     do while (scale_ <= scale + scale / offset_factor)
       r = r_factor_w_scale(f_m, scale_)
