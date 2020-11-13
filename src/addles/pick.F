@@ -192,6 +192,23 @@ c
           endif
         end do
 c
+c  not backbone: everything but H,N,C,O
+c
+      else if (nxt('#nbb',4)) then
+        i1 = intgr()
+        i2 = intgr()
+        if (i2.ge.nres) then
+         i3=natom
+        else
+         i3 = ipres(i2+1)-1
+        end if
+        do i=ipres(i1),i3
+          if (igraph(i).ne.'C   ' .and. igraph(i).ne.'O   ' .or.
+     &        igraph(i).ne.'N   ' .and. igraph(i).ne.'H   ') then
+              ipick1(i) = j
+          endif
+        end do
+c
 c pick by mono #
 c
       else if (nxt('#mon',4)) then
