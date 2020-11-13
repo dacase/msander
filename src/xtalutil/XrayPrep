@@ -36,6 +36,7 @@ phenix.python ./parmed -n <<EOF >> $id-prep.log \
      || { echo "  parmed:   Program error"; exit 1; }
 parm 4amber_$id.prmtop
 lmod
+HMassRepartition
 addPDB ${id}_uc.pdb elem 
 parmout foo.parm7
 go

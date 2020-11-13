@@ -286,9 +286,10 @@ contains
 
     NRF_free = NRF - NRF_work
     REQUIRE( NRF_free == r_free_counter )
-    if (mytaskid == 0 ) &
-      write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
-
+    if (mytaskid == 0 ) then
+        write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
+        write(6,'(a,f7.3)') '| highest resolution: ', resolution
+    endif
 
     if (target(1:2) == 'ml') then
 
@@ -1303,7 +1304,7 @@ contains
       j = index_end
       sc = k_iso_test(index_start)
       index_start = bins_free_start_indices(i)
-      index_end = bins_free_start_indices(i) + bins_free_population(i) -
+      index_end = bins_free_start_indices(i) + bins_free_population(i) - 1
       k_iso_test(index_start:index_end) = sc
       index_end = j
     end do
@@ -1393,6 +1394,7 @@ contains
 
   function solve_cubic_equation(a, b, c) result(solution)
     implicit none
+    integer i
     double precision :: a, b, c, residual, solution(3), Disc, theta, S, T, p, q, arg, eps
     solution = 0
     eps = d_tolerance * 10d0
