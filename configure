@@ -18,7 +18,7 @@ conda="no"
 openblas="no"
 boost="yes"
 moft="moft"
-pythonv=`python --version | cut -c 8-10`
+pythonv=`python --version 2>&1 | cut -c 8-10`
 
 compiler="gnu"
 cc="gcc"
