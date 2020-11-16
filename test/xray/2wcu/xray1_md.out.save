@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 06/23/2020 at 21:18:20
+| Run on 11/16/2020 at 11:11:31
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/xray/2wcu
+| Working directory: /Users/case/msander_gcc10/test/xray/2wcu
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   ntx = 5, irest = 1, ntpr = 1,                                                
@@ -141,7 +141,8 @@ X-ray Refinement Parameters:
      Solvent Mask Update Interval:   100
      Solvent scale:   0.350, B-factor:  46.000
      FFT method:  0
-     Atom Selection Mask: !(@H=) & !(:WAT)
+     Atom Selection Mask:   !(@H=) & !(:WAT)
+     Solute Selection Mask: :*
      Setting ifbox to 3 for non-orthogonal unit cell
 
 --------------------------------------------------------------------------------
@@ -154,12 +155,14 @@ X-ray Refinement Parameters:
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
 Found   2328 atoms in !(@H=) & !(:WAT);
+Found  10224 atoms in :*;
 | number of reflections:    24614       0   24614
+| highest resolution:   1.899
  Number of triangulated 3-point waters found:     1820
 
      Sum of charges from parm topology file =    -6.000002
      Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 4
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -312,29 +315,29 @@ Found   2328 atoms in !(@H=) & !(:WAT);
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.05 ( 2.21% of Total)
-|                Build the list             0.06 (91.95% of List )
-|                Other                      0.00 ( 8.05% of List )
-|             List time                  0.06 (22.36% of Nonbo)
-|                   Short_ene time             0.12 (96.26% of Direc)
-|                   Other                      0.00 ( 3.74% of Direc)
-|                Direct Ewald time          0.13 (60.66% of Ewald)
-|                Adjust Ewald time          0.01 ( 3.12% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 9.75% of Recip)
-|                   Fill charge grid           0.01 (16.29% of Recip)
-|                   Scalar sum                 0.01 (17.22% of Recip)
-|                   Grad sum                   0.02 (20.56% of Recip)
-|                   FFT time                   0.03 (36.05% of Recip)
-|                Recip Ewald time           0.07 (35.41% of Ewald)
-|             Ewald time                 0.21 (77.64% of Nonbo)
-|          Nonbond force              0.27 (12.93% of Force)
-|             Fcalc loop                 0.76 (41.64% of Xray )
-|             Deriv loop                 1.06 (58.07% of Xray )
-|          Xray restaints             1.83 (86.67% of Force)
-|       Force time                 2.11 (99.54% of Runmd)
-|    Runmd Time                 2.12 (93.96% of Total)
-|    Other                      0.09 ( 3.82% of Total)
-| Total time                 2.25 (100.0% of ALL  )
+|    Read coords time           0.08 ( 1.83% of Total)
+|                Build the list             0.05 (91.67% of List )
+|                Other                      0.01 ( 8.33% of List )
+|             List time                  0.06 (14.29% of Nonbo)
+|                   Short_ene time             0.28 (98.58% of Direc)
+|                   Other                      0.00 ( 1.42% of Direc)
+|                Direct Ewald time          0.28 (78.06% of Ewald)
+|                Adjust Ewald time          0.01 ( 1.67% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 7.14% of Recip)
+|                   Fill charge grid           0.01 (12.86% of Recip)
+|                   Scalar sum                 0.02 (22.86% of Recip)
+|                   Grad sum                   0.01 (18.57% of Recip)
+|                   FFT time                   0.03 (38.57% of Recip)
+|                Recip Ewald time           0.07 (19.44% of Ewald)
+|             Ewald time                 0.36 (85.71% of Nonbo)
+|          Nonbond force              0.42 (10.05% of Force)
+|             Fcalc loop                 1.99 (53.09% of Xray )
+|             Deriv loop                 1.75 (46.75% of Xray )
+|          Xray restaints             3.74 (89.47% of Force)
+|       Force time                 4.18 (99.67% of Runmd)
+|    Runmd Time                 4.19 (95.86% of Total)
+|    Other                      0.10 ( 2.31% of Total)
+| Total time                 4.37 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -344,11 +347,11 @@ Found   2328 atoms in !(@H=) & !(:WAT);
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       2.12 Per Step(ms) =     211.76
-|         ns/day =       0.41   seconds/ns =  211760.00
+|     Elapsed(s) =       4.19 Per Step(ms) =     419.40
+|         ns/day =       0.21   seconds/ns =  419400.00
 | -----------------------------------------------------
 
-|           Job began  at 21:18:20.648  on 06/23/2020
-|           Setup done at 21:18:20.784  on 06/23/2020
-|           Run   done at 21:18:22.901  on 06/23/2020
+|           Job began  at 11:11:31.530  on 11/16/2020
+|           Setup done at 11:11:31.712  on 11/16/2020
+|           Run   done at 11:11:35.905  on 11/16/2020
 |     wallclock() was called     565 times

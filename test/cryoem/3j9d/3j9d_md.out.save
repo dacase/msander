@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:47:39
+| Run on 11/16/2020 at 11:11:40
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/cryoem/3j9d
+| Working directory: /Users/case/msander_gcc10/test/cryoem/3j9d
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -162,7 +162,8 @@ X-ray Refinement Parameters:
      Solvent Mask Update Interval:   100
      Solvent scale:   0.350, B-factor:  46.000
      FFT method:  0
-     Atom Selection Mask: !@H=
+     Atom Selection Mask:   !@H=
+     Solute Selection Mask: :*
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -174,10 +175,11 @@ defa
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=   133.320  161.600  147.460  90.00  90.00  90.00
 Found   6089 atoms in !@H=;
+Found  12180 atoms in :*;
 | number of reflections:   155124       0  155124
-| creating k_mask with k_sol,b_sol =    0.350  46.000
+| highest resolution:   3.500
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -187,7 +189,8 @@ Found   6089 atoms in !@H=;
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  NDFMIN =   30449.     NUM_NOSHAKE =      0     CORRECTED RNDFP =   30449.
 |  TOTAL # of degrees of freedom (RNDF) =   30449.
-| updating isotropic scaling:      2.64855 0.29181E-10
+| updating isotropic scaling:      2.64855
+| gradient norms, amber/xray:  0.24460E+03 0.17644E+02 0.13863E+02
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
  Etot   =    -23270.9766  EKtot   =         0.0000  EPtot      =    -23270.9766
@@ -233,9 +236,9 @@ Found   6089 atoms in !@H=;
  Etot   =    -23251.0610  EKtot   =        85.9774  EPtot      =    -23337.0384
  BOND   =       311.3068  ANGLE   =      1886.2594  DIHED      =      9434.1506
  1-4 NB =      3323.2699  1-4 EEL =     27514.6419  VDWAALS    =     -5546.2724
- EELEC  =    -49367.7687  EGB     =    -11054.0508  RESTRAINT  =       161.4249
+ EELEC  =    -49367.7687  EGB     =    -11054.0508  RESTRAINT  =       161.4248
  EAMBER (non-restraint)  =    -23498.4633
- Exray  =       161.4249  Rwork   =         0.1257  Rfree      =         0.0000
+ Exray  =       161.4248  Rwork   =         0.1257  Rfree      =         0.0000
  ------------------------------------------------------------------------------
 
 
@@ -280,17 +283,17 @@ Found   6089 atoms in !@H=;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              1.95 (26.20% of Gen B)
-|                Calc gb diag               3.48 (46.91% of Gen B)
-|                Calc gb off-diag           2.00 (26.89% of Gen B)
-|             Gen Born time              7.43 (100.0% of Nonbo)
-|          Nonbond force              7.43 ( 8.71% of Force)
-|             Fcalc loop                42.30 (54.41% of Xray )
-|             Deriv loop                35.32 (45.43% of Xray )
-|          Xray restaints            77.74 (91.22% of Force)
-|       Force time                85.23 (100.0% of Runmd)
-|    Runmd Time                85.30 (99.41% of Total)
-| Total time                85.80 (100.0% of ALL  )
+|                Calc gb radii              1.64 (22.14% of Gen B)
+|                Calc gb diag               3.20 (43.12% of Gen B)
+|                Calc gb off-diag           2.58 (34.74% of Gen B)
+|             Gen Born time              7.41 (100.0% of Nonbo)
+|          Nonbond force              7.41 (15.39% of Force)
+|             Fcalc loop                20.38 (50.06% of Xray )
+|             Deriv loop                20.31 (49.88% of Xray )
+|          Xray restaints            40.71 (84.51% of Force)
+|       Force time                48.17 (99.88% of Runmd)
+|    Runmd Time                48.23 (98.82% of Total)
+| Total time                48.80 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -300,11 +303,11 @@ Found   6089 atoms in !@H=;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      85.30 Per Step(ms) =   17059.80
-|         ns/day =       0.01   seconds/ns = **********
+|     Elapsed(s) =      48.23 Per Step(ms) =    9645.00
+|         ns/day =       0.01   seconds/ns = 9645000.00
 | -----------------------------------------------------
 
-|           Job began  at 16:47:39.894  on 01/26/2020
-|           Setup done at 16:47:40.399  on 01/26/2020
-|           Run   done at 16:49:05.697  on 01/26/2020
+|           Job began  at 11:11:40.855  on 11/16/2020
+|           Setup done at 11:11:41.432  on 11/16/2020
+|           Run   done at 11:12:29.657  on 11/16/2020
 |     wallclock() was called     216 times
