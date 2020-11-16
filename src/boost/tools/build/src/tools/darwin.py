@@ -38,7 +38,7 @@ feature.feature ('framework', [], ['free'])
 
 toolset.flags ('darwin.compile', 'OPTIONS', '<link>shared', ['-dynamic'])
 toolset.flags ('darwin.compile', 'OPTIONS', None, ['-Wno-long-double', '-no-cpp-precomp'])
-toolset.flags ('darwin.compile.c++', 'OPTIONS', None, ['-fcoalesce-templates'])
+toolset.flags ('darwin.compile.c++', 'OPTIONS', None, [''])
 
 toolset.flags ('darwin.link', 'FRAMEWORK', '<framework>')
 
