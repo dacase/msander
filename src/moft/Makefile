@@ -24,7 +24,7 @@ moft: $(BINDIR)/metatwist
 
 metatwist.o:  metatwist.cpp $(HEADERS)
 	@echo "[MoFT]  CXX $<"
-	$(VB)$(CXX) $(CXXFLAGS) -c -std=c++0x -I. -I$(INCDIR) $(FFLAGS) -o $@ $<
+	$(VB)$(CXX) $(CXXFLAGS) -c -std=c++0x -I. -I$(INCDIR) $(CFLAGS) -o $@ $<
 
 $(BINDIR)/metatwist:  metatwist.o
 	@echo "[MoFT]  CXX $@"
