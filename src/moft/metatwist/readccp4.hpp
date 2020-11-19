@@ -99,7 +99,10 @@ namespace util {
       /*35-37   SKWTRN(T1)  */ headerccp.f[34] = 0.0;
       /*35-37   SKWTRN(T2)  */ headerccp.f[35] = 0.0;
       /*35-37   SKWTRN(T3)  */ headerccp.f[36] = 0.0;
-      /*38-52   future use  */
+      /*38-49   future use  */
+      // /*50      Xorigin     */ headerccp.f[49] = ???;
+      // /*51      Yorigin     */ headerccp.f[50] = ???;
+      // /*52      Zorigin     */ headerccp.f[51] = ???;
       /*53      MAP         */ headerccp.c[4*52]   = 'M'; headerccp.c[4*52+1] = 'A';
       headerccp.c[4*52+2] = 'P'; headerccp.c[4*52+3] = ' ';
 
@@ -108,7 +111,7 @@ namespace util {
       // summarize header info
       std::cout<<"# |   Summarizing the CPP4 file features for:" << std::endl;
       std::cout<<"# |   "<< filename << std::endl;
-      std::cout<<"# |   (based upon description found at http://www.ccp4.ac.uk/html/maplib.html)." << std::endl;
+      std::cout<<"# |   (See https://www.ccpem.ac.uk/mrc_format/mrc2014.php)." << std::endl;
       std::cout<<"# |   1      NC (slowest)"<< headerccp.i[ 0]             << std::endl;
       std::cout<<"# |   2      NR    v     "<< headerccp.i[ 1]             << std::endl;
       std::cout<<"# |   3      NS (fastest)"<< headerccp.i[ 2]             << std::endl;
@@ -146,7 +149,8 @@ namespace util {
 //      std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-//      //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
+//      //std::cout<<" 38-49   future use  "/*<< headerccp.i[ ] */         << std::endl;
+//      //std::cout<<" 50-52   subvolume origin  "/*<< headerccp.f[49..51] */         << std::endl;
 //      std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
 //      std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
 //                 % (int) headerccp.c[4*53]
@@ -186,7 +190,7 @@ namespace util {
                   boost::multi_array<T, 3> &data3d){
 
       /*
-             (from http://www.ccp4.ac.uk/html/maplib.html)
+             (from https://www.ccpem.ac.uk/mrc_format/mrc2014.php)
              The overall layout of the file is as follows:
              
              File header (256 longwords)
@@ -239,7 +243,8 @@ namespace util {
              .          "              in MAPBRICK, MAPCONT and FRODO)
              .          "   (all set to zero by default)
              .          "
-             52          "
+             49          "
+             50-52  ORIGIN       Real space location of the subvolume
              
              53    MAP            Character string 'MAP ' to identify file type
              54    MACHST        Machine stamp indicating the machine type
@@ -310,7 +315,11 @@ namespace util {
 //          std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-          //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
+          //std::cout<<" 38-49   future use  "/*<< headerccp.i[ ] */         << std::endl;
+          std::cout<<"# |  50      X origin    "<< headerccp.f[49]             << std::endl;
+          std::cout<<"# |  51      Y origin    "<< headerccp.f[50]             << std::endl;
+          std::cout<<"# |  52      Z origin    "<< headerccp.f[51]             << std::endl;
+
 //          std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
 //          std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
 //                                                                % (int) headerccp.c[4*53]
