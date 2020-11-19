@@ -152,7 +152,7 @@ public:
     void blobs(Density<T> & laplacian, const T & threshold);
     void blobs_periodic(Density<T> & laplacian, const T & threshold);
     
-    // Write the density to a dx, ccp4 file.
+    // Write the density to a dx, ccp4, or mrc file.
     void writedxfile(const std::string &filenameout);
     void writeccp4(const std::string &filenameout);
 
@@ -262,7 +262,7 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
             
         }
         
-        else if ( ext=="ccp4")
+        else if ( ext=="ccp4" || ext=="mrc" )
         {
 
             if (util::files::readccp4(filename, this->orig,this->rotm,this->data3d)){
@@ -382,7 +382,7 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         
         std::vector<std::string> stokens;
         stokens =  boost::copy_range<std::vector<std::string>>
-        (filenames[0] |boost::adaptors::tokenized( std::string("(\\.dx)|(\\.ccp4)|(\\.xyzv)"), -1 ) );
+        (filenames[0] |boost::adaptors::tokenized( std::string("(\\.dx)|(\\.ccp4)|(\\.mrc)|(\\.xyzv)"), -1 ) );
         this->dataname = stokens[0];
         std::cout << boost::format("#\n#\n# Volumetric data initiated.\n# name        : %s" ) % this->dataname << std::endl;
         for (size_t i = 0 ; i!= filenames.size(); ++i){
@@ -1892,7 +1892,7 @@ void Density<T>::writedxfile(const std::string &filenameout){
       myfile << "\nobject \"Untitled\" class field" ;
     }
 
-  else if (ext=="ccp4") {
+  else if (ext=="ccp4" || ext=="mrc") {
 
       this->writeccp4(filenameout);
 
