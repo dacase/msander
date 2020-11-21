@@ -15,7 +15,7 @@ echo "  ADDLES and SANDER.LES test: "
 echo " "
 
 echo "addles:"
-addles < input_addles \
+../../bin/addles < input_addles \
     | grep -v 'There were' | grep -v ick | grep -v Making | grep -v orig> output_addles \
     || goto error
 
