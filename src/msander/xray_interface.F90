@@ -587,15 +587,8 @@ contains
 
       call init_ml(target, nstlim, d_star_sq, resolution)
 
-      if( bulk_solvent_model /= 'none' ) then
-#if 0
-         if( resolution_high < 0.5 ) then
-            write(6,*) 'Error: must specify resolution_high if bulk_solvent models are used'
-            call mexit(6,1)
-         endif
-#endif
-         call init_bulk_solvent(resolution)
-      endif
+      if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution)
+
       if( user_fmask ) then
          if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
          f_mask(:) = f_solvent(:)
@@ -808,10 +801,12 @@ contains
 
       ! now we can get r_work/r_free since target functions may have scaled
       !   Fcalc, or added a bulk solvent contribution, etc.:
-      abs_Fcalc(:) = abs(Fcalc(:))
-      call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_work,selected=test_flag)
-      free_flag(:) = test_flag(:) - 1
-      call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_free,selected=free_flag)
+      if( target(1:3) /= 'vls' ) then
+         abs_Fcalc(:) = abs(Fcalc(:))
+         call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_work,selected=test_flag)
+         free_flag(:) = test_flag(:) - 1
+         call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_free,selected=free_flag)
+      endif
 
       if (xray_weight == 0._rk_) then  ! skip remaining calculations
          xray_energy = 0._rk_
