@@ -28,6 +28,7 @@ test.xray:
 	-(cd xray/3onk && ./Run.3onk_mlopt)
 	-(cd xray/480d && ./Run.480d_xray)
 	-(cd cryoem/3j9d && ./Run.3j9d)
+	-(cd cryoem/emap && ./Run.emap)
 
 clean::
 	/bin/rm -f TEST_FAILURES.diff
