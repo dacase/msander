@@ -491,10 +491,24 @@ contains
       integer, save :: nstep=0
 
       call get_solvent_contribution(nstep, crd, .true.)
-      if (mod(nstep,scale_update_frequency) == 0) then
-         k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-         if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-           '| updating isotropic scaling: ', k_scale(1)
+      if( inputscale ) then
+         ! scale using phenix-like approximation:
+         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
+         if( nstep == 0 ) then
+            k_scale(:) = k_tot * exp( b_tot * mss4(:))
+            ! sum_fo_fo = sum(abs_Fobs ** 2)
+            ! norm_scale = 1.0_rk_  / sum_fo_fo
+            if( mytaskid == 0 ) &
+               write(6,'(a,2f10.5,e12.5)') &
+                 '| setting k_scale using k_tot/b_tot: ', &
+                 k_tot, b_tot, norm_scale
+         endif
+      else
+         if (mod(nstep,scale_update_frequency) == 0) then
+            k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+              '| updating isotropic scaling: ', k_scale(1)
+         endif
       endif
       Fcalc(:) = k_scale(:) * Fcalc(:)
 
