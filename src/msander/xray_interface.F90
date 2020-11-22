@@ -806,6 +806,9 @@ contains
          call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_work,selected=test_flag)
          free_flag(:) = test_flag(:) - 1
          call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_free,selected=free_flag)
+      else
+         abs_Fcalc(:) = abs(Fcalc(:))
+         call get_residual(num_hkl,abs_Fobs,abs_Fcalc,r_free)
       endif
 
       if (xray_weight == 0._rk_) then  ! skip remaining calculations
