@@ -34,6 +34,8 @@
 #include "nfe-utils.h"
 #include "nfe-config.h"
 
+#define ASSUME_GFORTRAN yes
+
 module mt19937
 
 #if defined(MPI) && defined(BINTRAJ)
@@ -177,8 +179,13 @@ module mt19937
     type(mt19937_t), intent(inout) :: self
     integer( kind = wi ), intent( in )  :: s
 
-    integer( kind = wi )  :: i
-    integer( kind = wi ), parameter :: mult_a = int(z'6C078965')
+    integer( kind = wi )  :: i, mult_a
+
+#ifndef ASSUME_GFORTRAN
+    data mult_a /z'6C078965'/ ! gfortran does not like this
+#else
+    mult_a = ieor(ishft(z'6C07', 16), z'8965') ! but this is okay
+#endif /* ASSUME_GFORTRAN */
 
     self%mtinit = .true._wi
     self%mt(1) = ibits( s, 0, 32 )
@@ -210,11 +217,19 @@ module mt19937
     integer( kind = wi ), intent( in )  :: init_key(:)
 
     integer( kind = wi )  :: i, j, k, tp, key_length
+    integer( kind = wi )  :: seed_d, mult_a, mult_b, msb1_d
 
-    integer( kind = wi ), parameter :: seed_d = int(z'12BD6AA')
-    integer( kind = wi ), parameter :: mult_a = int(z'19660D')
-    integer( kind = wi ), parameter :: mult_b = int(z'5D588B65')
-    integer( kind = wi ), parameter :: msb1_d = int(z'80000000')
+    data seed_d /z'12BD6AA'/
+    data mult_a /z'19660D'/
+
+#ifndef ASSUME_GFORTRAN
+    data mult_b /z'5D588B65'/
+    data msb1_d /z'80000000'/
+#else
+    mult_b = ieor(ishft(z'5D58', 16), z'8B65')
+    msb1_d = 1
+    msb1_d = ishft(msb1_d, 31)
+#endif /* ASSUME_GFORTRAN */
 
     key_length = size( init_key, dim = 1 )
     call init_by_seed(self, seed_d)
