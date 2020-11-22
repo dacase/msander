@@ -8,21 +8,33 @@
 
 id=$1
 emdmap=$2
-resolution=$3
+resolution_high=$3
+resolution_low=$4
 
 echo "CryoPrep log file for id $id" > $id-prep.log
 
 #============================================================================
 echo "Making input mtz file"
 
-phenix.map_box $id.pdb $emdmap keep_map_size=True resolution=$resolution \
+phenix.map_box $id.pdb $emdmap keep_map_size=True resolution=$resolution_high \
      keep_origin=False >> $id-prep.log
+
+# trucate really low resolution coefficients
+sftools <<EOF  >sftools.log || { echo "  sftools:  Program error"; exit 1; }
+read ${id}_box.mtz
+select resolu < $resolution_low
+purge
+y
+write ${id}_box2.mtz
+quit
+EOF
+
 
 #============================================================================
 echo "Making the -sf.dat file"
 
 #  convert to formatted file:
-phenix.mtz.dump -c -f s ${id}_box.mtz  | tr ',' '\t' > ${id}_box.fmtz \
+phenix.mtz.dump -c -f s ${id}_box2.mtz  | tr ',' '\t' > ${id}_box.fmtz \
      || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
 
 #  make the -sf.dat file needed by xray3:
@@ -34,7 +46,8 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
-if true; then
+/bin/rm tmp.* ${id}_box.mtz ${id}_box.fmtz
+
 #============================================================================
 echo "Running phenix.AmberPrep" 
 phenix.AmberPrep ${id}_box.pdb >> $id-prep.log \
@@ -75,7 +88,6 @@ $MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_box.parm7 \
 /bin/mv 4amber_${id}_box.rst7 ${id}_box.rst7
 
 # $MSANDERHOME/bin/ambpdb -p ${id}_box.parm7 -ext < ${id}_box.rst7 > ${id}_box.pdb
-fi
 
 
 #============================================================================
