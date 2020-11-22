@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 11/21/2020 at 11:52:22
+| Run on 11/22/2020 at 09:17:49
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/cryoem/3j9d
+| Working directory: /Users/case/msander/test/cryoem/3j9d
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
 md for 3j9d                                                                    
  &cntrl                                                                        
   imin=0, maxcyc=25,                                                           
@@ -198,7 +198,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3327.2555  1-4 EEL =     27530.5975  VDWAALS    =     -5508.9134
  EELEC  =    -49354.8911  EGB     =    -11062.7650  RESTRAINT  =       161.3203
  EAMBER (non-restraint)  =    -23432.2970
- Exray  =       161.3203  Rwork   =         0.1750  Rfree      =         0.0000
+ Exray  =       161.3203  Rwork   =         0.1750  Rfree      =         0.1257
  ------------------------------------------------------------------------------
 
 
@@ -208,7 +208,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3327.2555  1-4 EEL =     27530.5975  VDWAALS    =     -5508.9134
  EELEC  =    -49354.8911  EGB     =    -11062.7650  RESTRAINT  =       161.3203
  EAMBER (non-restraint)  =    -23432.2970
- Exray  =       161.3203  Rwork   =         0.1750  Rfree      =         0.0000
+ Exray  =       161.3203  Rwork   =         0.1750  Rfree      =         0.1257
  ------------------------------------------------------------------------------
 
 
@@ -218,7 +218,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3326.7972  1-4 EEL =     27528.7744  VDWAALS    =     -5513.2812
  EELEC  =    -49370.8177  EGB     =    -11047.4840  RESTRAINT  =       161.3321
  EAMBER (non-restraint)  =    -23440.6087
- Exray  =       161.3321  Rwork   =         0.1750  Rfree      =         0.0000
+ Exray  =       161.3321  Rwork   =         0.1750  Rfree      =         0.1257
  ------------------------------------------------------------------------------
 
 
@@ -228,7 +228,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3325.4535  1-4 EEL =     27523.4069  VDWAALS    =     -5526.0450
  EELEC  =    -49399.2244  EGB     =    -11020.7944  RESTRAINT  =       161.3673
  EAMBER (non-restraint)  =    -23464.0689
- Exray  =       161.3673  Rwork   =         0.1751  Rfree      =         0.0000
+ Exray  =       161.3673  Rwork   =         0.1751  Rfree      =         0.1257
  ------------------------------------------------------------------------------
 
 
@@ -238,7 +238,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3323.2699  1-4 EEL =     27514.6419  VDWAALS    =     -5546.2724
  EELEC  =    -49367.7687  EGB     =    -11054.0508  RESTRAINT  =       161.4248
  EAMBER (non-restraint)  =    -23498.4633
- Exray  =       161.4248  Rwork   =         0.1751  Rfree      =         0.0000
+ Exray  =       161.4248  Rwork   =         0.1751  Rfree      =         0.1257
  ------------------------------------------------------------------------------
 
 
@@ -248,7 +248,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3320.3032  1-4 EEL =     27502.7011  VDWAALS    =     -5572.6870
  EELEC  =    -49423.5510  EGB     =    -11001.8694  RESTRAINT  =       161.5040
  EAMBER (non-restraint)  =    -23541.2879
- Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.0000
+ Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.1258
  ------------------------------------------------------------------------------
 
 
@@ -261,7 +261,7 @@ Found  12180 atoms in :*;
  1-4 NB =      3324.6159  1-4 EEL =     27520.0244  VDWAALS    =     -5533.4398
  EELEC  =    -49383.2506  EGB     =    -11037.3927  RESTRAINT  =       161.3897
  EAMBER (non-restraint)  =    -23475.3452
- Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.0000
+ Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.1258
  ------------------------------------------------------------------------------
 
 
@@ -275,7 +275,7 @@ Found  12180 atoms in :*;
  EELEC  =        24.8105  EGB     =        22.6296  RESTRAINT  =         0.0677
  EAMBER (non-restraint)  =        40.0387
 |E(PBS) =         0.6445
- Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.0000
+ Exray  =       161.5040  Rwork   =         0.1751  Rfree      =         0.1258
  ------------------------------------------------------------------------------
 
 
@@ -283,19 +283,17 @@ Found  12180 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.16 ( 1.33% of Total)
-|                Calc gb radii              2.04 (28.16% of Gen B)
-|                Calc gb diag               2.80 (38.66% of Gen B)
-|                Calc gb off-diag           2.41 (33.18% of Gen B)
-|             Gen Born time              7.26 (100.0% of Nonbo)
-|          Nonbond force              7.26 (61.10% of Force)
-|             Fcalc loop                 2.23 (48.47% of Xray )
-|             Deriv loop                 2.32 (50.55% of Xray )
-|          Xray restaints             4.59 (38.69% of Force)
-|       Force time                11.88 (99.27% of Runmd)
-|    Runmd Time                11.96 (97.29% of Total)
-|    Other                      0.17 ( 1.38% of Total)
-| Total time                12.30 (100.0% of ALL  )
+|                Calc gb radii              1.58 (22.14% of Gen B)
+|                Calc gb diag               2.99 (41.88% of Gen B)
+|                Calc gb off-diag           2.57 (35.98% of Gen B)
+|             Gen Born time              7.13 (100.0% of Nonbo)
+|          Nonbond force              7.13 (14.32% of Force)
+|             Fcalc loop                22.32 (52.34% of Xray )
+|             Deriv loop                20.31 (47.61% of Xray )
+|          Xray restaints            42.65 (85.59% of Force)
+|       Force time                49.83 (99.89% of Runmd)
+|    Runmd Time                49.89 (99.01% of Total)
+| Total time                50.39 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -305,11 +303,11 @@ Found  12180 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      11.96 Per Step(ms) =    2392.94
-|         ns/day =       0.04   seconds/ns = 2392940.00
+|     Elapsed(s) =      49.89 Per Step(ms) =    9977.40
+|         ns/day =       0.01   seconds/ns = 9977400.00
 | -----------------------------------------------------
 
-|           Job began  at 11:52:22.563  on 11/21/2020
-|           Setup done at 11:52:22.897  on 11/21/2020
-|           Run   done at 11:52:34.860  on 11/21/2020
+|           Job began  at 09:17:49.349  on 11/22/2020
+|           Setup done at 09:17:49.850  on 11/22/2020
+|           Run   done at 09:18:39.736  on 11/22/2020
 |     wallclock() was called     216 times
