@@ -198,8 +198,8 @@ contains
     integer (kind = 4) :: file_status
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
-    integer:: hkl(3,num_hkl)
-    double precision :: f_obs_tmp(num_hkl), sigma_tmp(num_hkl)
+    integer, dimension(:,:), allocatable :: hkl
+    double precision, dimension(:), allocatable :: f_obs_tmp, sigma_tmp
     integer :: index_start, index_end
 
     N_steps = nstlim
@@ -221,6 +221,10 @@ contains
     allocate(d_star_sq_tmp(NRF))
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
+
+    allocate(hkl(3,NRF))
+    allocate(f_obs_tmp(NRF))
+    allocate(sigma_tmp(NRF))
 
     r_work_factor_denominator = zero
     r_free_factor_denominator = zero
@@ -466,6 +470,7 @@ contains
        end do
 
     ! Re-sort due to binning ended
+       
 
     endif  ! only done for target=='ml'
 
@@ -590,6 +595,9 @@ contains
     Ucryst(7, 7) = sum(1.0 *   kl(1:NRF_work)*kl(1:NRF_work) / NRF_work_sq)
 
     call inverse(Ucryst, MUcryst_inv, 7)
+
+    deallocate(hkl,f_obs_tmp,sigma_tmp)
+    
     return
 
   end subroutine init_ml
