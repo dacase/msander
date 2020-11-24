@@ -282,7 +282,9 @@ int main(int ac, char* av[]) {
     if (sigma > 0.0) {
         std::cout << "# Convolving density map." << std::endl;
         dens3d.convolutex(sigma,convtype);
-        dens3d.writedxfile(std::string("convolution-")+filenameout);
+        // dens3d.writedxfile(std::string("convolution-")+filenameout);
+        // dac: simplify filename:
+        dens3d.writedxfile(filenameout);
     }
     
     if (vm.count("laplacian")) {
