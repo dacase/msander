@@ -1,5 +1,7 @@
 #!/bin/sh 
 
+metatwist=$MSANDERHOME/bin/metatwist
+
 #=============================================================================
 #  Using RISM and metatwist to place waters around a solute.
 #    (copy this script to your working directory, and edit it as needed.
@@ -11,9 +13,7 @@
 id=$1    # identifier for this calculation
          # inputs: $id.parm7, $id.rst7, $id.pdb
 
-xvv=$2   # xvv file to be used for 3D-RISM
-
-thresh=0.5  # threshold for including explicit waters at the centers
+thresh=0.7  # threshold for including explicit waters at the centers
             # of negative Laplacian regions.  These will be in order
             # with the most probable ones first, so you can edit the
             # output pdb file to inclcude as many as you think you want.
@@ -29,51 +29,20 @@ thresh=0.5  # threshold for including explicit waters at the centers
 #               wats.pdb: just oxygen positions, with estimated
 #                         occupations and B-factors
 
-if false; then    # <-- use false if you've already done the 3D-RISM
-                  #     calcualtion, true otherwise.
 
-#---------------------------------------------------------------------------
-# 1.  Run a single-point of 3D-RISM, here using the sander interface;
-#       (could also be with rism3d.snglpnt):
-#---------------------------------------------------------------------------
-
-cat > mdin.rism <<EOF
-  single-point 3D-RISM calculation using the sander interface
- &cntrl
-    ntx=1, nstlim=0, irism=1,
- /
- &rism
-    periodic='pme',
-    closure='kh', tolerance=1e-6,
-    grdspc=0.35,0.35,0.35, centering=0,
-    mdiis_del=0.4, mdiis_nvec=20, maxstep=5000, mdiis_restart=50,
-    solvcut=9.0,
-    verbose=2, npropagate=0,
-    apply_rism_force=0,
-    volfmt='ccp4', ntwrism=1,
- /
-EOF
-
-sander -O -i mdin.rism -o $id.r3d \
-    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id
-
-/bin/rm -f mdin.rism restrt mdinfo $id.kh.H1.0.ccp4
-
-fi
-
-if false; then
+if true; then
 #---------------------------------------------------------------------------
 # 2.  Run metatwist to to a Lapacian analysis on the solvent distributions:
 #---------------------------------------------------------------------------
 
-metatwist --dx $id.O.0.ccp4 --species O  \
-     --convolve 4 --sigma 1.0 --odx $id.O.lp.ccp4 > $id.O.lp
+#$metatwist --dx $id.O.0.ccp4 --species O  \
+#     --convolve 4 --sigma 1.0 --odx $id.O.lp.ccp4 > $id.O.lp
 
-metatwist --dx $id.MG.0.ccp4 --species Mg2+  \
+$metatwist --dx $id.MG.0.ccp4 --species Mg2+  \
      --convolve 4 --sigma 1.0 --odx $id.MG.lp.ccp4 > $id.MG.lp
 
-metatwist --dx $id.K+.0.ccp4 --species K+  \
-     --convolve 4 --sigma 1.0 --odx $id.K+.lp.ccp4 > $id.K+.lp
+#$metatwist --dx $id.Na+.0.ccp4 --species Na+  \
+#     --convolve 4 --sigma 1.0 --odx $id.K+.lp.ccp4 > $id.Na+.lp
 
 fi
 
@@ -83,11 +52,11 @@ if false; then
 # 3.  Place water molecules at the centers of the negative Laplacians:
 #---------------------------------------------------------------------------
 
-metatwist --dx $id.O.0.ccp4 \
-      --ldx convolution-$id.O.lp.ccp4 --map blobsper \
+$metatwist --dx $id.O.0.ccp4 \
+      --ldx $id.O.lp.ccp4 --map blobsper \
       --species O WAT --bulk 55.55 --threshold $thresh  > $id.blobs 
 
-grep -v TER $id.O.0-convolution-$id.O.lp-blobs-centroid.pdb > wats.pdb
+grep -v TER $id.O.0-$id.O.lp-blobs-centroid.pdb > wats.pdb
 
 # ===== Add hydrogens using gwh
 
@@ -101,17 +70,17 @@ if true; then
 # 3.  Place ions at the centers of the negative Laplacians:
 #---------------------------------------------------------------------------
 
-metatwist --dx $id.MG.0.ccp4 \
-      --ldx convolution-$id.MG.lp.ccp4 --map blobsper \
-      --species MG MG --bulk 0.005 --threshold 0.7  > $id.MG.blobs.0.7
+$metatwist --dx $id.MG.0.ccp4 \
+      --ldx $id.MG.lp.ccp4 --map blobsper \
+      --species MG MG --bulk 1.0  --threshold $thresh  > $id.MG.blobs
 
-grep -v TER $id.MG.0-convolution-$id.MG.lp-blobs-centroid.pdb > MG.pdb
+grep -v TER $id.MG.0-$id.MG.lp-blobs-centroid.pdb > MG.pdb
 
-metatwist --dx $id.K+.0.ccp4 \
-      --ldx convolution-$id.K+.lp.ccp4 --map blobsper \
-      --species K K --bulk 0.100 --threshold 0.7  > $id.K+.blobs.0.7
-
-grep -v TER $id.K+.0-convolution-$id.K+.lp-blobs-centroid.pdb > K+.pdb
+#$metatwist --dx $id.K+.0.ccp4 \
+#      --ldx $id.K+.lp.ccp4 --map blobsper \
+#      --species K K --bulk 0.100 --threshold $thresh  > $id.K+.blobs
+#
+#grep -v TER $id.K+.0-$id.K+.lp-blobs-centroid.pdb > K+.pdb
 
 fi
-/bin/rm -f $id.MG.0-convolut* 
+/bin/rm -f $id.MG.0-* 
