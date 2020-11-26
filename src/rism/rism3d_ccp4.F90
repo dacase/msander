@@ -1,38 +1,8 @@
 !<compile=optimized>
 
-! The 3D-RISM-KH software found here is copyright (c) 2010-2012 by 
-! Andriy Kovalenko, Tyler Luchko and David A. Case.
-! 
-! This program is free software: you can redistribute it and/or modify it
-! under the terms of the GNU General Public License as published by the Free
-! Software Foundation, either version 3 of the License, or (at your option)
-! any later version.
-! 
-! This program is distributed in the hope that it will be useful, but
-! WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-! or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-! for more details.
-! 
-! You should have received a copy of the GNU General Public License in the
-! ../../LICENSE file.  If not, see <http://www.gnu.org/licenses/>.
-! 
-! Users of the 3D-RISM capability found here are requested to acknowledge
-! use of the software in reports and publications.  Such acknowledgement
-! should include the following citations:
-! 
-! 1) A. Kovalenko and F. Hirata. J. Chem. Phys., 110:10095-10112  (1999); 
-! ibid. 112:10391-10417 (2000).   
-! 
-! 2) A. Kovalenko,  in:  Molecular  Theory  of  Solvation,  edited  by  
-! F. Hirata  (Kluwer Academic Publishers, Dordrecht, 2003), pp.169-275.  
-! 
-! 3) T. Luchko, S. Gusarov, D.R. Roe, C. Simmerling, D.A. Case, J. Tuszynski,
-! and  A. Kovalenko, J. Chem. Theory Comput., 6:607-624 (2010). 
-
 #include "../include/dprec.fh"
 
-!> Minimal support for binary format CCP4 volumetric data output.
-!! The format is described here: http://www.ccp4.ac.uk/html/maplib.html#description
+!> Support for binary format CCP4 volumetric data output.
 !! It involves a structured file header of 256 longwords, then
 !! symmetry information, then the map stored a 3-dimensional array.
 !! The header itself is broken into 56 longwords followed by ten
@@ -61,7 +31,8 @@ contains
   !! @param[in] o_rank (optional) MPI process rank.
   !! @param[in] o_nproc (optional) MPI number of processes.
   !! @param[in] o_comm (optional) MPI communicator.
-  subroutine rism3d_ccp4_map_write (file, data, grid, solute, o_rank, o_nproc, o_comm)
+  subroutine rism3d_ccp4_map_write (file, data, grid, solute, &
+             o_rank, o_nproc, o_comm)
     use constants_rism, only: PI
     use rism_util, only : freeUnit, rmExPrec
     use rism3d_grid_c
@@ -202,7 +173,11 @@ contains
        ! phase origin (pixels) or origin of subvolume (A)
        ! This should be the same origin as for DX files
        ! ORIGIN
-       write(unit) real(solute%centerOfMass - grid%boxLength / 2, 4)
+       ! dac: origin is always zero for periodic code:
+       write(unit) real((/ 0., 0., 0. /), 4)
+       ! below is from non-periodic code; commented out here since 
+       !   msander is periodic-only
+       !   write(unit) real(solute%centerOfMass - grid%boxLength / 2, 4)
        
        ! Character string 'MAP ' to identify file type.
        ! MAP
