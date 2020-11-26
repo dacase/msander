@@ -65,6 +65,7 @@ int main(int ac, char* av[]) {
     double bin;
     double utrate; // untwisting rate
     double bulkdens;
+    double charge;
     double sigma;
     double threshold;
     size_t convtype;
@@ -104,6 +105,7 @@ int main(int ac, char* av[]) {
      \n~ blobsper: Laplacian blob analysis on a periodic 3D-map.\
      \n~ rhoel: Electron density using atomic form factors.\
      \n~ rhoelreal: Electron density using atomic densities.\
+     \n~ charge: Partial charge.\
      \n~ cutresol: Cut 3D-map resolution range.\
      "
      )
@@ -139,6 +141,9 @@ int main(int ac, char* av[]) {
      )
     ("species",po::value<std::vector<std::string>>(&chemicalspecies)->multitoken()->required(),
      "Chemical species: atom, e.g. N, or atom & residue, e.g. O WAT )."
+     )
+     ("charge",po::value<double>(&charge),
+       "Partial charge.)."
      )
     ("sigma",   po::value<double>(&sigma)->default_value(0.0),
      "Convolution sigma."
@@ -282,8 +287,6 @@ int main(int ac, char* av[]) {
     if (sigma > 0.0) {
         std::cout << "# Convolving density map." << std::endl;
         dens3d.convolutex(sigma,convtype);
-        // dens3d.writedxfile(std::string("convolution-")+filenameout);
-        // dac: simplify filename:
         dens3d.writedxfile(filenameout);
     }
     
@@ -310,7 +313,16 @@ int main(int ac, char* av[]) {
         dens3d.nlogtrans();
         dens3d.writedxfile(std::string("nlog-")+filenameout);
     }
-    
+
+
+    if (vm.count("charge")) {
+        std::cout << "# Computing charge density." << std::endl;
+        dens3d.setcharge(charge);
+        Tdens qdensity(dens3d);
+        dens3d.getQDensity(qdensity);
+        qdensity.writedxfile(std::string("qdens-")+filenameout);
+    }
+
     if (vm.count("odx")
         and
         !( sigma>0.0 // aka convolve
@@ -571,9 +583,7 @@ int main(int ac, char* av[]) {
             return 1;
         }
         
-        denshess.setBulkC(bulkdens);
-        denshess.printDetails();
-        dens3d.blobs (denshess, threshold);
+        dens3d.blobs (denshess, threshold, bulkdens);
         
     }
     
