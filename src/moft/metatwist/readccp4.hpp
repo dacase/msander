@@ -49,7 +49,8 @@ namespace util {
     bool writeccp4(const std::string & filename,
                    const ublas::vector <T> &orig,
                    const ublas::vector <T> &a, const ublas::vector <T> &b, const ublas::vector <T> &c,
-                   const boost::multi_array<T, 3> &data3d){
+                   const boost::multi_array<T, 3> &data3d,
+                   const ublas::matrix<T> & irotm){
 
       std::ofstream myFile (filename, std::ios::out | std::ios::binary);
 
@@ -62,13 +63,15 @@ namespace util {
 
       T radpi = 180.0/boost::math::constants::pi<T>();
 
+      ublas::vector<T>  origongrid =  ublas::prod(irotm, orig);
+
       /* 1      NC (slowest)*/ headerccp.i[ 0] = data3d.shape()[2] ;
       /* 2      NR    v     */ headerccp.i[ 1] = data3d.shape()[1] ;
       /* 3      NS (fastest)*/ headerccp.i[ 2] = data3d.shape()[0] ;
       /* 4      MODE        */ headerccp.i[ 3] = 2  ;
-      /* 5      NCSTART     */ headerccp.i[ 4] = 0  ;
-      /* 6      NRSTART     */ headerccp.i[ 5] = 0  ;
-      /* 7      NSSTART     */ headerccp.i[ 6] = 0  ;
+      /* 5      NCSTART     */ headerccp.i[ 4] = int(origongrid(2))  ;
+      /* 6      NRSTART     */ headerccp.i[ 5] = int(origongrid(1))  ;
+      /* 7      NSSTART     */ headerccp.i[ 6] = int(origongrid(0))  ;
       /* 8      NX          */ headerccp.i[ 7] = data3d.shape()[0] ;
       /* 9      NY          */ headerccp.i[ 8] = data3d.shape()[1] ;
       /*10      NZ          */ headerccp.i[ 9] = data3d.shape()[2] ;
@@ -99,19 +102,27 @@ namespace util {
       /*35-37   SKWTRN(T1)  */ headerccp.f[34] = 0.0;
       /*35-37   SKWTRN(T2)  */ headerccp.f[35] = 0.0;
       /*35-37   SKWTRN(T3)  */ headerccp.f[36] = 0.0;
-      /*38-49   future use  */
-      // /*50      Xorigin     */ headerccp.f[49] = ???;
-      // /*51      Yorigin     */ headerccp.f[50] = ???;
-      // /*52      Zorigin     */ headerccp.f[51] = ???;
+      /*38-52   future use  */
       /*53      MAP         */ headerccp.c[4*52]   = 'M'; headerccp.c[4*52+1] = 'A';
       headerccp.c[4*52+2] = 'P'; headerccp.c[4*52+3] = ' ';
 
       /*54      Machine Stmp*/ headerccp.c[4*53]   = 'D' ; headerccp.c[4*53+1] = 'A' ;
       headerccp.c[4*53+2] = '\0'; headerccp.c[4*53+3] = '\0' ;
+
+//---make sure origin is computed properly
+
+
+
+
+//---
+
+
+
+
       // summarize header info
       std::cout<<"# |   Summarizing the CPP4 file features for:" << std::endl;
       std::cout<<"# |   "<< filename << std::endl;
-      std::cout<<"# |   (See https://www.ccpem.ac.uk/mrc_format/mrc2014.php)." << std::endl;
+      std::cout<<"# |   (based upon description found at http://www.ccp4.ac.uk/html/maplib.html)." << std::endl;
       std::cout<<"# |   1      NC (slowest)"<< headerccp.i[ 0]             << std::endl;
       std::cout<<"# |   2      NR    v     "<< headerccp.i[ 1]             << std::endl;
       std::cout<<"# |   3      NS (fastest)"<< headerccp.i[ 2]             << std::endl;
@@ -149,8 +160,7 @@ namespace util {
 //      std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-//      //std::cout<<" 38-49   future use  "/*<< headerccp.i[ ] */         << std::endl;
-//      //std::cout<<" 50-52   subvolume origin  "/*<< headerccp.f[49..51] */         << std::endl;
+//      //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
 //      std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
 //      std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
 //                 % (int) headerccp.c[4*53]
@@ -190,7 +200,7 @@ namespace util {
                   boost::multi_array<T, 3> &data3d){
 
       /*
-             (from https://www.ccpem.ac.uk/mrc_format/mrc2014.php)
+             (from http://www.ccp4.ac.uk/html/maplib.html)
              The overall layout of the file is as follows:
              
              File header (256 longwords)
@@ -243,8 +253,7 @@ namespace util {
              .          "              in MAPBRICK, MAPCONT and FRODO)
              .          "   (all set to zero by default)
              .          "
-             49          "
-             50-52  ORIGIN       Real space location of the subvolume
+             52          "
              
              53    MAP            Character string 'MAP ' to identify file type
              54    MACHST        Machine stamp indicating the machine type
@@ -315,11 +324,7 @@ namespace util {
 //          std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-          //std::cout<<" 38-49   future use  "/*<< headerccp.i[ ] */         << std::endl;
-          std::cout<<"# |  50      X origin    "<< headerccp.f[49]             << std::endl;
-          std::cout<<"# |  51      Y origin    "<< headerccp.f[50]             << std::endl;
-          std::cout<<"# |  52      Z origin    "<< headerccp.f[51]             << std::endl;
-
+          //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
 //          std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
 //          std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
 //                                                                % (int) headerccp.c[4*53]
@@ -332,12 +337,19 @@ namespace util {
           //std::cout<<" 57-256  LABEL(20,10)\n"<< Labels         << std::endl;
 
 
+          // mapping between cartesian and grid axes.
+          ublas::vector<size_t> gr2ax(3), ax2gr(3);
+
+          gr2ax(0) = headerccp.i[16]-1 ;
+          gr2ax(1) = headerccp.i[17]-1 ;
+          gr2ax(2) = headerccp.i[18]-1 ;
+
+          ax2gr(gr2ax(0)) = 0;
+          ax2gr(gr2ax(1)) = 1;
+          ax2gr(gr2ax(2)) = 2;
+
           // figure out the cell vectors
-          // a || x
-          // (a,b) gamma
-          // (a,c) beta
-          // (b,c) alpha
-          //
+          // a || x ; (a,b) gamma ; (a,c) beta ; (b,c) alpha
           T pirad = boost::math::constants::pi<T>()/180.0;
           T alpha = pirad *  headerccp.f[13];
           T beta  = pirad *  headerccp.f[14];
@@ -376,41 +388,32 @@ namespace util {
           rot(1,2) *= ( headerccp.f[12] / headerccp.i[9] );
           rot(2,2) *= ( headerccp.f[12] / headerccp.i[9] );
 
-          //std::cout <<"# |  unit cell vectors:" << std::fixed <<std::setprecision(3) << rot << std::endl;
 
           orig.resize(3);
-          orig(0) = headerccp.i[ 6];
-          orig(1) = headerccp.i[ 5];
-          orig(2) = headerccp.i[ 4];
+//          orig(0) = headerccp.i[ 6];
+//          orig(1) = headerccp.i[ 5];
+//          orig(2) = headerccp.i[ 4];
+
+
+          orig(0) = headerccp.i[ 4 + gr2ax(0) ];
+          orig(1) = headerccp.i[ 4 + gr2ax(1) ];
+          orig(2) = headerccp.i[ 4 + gr2ax(2) ];
+
           orig =  ublas::prod(rot,orig);
           //std::cout << "# |  Origin: "<<  orig << std::endl;
 
 
-      	  ublas::vector<size_t> gr2ax(3), ax2gr(3);
-      	  gr2ax(0) = headerccp.i[16]-1 ;
-      	  gr2ax(1) = headerccp.i[17]-1 ;
-      	  gr2ax(2) = headerccp.i[18]-1 ;
 
-      	  ax2gr(gr2ax(0)) = 0;
-      	  ax2gr(gr2ax(1)) = 1;
-      	  ax2gr(gr2ax(2)) = 2;
 
-          // std::cout << "==================" << std::endl;
-          // std::cout << gr2ax << std::endl;
-          // std::cout << ax2gr << std::endl;
-          // std::cout << "==================" << std::endl;
+         // std::cout << "==================" << std::endl;
+         // std::cout << gr2ax << std::endl;
+         // std::cout << ax2gr << std::endl;
+         // std::cout << "==================" << std::endl;
 
           // Populating the tmp data array:
           typename boost::multi_array<T, 3>::size_type ordering[] = {ax2gr(0),ax2gr(1),ax2gr(2)};
           bool ascending[] = {true,true,true};
           boost::general_storage_order<3> so(ordering,ascending);
-
-          //  std::cout << so.ordering(0) << std::endl;
-          //  std::cout << so.ordering(1) << std::endl;
-          //  std::cout << so.ordering(2) << std::endl;
-          //  std::cout << so.ascending(0) << std::endl;
-          //  std::cout << so.ascending(1) << std::endl;
-          //  std::cout << so.ascending(2) << std::endl;
 
 
           boost::multi_array<T, 3> tmp3d(boost::extents[ headerccp.i[ax2gr(0)] ]
@@ -420,18 +423,12 @@ namespace util {
                                                         );
 
 
-          // std::cout << "so>>" <<  tmp3d.storage_order().ordering(0) << std::endl;
-          // std::cout << "so>>" <<  tmp3d.storage_order().ordering(1) << std::endl;
-          // std::cout << "so>>" <<  tmp3d.storage_order().ordering(2) << std::endl;
-          // std::cout << "so>>" <<  tmp3d.storage_order().ascending(0) << std::endl;
-          // std::cout << "so>>" <<  tmp3d.storage_order().ascending(1) << std::endl;
-          // std::cout << "so>>" <<  tmp3d.storage_order().ascending(2) << std::endl;
 
           for (size_t i = 0 ; i != tmp3d.num_elements();++i){
                  float t;
                  myFile.read(reinterpret_cast<char*>(&t),sizeof(float));
                  tmp3d.data()[i] = t;
-          }
+            }
 
 
           if (data3d.num_elements()==0){
@@ -444,7 +441,7 @@ namespace util {
               for (size_t i = 0; i != data3d.num_elements(); ++i) data3d.data()[i] = 0.0;
 
 
-            } else if (static_cast<int>(data3d.num_elements()) != headerccp.i[2] * headerccp.i[1] * headerccp.i[0]) {
+            } else if (data3d.num_elements() != headerccp.i[2] * headerccp.i[1] * headerccp.i[0]) {
 
               std::exit(0);
 
@@ -456,28 +453,35 @@ namespace util {
 
 
 
-            size_t idim = data3d.shape()[0];
-            size_t jdim = data3d.shape()[1];
-            size_t kdim = data3d.shape()[2];
+          size_t idim = data3d.shape()[0];
+          size_t jdim = data3d.shape()[1];
+          size_t kdim = data3d.shape()[2];
 
 
-            for (size_t i = 0; i != idim ; ++i) {
-              for (size_t j = 0; j != jdim ; ++j) {
-                for (size_t k = 0; k != kdim ; ++k) {
-                  data3d[i][j][k] += tmp3d[i][j][k];
+              for (size_t i = 0; i != idim ; ++i) {
+                  for (size_t j = 0; j != jdim ; ++j) {
+                      for (size_t k = 0; k != kdim ; ++k) {
+                          data3d[i][j][k] += tmp3d[i][j][k];
+                        }
+                    }
                 }
-              }
-            }
 
           return true;
 
         } else {
 
+
+
           std::cout << ">>  Could not read file:" << filename << std::endl;
           return false;
         }
 
+
+      myFile.close();
+
+
     }
+
   }
 }
 
