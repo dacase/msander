@@ -1930,7 +1930,7 @@ void Density<T>::writedxfile(const std::string &filenameout){
 template <typename T>
 void Density<T>::writeccp4(const std::string &filenameout){
       std::cout << "# Writing volumetric data to " << filenameout << "." << std::endl;
-      util::files::writeccp4(filenameout, this->orig, this->a, this->b, this->c, this->data3d, this->irotm );
+      util::files::writeccp4(filenameout, this->orig, this->a, this->b, this->c, this->data3d);
 }
 
 template <typename T>

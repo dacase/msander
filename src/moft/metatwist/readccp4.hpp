@@ -49,8 +49,7 @@ namespace util {
     bool writeccp4(const std::string & filename,
                    const ublas::vector <T> &orig,
                    const ublas::vector <T> &a, const ublas::vector <T> &b, const ublas::vector <T> &c,
-                   const boost::multi_array<T, 3> &data3d,
-                   const ublas::matrix<T> & irotm){
+                   const boost::multi_array<T, 3> &data3d){
 
       std::ofstream myFile (filename, std::ios::out | std::ios::binary);
 
@@ -63,15 +62,13 @@ namespace util {
 
       T radpi = 180.0/boost::math::constants::pi<T>();
 
-      ublas::vector<T>  origongrid =  ublas::prod(irotm, orig);
-
       /* 1      NC (slowest)*/ headerccp.i[ 0] = data3d.shape()[2] ;
       /* 2      NR    v     */ headerccp.i[ 1] = data3d.shape()[1] ;
       /* 3      NS (fastest)*/ headerccp.i[ 2] = data3d.shape()[0] ;
       /* 4      MODE        */ headerccp.i[ 3] = 2  ;
-      /* 5      NCSTART     */ headerccp.i[ 4] = int(origongrid(2))  ;
-      /* 6      NRSTART     */ headerccp.i[ 5] = int(origongrid(1))  ;
-      /* 7      NSSTART     */ headerccp.i[ 6] = int(origongrid(0))  ;
+      /* 5      NCSTART     */ headerccp.i[ 4] = 0  ;
+      /* 6      NRSTART     */ headerccp.i[ 5] = 0  ;
+      /* 7      NSSTART     */ headerccp.i[ 6] = 0  ;
       /* 8      NX          */ headerccp.i[ 7] = data3d.shape()[0] ;
       /* 9      NY          */ headerccp.i[ 8] = data3d.shape()[1] ;
       /*10      NZ          */ headerccp.i[ 9] = data3d.shape()[2] ;
@@ -103,26 +100,18 @@ namespace util {
       /*35-37   SKWTRN(T2)  */ headerccp.f[35] = 0.0;
       /*35-37   SKWTRN(T3)  */ headerccp.f[36] = 0.0;
       /*38-52   future use  */
+      /*50-52  origin       */ headerccp.f[49] = orig(2) ; headerccp.f[50] = orig(1) ; headerccp.f[51] = orig(0);
       /*53      MAP         */ headerccp.c[4*52]   = 'M'; headerccp.c[4*52+1] = 'A';
       headerccp.c[4*52+2] = 'P'; headerccp.c[4*52+3] = ' ';
 
       /*54      Machine Stmp*/ headerccp.c[4*53]   = 'D' ; headerccp.c[4*53+1] = 'A' ;
       headerccp.c[4*53+2] = '\0'; headerccp.c[4*53+3] = '\0' ;
 
-//---make sure origin is computed properly
-
-
-
-
-//---
-
-
-
 
       // summarize header info
       std::cout<<"# |   Summarizing the CPP4 file features for:" << std::endl;
       std::cout<<"# |   "<< filename << std::endl;
-      std::cout<<"# |   (based upon description found at http://www.ccp4.ac.uk/html/maplib.html)." << std::endl;
+      std::cout<<"# |   (based upon description found at https://www.ccpem.ac.uk/mrc_format/mrc2014.php)." << std::endl;
       std::cout<<"# |   1      NC (slowest)"<< headerccp.i[ 0]             << std::endl;
       std::cout<<"# |   2      NR    v     "<< headerccp.i[ 1]             << std::endl;
       std::cout<<"# |   3      NS (fastest)"<< headerccp.i[ 2]             << std::endl;
@@ -142,12 +131,12 @@ namespace util {
       std::cout<<"# |  17      MAPC        "<< headerccp.i[16]             << std::endl;
       std::cout<<"# |  18      MAPR        "<< headerccp.i[17]             << std::endl;
       std::cout<<"# |  19      MAPS        "<< headerccp.i[18]             << std::endl;
-//      std::cout<<"# |  20      AMIN        "<< headerccp.f[19]             << std::endl;
-//      std::cout<<"# |  21      AMAX        "<< headerccp.f[20]             << std::endl;
-//      std::cout<<"# |  22      AMEAN       "<< headerccp.f[21]             << std::endl;
-//      std::cout<<"# |  23      ISPG        "<< headerccp.i[22]             << std::endl;
-//      std::cout<<"# |  24      NSYMBT      "<< headerccp.i[23]             << std::endl;
-//      std::cout<<"# |  25      LSKFLG      "<< headerccp.i[24]             << std::endl;
+      std::cout<<"# |  20      AMIN        "<< headerccp.f[19]             << std::endl;
+      std::cout<<"# |  21      AMAX        "<< headerccp.f[20]             << std::endl;
+      std::cout<<"# |  22      AMEAN       "<< headerccp.f[21]             << std::endl;
+      std::cout<<"# |  23      ISPG        "<< headerccp.i[22]             << std::endl;
+      std::cout<<"# |  24      NSYMBT      "<< headerccp.i[23]             << std::endl;
+      std::cout<<"# |  25      LSKFLG      "<< headerccp.i[24]             << std::endl;
 //      std::cout<<"# |  26-34   SKWMAT(S11) "<< headerccp.f[25]             << std::endl;
 //      std::cout<<"# |  26-34   SKWMAT(S12) "<< headerccp.f[26]             << std::endl;
 //      std::cout<<"# |  26-34   SKWMAT(S13) "<< headerccp.f[27]             << std::endl;
@@ -160,15 +149,18 @@ namespace util {
 //      std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-//      //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
-//      std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
-//      std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
-//                 % (int) headerccp.c[4*53]
-//                 % (int) headerccp.c[4*53+1]
-//          % (int) headerccp.c[4*53+2]
-//          % (int) headerccp.c[4*53+3]
-//          << std::endl;
-//      std::cout<<"# |  55      ARMS        "<< headerccp.f[55]             << std::endl;
+      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[49]              << std::endl;
+      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[50]              << std::endl;
+      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[51]              << std::endl;
+      //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
+      std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
+      std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
+                 % (int) headerccp.c[4*53]
+                 % (int) headerccp.c[4*53+1]
+          % (int) headerccp.c[4*53+2]
+          % (int) headerccp.c[4*53+3]
+          << std::endl;
+      std::cout<<"# |  55      ARMS        "<< headerccp.f[55]             << std::endl;
 
       // write the header
       myFile.write(reinterpret_cast<char*>(&headerccp.c[0]), 224*sizeof(unsigned char));
@@ -286,7 +278,7 @@ namespace util {
           // summarize header info
           std::cout<<"# |   Summarizing the CPP4 file features for:" << std::endl;
           std::cout<<"# |   "<< filename << std::endl;
-          std::cout<<"# |   (based upon description found at http://www.ccp4.ac.uk/html/maplib.html)." << std::endl;
+          std::cout<<"# |   (based upon description found at https://www.ccpem.ac.uk/mrc_format/mrc2014.php)." << std::endl;
           std::cout<<"# |   1      NC (slowest)"<< headerccp.i[ 0]             << std::endl;
           std::cout<<"# |   2      NR    v     "<< headerccp.i[ 1]             << std::endl;
           std::cout<<"# |   3      NS (fastest)"<< headerccp.i[ 2]             << std::endl;
@@ -306,12 +298,12 @@ namespace util {
           std::cout<<"# |  17      MAPC        "<< headerccp.i[16]             << std::endl;
           std::cout<<"# |  18      MAPR        "<< headerccp.i[17]             << std::endl;
           std::cout<<"# |  19      MAPS        "<< headerccp.i[18]             << std::endl;
-//          std::cout<<"# |  20      AMIN        "<< headerccp.f[19]             << std::endl;
-//          std::cout<<"# |  21      AMAX        "<< headerccp.f[20]             << std::endl;
-//          std::cout<<"# |  22      AMEAN       "<< headerccp.f[21]             << std::endl;
-//          std::cout<<"# |  23      ISPG        "<< headerccp.i[22]             << std::endl;
-//          std::cout<<"# |  24      NSYMBT      "<< headerccp.i[23]             << std::endl;
-//          std::cout<<"# |  25      LSKFLG      "<< headerccp.i[24]             << std::endl;
+          std::cout<<"# |  20      AMIN        "<< headerccp.f[19]             << std::endl;
+          std::cout<<"# |  21      AMAX        "<< headerccp.f[20]             << std::endl;
+          std::cout<<"# |  22      AMEAN       "<< headerccp.f[21]             << std::endl;
+          std::cout<<"# |  23      ISPG        "<< headerccp.i[22]             << std::endl;
+          std::cout<<"# |  24      NSYMBT      "<< headerccp.i[23]             << std::endl;
+          std::cout<<"# |  25      LSKFLG      "<< headerccp.i[24]             << std::endl;
 //          std::cout<<"# |  26-34   SKWMAT(S11) "<< headerccp.f[25]             << std::endl;
 //          std::cout<<"# |  26-34   SKWMAT(S12) "<< headerccp.f[26]             << std::endl;
 //          std::cout<<"# |  26-34   SKWMAT(S13) "<< headerccp.f[27]             << std::endl;
@@ -324,14 +316,17 @@ namespace util {
 //          std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
+          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[49]             << std::endl;
+          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[50]             << std::endl;
+          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[51]             << std::endl;
           //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
-//          std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
-//          std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
-//                                                                % (int) headerccp.c[4*53]
-//                                                                % (int) headerccp.c[4*53+1]
-//                                                                % (int) headerccp.c[4*53+2]
-//                                                                % (int) headerccp.c[4*53+3]
-//                                                                << std::endl;
+          std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
+          std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
+                                                                % (int) headerccp.c[4*53]
+                                                                % (int) headerccp.c[4*53+1]
+                                                                % (int) headerccp.c[4*53+2]
+                                                                % (int) headerccp.c[4*53+3]
+                                                                << std::endl;
 //          std::cout<<"# |  55      ARMS        "<< headerccp.f[55]             << std::endl;
           //std::cout<<" 56      NLABL       "<< headerccp.i[56]             << std::endl;
           //std::cout<<" 57-256  LABEL(20,10)\n"<< Labels         << std::endl;
@@ -389,26 +384,20 @@ namespace util {
           rot(2,2) *= ( headerccp.f[12] / headerccp.i[9] );
 
 
-          orig.resize(3);
-//          orig(0) = headerccp.i[ 6];
-//          orig(1) = headerccp.i[ 5];
-//          orig(2) = headerccp.i[ 4];
+          orig.resize(3,0.0);
 
-
-          orig(0) = headerccp.i[ 4 + gr2ax(0) ];
-          orig(1) = headerccp.i[ 4 + gr2ax(1) ];
-          orig(2) = headerccp.i[ 4 + gr2ax(2) ];
-
-          orig =  ublas::prod(rot,orig);
-          //std::cout << "# |  Origin: "<<  orig << std::endl;
-
-
-
-
-         // std::cout << "==================" << std::endl;
-         // std::cout << gr2ax << std::endl;
-         // std::cout << ax2gr << std::endl;
-         // std::cout << "==================" << std::endl;
+          if ( headerccp.f[49]==0.0 and headerccp.f[50]==0.0 and headerccp.f[51]==0.0 ){
+            orig(0) = headerccp.i[ 4 + gr2ax(0) ];
+            orig(1) = headerccp.i[ 4 + gr2ax(1) ];
+            orig(2) = headerccp.i[ 4 + gr2ax(2) ];
+            orig =  ublas::prod(rot,orig);
+            std::cout << "# Origin NxNyNz: " << orig << std::endl;
+          } else {
+            orig(0) = headerccp.f[49 + gr2ax(0)];
+            orig(1) = headerccp.f[49 + gr2ax(1)];
+            orig(2) = headerccp.f[49 + gr2ax(2)];
+            std::cout << "# Origin MRC [v2000]: " << orig << std::endl;
+          };
 
           // Populating the tmp data array:
           typename boost::multi_array<T, 3>::size_type ordering[] = {ax2gr(0),ax2gr(1),ax2gr(2)};
