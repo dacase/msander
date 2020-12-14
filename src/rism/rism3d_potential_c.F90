@@ -98,7 +98,7 @@ module rism3d_potential_c
   private mixSoluteSolventLJParameters
   private uvCoulombicPotential
   private uvLennardJonesPotentialWithCutoff 
-  private getphineut, uvLJrEwaldMinImage, uvPMErecip
+  private uvLJrEwaldMinImage, uvPMErecip
 contains
 
 
@@ -204,9 +204,6 @@ contains
     call timer_start(TIME_ULJUV)
     call uvLJrEwaldMinImage(this, this%uuv)
     call timer_stop(TIME_ULJUV)
-
-    if( phineut .and. first ) call getphineut(this)
-    first = .false.
 
   end subroutine rism3d_potential_calc
 
@@ -849,6 +846,7 @@ contains
     end do
   end function minimumImage
 
+#if 0
   subroutine getphineut(this)
     implicit none
     type(rism3d_potential), intent(inout) :: this !< potential object.
@@ -884,6 +882,7 @@ contains
     end if
     
   end subroutine getphineut
+#endif
 
 end module rism3d_potential_c
 

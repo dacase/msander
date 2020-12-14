@@ -681,6 +681,9 @@ contains
             this%grid%inscribedSphereRadius)
        call flush(rism_report_getmunit())
     end if
+
+    ! 2a) Check what kind of information is in the xvv file:
+    call check_xvv_info( this%potential )
     
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
@@ -1441,13 +1444,9 @@ contains
     ! ---------------------------------------------------------------
     ! Remove the background charge effect from periodic calculations.
     ! ---------------------------------------------------------------
-    if (phineut) then
-         if (this%mpirank == 0 .and. this%solute%charged .and. this%solvent%ionic ) then
-           do iv = 1,this%solvent%numAtomTypes
-                this%huv(1,iv) = this%huv(1,iv) - this%potential%phineutv(iv)
-           end do
-         endif
-    end if 
+    if (this%mpirank == 0 .and. this%solute%charged) then
+       this%huv(:2, :) = this%huv(:2, :) + this%potential%huvk0(:, :)
+    endif
 
     ! --------------------------------------------------------------
     ! Huv(k) FFT->R.
@@ -1566,5 +1565,35 @@ contains
     call dcopy(this%grid%totalLocalPointsR * this%solvent%numAtomTypes, this%cuv(:, :, :, :), 1, &
          this%oldcuv(:, :, :, :, 1), 1)
   end subroutine updateDCFguessHistory
+
+  subroutine check_xvv_info( this )
+    use constants_rism, only : PI, FOURPI
+    implicit none
+    type(rism3d_potential), intent(inout) :: this !< potential object.
+
+    if (this%grid%offsetK(3) == 0) then
+       ! Check if the background charge correction is provided. Old
+       ! Xvv files only have delhv0, which combines the background
+       ! correction and the long range asymptotics. If we only have
+       ! delhv0, remove the long-range asymptotics contribution.
+       if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
+          this%huvk0(1, :) = this%solvent%background_correction(:) &
+              * sum(this%solute%charge) / this%grid%boxVolume
+       else
+          this%huvk0(1, :) = ( this%solvent%delhv0(:) &
+             - this%solvent%charge_sp(:) / this%solvent%dielconst &
+             * FOURPI / this%solvent%xappa**2 ) * sum(this%solute%charge) &
+             / this%grid%boxVolume
+       end if
+       this%huvk0(2, :) = 0d0
+#if 0
+       ! Make sure we have read the information to do this.
+       if (all(this%solvent%delhv0_dT(:) /= huge(1d0))) then
+          this%huvk0_dT(1, :) = this%solvent%delhv0_dT(:) * sum(this%solute%charge) / this%grid%boxVolume
+          this%huvk0_dT(2, :) = 0
+       end if
+#endif
+    end if
+  end subroutine check_xvv_info
 
 end module rism3d_c

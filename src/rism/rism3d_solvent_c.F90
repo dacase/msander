@@ -67,6 +67,13 @@ module rism3d_solvent_c
      _REAL_, pointer :: ljEpsilon(:) => NULL()
      !> coordinates.  Labeled by dimension, multiplicity number, atom number, species
      _REAL_, pointer :: coord(:,:,:,:) => NULL()
+     !> Contribution to the TCF at k=0 for both periodic and
+     !non-periodic calculations: ! See eq. 20 in Kolavenko/Hirata
+     !2000.
+     !! -Lim_k->0 ( Sum_v1 Qv1 * Xv1v2(k) 4pi / k^2 ) from 1D-RISM.
+     !! This is the same as delhv0 except that it does not include the
+     !! TCF long-range asymptotics
+     _REAL_, pointer :: background_correction(:) => NULL()
      !> The contribution to the TCF by the background charge which
      !! gives the supercell electroneutrality.  This portion of the term
      !! is only the contribution by the solvent, and does not include the
@@ -125,12 +132,17 @@ contains
   !! @param[in] density_sp Solvent density by molecular species [#/A^3].
   !! @param[in] ljSigma Solvent LJ-sigma by atom type [A].
   !! @param[in] eps Solvent LJ-epsilon by atom type [kT].
+  !! @param[in] background_correction Background charge correction of the solute-solvent TCF
+  !!    at k = 0 (not yet multiplied by solute-specific coefficients - see
+  !!    eq. 20 in Kovalenko 2000).
+  !! @param[in] delhv0 Long range asymptotics and background charge correction of the solute-solvent TCF
+  !!    at k = 0 (not yet multiplied by solute-specific coefficients - see
+  !!    eq. 20 in Kovalenko 2000).
   !! @param[in] o_mpicomm (optional) MPI communicator.
   subroutine rism3d_solvent_new_all(this, dr, dt, temperature, dielconst, xappa, &
        xikt, smear, natom, nspecies, numAtomSpecies, nr, mult, atomName, &
-       fourier_tbl, xvv, charge, charge_sp, density, density_sp, ljSigma, eps, delhv0, &
-       coord, xvv_version,&
-       o_mpicomm)
+       fourier_tbl, xvv, charge, charge_sp, density, density_sp, ljSigma, eps, &
+       background_correction, delhv0, coord, xvv_version, o_mpicomm)
     implicit none
 #ifdef MPI
     include 'mpif.h'
@@ -142,7 +154,7 @@ contains
     character(len = 4), intent(in) :: atomName(natom)
     _REAL_, intent(in) :: fourier_tbl(nr), xvv(nr, natom, natom), &
          charge(natom), charge_sp(natom), density(natom), density_sp(nspecies), &
-         ljSigma(natom), eps(natom), delhv0(natom), &
+         ljSigma(natom), eps(natom), background_correction(natom), delhv0(natom), &
          coord(3,maxval(mult),maxval(numAtomSpecies),nspecies)
     integer, optional, intent(in) :: o_mpicomm
     real, intent(in) :: xvv_version
@@ -191,6 +203,7 @@ contains
        this%density_sp = density_sp
        this%ljSigma = ljSigma
        this%ljEpsilon = eps
+       this%background_correction = background_correction
        this%delhv0 = delhv0
        
        if (this%xvv_version >= 1.) then
@@ -290,7 +303,7 @@ contains
          this%numAtomTypes, this%numMolecules, this%numAtoms, this%numRDFpoints, this%atomMultiplicity, &
          this%atomName, this%waveNumbers, this%xvv, this%charge, this%charge_sp, &
          this%density, this%density_sp, &
-         this%ljSigma, this%ljEpsilon, this%delhv0, &
+         this%ljSigma, this%ljEpsilon, this%background_correction, this%delhv0, &
          this%coord, this%xvv_version)
   end subroutine rism3d_solvent_clone
 
@@ -363,6 +376,9 @@ contains
          comm,err)
     if (err /=0) call rism_report_error&
          ("RISM3D_SOLVENT: could not broadcast CHARGE_SP")
+    call mpi_bcast(this%background_correction,size(this%background_correction),mpi_double_precision,0,comm,err)
+    if (err /=0) call rism_report_error&
+         ("RISM3D_SOLVENT: could not broadcast BACKGROUND_CORRECTION")
     call mpi_bcast(this%delhv0,size(this%delhv0),mpi_double_precision,0,comm,err)
     if (err /=0) call rism_report_error&
          ("RISM3D_SOLVENT: could not broadcast DELHV0")
@@ -466,6 +482,8 @@ contains
          call rism_report_error("RISM3D_SOLVENT: failed to deallocate LJSIGMA")
     if (safemem_dealloc(this%ljEpsilon)/=0)&
          call rism_report_error("RISM3D_SOLVENT: failed to deallocate LJEPSILON")
+    if (safemem_dealloc(this%background_correction)/=0)&
+         call rism_report_error("RISM3D_SOLVENT: failed to deallocate BACKGROUND_CORRECTION")
     if (safemem_dealloc(this%delhv0)/=0)&
          call rism_report_error("RISM3D_SOLVENT: failed to deallocate DELHV0")
     if (safemem_dealloc(this%coord)/=0)&
@@ -496,6 +514,7 @@ contains
     this%ljSigma => safemem_realloc(this%ljSigma,this%numAtomTypes,.false.)
     this%density => safemem_realloc(this%density,this%numAtomTypes,.false.)
     this%density_sp => safemem_realloc(this%density_sp,this%numMolecules,.false.)
+    this%background_correction => safemem_realloc(this%background_correction,this%numAtomTypes,.false.)
     this%delhv0 => safemem_realloc(this%delhv0,this%numAtomTypes,.false.)
 
     ! Allocate integer memory.
@@ -678,6 +697,16 @@ contains
     end if
     call rism_parm_nxtsec(nf, rism_report_getEUnit(), 0,fmtin,  type,  fmt,  iok)
     read(nf,fmt) (this%ljSigma(i),i = 1,this%numAtomTypes)
+
+    ! this is optional
+    fmtin = rfmt
+    type = 'BACKGROUND_CORRECTION'
+    call rism_parm_nxtsec(nf, rism_report_getEUnit(), 1, fmtin,  type,  fmt,  iok)
+    if (iok == 0) then
+       read(nf,fmt) (this%background_correction(i),i = 1,this%numAtomTypes)
+    else
+       this%background_correction = HUGE(1d0)
+    end if
 
     fmtin = rfmt
     type = 'DELHV0'
