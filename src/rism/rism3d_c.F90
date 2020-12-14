@@ -1442,7 +1442,7 @@ contains
     call timer_stop(TIME_RISMHUVK)
 
     ! ---------------------------------------------------------------
-    ! Remove the background charge effect from periodic calculations.
+    ! Remove the background charge effect
     ! ---------------------------------------------------------------
     if (this%mpirank == 0 .and. this%solute%charged) then
        this%huv(:2, :) = this%huv(:2, :) + this%potential%huvk0(:, :)
@@ -1571,28 +1571,27 @@ contains
     implicit none
     type(rism3d_potential), intent(inout) :: this !< potential object.
 
+    _REAL_ soluteQ
+
+    ! Allocate huvk0 if not done already.
+    if (.not. associated(this%huvk0)) then
+       this%huvk0 => safemem_realloc(this%huvk0, 2, this%solvent%numAtomTypes)
+    end if
+
     if (this%grid%offsetK(3) == 0) then
        ! Check if the background charge correction is provided. Old
        ! Xvv files only have delhv0, which combines the background
        ! correction and the long range asymptotics. If we only have
        ! delhv0, remove the long-range asymptotics contribution.
+       soluteQ = sum(this%solute%charge)/this%grid%boxVolume
        if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
-          this%huvk0(1, :) = this%solvent%background_correction(:) &
-              * sum(this%solute%charge) / this%grid%boxVolume
+          this%huvk0(1, :) = this%solvent%background_correction(:) * soluteQ
        else
           this%huvk0(1, :) = ( this%solvent%delhv0(:) &
              - this%solvent%charge_sp(:) / this%solvent%dielconst &
-             * FOURPI / this%solvent%xappa**2 ) * sum(this%solute%charge) &
-             / this%grid%boxVolume
+             * FOURPI / this%solvent%xappa**2 ) * soluteQ 
        end if
        this%huvk0(2, :) = 0d0
-#if 0
-       ! Make sure we have read the information to do this.
-       if (all(this%solvent%delhv0_dT(:) /= huge(1d0))) then
-          this%huvk0_dT(1, :) = this%solvent%delhv0_dT(:) * sum(this%solute%charge) / this%grid%boxVolume
-          this%huvk0_dT(2, :) = 0
-       end if
-#endif
     end if
   end subroutine check_xvv_info
 
