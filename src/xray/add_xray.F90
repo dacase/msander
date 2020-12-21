@@ -156,6 +156,7 @@ program add_xray
          if( atom_element(i) == 'Cl  ' ) atom_element(i) = 'Cl-1'
          if( atom_element(i) == 'Fe  ' ) atom_element(i) = 'Fe+2'
          if( atom_element(i) == 'Zn  ' ) atom_element(i) = 'Zn+2'
+         if( atom_element(i) == 'Ep  ' ) atom_element(i) = ' H  '
       end do
    end if
 
