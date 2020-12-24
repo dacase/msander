@@ -80,13 +80,13 @@ contains
     type(rism3d_kh), intent(in) :: this
     _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
     _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
-    _REAL_ :: tuv,phineut
+    _REAL_ :: tuv,hk0
     integer :: ix, iy, iz, iv, igk
     excessChemicalPotential = 0.d0
-!$omp parallel do private (iv,iz,iy,ix,igk,tuv,phineut) &
+!$omp parallel do private (iv,iz,iy,ix,igk,tuv,hk0) &
 !$omp&   num_threads(this%pot%solvent%numAtomTypes)
     do iv=1,this%pot%solvent%numAtomTypes
-       phineut = 1.d0 - this%pot%phineutv(iv)/2.d0
+       hk0 = 1.d0 + this%pot%huvk0(1,iv)/2.d0
        do iz=1,this%grid%localDimsR(3)
           do iy=1,this%grid%localDimsR(2)
              do ix=1,this%grid%localDimsR(1)
@@ -100,10 +100,10 @@ contains
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 if (huv(igk,iv) > 0d0) then
                    excessChemicalPotential(iv) = excessChemicalPotential(iv) &
-                        - (phineut + 0.5d0*huv(igk,iv)) * cuv(ix,iy,iz,iv)
+                        - (hk0 + 0.5d0*huv(igk,iv)) * cuv(ix,iy,iz,iv)
                 else
                    excessChemicalPotential(iv) = excessChemicalPotential(iv) &
-                        + 0.5d0*huv(igk,iv)*tuv - phineut*cuv(ix,iy,iz,iv)
+                        + 0.5d0*huv(igk,iv)*tuv - hk0*cuv(ix,iy,iz,iv)
                 end if
 
              end do

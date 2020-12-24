@@ -631,7 +631,7 @@ contains
   !! @param[in] tolerance Convergence tolerances. There should be one
   !!          tolerance per closure in the closure list.
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
-          tolerance, phineut, ng3)
+          tolerance, ng3)
     use constants_rism, only : pi
     implicit none
 #if defined(MPI)
@@ -640,7 +640,6 @@ contains
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
-    logical, intent(in) :: phineut
     integer, intent(in) :: ng3(3)
 
     _REAL_ :: com(3)
@@ -687,7 +686,7 @@ contains
     
     ! 3) Calculate electrostatic and Lennard-Jones potential about the
     ! solute.
-    call rism3d_potential_calc(this%potential, phineut)
+    call rism3d_potential_calc(this%potential)
 
     ! 4) Propagate previously saved solute-solvent DCF solutions to
     ! create an initial guess for this solution.
@@ -709,7 +708,7 @@ contains
           call rism3d_setClosure(this, this%closureList(iclosure))
           call timer_start(TIME_RXRISM)
           call solve3DRISM(this, ksave, kshow, maxSteps, &
-               tolerance(iclosure), phineut)
+               tolerance(iclosure))
           call timer_stop(TIME_RXRISM)
           ! Increment nsolution and ncuvsteps to ensure the previous
           ! closure solution is used.
@@ -723,7 +722,7 @@ contains
     else
        call timer_start(TIME_RXRISM)
        call solve3DRISM(this, ksave, kshow, maxSteps, &
-            tolerance(size(tolerance)), phineut)
+            tolerance(size(tolerance)))
        call timer_stop(TIME_RXRISM)
     end if
 
@@ -1212,7 +1211,7 @@ contains
   !!  iteration (0 means no saves).
   !! @param[in] maxSteps Maximum number of rism relaxation steps.
   !! @param[in] tolerance Tolerance in.
-  subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance, phineut)
+  subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance)
     use mdiis_c
     use rism3d_restart
     implicit none
@@ -1223,7 +1222,6 @@ contains
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance
-    logical, intent(in) :: phineut
     character(72) :: cuvsav = 'rism.csv', guvfile
     integer :: guv_local = 77
 
@@ -1297,7 +1295,7 @@ contains
        ! One iteration of 3D-RISM and closure relation, advancing w/ mdiis.
        !  -----------------------------------------------------------------
        call single3DRISMsolution(this, residual, converged, tolerance, &
-           this%periodic, phineut)
+           this%periodic)
 
        ! Showing selected and last relaxation steps.
        if (kshow /= 0 .and. this%mpirank == 0 .and. this%verbose >= 2) then
@@ -1339,7 +1337,7 @@ contains
   !! @param[in,out] converged Returns true if the solution has converged.
   !! @param[in] tolerance Target residual tolerance for convergence.
   subroutine single3DRISMsolution(this, residual, converged, tolerance, &
-      periodic, phineut )
+      periodic)
 
     use rism3d_fft_c
     use constants_rism, only : PI, FOURPI, omp_num_threads
@@ -1352,7 +1350,7 @@ contains
     logical, intent(inout) :: converged
     _REAL_, intent(inout) :: residual
     _REAL_, intent(in) :: tolerance
-    logical, intent(in) :: periodic, phineut
+    logical, intent(in) :: periodic
     integer :: iis
     _REAL_ :: earg, tuv0, tvvr
     integer :: istep

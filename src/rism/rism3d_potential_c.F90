@@ -82,10 +82,6 @@ module rism3d_potential_c
      !!   'pme'   = Particle Mesh Ewald potential
      character(len=256) :: periodicPotential = ''
 
-     !> "Shifting" potential to generate a neutral cell if the
-     !! solute is charged.
-     _REAL_ :: phineutv(10) = 0.d0
-     
      !> Charge smearing parameter for long-range
      !! asymtotics and Ewald, typically eta in the literature
      _REAL_ :: chargeSmear
@@ -161,7 +157,7 @@ contains
   end subroutine rism3d_potential_setcut_ljdistance
   
   !> Calculates the potential on the grid.
-  subroutine rism3d_potential_calc(this,phineut)
+  subroutine rism3d_potential_calc(this)
     use rism_util, only : checksum
     use rism3d_opendx, only : rism3d_opendx_write
     implicit none
@@ -169,7 +165,6 @@ contains
     include 'mpif.h'
 #endif
     type(rism3d_potential), intent(inout) :: this !< potential object.
-    logical, intent(in) :: phineut
 
     integer :: id
 
@@ -845,44 +840,6 @@ contains
        minimumImage(id) = dot_product(f, this%grid%unitCellVectorsR(:, id))
     end do
   end function minimumImage
-
-#if 0
-  subroutine getphineut(this)
-    implicit none
-    type(rism3d_potential), intent(inout) :: this !< potential object.
-    _REAL_ :: q1
-    integer :: iv
-
-    this%phineutv(1:this%solvent%numAtomTypes) =  0.0
-
-    if (this%solvent%ionic .and. this%periodic .and.  &
-        this%periodicPotential == 'pme' .and. &
-        this%solute%totalCharge .ne. 0.d0 ) then
-        q1 = 0
-        do iv = 1,this%solvent%numAtomTypes
-          if (this%solvent%atomName(iv) /= "O" .and. &
-              this%solvent%atomName(iv) /= "H1" .and. &
-              this%solvent%charge(iv) /= 0 ) then
-                q1 = q1 + this%solvent%density(iv) * this%solvent%charge(iv) &
-                          * this%solvent%charge(iv)
-          end if
-        end do
-
-        q1 =  (this%solute%totalCharge)/(this%grid%boxVolume * q1 )
-
-        do iv = 1,this%solvent%numAtomTypes
-           if (this%solvent%atomName(iv) /= "O" .and. &
-               this%solvent%atomName(iv) /= "H1") then
-               this%phineutv(iv)=this%solvent%charge(iv) * q1
-           end if
-           if( this%grid%mpirank == 0 )  &
-           write(6,'(a,i3,e14.5)') '| Setting phineut: ', iv, this%phineutv(iv)
-
-        end do
-    end if
-    
-  end subroutine getphineut
-#endif
 
 end module rism3d_potential_c
 

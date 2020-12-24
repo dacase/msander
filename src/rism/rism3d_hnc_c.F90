@@ -80,13 +80,13 @@
     type(rism3d_hnc), intent(in) :: this
     _REAL_, intent(in) :: huv(:,:),cuv(:,:,:,:)
     _REAL_ :: excessChemicalPotential(this%pot%solvent%numAtomTypes)
-    _REAL_ :: tuv, phineut
+    _REAL_ :: tuv, hk0
     integer :: ix, iy, iz, iv, ig, igk
     excessChemicalPotential = 0.d0
-!$omp parallel do private (iv,iz,iy,ix,ig,igk,tuv,phineut) &
+!$omp parallel do private (iv,iz,iy,ix,ig,igk,tuv,hk0) &
 !$omp&   num_threads(this%pot%solvent%numAtomTypes)
     do iv=1,this%pot%solvent%numAtomTypes
-       phineut = 1.d0 - this%pot%phineutv(iv)/2.d0
+       hk0 = 1.d0 + this%pot%huvk0(1,iv)/2.d0
        do iz=1,this%grid%localDimsR(3)
           do iy=1,this%grid%localDimsR(2)
              do ix=1,this%grid%localDimsR(1)
@@ -101,7 +101,7 @@
 #endif /*defined(MPI)*/
                 tuv = huv(igk,iv) - cuv(ix,iy,iz,iv)
                 excessChemicalPotential(iv) = excessChemicalPotential(iv) + &
-                     0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)*phineut
+                     0.5d0*huv(igk,iv)*tuv - cuv(ix,iy,iz,iv)*hk0
              end do
           end do
        end do
