@@ -4298,27 +4298,6 @@ short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
 
-short_ene_omp.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    nonbond_list.o\
-                    stack.o\
-                    constants.o\
-                    file_io_dat.o\
-                    les.o\
-                    ips.o\
-                    omp_lib.o\
-                    flocntrl.h\
-                    def_time.h\
-                    ew_cntrl.h\
-                    ../include/md.h\
-                    ene_decomp.h
-
-
-short_ene_omp.o:   short_ene_omp.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene_omp.F90
-
 softcore.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
