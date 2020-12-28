@@ -68,13 +68,16 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
-$modulefile{"ml_mod"} = "ml";
+$modulefile{"ml_mod"} = "xray_ml";
+$modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 
 # ignore certain modules:
 
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
 $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
+# Also ignore files that are actually not needed:
+$ignore{"egb_simple"} = 1;
 
 foreach $file ( <*.F90> ){
     next if $file =~ /^_/;
@@ -85,7 +88,7 @@ foreach $file ( <*.F90> ){
         if( /^ *module /i ){
             ($head,$modulename) = /( *[Mm][Oo][Dd][Uu][Ll][Ee]) +(\w*)/;
             $modulefile{$modulename} = $fileroot;
-#            printf STDERR "modulefile:  $modulename  $fileroot\n";
+#           printf STDERR "modulefile:  $modulename  $fileroot\n";
         }
         if( /compile=optimized/ ){
             $optimized{$fileroot} = 1;

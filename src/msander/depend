@@ -138,16 +138,6 @@ bintraj.LES.o:   bintraj.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
 
-bulk_solvent.o: \
-                    parallel.h\
-                    xray_globals.o\
-                    memory_module.o
-
-
-bulk_solvent.o:   bulk_solvent.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bulk_solvent.F90
-
 charmm.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
@@ -1424,7 +1414,6 @@ interface.o: \
                     tgtmd.h\
                     multitmd.h\
                     ew_erfc_spline.h\
-                    molecule.o\
                     findmask.o\
                     egb.o\
                     parms.o\
@@ -1439,6 +1428,7 @@ interface.o: \
                     memory_module.o\
                     qmmm_adaptive_module.o\
                     charmm.o\
+                    molecule.o\
                     AmberNetcdf.o\
                     binrestart.o
 
@@ -1486,7 +1476,6 @@ interface.LESAPI.o: \
                     tgtmd.h\
                     multitmd.h\
                     ew_erfc_spline.h\
-                    molecule.o\
                     findmask.o\
                     egb.o\
                     parms.o\
@@ -1501,6 +1490,7 @@ interface.LESAPI.o: \
                     memory_module.o\
                     qmmm_adaptive_module.o\
                     charmm.o\
+                    molecule.o\
                     AmberNetcdf.o\
                     binrestart.o
 
@@ -2014,19 +2004,6 @@ minrit.LES.o: \
 minrit.LES.o:   minrit.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
-
-ml.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    file_io_dat.o\
-                    xray_globals.o\
-                    bulk_solvent.o\
-                    parallel.h
-
-
-ml.o:   ml.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ml.F90
 
 molecule.o: \
                     ../include/assert.fh\
@@ -4464,6 +4441,16 @@ wallclock.o:   wallclock.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ wallclock.F90
 
+xray_bulk_solvent.o: \
+                    parallel.h\
+                    xray_globals.o\
+                    memory_module.o
+
+
+xray_bulk_solvent.o:   xray_bulk_solvent.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_bulk_solvent.F90
+
 xray_FFT.o: \
                     ../include/assert.fh\
                     xray_globals.o\
@@ -4492,8 +4479,8 @@ xray_fourier.o: \
                     xray_globals.o\
                     constants.o\
                     parallel.h\
-                    bulk_solvent.o\
-                    ml.o
+                    xray_bulk_solvent.o\
+                    xray_ml.o
 
 
 xray_fourier.o:   xray_fourier.F90
@@ -4513,7 +4500,7 @@ xray_interface.o: \
                     ../include/assert.fh\
                     file_io_dat.o\
                     xray_globals.o\
-                    bulk_solvent.o\
+                    xray_bulk_solvent.o\
                     memory_module.o\
                     xray_reciprocal_space.o\
                     parallel.h\
@@ -4521,7 +4508,7 @@ xray_interface.o: \
                     nonbond_list.o\
                     xray_fourier.o\
                     findmask.o\
-                    ml.o\
+                    xray_ml.o\
                     extra.h\
                     def_time.h
 
@@ -4529,6 +4516,19 @@ xray_interface.o: \
 xray_interface.o:   xray_interface.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface.F90
+
+xray_ml.o: \
+                    ../include/assert.fh\
+                    ../include/dprec.fh\
+                    file_io_dat.o\
+                    xray_globals.o\
+                    xray_bulk_solvent.o\
+                    parallel.h
+
+
+xray_ml.o:   xray_ml.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_ml.F90
 
 xray_real_space.o: \
                     ../include/assert.fh\
