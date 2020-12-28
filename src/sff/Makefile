@@ -1,12 +1,11 @@
-include ../config.h
+include ../../config.h
 
 .c.o:
 	@echo "[SFF]  CC $<"
-	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) $(RISMSFF) $(NETCDFINC) -o $@ $<
+	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) $(NETCDFINC) -o $@ $<
 
 OBJS = conjgrad.o lmodC.o memutil.o nblist.o newton.o nmode.o \
-	   prm.o rand2.o sasad.o sff.o xminC.o AmberNetcdf.o ptrajmask.o \
-       $(SFF_RISM_INTERFACE)
+	   prm.o rand2.o sasad.o sff.o xminC.o AmberNetcdf.o ptrajmask.o 
 
 install: libsff hcp_getpdb$(SFX)
 
@@ -39,11 +38,6 @@ lex.mmo.c: mm_options.l
 hcp_getpdb$(SFX): hcp_getpdb.c
 	@echo "[SFF]  CC $<"
 	$(VB)$(CC) -o $(BINDIR)/hcp_getpdb$(SFX) hcp_getpdb.c
-
-.PHONY: ../rism/amber_rism_interface.NAB.o
-../rism/amber_rism_interface.NAB.o:
-	cd ../rism && \
-	$(MAKE) amber_rism_interface.NAB.o
 
 sff.c: lex.mmo.c
 
