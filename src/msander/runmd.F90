@@ -170,36 +170,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! the absolute step # of the REMD or MD simulation.
   integer total_nstep, total_nstlim
 
-  ! New variables for the generalized canonical-isokinetic algorithm:...
-  _REAL_ s1(natom), s2(natom), s3(natom), glcl(natom), etlc(natom)
-  _REAL_ sinsh2, sinsh4, sinsh8, tt, erlxt, erlxt2, erlixt2, tktk
-  _REAL_ st, st1, aaa, bbb, esi, esim, erlst2, hkin, hhin, tkkk
-  _REAL_ boltz, etlci, davalev, clfs, tkik, rndbim(3)
-#ifdef MPI
-  _REAL_ sdavalev(numtasks), sclfs, davalevs
-  _REAL_ s1a(natom), s2a(natom), s3a(natom)
-  _REAL_ s1s(natom), s2s(natom), s3s(natom)
-  _REAL_ sv(3*natom), svs(3*natom)
-#endif
-  integer iii, kija, iseed(4)
-
-  ! And related distribution functions:
-
-  integer iconfs, iconfd, lep, kves, jl
-#ifdef MPI
-  integer inum, stxtr
-#endif
-  _REAL_ txtr, dargvs, distr, distra, distrmaxwel, pif1
-  parameter(lep=250)
-  parameter(pif1=3.141592653589793d0)
-  _REAL_ argvel(-lep:lep), distrs(-lep:lep), distrh1(lep), distrh2(-lep:lep), &
-         distrh3(-lep:lep)
-#ifdef MPI
-  _REAL_ sdistrs(-lep:lep), sdistrh1(lep), sdistrh2(-lep:lep), &
-         sdistrh3(-lep:lep)
-#endif
-  LOGICAL :: exstf1,exstf2
-
 #include "../include/md.h"
 #include "box.h"
 #include "nmr.h"
@@ -217,8 +187,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #else
   _REAL_ sgsta_rndfp, sgend_rndfp, ignore_solvent
 #endif
-  ! for const press PIMD
-  _REAL_ atomvir
   _REAL_ sysx, sysy, sysz, sysrange(3,2)
   logical mv_flag
 
@@ -233,7 +201,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   _REAL_  Ekin2_tot,tmp
   integer :: idim
-  _REAL_ :: E_nhc, exp1, exp2
+  _REAL_ :: exp1, exp2
 
   logical ivscm
   logical qspatial
@@ -355,7 +323,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   call amopen(7, mdinfo, 'U', 'F', 'W')
 #endif
 
-  vlim = vlimit > small
+  vlim = (vlimit > small)
   ntcmt = 0
   izero = 0
   belly = (ibelly > 0)
@@ -367,14 +335,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   aqmmm_flag = 0
   etot_save = 0.d0
-  E_nhc = 0.d0
-  tktk = 0.d0
-  sinsh8 = 0.d0
-  sinsh4 = 0.d0
-  sinsh2 = 0.d0
-  erlxt2 = 0.d0
-  erlxt = 0.d0
-  erlixt2 = 0.d0
   pres0x = 0.d0
   pres0y = 0.d0
   pres0z = 0.d0

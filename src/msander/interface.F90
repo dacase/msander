@@ -467,7 +467,7 @@ subroutine api_mdread1(input_options, ierr)
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
          ifqnt,ievb, profile_mpi, &
-         ipb, inp, nkija, idistr, sinrtau, &
+         ipb, inp, &
          gbneckscale, &
          gbalphaH,gbbetaH,gbgammaH, &
          gbalphaC,gbbetaC,gbgammaC, &
@@ -783,13 +783,6 @@ subroutine api_mdread1(input_options, ierr)
    gbgamma = ZERO
    gbbeta = ZERO
    gbalpha = ONE
-
-   ! Parameters for isokinetic integrator (OIN)
-   nkija  = 1     ! Number of Nose-Hoover chains per atom
-   idistr = 0     ! Compute distribution functions (1=yes)
-
-   ! Parameters for Stochastic Isokinetic Nose-Hoover RESPA Integrator (SINR)
-   sinrtau = 1.0d0
 
    ! set default parameters for igb = 8
    ! NOTE THAT NONE OF THESE ARE USED UNLESS IGB=8, SO USERS SHOULD NOT EVEN SET
