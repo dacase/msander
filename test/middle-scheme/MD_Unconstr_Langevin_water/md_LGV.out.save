@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:23:53
+| Run on 12/28/2020 at 08:10:13
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/middle-scheme/MD_Unconstr_Langevin_water
+| Working directory: /Users/case/msander/test/middle-scheme/MD_Unconstr_Langevin_water
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -92,7 +92,7 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
@@ -132,7 +132,7 @@ default_name
 
      Sum of charges from parm topology file =     0.000000
      Forcing neutrality...
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -267,23 +267,24 @@ default_name
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 3.57% of Total)
-|                Build the list             0.00 (31.25% of List )
-|                Other                      0.01 (68.75% of List )
-|             List time                  0.02 (44.44% of Nonbo)
-|                   Short_ene time             0.01 (100.0% of Direc)
-|                Direct Ewald time          0.01 (50.00% of Ewald)
-|                   Fill charge grid           0.00 (10.00% of Recip)
-|                   Scalar sum                 0.00 (10.00% of Recip)
-|                   FFT time                   0.01 (80.00% of Recip)
-|                Recip Ewald time           0.01 (50.00% of Ewald)
-|             Ewald time                 0.02 (55.56% of Nonbo)
-|          Nonbond force              0.04 (100.0% of Force)
-|       Force time                 0.04 (97.30% of Runmd)
-|       Verlet update time         0.00 ( 2.70% of Runmd)
-|    Runmd Time                 0.04 (66.07% of Total)
-|    Other                      0.02 (30.36% of Total)
-| Total time                 0.06 (100.0% of ALL  )
+|    Read coords time           0.00 ( 2.33% of Total)
+|                Build the list             0.00 (50.00% of List )
+|                Other                      0.00 (50.00% of List )
+|             List time                  0.01 (28.57% of Nonbo)
+|                   Short_ene time             0.02 (100.0% of Direc)
+|                Direct Ewald time          0.02 (80.00% of Ewald)
+|                   Fill charge grid           0.00 (25.00% of Recip)
+|                   Grad sum                   0.00 (50.00% of Recip)
+|                   FFT time                   0.00 (25.00% of Recip)
+|                Recip Ewald time           0.00 (20.00% of Ewald)
+|             Ewald time                 0.02 (71.43% of Nonbo)
+|          Nonbond force              0.03 (96.55% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 3.45% of Force)
+|       Force time                 0.03 (85.29% of Runmd)
+|       Verlet update time         0.01 (14.71% of Runmd)
+|    Runmd Time                 0.03 (79.07% of Total)
+|    Other                      0.01 (18.60% of Total)
+| Total time                 0.04 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -293,11 +294,11 @@ default_name
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.04 Per Step(ms) =       3.70
-|         ns/day =      23.35   seconds/ns =    3700.00
+|     Elapsed(s) =       0.03 Per Step(ms) =       3.40
+|         ns/day =      25.41   seconds/ns =    3400.00
 | -----------------------------------------------------
 
-|           Job began  at 16:23:53.661  on 01/26/2020
-|           Setup done at 16:23:53.680  on 01/26/2020
-|           Run   done at 16:23:53.717  on 01/26/2020
+|           Job began  at 08:10:13.299  on 12/28/2020
+|           Setup done at 08:10:13.309  on 12/28/2020
+|           Run   done at 08:10:13.343  on 12/28/2020
 |     wallclock() was called     483 times

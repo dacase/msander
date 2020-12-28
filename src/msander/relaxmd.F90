@@ -694,31 +694,10 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (master) then
    
     ! Coordinate archiving will always occur in this case
-    if (iwrap == 0) then
-      call corpac(x, 1, nrx, MDCRD_UNIT, loutfm)
-      if (ntb > 0) then
-        call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
-      end if
-    else if (iwrap == 1) then
-      call get_stack(l_temp, nr3, routine)
-      if (.not. rstack_ok) then
-        deallocate(r_stack)
-        allocate(r_stack(1:lastrst), stat=alloc_ier)
-        call reassign_rstack(routine)
-      endif
-      REQUIRE(rstack_ok)
-      do m = 1, nr3
-        r_stack(l_temp+m-1) = x(m)
-      end do
-      call wrap_molecules(nspm, nsp, r_stack(l_temp))
-      if (ifbox == 2) then
-        call wrap_to(nspm, nsp, r_stack(l_temp), box)
-      end if
-      call corpac(r_stack(l_temp), 1, nrx, MDCRD_UNIT, loutfm)
+    call corpac(x, 1, nrx, MDCRD_UNIT, loutfm)
+    if (ntb > 0) then
       call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
-      call free_stack(l_temp, routine)
     end if
-    ! End branch based on molecule wrapping
 
     ! If using variable QM solvent, try to write a new pdb file
     ! with the QM coordinates for this step. This is done here

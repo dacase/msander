@@ -1585,9 +1585,15 @@ contains
        if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
           this%huvk0(1, :) = this%solvent%background_correction(:) * soluteQ
        else
-          this%huvk0(1, :) = ( this%solvent%delhv0(:) &
-             - this%solvent%charge_sp(:) / this%solvent%dielconst &
-             * FOURPI / this%solvent%xappa**2 ) * soluteQ 
+          ! for pure water, kappa is zero, and there should be no
+          !    background correction:
+          if( this%solvent%xappa == 0.d0 ) then
+             this%huvk0(1, :) = 0.d0
+          else
+             this%huvk0(1, :) = ( this%solvent%delhv0(:) &
+                - this%solvent%charge_sp(:) / this%solvent%dielconst &
+                * FOURPI / this%solvent%xappa**2 ) * soluteQ 
+          end if
        end if
        this%huvk0(2, :) = 0d0
     end if

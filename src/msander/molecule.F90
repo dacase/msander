@@ -4,10 +4,6 @@
 module molecule
    implicit none
 
-   ! If iwrap==2
-   integer                          :: n_iwrap_mask_atoms ! number of atoms in iwrap_mask
-   integer,allocatable,dimension(:) :: iwrap_mask_atoms  ! list of atoms in iwrap_mask
-
    type molecule_static_information
       ! Contains general molecule information that doesn't
       ! change during the course of the simulation

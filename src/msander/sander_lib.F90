@@ -31,15 +31,9 @@ subroutine check_inpcrd_overflow(line, periodic)
       if (line(i:i) .eq. '*' .and. periodic) then
          write(6, '(a)') '*s in the inpcrd file often indicate an overflow of &
             &the Fortran format used', &
-            'to store coordinates in the inpcrd/restart files. &
-            &This often happens when', &
-            'coordinates are not wrapped into the center cell &
-            &(when iwrap = 0) and some', &
-            'particles diffuse too far away. Try restarting from your &
-            &last good restart', &
-            'file and setting iwrap=1 or using a NetCDF restart file &
-            &format. See the', &
-            'Amber manual for details'
+            'to store coordinates in the inpcrd/restart files.', &
+            'Try using a NetCDF restart file format. See the &
+            &Amber manual for details'
          ! Only print error message once. Bail out here.
          exit
       else if (line(i:i) .eq. '*' .and. .not. periodic) then

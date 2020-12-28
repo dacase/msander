@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:23:50
+| Run on 12/28/2020 at 08:10:10
 
 |   Executable path: ../../bin/msander
-| Working directory: /home/case/msander/test/gb8_trx
+| Working directory: /Users/case/msander/test/gb8_trx
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -45,7 +45,7 @@ File Assignments:
 
 | Flags:                                                                        
 |  *** cutoff > system size, list only builds once
-|Largest sphere to fit in unit cell has radius =   144.449
+|Largest sphere to fit in unit cell has radius =       NaN
  NATOM  =    1654 NTYPES =      14 NBONH =     832 MBONA  =     838
  NTHETH =    1911 MTHETA =    1138 NPHIH =    3388 MPHIA  =    2014
  NHPARM =       0 NPARM  =       0 NNB   =    9195 NRES   =     108
@@ -91,7 +91,7 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =  100000
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
@@ -131,7 +131,7 @@ SHAKE:
  begin time read from input coords =  2405.010 ps
 
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, with OMP_NUM_THREADS = 8
+| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -329,16 +329,14 @@ SHAKE:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.49 (24.96% of Gen B)
-|                Calc gb diag               0.84 (42.89% of Gen B)
-|                Calc gb off-diag           0.63 (32.14% of Gen B)
-|             Gen Born time              1.96 (100.0% of Nonbo)
-|          Nonbond force              1.96 (98.94% of Force)
-|          Bond/Angle/Dihedral        0.02 ( 1.06% of Force)
-|       Force time                 1.98 (99.75% of Runmd)
-|    Runmd Time                 1.99 (98.27% of Total)
-|    Other                      0.03 ( 1.63% of Total)
-| Total time                 2.02 (100.0% of ALL  )
+|                Calc gb radii              0.38 (20.09% of Gen B)
+|                Calc gb diag               0.70 (36.37% of Gen B)
+|                Calc gb off-diag           0.83 (43.54% of Gen B)
+|             Gen Born time              1.91 (100.0% of Nonbo)
+|          Nonbond force              1.91 (99.12% of Force)
+|       Force time                 1.93 (99.18% of Runmd)
+|    Runmd Time                 1.94 (98.93% of Total)
+| Total time                 1.96 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -348,11 +346,11 @@ SHAKE:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       1.99 Per Step(ms) =      99.45
-|         ns/day =       0.87   seconds/ns =   99450.00
+|     Elapsed(s) =       1.94 Per Step(ms) =      97.20
+|         ns/day =       0.89   seconds/ns =   97200.00
 | -----------------------------------------------------
 
-|           Job began  at 16:23:50.765  on 01/26/2020
-|           Setup done at 16:23:50.800  on 01/26/2020
-|           Run   done at 16:23:52.790  on 01/26/2020
+|           Job began  at 08:10:10.183  on 12/28/2020
+|           Setup done at 08:10:10.205  on 12/28/2020
+|           Run   done at 08:10:12.149  on 12/28/2020
 |     wallclock() was called     513 times

@@ -429,7 +429,6 @@ subroutine mdread1()
    gbsa = 0
    vrand=1000
    surften = 0.005d0
-   iwrap = 0
    nrespa = 1
    nrespai = 1
    irespa = 1
@@ -1475,7 +1474,7 @@ subroutine mdread2(x,ix,ih)
    write(6,'(/a)') 'Nature and format of output:'
    write(6,'(5x,4(a,i8))') 'ntxo    =',ntxo,', ntpr    =',ntpr, &
          ', ntrx    =',ntrx,', ntwr    =',ntwr
-   write(6,'(5x,5(a,i8))') 'iwrap   =',iwrap,', ntwx    =',ntwx, &
+   write(6,'(5x,5(a,i8))') 'ntwx    =',ntwx, &
          ', ntwv    =',ntwv,', ntwe    =',ntwe
    write(6,'(5x,2(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
          ', ntwprt  =',ntwprt, &

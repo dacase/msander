@@ -45,7 +45,7 @@ subroutine sander()
   use nmr, only: nmrrad, impnum
   use ew_recip, only: deallocate_m1m2m3,first_pme
   use parms
-  use molecule, only : mol_info, iwrap_mask_atoms, &
+  use molecule, only : mol_info, &
                        allocate_molecule, deallocate_molecule
   use nblist, only: cutoffnb, skinnb, nblist_allocate, nblist_deallocate, &
                     nblist_allreal, nblist_allint, num_calls_nblist, &
@@ -1479,10 +1479,6 @@ subroutine sander()
     call cr_cleanup()
   end if
 
-  if (master .and. iwrap == 2) then
-    deallocate(iwrap_mask_atoms, stat=ier)
-    REQUIRE(ier == 0)
-  end if
   call nblist_deallocate()
   call deallocate_stacks()
   if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &

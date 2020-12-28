@@ -459,11 +459,11 @@ subroutine api_mdread1(input_options, ierr)
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,iwrap,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
-         noshakemask,crgmask, iwrap_mask, &
+         noshakemask,crgmask, &
          mask_from_ref, &
          rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
          ifqnt,ievb, profile_mpi, &
@@ -774,7 +774,6 @@ subroutine api_mdread1(input_options, ierr)
    gbsa = 0
    vrand=1000
    surften = 0.005d0
-   iwrap = 0
    nrespa = 1
    nrespai = 1
    irespa = 1
@@ -864,7 +863,6 @@ subroutine api_mdread1(input_options, ierr)
    restraint_wt = ZERO
    bellymask=''
    noshakemask=''
-   iwrap_mask=''  ! GMS: mask to wrap around if iwrap == 2
    crgmask=''
 
    icnstph = 0
@@ -1478,7 +1476,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  define DELAYED_ERROR inerr = 1
 #endif /* API */
 
-   use molecule, only: n_iwrap_mask_atoms, iwrap_mask_atoms
    use lmod_driver, only : LMOD_NTMIN_LMOD, LMOD_NTMIN_XMIN, write_lmod_namelist
    use findmask
 #ifdef LES
@@ -1539,7 +1536,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    integer atomicnumber, hybridization
    integer ngrp,inerr,nr,ir,i,mxresat,j
    integer noshakegp( natom ), natnos
-   integer iwrap_maskgp( natom ) , ier
+   integer ier
    logical errFlag
    _REAL_ emtmd, wallc
 #ifndef LES
@@ -1825,7 +1822,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    write(6,'(/a)') 'Nature and format of output:'
    write(6,'(5x,4(a,i8))') 'ntxo    =',ntxo,', ntpr    =',ntpr, &
          ', ntrx    =',ntrx,', ntwr    =',ntwr
-   write(6,'(5x,5(a,i8))') 'iwrap   =',iwrap,', ntwx    =',ntwx, &
+   write(6,'(5x,3(a,i8))') ntwx    =',ntwx, &
          ', ntwv    =',ntwv,', ntwe    =',ntwe
    write(6,'(5x,2(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
          ', ntwprt  =',ntwprt, &
@@ -3261,11 +3258,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(6,'(/2x,a,i3,a)') 'NTB (',ntb,') must be 0, 1 or 2.'
       DELAYED_ERROR
    end if
-   if (ntb == 0 .and. iwrap > 0) then
-      write(6,'(/2x,a)') 'Error: IWRAP > 0 cannot be used without a periodic box.'
-      DELAYED_ERROR
-   end if
-
    if (ntt < 0 .or. ntt > 10) then                                      ! APJ
       write(6,'(/2x,a,i3,a)') 'NTT (',ntt,') must be between 0 and 10.' ! APJ
       DELAYED_ERROR
@@ -3956,36 +3948,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
          write(6,'(a)') '   Setting ntf to 1'
          ntf = 1
       end if
-   end if
-
-   ! GMS ------------------------------------
-   !  Check for 'iwrap_mask', and process it.
-   ! ----------------------------------------
-   n_iwrap_mask_atoms = 0
-   if( len_trim(iwrap_mask) > 0 .and. iwrap == 2) then
-      call atommask( natom, nres, 0, ih(m04), ih(m06), &
-         ix(i02), ih(m02), x(lcrd), iwrap_mask, iwrap_maskgp )
-      ! iwrap_maskgp is a natom long integer array, with elements:
-      ! 0 --> atom is not in iwrap_mask
-      ! 1 --> atom is in iwrap_mask
-      n_iwrap_mask_atoms = sum(iwrap_maskgp(1:natom))
-      write(6,*)
-      write(6,'(a,a,a,i5,a)') 'Wrap mask ', &
-         iwrap_mask(1:len_trim(iwrap_mask)), ' matches ',n_iwrap_mask_atoms,' atoms:'
-      ! Set an array to store the atom numbers of the atoms
-      ! in the iwrap_mask
-      allocate(iwrap_mask_atoms(n_iwrap_mask_atoms), stat=ier)
-      REQUIRE(ier == 0)
-
-      j = 0
-      do i=1,natom
-        if( iwrap_maskgp(i)>0 ) then
-          j = j+1
-          iwrap_mask_atoms(j) = i
-        end if
-      end do
-
-      write(6,'(10i5)') (iwrap_mask_atoms(i),i=1,n_iwrap_mask_atoms)
    end if
 
 #ifdef MPI /* SOFT CORE */

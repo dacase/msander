@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/26/2020 at 16:23:53
+| Run on 12/28/2020 at 08:10:13
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/middle-scheme/QMMM_Constr_ALA_Methol
+| Working directory: /Users/case/msander/test/middle-scheme/QMMM_Constr_ALA_Methol
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -103,7 +103,7 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
@@ -176,7 +176,7 @@ QMMM: Uniformly adjusting the charge of MM atoms to conserve total charge.
 QMMM:                             qm_charge =    0
 QMMM: QM atom RESP charge sum (inc MM link) =   -0.000
 QMMM: Adjusting each MM atom resp charge by =   -0.000
-QMMM:          Sum of MM + QM region is now =    0.000
+QMMM:          Sum of MM + QM region is now =   -0.000
 QMMM: ----------------------------------------------------------------------
 |  # of SOLUTE  degrees of freedom (RNDFP):    5680.
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
@@ -250,17 +250,17 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | QMMM:                              norbs =       52
 | QMMM:    diag iterations used for timing =       15
 | QMMM:
-| QMMM:              Internal diag routine = 0.015000 seconds
-| QMMM:                 Dspev diag routine = 0.006000 seconds
-| QMMM:                Dspevd diag routine = 0.005000 seconds
-| QMMM:                Dspevx diag routine = 0.021000 seconds
-| QMMM:                 Dsyev diag routine = 0.002000 seconds
-| QMMM:                Dsyevd diag routine = 0.003000 seconds
-| QMMM:                Dsyevr diag routine = 0.004000 seconds
+| QMMM:              Internal diag routine = 0.004000 seconds
+| QMMM:                 Dspev diag routine = 0.003000 seconds
+| QMMM:                Dspevd diag routine = 0.002000 seconds
+| QMMM:                Dspevx diag routine = 0.015000 seconds
+| QMMM:                 Dsyev diag routine = 0.003000 seconds
+| QMMM:                Dsyevd diag routine = 0.002000 seconds
+| QMMM:                Dsyevr diag routine = 0.003000 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.002000 seconds
+| QMMM:                Pseudo diag routine = 0.001000 seconds
 | QMMM:
-| QMMM: Using dsyev routine (diag_routine=5).
+| QMMM: Using dsyevd routine (diag_routine=6).
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
@@ -287,10 +287,10 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | QMMM:       _REAL_ parameter storage :        68096 bytes
 | QMMM:      integer parameter storage :          680 bytes
 | QMMM:         QM-MM RIJ Eqns storage :       835912 bytes
-| QMMM:          _REAL_ Scratch arrays :       138632 bytes
-| QMMM:         Integer Scratch arrays :        34472 bytes
+| QMMM:          _REAL_ Scratch arrays :       173584 bytes
+| QMMM:         Integer Scratch arrays :        35524 bytes
 | QMMM: ---------------------------------------------------
-| QMMM:        Total Dynamic Memory Usage:      3.354 Mb
+| QMMM:        Total Dynamic Memory Usage:      3.388 Mb
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -425,44 +425,46 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (60.00% of List )
-|                Other                      0.01 (40.00% of List )
-|             List time                  0.02 (11.36% of Nonbo)
-|                   Short_ene time             0.05 (97.83% of Direc)
-|                   Other                      0.00 ( 2.17% of Direc)
-|                Direct Ewald time          0.05 (39.32% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 4.35% of Recip)
-|                   Fill charge grid           0.01 (15.94% of Recip)
-|                   Scalar sum                 0.00 ( 7.25% of Recip)
-|                   Grad sum                   0.01 (10.14% of Recip)
-|                   FFT time                   0.04 (62.32% of Recip)
-|                Recip Ewald time           0.07 (58.97% of Ewald)
-|             Ewald time                 0.12 (88.64% of Nonbo)
-|          Nonbond force              0.13 (27.16% of Force)
-|             QMMM setup                 0.06 (17.28% of QMMM )
-|             QMMM Ewald KTable          0.05 (14.16% of QMMM )
-|             QMMM RIJ Eqns Calc         0.01 ( 1.98% of QMMM )
-|                   QMMM hcore QM-QM           0.00 (50.00% of QMMM )
-|                   QMMM hcore QM-MM           0.00 (50.00% of QMMM )
-|                QMMM hcore calc            0.01 ( 6.71% of QMMM )
-|                      QMMM Ewald Contrib         0.08 (76.64% of QMMM )
-|                      Other                      0.03 (23.36% of QMMM )
-|                   QMMM fock build            0.11 (79.26% of QMMM )
-|                   QMMM full matrix dia       0.02 (11.85% of QMMM )
-|                   QMMM pseudo matrix d       0.01 ( 6.67% of QMMM )
-|                   QMMM density build         0.00 ( 1.48% of QMMM )
-|                QMMM scf                   0.14 (90.60% of QMMM )
-|                QMMM ewald energy          0.00 ( 2.68% of QMMM )
-|             QMMM energy                0.15 (42.21% of QMMM )
-|             QMMM QM-QM force           0.01 ( 1.70% of QMMM )
-|             QMMM QM-MM force           0.01 ( 2.55% of QMMM )
-|             QMMM Ewald force           0.07 (18.98% of QMMM )
-|          QMMM                       0.35 (72.63% of Force)
-|       Force time                 0.49 (97.79% of Runmd)
-|       Verlet update time         0.01 ( 2.01% of Runmd)
-|    Runmd Time                 0.50 (92.55% of Total)
-|    Other                      0.04 ( 6.89% of Total)
-| Total time                 0.54 (100.0% of ALL  )
+|                Build the list             0.01 (69.23% of List )
+|                Other                      0.00 (30.77% of List )
+|             List time                  0.01 (12.26% of Nonbo)
+|                   Short_ene time             0.04 (100.0% of Direc)
+|                Direct Ewald time          0.04 (44.09% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.15% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 2.00% of Recip)
+|                   Fill charge grid           0.01 (12.00% of Recip)
+|                   Scalar sum                 0.00 ( 6.00% of Recip)
+|                   Grad sum                   0.01 (14.00% of Recip)
+|                   FFT time                   0.03 (66.00% of Recip)
+|                Recip Ewald time           0.05 (53.76% of Ewald)
+|             Ewald time                 0.09 (87.74% of Nonbo)
+|          Nonbond force              0.11 (32.42% of Force)
+|             QMMM setup                 0.03 (15.60% of QMMM )
+|             QMMM Ewald KTable          0.02 (11.47% of QMMM )
+|             QMMM list build            0.00 ( 1.38% of QMMM )
+|             QMMM RIJ Eqns Calc         0.00 ( 1.83% of QMMM )
+|                   QMMM hcore QM-QM           0.00 (66.67% of QMMM )
+|                   QMMM hcore QM-MM           0.00 (33.33% of QMMM )
+|                QMMM hcore calc            0.00 ( 3.26% of QMMM )
+|                      QMMM Ewald Contrib         0.05 (75.76% of QMMM )
+|                      Other                      0.02 (24.24% of QMMM )
+|                   QMMM fock build            0.07 (75.00% of QMMM )
+|                   QMMM elec-energy cal       0.00 ( 1.14% of QMMM )
+|                   QMMM full matrix dia       0.01 (12.50% of QMMM )
+|                   QMMM pseudo matrix d       0.01 ( 9.09% of QMMM )
+|                   QMMM density build         0.00 ( 2.27% of QMMM )
+|                QMMM scf                   0.09 (95.65% of QMMM )
+|                QMMM ewald energy          0.00 ( 1.09% of QMMM )
+|             QMMM energy                0.09 (42.20% of QMMM )
+|             QMMM QM-QM force           0.00 ( 1.83% of QMMM )
+|             QMMM QM-MM force           0.01 ( 3.21% of QMMM )
+|             QMMM Ewald force           0.05 (22.02% of QMMM )
+|          QMMM                       0.22 (66.67% of Force)
+|       Force time                 0.33 (96.46% of Runmd)
+|       Verlet update time         0.01 ( 3.24% of Runmd)
+|    Runmd Time                 0.34 (92.88% of Total)
+|    Other                      0.02 ( 6.58% of Total)
+| Total time                 0.36 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -472,11 +474,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.50 Per Step(ms) =      49.60
-|         ns/day =       3.48   seconds/ns =   24800.00
+|     Elapsed(s) =       0.34 Per Step(ms) =      33.90
+|         ns/day =       5.10   seconds/ns =   16950.00
 | -----------------------------------------------------
 
-|           Job began  at 16:23:53.792  on 01/26/2020
-|           Setup done at 16:23:53.834  on 01/26/2020
-|           Run   done at 16:23:54.329  on 01/26/2020
-|     wallclock() was called    4626 times
+|           Job began  at 08:10:13.411  on 12/28/2020
+|           Setup done at 08:10:13.437  on 12/28/2020
+|           Run   done at 08:10:13.776  on 12/28/2020
+|     wallclock() was called    4752 times
