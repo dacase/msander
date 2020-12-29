@@ -29,7 +29,7 @@ static	char	e_msg[ 256 ];
 static	void	raa2mat( REAL_T, REAL_T, REAL_T, REAL_T, MATRIX_T );
 static	void	mk_idmat( MATRIX_T );
 static	void	concat_mat( MATRIX_T, MATRIX_T, MATRIX_T );
-static	void	copy_mat( MATRIX_T, MATRIX_T );
+      	void	copy_mat( MATRIX_T, MATRIX_T );
 static	void	xfm_xyz( POINT_T, MATRIX_T, POINT_T );
 static	void	fixextbonds( RESIDUE_T *, int );
 static	void	freestrand( MOLECULE_T *, char [] );
@@ -1486,7 +1486,7 @@ static	void	concat_mat( MATRIX_T m1, MATRIX_T m2, MATRIX_T m3 )
 	}
 }
 
-static	void	copy_mat( MATRIX_T mold, MATRIX_T mnew )
+void	copy_mat( MATRIX_T mold, MATRIX_T mnew )
 {
 	int	i, j;
 	

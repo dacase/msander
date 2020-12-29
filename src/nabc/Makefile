@@ -14,6 +14,7 @@ LIBNABOBJS=	\
 	bonded_atoms.o \
 	database.o  \
 	deform_ener.o \
+    fd_helix.o \
 	frameutil.o	\
 	getdist.o	\
 	jacobi.o	\
@@ -27,7 +28,9 @@ LIBNABOBJS=	\
 	regexp.o \
 	reslib.o	\
 	select_atoms.o	\
-	traceback.o
+	traceback.o \
+    wc_basepair.o \
+    wc_complement.o 
 
 #===========================================================================
 

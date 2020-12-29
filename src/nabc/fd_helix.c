@@ -769,11 +769,3 @@ for( chain = 1; chain <= 2; chain++ ) {
 
 }
 
-int main(int argc, char** argv)
-{
-   if( argc != 3 ){
-      fprintf( stderr, "Usage: fd_helix <helix-type> <seq>; PDB file to stdout\n" );
-      exit(1);
-   }
-   fd_helix( argv[1], argv[2] );
-}

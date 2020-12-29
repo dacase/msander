@@ -2,6 +2,10 @@
 #define	NABC_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
 #include <sff.h>
 
 	/* Fundamental nab types, that are not also in sff.h:	*/
@@ -119,7 +123,6 @@ typedef	struct	molecule_t	{
 
 	/* nab builtins (but no libc or libm calls):	*/
 
-#define		I2R(i)	((REAL_T)(i))
 INT_T		addresidue( MOLECULE_T*, STRING_T*, RESIDUE_T* );
 INT_T		addstrand( MOLECULE_T*, STRING_T* );
 INT_T		alignframe( MOLECULE_T*, MOLECULE_T* );
@@ -153,7 +156,7 @@ REAL_T		dumpchiviolations( FILE_T*, BOUNDS_T*, REAL_T);
 INT_T		dumpmatrix( FILE_T*, MATRIX_T );
 INT_T		dumpmolecule( FILE_T*, MOLECULE_T*, INT_T, INT_T, INT_T);
 INT_T		embed( BOUNDS_T*, REAL_T* );
-MOLECULE_T     *fd_helix( STRING_T**, STRING_T**, STRING_T** );
+MOLECULE_T     *fd_helix( STRING_T*, STRING_T* );
 INT_T		freemolecule( MOLECULE_T* );
 INT_T		freeparm( MOLECULE_T* );
 INT_T		freeresidue ( RESIDUE_T* );
@@ -204,8 +207,6 @@ INT_T		putmatrix( STRING_T*, MATRIX_T );
 INT_T		putpdb( STRING_T*, MOLECULE_T*, STRING_T* );
 INT_T		putx( STRING_T**, MOLECULE_T** );
 REAL_T		rand2( void );
-INT_T		readbinposhdr( FILE* );
-INT_T		readbinposfrm( INT_T, REAL_T*, FILE* );
 INT_T		readparm( MOLECULE_T*, STRING_T* );
 INT_T		rmsd( MOLECULE_T**, STRING_T**, MOLECULE_T**, STRING_T**, REAL_T*);
 REF_MATRIX_T	rot4( MOLECULE_T*, STRING_T*, STRING_T*, REAL_T );
@@ -246,12 +247,14 @@ INT_T		tsmooth( BOUNDS_T*, REAL_T );
 INT_T		useboundsfrom( BOUNDS_T*, MOLECULE_T*, STRING_T*, MOLECULE_T*, STRING_T*, REAL_T );
 INT_T		usemodeldist( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T* );
 REF_MATRIX_T	updtransform( MATRIX_T, MATRIX_T );
-MOLECULE_T	*wc_basepair( RESIDUE_T**, RESIDUE_T** );
-STRING_T	*wc_complement( STRING_T**, STRING_T**, STRING_T** );
+MOLECULE_T	*wc_basepair( RESIDUE_T*, RESIDUE_T* );
+STRING_T	*wc_complement( STRING_T*, STRING_T* );
 MOLECULE_T	*wc_helix( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**,
 		REAL_T*, REAL_T*, REAL_T*, REAL_T*, STRING_T** );
-INT_T		writebinposhdr( FILE* );
-INT_T		writebinposfrm( INT_T, REAL_T*, FILE* );
 INT_T		writeparm( MOLECULE_T*, STRING_T* );
+
+FILE   *nabout;
+
+void  copy_mat( MATRIX_T, MATRIX_T );
 
 #endif

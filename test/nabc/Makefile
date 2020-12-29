@@ -85,13 +85,21 @@ tnetcdf:  tnetcdf.o
 	$(VB)$(CC) -o $@ $<  $(LIBS)
 
 #---------------------------------------------------------------------------
+#  non-tests:
+
+fd:  fd.c
+	@echo "[NABC] CC $<"
+	$(VB)$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L$(LIBDIR) \
+        -lnabc -lcifparse  $(LIBS)
+
+#---------------------------------------------------------------------------
 .c.o:
 	@echo "[NABC] CC $<"
-	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -I$(INCDIR) -o $@ $<
+	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ $<
 
 tmd.MPI.o: tmd.c
 	@echo "[NABC] CC $<"
-	$(VB)mpicc -DMPI -c $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -I$(INCDIR) -o $@ $<
+	$(VB)mpicc -DMPI -c $(COPTFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ $<
 
 clean:
 	/bin/rm -f *.o txmin tmd tmd.MPI tnabc tlmod tnmode tmask thcp1 thcp2 \
