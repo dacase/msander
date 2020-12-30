@@ -28,9 +28,11 @@ LIBNABOBJS=	\
 	regexp.o \
 	reslib.o	\
 	select_atoms.o	\
+    stringutil.o \
 	traceback.o \
     wc_basepair.o \
-    wc_complement.o 
+    wc_complement.o \
+    wc_helix.o
 
 #===========================================================================
 

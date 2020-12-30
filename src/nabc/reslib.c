@@ -46,8 +46,8 @@ static	char	e_msg[ 256 ];
 void	NAB_initatom( ATOM_T *, int );
 
 char	*getreslibkind( char [] );
-int	setreslibkind( char [], char [] );
-RESIDUE_T	*getresidue( char [], char [] );
+int	setreslibkind( char [] );
+RESIDUE_T	*getresidue( char [] );
 PARMSTRUCT_T	*copyparm( PARMSTRUCT_T * );
 RESIDUE_T	*copyresidue( RESIDUE_T * );
 STRAND_T	*copystrand( STRAND_T * );
@@ -89,14 +89,13 @@ char	*getreslibkind( char reslib[] )
 
 }
 
-int	setreslibkind( char reslib[], char kind[] )
+int	setreslibkind( char kind[] )
 {
 	RESLIB_T	*rlp;
 
-	if( ( rlp = known_reslib( reslib ) ) == NULL ){
-			if( ( rlp = read_reslib( reslib ) ) == NULL ){
-					fprintf( stderr, "getreslibkind: unknown reslib %s\n",
-							reslib );
+	if( ( rlp = known_reslib( "nab.lib" ) ) == NULL ){
+			if( ( rlp = read_reslib( "nab.lib" ) ) == NULL ){
+					fprintf( stderr, "getreslibkind: cannot read nab.lib\n");
 					exit( 1 );
 			}
 	}
@@ -111,51 +110,24 @@ int	setreslibkind( char reslib[], char kind[] )
         return( rlp->rl_r_kind );
 }
 
-RESIDUE_T	*getresidue( char rname[], char reslib[] )
+RESIDUE_T	*getresidue( char rname[] )
 {
-	char	leapname[5];
 	RESLIB_T	*rlp;
 	RESIDUE_T	*res, *nres;
 
-	if( ( rlp = known_reslib( reslib ) ) == NULL ){
-		if( ( rlp = read_reslib( reslib ) ) == NULL ){
+	if( ( rlp = known_reslib( "nab.lib" ) ) == NULL ){
+		if( ( rlp = read_reslib( "nab.lib" ) ) == NULL ){
 			exit( 1 );
 		}
 	}
 
-	strcpy( leapname, rname );
-	if ( rlp->rl_r_kind == RT_DNA ){
-		if      ( !strncmp( rname, "ADE", 3 ) ) 
-			strcpy( leapname, "DA" );
-		else if ( !strncmp( rname, "GUA", 3 ) )
-			strcpy( leapname, "DG" );
-		else if ( !strncmp( rname, "THY", 3 ) )
-			strcpy( leapname, "DT" );
-		else if ( !strncmp( rname, "CYT", 3 ) )
-			strcpy( leapname, "DC" );
-	}
-	else if ( rlp->rl_r_kind == RT_RNA ){
-		if      ( !strncmp( rname, "ADE", 3 ) )
-			strcpy( leapname, "A" );
-		else if ( !strncmp( rname, "GUA", 3 ) )
-			strcpy( leapname, "G" );
-		else if ( !strncmp( rname, "URA", 3 ) )
-			strcpy( leapname, "U" );
-		else if ( !strncmp( rname, "CYT", 3 ) )
-			strcpy( leapname, "C" );
-	}
-	if ( strstr( rname, "3" ) != NULL )
-		strcat( leapname, "3" );
-	else if ( strstr( rname, "5" ) != NULL )
-		strcat( leapname, "5" );
 	for( res = rlp->rl_rlist; res ; res = res->r_next ){
-		if(( strcmp( res->r_resname, rname ) == 0 ) ||
-			( strcmp( res->r_resname, leapname ) == 0 ))
+		if( !strcmp( res->r_resname, rname ) )
 			break;
 	}
 
 	if( res == NULL ){
-		sprintf( e_msg, "%s not in library %s", rname, reslib );
+		sprintf( e_msg, "%s not in library nab.lib", rname );
 		rt_errormsg_s( TRUE, E_NOSUCH_RESIDUE_S, e_msg );
 		return( NULL );
 	}

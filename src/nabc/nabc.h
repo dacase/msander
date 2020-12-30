@@ -174,7 +174,7 @@ REF_MATRIX_T	getmatrix( STRING_T* );
 INT_T		getseq_from_pdb( STRING_T**, INT_T*, STRING_T**, STRING_T**, STRING_T** );
 MOLECULE_T	*getpdb( STRING_T*, STRING_T* );
 MOLECULE_T	*getpdb_prm( STRING_T**, STRING_T**, STRING_T**, INT_T* );
-RESIDUE_T	*getresidue( STRING_T*, STRING_T* );
+RESIDUE_T	*getresidue( STRING_T* );
 STRING_T	*getreslibkind( STRING_T* );
 STRING_T	*getresname( RESIDUE_T* );
 INT_T		getxyz_from_pdb( STRING_T**, MOLECULE_T**, STRING_T**, INT_T* );
@@ -225,7 +225,7 @@ INT_T		setmol_from_xyz( MOLECULE_T**, STRING_T**, REAL_T* );
 INT_T		setmol_from_xyzw( MOLECULE_T**, STRING_T**, REAL_T* );
 INT_T		setpoint( MOLECULE_T*, STRING_T*, POINT_T );
 INT_T		setreskind( MOLECULE_T*, STRING_T*, STRING_T* );
-INT_T		setreslibkind( STRING_T*, STRING_T* );
+INT_T		setreslibkind( STRING_T* );
 INT_T       setseed( INT_T* );
 INT_T		setxyz_from_mol( MOLECULE_T**, STRING_T**, POINT_T* );
 INT_T		setxyzw_from_mol( MOLECULE_T**, STRING_T**, REAL_T* );
@@ -256,5 +256,17 @@ INT_T		writeparm( MOLECULE_T*, STRING_T* );
 FILE   *nabout;
 
 void  copy_mat( MATRIX_T, MATRIX_T );
+
+/*  from stringutil.c:  */
+char    *substr( char [], int, int );
+char    *NAB_getline( FILE * );
+int split( char [], char *[], char * );
+int split_n( char [], int, char *[], char * );
+int NAB_index( char [], char [] );
+char    *NAB_strcat( char [], char [] );
+char    *NAB_strcpy( char **, char [] );
+int NAB_strcmp( char *, char * );
+char    *NAB_readstring( char ** );
+int NAB_newstring( char **, int * );
 
 #endif
