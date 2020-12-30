@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <ctype.h>
 #include <sff.h>
 
 	/* Fundamental nab types, that are not also in sff.h:	*/
@@ -268,5 +269,18 @@ char    *NAB_strcpy( char **, char [] );
 int NAB_strcmp( char *, char * );
 char    *NAB_readstring( char ** );
 int NAB_newstring( char **, int * );
+
+REF_MATRIX_T    NAB_matcpy( REF_MATRIX_T, REF_MATRIX_T );
+
+/* Functions defined in matop.c */
+
+int	MAT_fprint( FILE *, int, MATRIX_T [] );
+int	MAT_sprint( char [], int, MATRIX_T [] );
+int	MAT_fscan( FILE *, int, MATRIX_T [] );
+int	MAT_sscan( char [], int, MATRIX_T [] );
+REF_MATRIX_T	MAT_concat( MATRIX_T, MATRIX_T );
+int	MAT_count( char [] );
+char	*MAT_getsyminfo( void );
+int	MAT_istrue( MATRIX_T );
 
 #endif

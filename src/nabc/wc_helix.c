@@ -16,10 +16,6 @@ MOLECULE_T *wc_helix(
 	int	has_s, has_a;
 	int i, slen;
 	double	ttwist, trise;
-	// string loup[ hashed ];
-
-	// loup["g"] = "G"; loup["a"] = "A";
-	// loup["t"] = "T"; loup["c"] = "C"; loup["u"] = "U";
 
 	has_s = 1; has_a = 1;
 
@@ -36,11 +32,12 @@ MOLECULE_T *wc_helix(
 
 	slen = strlen( seq );
 
+    i = 1;
 	setreslibkind( snatype );
 	if( !strcmp(snatype, "dna"))  
-        asprintf( &srname, "D%c", seq[0] );
+        asprintf( &srname, "D%c", toupper(seq[i-1]) );
     else
-        asprintf( &srname, "%c", seq[0] );
+        asprintf( &srname, "%c", toupper(seq[i-1]) );
 	if( !strstr( opts, "s5" ) )
         asprintf( &srname, "%s%c", srname, '5' );
 	else if( !strstr( opts, "s3" ) && slen == 1 )
@@ -49,9 +46,9 @@ MOLECULE_T *wc_helix(
 
 	setreslibkind( anatype );
 	if( !strcmp(anatype, "dna"))  
-        asprintf( &arname, "D%c", seq[0] );
+        asprintf( &arname, "D%c", toupper(aseq[i-1]) );
     else
-        asprintf( &arname, "%c", seq[0] );
+        asprintf( &arname, "%c", toupper(aseq[i-1]) );
 	if( !strstr( opts, "s5" ) )
         asprintf( &arname, "%s%c", arname, '5' );
 	else if( !strstr( opts, "s3" ) && slen == 1 )
@@ -68,20 +65,20 @@ MOLECULE_T *wc_helix(
 	transformmol( inmat, m1, NULL );
 
 	trise = rise; ttwist = twist;
-	for( i = 2; i <= slen-1; i++ ){
+	for( i=2; i<=slen-1; i++ ){
 
         setreslibkind( snatype );
         if( !strcmp(snatype, "dna"))  
-            asprintf( &srname, "D%c", seq[0] );
+            asprintf( &srname, "D%c", toupper(seq[i-1]) );
         else
-            asprintf( &srname, "%c", seq[0] );
+            asprintf( &srname, "%c", toupper(seq[i-1]) );
         sres = getresidue( srname );
 
         setreslibkind( anatype );
         if( !strcmp(anatype, "dna"))  
-            asprintf( &arname, "D%c", seq[0] );
+            asprintf( &arname, "D%c", toupper(aseq[i-1]) );
         else
-            asprintf( &arname, "%c", seq[0] );
+            asprintf( &arname, "%c", toupper(aseq[i-1]) );
         ares = getresidue( arname );
 
 		m2 = wc_basepair( sres, ares );
@@ -100,23 +97,23 @@ MOLECULE_T *wc_helix(
 		freemolecule( m2 );
 	}
 
-	i = slen;         // add in final residue pair
+	i = slen;       // add in final residue pair
 	if( i > 1 ){
 
         setreslibkind( snatype );
         if( !strcmp(snatype, "dna"))  
-            asprintf( &srname, "D%c", seq[0] );
+            asprintf( &srname, "D%c", toupper(seq[i-1]) );
         else
-            asprintf( &srname, "%c", seq[0] );
+            asprintf( &srname, "%c", toupper(seq[i-1]) );
 	    if( !strstr( opts, "s3" ) )
             asprintf( &srname, "%s%c", srname, '3' );
         sres = getresidue( srname );
 
         setreslibkind( anatype );
         if( !strcmp(anatype, "dna"))  
-            asprintf( &arname, "D%c", seq[0] );
+            asprintf( &arname, "D%c", toupper(aseq[i-1]) );
         else
-            asprintf( &arname, "%c", seq[0] );
+            asprintf( &arname, "%c", toupper(aseq[i-1]) );
 	    if( !strstr( opts, "s3" ) )
             asprintf( &arname, "%s%c", arname, '3' );
         ares = getresidue( arname );
@@ -149,3 +146,4 @@ MOLECULE_T *wc_helix(
 
 	return( m3 );
 };
+

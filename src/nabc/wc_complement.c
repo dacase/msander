@@ -41,6 +41,7 @@ char*	wc_complement( char* seq, char* rlt )
 }
 
 #if 0
+//  simple driver to test
 int main( int argc, char* argv[] )
 {
     printf( "wc_complement returns %s\n", 

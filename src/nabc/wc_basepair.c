@@ -25,31 +25,31 @@ MOLECULE_T *wc_basepair( RESIDUE_T *sres, RESIDUE_T *ares )
     arname = strdup( getresname(  ares ) );
     ytail = strdup( "sense::C1'" );
     yhead = strdup( "anti::C1'" );
-    if( !strchr(srname,'A') ){
+    if( strchr(srname,'A') ){
 		sep = AT_SEP;
 		xtail = strdup( "sense::C5" );
 		xhead = strdup( "sense::N3" );
 		addresidue( m_sense, "sense", sres );
 		setframe( 2, m_sense, "::C4", "::C5", "::N3", "::C4", "::N1" );
-    }else if( !strchr(srname,'C') ){
+    }else if( strchr(srname,'C') ){
 		sep = CG_SEP;
 		xtail = strdup( "sense::C6" );
 		xhead = strdup( "sense::N1" );
 		addresidue( m_sense, "sense", sres );
 		setframe( 2, m_sense, "::C6", "::C5", "::N1", "::C6", "::N3" );
-    }else if( !strchr(srname,'G') ){
+    }else if( strchr(srname,'G') ){
 		sep = CG_SEP;
 		xtail = strdup( "sense::C5" );
 		xhead = strdup( "sense::N3" );
 		addresidue( m_sense, "sense", sres );
 		setframe( 2, m_sense, "::C4", "::C5", "::N3", "::C4", "::N1" );
-    }else if( !strchr(srname,'T') ){
+    }else if( strchr(srname,'T') ){
 		sep = AT_SEP;
 		xtail = strdup( "sense::C6" );
 		xhead = strdup( "sense::N1" );
 		addresidue( m_sense, "sense", sres );
 		setframe( 2, m_sense, "::C6", "::C5", "::N1", "::C6", "::N3" );
-    }else if( !strchr(srname,'U') ){
+    }else if( strchr(srname,'U') ){
 		sep = AT_SEP;
 		xtail = strdup( "sense::C6" );
 		xhead = strdup( "sense::N1" );
@@ -59,19 +59,19 @@ MOLECULE_T *wc_basepair( RESIDUE_T *sres, RESIDUE_T *ares )
 		fprintf( stderr,"wc_basepair : unknown sres %s\n",srname );
  		exit( 1 );
 	}
-    if( !strchr(arname,'A') ){
+    if( strchr(arname,'A') ){
 		addresidue( m_anti, "anti", ares );
 		setframe( 2, m_anti, "::C4", "::C5", "::N3", "::C4", "::N1" );
-    }else if( !strchr(arname,'C') ){
+    }else if( strchr(arname,'C') ){
 		addresidue( m_anti, "anti", ares );
 		setframe( 2, m_anti, "::C6", "::C5", "::N1", "::C6", "::N3" );
-    }else if( !strchr(arname,'G') ){
+    }else if( strchr(arname,'G') ){
 		addresidue( m_anti, "anti", ares );
 		setframe( 2, m_anti, "::C4", "::C5", "::N3", "::C4", "::N1" );
-    }else if( !strchr(arname,'T') ){
+    }else if( strchr(arname,'T') ){
 		addresidue( m_anti, "anti", ares );
 		setframe( 2, m_anti, "::C6", "::C5", "::N1", "::C6", "::N3" );
-    }else if( !strchr(arname,'U') ){
+    }else if( strchr(arname,'U') ){
 		addresidue( m_anti, "anti", ares );
 		setframe( 2, m_anti, "::C6", "::C5", "::N1", "::C6", "::N3" );
 	}else{
@@ -81,9 +81,9 @@ MOLECULE_T *wc_basepair( RESIDUE_T *sres, RESIDUE_T *ares )
 	
 	alignframe( m_sense, NULL );
 	alignframe( m_anti, NULL );
-	copy_mat( newtransform( 0., 0., 0., 180., 0., 0. ), mat );
+	NAB_matcpy( mat, newtransform( 0., 0., 0., 180., 0., 0. ) );
 	transformmol( mat, m_anti, NULL );
-	copy_mat( newtransform( 0., sep, 0., 0., 0., 0. ), mat );
+	NAB_matcpy( mat, newtransform( 0., sep, 0., 0., 0., 0. ) );
 	transformmol( mat, m_anti, NULL );
 	mergestr( m, "sense", "last", m_sense, "sense", "first" );
 	mergestr( m, "anti", "last", m_anti, "anti", "first" );
