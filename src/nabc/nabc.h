@@ -249,8 +249,8 @@ INT_T		usemodeldist( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T* );
 REF_MATRIX_T	updtransform( MATRIX_T, MATRIX_T );
 MOLECULE_T	*wc_basepair( RESIDUE_T*, RESIDUE_T* );
 STRING_T	*wc_complement( STRING_T*, STRING_T* );
-MOLECULE_T	*wc_helix( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**,
-		REAL_T*, REAL_T*, REAL_T*, REAL_T*, STRING_T** );
+MOLECULE_T	*wc_helix( STRING_T*, STRING_T*, STRING_T*, STRING_T*, 
+                       REAL_T, REAL_T, REAL_T, REAL_T, STRING_T* );
 INT_T		writeparm( MOLECULE_T*, STRING_T* );
 
 FILE   *nabout;
