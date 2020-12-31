@@ -212,13 +212,13 @@ $(INCDIR)/sander.h: sander.h
 
 #---------------------------------------------------------------------------
 libs:
-	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
 	$(VB)cd ../blas && $(MAKE) $(BLAS)
 	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
 	$(VB)cd ../arpack && $(MAKE) $(ARPACK)
-	$(VB)cd ../rism && $(MAKE) $(RISM)
 	$(VB)cd ../sqm && $(MAKE) libsqm
 	$(VB)cd ../lib && $(MAKE) libsys
+	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
+	$(VB)cd ../rism && $(MAKE) $(RISM)
     
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c
