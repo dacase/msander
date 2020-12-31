@@ -283,4 +283,16 @@ int	MAT_count( char [] );
 char	*MAT_getsyminfo( void );
 int	MAT_istrue( MATRIX_T );
 
+    /* trig functions in degrees:   */
+
+#define R2D 57.29577951308232090712
+#define D2R  0.01745329251994329576
+#define ACOS(c) (R2D*acos(c))
+#define ASIN(s) (R2D*asin(s))
+#define ATAN(t) (R2D*atan(t))
+#define ATAN2(y,x)  (R2D*atan2((y),(x)))
+#define COS(a)  cos(D2R*(a))
+#define SIN(a)  sin(D2R*(a))
+#define TAN(a)  tan(D2R*(a))
+
 #endif

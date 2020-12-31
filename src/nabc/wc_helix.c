@@ -38,9 +38,9 @@ MOLECULE_T *wc_helix(
         asprintf( &srname, "D%c", toupper(seq[i-1]) );
     else
         asprintf( &srname, "%c", toupper(seq[i-1]) );
-	if( !strstr( opts, "s5" ) )
+	if( strstr( opts, "s5" ) )
         asprintf( &srname, "%s%c", srname, '5' );
-	else if( !strstr( opts, "s3" ) && slen == 1 )
+	else if( strstr( opts, "s3" ) && slen == 1 )
         asprintf( &srname, "%s%c", srname, '3' );
 	sres = getresidue( srname );
 
@@ -49,9 +49,9 @@ MOLECULE_T *wc_helix(
         asprintf( &arname, "D%c", toupper(aseq[i-1]) );
     else
         asprintf( &arname, "%c", toupper(aseq[i-1]) );
-	if( !strstr( opts, "s5" ) )
+	if( strstr( opts, "s5" ) )
         asprintf( &arname, "%s%c", arname, '5' );
-	else if( !strstr( opts, "s3" ) && slen == 1 )
+	else if( strstr( opts, "s3" ) && slen == 1 )
         asprintf( &arname, "%s%c", arname, '3' );
 	ares = getresidue( arname );
 
@@ -105,7 +105,7 @@ MOLECULE_T *wc_helix(
             asprintf( &srname, "D%c", toupper(seq[i-1]) );
         else
             asprintf( &srname, "%c", toupper(seq[i-1]) );
-	    if( !strstr( opts, "s3" ) )
+	    if( strstr( opts, "s3" ) )
             asprintf( &srname, "%s%c", srname, '3' );
         sres = getresidue( srname );
 
@@ -114,7 +114,7 @@ MOLECULE_T *wc_helix(
             asprintf( &arname, "D%c", toupper(aseq[i-1]) );
         else
             asprintf( &arname, "%c", toupper(aseq[i-1]) );
-	    if( !strstr( opts, "s3" ) )
+	    if( strstr( opts, "s3" ) )
             asprintf( &arname, "%s%c", arname, '3' );
         ares = getresidue( arname );
 
