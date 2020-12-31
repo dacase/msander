@@ -1046,13 +1046,13 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
 #ifndef API
          write(iout,1001)
 #endif
-         call mexit(1)
+         call mexit(6,1)
       end if
    else if (abs(roh1-roh2) > small) then
 #ifndef API
       write(iout,1002)
 #endif
-      call mexit(1)
+      call mexit(6,1)
    else
       roh = roh1
    end if
