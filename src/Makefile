@@ -19,6 +19,8 @@ serial:
 	@cd ambpdb && $(MAKE) ambpdb
 	@cd sqm && $(MAKE) sqm
 	@cd moft && $(MAKE) $(MOFT)
+	@cd sff && $(MAKE) libsff
+	@cd nabc && $(MAKE) libnabc
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
@@ -40,6 +42,8 @@ clean:
 	-(cd antechamber && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
 	-(cd moft && $(MAKE) clean )
+	-(cd sff && $(MAKE) clean )
+	-(cd nabc && $(MAKE) clean )
 #	-(cd gmml && $(MAKE) clean )
 
 uninstall: clean

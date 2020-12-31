@@ -566,9 +566,7 @@ contains
     call rism3d_solute_new_sander(solute, numAtoms, numTypes, atomTypeIndex, &
          nonbondedParmIndex, charge, ljA, ljB, mass, solvent%temperature)
 
-    if (periodicPotential /= '') then
-       call readUnitCellDimensionsFromCrd(crdFile, unitCellDimensions)
-    end if
+    call readUnitCellDimensionsFromCrd(crdFile, unitCellDimensions)
 
     call sanity_check()
     

@@ -722,7 +722,8 @@ ew_box.o: \
                     file_io_dat.o\
                     AmberNetcdf.o\
                     binrestart.o\
-                    ../include/md.h
+                    ../include/md.h\
+                    sander_lib.o
 
 
 ew_box.o:   ew_box.F90
@@ -742,7 +743,8 @@ ew_box.LES.o: \
                     file_io_dat.o\
                     AmberNetcdf.o\
                     binrestart.LES.o\
-                    ../include/md.h
+                    ../include/md.h\
+                    sander_lib.o
 
 ew_box.LES.o:   ew_box.F90
 	@echo '[MSANDER_LES]  FC $<'
@@ -761,7 +763,8 @@ ew_box.API.o: \
                     file_io_dat.o\
                     AmberNetcdf.o\
                     binrestart.o\
-                    ../include/md.h
+                    ../include/md.h\
+                    sander_lib.o
 
 ew_box.API.o:   ew_box.F90
 	@echo '[MSANDER]  FC $<'
@@ -780,7 +783,8 @@ ew_box.LESAPI.o: \
                     file_io_dat.o\
                     AmberNetcdf.o\
                     binrestart.o\
-                    ../include/md.h
+                    ../include/md.h\
+                    sander_lib.o
 
 ew_box.LESAPI.o:   ew_box.F90
 	@echo '[MSANDER]  FC $<'
@@ -959,7 +963,6 @@ ew_setup.o: \
                     file_io_dat.o\
                     ew_bspline.o\
                     spatial_fft.o\
-                    sander_lib.o\
                     ew_legal.h
 
 
@@ -991,7 +994,6 @@ ew_setup.LES.o: \
                     file_io_dat.o\
                     ew_bspline.o\
                     spatial_fft.o\
-                    sander_lib.o\
                     ew_legal.h
 
 ew_setup.LES.o:   ew_setup.F90
@@ -1022,7 +1024,6 @@ ew_setup.API.o: \
                     file_io_dat.o\
                     ew_bspline.o\
                     spatial_fft.o\
-                    sander_lib.o\
                     ew_legal.h
 
 ew_setup.API.o:   ew_setup.F90
@@ -1053,7 +1054,6 @@ ew_setup.LESAPI.o: \
                     file_io_dat.o\
                     ew_bspline.o\
                     spatial_fft.o\
-                    sander_lib.o\
                     ew_legal.h
 
 ew_setup.LESAPI.o:   ew_setup.F90

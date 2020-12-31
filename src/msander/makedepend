@@ -6,9 +6,6 @@
 #  for LES, PUPIL and APBS programs, add these dependencies as well 
 #      to the list
 
-#  Be sure do to a "make clean" before running this script!
-#      (probably not really needed, but better safe than sorry)
-
 printf <<EOF;
 #
 #   Please do not edit the "depend" file directly, since it is created by the
@@ -76,8 +73,6 @@ $modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
 $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
-# Also ignore files that are actually not needed:
-$ignore{"egb_simple"} = 1;
 
 foreach $file ( <*.F90> ){
     next if $file =~ /^_/;
@@ -98,15 +93,12 @@ foreach $file ( <*.F90> ){
 }
 
 #  Now, cycle over all source files to create the compilation rules and 
-#  dependencies.  Check for "compile=optimized" comments and do the right 
-#  thing:
+#  dependencies.
 
 foreach $file ( <*.F90> ){
 
     next if $file =~ /^_/;
     
-#   printf STDERR "working on $fileroot\n";
-
     $deps = $depsLES = $depsPUPIL = $depsAPBS = $depsAPI = $depsLESAPI = "";
 
     ($fileroot) = $file =~ /(.+)\.F90$/;
@@ -118,7 +110,6 @@ foreach $file ( <*.F90> ){
 
         if( /^ *use / ){
             ($head,$usee) = /( *use) +(\w*)/;
-#            printf STDERR "     usee: $usee; modulefile is $modulefile{$usee}\n";
             
             next if defined $ignore{$usee};
             if( !defined $modulefile{$usee} ){
@@ -132,6 +123,7 @@ foreach $file ( <*.F90> ){
                 next if $fileroot eq $modulefile{$usee};
 
                 $deps .= "\\\n                    " . $modulefile{$usee} . ".o";
+
                 if( defined $LES{$modulefile{$usee}} ){
                    $depsLES .= "\\\n                    " . $modulefile{$usee} .  ".LES.o" ;
                 } else {

@@ -30,7 +30,7 @@ uninstall:
 	/bin/rm -f $(LIBDIR)/librism.a
 
 clean:
-	-/bin/rm -f *.o  pmepot/*.o *.mod
+	-/bin/rm -f *.o *.mod
 
 depend::
 	./makedepend > depend

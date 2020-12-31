@@ -20,6 +20,7 @@ $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=1;
 #  have to set up the following hash.
 #$modulefile{"mkl_dfti"} = "mkl_fft";
 $modulefile{"treecode_procedures"} = "rism3d_tree_cp";
+$modulefile{"AmberNetcdf_mod"} = "AmberNetcdf";
 $modulefile{"binrestart"} = "binrestart";
 
 foreach $file ( <*.F90> ) {
@@ -58,16 +59,18 @@ foreach $file ( <*.F90> ) {
 
         if ( /^ *use /i ) {
             ($head,$usee) = /( *use) +(\w*)/i;
-            if ( !defined $modulefile{$usee} && !defined $ignore{$usee}) {
+
+            next if defined $ignore{$usee};
+            if ( !defined $modulefile{$usee} ) {
                 printf STDERR "No file name associated with module $usee\n";
                 exit(1);
             }
-            if ( !defined $ignore{$usee} && !defined $used{ $fileroot,$modulefile{$usee} } ) {
+            if ( !defined $used{ $fileroot,$modulefile{$usee} } ) {
 
                 #  remove any circular references:
                 next if $fileroot eq $modulefile{$usee};
 
-                $deps .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
+                $deps .= "\\\n                    " . $modulefile{$usee} . ".o";
                 $used{ $fileroot,$modulefile{$usee} } = 1;
             }
         }

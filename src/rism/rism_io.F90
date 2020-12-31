@@ -104,33 +104,6 @@ contains
     close(unit)
   end subroutine readRDF1D
   
-  
-#if 0
-  !> Read unit cell dimensions from a crd / rst file.  Abort if box info
-  !! is not found.
-  subroutine readUnitCellDimensionsFromCrd(file, unitCellDimensions)
-
-    implicit none
-    character(len=*), intent(in) :: file
-    _REAL_, intent(out) :: unitCellDimensions(6)
-
-    _REAL_ ax,bx,cx,alphax,betax,gammax
-    logical NC_checkRestart
-    external NC_checkRestart
-
-    ! Check for new Netcdf restart format
-    if ( NC_checkRestart(file) ) then
-        write(6,'(a)') ' getting box info from netcdf restart file'
-        call read_nc_restart_box(file,ax,bx,cx,alphax,betax,gammax)
-    else
-         write(6,'(a)') ' getting new box info from bottom of inpcrd'
-         call peek_ewald_inpcrd(file,ax,bx,cx,alphax,betax,gammax)
-    endif
-    unitCellDimensions = (/ax,bx,cx, alphax,betax,gammax/)
-  end subroutine readUnitCellDimensionsFromCrd
-#endif
-
-  
   !> Reads in the next non-comment line from the file.  A comment is
   !! defined as starting with a '#'.
   !! @param[in] unit Open unit.
