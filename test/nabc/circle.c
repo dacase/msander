@@ -14,8 +14,6 @@
 int main( int argc, char* argv[] )
 {
 
-#define RISE    3.38
-
 int     b, nbp, dlk;
 double  gc, seed, rnum;
 double       rad, rise, twist, ttw;
@@ -47,8 +45,8 @@ rise = 3.38;
 twist = ( nbp / 10 + dlk ) * 360.0 / nbp;
 rad = 0.5 * rise / SIN( 180.0 / nbp );
 
-printf( "nbp, dlk, %%gc, rise, twist, rad: %d %d %5.2f %5.2f %6.2f %5.2f\n",
-      nbp, dlk, gc, rise, twist, rad );
+//printf( "nbp, dlk, %%gc, rise, twist, rad: %d %d %5.2f %5.2f %5.2f %5.2f\n",
+//         nbp, dlk, gc, rise, twist, rad );
 
 m = newmolecule();
 addstrand( m, "A" );
@@ -59,17 +57,17 @@ for( b=1; b <= nbp; b++ ){
 
     //  Create 1 standard B-dna W/C base pair
     if( ( rnum = rand2() ) <= 0.5 * gc ){
-        sbase = strdup("c");
-        abase = strdup("g");
+        sbase = "c";
+        abase = "g";
     }else if( rnum <= gc ){
-        sbase = strdup("g");
-        abase = strdup("c");
+        sbase = "g";
+        abase = "c";
     }else if( rnum <= 1.0 - 0.5 * gc ){
-        sbase = strdup("t");
-        abase = strdup("a");
+        sbase = "t";
+        abase = "a";
     }else{
-        sbase = strdup("a");
-        abase = strdup("t");
+        sbase = "a";
+        abase = "t";
     }
 
     m1 = wc_helix(
