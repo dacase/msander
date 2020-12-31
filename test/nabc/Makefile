@@ -40,7 +40,7 @@ test_nabc:  tnabc
 test_netcdf:  tnetcdf
 	./tnetcdf
 
-LIBS = -L$(LIBDIR) -lsff $(FLIBSF) $(NETCDFLIBF)  $(LM)
+LIBS = -L$(LIBDIR) -lsff $(FLIBSF) $(NETCDFLIBF)  $(LM) -lgfortran -w
 
 #---------------------------------------------------------------------------
 txmin:  txmin.o
@@ -92,6 +92,10 @@ fd:  fd.c
 	$(VB)$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L$(LIBDIR) \
         -lnabc -lcifparse  $(LIBS)
 
+wch:  wch.c
+	@echo "[NABC] CC $<"
+	$(VB)$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L$(LIBDIR) \
+        -lnabc -lcifparse $(LIBS)
 #---------------------------------------------------------------------------
 .c.o:
 	@echo "[NABC] CC $<"
