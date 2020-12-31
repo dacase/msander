@@ -491,7 +491,7 @@ contains
        charge, mass, ljA, ljB, &
        atomTypeIndex, nonbondedParmIndex)
     use amber_rism_interface
-    use rism_io, only : readUnitCellDimensionsFromCrd
+    use binrestart, only : readUnitCellDimensionsFromCrd
 #ifdef OPENMP
     use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
 #else

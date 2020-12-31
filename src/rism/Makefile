@@ -1,6 +1,8 @@
 SHELL=/bin/sh
 include ../../config.h
 
+# Add search paths for .mod files
+LOCALFLAGS = -I../msander
 
 # ------- rism3d information: ----------------------------------------------
 

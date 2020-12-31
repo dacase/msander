@@ -20,6 +20,7 @@ $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=1;
 #  have to set up the following hash.
 #$modulefile{"mkl_dfti"} = "mkl_fft";
 $modulefile{"treecode_procedures"} = "rism3d_tree_cp";
+$modulefile{"binrestart"} = "binrestart";
 
 foreach $file ( <*.F90> ) {
     next if $file =~ /^_/;
@@ -40,8 +41,8 @@ foreach $file ( <*.F90> ) {
 }
 
 #  Now, cycle over all source files to create the compilation rules and
-#  dependencies.  Check for "compile=optimized" comments and do the right
-#  thing:
+#  dependencies.
+
 foreach $file ( <*.F90> ) {
 
     next if $file =~ /^_/;
@@ -63,7 +64,7 @@ foreach $file ( <*.F90> ) {
             }
             if ( !defined $ignore{$usee} && !defined $used{ $fileroot,$modulefile{$usee} } ) {
 
-                                #  remove any circular references:
+                #  remove any circular references:
                 next if $fileroot eq $modulefile{$usee};
 
                 $deps .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
@@ -81,6 +82,9 @@ foreach $file ( <*.F90> ) {
     }
     printDep($fileroot, "", "","");
 }
+
+#  special "compilation" rule for module object files in other places
+print "binrestart.o: \n\t@(test -e \$\@ || touch \$\@)\n\n";
 
 # Template for dependencies and build target. Automatically applies
 # optimization flags, if requested.  Also allows an optional suffix and
@@ -106,7 +110,7 @@ sub printDep {
     printf "\n$fileroot${suffix}.o:   $fileroot.F90\n";
     print "\t\@echo \[RISM\]  FC \$<\n";
     printf  "\t\$(VB)\$(FC) -c \\\n"
-            ."\t\t%s \$(FFLAGS) -o \$@ $fileroot.F90",
+            ."\t\t%s \$(LOCALFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90",
             ( $optimized{$fileroot}?"\$(FOPTFLAGS)":"\$(FNOOPTFLAGS)");
     printf "\n\n";
 }

@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/28/2020 at 08:18:04
+| Run on 12/31/2020 at 09:40:22
 
 |   Executable path: ../../../bin/msander
 | Working directory: /Users/case/msander/test/rism3d/4lzt
@@ -13,7 +13,7 @@
 File Assignments:
 |  MDIN: mdin                                                                  
 | MDOUT: 4lzt.pme.out                                                          
-|INPCRD: 4lzt.rst7                                                             
+|INPCRD: 4lzt.ncrst                                                            
 |  PARM: 4lzt.parm7                                                            
 |RESTRT: restrt                                                                
 |  REFC: refc                                                                  
@@ -57,8 +57,8 @@ File Assignments:
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
- getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
+ getting box info from netcdf restart file
+| NetCDF restart box info found
 |Largest sphere to fit in unit cell has radius =    11.920
  NATOM  =    1984 NTYPES =      14 NBONH =     959 MBONA  =    1043
  NTHETH =    2158 MTHETA =    1407 NPHIH =    4557 MPHIA  =    4520
@@ -131,6 +131,8 @@ Ewald parameters:
      Setting ifbox to 3 for non-orthogonal unit cell
 | Running OpenMP with   1 threads
 | calling fftw_plan_with_nthreads( 1)
+ getting box info from netcdf restart file
+| NetCDF restart box info found
 3D-RISM:
      closure   =  KH      
      uccoeff   =  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
@@ -156,7 +158,8 @@ Ewald parameters:
    3.  ATOMIC COORDINATES AND VELOCITIES
 --------------------------------------------------------------------------------
 
-                                                                                
+Warning: NetCDF restart has no time value.
+Cpptraj Generated Restart                                                       
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
@@ -203,38 +206,38 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (71.43% of List )
-|                Other                      0.00 (28.57% of List )
+|                Build the list             0.01 (68.75% of List )
+|                Other                      0.01 (31.25% of List )
 |                   Short_ene time             0.01 (100.0% of Direc)
 |                Direct Ewald time          0.01 (75.00% of Ewald)
-|                   Fill Bspline coeffs        0.00 (50.00% of Recip)
 |                   Scalar sum                 0.00 (50.00% of Recip)
+|                   FFT time                   0.00 (50.00% of Recip)
 |                Recip Ewald time           0.00 (25.00% of Ewald)
-|                LJ Grid time               2.13 (21.19% of 3D-RI)
-|                      FFTB time                  0.09 ( 1.20% of R1RIS)
-|                      HUVK time                  1.93 (24.53% of R1RIS)
-|                      RESID time                 0.23 ( 2.94% of R1RIS)
-|                      CLOSURE time               1.73 (22.04% of R1RIS)
-|                      FFT time                   2.52 (32.09% of R1RIS)
-|                         LAPACK time                0.99 (73.33% of MDIIS)
-|                         DATA time                  0.36 (26.67% of MDIIS)
-|                      MDIIS time                 1.35 (17.17% of R1RIS)
-|                   R1RISM time                7.86 (100.0% of RXRIS)
-|                RXRISM time                7.86 (78.21% of 3D-RI)
-|             3D-RISM time              10.06 (99.78% of Nonbo)
-|          Nonbond force             10.08 (100.0% of Force)
-|       Force time                10.08 (100.0% of Runmd)
-|    Runmd Time                10.08 (96.34% of Total)
-|    Other                      0.38 ( 3.65% of Total)
-| Total time                10.46 (100.0% of ALL  )
+|                LJ Grid time               2.44 (23.06% of 3D-RI)
+|                      FFTB time                  0.18 ( 2.29% of R1RIS)
+|                      HUVK time                  2.07 (25.59% of R1RIS)
+|                      RESID time                 0.24 ( 3.02% of R1RIS)
+|                      CLOSURE time               1.57 (19.49% of R1RIS)
+|                      FFT time                   2.41 (29.87% of R1RIS)
+|                         LAPACK time                1.16 (72.94% of MDIIS)
+|                         DATA time                  0.43 (26.99% of MDIIS)
+|                      MDIIS time                 1.59 (19.72% of R1RIS)
+|                   R1RISM time                8.08 (100.0% of RXRIS)
+|                RXRISM time                8.08 (76.31% of 3D-RI)
+|             3D-RISM time              10.59 (99.77% of Nonbo)
+|          Nonbond force             10.61 (100.0% of Force)
+|       Force time                10.61 (100.0% of Runmd)
+|    Runmd Time                10.61 (96.52% of Total)
+|    Other                      0.38 ( 3.48% of Total)
+| Total time                10.99 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     135646
 | Highest istack allocated:       1984
-|           Job began  at 08:18:04.727  on 12/28/2020
-|           Setup done at 08:18:05.111  on 12/28/2020
-|           Run   done at 08:18:15.190  on 12/28/2020
+|           Job began  at 09:40:22.811  on 12/31/2020
+|           Setup done at 09:40:23.195  on 12/31/2020
+|           Run   done at 09:40:33.807  on 12/31/2020
 |     wallclock() was called   13713 times
 
 |3D-RISM memory allocation summary

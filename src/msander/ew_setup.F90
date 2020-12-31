@@ -1120,7 +1120,6 @@ subroutine load_ewald_info(inpcrd,ntp)
    ! get the values for ucell:
    
 #ifndef API
-   logical newstyle
    if( ntb > 0 ) then
       ! Check for new Netcdf restart format
       if ( NC_checkRestart(inpcrd) ) then
@@ -1555,119 +1554,6 @@ subroutine pmesh_kspace_setup( &
    
    return
 end subroutine pmesh_kspace_setup 
-
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ Read box info from inpcrd.  Abort if box info is not found.
-subroutine peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
-   use file_io_dat, only : MAX_FN_LEN, INPCRD_UNIT, MAX_LINE_BUF_LEN
-   use sander_lib, only  : check_inpcrd_overflow
-   implicit none
-   character(len=MAX_FN_LEN) inpcrd
-   character(len=MAX_LINE_BUF_LEN) line
-   _REAL_ a,b,c,alpha,beta,gamma
-
-   integer natom
-   _REAL_ tt,x1,x2,x3,x4,x5,x6
-   integer i,ic,nrow,nextra,justcrd,vel
-   
-   call amopen(INPCRD_UNIT,inpcrd,'O','F','R')
-   read(INPCRD_UNIT,'(a)') line
-   
-   ic = 0
-   read(INPCRD_UNIT,'(a)') line
-   if( line(6:6) == ' ' ) then ! this is an old, i5 file
-     read(line,'(i5,e15.7)', err=666) natom,tt
-   elseif( line(7:7) == ' ' ) then ! sander 7/8/9/10 large system format...
-     read(line,'(i6,e15.7)', err=666) natom,tt
-   elseif( line(8:8) == ' ' ) then ! Sander 11 - 1 mil+ format
-     read(line,'(i7,e15.7)', err=666) natom,tt
-   else                   ! assume amber 11 VERY large system format. 10 mil+
-     read(line,'(i8,e15.7)', err=666) natom,tt
-   end if
-
-   do i = 1,9999999
-      read(INPCRD_UNIT,9028,end=81,err=667)x1,x2,x3,x4,x5,x6
-      ic = ic+1
-   end do
-   81 continue
-   close(INPCRD_UNIT)
-   nrow = natom/2
-   nextra = mod(natom,2)
-   justcrd = nrow+nextra
-   vel = 2*justcrd
-   if ( natom > 2 .and. (ic == justcrd .or. ic == vel) )then
-      write(6,'(a)') &
-            '| peek_ewald_inpcrd: Box info not found in inpcrd'
-      call mexit(6,1)
-      return
-   end if
-   if ( ic == justcrd+1 .or. ic == vel+1 )then
-#ifndef API
-      write(6,'(a)') '| peek_ewald_inpcrd: Box info found'
-#endif
-      a = x1
-      b = x2
-      c = x3
-      if ( x4 > 0.d0 .and. x5 == 0.d0 .and. x6 == 0.d0)then
-         
-         !         ---only has beta
-         alpha = 90.d0
-         beta = x4
-         gamma = 90.d0
-         
-      else if (x4 == 0.d0 .and. x5 == 0.d0 .and. x6 == 0.d0 ) then
-         
-         !         --- no angles in input: assume they are all 90:
-         alpha = 90.d0
-         beta  = 90.d0
-         gamma = 90.d0
-
-      else
-
-         !         --- found the angles:
-         alpha = x4
-         beta = x5
-         gamma = x6
-      end if
-      return
-   end if
-   
-   write(6,*) 'peek_ewald_inpcrd: SHOULD NOT BE HERE'
-   write(6,'(6f10.4)') x1,x2,x3,x4,x5,x6
-   call mexit(6,1)
-   
-   9028 format(6f12.7)
-   return
-
-666 write(6, '(a)') 'ERROR: I could not find the number of atoms or the time on'
-    write(6, '(3a)') '       the second line of your inpcrd file [', trim(inpcrd), &
-                    ']. Bad INPCRD file!'
-    close(INPCRD_UNIT)
-    call mexit(6,1)
-667 write(6, '(2a)') 'ERROR: Problem reading coordinates or velocities from ', &
-                    trim(inpcrd)
-    write(6, '()')
-    write(6, '(a,i5,a)') 'I could not understand line ', ic + 3, ' :'
-
-! I want to print the offending line. However, there's no convenient way to
-! do this in Fortran. So I will rewind the whole file, read ic+2 lines, then
-! print the ic+3'th line to unit 6
-    rewind(INPCRD_UNIT)
-    do i = 1, ic + 2
-      read(INPCRD_UNIT, '(a80)') line
-    end do
-
-    ! Now we're there. Read the line and print it
-    read(INPCRD_UNIT, '(a80)') line
-    write(6, '(a)')  line
-    write(6, '()')
-    call check_inpcrd_overflow(line, .true.) ! .true. because this is PBC
-    close(INPCRD_UNIT)
-
-    call mexit(6,1)
-
-end subroutine peek_ewald_inpcrd 
 
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

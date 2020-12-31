@@ -105,101 +105,30 @@ contains
   end subroutine readRDF1D
   
   
+#if 0
   !> Read unit cell dimensions from a crd / rst file.  Abort if box info
   !! is not found.
   subroutine readUnitCellDimensionsFromCrd(file, unitCellDimensions)
-    use rism_util, only : freeUnit
-    implicit none
 
+    implicit none
     character(len=*), intent(in) :: file
     _REAL_, intent(out) :: unitCellDimensions(6)
-    integer :: unit, iostat
-    character(len=1024) :: buffer
 
-    integer :: numAtoms
-    
-    unit = freeUnit()
-    
-    open(unit = unit, file = trim(file), status = 'old', iostat = iostat)
-    if (iostat /= 0) then
-       call rism_report_error( &
-            "(a, i4)", "readUnitCellDimensionsFromCrd: could not open " // trim(file) // ":", iostat)
-    end if
+    _REAL_ ax,bx,cx,alphax,betax,gammax
+    logical NC_checkRestart
+    external NC_checkRestart
 
-    ! ! Skip the molecule name.
-    ! call nextline(unit, buffer)
-
-    ! ! Read the atom count.
-    ! call nextline(unit, buffer)
-    ! read(line, '(i8, e15.7)', iostat = iostat) numAtoms
-    ! if (iostat /= 0) then
-    !    call rism_report_error("Atom count is missing from second line of crd/rst file.")
-    ! else if (numAtoms <= 2) then
-    !    call rism_report_error( &
-    !         "Crd/rst file must have more than two atoms to deduce unit cell information.")
-    ! end if
-
-    ! The unit cell dimensions should be the last non-empty line in
-    ! the file.
-    call fseek(unit, 0, 2)
-    !TODO: Handle case of empty last lines prior to end of file.
-    !TODO: Handle case where unit cell dimensions are not provided.
-    ! buffer = ""
-    ! do while (trim(buffer(1:1)) == "")
-    backspace(unit, iostat = iostat)
-    if (iostat /= 0) then
-       call rism_report_error( &
-            "readUnitCellDimensionsFromCrd: could seek last line of crd/rst file.")
-    end if
-    read(unit, '(a)', iostat = iostat) buffer
-    if (iostat /= 0) then
-       call rism_report_error( &
-            "readUnitCellDimensionsFromCrd: could not read last line of crd/rst file.")
-    end if
-    ! end do
-    
-
-    ! Convert dimensions string to floats.
-
-    !FIXME: This conversion creates errors in the last floating point
-    ! decimal place, which is a greater precision than the string it
-    ! is obtained from.
-    ! read(buffer, '(6d12.7)', iostat = iostat) unitCellDimensions
-    read(buffer, *, iostat = iostat) unitCellDimensions
-    if (iostat /= 0) then
-       call rism_report_error( &
-            "readUnitCellDimensionsFromCrd: last line of crd/rst file does not " &
-            // "appear to be unit cell dimensions.")
-    end if
-
-    !TODO: Handle multiple unit cell dimensions formats.
-    !     if (ic == justcrd + 1 .or. ic == vel + 1) then
-    !        write(6,'(a)') '| peek_ewald_inpcrd: Box info found'
-    !        a = x1
-    !        b = x2
-    !        c = x3
-    !        if (x4 > 0.d0 .and. x5 == 0.d0 .and. x6 == 0.d0) then
-    !           ! Only has beta.
-    !           alpha = 90.d0
-    !           beta = x4
-    !           gamma = 90.d0
-    !        else if (x4 == 0.d0 .and. x5 == 0.d0 .and. x6 == 0.d0) then
-    !           ! No angles in input: assume they are all 90:
-    !           alpha = 90.d0
-    !           beta  = 90.d0
-    !           gamma = 90.d0
-    !        else
-    !           ! Found the angles.
-    !           alpha = x4
-    !           beta = x5
-    !           gamma = x6
-    !        end if
-    !        return
-    !     end if
-    
-    close(unit)
-
+    ! Check for new Netcdf restart format
+    if ( NC_checkRestart(file) ) then
+        write(6,'(a)') ' getting box info from netcdf restart file'
+        call read_nc_restart_box(file,ax,bx,cx,alphax,betax,gammax)
+    else
+         write(6,'(a)') ' getting new box info from bottom of inpcrd'
+         call peek_ewald_inpcrd(file,ax,bx,cx,alphax,betax,gammax)
+    endif
+    unitCellDimensions = (/ax,bx,cx, alphax,betax,gammax/)
   end subroutine readUnitCellDimensionsFromCrd
+#endif
 
   
   !> Reads in the next non-comment line from the file.  A comment is

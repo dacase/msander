@@ -22,7 +22,8 @@ module binrestart
           read_nc_restart, &
           read_nc_restart_extents, &
           read_nc_remd_dimension, &
-          read_nc_remd_types
+          read_nc_remd_types, &
+          readUnitCellDimensionsFromCrd
 contains
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -458,5 +459,28 @@ subroutine read_nc_restart_extents(filename, extents)
    call mexit(6,1)
 #endif
 end subroutine read_nc_restart_extents
+
+  !> Read unit cell dimensions from a crd / rst file.  Abort if box info
+  !! is not found.  (Used by rism, for now)
+  subroutine readUnitCellDimensionsFromCrd(file, unitCellDimensions)
+
+    use AmberNetcdf_mod, only: NC_checkRestart
+    implicit none
+    character(len=*), intent(in) :: file
+    _REAL_, intent(out) :: unitCellDimensions(6)
+
+    _REAL_ ax,bx,cx,alphax,betax,gammax
+
+    ! Check for new Netcdf restart format
+    if ( NC_checkRestart(file) ) then
+        write(6,'(a)') ' getting box info from netcdf restart file'
+        call read_nc_restart_box(file,ax,bx,cx,alphax,betax,gammax)
+    else
+         write(6,'(a)') ' getting new box info from bottom of inpcrd'
+         call peek_ewald_inpcrd(file,ax,bx,cx,alphax,betax,gammax)
+    endif
+    unitCellDimensions = (/ax,bx,cx, alphax,betax,gammax/)
+
+  end subroutine readUnitCellDimensionsFromCrd
 
 end module binrestart
