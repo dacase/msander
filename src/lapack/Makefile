@@ -41,9 +41,8 @@ OBJS= dsyev.o dsygv.o dlansy.o dsytrd.o dorgtr.o dsteqr.o \
 	dormhr.o dtrexc.o dlaexc.o dlasy2.o \
 	iparmq.o iladlc.o iladlr.o \
 	dlatrs.o drscl.o dlantr.o dgecon.o dgeequ.o dlaqge.o dgesvx.o \
-	chla_transtype.o dla_wwaddw.o dla_geamv.o dla_lin_berr.o \
-	ilatrans.o dla_gercond.o ilaprec.o dla_gerfsx_extended.o\
-	dla_rpvgrw.o dgerfsx.o dlascl2.o dgeequb.o
+	chla_transtype.o ilatrans.o ilaprec.o \
+	dlascl2.o dgeequb.o
 
 liblapack: $(LIBDIR)/liblapack.a
 
