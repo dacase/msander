@@ -1,7 +1,7 @@
 test:
 	@./run_tests.sh
 
-test.all: test.general test.rism test.xray
+test.all: test.general test.rism test.xray test.tleap test.antechamber
 
 test.general:
 	-(cd dhfr && ./Run.dhfr)
@@ -29,6 +29,14 @@ test.xray:
 	-(cd xray/480d && ./Run.480d_xray)
 	-(cd cryoem/3j9d && ./Run.3j9d)
 	-(cd cryoem/emap && ./Run.emap)
+
+test.tleap:
+	-(cd tleap/OL3 && ./Run.OL3.sh)
+	-(cd tleap/BondAugmentations && ./Run.1p7e)
+
+test.antechamber:
+	-(cd antechamber/sustiva && Run.sustiva)
+	-(cd antechamber/sustiva && Run.sustiva_g2)
 
 clean::
 	/bin/rm -f TEST_FAILURES.diff
