@@ -1,55 +1,55 @@
-#include	<stdio.h>
-#include	<ctype.h>
-#include	<string.h>
-#include	<math.h>
-#include	<stdlib.h>
-#include	<assert.h>
+#include    <stdio.h>
+#include    <ctype.h>
+#include    <string.h>
+#include    <math.h>
+#include    <stdlib.h>
+#include    <assert.h>
 
-#include	"nabc.h"
-#include	"errormsg.h"
-#include	"memutil.h"
-#  include	"../cifparse/cifparse.h"
+#include    "nabc.h"
+#include    "errormsg.h"
+#include    "memutil.h"
+#  include    "../cifparse/cifparse.h"
 
     /* PDB columns, 0-based */
-#define		PDB_ANUM_COL	7
-#define		PDB_ANAM_COL	12
-#define		PDB_RNAM_COL	17
-#define		PDB_CNAM_COL	21
-#define		PDB_RID_COL	21
-#define		PDB_RNUM_COL	22
+#define        PDB_ANUM_COL    7
+#define        PDB_ANAM_COL    12
+#define        PDB_RNAM_COL    17
+#define        PDB_CNAM_COL    21
+#define        PDB_RID_COL    21
+#define        PDB_RNUM_COL    22
 
-#define		PDB_XPOS_COL	30
-#define		PDB_YPOS_COL	38
-#define		PDB_ZPOS_COL	46
+#define        PDB_XPOS_COL    30
+#define        PDB_YPOS_COL    38
+#define        PDB_ZPOS_COL    46
 
-#define		PDB_QPOS_COL	54
-#define		PDB_RPOS_COL	64
+#define        PDB_QPOS_COL    54
+#define        PDB_RPOS_COL    64
 
-#define		PDB_OPOS_COL	54
-#define		PDB_BPOS_COL	60
+#define        PDB_OPOS_COL    54
+#define        PDB_BPOS_COL    60
 
-#define		PDB_XPOS_LEN	8
-#define		PDB_YPOS_LEN	8
-#define		PDB_ZPOS_LEN	8
+#define        PDB_XPOS_LEN    8
+#define        PDB_YPOS_LEN    8
+#define        PDB_ZPOS_LEN    8
 
-#define		PDB_QPOS_LEN	10
-#define		PDB_RPOS_LEN	10
+#define        PDB_QPOS_LEN    10
+#define        PDB_RPOS_LEN    10
 
-#define		PDB_OPOS_LEN	6
-#define		PDB_BPOS_LEN	6
+#define        PDB_OPOS_LEN    6
+#define        PDB_BPOS_LEN    6
 
-#define		PDB_ANUM_LEN	4
-#define		PDB_ANAM_LEN	4
-#define		PDB_RNAM_LEN	3
-#define		PDB_RID_LEN	6
-#define		PDB_RID_SIZE	7
-#define		PDB_NPOS_COL	8
+#define        PDB_ANUM_LEN    4
+#define        PDB_ANAM_LEN    4
+#define        PDB_RNAM_LEN    3
+#define        PDB_RID_LEN    6
+#define        PDB_RID_SIZE    7
+#define        PDB_NPOS_COL    8
 
     /* useful sizes for initial allocs of a_atomname, r_resname */
-#define	A_NAME_SIZE	8
-#define	R_NAME_SIZE	8
+#define    A_NAME_SIZE    8
+#define    R_NAME_SIZE    8
 
-#define	D2R	0.01745329251994329576
+#define    D2R    0.01745329251994329576
 
     /* stuff for craeting chain ids */
 
@@ -63,12 +63,12 @@ static void freecid(CID_T *);
 static CID_T *initcid(int, int, MOLECULE_T *);
 static int nextcid(CID_T *, int, int, STRAND_T *);
 
-#define	ATAB_SIZE	1000
+#define    ATAB_SIZE    1000
 static ATOM_T atab[ATAB_SIZE];
 static int n_atab;
 
-#define	B_THRESH	1.85
-#define	BH_THRESH	1.20
+#define    B_THRESH    1.85
+#define    BH_THRESH    1.20
 
 static RESIDUE_T res;
 
@@ -225,13 +225,8 @@ REF_MATRIX_T getmatrix(char *fname)
     for (r = 0; fgets(line, sizeof(line), fp);) {
         if (*line == '#')
             continue;
-#ifdef NAB_DOUBLE_PRECISION
         cnt = sscanf(line, "%lf %lf %lf %lf",
                      &mat[r][0], &mat[r][1], &mat[r][2], &mat[r][3]);
-#else
-        cnt = sscanf(line, "%f %f %f %f",
-                     &mat[r][0], &mat[r][1], &mat[r][2], &mat[r][3]);
-#endif
         if (cnt != 4) {
             fprintf(stderr,
                     "getmatrix: bad row %d: got %d elements, needed 4\n",
@@ -631,29 +626,19 @@ static MOLECULE_T *fgetpdb(FILE * fp, char *options)
 
                    for now, with free format, use the following:           */
 
-#ifdef NAB_DOUBLE_PRECISION
                 sscanf(&line[PDB_QPOS_COL], "%lf%lf", &q, &r);
-#else
-                sscanf(&line[PDB_QPOS_COL], "%f%f", &q, &r);
-#endif
 
                 occ = 1.0;
                 bfact = 0.0;
 
             } else {
                 /* use Bondi radii and zero charges for defaults: */
-                if (!strncmp(aname, "H", 1))
-                    r = 1.2;
-                else if (!strncmp(aname, "C", 1))
-                    r = 1.70;
-                else if (!strncmp(aname, "N", 1))
-                    r = 1.55;
-                else if (!strncmp(aname, "O", 1))
-                    r = 1.50;
-                else if (!strncmp(aname, "S", 1))
-                    r = 1.80;
-                else if (!strncmp(aname, "P", 1))
-                    r = 1.85;
+                if (!strncmp(aname, "H", 1))      r = 1.2;
+                else if (!strncmp(aname, "C", 1)) r = 1.70;
+                else if (!strncmp(aname, "N", 1)) r = 1.55;
+                else if (!strncmp(aname, "O", 1)) r = 1.50;
+                else if (!strncmp(aname, "S", 1)) r = 1.80;
+                else if (!strncmp(aname, "P", 1)) r = 1.85;
                 else
                     r = 1.7;    /* carbon-like radius for others */
                 q = 0.0;
@@ -987,7 +972,7 @@ static MOLECULE_T *fgetcif(FILE * fp, char *blockId)
         initres();
     }
 
-	/* probably need some calls here to free up memory cifparse has used */
+    /* probably need some calls here to free up memory cifparse has used */
 
     return (mol);
 }
@@ -1205,7 +1190,7 @@ static MOLECULE_T *fgetcompcif(FILE * fp, char *blockId)
 
     return (mol);
 
-	/* probably need some calls here to free up memory cifparse has used */
+    /* probably need some calls here to free up memory cifparse has used */
 }
 
 static int isnewres(char l_rname[], char rname[], int l_rnum, int rnum)
@@ -1321,7 +1306,7 @@ static void fputpdb(FILE * fp, MOLECULE_T * mol, char *options)
         -nobocc:  don't add occupancies and b-factors after the xyz coordinates
         (implied if -pqr is present)
         -brook:  use Broohaven (aka pdb version2 )atom/residue names
-        -wwpdb:  use wwpdb (aka pdb version 3)  atom/residue names
+        -wwpdb:  use wwpdb (aka pdb version 3)  atom/residue names (default)
         -tr:  use residue numbers that do not restart at each chain
         -nocid:  do not put put chain id's in the output
 
@@ -1339,7 +1324,7 @@ static void fputpdb(FILE * fp, MOLECULE_T * mol, char *options)
     int opt_pqr = 0;
     int opt_nobocc = 0;
     int opt_brook = 0;
-    int opt_wwpdb = 0;
+    int opt_wwpdb = 1;
     int opt_tr = 0;
     int opt_nocid = 0;
     int opt_allcid = 0;
@@ -1360,20 +1345,16 @@ static void fputpdb(FILE * fp, MOLECULE_T * mol, char *options)
         strncpy(loptions, options, 255);
         loptions[255] = '\0';
     }
-    opt_pqr = strstr(loptions, "-pqr") != NULL;
-    opt_nobocc = strstr(loptions, "-nobocc") != NULL;
-    opt_brook = strstr(loptions, "-brook") != NULL;
-    opt_wwpdb = strstr(loptions, "-wwpdb") != NULL;
-    opt_tr = strstr(loptions, "-tr") != NULL;
-    opt_nocid = strstr(loptions, "-nocid") != NULL;
-    opt_allcid = strstr(loptions, "-allcid") != NULL;
-    if (opt_allcid)
-        opt_nocid = 0;
-    cidstate = initcid(opt_nocid, opt_allcid, mol);
+    opt_pqr =    strstr(loptions, "-pqr")
+    opt_nobocc = strstr(loptions, "-nobocc")
+    opt_brook =  strstr(loptions, "-brook")
+    if( opt_brook) opt_wwpdb =  0;
+    opt_tr =     strstr(loptions, "-tr")
+    opt_nocid =  strstr(loptions, "-nocid")
+    opt_allcid = strstr(loptions, "-allcid")
+    if (opt_allcid) opt_nocid = 0;
 
-/*
-  cid = ( mol->m_nstrands > 1 ) ? 'A' : ' ';
-*/
+    cidstate = initcid(opt_nocid, opt_allcid, mol);
 
     for (ta = 0, tr = 0, sp = mol->m_strands; sp; sp = sp->s_next) {
         /*
@@ -1413,38 +1394,16 @@ static void fputpdb(FILE * fp, MOLECULE_T * mol, char *options)
                      ** rn's begin at 1 for each chain
                      */
                     rn = opt_tr ? tr + 1 : r + 1;
-                    if (ta < 100000) {
-                        fprintf(fp,
-                                "ATOM  %5d %-4s %-3s %c%4d    %8.3f%8.3f%8.3f",
-                                ta, aname, rname,
-/*
-		      opt_nocid ? ' ' : cid, rn,
-*/
-                                cid, rn,
-                                ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
-                    } else {
-                        fprintf(fp,
-                                "ATOM  %05d %-4s %-3s %c%4d    %8.3f%8.3f%8.3f",
-                                ta % 100000, aname, rname,
-/*
-		      opt_nocid ? ' ' : cid, rn,
-*/
-                                cid, rn,
-                                ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
-                    }
+                    fprintf(fp,
+                            "ATOM  %5d %-4s %-3s %c%4d    %8.3f%8.3f%8.3f",
+                            ta % 100000, aname, rname, cid, rn % 10000,
+                            ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
                 } else {
                     /*  use the resid field from the input pdb file  */
-                    if (ta < 100000) {
-                        fprintf(fp,
-                                "ATOM  %5d %-4s %3s %-6s   %8.3f%8.3f%8.3f",
-                                ta, aname, rname, rid,
-                                ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
-                    } else {
-                        fprintf(fp,
-                                "ATOM  %05d %-4s %3s %-6s   %8.3f%8.3f%8.3f",
-                                ta % 100000, aname, rname, rid,
-                                ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
-                    }
+                    fprintf(fp,
+                            "ATOM  %5d %-4s %3s %-6s   %8.3f%8.3f%8.3f",
+                            ta % 100000, aname, rname, rid,
+                            ap->a_pos[0], ap->a_pos[1], ap->a_pos[2]);
                 }
                 if (opt_pqr) {
                     /* this format matches Beroza stuff:  */
