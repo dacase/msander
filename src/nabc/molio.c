@@ -1345,13 +1345,13 @@ static void fputpdb(FILE * fp, MOLECULE_T * mol, char *options)
         strncpy(loptions, options, 255);
         loptions[255] = '\0';
     }
-    opt_pqr =    strstr(loptions, "-pqr")
-    opt_nobocc = strstr(loptions, "-nobocc")
-    opt_brook =  strstr(loptions, "-brook")
+    opt_pqr =    strstr(loptions, "-pqr") != NULL;
+    opt_nobocc = strstr(loptions, "-nobocc") != NULL;
+    opt_brook =  strstr(loptions, "-brook") != NULL;
     if( opt_brook) opt_wwpdb =  0;
-    opt_tr =     strstr(loptions, "-tr")
-    opt_nocid =  strstr(loptions, "-nocid")
-    opt_allcid = strstr(loptions, "-allcid")
+    opt_tr =     strstr(loptions, "-tr") != NULL;
+    opt_nocid =  strstr(loptions, "-nocid") != NULL;
+    opt_allcid = strstr(loptions, "-allcid") != NULL;
     if (opt_allcid) opt_nocid = 0;
 
     cidstate = initcid(opt_nocid, opt_allcid, mol);

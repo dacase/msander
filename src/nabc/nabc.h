@@ -1,6 +1,7 @@
 #ifndef	NABC_H
 #define	NABC_H
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

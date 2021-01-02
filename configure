@@ -45,7 +45,8 @@ installtype="serial"
 lapack="skip"
 blas="skip"
 inc="-I$msanderhome/include"
-netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
+# netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
+netcdflibf="-L$msanderhome/lib -lnetcdff -lnetcdf"
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
 
@@ -319,9 +320,9 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    cd src/netcdf-c-4.7.2
    printf "Configuring the NetCDF C interface..."
    make clean > /dev/null 2>&1
-   ./configure CC="$cc" CFLAGS="" LDFLAGS="" \
+   ./configure CC="$cc" CFLAGS="-fPIC" LDFLAGS="" \
       --prefix=$msanderhome --disable-netcdf-4 --disable-dap \
-      --disable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
+      --enable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
        echo "Error: NetCDF configure failed!  Check netcdf_c.config.log"
@@ -345,11 +346,11 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
    export LD_LIBRARY_PATH="$msanderhome/lib:$LD_LIBRARY_PATH"
    printf "Configuring the NetCDF Fortran interface..."
    make clean > /dev/null 2>&1
-   ./configure  CC="$cc" CFLAGS="" \
+   ./configure  CC="$cc" CFLAGS="-fPIC" \
                   LDFLAGS="-L$msanderhome/lib $ldflags" \
                   CPPFLAGS="-I$msanderhome/include" \
                   FC="$fc" FCFLAGS="" \
-                  F77="$fc" FFLAGS="" --disable-shared  --disable-doxygen \
+                  F77="$fc" FFLAGS="-fPIC" --enable-shared  --disable-doxygen \
                   --prefix=$msanderhome >> ../netcdf_f.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
@@ -543,7 +544,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
-CFLAGS=$bintraj $clangf $inc -fPIC
+CFLAGS=$bintraj $clangf $inc $ompflag -fPIC
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
