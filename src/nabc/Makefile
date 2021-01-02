@@ -9,7 +9,7 @@ CUSTOMBUILDFLAGS = -I../sff
 	@echo "[NABC]  CC $<"
 	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(NETCDFINC) -o $@ $<
 
-LIBNABOBJS=	\
+NABCOBJS=	\
 	axis2frame.o	\
 	bonded_atoms.o \
 	database.o  \
@@ -38,9 +38,9 @@ LIBNABOBJS=	\
 
 libnabc: $(LIBDIR)/libnabc.a
 
-$(LIBDIR)/libnabc.a: $(LIBNABOBJS)
+$(LIBDIR)/libnabc.a: $(NABCOBJS)
 	@echo "[NABC]  AR $@"
-	$(VB)$(AR) $@ $(LIBNABOBJS) > /dev/null
+	$(VB)$(AR) $@ $(NABCOBJS) > /dev/null
 	$(VB)$(RANLIB) $@
 	$(VB)cp nabc.h $(INCDIR)
 
@@ -59,56 +59,8 @@ uninstall: clean
 
 #===========================================================================
 
-axis2frame.o:	\
-	nabc.h
-binpos.o:  \
-	memutil.h
-bonded_atoms.o: \
-	nabc.h
-boundsutil.o:	\
-	nabc.h  \
-	memutil.h \
-    traceback.h \
-	errormsg.h
-database.o:  \
-	database.h
-dump.o:		\
-	nabc.h
-errormsg.o:	\
-	errormsg.h
-frameutil.o:	\
-	nabc.h	\
-	memutil.h
-jacobi.o:	\
-	memutil.h
-matop.o: \
-	matop.h
-match.o:	\
-	nabc.h \
-	select_atoms.h 
-molio.o:	\
-	nabc.h	\
-	errormsg.h
-molsurf.o:  \
-	nabc.h   \
-	molsurf.h
-molutil.o:	\
-	nabc.h	\
-	errormsg.h	\
-	memutil.h
-pointutil.o: \
-	nabc.h
-prm.o: \
-	nabc.h
-reslib.o: \
-	nabc.h \
-	errormsg.h \
-	memutil.h  \
-	database.h
-select_atoms.o:	\
-	nabc.h
-mme_init.o: \
-	nabc.h 
-traceback.o: \
-	errormsg.h
+depend: $(NABCOBJS:.o=.c)
+	@echo "[NABC] make depend"
+	$(VB)$(CC) -MM $^ > $@
 
+include depend
