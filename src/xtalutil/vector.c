@@ -108,29 +108,6 @@ double DStDev(double* V, int n)
 }
 
 /***=======================================================================***/
-/*** PYTHAG: adapted from the Numerical Recipes in C function pythag, in   ***/
-/***         this case operating with double-precision.                    ***/
-/***                                                                       ***/
-/***         [REF]: William H. Press, Saul A. Teukolsky, William T.        ***/
-/***                Vetterling, and Brian P. Flannery.  Numerical Recipes  ***/
-/***                in C, Second Edition.  Cambridge University Press,     ***/
-/***                1992.                                                  ***/
-/***=======================================================================***/
-double pythag(double a, double b)
-{
-  double absa, absb;
-
-  absa=fabs(a);
-  absb=fabs(b);
-  if (absa > absb) {
-    return absa*sqrt(1.0+(absb/absa)*(absb/absa));
-  }
-  else {
-    return absb*sqrt(1.0+(absa/absb)*(absa/absb));
-  }
-}
-
-/***=======================================================================***/
 /*** CpyDVec: copies a double-precision real vector V into C.              ***/
 /***=======================================================================***/
 double* CpyDVec(double* V, int n)

@@ -8,7 +8,7 @@
 #include "stringDefs.h"
 #include "matrix.h"
 #define PI                     3.1415926535898
-#include "ran2.h"
+#include "rand2.h"
 #include "grid.h"
 
 /***=======================================================================***/
@@ -74,7 +74,7 @@ void RunBGrid(bgrid tg, double* crds, int P, dmat U, dmat invU, double RP,
 int main(int argc, char* argv[])
 {
   int h, i, j, N, P, placed, wx, wy, wz, nfail, nplaced, RCS, noOutPut;
-  long counter;
+  int counter;
   double RW, RP, gspc;
   double omx, omy, omz, dx, dy, dz;
   double boxd[6], ccm[3], acm[3], tvec[3];
@@ -104,19 +104,19 @@ int main(int argc, char* argv[])
        "             added.\n"
        "          (Default 0 ; any other setting activates recursion)\n"
        "  -path : Path for AddToBox program on subsequent calls\n"
-       "          (default ${AMBERHOME}/bin/AddToBox)\n\n");
+       "          (default ${MSANDERHOME}/bin/AddToBox)\n\n");
     exit(1);
   }
 
   /*** Initialize random number generator ***/
   counter = -1;
-  ran2(&counter);
+  setseed(&counter);
 
   /*** Input ***/
   c.source[0] = '\0';
   a.source[0] = '\0';
   o.source[0] = '\0';
-  sprintf(a2bpath, "${AMBERHOME}/bin/AddToBox");
+  sprintf(a2bpath, "${MSANDERHOME}/bin/AddToBox");
   RW = 1.0;
   RP = 5.0;
   RCS = 0;
@@ -157,8 +157,8 @@ int main(int argc, char* argv[])
       RCS = atoi(*++argv);
     }
     else if (strcmp(tag, "-IG") == 0) {
-      counter = atoi(*++argv);
-      ran2(&counter);
+      counter = -atoi(*++argv);
+      setseed(&counter);
     }
     else if (strcmp(tag, "-path") == 0) {
       strcpy(a2bpath, *++argv);
@@ -284,14 +284,14 @@ int main(int argc, char* argv[])
       /*** Rotate randomly ***/
       FindCrdCenter(a.crds, a.crds, 0, a.n_atoms, acm);
       TransCrd(a.crds, a.n_atoms, acm, -1.0);
-      omx = ran2(&counter)*PI;
-      omy = ran2(&counter)*PI;
-      omz = ran2(&counter)*PI;
+      omx = rand2()*PI;
+      omy = rand2()*PI;
+      omz = rand2()*PI;
       BeardRotMat(omx, omy, omz, M);
       RotateCrd(a.crds, a.n_atoms, M);
-      dx = ran2(&counter) - 0.5;
-      dy = ran2(&counter) - 0.5;
-      dz = ran2(&counter) - 0.5;
+      dx = rand2() - 0.5;
+      dy = rand2() - 0.5;
+      dz = rand2() - 0.5;
       tvec[0] = invU.data[0]*dx + invU.data[1]*dy + invU.data[2]*dz;
       tvec[1] = invU.data[3]*dx + invU.data[4]*dy + invU.data[5]*dz;
       tvec[2] = invU.data[6]*dx + invU.data[7]*dy + invU.data[8]*dz;
@@ -377,7 +377,7 @@ int main(int argc, char* argv[])
           RW*0.90);
     sprintf(syscall, "%s -c %s -o %s -RW %lf -RP %lf -IG %d -G %lf -a %s -na "
         "%d -P %d -V 1", a2bpath, o.source, o.source, RW*0.90, RP,
-        (int)(ran2(&counter)*1.0e6), gspc, a.source, N - nplaced, P);
+        (int)(rand2()*1.0e6), gspc, a.source, N - nplaced, P);
     system(syscall);
   }
 

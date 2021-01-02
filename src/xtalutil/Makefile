@@ -6,8 +6,7 @@ LOCALFLAGS=-Wno-unused-result
 	@echo "[XTALUTIL]  CC $<"
 	@$(CC) -c $(COPTFLAGS) $(CFLAGS) $(LOCALFLAGS) -o $@ $< 
 
-OBJS = crdmanip.o grid.o listRead.o matrix.o pdbRead.o QuatAlign.o ran2.o \
-       topRead.o vector.o
+OBJS = crdmanip.o grid.o matrix.o pdbRead.o rand2.o topRead.o vector.o
 
 xtalutil: $(BINDIR)/ChBox $(BINDIR)/UnitCell \
      $(BINDIR)/AddToBox $(BINDIR)/PropPDB
