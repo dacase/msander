@@ -2,7 +2,6 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
-#include "sff.h"
 
 #define	IM1	2147483563
 #define	IM2	2147483399
@@ -48,10 +47,10 @@ static	int	iv[ NTAB ];
 */
 
 static
-REAL_T	rand2a( int *seed )
+double	rand2a( int *seed )
 {
 	int		j, k;
-	REAL_T	temp;
+	double	temp;
 
 	if( *seed <= 0 ){
 		if( -*seed < 1 )
@@ -95,9 +94,9 @@ REAL_T	rand2a( int *seed )
 */
 
 static
-REAL_T gaussa( REAL_T *mean, REAL_T *sd, int *seed )
+double gaussa( double *mean, double *sd, int *seed )
 {
-	REAL_T fac,gdev1,rsq,s1,s2;
+	double fac,gdev1,rsq,s1,s2;
 
 		do {
 			s1 = 2.*rand2a(seed) - 1.;
@@ -116,13 +115,13 @@ REAL_T gaussa( REAL_T *mean, REAL_T *sd, int *seed )
     this routine.  Same for gaussa().
 */
 
-REAL_T  rand2( void )
+double  rand2( void )
 {
 
 	return rand2a( &seed3 );
 }
 
-REAL_T gauss2( REAL_T *mean, REAL_T *sd )
+double gauss2( double *mean, double *sd )
 {
 	return gaussa( mean, sd, &seed3 );
 }
