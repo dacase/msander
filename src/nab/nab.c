@@ -230,7 +230,7 @@ char	nfmask[];
 		}
 	}
 	if( !copt ){
-		sprintf( word, " -L%s/lib -lnabc -lcifparse", msanderhome );
+		sprintf( word, " -L%s/lib ", msanderhome );
 		if (strlen(cmd) + strlen(word) + strlen(FLIBS) + 6 > cmd_sz) {
 		    cmd_sz += strlen(word) + strlen(FLIBS) + 6;
 		    cmd = realloc(cmd, cmd_sz);

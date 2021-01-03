@@ -255,8 +255,6 @@ MOLECULE_T	*wc_helix( STRING_T*, STRING_T*, STRING_T*, STRING_T*,
                        REAL_T, REAL_T, REAL_T, REAL_T, STRING_T* );
 INT_T		writeparm( MOLECULE_T*, STRING_T* );
 
-FILE   *nabout;
-
 void  copy_mat( MATRIX_T, MATRIX_T );
 
 /*  from stringutil.c:  */
@@ -296,4 +294,5 @@ int	MAT_istrue( MATRIX_T );
 #define SIN(a)  sin(D2R*(a))
 #define TAN(a)  tan(D2R*(a))
 
+#define	NAB_RSBUF_SIZE	10000
 #endif

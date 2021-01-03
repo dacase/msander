@@ -3,6 +3,8 @@
 
 #include "nabc.h"
 
+FILE* nabout;
+
 int main(){
 
     MOLECULE_T  *m;

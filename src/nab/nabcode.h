@@ -4,7 +4,7 @@
 	/* "stub" types:	*/
 
 #include "defreal.h"
-#include "nabtypes.h"
+#include "nabc.h"
 
 typedef	char		HASH_T;
 typedef	struct	curhash_t	{
@@ -15,201 +15,9 @@ typedef	struct	curhash_t	{
 	/* nab builtins (but no libc or libm calls):	*/
 
 #define		I2R(i)	((REAL_T)(i))
-INT_T		addresidue( MOLECULE_T*, STRING_T*, RESIDUE_T* );
-INT_T		addstrand( MOLECULE_T*, STRING_T* );
-INT_T		alignframe( MOLECULE_T*, MOLECULE_T* );
-INT_T		andbounds( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T*, REAL_T, REAL_T );
-REAL_T		angle( MOLECULE_T*, STRING_T*, STRING_T*, STRING_T* );
-REAL_T		anglep( POINT_T, POINT_T, POINT_T );
-INT_T		axis2frame( MOLECULE_T*, POINT_T, POINT_T );
-MOLECULE_T	*bdna( STRING_T** );
-INT_T		bonded_atoms( ATOM_T*, ATOM_T** );
-INT_T		cap( MOLECULE_T*, STRING_T*, INT_T, INT_T );
-INT_T		circle( REAL_T*, REAL_T*, REAL_T*, REAL_T* );
-INT_T		conjgrad( REAL_T*, INT_T*, REAL_T*,
-			  REAL_T ( *func )( REAL_T*, REAL_T*, INT_T* ),
-			  REAL_T*, REAL_T*, INT_T* );
-INT_T		connectres( MOLECULE_T*, STRING_T*, INT_T, STRING_T*, INT_T, STRING_T* );
-MOLECULE_T	*copymolecule( MOLECULE_T* );
-INT_T		countmolatoms( MOLECULE_T*, STRING_T* );
-INT_T		countmolres( MOLECULE_T*, STRING_T* );
-INT_T		countmolstrands( MOLECULE_T*, STRING_T* );
-INT_T		countstrandresidues( MOLECULE_T*, INT_T );
-STRING_T	*date();
-REAL_T		db_viol( REAL_T*, REAL_T*, INT_T* );
-REAL_T		db_viol3( REAL_T*, REAL_T*, INT_T* );
-MOLECULE_T	*dg_helix( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**, 
-		REAL_T*, REAL_T*, REAL_T*, REAL_T*, STRING_T** );
-INT_T		dg_options( BOUNDS_T*, STRING_T* );
-REAL_T		dist( MOLECULE_T*, STRING_T*, STRING_T* );
-REAL_T		distp( POINT_T, POINT_T );
-BOUNDS_T	*dt_to_bmat( MOLECULE_T**, STRING_T**, STRING_T** );
-INT_T		dt_to_prmtop( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T** );
 INT_T		dumpatom( FILE_T*, RESIDUE_T*, INT_T, INT_T );
-INT_T		dumpbounds( FILE_T*, BOUNDS_T*, INT_T );
-REAL_T		dumpboundsviolations( FILE_T*, BOUNDS_T*, REAL_T );
-REAL_T		dumpchiviolations( FILE_T*, BOUNDS_T*, REAL_T);
-INT_T		dumpmatrix( FILE_T*, MATRIX_T );
 INT_T		dumpmolecule( FILE_T*, MOLECULE_T*, INT_T, INT_T, INT_T);
 INT_T		dumpresidue( FILE_T*, RESIDUE_T*, INT_T, INT_T );
-INT_T		embed( BOUNDS_T*, REAL_T* );
-MOLECULE_T     *fd_helix( STRING_T**, STRING_T**, STRING_T** );
-INT_T		freemolecule( MOLECULE_T* );
-INT_T		freeparm( MOLECULE_T* );
-INT_T		freeresidue ( RESIDUE_T* );
-#ifndef WIN32
-STRING_T	*ftime( STRING_T* );
-#endif
-REAL_T      gauss( REAL_T*, REAL_T* );
-INT_T		geodesics( BOUNDS_T* );
-REAL_T		getchivol( MOLECULE_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T** );
-REAL_T		getchivolp( POINT_T, POINT_T, POINT_T, POINT_T );
-MOLECULE_T	*getcif( STRING_T*, STRING_T* );
-MOLECULE_T	*getcompcif( STRING_T*, STRING_T* );
-STRING_T	*NAB_getline( FILE_T* );
-REF_MATRIX_T	getmatrix( STRING_T* );
-INT_T		getseq_from_pdb( STRING_T**, INT_T*, STRING_T**, STRING_T**, STRING_T** );
-MOLECULE_T	*getpdb( STRING_T*, STRING_T* );
-MOLECULE_T	*getpdb_prm( STRING_T**, STRING_T**, STRING_T**, INT_T* );
-RESIDUE_T	*getresidue( STRING_T*, STRING_T* );
-STRING_T	*getreslibkind( STRING_T* );
-STRING_T	*getresname( RESIDUE_T* );
-INT_T		getxv( STRING_T*, INT_T, REAL_T, REAL_T*, REAL_T* );
-INT_T           getxyz( STRING_T**, INT_T*, REAL_T* );
-INT_T		getxyz_from_pdb( STRING_T**, MOLECULE_T**, STRING_T**, INT_T* );
-INT_T		helixanal( MOLECULE_T** );
-INT_T		length( STRING_T*** );
-MOLECULE_T 	*linkprot( STRING_T**, STRING_T**, STRING_T** );
-MOLECULE_T 	*link_na( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T** );
-REAL_T		lmodC(INT_T*, INT_T*, INT_T*, INT_T*, INT_T*, REAL_T*, REAL_T*,
-                 REAL_T*, INT_T*, REAL_T*, REAL_T*, REAL_T*, INT_T*, INT_T*,
-                 INT_T*, INT_T*, INT_T*, REAL_T*, REAL_T*, REAL_T*, INT_T*,
-                 INT_T*, INT_T*, INT_T*, INT_T*, INT_T*, REAL_T*, REAL_T*,
-                 INT_T*, REAL_T*, REAL_T*, INT_T*, INT_T*, REAL_T*, REAL_T*,
-                 INT_T*, INT_T* );
-/*
-REAL_T lmod(INT_T*, REAL_T*, REAL_T*, REAL_T*, REAL_T*, REAL_T*, 
-            INT_T*, INT_T*, INT_T*,
-            REAL_T*, REAL_T*, REAL_T*, REAL_T*, 
-            struct xmin_opt*, struct lmod_opt* );
-*/
-REAL_T lmod();   /* don't test arguments for now....*/
-INT_T  lmod_opt_init();   /* don't test arguments for now....*/
-            
-INT_T		md( INT_T, INT_T, REAL_T*, REAL_T*, REAL_T*,
-		    REAL_T ( *func )( REAL_T*, REAL_T*, INT_T* ) );
-INT_T		mdrat( INT_T, INT_T, REAL_T*, REAL_T*, REAL_T*, REAL_T*, REAL_T ( *mme )() );
-INT_T		mergestr( MOLECULE_T*, STRING_T*, STRING_T*, MOLECULE_T*, STRING_T*, STRING_T* );
-INT_T		metrize( BOUNDS_T*, INT_T );
-INT_T		mm_options( STRING_T* );
-void            mm_set_checkpoint( STRING_T** );
-REAL_T		mme( REAL_T*, REAL_T*, INT_T* );
-REAL_T		mme2( REAL_T*, REAL_T*, REAL_T*, REAL_T*, 
-		      REAL_T*, INT_T*, INT_T*, INT_T*,
-		      INT_T *, INT_T *, INT_T *, INT_T *,
-		      INT_T*, INT_T* , char* );
-INT_T           mme2_timer();
-REAL_T		mme4( REAL_T*, REAL_T*, INT_T* );
-REAL_T		mme_rattle( REAL_T*, REAL_T*, INT_T* );
-INT_T		mme_init( MOLECULE_T*, STRING_T*, STRING_T*, REAL_T*, STRING_T* );
-INT_T		mme_timer();
-void            mme_rism_max_memory();
-REAL_T		molsurf( MOLECULE_T**, STRING_T**, REAL_T* );
-INT_T           mpierror( INT_T );
-INT_T           mpifinalize( void );
-INT_T           mpiinit( INT_T*, STRING_T**, INT_T*, INT_T* );
-BOUNDS_T	*newbounds( MOLECULE_T*, STRING_T* );
-MOLECULE_T	*newmolecule();
-INT_T		newton( REAL_T*, INT_T*, REAL_T*,
-			REAL_T ( *func1 )( REAL_T*, REAL_T*, INT_T* ),
-			REAL_T ( *func2 )( REAL_T*, REAL_T*, REAL_T*, REAL_T*,
-					   REAL_T*, INT_T*, INT_T*, INT_T*,
-					   INT_T*, INT_T*, INT_T*, INT_T*,
-					   INT_T*, INT_T*, char* ),
-			REAL_T*, REAL_T*, INT_T* );
-REF_MATRIX_T	newtransform( REAL_T, REAL_T, REAL_T, REAL_T, REAL_T, REAL_T );
-INT_T		nmode( REAL_T*, INT_T,
-			REAL_T ( *func)( REAL_T*, REAL_T*, REAL_T*, REAL_T*,
-					 REAL_T*, INT_T*, INT_T*, INT_T*,
-					 INT_T*, INT_T*, INT_T*, INT_T*,
-					 INT_T*, INT_T*, char*  ),
-		       INT_T, INT_T, REAL_T, REAL_T , INT_T);
-INT_T           nm_timer();
-INT_T		orbounds( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T*, REAL_T, REAL_T );
-REAL_T		pair_ener( STRING_T*, INT_T );
-INT_T		plane( MOLECULE_T**, STRING_T**, REAL_T*, REAL_T*, REAL_T* );
-INT_T		putarc( STRING_T**, MOLECULE_T** );
-INT_T		putbnd( STRING_T*, MOLECULE_T* );
-INT_T		putcif( STRING_T*, STRING_T*, MOLECULE_T* );
-INT_T		putdist( STRING_T*, MOLECULE_T*, STRING_T*, STRING_T* );
-INT_T		putmatrix( STRING_T*, MATRIX_T );
-INT_T		putpdb( STRING_T*, MOLECULE_T*, STRING_T* );
-INT_T		putx( STRING_T**, MOLECULE_T** );
-INT_T		putxv( STRING_T*, STRING_T*, INT_T, REAL_T, REAL_T*, REAL_T* );
-INT_T           putxyz( STRING_T**, INT_T*, REAL_T* );
-REAL_T		rand2( void );
-INT_T		readbinposhdr( FILE* );
-INT_T		readbinposfrm( INT_T, REAL_T*, FILE* );
-INT_T		readparm( MOLECULE_T*, STRING_T* );
-INT_T		rmsd( MOLECULE_T**, STRING_T**, MOLECULE_T**, STRING_T**, REAL_T*);
-REF_MATRIX_T	rot4( MOLECULE_T*, STRING_T*, STRING_T*, REAL_T );
-REF_MATRIX_T	rot4p( POINT_T, POINT_T, REAL_T );
-INT_T       rseed( void );
-FILE_T		*safe_fopen( STRING_T*, STRING_T* );
-INT_T		sasad( REAL_T*, REAL_T*, REAL_T*, INT_T, REAL_T );
-INT_T		setbounds( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T*, REAL_T, REAL_T );
-INT_T		setboundsfromdb( BOUNDS_T**, MOLECULE_T**, STRING_T**, STRING_T**, 
-		STRING_T**, REAL_T* );
-INT_T		setchiplane( BOUNDS_T**, MOLECULE_T**, STRING_T** );
-INT_T		setchivol( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T*, STRING_T*, STRING_T*, 
-		REAL_T );
-INT_T		setframe( INT_T, MOLECULE_T*, STRING_T*, STRING_T*, STRING_T*, STRING_T*, STRING_T* );
-INT_T		setframep( INT_T, MOLECULE_T*, POINT_T, POINT_T, POINT_T, POINT_T, POINT_T );
-INT_T		setmol_from_xyz( MOLECULE_T**, STRING_T**, REAL_T* );
-INT_T		setmol_from_xyzw( MOLECULE_T**, STRING_T**, REAL_T* );
-INT_T		setpoint( MOLECULE_T*, STRING_T*, POINT_T );
-INT_T		setreskind( MOLECULE_T*, STRING_T*, STRING_T* );
-INT_T		setreslibkind( STRING_T*, STRING_T* );
-INT_T       setseed( INT_T* );
-INT_T		setxyz_from_mol( MOLECULE_T**, STRING_T**, REAL_T* );
-INT_T		setxyzw_from_mol( MOLECULE_T**, STRING_T**, REAL_T* );
-INT_T		showbounds( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T* );
-INT_T		split( STRING_T*, STRING_T**, STRING_T* );
-REAL_T		step_ener( STRING_T*, INT_T );
-STRING_T	*substr( STRING_T*, INT_T, INT_T );
-INT_T		sugarpuckeranal( MOLECULE_T**, INT_T*, INT_T*, INT_T* );
-REF_MATRIX_T		superimpose( MOLECULE_T*, STRING_T*, MOLECULE_T*, STRING_T* );
-STRING_T	*timeofday();
-REF_MATRIX_T	trans4( MOLECULE_T*, STRING_T*, STRING_T*, REAL_T );
-REF_MATRIX_T	trans4p( POINT_T, POINT_T, REAL_T );
-REAL_T		torsion( MOLECULE_T*, STRING_T*, STRING_T*, STRING_T*, STRING_T* );
-REAL_T		torsionp( POINT_T, POINT_T, POINT_T, POINT_T );
-INT_T		transformmol( MATRIX_T, MOLECULE_T*, STRING_T* );
-INT_T		transformpts( MATRIX_T, POINT_T, INT_T );
-RESIDUE_T	*transformres( MATRIX_T, RESIDUE_T*, STRING_T* );
-INT_T		tsmooth( BOUNDS_T*, REAL_T );
-INT_T		useboundsfrom( BOUNDS_T*, MOLECULE_T*, STRING_T*, MOLECULE_T*, STRING_T*, REAL_T );
-INT_T		usemodeldist( BOUNDS_T*, MOLECULE_T*, STRING_T*, STRING_T* );
-REF_MATRIX_T	updtransform( MATRIX_T, MATRIX_T );
-MOLECULE_T	*wc_basepair( RESIDUE_T**, RESIDUE_T** );
-STRING_T	*wc_complement( STRING_T**, STRING_T**, STRING_T** );
-MOLECULE_T	*wc_helix( STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**, STRING_T**,
-		REAL_T*, REAL_T*, REAL_T*, REAL_T*, STRING_T** );
-INT_T		writebinposhdr( FILE* );
-INT_T		writebinposfrm( INT_T, REAL_T*, FILE* );
-INT_T		writeparm( MOLECULE_T*, STRING_T* );
-/*
-REAL_T		xmin( REAL_T ( *func )( REAL_T*, REAL_T*, INT_T* ),
-                      INT_T*, REAL_T*, REAL_T*, REAL_T*, REAL_T*, 
-                      struct xmin_opt* );
-*/
-REAL_T      xmin();  /*  don't test arguments for now.... */
-INT_T       xmin_opt_init();  /*  don't test arguments for now.... */
-REAL_T      xminC(INT_T*, INT_T*, INT_T*, REAL_T*, INT_T*, INT_T*,
-            INT_T*, REAL_T*, REAL_T*, REAL_T*, REAL_T*,
-            INT_T*, REAL_T*, INT_T*, INT_T*, INT_T*, INT_T*,
-            REAL_T*, REAL_T*, REAL_T*, REAL_T*,
-            REAL_T*, REAL_T*, INT_T*, INT_T*);
 
 /*  AmberNetcdf routines: (no argument checking) */
 INT_T netcdfDebug();
@@ -325,7 +133,6 @@ int NAB_gsub(int, char **, char **, char **);
 
 	/*  Other NAB declarations:  */
 
-int	NAB_matcpy();
 int	unlink();
 int	NAB_aematch( ATOM_T *ap, char aex[] );
 

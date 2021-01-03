@@ -19,6 +19,13 @@ NAB2COBJS=	\
 	symbol.o	\
 	y.tab.o
 
+LIBNABOBJS=	\
+	gsub.o	\
+	hashutil.o	\
+	traceback.o \
+    time.o \
+	tm_malloc.o	
+
 
 #===========================================================================
 
