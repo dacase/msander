@@ -28,7 +28,8 @@ int main( int arg, char *argv[] )
             for (int an = 0; an < r->r_natoms; an++) {
                 a = &r->r_atoms[an];
 
-                printf( "        atom %d: %s\n", an, a->a_atomname );
+                NAB_arc( a, "fullname" );  // needed to update a_fullname
+                printf( "        atom %d: %s\n", an, a->a_fullname );
 
             }                   /* end loop over atoms in this residue  */
 
