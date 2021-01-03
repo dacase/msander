@@ -101,6 +101,12 @@ circle:  circle.c
 	@echo "[NABC] CC $<"
 	$(VB)$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L$(LIBDIR) \
         -lnabc -lcifparse $(LIBS)
+
+loop:  loop.c
+	@echo "[NABC] CC $<"
+	$(VB)$(CC) $(CFLAGS) -I$(INCDIR) -o $@ $< -L$(LIBDIR) \
+        -lnabc -lcifparse $(LIBS)
+
 #---------------------------------------------------------------------------
 .c.o:
 	@echo "[NABC] CC $<"
