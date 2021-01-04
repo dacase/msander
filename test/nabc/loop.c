@@ -10,9 +10,10 @@ int main( int arg, char *argv[] )
     RESIDUE_T *rp;
     ATOM_T *ap;
 
-    m = getpdb("2.pdb", NULL);
+    m = getpdb("d01.pdb", NULL);
     upd_molnumbers( m );
 
+#if 0
     //  strands are stored in a simple linked-list:
     for (sp = m->m_strands; sp; sp = sp->s_next) {
 
@@ -37,4 +38,35 @@ int main( int arg, char *argv[] )
 
     }                           /* end loop over strands  */
 
+    // second version of the above, like what the nab compiler would produce:
+
+#define ForRinM(r,m) for( r = NULL; r = NAB_rnext( m, r ); )
+#define ForAinR(a,r) for( a = NULL; a = NAB_anext( r, a ); )
+
+    // for( rp = NULL; rp = NAB_rnext( m, rp ); ){
+    ForRinM( rp, m ){
+
+        // chimera synatx for residue names:
+        printf( "residue:  %s.%s\n", rp->r_resname, rp->r_strand->s_strandname );
+
+        //for( ap = NULL; ap = NAB_anext( rp, ap ); ){
+        ForAinR( ap, rp ){
+            if( NAB_aematch( ap, "::*P*" ) )
+                printf( "    atom:  %s\n",  ap->a_atomname );
+        }
+    }
+#endif
+
+    // third version, just look over all atoms:
+
+#define ForAinM(a,m) for( a = NULL; a = NAB_mnext( m, a ); )
+
+    ForAinM( ap, m ){
+        if( NAB_aematch( ap, "::*P*" ) ){
+            NAB_arc( ap, "fullname" );  // needed to update a_fullname
+            printf( "    atom:  %s\n",  ap->a_fullname );
+        }
+    }
+
 }
+
