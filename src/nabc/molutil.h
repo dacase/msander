@@ -27,7 +27,7 @@ char *getresname (RESIDUE_T *res);
 int mergestr (MOLECULE_T *mol1, char *strand1, char *end1, MOLECULE_T *mol2, char *strand2, char *end2);
 int NAB_ainit (char **a, int s);
 ATOM_T *NAB_anext (RESIDUE_T *res, ATOM_T *cap);
-char **NAB_arc (ATOM_T *ap, char *key);
+char *NAB_arc (ATOM_T *ap, char *key);
 REAL_T *NAB_arf (ATOM_T *ap, char *key);
 int *NAB_ari (ATOM_T *ap, char *key);
 POINT_T *NAB_arp (ATOM_T *ap, char *key);

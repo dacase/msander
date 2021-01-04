@@ -60,11 +60,13 @@ int main( int arg, char *argv[] )
     // third version, just look over all atoms:
 
 #define ForAinM(a,m) for( a = NULL; a = NAB_mnext( m, a ); )
+#define A_fullname(a)  NAB_arc( a, "fullname" )
 
     ForAinM( ap, m ){
         if( NAB_aematch( ap, "::*P*" ) ){
-            NAB_arc( ap, "fullname" );  // needed to update a_fullname
-            printf( "    atom:  %s\n",  ap->a_fullname );
+            // NAB_arc( ap, "fullname" );  // needed to update a_fullname
+            // printf( "    atom:  %s\n",  NAB_arc( ap, "fullname" ) );
+            printf( "    atom:  %s\n",  A_fullname( ap ) );
         }
     }
 

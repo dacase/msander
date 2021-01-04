@@ -286,7 +286,7 @@ int	MAT_istrue( MATRIX_T );
 
 INT_T		*NAB_ari();
 REAL_T		*NAB_arf();
-STRING_T	**NAB_arc( ATOM_T*, STRING_T* );
+STRING_T	*NAB_arc( ATOM_T*, STRING_T* );
 POINT_T		*NAB_arp( ATOM_T *ap, char key[] );
 INT_T		*NAB_rri();
 STRING_T	**NAB_rrc();
