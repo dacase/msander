@@ -282,6 +282,22 @@ int	MAT_count( char [] );
 char	*MAT_getsyminfo( void );
 int	MAT_istrue( MATRIX_T );
 
+	/* functions for accessing parts of atoms & residues */
+
+INT_T		*NAB_ari();
+REAL_T		*NAB_arf();
+STRING_T	**NAB_arc( ATOM_T*, STRING_T* );
+POINT_T		*NAB_arp( ATOM_T *ap, char key[] );
+INT_T		*NAB_rri();
+STRING_T	**NAB_rrc();
+INT_T		*NAB_mri();
+
+	/* functions for for( a in m ) etc	*/
+
+ATOM_T		*NAB_mnext (MOLECULE_T *mol, ATOM_T *cap);
+ATOM_T		*NAB_anext();
+RESIDUE_T	*NAB_rnext();
+
     /* trig functions in degrees:   */
 
 #define R2D 57.29577951308232090712

@@ -993,7 +993,7 @@ ATOM_T		*NAB_anext( RESIDUE_T *res, ATOM_T *cap )
 		ap = res->r_atoms;
 		return( ap );
 	}else{
-		/* get next atom	*/
+		/* get next atom */
 		na = ( cap - res->r_atoms ) + 1;
 		if( na < res->r_natoms ){
 			ap = &res->r_atoms[ na ];
