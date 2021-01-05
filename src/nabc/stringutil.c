@@ -16,6 +16,8 @@ int	NAB_strcmp( char *, char * );
 char	*NAB_readstring( char ** );
 int	NAB_newstring( char **, int * );
 
+char	NAB_rsbuf[ NAB_RSBUF_SIZE ];
+
 char	*substr( char str[], int pos, int len )
 {
 	int	slen, alen;

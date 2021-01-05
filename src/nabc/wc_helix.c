@@ -49,10 +49,10 @@ MOLECULE_T *wc_helix(
         asprintf( &arname, "D%c", toupper(aseq[i-1]) );
     else
         asprintf( &arname, "%c", toupper(aseq[i-1]) );
-	if( strstr( opts, "s5" ) )
-        asprintf( &arname, "%s%c", arname, '5' );
-	else if( strstr( opts, "s3" ) && slen == 1 )
+	if( strstr( opts, "a3" ) )
         asprintf( &arname, "%s%c", arname, '3' );
+	else if( strstr( opts, "a5" ) && slen == 1 )
+        asprintf( &arname, "%s%c", arname, '5' );
 	ares = getresidue( arname );
 
 	m1 = wc_basepair( sres, ares );
@@ -114,8 +114,8 @@ MOLECULE_T *wc_helix(
             asprintf( &arname, "D%c", toupper(aseq[i-1]) );
         else
             asprintf( &arname, "%c", toupper(aseq[i-1]) );
-	    if( strstr( opts, "s3" ) )
-            asprintf( &arname, "%s%c", arname, '3' );
+	    if( strstr( opts, "a5" ) )
+            asprintf( &arname, "%s%c", arname, '5' );
         ares = getresidue( arname );
 
 		m2 = wc_basepair( sres, ares );

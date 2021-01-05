@@ -2,7 +2,7 @@ include ../../config.h
 
 .c.o:
 	@echo "[SFF]  CC $<"
-	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) $(NETCDFINC) -o $@ $<
+	$(VB)$(CC) -c $(COPTFLAGS) $(CFLAGS) $(NETCDFINC) -o $@ $<
 
 OBJS = conjgrad.o lmodC.o memutil.o nblist.o newton.o nmode.o \
 	   prm.o rand2.o sasad.o sff.o xminC.o AmberNetcdf.o ptrajmask.o 
@@ -41,9 +41,9 @@ hcp_getpdb$(SFX): hcp_getpdb.c
 
 sff.c: lex.mmo.c
 
-depend: conjgrad.c lmodC.c memutil.c nblist.c newton.c nmode.c \
-       prm.c rand2.c sasad.c sff.c xminC.c AmberNetcdf.c ptrajmask.c
-	$(CC) -MM $^ > $@
+depend: $(OBJS:.o=.c)
+	@echo "[SFF] make depend"
+	$(VB)$(CC) -MM $^ > $@
 
 include depend
 

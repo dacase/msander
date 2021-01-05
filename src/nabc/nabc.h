@@ -255,8 +255,6 @@ MOLECULE_T	*wc_helix( STRING_T*, STRING_T*, STRING_T*, STRING_T*,
                        REAL_T, REAL_T, REAL_T, REAL_T, STRING_T* );
 INT_T		writeparm( MOLECULE_T*, STRING_T* );
 
-FILE   *nabout;
-
 void  copy_mat( MATRIX_T, MATRIX_T );
 
 /*  from stringutil.c:  */
@@ -284,6 +282,22 @@ int	MAT_count( char [] );
 char	*MAT_getsyminfo( void );
 int	MAT_istrue( MATRIX_T );
 
+	/* functions for accessing parts of atoms & residues */
+
+INT_T		*NAB_ari();
+REAL_T		*NAB_arf();
+STRING_T	*NAB_arc( ATOM_T*, STRING_T* );
+POINT_T		*NAB_arp( ATOM_T *ap, char key[] );
+INT_T		*NAB_rri();
+STRING_T	**NAB_rrc();
+INT_T		*NAB_mri();
+
+	/* functions for for( a in m ) etc	*/
+
+ATOM_T		*NAB_mnext (MOLECULE_T *mol, ATOM_T *cap);
+ATOM_T		*NAB_anext();
+RESIDUE_T	*NAB_rnext();
+
     /* trig functions in degrees:   */
 
 #define R2D 57.29577951308232090712
@@ -296,4 +310,5 @@ int	MAT_istrue( MATRIX_T );
 #define SIN(a)  sin(D2R*(a))
 #define TAN(a)  tan(D2R*(a))
 
+#define	NAB_RSBUF_SIZE	10000
 #endif

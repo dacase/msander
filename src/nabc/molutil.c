@@ -993,7 +993,7 @@ ATOM_T		*NAB_anext( RESIDUE_T *res, ATOM_T *cap )
 		ap = res->r_atoms;
 		return( ap );
 	}else{
-		/* get next atom	*/
+		/* get next atom */
 		na = ( cap - res->r_atoms ) + 1;
 		if( na < res->r_natoms ){
 			ap = &res->r_atoms[ na ];
@@ -1145,7 +1145,7 @@ REAL_T	*NAB_arf( ATOM_T *ap, char key[] )
 	}
 }
 
-char	**NAB_arc( ATOM_T *ap, char key[] )
+char	*NAB_arc( ATOM_T *ap, char key[] )
 {
 	RESIDUE_T	*res;
 	STRAND_T	*sp, *sp1;
@@ -1154,17 +1154,17 @@ char	**NAB_arc( ATOM_T *ap, char key[] )
 	char	name[ 100 ];
 
 	if( !strcmp( key, "atomname" ) ){
-		return( &ap->a_atomname );
+		return( ap->a_atomname );
 	}else if( !strcmp( key, "resname" ) ){
 		res = ap->a_residue;
-		return( &res->r_resname );
+		return( res->r_resname );
 	}else if( !strcmp( key, "resid" ) ){
 		res = ap->a_residue;
-		return( &res->r_resid );
+		return( res->r_resid );
 	}else if( !strcmp( key, "strandname" ) ){
 		res = ap->a_residue;
 		sp = res->r_strand;
-		return( &sp->s_strandname );
+		return( sp->s_strandname );
 	}else if( !strcmp( key, "fullname" ) ){
 		res = ap->a_residue;
 		sp = res->r_strand;
@@ -1183,7 +1183,7 @@ char	**NAB_arc( ATOM_T *ap, char key[] )
 			free( ap->a_fullname );
 		ap->a_fullname = ( char * )malloc( (strlen( name ) + 1) * sizeof(char) );
 		strcpy( ap->a_fullname, name );
-		return( &ap->a_fullname );
+		return( ap->a_fullname );
 	}else{
 		fprintf( stderr, "NAB_arc: unknown key: %s\n", key );
 		return( NULL );
