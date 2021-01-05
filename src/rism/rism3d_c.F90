@@ -1576,7 +1576,8 @@ contains
        this%huvk0 => safemem_realloc(this%huvk0, 2, this%solvent%numAtomTypes)
     end if
 
-    if (this%grid%offsetK(3) == 0) then
+    !  if (this%grid%offsetK(3) == 0) then
+    !    now needs to be done on all nodes
        ! Check if the background charge correction is provided. Old
        ! Xvv files only have delhv0, which combines the background
        ! correction and the long range asymptotics. If we only have
@@ -1584,6 +1585,8 @@ contains
        soluteQ = sum(this%solute%charge)/this%grid%boxVolume
        if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
           this%huvk0(1, :) = this%solvent%background_correction(:) * soluteQ
+          if (this%grid%offsetK(3) == 0) &
+            write(6,'(a,6f10.5)') '|  huvk0 = ', this%huvk0(1, :)
        else
           ! for pure water, kappa is zero, and there should be no
           !    background correction:
@@ -1596,7 +1599,7 @@ contains
           end if
        end if
        this%huvk0(2, :) = 0d0
-    end if
+    ! end if
   end subroutine check_xvv_info
 
 end module rism3d_c
