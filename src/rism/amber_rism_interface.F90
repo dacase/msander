@@ -340,7 +340,7 @@ module amber_rism_interface
      !! compiler whinge about misalignment.
      !! Note: this should be commented if ever there are grounds for a
      !! new real INTEGER.
-     !! integer :: padding
+     integer :: padding
   end type rismprm_t
   
   !> Possible RISM calculation types for MD.
