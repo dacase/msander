@@ -441,7 +441,7 @@ subroutine locmem()
       maxpr = 1
    else
       if( numextra == 0 ) then
-         maxpr_float = natom * (cutoffnb + skinnb)**3 / 3.0d0
+         maxpr_float = natom * (cutoffnb + skinnb)**3 / 2.5d0
       else   ! need more nonbon storage with extra points
          maxpr_float = natom * (cutoffnb + skinnb)**3 / 2.5d0
       end if
