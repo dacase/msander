@@ -749,11 +749,6 @@ class AmberParm(AmberFormat, Structure):
         # Now set up ATOMS_PER_MOLECULE and catch any errors
         self.parm_data['ATOMS_PER_MOLECULE'] = [len(mol) for mol in owner]
 
-        # for crystal simulations, we don't care about the molecule
-        # list, since we are not doing constant pressure simulations.
-        # So, skip this next step:
-        return None
-
         # Check that all of our molecules are contiguous, because we have to
         # re-order atoms if they're not
         try:
