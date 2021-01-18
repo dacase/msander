@@ -1643,6 +1643,7 @@ lmod.LES.o:   lmod.F90
 locmem.o: \
                     ../include/dprec.fh\
                     nonbond_list.o\
+                    ../rism/amber_rism_interface.o\
                     linear_response.o\
                     box.h\
                     nmr.h\
@@ -1663,6 +1664,7 @@ locmem.o:   locmem.F90
 locmem.LES.o: \
                     ../include/dprec.fh\
                     nonbond_list.LES.o\
+                    ../rism/amber_rism_interface.o\
                     linear_response.o\
                     box.h\
                     nmr.h\

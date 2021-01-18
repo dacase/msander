@@ -8,8 +8,7 @@ subroutine locmem()
    !     locmem:  partitions core array into storage for all
    !        the major arrays of the program.
    use nblist, only: cutoffnb,skinnb
-#ifdef MPI
-#endif
+   use sander_rism_interface, only: rismprm
    use linear_response, only: ilrt
    implicit none
    
@@ -441,7 +440,7 @@ subroutine locmem()
       maxpr = 1
    else
       if( numextra == 0 ) then
-         maxpr_float = natom * (cutoffnb + skinnb)**3 / 2.5d0
+         maxpr_float = natom * (cutoffnb + skinnb)**3 / 3.0d0
       else   ! need more nonbon storage with extra points
          maxpr_float = natom * (cutoffnb + skinnb)**3 / 2.5d0
       end if
@@ -449,13 +448,12 @@ subroutine locmem()
       ! may need more space for LES calculations:
       maxpr_float = maxpr_float * 2.d0
 #endif
-      
       !       --- cap at maximum possible number of pairs:
       
       natom_float = natom
       n2_float = natom_float*(natom_float-1.d0)/2.d0
       if( maxpr_float > n2_float ) maxpr_float = n2_float
-      
+
       !       --- check that MAXPR fits into 32 bit integer:
       
       if( maxpr_float < 2.147d9 ) then
@@ -466,7 +464,7 @@ subroutine locmem()
          call mexit(6,1)
       end if
 # ifdef MPI
-      if(periodic == 1) then
+      if(periodic == 1 .and. rismprm%rism == 0) then
          if( numtasks <= 8 ) maxpr = maxpr/numtasks
          !  allow for some load imbalance in list at high processor number:
          if( numtasks >  8 ) maxpr = 4*maxpr/(3*numtasks)
