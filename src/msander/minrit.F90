@@ -111,19 +111,18 @@ subroutine minri2(nf,nrp,x)
    nr3 = 3*nr
    tt = 0.0d0
    
-   write(nf,40) title
-   if( nr > 99999 ) then
-      write(nf,221) nr
+   write(nf,'(a80)') title
+   if( nr < 100000 ) then
+     write(nf,'(i5)') nr
+   elseif ( nr < 1000000 ) then ! sander 7/8/9/10 large system format...
+     write(nf,'(i6)') nr
+   elseif ( nr < 10000000 ) then ! Sander 11 - 1 mil+ format
+     write(nf,'(i7)') nr
    else
-      write(nf,220) nr
+     write(nf,'(i8)') nr ! assume amber 11 VERY large system format. 10 mil+
    end if
-   write(nf,292) (x(i),i=1,nr3)
-   if ( ntb /= 0 ) write(nf,292) a,b,c,alpha,beta,gamma
-   
-   40 format(20a4)
-   220 format(i5,1x,f10.5,i5)
-   221 format(i6,f10.5,i5)
-   292 format(6f12.7)
+   write(nf,'(6f12.7)') (x(i),i=1,nr3)
+   if ( ntb /= 0 ) write(nf,'(6f12.7)') a,b,c,alpha,beta,gamma
    
    return
 end subroutine minri2
