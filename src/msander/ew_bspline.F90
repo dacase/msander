@@ -5,7 +5,7 @@ module ew_bspline
 #include "../include/dprec.fh"
 
 integer,parameter :: bspl_maxorder=20, BSPL_MAX_ATOMS=50000, &
-      BSPL_MAX_LAYERS=200, maxnfft=500
+      BSPL_MAX_LAYERS=200, maxnfft=1000
 
 integer nbsplist(BSPL_MAX_ATOMS),nbspstrt(BSPL_MAX_LAYERS)
 integer nstart,nend,nremain,ndelt,nst
