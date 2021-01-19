@@ -3454,7 +3454,7 @@ subroutine mdread2(x,ix,ih)
                 x(l60-1+natc) = restraint_wt
               end do
 #ifndef API
-              write(6,'(a,a,a,i5,a)') '     Mask ', &
+              write(6,'(a,a,a,i7,a)') '     Mask ', &
               restraintmask(1:len_trim(restraintmask)), ' matches ',natc,' atoms'
 #endif
           end if
@@ -3493,7 +3493,7 @@ subroutine mdread2(x,ix,ih)
                   nattgtfit = nattgtfit + 1
                   ix(itgtfitgp-1+nattgtfit) = i
                 end do
-                write(6,'(a,a,a,i5,a)')  &
+                write(6,'(a,a,a,i7,a)')  &
                 '     Mask "', tgtfitmask(1:len_trim(tgtfitmask)-1),  &
                 '" matches ',nattgtfit,' atoms'
               end if
@@ -3506,7 +3506,7 @@ subroutine mdread2(x,ix,ih)
                 nattgtrms = nattgtrms + 1
                 ix(itgtrmsgp-1+nattgtrms) = i
               end do
-              write(6,'(a,a,a,i5,a)')  &
+              write(6,'(a,a,a,i7,a)')  &
               '     Mask "', tgtrmsmask(1:len_trim(tgtrmsmask)-1),  &
               '" matches ',nattgtrms,' atoms'
           end if
@@ -3559,7 +3559,7 @@ subroutine mdread2(x,ix,ih)
          endif
          natbel = sum(ix(ibellygp:ibellygp+natom-1))
 #ifndef API
-         write(6,'(a,a,a,i5,a)') '     Mask ', &
+         write(6,'(a,a,a,i7,a)') '     Mask ', &
             bellymask(1:len_trim(bellymask)), ' matches ',natbel,' atoms'
 #endif
       end if
@@ -3573,7 +3573,7 @@ subroutine mdread2(x,ix,ih)
          ix(i02), ih(m02), x(lcrd), noshakemask, noshakegp )
       natnos = sum(noshakegp(1:natom))
       write(6,*)
-      write(6,'(a,a,a,i5,a)') 'Noshake mask ', &
+      write(6,'(a,a,a,i7,a)') 'Noshake mask ', &
          noshakemask(1:len_trim(noshakemask)), ' matches ',natnos,' atoms'
       call setnoshake(ix,noshakegp,ntc,num_noshake)
       if( ntf > 1 ) then
@@ -3587,7 +3587,7 @@ subroutine mdread2(x,ix,ih)
    if ( len_trim(crgmask) > 0 ) then
       call atommask( natom, nres, 0, ih(m04), ih(m06), &
          ix(i02), ih(m02), x(lcrd), crgmask, crggp )
-      write(6,'(a,a,a,i5,a)') 'Zero-Charge Mask ',crgmask(1:len_trim(crgmask)), ' matches ',sum(crggp(1:natom)),' atoms'
+      write(6,'(a,a,a,i7,a)') 'Zero-Charge Mask ',crgmask(1:len_trim(crgmask)), ' matches ',sum(crggp(1:natom)),' atoms'
       call remove_charges(crggp, natom, x(l15))
    end if
 #endif

@@ -48,7 +48,7 @@ subroutine check_neutral(charge,natom)
 
 #ifndef API
    if (master) then
-      write(6,'(/,5x,a,f12.6)') 'Sum of charges from parm topology file = ',&
+      write(6,'(/,5x,a,f12.4)') 'Sum of charges from parm topology file = ',&
                 sum * INV_AMBER_ELECTROSTATIC
    end if
 #endif
