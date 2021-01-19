@@ -16,3 +16,7 @@ DIHE
 X -CQ-N2-X    2   13.60        180.0             2.         1MA
 CQ-NC-CT-HC   1    0.0           0.0             3          1MA
 
+IMPROPER
+X -X -N2-CT          1.1         180.          2.           1MA
+X -X -N*-H           1.1         180.          2.           1MA
+
