@@ -8,7 +8,9 @@ subroutine locmem()
    !     locmem:  partitions core array into storage for all
    !        the major arrays of the program.
    use nblist, only: cutoffnb,skinnb
+#ifdef RISMSANDER
    use sander_rism_interface, only: rismprm
+#endif
    use linear_response, only: ilrt
    implicit none
    
@@ -464,7 +466,11 @@ subroutine locmem()
          call mexit(6,1)
       end if
 # ifdef MPI
+#  ifdef RISMSANDER
       if(periodic == 1 .and. rismprm%rism == 0) then
+#  else
+      if(periodic == 1) then
+#endif
          if( numtasks <= 8 ) maxpr = maxpr/numtasks
          !  allow for some load imbalance in list at high processor number:
          if( numtasks >  8 ) maxpr = 4*maxpr/(3*numtasks)
