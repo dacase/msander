@@ -3,7 +3,7 @@
 #   analyze input structure
 
 if [ "$#" -ne 2 ]; then
-   echo "Usage:  run_cdl.sh <pdbfile> <mtzfile>"
+   echo "Usage:  phenix.initial.sh <pdbfile> <mtzfile>"
    exit 1
 fi
 

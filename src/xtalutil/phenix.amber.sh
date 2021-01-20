@@ -3,7 +3,7 @@
 #   standard amber refinement
 
 if [ "$#" -ne 3 ]; then
-   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <serial-no>"
+   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <serial-no>"
    exit 1
 fi
 
