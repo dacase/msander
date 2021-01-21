@@ -2,24 +2,24 @@
 
 #   standard amber refinement
 
-if [ "$#" -ne 3 ]; then
-   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <serial-no>"
+if [ "$#" -ne 4 ]; then
+   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <cif-files> <serial-no>"
    exit 1
 fi
 
-cat <<EOF > amber.eff
+cat <<EOF > amber_00$4.eff
 refinement {
   input {
     xray_data {
       outliers_rejection = True
       r_free_flags {
-        generate = True
+        generate = False
       }
     }
   }
   output {
     prefix = "amber"
-    serial = $3
+    serial = $4
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -33,13 +33,13 @@ refinement {
   }
   target_weights {
     optimize_xyz_weight = False
-    fix_wxc = 1
+    fix_wxc = 0
     wc = 1.6667
   } 
   main {
     nqh_flips = True
     number_of_macro_cycles = 10
-    target = auto *ml mlhl ml_sad ls mli
+    target = *auto ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
   }
@@ -75,7 +75,10 @@ refinement {
 }
 EOF
 
-phenix.refine  4phenix_$1.pdb  $2  amber.eff --overwrite | tee amber$3.log
-/bin/mv amber$3.log amber_00$3.log
+phenix.refine  4phenix_$1.pdb  $2  $3  amber_00$4.eff --overwrite > amber$4.log
 
-/bin/rm -f amber.eff
+diff amber_00$4.log amber$4.log | awk 'NF==8 && $2!="Amber" {print $2}' \
+     > amber_00$4.energies.dat
+
+/bin/mv amber$4.log amber_00$4.log
+

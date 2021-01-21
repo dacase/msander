@@ -2,8 +2,8 @@
 
 #   standard cdl refinement
 
-if [ "$#" -ne 2 ]; then
-   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile>"
+if [ "$#" -ne 3 ]; then
+   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <cif-files>"
    exit 1
 fi
 
@@ -34,7 +34,7 @@ refinement {
   main {
     nqh_flips = True
     number_of_macro_cycles = 10
-    target = auto *ml mlhl ml_sad ls mli
+    target = *auto ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
   }
@@ -57,6 +57,6 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2  refine.eff --overwrite
+phenix.refine  $1  $2  $3 refine.eff --overwrite > /dev/null
 
 /bin/rm -f refine.eff

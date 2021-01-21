@@ -2,8 +2,8 @@
 
 #   analyze input structure
 
-if [ "$#" -ne 2 ]; then
-   echo "Usage:  phenix.initial.sh <pdbfile> <mtzfile>"
+if [ "$#" -ne 3 ]; then
+   echo "Usage:  phenix.initial.sh <pdbfile> <mtzfile> <cif-files>"
    exit 1
 fi
 
@@ -57,6 +57,6 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2  refine.eff --overwrite
+phenix.refine  $1  $2 $3  refine.eff --overwrite
 
 /bin/rm -f refine.eff
