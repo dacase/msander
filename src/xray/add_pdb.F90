@@ -70,7 +70,8 @@ program add_pdb
    
    character(len=4) :: name,resName,segID,element,prev_resName
    character(len=1) :: altLoc,chainID,iCode,prev_chainID,prev_iCode
-   integer :: serial,resSeq,prev_resSeq
+   character(len=5) :: serial
+   integer :: resSeq,prev_resSeq
    real :: xyz(3),occupancy,tempFactor
    real, allocatable :: coor(:,:)
    real :: d
@@ -179,7 +180,8 @@ program add_pdb
       read(pdb_lun,'(A)',end=99) buf
       if (buf(1:6)=='END   ') exit
       if (buf(1:6)=='ATOM  ' .or. buf(1:6)=='HETATM') then
-         read(buf,'(6X,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
+         write(0,*) buf(1:70)
+         read(buf,'(6X,A5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
                serial,name,altLoc,resName,chainID,resSeq,iCode, &
                xyz,occupancy,tempFactor,segID,element
          pdb_natom=pdb_natom+1

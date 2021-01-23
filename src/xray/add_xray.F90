@@ -150,6 +150,7 @@ program add_xray
    if( .not. electronsf ) then
       do i = 1,num_atoms
          if( atom_element(i) == 'Ca  ' ) atom_element(i) = 'Ca+2'
+         if( atom_element(i) == 'Cd  ' ) atom_element(i) = 'Cd+2'
          if( atom_element(i) == 'Mg  ' ) atom_element(i) = 'Mg+2'
          if( atom_element(i) == 'Na  ' ) atom_element(i) = 'Na+1'
          if( atom_element(i) == ' K  ' ) atom_element(i) = ' K+1'

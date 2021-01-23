@@ -1037,8 +1037,10 @@ subroutine getcor(bin,natom,coords,nf)
       read(nf,'(a)') line
       if (line(6:6) .eq. ' ') then
          read(line,'(i5)') matom
-      else
+      else if (line(7:7) .eq. ' ') then
          read(line,'(i6)') matom
+      else
+         read(line,'(i7)') matom
       end if
       if (matom .ne. natom) then
          write(0,20) natom,matom
