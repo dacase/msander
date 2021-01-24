@@ -22,14 +22,12 @@ module bulk_solvent_mod
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
   double precision :: k_sol = 0.35, b_sol = 46.0
 
-  ! atom_types:    Type index for each atom, referring not to atom types in the
-  !                standard MD topology but atom types for the SSF calculation
   ! mask_bs_grid:      Array to hold the bulk solvent mask
   ! mask_bs_grid_tmp:  Array used in shrinking the bulk solvent mask 
   !                    when building it
   ! grid_neighbors:    Array of relative positions for any grid neighbors 
   !                    in the bulk
-  integer, dimension(:), allocatable :: atom_types, mask_bs_grid, &
+  integer, dimension(:), allocatable :: mask_bs_grid, &
                                         mask_bs_grid_tmp, grid_neighbors
 
   ! Size of the mask grid (number of grid points)
@@ -207,30 +205,22 @@ contains
     allocate(f_mask(num_hkl))
     allocate(hkl_indexing_bs_mask(num_hkl))
 
-    allocate(atom_types(num_atoms))
     allocate(mask_cutoffs(num_atoms))
     do i = 1, num_atoms
       atomic_number = ix(i100+i)
       if( atomic_number == 6 ) then
-          atom_types(i) = 2
           mask_cutoffs(i) = 1.775 + mask_r_probe
       elseif( atomic_number == 17 ) then
-          atom_types(i) = 0
           mask_cutoffs(i) = 1.75 + mask_r_probe
       elseif ( atomic_number == 7 ) then
-          atom_types(i) = 3
           mask_cutoffs(i) = 1.5 + mask_r_probe
       elseif( atomic_number == 11 ) then
-          atom_types(i) = 0
           mask_cutoffs(i) = 2.27 + mask_r_probe
       elseif ( atomic_number == 8 ) then
-        atom_types(i) = 4
         mask_cutoffs(i) = 1.45 + mask_r_probe
       elseif ( atomic_number == 16 ) then
-        atom_types(i) = 5
         mask_cutoffs(i) = 1.8 + mask_r_probe
       else
-        atom_types(i) = 1
         mask_cutoffs(i) = 1.2 + mask_r_probe
       endif
     end do
