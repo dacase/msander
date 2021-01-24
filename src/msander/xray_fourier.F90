@@ -84,7 +84,7 @@ contains
       ! locals
       integer :: ihkl, i, ier, ierr
       ! automatic
-      real(real_kind) :: f(num_atoms), angle(num_atoms)
+      real(real_kind), allocatable :: f(:), angle(:)
       double precision :: time0, time1
       logical, save :: first=.true.
 
@@ -111,6 +111,8 @@ contains
          enddo
          first = .false. 
       endif
+      allocate(f(num_atoms), angle(num_atoms), stat=ier)
+      REQUIRE(ierr==0)
 
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
@@ -154,6 +156,9 @@ contains
 !$omp end parallel do
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
+      deallocate(f, angle, stat=ier)
+      REQUIRE(ier==0)
+      return
 
    end subroutine fourier_Fcalc
 
@@ -203,7 +208,6 @@ contains
       complex(real_kind) :: f
       real(real_kind) :: phase
       double precision time0, time1
-      logical, save :: first=.true.
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
