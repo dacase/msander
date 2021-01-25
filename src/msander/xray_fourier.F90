@@ -54,6 +54,7 @@ module xray_fourier_module
       integer :: mytaskid = 0
 #endif
       real(real_kind), allocatable, save  :: atomic_scatter_factor(:,:)
+      real(real_kind), allocatable, save  :: f(:), angle(:)
 
    !-------------------------------------------------------------------
 contains
@@ -82,9 +83,7 @@ contains
       real(real_kind), intent(in), target :: occupancy(num_atoms)
 
       ! locals
-      integer :: ihkl, i, ier, ierr
-      ! automatic
-      real(real_kind), allocatable :: f(:), angle(:)
+      integer :: ihkl, i, ier
       double precision :: time0, time1
       logical, save :: first=.true.
 
@@ -101,18 +100,22 @@ contains
          ihkl2 = num_hkl
 #endif
 
-         allocate(atomic_scatter_factor(num_hkl,num_scatter_types), stat=ierr)
-         REQUIRE(ierr==0)
+         allocate(atomic_scatter_factor(num_hkl,num_scatter_types), stat=ier)
+         REQUIRE(ier==0)
          do ihkl=ihkl1,ihkl2
             do i = 1,num_scatter_types
                atomic_scatter_factor(ihkl,i) = &
                atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
             end do
          enddo
+
+         allocate(f(num_atoms), stat=ier)
+         REQUIRE(ier==0)
+         allocate(angle(num_atoms), stat=ier)
+         REQUIRE(ier==0)
+
          first = .false. 
       endif
-      allocate(f(num_atoms), angle(num_atoms), stat=ier)
-      REQUIRE(ierr==0)
 
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
@@ -156,8 +159,8 @@ contains
 !$omp end parallel do
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
-      deallocate(f, angle, stat=ier)
-      REQUIRE(ier==0)
+      ! deallocate(f, angle, stat=ier)
+      ! REQUIRE(ier==0)
       return
 
    end subroutine fourier_Fcalc
@@ -296,19 +299,33 @@ contains
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
           hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
+#ifdef MPI
+      use mpi
+#endif
       implicit none
       integer, intent(in) :: nstep
       real(real_kind), intent(in) :: crd(3*num_atoms)
       logical, intent(in) :: update_Fcalc
 
-      integer :: i
+      integer :: i, ier
+      double precision :: time0, time1
 
       if( bulk_solvent_model == 'none' ) return
 
-      if (.not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
+      ! only do this on the master node to save global memory
+      if (mytaskid == 0 .and. .not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
+         call wallclock( time0 )
          call grid_bulk_solvent(num_atoms, crd)
+         call wallclock( time1 )
+         write(0,*) 'grid_bulk_solvent time: ', time1 - time0
+         time0 = time1
          call shrink_bulk_solvent()
+         call wallclock( time1 )
+         write(0,*) 'shrink_bulk_solvent time: ', time1 - time0
+         time0 = time1
          call fft_bs_mask()
+         call wallclock( time1 )
+         write(0,*) 'fft_bs time: ', time1 - time0
 
          do i=1,num_hkl
             f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
@@ -321,8 +338,11 @@ contains
                aimag(f_mask(i)),char(9),abs(f_mask(i))
 #endif
          end do
-         if (mytaskid == 0 ) write(6,'(a,5e14.6)') '| updating fmask'
+         write(6,'(a,5e14.6)') '| updating fmask'
       endif
+#ifdef MPI
+      call mpi_bcast( f_mask, num_hkl, MPI_DOUBLE_COMPLEX, 0, commsander, ier )
+#endif
 
       if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 

@@ -1,3 +1,4 @@
+#include "../include/assert.fh"
 module bulk_solvent_mod
 
   implicit none
@@ -194,15 +195,18 @@ contains
     implicit none
     double precision, intent(in) :: resolution
 
-    integer :: i, atomic_number, na, nb, nc
+    integer :: i, atomic_number, na, nb, nc, ier
     double precision :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
     double precision :: a,b,c,alpha,beta,gamma
     double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
 
-    allocate(k_mask(num_hkl))
-    allocate(f_mask(num_hkl))
+    allocate(k_mask(num_hkl), f_mask(num_hkl), stat=ier)
+    REQUIRE( ier==0 )
+
+    if( mytaskid /= 0 ) return
+
     allocate(hkl_indexing_bs_mask(num_hkl))
 
     allocate(mask_cutoffs(num_atoms))

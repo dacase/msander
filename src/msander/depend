@@ -1682,6 +1682,11 @@ locmem.LES.o:   locmem.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
 
+look.o:   look.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ look.F90
+
+
 matinv.o:   matinv.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
@@ -3944,6 +3949,7 @@ sander.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
+                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4012,6 +4018,7 @@ sander.LES.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
+                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4079,6 +4086,7 @@ sander.PUPIL.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
+                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4423,6 +4431,7 @@ wallclock.o:   wallclock.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ wallclock.F90
 
 xray_bulk_solvent.o: \
+                    ../include/assert.fh\
                     parallel.h\
                     xray_globals.o\
                     memory_module.o

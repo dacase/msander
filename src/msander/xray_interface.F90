@@ -244,7 +244,7 @@ contains
       character(len=*), intent(in) :: filename
       ! locals
       character(len=4) :: name,resName,segID,element,altLoc,chainID,iCode
-      integer :: serial,resSeq
+      integer :: resSeq
       real(real_kind) :: xyz(3),occupancy,tempFactor
       character(len=80) :: line
       integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss
@@ -267,8 +267,8 @@ contains
          if (iostat/=0) exit
          if (line(1:6)=='END   ') exit
          if (line(1:6)=='ATOM  ' .or. line(1:6)=='HETATM') then
-            read(line,'(6X,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
-                  serial,name,altLoc,resName,chainID,resSeq,iCode, &
+            read(line,'(12X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
+                  name,altLoc,resName,chainID,resSeq,iCode, &
                   xyz,occupancy,tempFactor,segID,element
             i = find_atom(name,resName,chainID,resSeq,iCode)
             if (i<0) then
@@ -460,10 +460,10 @@ contains
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       use ml_mod, only: init_ml, init_scales
-      use bulk_solvent_mod, only: init_bulk_solvent, f_mask
+      use bulk_solvent_mod, only: init_bulk_solvent, f_mask, k_mask
       implicit none
       ! local
-      integer :: hkl_lun, i, alloc_status, nstlim = 1, NAT_for_mask1
+      integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
       double precision :: resolution, fabs_solvent, phi_solvent
       real(real_kind) :: phi
       logical :: master
