@@ -18,7 +18,7 @@ subroutine sander()
 #endif /* DISABLE_NFE */
 
   use lmod_driver
-  use constants, only : INV_AMBER_ELECTROSTATIC
+  use constants, only : INV_AMBER_ELECTROSTATIC, set_omp_num_threads
 
   ! The main qmmm_struct contains all the QMMM variables and arrays
   use qmmm_read_and_alloc, only : read_qmmm_nm_and_alloc
@@ -1028,21 +1028,8 @@ subroutine sander()
 #endif /* MPI */
 
 #ifdef OPENMP
-    ! If we are using openmp print some information.
-    if (qmmm_nml%ifqnt .and. master) then
-       call qm_print_omp_info()
-    else
-       call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, &
-           status=ier)
-       if( ier == 1 ) then
-          write(6,'(a)') &
-             '| Running OPENMP code, but OMP_NUM_THREADS is not defined'
-       else
-          write(6,'(a,a)') &
-             '| Running OPENMP code, with OMP_NUM_THREADS = ', &
-             trim(omp_num_threads)
-       end if
-    end if
+    ! set up and print some information
+    call set_omp_num_threads()
 #endif
 
     ! Allocate memory for crg relocation

@@ -54,7 +54,7 @@ module xray_fourier_module
       integer :: mytaskid = 0
 #endif
       real(real_kind), allocatable, save  :: atomic_scatter_factor(:,:)
-      real(real_kind), allocatable, save  :: f(:), angle(:)
+      real(real_kind), allocatable, save  :: f(:,:), angle(:,:)
 
    !-------------------------------------------------------------------
 contains
@@ -70,6 +70,8 @@ contains
    subroutine fourier_Fcalc(num_hkl,hkl,Fcalc,mSS4, &
       num_atoms,xyz,tempFactor,scatter_type_index, occupancy)
 
+      use omp_lib
+      use constants, only: omp_num_threads
       implicit none
       integer, intent(in) :: num_hkl
       integer, intent(in) :: hkl(3,num_hkl)
@@ -83,7 +85,7 @@ contains
       real(real_kind), intent(in), target :: occupancy(num_atoms)
 
       ! locals
-      integer :: ihkl, i, ier
+      integer :: ihkl, i, ier, ith, ithmax
       double precision :: time0, time1
       logical, save :: first=.true.
 
@@ -108,14 +110,13 @@ contains
                atom_scatter_factor_mss4(scatter_coefficients(:,:,i),mSS4(ihkl))
             end do
          enddo
-
-         allocate(f(num_atoms), stat=ier)
-         REQUIRE(ier==0)
-         allocate(angle(num_atoms), stat=ier)
-         REQUIRE(ier==0)
-
          first = .false. 
       endif
+
+      allocate(f(num_atoms,omp_num_threads), stat=ier)
+      REQUIRE(ier==0)
+      allocate(angle(num_atoms,omp_num_threads), stat=ier)
+      REQUIRE(ier==0)
 
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
@@ -125,9 +126,13 @@ contains
       ! Fcalc(:) = 0._rk_
       ! return
 
-!$omp parallel do private(ihkl,i,f,angle)  
-      do ihkl = ihkl1, ihkl2
+      ihkl2 = 10000
+!$omp parallel private(ihkl,i,ith)  num_threads(omp_num_threads)
 
+         ith = omp_get_thread_num() + 1
+
+!$omp do 
+      do ihkl = ihkl1, ihkl2
          ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
          !      j = 1,num_selected_atoms
          ! where:
@@ -147,20 +152,25 @@ contains
          ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
          !    j = 1,num_selected_atoms
 
-         f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
+         f(:,ith) = exp( mSS4(ihkl) * tempFactor(:) ) &
               * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
               * occupancy(:)
-         angle(:) = matmul(M_TWOPI * hkl(1:3,ihkl),xyz(1:3,:))
+         ! angle(:,ith) = M_TWOPI * matmul(hkl(1:3,ihkl),xyz(1:3,:))
+         angle(:,ith) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
+                         hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
 
-         Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
-              sum(f(:) * sin(angle(:))), rk_ )
+         Fcalc(ihkl) = cmplx( sum(f(:,ith) * cos(angle(:,ith))), &
+              sum(f(:,ith) * sin(angle(:,ith))), rk_ )
 
       end do
-!$omp end parallel do
+!$omp end do
+!$omp end parallel
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
-      ! deallocate(f, angle, stat=ier)
-      ! REQUIRE(ier==0)
+      write(0,*) 'ihkl loop time: ', time1 - time0
+      deallocate(f, angle, stat=ier)
+      REQUIRE(ier==0)
+      stop
       return
 
    end subroutine fourier_Fcalc
@@ -310,6 +320,7 @@ contains
       integer :: i, ier
       double precision :: time0, time1
 
+      write(0,*) 'in get_solvent_contribution'
       if( bulk_solvent_model == 'none' ) return
 
       ! only do this on the master node to save global memory

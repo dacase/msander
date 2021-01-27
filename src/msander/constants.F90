@@ -233,7 +233,21 @@ module constants
   _REAL_, parameter  :: NO_INPUT_VALUE_FLOAT = 12344321.d0
   integer, parameter :: MAX_QUANTUM_ATOMS = 10000
 
+  integer, save :: omp_num_threads = 1, mkl_num_threads = 1
+
 contains
+
+#ifdef OPENMP
+  subroutine set_omp_num_threads()
+    implicit none
+    character(len=5) :: omp_threads
+    integer :: ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+  end subroutine set_omp_num_threads
+#endif
 
   function BinomialCoefficient(m, n) result (bioCoeff)
         

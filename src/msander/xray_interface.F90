@@ -588,8 +588,8 @@ contains
       if( target(1:2)=='ml' .or. bulk_solvent_model=='opt') then
          call init_ml(target, nstlim, d_star_sq, resolution)
       else
-         if( resolution_high==0.d0 ) then
-            write(6,'()') 'Error: resolution_high must be set in &xray'
+         if( bulk_solvent_model/='none' .and. resolution_high==0.d0 ) then
+            write(6,'(a)') 'Error: resolution_high must be set in &xray'
             call mexit(6,1)
          end if
          resolution = resolution_high
