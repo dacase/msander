@@ -89,8 +89,6 @@ contains
       double precision :: time0, time1
       logical, save :: first=.true.
 
-      call wallclock( time0 )
-
       if( first ) then
          ! set up reflection partitioning for MPI
 #ifdef MPI
@@ -99,7 +97,7 @@ contains
          if(mytaskid == numtasks - 1) ihkl2 = num_hkl
 #else
          ihkl1 = 1
-         ihkl2 = num_hkl
+         ihkl2 = 10000
 #endif
 
          allocate(atomic_scatter_factor(num_hkl,num_scatter_types), stat=ier)
@@ -125,11 +123,15 @@ contains
       ! special kludge to just get bulk_solvent factors:
       ! Fcalc(:) = 0._rk_
       ! return
+      call wallclock( time0 )
 
-      ihkl2 = 10000
 !$omp parallel private(ihkl,i,ith)  num_threads(omp_num_threads)
 
+#ifdef OPENMP
          ith = omp_get_thread_num() + 1
+#else
+         ith = 1
+#endif
 
 !$omp do 
       do ihkl = ihkl1, ihkl2
@@ -155,12 +157,11 @@ contains
          f(:,ith) = exp( mSS4(ihkl) * tempFactor(:) ) &
               * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
               * occupancy(:)
-         ! angle(:,ith) = M_TWOPI * matmul(hkl(1:3,ihkl),xyz(1:3,:))
          angle(:,ith) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
                          hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
 
          Fcalc(ihkl) = cmplx( sum(f(:,ith) * cos(angle(:,ith))), &
-              sum(f(:,ith) * sin(angle(:,ith))), rk_ )
+                              sum(f(:,ith) * sin(angle(:,ith))), rk_ )
 
       end do
 !$omp end do
@@ -170,7 +171,6 @@ contains
       write(0,*) 'ihkl loop time: ', time1 - time0
       deallocate(f, angle, stat=ier)
       REQUIRE(ier==0)
-      stop
       return
 
    end subroutine fourier_Fcalc
@@ -320,23 +320,13 @@ contains
       integer :: i, ier
       double precision :: time0, time1
 
-      write(0,*) 'in get_solvent_contribution'
       if( bulk_solvent_model == 'none' ) return
 
       ! only do this on the master node to save global memory
       if (mytaskid == 0 .and. .not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
-         call wallclock( time0 )
          call grid_bulk_solvent(num_atoms, crd)
-         call wallclock( time1 )
-         write(0,*) 'grid_bulk_solvent time: ', time1 - time0
-         time0 = time1
          call shrink_bulk_solvent()
-         call wallclock( time1 )
-         write(0,*) 'shrink_bulk_solvent time: ', time1 - time0
-         time0 = time1
          call fft_bs_mask()
-         call wallclock( time1 )
-         write(0,*) 'fft_bs time: ', time1 - time0
 
          do i=1,num_hkl
             f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &

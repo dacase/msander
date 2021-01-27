@@ -237,7 +237,6 @@ module constants
 
 contains
 
-#ifdef OPENMP
   subroutine set_omp_num_threads()
     implicit none
     character(len=5) :: omp_threads
@@ -247,7 +246,6 @@ contains
     if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
     write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
   end subroutine set_omp_num_threads
-#endif
 
   function BinomialCoefficient(m, n) result (bioCoeff)
         
