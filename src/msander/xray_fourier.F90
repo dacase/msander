@@ -97,7 +97,7 @@ contains
          if(mytaskid == numtasks - 1) ihkl2 = num_hkl
 #else
          ihkl1 = 1
-         ihkl2 = 10000
+         ihkl2 = num_hkl
 #endif
 
          allocate(atomic_scatter_factor(num_hkl,num_scatter_types), stat=ier)
