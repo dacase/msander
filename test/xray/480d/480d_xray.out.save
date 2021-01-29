@@ -3,9 +3,9 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/27/2021 at 13:34:16
+| Run on 01/29/2021 at 13:57:38
 
-|   Executable path: ../../../bin/msander.MPI
+|   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/xray/480d
 |          Hostname: Unknown
   [-O]verwriting output
@@ -27,14 +27,6 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-|    REMLOG: rem.log
-|   REMTYPE: rem.type
-|  REMSTRIP: 
-|   SAVEENE: saveene
-|CLUSTERINF: cluster.info
-| RESERVOIR: reserv/frame
-|   REMDDIM: 
-
  
  Here is the input file:
  
@@ -55,7 +47,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags: MPI                                                                    
+| Flags:                                                                        
  getting new box info from bottom of inpcrd
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    14.975
@@ -69,20 +61,19 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              521524
+|     Real              511048
 |     Hollerith          10586
 |     Integer           781125
 |     Max Pairs        1164000
 |     nblistReal         41904
-|     nblist Int        246252
-|       Total            13003 kbytes
+|     nblist Int        268666
+|       Total            13008 kbytes
 
 | Note: 1-4 EEL scale factors are being read from the topology file.
 
 | Note: 1-4 VDW scale factors are being read from the topology file.
 | Duplicated    0 dihedrals
 | Duplicated    0 dihedrals
- XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
      BOX TYPE: RECTILINEAR
 
@@ -125,6 +116,20 @@ Ewald parameters:
      Ewald Coefficient =  0.34864
      Interpolation order =    4
 
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =    -104.0000
+     Assuming uniform neutralizing plasma
+| Running OpenMP with   1 threads
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
+
 X-ray Refinement Parameters:
      PDB InFile: 4phenix_480d_uc.pdb
      PDB Read Coordinates: F
@@ -141,31 +146,10 @@ X-ray Refinement Parameters:
      FFT method:  0
      Atom Selection Mask:   !(@H=)
      Solute Selection Mask: :*
-
-| MPI Timing options:
-|      profile_mpi =        0
-
---------------------------------------------------------------------------------
-   3.  ATOMIC COORDINATES AND VELOCITIES
---------------------------------------------------------------------------------
-
-                                                                                
- begin time read from input coords =     0.000 ps
-
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    29.950   29.950   76.420  90.00  90.00  90.00
 Found   2316 atoms in !(@H=);
 Found   3492 atoms in :*;
- Number of triangulated 3-point waters found:        0
-|  Atom division among processors:
-|         0    1746    3492
-|  Coordinate  division among processors:
-|         0    5238   10476
-
-     Sum of charges from parm topology file =    -104.0000
-     Assuming uniform neutralizing plasma
-|  Running AMBER/MPI version on    2 nodes
-
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -182,9 +166,10 @@ Found   3492 atoms in :*;
 | CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
 | CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =     212218
+| Local SIZE OF NONBOND LIST =     424436
 | TOTAL SIZE OF NONBOND LIST =     424436
 | updating isotropic scaling:      0.43891 0.29575E-07
+| gradient norms, amber/xray:  0.10547E+04 0.68817E+02 0.15326E+02
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
  Etot   =    -19776.3271  EKtot   =         0.0000  EPtot      =    -19776.3271
@@ -277,45 +262,43 @@ Found   3492 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
-|                Build the list             0.02 (82.71% of List )
-|                Other                      0.00 (17.29% of List )
-|             List time                  0.03 (48.45% of Nonbo)
-|                   Short_ene time             0.02 (96.99% of Direc)
-|                   Other                      0.00 ( 3.01% of Direc)
-|                Direct Ewald time          0.02 (55.61% of Ewald)
-|                Adjust Ewald time          0.00 ( 5.19% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 7.42% of Recip)
-|                   Fill charge grid           0.00 (11.35% of Recip)
-|                   Scalar sum                 0.00 ( 5.68% of Recip)
-|                   Grad sum                   0.00 (16.59% of Recip)
-|                      FFT back comm time         0.00 (11.11% of FFT t)
-|                      Other                      0.01 (88.89% of FFT t)
-|                   FFT time                   0.01 (58.95% of Recip)
-|                Recip Ewald time           0.01 (38.36% of Ewald)
-|             Ewald time                 0.03 (51.55% of Nonbo)
-|          Nonbond force              0.06 ( 1.39% of Force)
-|             Fcalc loop                 2.17 (52.77% of Xray )
-|             Deriv loop                 1.94 (47.15% of Xray )
-|          Xray restaints             4.11 (98.49% of Force)
-|       Force time                 4.17 (100.0% of Runmd)
-|    Runmd Time                 4.18 (97.56% of Total)
-|    Other                      0.09 ( 2.10% of Total)
-| Total time                 4.28 (100.0% of ALL  )
+|                Build the list             0.01 (67.50% of List )
+|                Other                      0.01 (32.50% of List )
+|             List time                  0.02 (14.22% of Nonbo)
+|                   Short_ene time             0.05 (98.56% of Direc)
+|                   Other                      0.00 ( 1.44% of Direc)
+|                Direct Ewald time          0.06 (57.62% of Ewald)
+|                Adjust Ewald time          0.00 ( 5.08% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 5.75% of Recip)
+|                   Fill charge grid           0.00 (12.36% of Recip)
+|                   Scalar sum                 0.00 ( 9.48% of Recip)
+|                   Grad sum                   0.01 (16.67% of Recip)
+|                   FFT time                   0.02 (55.17% of Recip)
+|                Recip Ewald time           0.03 (36.06% of Ewald)
+|                Other                      0.00 ( 1.24% of Ewald)
+|             Ewald time                 0.10 (85.78% of Nonbo)
+|          Nonbond force              0.11 ( 2.12% of Force)
+|             Fcalc loop                 4.81 (92.67% of Xray )
+|             Deriv loop                 0.38 ( 7.26% of Xray )
+|          Xray restaints             5.19 (97.73% of Force)
+|       Force time                 5.31 (100.0% of Runmd)
+|    Runmd Time                 5.31 (98.50% of Total)
+|    Other                      0.08 ( 1.47% of Total)
+| Total time                 5.39 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
-| Highest rstack allocated:     194202
-| Highest istack allocated:       2502
+| Highest rstack allocated:     264146
+| Highest istack allocated:       3492
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       4.19 Per Step(ms) =     838.72
-|         ns/day =       0.10   seconds/ns =  838720.00
+|     Elapsed(s) =       5.31 Per Step(ms) =    1062.90
+|         ns/day =       0.08   seconds/ns = 1062900.00
 | -----------------------------------------------------
 
-|           Job began  at 13:34:16.903  on 01/27/2021
-|           Setup done at 13:34:16.989  on 01/27/2021
-|           Run   done at 13:34:21.183  on 01/27/2021
-|     wallclock() was called     389 times
+|           Job began  at 13:57:38.610  on 01/29/2021
+|           Setup done at 13:57:38.691  on 01/29/2021
+|           Run   done at 13:57:44.005  on 01/29/2021
+|     wallclock() was called     328 times

@@ -3,9 +3,9 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 01/27/2021 at 13:33:15
+| Run on 01/29/2021 at 13:16:16
 
-|   Executable path: ../../../bin/msander.MPI
+|   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/xray/2wcu
 |          Hostname: Unknown
   [-O]verwriting output
@@ -26,14 +26,6 @@ File Assignments:
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
-
-|    REMLOG: rem.log
-|   REMTYPE: rem.type
-|  REMSTRIP: 
-|   SAVEENE: saveene
-|CLUSTERINF: cluster.info
-| RESERVOIR: reserv/frame
-|   REMDDIM: 
 
  
  Here is the input file:
@@ -59,7 +51,7 @@ Test of MD with Xray restraints
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags: MPI                                                                    
+| Flags:                                                                        
  getting new box info from bottom of inpcrd
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    18.499
@@ -73,13 +65,13 @@ Test of MD with Xray restraints
 
 
 |     Memory Use     Allocated
-|     Real              877040
+|     Real              846368
 |     Hollerith          32796
 |     Integer          1158613
-|     Max Pairs        1704000
+|     Max Pairs        3408000
 |     nblistReal        122688
-|     nblist Int        480602
-|       Total            20997 kbytes
+|     nblist Int        504927
+|       Total            27509 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -88,7 +80,6 @@ Test of MD with Xray restraints
 |       Using default value of 2.0.
 | Duplicated    0 dihedrals
 | Duplicated    0 dihedrals
- XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
      BOX TYPE: RECTILINEAR
 
@@ -134,6 +125,21 @@ Ewald parameters:
      Cutoff=    8.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.34864
      Interpolation order =    4
+     Setting ifbox to 3 for non-orthogonal unit cell
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =    10.010 ps
+
+ Number of triangulated 3-point waters found:     1820
+
+     Sum of charges from parm topology file =      -6.0000
+     Assuming uniform neutralizing plasma
+| Running OpenMP with   1 threads
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
 X-ray Refinement Parameters:
      PDB InFile: SolvXtal.pdb
@@ -151,32 +157,10 @@ X-ray Refinement Parameters:
      FFT method:  0
      Atom Selection Mask:   !(@H=) & !(:WAT)
      Solute Selection Mask: :*
-
-| MPI Timing options:
-|      profile_mpi =        0
-     Setting ifbox to 3 for non-orthogonal unit cell
-
---------------------------------------------------------------------------------
-   3.  ATOMIC COORDINATES AND VELOCITIES
---------------------------------------------------------------------------------
-
-                                                                                
- begin time read from input coords =    10.010 ps
-
 PDB: All atoms read successfully.
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
 Found   2328 atoms in !(@H=) & !(:WAT);
 Found  10224 atoms in :*;
- Number of triangulated 3-point waters found:     1820
-|  Atom division among processors:
-|         0    5112   10224
-|  Coordinate  division among processors:
-|         0   15336   30672
-
-     Sum of charges from parm topology file =      -6.0000
-     Assuming uniform neutralizing plasma
-|  Running AMBER/MPI version on    2 nodes
-
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -193,9 +177,10 @@ Found  10224 atoms in :*;
 | CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
 | CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
  ---------------------------------------------------
-| Local SIZE OF NONBOND LIST =    1125477
+| Local SIZE OF NONBOND LIST =    2276257
 | TOTAL SIZE OF NONBOND LIST =    2276257
 | updating isotropic scaling:      0.61619 0.50215E-08
+| gradient norms, amber/xray:  0.19614E+04 0.89187E+01 0.21992E+03
 
  NSTEP =        1   TIME(PS) =      10.011  TEMP(K) =   303.21  PRESS =     0.0
  Etot   =    -22232.7605  EKtot   =      6860.7901  EPtot      =    -29093.5507
@@ -328,46 +313,42 @@ Found  10224 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
-|                Build the list             0.06 (91.57% of List )
-|                Other                      0.01 ( 8.43% of List )
-|             List time                  0.06 (25.57% of Nonbo)
-|                   Short_ene time             0.14 (97.88% of Direc)
-|                   Other                      0.00 ( 2.12% of Direc)
-|                Direct Ewald time          0.14 (75.13% of Ewald)
-|                Adjust Ewald time          0.00 ( 2.07% of Ewald)
-|                   Fill Bspline coeffs        0.00 (10.29% of Recip)
-|                   Fill charge grid           0.01 (15.31% of Recip)
-|                   Scalar sum                 0.00 (11.79% of Recip)
-|                   Grad sum                   0.01 (23.96% of Recip)
-|                      FFT back comm time         0.00 (11.69% of FFT t)
-|                      Other                      0.01 (88.31% of FFT t)
-|                   FFT time                   0.02 (38.64% of Recip)
-|                Recip Ewald time           0.04 (21.18% of Ewald)
-|                Force Adjust               0.00 ( 1.14% of Ewald)
-|             Ewald time                 0.19 (74.43% of Nonbo)
-|          Nonbond force              0.25 ( 3.62% of Force)
-|             Fcalc loop                 3.55 (52.82% of Xray )
-|             Deriv loop                 3.16 (47.10% of Xray )
-|          Xray restaints             6.71 (96.12% of Force)
-|       Force time                 6.98 (100.0% of Runmd)
-|    Runmd Time                 6.99 (97.60% of Total)
-|    Other                      0.15 ( 2.05% of Total)
-| Total time                 7.16 (100.0% of ALL  )
+|                Build the list             0.06 (91.21% of List )
+|                Other                      0.01 ( 8.79% of List )
+|             List time                  0.06 ( 8.65% of Nonbo)
+|                   Short_ene time             0.48 (98.94% of Direc)
+|                   Other                      0.01 ( 1.06% of Direc)
+|                Direct Ewald time          0.48 (75.84% of Ewald)
+|                Adjust Ewald time          0.01 ( 2.17% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 6.29% of Recip)
+|                   Fill charge grid           0.02 (15.14% of Recip)
+|                   Scalar sum                 0.03 (21.07% of Recip)
+|                   Grad sum                   0.03 (22.60% of Recip)
+|                   FFT time                   0.05 (34.89% of Recip)
+|                Recip Ewald time           0.14 (21.47% of Ewald)
+|             Ewald time                 0.64 (91.35% of Nonbo)
+|          Nonbond force              0.70 ( 7.89% of Force)
+|             Fcalc loop                 7.56 (93.08% of Xray )
+|             Deriv loop                 0.56 ( 6.85% of Xray )
+|          Xray restaints             8.12 (91.90% of Force)
+|       Force time                 8.84 (99.78% of Runmd)
+|    Runmd Time                 8.86 (98.59% of Total)
+|    Other                      0.12 ( 1.32% of Total)
+| Total time                 8.98 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
-| Highest rstack allocated:     396693
-| Highest istack allocated:       7497
+| Highest rstack allocated:     537158
+| Highest istack allocated:      10224
 
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       7.02 Per Step(ms) =     702.14
-|         ns/day =       0.12   seconds/ns =  702140.00
+|     Elapsed(s) =       8.86 Per Step(ms) =     885.53
+|         ns/day =       0.10   seconds/ns =  885530.00
 | -----------------------------------------------------
 
-|           Job began  at 13:33:15.482  on 01/27/2021
-|           Setup done at 13:33:15.623  on 01/27/2021
-|           Run   done at 13:33:22.644  on 01/27/2021
-|     wallclock() was called     675 times
+|           Job began  at 13:16:16.507  on 01/29/2021
+|           Setup done at 13:16:16.634  on 01/29/2021
+|           Run   done at 13:16:25.489  on 01/29/2021
+|     wallclock() was called     565 times
