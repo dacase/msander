@@ -61,7 +61,7 @@ subroutine sander()
 #endif /* PUPIL */
 
   use xray_interface_module, only: xray_init, xray_read_parm, &
-                                   xray_read_mdin, xray_fini
+                                   xray_read_mdin, xray_fini,xray_write_options
   use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
   use bulk_solvent_mod, only: k_mask
 
@@ -326,8 +326,6 @@ subroutine sander()
         ! Finish reading the prmtop file and other user input:
         call rdparm2(x, ix, ih, 8)
 
-        if( xray_active ) call xray_read_parm(8,6)
-
       ! Branch for QM/MM systems
       if (qmmm_nml%ifqnt) then
         call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
@@ -506,8 +504,6 @@ subroutine sander()
                       .TRUE.)
 #  endif
 #endif /* LES */
-
-        call xray_init()
 
         ! Set the initial velocities
         if (ntx <= 3) then
@@ -885,24 +881,6 @@ subroutine sander()
                     nres, 'MPI ')
     end if
 
-    ! xray initialization on non-master nodes: {{{
-    if( xray_active .and. .not.master ) then
-       call amopen(5,mdin,'O','F','R')
-       call xray_read_mdin(mdin_lun=5)
-       close(5)
-       call amopen(8,parm,'O','F','R')
-       call xray_read_parm(8,6)
-       close(8)
-       call xray_init()
-    end if
-#ifdef MPI
-   if( bulk_solvent_model /= 'none' )  then
-     call mpi_bcast( k_mask, num_hkl, MPI_DOUBLE_PRECISION, 0, commsander, ier )
-     REQUIRE( ier==0 )
-   endif
-#endif
-    ! }}}
-
     ! Check that the system is neutral and print warning message
     ! if not.  Adjust charges for roundoff error.
     if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
@@ -1033,6 +1011,25 @@ subroutine sander()
     ! set up and print some information
     call set_omp_num_threads()
 #endif
+
+    ! xray initialization {{{
+    if( xray_active ) then
+       call amopen(5,mdin,'O','F','R')
+       call xray_read_mdin(mdin_lun=5)
+       close(5)
+       call amopen(8,parm,'O','F','R')
+       call xray_read_parm(8,6)
+       close(8)
+       if( master ) call xray_write_options()
+       call xray_init()
+    end if
+#ifdef MPI
+   if( bulk_solvent_model /= 'none' )  then
+     call mpi_bcast( k_mask, num_hkl, MPI_DOUBLE_PRECISION, 0, commsander, ier )
+     REQUIRE( ier==0 )
+   endif
+#endif
+    ! }}}
 
     ! Allocate memory for crg relocation
     if (ifcr /= 0) then

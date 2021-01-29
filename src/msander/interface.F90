@@ -356,7 +356,7 @@ subroutine api_mdread1(input_options, ierr)
 #endif /* DSSP */
 
 #ifndef API
-   use xray_interface_module, only: xray_active, xray_read_mdin
+   use xray_interface_module, only: xray_active
 #endif /* API */
 #ifdef MPI /* SOFT CORE */
    use softcore, only : scalpha,scbeta,ifsc,scmask,logdvdl,dvdl_norest,dynlmb, &
@@ -1392,11 +1392,6 @@ subroutine api_mdread1(input_options, ierr)
       gbalpha = 1.09511284d0
    end if
 
-#ifndef API
-   call xray_read_mdin(mdin_lun=5)
-
-#endif /* API */
-
    ! -------------------------------------------------------------------
    ! If the user has requested NMR restraints, do a cursory read of the
    ! restraints file(s) now to determine the amount of memory necessary
@@ -1502,9 +1497,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  endif
 #endif /* API */
    use qmmm_module, only: get_atomic_number, qm_gb
-#ifndef API
-   use xray_interface_module, only: xray_active, xray_write_options
-#endif /* API */
 #ifdef MPI
    use softcore, only : ifsc, scalpha, scbeta, dvdl_norest, &
                         sceeorder, logdvdl, dynlmb
@@ -2248,11 +2240,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
    if (qmmm_nml%vsolv > 0) then
       call print(qmmm_vsolv)
    end if
-
-!---- XRAY Options ----
-   if( xray_active ) then
-      call xray_write_options()
-   endif
 
 ! ----EMAP Options-----
    if(temap)call emap_options(5)
