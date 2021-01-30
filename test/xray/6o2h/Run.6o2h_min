@@ -1,0 +1,36 @@
+#!/bin/bash
+
+sander="../../../bin/msander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+cat > mdin <<eof
+   checking out 6o2h crystal
+ &cntrl
+    imin=1, maxcyc=3, ntpr=1,
+    ntx=1, ntxo=1, irest=0,
+    ntc=1, ntf=1, ntwx=0, ntwr=0,
+ /
+ &lmod  xmin_verbosity=0, xmin_method='PRCG', /
+ &xray
+   pdb_infile = 'alt3_uc.pdb', 
+   reflection_infile = '6o2h-sf.dat',
+   atom_selection_mask = '!@H=', 
+   solute_selection_mask = '!@H=', 
+   xray_weight = 1.,
+   bulk_solvent_model = 'opt',  target = 'ml', 
+   resolution_high = 1.212,
+ /
+eof
+
+$DO_PARALLEL $sander -O -i mdin -o 6o2h.min.o \
+    -p alt3_uc.parm7 -c alt3_uc.min2.x \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif 6o2h.min.o.save 6o2h.min.o
+
+/bin/rm -f mdin mdinfo restrt
+exit 0
+
