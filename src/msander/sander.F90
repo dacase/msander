@@ -61,7 +61,7 @@ subroutine sander()
 #endif /* PUPIL */
 
   use xray_interface_module, only: xray_init, xray_read_parm, &
-                                   xray_read_mdin, xray_fini,xray_write_options
+           xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
   use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
   use bulk_solvent_mod, only: k_mask
 
@@ -891,6 +891,26 @@ subroutine sander()
       end if
     end if
 
+    ! xray initialization {{{
+    if( xray_active ) then
+       call xray_init_globals()
+       call amopen(5,mdin,'O','F','R')
+       call xray_read_mdin(mdin_lun=5)
+       close(5)
+       call amopen(8,parm,'O','F','R')
+       call xray_read_parm(8,6)
+       close(8)
+       if( master ) call xray_write_options()
+       call xray_init()
+    end if
+#ifdef MPI
+   if( bulk_solvent_model /= 'none' )  then
+     call mpi_bcast( k_mask, num_hkl, MPI_DOUBLE_PRECISION, 0, commsander, ier )
+     REQUIRE( ier==0 )
+   endif
+#endif
+    ! }}}
+
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
       mpi_orig = .true.
@@ -1011,25 +1031,6 @@ subroutine sander()
     ! set up and print some information
     call set_omp_num_threads()
 #endif
-
-    ! xray initialization {{{
-    if( xray_active ) then
-       call amopen(5,mdin,'O','F','R')
-       call xray_read_mdin(mdin_lun=5)
-       close(5)
-       call amopen(8,parm,'O','F','R')
-       call xray_read_parm(8,6)
-       close(8)
-       if( master ) call xray_write_options()
-       call xray_init()
-    end if
-#ifdef MPI
-   if( bulk_solvent_model /= 'none' )  then
-     call mpi_bcast( k_mask, num_hkl, MPI_DOUBLE_PRECISION, 0, commsander, ier )
-     REQUIRE( ier==0 )
-   endif
-#endif
-    ! }}}
 
     ! Allocate memory for crg relocation
     if (ifcr /= 0) then

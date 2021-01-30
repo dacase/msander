@@ -168,7 +168,7 @@ contains
 !$omp end parallel
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
-      write(0,*) 'ihkl loop time: ', time1 - time0
+      if( mytaskid == 0 ) write(0,*) 'ihkl loop: ', time1-time0
       deallocate(f, angle, stat=ier)
       REQUIRE(ier==0)
       return

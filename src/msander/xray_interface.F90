@@ -68,8 +68,6 @@ contains
       implicit none
       integer, intent(in) :: mdin_lun
       integer :: stat, inerr
-      call xray_init_globals()
-      if (.not.xray_active) return
       rewind(mdin_lun)
       read(unit=mdin_lun,nml=xray,iostat=stat)
       if (stat /= 0) then
@@ -460,7 +458,7 @@ contains
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       use ml_mod, only: init_ml, init_scales
-      use bulk_solvent_mod, only: init_bulk_solvent, f_mask, k_mask
+      use bulk_solvent_mod, only: init_bulk_solvent, f_mask
       implicit none
       ! local
       integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
