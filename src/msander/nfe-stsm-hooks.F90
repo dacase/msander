@@ -475,8 +475,6 @@ end subroutine on_sander_exit
 
 subroutine on_force(x, f, pot)
 
-   NFE_USE_AFAILED
-
    use nfe_utils
    use nfe_colvar
    use nfe_constants

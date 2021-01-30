@@ -69,7 +69,6 @@ contains
 !=============================================================================
 
 function colvar_value(cv, x) result(value)
-   NFE_USE_AFAILED
 
    use nfe_rmsd
    use nfe_utils
