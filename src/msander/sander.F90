@@ -692,26 +692,6 @@ subroutine sander()
     call rism_init(commsander)
 #  endif /* RISMSANDER */
 
-   ! xray initialization {{{
-   if( xray_active ) then
-      call xray_init_globals()
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      if( master ) call xray_write_options()
-      call xray_init()
-   end if
-#ifdef MPI
-   if( bulk_solvent_model /= 'none' )  then
-     call mpi_bcast( k_mask, num_hkl, MPI_DOUBLE_PRECISION, 0, commsander, ier )
-     REQUIRE( ier==0 )
-   endif
-#endif
-   ! }}}
-
 #ifdef MPI
     call mpi_barrier(commsander,ier)
 
@@ -912,6 +892,24 @@ subroutine sander()
       end if
     end if
 
+   ! xray initialization {{{
+    if( xray_active ) then
+      call xray_init_globals()
+      call amopen(5,mdin,'O','F','R')
+      call xray_read_mdin(mdin_lun=5)
+      close(5)
+      call amopen(8,parm,'O','F','R')
+      call xray_read_parm(8,6)
+      close(8)
+      if( master ) call xray_write_options()
+      call xray_init()
+      if( bulk_solvent_model /= 'none' )  then
+        call mpi_bcast(k_mask,num_hkl,MPI_DOUBLE_PRECISION,0,commsander,ier )
+        REQUIRE( ier==0 )
+      end if
+    end if
+   ! }}}
+
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
       mpi_orig = .true.
@@ -1025,6 +1023,20 @@ subroutine sander()
     end if
     call amrset(ig+1)
     call stack_setup()
+
+    ! xray initialization (non-parallel case) {{{
+    if( xray_active ) then
+      call xray_init_globals()
+      call amopen(5,mdin,'O','F','R')
+      call xray_read_mdin(mdin_lun=5)
+      close(5)
+      call amopen(8,parm,'O','F','R')
+      call xray_read_parm(8,6)
+      close(8)
+      call xray_write_options()
+      call xray_init()
+    end if
+   ! }}}
 
 #endif /* MPI */
 
