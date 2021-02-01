@@ -1,7 +1,7 @@
 !  to be included in runmd.F90
 
     call plumed_f_gcreate()
-    call plumed_f_gcmd("setRealPrecision"//char(0), 8)
+    call plumed_f_gcmd("setRealPrecision"//char(0), 8.d0)
     call plumed_f_gcmd("getApiVersion"//char(0), plumed_version)
     if (plumed_version>1) then
       plumed_kbt = 2.0 * temp0 * boltz2

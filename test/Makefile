@@ -27,6 +27,7 @@ test.xray:
 	-(cd xray/3onk && ./Run.3onk_ml)
 	-(cd xray/3onk && ./Run.3onk_mlopt)
 	-(cd xray/480d && ./Run.480d_xray)
+#	-(cd xray/6o2h && ./Run.6o2h_min)
 	-(cd cryoem/3j9d && ./Run.3j9d)
 	-(cd cryoem/emap && ./Run.emap)
 
@@ -37,6 +38,9 @@ test.tleap:
 test.antechamber:
 	-(cd antechamber/sustiva && Run.sustiva)
 	-(cd antechamber/sustiva && Run.sustiva_g2)
+
+test.cif:
+	-(cd nmr && ./Run.nef)
 
 clean::
 	/bin/rm -f TEST_FAILURES.diff

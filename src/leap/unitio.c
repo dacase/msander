@@ -5016,7 +5016,7 @@ void zUnitIOSaveAmberParmFormat(UNIT uUnit, FILE * fOut, char *crdName,
   FortranFormat(1, "%-80s");
   time(&tp);
   strftime(sVersionHeader, 81,
-           "%%VERSION  VERSION_STAMP = V0001.000  DATE = %m/%d/%y  %H:%M:%S\0",
+           "%%VERSION  VERSION_STAMP = V0001.000  DATE = %m/%d/%y  %H:%M:%S",
            localtime(&tp));
   FortranWriteString(sVersionHeader);
   FortranWriteString("%FLAG TITLE");

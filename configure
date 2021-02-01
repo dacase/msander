@@ -22,7 +22,7 @@ gcc10=""
 pythonv=`python --version 2>&1 | cut -c 8-10`
 
 compiler="gnu"
-cc="gcc"
+cc="gcc -Wno-unused-result"
 cxx="g++"
 mpicc="mpicc"
 
