@@ -40,6 +40,10 @@ test_nabc:  tnabc
 test_netcdf:  tnetcdf
 	./tnetcdf
 
+test_cif:  tcif
+	./tcif
+	/bin/rm tcif tcif.o
+
 LIBS = -L$(LIBDIR) -lsff $(FLIBSF) $(NETCDFLIBF)  $(LM) -lgfortran -w
 
 #---------------------------------------------------------------------------
@@ -77,6 +81,10 @@ thcp2:  thcp2.o
 	$(VB)$(CC) -o $@ $<  $(LIBS)
 
 tnabc:  tnabc.o
+	@echo "[NABC] CC $@"
+	$(VB)$(CC) -o $@ $<  -L$(LIBDIR)  -lnabc -lcifparse $(LIBS)
+
+tcif:  tcif.o
 	@echo "[NABC] CC $@"
 	$(VB)$(CC) -o $@ $<  -L$(LIBDIR)  -lnabc -lcifparse $(LIBS)
 
