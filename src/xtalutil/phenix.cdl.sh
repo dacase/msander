@@ -1,24 +1,24 @@
 #!/bin/sh
 
-#   standard cdl refinement
+#   cdl refinement
 
-if [ "$#" -ne 3 ]; then
-   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <cif-files>"
+if [ "$#" -lt 3 ]; then
+   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <id> <ciffiles>"
    exit 1
 fi
 
-cat <<EOF > refine.eff
+cat <<EOF > ${3}_001.eff
 refinement {
   input {
     xray_data {
       outliers_rejection = True
       r_free_flags {
-        generate = False
+        generate = True
       }
     }
   }
   output {
-    prefix = "cdl"
+    prefix = "$3"
     serial = 1
     write_eff_file = False
     write_geo_file = False
@@ -28,13 +28,18 @@ refinement {
     export_final_f_model = False
   }
   refine {
-    strategy = *individual_sites individual_sites_real_space rigid_body \
-               *individual_adp group_adp tls *occupancies group_anomalous
+    strategy = individual_sites individual_sites_real_space rigid_body \
+               *individual_adp group_adp tls occupancies group_anomalous
+    adp { 
+      individual {
+         anisotropic = not element H
+      }
+    }
   }
   main {
     nqh_flips = True
-    number_of_macro_cycles = 10
-    target = *auto ml mlhl ml_sad ls mli
+    number_of_macro_cycles = 1
+    target = auto *ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
   }
@@ -45,7 +50,7 @@ refinement {
     c_beta_restraints = False
   }
   mask {
-    ignore_hydrogens = False
+    ignore_hydrogens = True
   }
   structure_factors_and_gradients_accuracy {
     algorithm = *fft direct
@@ -57,6 +62,5 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2  $3 refine.eff --overwrite > /dev/null
+phenix.refine  $1  $2 $4  ${3}_001.eff --overwrite
 
-/bin/rm -f refine.eff

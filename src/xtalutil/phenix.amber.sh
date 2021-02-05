@@ -2,12 +2,12 @@
 
 #   standard amber refinement
 
-if [ "$#" -ne 4 ]; then
-   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <cif-files> <serial-no>"
+if [ "$#" -lt 4 ]; then
+   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <cif-files>"
    exit 1
 fi
 
-cat <<EOF > amber_00$4.eff
+cat <<EOF > ${3}_001.eff
 refinement {
   input {
     xray_data {
@@ -18,8 +18,8 @@ refinement {
     }
   }
   output {
-    prefix = "amber"
-    serial = $4
+    prefix = "$3"
+    serial = 1
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -75,10 +75,11 @@ refinement {
 }
 EOF
 
-phenix.refine  4phenix_$1.pdb  $2  $3  amber_00$4.eff --overwrite > amber$4.log
+phenix.refine  4phenix_$1.pdb  $2  $4  ${3}_001.eff --overwrite > $3.amber.log
 
-diff amber_00$4.log amber$4.log | awk 'NF==8 && $2!="Amber" {print $2}' \
-     > amber_00$4.energies.dat
+diff ${3}_001.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
+     > $3.energies.dat
 
-/bin/mv amber$4.log amber_00$4.log
+/bin/mv $3.amber.log ${3}_001.log
+
 
