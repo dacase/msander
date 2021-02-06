@@ -568,6 +568,8 @@ contains
       integer :: i
       double precision :: eterm1, eterm2, x
 
+      abs_Fcalc(:) = abs(Fcalc(:))
+
       if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then
            call get_solvent_contribution(nstep, crd, .false.)
@@ -576,11 +578,33 @@ contains
            k_scale = k_iso * k_iso_exp * k_aniso
          endif
          Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-      else 
+      else if (bulk_solvent_model .eq. 'simple' )
          call get_solvent_contribution(nstep, crd, .true.)
          call scale_Fcalc( nstep )
+      else   ! no bulk solvent model
+#if 0
+         ! scale to fobs:
+         if( mod(nstep,scale_update_frequency) == 0 ) then
+            if (present(selected)) then
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
+               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+            else
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
+               sum_fo_fo = sum(abs_Fobs ** 2)
+               sum_fc_fc = sum(abs_Fcalc ** 2)
+            end if
+            k_scale(:) = sum_fo_fc / sum_fc_fc
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if (mytaskid == 0 ) &
+               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
+                   k_scale(1),norm_scale
+         endif
+#else
+         ! for now, assume no scaling is needed:
+         if (mytaskid == 0 ) write(6,'(a)') '| assuming absolute scaling '
+#endif
       endif
-      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! get ml parameters
 
