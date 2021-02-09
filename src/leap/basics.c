@@ -93,31 +93,37 @@ static  MEMHEADER	*SmPMallocList = NULL;
 
 #include "varArray.h"
 #define TSIZE	1000000
+/*
 static VARARRAY	vtest = NULL;
+ */
 
 void 
 IMem()
 {
+/*
 	int   i, *ip;
-	return;
 	vtest = vaVarArrayCreate( sizeof(int) );
 	VarArraySetSize( vtest, TSIZE );
 	ip = PVAI( vtest, int, 0);
 	for (i=0; i<TSIZE; i++) ip[i] = i;
+ */
+	return;
 }
 
 void 
 TMem()
 {
+/*
 	int	i, *ip;
 	char	*p = NULL;
-	return;
 	ip = PVAI( vtest, int, 0);
 	for (i=0; i<TSIZE; i++)
 	if (ip[i] != i) {
 		fprintf(stderr, "element %d=%d\n", i, ip[i]);
 		*p = ' ';
 	}
+ */
+	return;
 }
 
 

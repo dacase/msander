@@ -66,14 +66,14 @@
 typedef struct  {
                 typeStr         sType;
                 double          dMass;
-                double                dPolar;
+                double          dPolar;
                 double          dEpsilon;
                 double          dR;
                 double          dEpsilon14;
                 double          dR14;
-                double                dScreenF;
-                int                iElement;
-                int                iHybridization;
+                double          dScreenF;
+                int             iElement;
+                int             iHybridization;
                 DESCRIPTION     sDesc;
 } ATOMPARMt;
 
@@ -100,7 +100,6 @@ typedef struct  {
                 DESCRIPTION     sDesc;
 } ANGLEPARMt;
 
-
 typedef struct  {
                 typeStr         sType1;
                 typeStr         sType2;
@@ -108,7 +107,6 @@ typedef struct  {
                 double          dB;
                 DESCRIPTION     sDesc;
 } HBONDPARMt;
-
 
 typedef struct  {
                 typeStr         sType1;
@@ -122,13 +120,11 @@ typedef struct  {
                 DESCRIPTION     sDesc;
 } NBEDITt;
 
-
         /* TORSION_MATCHt are stored inside TORSIONs */
-typedef        struct        {
-                int                iIndex;
-                TORSIONPARMt        tpTorsion;
+typedef struct  {
+                int             iIndex;
+                TORSIONPARMt    tpTorsion;
 } TORSION_MATCHt;
-
 
 typedef struct CMNT_t {
         char *record;
@@ -140,7 +136,7 @@ typedef struct {
                 char            *reslist[8];
                 int             nres;
                 CMNTt           *cmnt;
-                int                resolution;
+                int             resolution;
                 double          *map;
 } CMAPt;
 
@@ -2909,7 +2905,7 @@ ATOMPARMt        *apPAtom;
 //---------------------------------------------------------------------------------------------
 void ParmSetUpdateBond(PARMSET psLib, int i, char *sType1, char *sType2, 
                        double *dPKb, double *dPR0, double *dPKpull, double *dPRpull0,
-		       double *dPKpress, double *dPRpress0, char *sDescription)
+                       double *dPKpress, double *dPRpress0, char *sDescription)
 {
   BONDPARMt *bpPBond;
 

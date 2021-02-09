@@ -3,9 +3,9 @@
 #define unix
 #endif
 
-// #ifdef SOLARIS
+#ifdef SOLARIS
 #define POSIX
-// #endif
+#endif
 /*
  * Copyright (C) 1991, 1992, 1993 by Chris Thewalt (thewalt@ce.berkeley.edu)
  *
@@ -34,8 +34,6 @@ static int      gl_tab(char *buf, int offset, int *loc);
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -44,12 +42,10 @@ static int      gl_tab(char *buf, int offset, int *loc);
 #endif
 
 
-/*
 extern int      isatty();	
 extern void    *malloc();
 extern void     free();
 extern int      kill();	
-*/
 
 /********************* exported interface ********************************/
 
@@ -118,8 +114,8 @@ static void     search_forw(int new_search);		/* look forw for current string */
 
 /************************ nonportable part *********************************/
 
-// extern int      write();
-// extern void     exit();
+extern int      write();
+extern void     exit();
 
 #if (defined WIN32)
 #undef unix
@@ -134,7 +130,7 @@ static void     search_forw(int new_search);		/* look forw for current string */
 #endif
 
 #ifdef unix
-// extern int      read();
+extern int      read();
 #   define POSIX
 
 #   ifdef POSIX		/* use POSIX interface */
@@ -917,7 +913,7 @@ hist_save(char *p)
 /* makes a copy of the string */
 {
     char *s = 0;
-    size_t   len = strlen(p);
+    int   len = strlen(p);
     char *nl = strchr(p, '\n');
 
     if (nl) {
