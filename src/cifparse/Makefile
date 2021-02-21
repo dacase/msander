@@ -24,7 +24,7 @@ cifp.tab.h: cifp.tab.c
 
 cifp.tab.c:  cifparse.y lex.cifp.c
 	@echo "[CIFPARSE]  BISON $<"
-	$(VB)$(YACC) -v -d cifparse.y
+	$(VB)bison -v -d cifparse.y
 
 cifp.tab.o: cifp.tab.c
 	@echo "[CIFPARSE]  CC $<"
