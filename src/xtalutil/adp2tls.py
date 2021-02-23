@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 #=====================================================================#
 # Calculate TLS parameters given a PDB file with Uij or B-factors or  #
