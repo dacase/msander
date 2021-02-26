@@ -11,6 +11,7 @@ emdmap=$2
 resolution_high=$3
 resolution_low=$4
 
+if false; then
 echo "CryoPrep log file for id $id" > $id-prep.log
 
 #============================================================================
@@ -47,17 +48,45 @@ echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
 /bin/rm tmp.* ${id}_box.mtz ${id}_box.fmtz
+fi
 
 #============================================================================
+
+if false; then
 echo "Running phenix.AmberPrep" 
 phenix.AmberPrep ${id}_box.pdb >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
 /bin/mv ${id}_box_uc.pdb ${id}_box.pdb
 
-#  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
-#     that were made to handle carbodyrates; just change residue and
-#     atom names: no changes in order are allowed.
+else
+
+#   Alternate: avoid phenix.AmberPrep, and do what it does by hand:
+echo "running tleap by hand"
+
+cat <<EOF > tleap.in
+set default PBradii mbondi3
+set default nocener on
+source leaprc.protein.ff14SB
+source leaprc.RNA.OL3
+source leaprc.DNA.OL15
+source leaprc.water.spce
+loadOff terminal_monophosphate.lib
+x = loadPdb ${id}.pdb
+set x box { 532.48  532.48  532.48 }
+bond x.2968.SG x.2986.SG
+bond x.12560.SG x.12584.SG
+bond x.12562.SG x.12581.SG
+saveAmberParm x 4amber_${id}_box.prmtop 4amber_${id}_box.rst7
+quit
+EOF
+
+tleap -f tleap.in >> $id-prep.log \
+     || { echo "  tleap:   Program error"; exit 1; }
+
+/bin/cp $id.pdb ${id}_box.pdb   # kludge here: same name gets overwritten later
+fi
+
 
 #============================================================================
 echo "creating ${id}_box.parm7"
@@ -76,6 +105,7 @@ phenix.python ./parmed -n <<EOF >> $id-prep.log \
      || { echo "  parmed:   Program error"; exit 1; }
 parm 4amber_${id}_box.prmtop
 lmod
+HMassRepartition
 addPDB ${id}_box.pdb elem 
 parmout foo.parm7
 go
@@ -87,7 +117,7 @@ $MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_box.parm7 \
 
 /bin/mv 4amber_${id}_box.rst7 ${id}_box.rst7
 
-# $MSANDERHOME/bin/ambpdb -p ${id}_box.parm7 -ext < ${id}_box.rst7 > ${id}_box.pdb
+$MSANDERHOME/bin/ambpdb -p ${id}_box.parm7 -ext < ${id}_box.rst7 > ${id}_box.pdb
 
 
 #============================================================================
