@@ -47,10 +47,12 @@ ATRFILE=attribute.tab
 SYMFILE=../y.tab.h
 
 checkexpr.c: $(RULES) attribute.tab parse$(SFX) ../nab.h ../nabgrm.y
-	$(WINE) ./parse$(SFX) *.rules
+	@echo "[parse] rules"
+	$(VB)./parse$(SFX) *.rules
 
 parse$(SFX): parse.c
-	$(CC) -DDATDIR='"$(DATDIR)"' -DATRFILE='"$(ATRFILE)"' -DSYM_FILE='"$(SYMFILE)"' $(CFLAGS) \
+	@echo "[CC] parse.c"
+	$(VB)$(CC) -DDATDIR='"$(DATDIR)"' -DATRFILE='"$(ATRFILE)"' -DSYM_FILE='"$(SYMFILE)"' $(CFLAGS) \
 		$(LDFLAGS) $(AMBERLDFLAGS) -o parse$(SFX) parse.c
 
 clean::
