@@ -15,9 +15,7 @@ echo "Running phenix.AmberPrep"
 phenix.AmberPrep $id.pdb use_reduce=False >> $id-prep.log \
      || { echo "  phenix.AmberPrep:  Program error"; exit 1; }
 
-#  Here we may need to edit the 4phenix_xxxx.pdb file to undo any changes
-#     that were made to handle carbodyrates; just change residue and
-#     atom names: no changes in order are allowed.
+/bin/mv 4amber_$id.order ${id}_uc.order
 
 #============================================================================
 echo "creating ${id}_uc.parm7"
@@ -48,6 +46,9 @@ $MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
 fi
 
+/bin/rm -f foo.parm7 parmed
+
+if false; then
 #============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
@@ -55,7 +56,7 @@ phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
 
 echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F"
 phenix.refine  \
-   4phenix_$id.pdb $id-sf.mtz $ciffiles \
+   ${id}_uc.pdb $id-sf.mtz $ciffiles \
    refinement.input.xray_data.r_free_flags.generate=True \
    refinement.main.number_of_macro_cycles=0 \
    xray_data.outliers_rejection=True \
@@ -105,9 +106,10 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
+fi
 
 #============================================================================
-if true; then
+if false; then
 echo "Running zero-cycle phenix.refine on P1-expanded structure:"
 
 cad hklin1 tmp.mtz hklout $id.mtz <<EOF >> $id-prep.log
@@ -143,4 +145,4 @@ echo "   ${id}-prep.log        Log file: examine this if problems arise"
 #============================================================================
 # clean up
 /bin/rm -f tmp* $id-sf.mtz cdl_data.mtz $id.fmtz $id-P1.fmtz parmed \
-     cdl_00* foo*.parm7 build_uc 4amber_$i.prmtop
+     cdl_00* foo*.parm7 build_uc 4amber_$id.prmtop
