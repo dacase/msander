@@ -233,6 +233,7 @@ contains
 
     ! TODO: next section is duplicated in init_ml()
 
+    write(0,*) 'unit_cell: ', unit_cell
     a = unit_cell(1)
     b = unit_cell(2)
     c = unit_cell(3)
@@ -247,12 +248,16 @@ contains
     cosg = cos(gamma)
     V = a*b*c*sqrt( 1.d0 - cosa**2 - cosb**2 -cosg**2 &
         + 2.d0*cosa*cosb*cosg )
+    write(0,*) 'V: ', V, cosa, cosb, cosg
 
     va = (/ a, zero, zero/)
     vb = (/cosg * b, sing * b, zero/)
     vc = (/cosb * c, (cosa - cosb * cosg)/sing * c, &
     sqrt(1.0 - cosa * cosa - cosb * cosb - cosg * cosg + &
          2.0 * cosa * cosb * cosg)/sing * c/)
+    write(0,*) 'va: ', va
+    write(0,*) 'vb: ', vb
+    write(0,*) 'vc: ', vc
     vas = cross(vb, vc)
     vbs = cross(vc, va)
     vcs = cross(va, vb)
@@ -262,6 +267,7 @@ contains
     norm2_vas = sqrt( dot_product(vas,vas) )
     norm2_vbs = sqrt( dot_product(vbs,vbs) )
     norm2_vcs = sqrt( dot_product(vcs,vcs) )
+    write(0,*) 'vas: ',vas, V, norm2_vas
 
     temp_grid = resolution / 4.0
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
@@ -284,11 +290,11 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-#if 0
-    write(6, *) 'resolution', resolution
-    write(6, *) 'mask_cell_params', mask_cell_params
-    write(6, *) 'mask_grid_steps', mask_grid_steps
-    write(6, *) 'mask_grid_size', mask_grid_size
+#if 1
+    write(0, *) 'resolution', resolution
+    write(0, *) 'mask_cell_params', mask_cell_params
+    write(0, *) 'mask_grid_steps', mask_grid_steps
+    write(0, *) 'mask_grid_size', mask_grid_size
 #endif
     allocate(mask_bs_grid(mask_grid_size(4)))
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))

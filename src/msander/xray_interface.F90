@@ -451,7 +451,9 @@ contains
    end subroutine xray_write_pdb
 
    subroutine xray_init()
-      use nblist, only: a, b, c, alpha, beta, gamma
+      use xray_common_module, only: inpcrd
+      use AmberNetcdf_mod, only: NC_checkRestart
+      use binrestart, only: read_nc_restart_box
       use xray_utils_module, only: allocate_lun
       use xray_reciprocal_space_module, only: derive_cell_info
       use xray_fourier_module, only: get_mss4
@@ -463,6 +465,7 @@ contains
       ! local
       integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
       double precision :: resolution, fabs_solvent, phi_solvent
+      double precision :: a,b,c,alpha,beta,gamma
       real(real_kind) :: phi
       logical :: master
       ! following is local: copied into f_mask in this routine, after
@@ -479,11 +482,14 @@ contains
 
       if (reflection_infile == '') xray_active = .false.
 
-      if (.not.xray_active) then
-         unit_cell = (/a, b, c, alpha, beta, gamma/)
-         spacegroup_name = 'P 1'
-         return
-      end if
+      ! get the values for ucell:
+      if ( NC_checkRestart(inpcrd) ) then
+        write(6,'(a)') ' getting box info from netcdf restart file'
+        call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
+      else
+         write(6,'(a)') ' getting box info from bottom of inpcrd'
+         call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
+      endif
 
       if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
             'XRAY: UNIT CELL= ',a, b, c, alpha, beta, gamma
