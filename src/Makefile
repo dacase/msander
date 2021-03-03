@@ -4,6 +4,9 @@ include ../config.h
 
 install: $(INSTALLTYPE)
 
+parmed::
+	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
+
 serial:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
@@ -21,6 +24,7 @@ serial:
 	@cd moft && $(MAKE) $(MOFT)
 	@cd sff && $(MAKE) libsff
 	@cd nabc && $(MAKE) libnabc
+	@cp pdb4amber/pdb4amber $(BINDIR)
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
@@ -48,7 +52,7 @@ clean:
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
-        add_pdb add_xray teLeap tleap addles)
+        add_pdb add_xray teLeap tleap addles pdb4amber)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
         libarpack.a libsqm.a librism.a /libsys.a \
         libsander.so libsanderles.so)
