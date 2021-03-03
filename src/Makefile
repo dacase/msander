@@ -4,9 +4,6 @@ include ../config.h
 
 install: $(INSTALLTYPE)
 
-parmed::
-	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
-
 serial:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
@@ -24,7 +21,7 @@ serial:
 	@cd moft && $(MAKE) $(MOFT)
 	@cd sff && $(MAKE) libsff
 	@cd nabc && $(MAKE) libnabc
-	@cp pdb4amber/pdb4amber $(BINDIR)
+#	@cp pdb4amber/pdb4amber $(BINDIR)
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
