@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/28/2020 at 08:10:20
+| Run on 03/04/2021 at 15:57:20
 
 |   Executable path: ../../../bin/msander
 | Working directory: /Users/case/msander/test/xray/3onk
@@ -79,7 +79,6 @@ Test of MD with Xray restraints
 | Note: 1-4 VDW scale factors are being read from the topology file.
 | Duplicated    0 dihedrals
 | Duplicated    0 dihedrals
- XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
      BOX TYPE: RECTILINEAR
 
@@ -125,6 +124,20 @@ Ewald parameters:
      Cutoff=   10.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.27511
      Interpolation order =    4
+     Setting ifbox to 3 for non-orthogonal unit cell
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =       1.0000
+     Assuming uniform neutralizing plasma
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
 X-ray Refinement Parameters:
      PDB InFile: final_structure_bf.pdb
@@ -142,27 +155,16 @@ X-ray Refinement Parameters:
      FFT method:  0
      Atom Selection Mask:   :*
      Solute Selection Mask: :*
-     Setting ifbox to 3 for non-orthogonal unit cell
-
---------------------------------------------------------------------------------
-   3.  ATOMIC COORDINATES AND VELOCITIES
---------------------------------------------------------------------------------
-
-                                                                                
- begin time read from input coords =     0.000 ps
-
 PDB: All atoms read successfully.
+ getting box info from bottom of inpcrd
+| peek_ewald_inpcrd: Box info found
 XRAY: UNIT CELL=    26.600   37.589   38.109  77.81  86.64  65.54
 Found   2269 atoms in :*;
 Found   2269 atoms in :*;
 | number of reflections:     6591     734    7325
 | highest resolution:   2.090
 | creating k_mask with k_sol,b_sol =    0.000   0.000
- Number of triangulated 3-point waters found:        0
-
-     Sum of charges from parm topology file =     1.000000
-     Assuming uniform neutralizing plasma
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -287,29 +289,28 @@ Found   2269 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.02 ( 2.32% of Total)
-|                Build the list             0.01 (76.47% of List )
-|                Other                      0.00 (23.53% of List )
-|             List time                  0.02 (20.48% of Nonbo)
-|                   Short_ene time             0.05 (100.0% of Direc)
+|                Build the list             0.02 (78.95% of List )
+|                Other                      0.00 (21.05% of List )
+|             List time                  0.02 (22.35% of Nonbo)
+|                   Short_ene time             0.05 (97.96% of Direc)
+|                   Other                      0.00 ( 2.04% of Direc)
 |                Direct Ewald time          0.05 (74.24% of Ewald)
-|                Adjust Ewald time          0.00 ( 1.52% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 7.14% of Recip)
-|                   Fill charge grid           0.00 ( 7.14% of Recip)
-|                   Scalar sum                 0.00 (14.29% of Recip)
-|                   FFT time                   0.01 (71.43% of Recip)
-|                Recip Ewald time           0.01 (21.21% of Ewald)
-|                Other                      0.00 ( 3.03% of Ewald)
-|             Ewald time                 0.07 (79.52% of Nonbo)
-|          Nonbond force              0.08 ( 8.99% of Force)
-|             Fcalc loop                 0.34 (40.41% of Xray )
-|             Deriv loop                 0.32 (38.01% of Xray )
-|             Other                      0.18 (21.58% of Xray )
-|          Xray restaints             0.83 (90.36% of Force)
-|       Force time                 0.92 (99.03% of Runmd)
-|    Runmd Time                 0.93 (93.86% of Total)
-|    Other                      0.04 ( 3.83% of Total)
-| Total time                 0.99 (100.0% of ALL  )
+|                Adjust Ewald time          0.00 ( 3.03% of Ewald)
+|                   Fill charge grid           0.00 (13.33% of Recip)
+|                   Scalar sum                 0.00 (20.00% of Recip)
+|                   Grad sum                   0.00 (13.33% of Recip)
+|                   FFT time                   0.01 (53.33% of Recip)
+|                Recip Ewald time           0.02 (22.73% of Ewald)
+|             Ewald time                 0.07 (77.65% of Nonbo)
+|          Nonbond force              0.09 ( 2.33% of Force)
+|             Fcalc loop                 3.05 (85.83% of Xray )
+|             Deriv loop                 0.32 ( 8.90% of Xray )
+|             Other                      0.19 ( 5.27% of Xray )
+|          Xray restaints             3.55 (97.47% of Force)
+|       Force time                 3.64 (99.78% of Runmd)
+|    Runmd Time                 3.65 (98.28% of Total)
+|    Other                      0.06 ( 1.70% of Total)
+| Total time                 3.72 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -319,11 +320,11 @@ Found   2269 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.93 Per Step(ms) =     186.40
-|         ns/day =       0.46   seconds/ns =  186400.00
+|     Elapsed(s) =       3.65 Per Step(ms) =     730.40
+|         ns/day =       0.12   seconds/ns =  730400.00
 | -----------------------------------------------------
 
-|           Job began  at 08:10:20.441  on 12/28/2020
-|           Setup done at 08:10:20.503  on 12/28/2020
-|           Run   done at 08:10:21.435  on 12/28/2020
+|           Job began  at 15:57:20.328  on 03/04/2021
+|           Setup done at 15:57:20.393  on 03/04/2021
+|           Run   done at 15:57:24.044  on 03/04/2021
 |     wallclock() was called     338 times

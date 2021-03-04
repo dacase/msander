@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/31/2020 at 10:40:08
+| Run on 03/04/2021 at 15:54:40
 
 |   Executable path: ../../../bin/msander
 | Working directory: /Users/case/msander/test/rism3d/2igd
@@ -161,9 +161,9 @@ defa
 
  Number of triangulated 3-point waters found:        0
 
-     Sum of charges from parm topology file =    -8.000000
+     Sum of charges from parm topology file =      -8.0000
      Assuming uniform neutralizing plasma
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -188,6 +188,7 @@ defa
 |grid spacing [A]:      0.974 X      0.844 X      0.757
 |internal angles [°]:      90.000,     90.000,     90.000
 |inscribed sphere radius [A]:     17.525
+|  huvk0 =   -0.00186   0.00278
 |Switching to KH closure
 |RXRISM converged in   492 steps
 
@@ -253,33 +254,32 @@ defa
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (73.68% of List )
-|                Other                      0.01 (26.32% of List )
-|                   Short_ene time             0.03 (100.0% of Direc)
-|                Direct Ewald time          0.03 (65.12% of Ewald)
-|                Adjust Ewald time          0.00 ( 4.65% of Ewald)
-|                   Fill charge grid           0.00 (16.67% of Recip)
-|                   Grad sum                   0.00 ( 8.33% of Recip)
-|                   FFT time                   0.01 (75.00% of Recip)
-|                Recip Ewald time           0.01 (27.91% of Ewald)
-|                Other                      0.00 ( 2.33% of Ewald)
-|                LJ Grid time              18.47 (33.33% of 3D-RI)
-|                      FFTB time                  0.16 ( 1.86% of R1RIS)
-|                      HUVK time                  0.85 ( 9.72% of R1RIS)
-|                      RESID time                 0.33 ( 3.81% of R1RIS)
-|                      CLOSURE time               2.04 (23.39% of R1RIS)
-|                      FFT time                   2.41 (27.62% of R1RIS)
-|                         LAPACK time                2.02 (69.04% of MDIIS)
-|                         DATA time                  0.90 (30.90% of MDIIS)
-|                      MDIIS time                 2.93 (33.56% of R1RIS)
-|                   R1RISM time                8.72 (100.0% of RXRIS)
-|                RXRISM time                8.72 (15.74% of 3D-RI)
-|                FF time                   28.19 (50.87% of 3D-RI)
-|             3D-RISM time              55.41 (99.89% of Nonbo)
-|          Nonbond force             55.47 (100.0% of Force)
-|       Force time                55.48 (99.90% of Runmd)
-|    Runmd Time                55.54 (99.68% of Total)
-| Total time                55.71 (100.0% of ALL  )
+|                Build the list             0.02 (78.95% of List )
+|                Other                      0.00 (21.05% of List )
+|                   Short_ene time             0.03 (93.94% of Direc)
+|                   Other                      0.00 ( 6.06% of Direc)
+|                Direct Ewald time          0.03 (73.33% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.22% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 9.09% of Recip)
+|                   FFT time                   0.01 (90.91% of Recip)
+|                Recip Ewald time           0.01 (24.44% of Ewald)
+|                LJ Grid time              17.67 (32.09% of 3D-RI)
+|                      FFTB time                  0.15 ( 1.65% of R1RIS)
+|                      HUVK time                  0.94 (10.44% of R1RIS)
+|                      RESID time                 0.31 ( 3.47% of R1RIS)
+|                      CLOSURE time               2.29 (25.33% of R1RIS)
+|                      FFT time                   2.69 (29.78% of R1RIS)
+|                         LAPACK time                1.89 (71.51% of MDIIS)
+|                         DATA time                  0.75 (28.37% of MDIIS)
+|                      MDIIS time                 2.65 (29.32% of R1RIS)
+|                   R1RISM time                9.03 (100.0% of RXRIS)
+|                RXRISM time                9.03 (16.41% of 3D-RI)
+|                FF time                   28.31 (51.44% of 3D-RI)
+|             3D-RISM time              55.05 (99.88% of Nonbo)
+|          Nonbond force             55.11 (100.0% of Force)
+|       Force time                55.12 (100.0% of Runmd)
+|    Runmd Time                55.13 (99.74% of Total)
+| Total time                55.28 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -289,13 +289,13 @@ defa
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      55.54 Per Step(ms) =   18511.67
+|     Elapsed(s) =      55.13 Per Step(ms) =   18376.67
 |         ns/day =       0.00   seconds/ns = **********
 | -----------------------------------------------------
 
-|           Job began  at 10:40:08.144  on 12/31/2020
-|           Setup done at 10:40:08.320  on 12/31/2020
-|           Run   done at 10:41:03.855  on 12/31/2020
+|           Job began  at 15:54:40.931  on 03/04/2021
+|           Setup done at 15:54:41.078  on 03/04/2021
+|           Run   done at 15:55:36.208  on 03/04/2021
 |     wallclock() was called   20354 times
 
 |3D-RISM memory allocation summary

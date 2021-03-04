@@ -3,7 +3,7 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 12/28/2020 at 08:10:12
+| Run on 03/04/2021 at 16:05:06
 
 |   Executable path: ../../bin/msander
 | Working directory: /Users/case/msander/test/tip4p
@@ -147,9 +147,9 @@ Ewald parameters:
 
  Number of triangulated 3-point waters found:      216
 
-     Sum of charges from parm topology file =     0.000000
+     Sum of charges from parm topology file =       0.0000
      Forcing neutrality...
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -276,23 +276,21 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 1.89% of Total)
-|                Build the list             0.01 (55.56% of List )
+|    Read coords time           0.00 ( 1.82% of Total)
+|                Build the list             0.00 (55.56% of List )
 |                Other                      0.00 (44.44% of List )
-|             List time                  0.01 (24.32% of Nonbo)
-|                   Short_ene time             0.02 (96.00% of Direc)
-|                   Other                      0.00 ( 4.00% of Direc)
-|                Direct Ewald time          0.03 (89.29% of Ewald)
-|                   Grad sum                   0.00 (66.67% of Recip)
-|                   FFT time                   0.00 (33.33% of Recip)
-|                Recip Ewald time           0.00 (10.71% of Ewald)
-|             Ewald time                 0.03 (75.68% of Nonbo)
+|             List time                  0.01 (23.08% of Nonbo)
+|                   Short_ene time             0.03 (100.0% of Direc)
+|                Direct Ewald time          0.03 (90.00% of Ewald)
+|                   FFT time                   0.00 (100.0% of Recip)
+|                Recip Ewald time           0.00 (10.00% of Ewald)
+|             Ewald time                 0.03 (76.92% of Nonbo)
 |          Nonbond force              0.04 (100.0% of Force)
-|       Force time                 0.04 (86.05% of Runmd)
-|       Verlet update time         0.01 (13.95% of Runmd)
-|    Runmd Time                 0.04 (81.13% of Total)
-|    Other                      0.01 (16.98% of Total)
-| Total time                 0.05 (100.0% of ALL  )
+|       Force time                 0.04 (88.64% of Runmd)
+|       Verlet update time         0.01 (11.36% of Runmd)
+|    Runmd Time                 0.04 (80.00% of Total)
+|    Other                      0.01 (18.18% of Total)
+| Total time                 0.06 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -302,11 +300,11 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.04 Per Step(ms) =       4.30
-|         ns/day =      20.09   seconds/ns =    4300.00
+|     Elapsed(s) =       0.04 Per Step(ms) =       4.40
+|         ns/day =      19.64   seconds/ns =    4400.00
 | -----------------------------------------------------
 
-|           Job began  at 08:10:12.212  on 12/28/2020
-|           Setup done at 08:10:12.222  on 12/28/2020
-|           Run   done at 08:10:12.265  on 12/28/2020
+|           Job began  at 16:05:06.057  on 03/04/2021
+|           Setup done at 16:05:06.068  on 03/04/2021
+|           Run   done at 16:05:06.112  on 03/04/2021
 |     wallclock() was called     465 times
