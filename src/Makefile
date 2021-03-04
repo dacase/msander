@@ -2,6 +2,9 @@
 
 include ../config.h
 
+parmed::
+	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
+
 install: $(INSTALLTYPE)
 
 serial:

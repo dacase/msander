@@ -15,10 +15,13 @@ else
     exit 2
 fi
 
+# assume that the python in the PATH is the correct version:
+version=`python --version | cut -c8-10`
+
 export MSANDERHOME=$(cd "$(dirname "$this_script")"; pwd)
 export PATH="$MSANDERHOME/bin:$PATH"
 if [ -z "$PYTHONPATH" ]; then
-    export PYTHONPATH="$MSANDERHOME/lib/python3.7/site-packages"
+    export PYTHONPATH="$MSANDERHOME/lib/python${version}/site-packages"
 else
-    export PYTHONPATH="$MSANDERHOME/lib/python3.7/site-packages:$PYTHONPATH"
+    export PYTHONPATH="$MSANDERHOME/lib/python${version}/site-packages:$PYTHONPATH"
 fi
