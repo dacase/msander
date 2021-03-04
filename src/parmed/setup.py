@@ -8,12 +8,12 @@ if sys.version_info < (3, 6):
     sys.exit('You must have at least Python 3.6 for ParmEd to work correctly.')
 
 # version at github.com/ParmEd uses setuptools:
-from setuptools import setup, Extension
-kws = {"entry_points" : {"console_scripts" : ["parmed = parmed.scripts:clapp"]}}
+#from setuptools import setup, Extension
+#kws = {"entry_points" : {"console_scripts" : ["parmed = parmed.scripts:clapp"]}}
 
 # somewhat simpler is to use distutils:
-#from distutils.core import setup, Extension
-#kws = {'scripts' : [os.path.join('scripts', 'parmed')]}
+from distutils.core import setup, Extension
+kws = {'scripts' : [os.path.join('scripts', 'parmed')]}
 
 from distutils.command.clean import clean as Clean
 
