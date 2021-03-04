@@ -589,7 +589,7 @@ PLUMED_DEPENDENCIES=Plumed.o
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
 PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
-PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install --no-setuptools-f \$(PYTHON_INSTALL)
+PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
 
 EOF
 
