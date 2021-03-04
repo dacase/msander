@@ -117,6 +117,7 @@ $MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_box.parm7 \
 
 /bin/mv 4amber_${id}_box.rst7 ${id}_box.rst7
 
+# check: following not needed if phenix.AmberPrep is used above
 $MSANDERHOME/bin/ambpdb -p ${id}_box.parm7 -ext < ${id}_box.rst7 > ${id}_box.pdb
 
 
