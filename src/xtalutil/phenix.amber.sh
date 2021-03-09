@@ -2,12 +2,12 @@
 
 #   standard amber refinement
 
-if [ "$#" -lt 4 ]; then
+if [ "$#" -lt 3 ]; then
    echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <cif-files>"
    exit 1
 fi
 
-cat <<EOF > ${3}_001.eff
+cat <<EOF > ${3}_002.eff
 refinement {
   input {
     xray_data {
@@ -19,7 +19,7 @@ refinement {
   }
   output {
     prefix = "$3"
-    serial = 1
+    serial = 2
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -30,16 +30,23 @@ refinement {
   refine {
     strategy = *individual_sites individual_sites_real_space rigid_body \
                *individual_adp group_adp tls *occupancies group_anomalous
+    sites {
+    }
+    adp {
+      individual {
+         anisotropic = not element H
+      }
+    }
   }
   target_weights {
     optimize_xyz_weight = False
-    fix_wxc = 0
-    wc = 1.6667
+    fix_wxc = 1
+    wc = 3.333
   } 
   main {
     nqh_flips = True
     number_of_macro_cycles = 10
-    target = *auto ml mlhl ml_sad ls mli
+    target = auto *ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
   }
@@ -50,7 +57,7 @@ refinement {
     c_beta_restraints = False
   }
   mask {
-    ignore_hydrogens = False
+    ignore_hydrogens = True
   }
   structure_factors_and_gradients_accuracy {
     algorithm = *fft direct
@@ -61,9 +68,9 @@ refinement {
   }
   amber {
     use_amber = True
-    topology_file_name = "4amber_$1.prmtop"
-    coordinate_file_name = "4amber_$1.rst7"
-    order_file_name = "4amber_$1.order"
+    topology_file_name = "../XrayPrep_27uc/alt5.5_uc.parm7"
+    coordinate_file_name = "../XrayPrep_27uc/alt5.5_uc.rst7"
+    order_file_name = "../XrayPrep_27uc/alt5.5_uc.order"
     wxc_factor = 0.2
     restraint_wt = 0
     restraintmask = ""
@@ -75,11 +82,11 @@ refinement {
 }
 EOF
 
-phenix.refine  4phenix_$1.pdb  $2  $4  ${3}_001.eff --overwrite > $3.amber.log
+phenix.refine  $1  $2  $4  ${3}_002.eff --overwrite > $3.amber.log
 
-diff ${3}_001.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
-     > $3.energies.dat
+diff ${3}_002.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
+     > ${3}_002.dat
 
-/bin/mv $3.amber.log ${3}_001.log
+/bin/mv $3.amber.log ${3}_002.log
 
 
