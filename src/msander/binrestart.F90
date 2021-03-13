@@ -203,7 +203,7 @@ subroutine read_nc_restart_box(filename,a,b,c,alpha,beta,gamma)
    if (NC_openRead(filename, ncid)) call mexit(6,1)
    if (NC_readRestartBox(ncid,a,b,c,alpha,beta,gamma)) call mexit(6,1)
    call NC_close(ncid)
-   write(6,'(a)') '| NetCDF restart box info found'
+   !  write(6,'(a)') '| NetCDF restart box info found'
 #else
    write(0,*) 'sander has been compiled without netcdf support'
    call mexit(6,1)

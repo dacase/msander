@@ -484,11 +484,13 @@ contains
 
       ! get the values for ucell:
       if ( NC_checkRestart(inpcrd) ) then
-        write(6,'(a)') ' getting box info from netcdf restart file'
+        if( master ) &
+          write(6,'(a,a)') ' getting box info from netcdf file ',trim(inpcrd)
         call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
       else
-         write(6,'(a)') ' getting box info from bottom of inpcrd'
-         call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
+        if( master ) &
+          write(6,'(a)') ' getting box info from bottom of ',trim(inpcrd)
+        call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
       endif
 
       if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
