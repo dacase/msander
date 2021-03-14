@@ -8,8 +8,8 @@ LESOBJ = lesmain.o addspace.o readprm.o \
         intgr.o   find.o    of.o \
         geti.o    unit.o    getc.o \
         alert.o   echo.o    get4c.o \
-        getd.o    wlesprm.o lesprm.o random.o \
-        les2prm.o checksz.o addspace_atm1st.o \
+        getd.o    random.o \
+        checksz.o addspace_atm1st.o \
         mexit.o  nxtsec.o
 
 addles:  $(BINDIR)/addles$(SFX)

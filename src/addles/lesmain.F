@@ -119,7 +119,6 @@ c
       allmas=.false.
       defspc=.false.
       bigmas=.false.
-      lespert=.false.
       nomodv=.false.
 
       rcrdok=.false.
@@ -350,19 +349,7 @@ c see if a les space definition is present (or other commands)
 c
 20        call rline(name,namel,stdi)
 c
-        if (find('pert')) then
-           if (defspc) then
-               write (6,*) 'no commands allowed after spac commands!'
-               stop
-           endif
-           lespert=.true.
-           write (6,*) '********************************************'
-           write (6,*) 'ADDLES does not yet support perturbations'
-           write (6,*) 'Check the AMBER web page for updates'
-           write (6,*) '********************************************'
-           stop
-c
-        else if (find('pimd')) then
+        if (find('pimd')) then
            pimd = .true.
            write(*,*) 'writing pimd prmtop'
            go to 20
@@ -555,12 +542,6 @@ c original particle numbering scheme. then we can reference them by
 c imass(origpt(i)), for example.
 c
           defspc=.true.
-          if (lespert.and.(dscale.eq.0.or.ascale.eq.0
-     .         .or.bscale.eq.0)) then
-              write (6,*) 
-     &        'YOU MUST SET bond, angle and dihedral scaling options'
-              stop
-          endif
 c
           numcop=geti('numc',1)
           if (numcop.lt.1) then
@@ -654,14 +635,8 @@ c
 c
 c these came from same original bond type
 c
-                  if (bfach(i).eq.tbon2(j).or.
-     &                        (lespert.and.bscale.eq.3)) then
+                  if (bfach(i).eq.tbon2(j)) imatch=j
 c
-c they had the same scale factor too (ignore if we aren't scaling bonds)
-c
-                      imatch=j
-c
-                  endif
               endif
 210       continue
           if (imatch.eq.0) then
@@ -676,16 +651,8 @@ c bscale=1: scale it
 c bscale=2: scale it
 c bscale=3: don't scale
 c
-              if (lespert.and.bscale.eq.3) then
-                      trk(tnumbnd)=rk(icbh(i))
-c
-c tbon2 should change based on bscale behavior - whether this bond WAS scaled
-c
-                      tbon2(tnumbnd)=1
-              else
-                      trk(tnumbnd)=rk(icbh(i))/dble(bfach(i))
-                      tbon2(tnumbnd)=bfach(i)
-              endif
+             trk(tnumbnd)=rk(icbh(i))/dble(bfach(i))
+             tbon2(tnumbnd)=bfach(i)
 
               print *, icbh(i), tnumbnd, treq(tnumbnd),trk(tnumbnd)
 c
@@ -701,14 +668,6 @@ c
               icbh(i)=imatch
           endif
 c
-c now, if (ifpert) and want to write the les-noles pert topologies
-c and unscaled bonds are ever needed (bscale = 1 or 2)
-c we should LEAVE THE ORIGINAL TYPE IN THE LIST! will make list
-c bigger but then we only need one type list for the whole set
-c of perts needed for LES calculation of free energies.
-c
-c          if (.not.lespert.or.bscale.eq.3) go to 200
-c
           imatch=0
           do 1210 j=1,tnumbnd
 c
@@ -717,9 +676,7 @@ c changed in the lines just above...
 c so it still contains the original pointer. just set scale factor to 1
 c
               if (ticbh(i).eq.tbon1(j)) then
-                  if (1.eq.tbon2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tbon2(j)) imatch=j
               endif
 1210      continue
           if (imatch.eq.0) then
@@ -743,35 +700,24 @@ c
           imatch=0
           do 230 j=1,tnumbnd
               if (icb(i).eq.tbon1(j)) then
-                  if (bfac(i).eq.tbon2(j).or.
-     &                        (lespert.and.bscale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (bfac(i).eq.tbon2(j)) imatch=j
               endif
 230       continue
           if (imatch.eq.0) then
               tnumbnd=tnumbnd+1
               treq(tnumbnd)=req(icb(i))
-              if (lespert.and.bscale.eq.3) then
-                      trk(tnumbnd)=rk(icb(i))
-                      tbon2(tnumbnd)=1
-              else
-                      trk(tnumbnd)=rk(icb(i))/dble(bfac(i))
-                      tbon2(tnumbnd)=bfac(i)
-              endif
+              trk(tnumbnd)=rk(icb(i))/dble(bfac(i))
+              tbon2(tnumbnd)=bfac(i)
               tbon1(tnumbnd)=icb(i)
               icb(i)=tnumbnd
           else
-                  icb(i)=imatch
+              icb(i)=imatch
           endif
 c
-c          if (.not.lespert.or.bscale.eq.3) go to 220
           imatch=0
           do 1230 j=1,tnumbnd
               if (ticb(i).eq.tbon1(j)) then
-                  if (1.eq.tbon2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tbon2(j)) imatch=j
               endif
 1230      continue
           if (imatch.eq.0) then
@@ -793,22 +739,14 @@ c
           imatch=0
           do 2230 j=1,tnumbnd
               if (icbper(i).eq.tbon1(j)) then
-                  if (bfacp(i).eq.tbon2(j).or.
-     &                        (lespert.and.bscale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (bfacp(i).eq.tbon2(j)) imatch=j
               endif
 2230      continue
           if (imatch.eq.0) then
               tnumbnd=tnumbnd+1
               treq(tnumbnd)=req(icbper(i))
-              if (lespert.and.bscale.eq.3) then
-                      trk(tnumbnd)=rk(icbper(i))
-                      tbon2(tnumbnd)=1
-              else
-                      trk(tnumbnd)=rk(icbper(i))/dble(bfacp(i))
-                      tbon2(tnumbnd)=bfacp(i)
-              endif
+              trk(tnumbnd)=rk(icbper(i))/dble(bfacp(i))
+              tbon2(tnumbnd)=bfacp(i)
               tbon1(tnumbnd)=icbper(i)
               icbper(i)=tnumbnd
           else
@@ -818,29 +756,20 @@ c now lambda=1
           imatch=0
           do 2235 j=1,tnumbnd
               if (icbper(i+nbper).eq.tbon1(j)) then
-                  if (bfacp(i).eq.tbon2(j).or.
-     &                        (lespert.and.bscale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (bfacp(i).eq.tbon2(j)) imatch=j
               endif
 2235      continue
           if (imatch.eq.0) then
               tnumbnd=tnumbnd+1
               treq(tnumbnd)=req(icbper(i+nbper))
-              if (lespert.and.bscale.eq.3) then
-                      trk(tnumbnd)=rk(icbper(i+nbper))
-                      tbon2(tnumbnd)=1
-              else
-                      trk(tnumbnd)=rk(icbper(i+nbper))/dble(bfacp(i))
-                      tbon2(tnumbnd)=bfacp(i)
-              endif
+              trk(tnumbnd)=rk(icbper(i+nbper))/dble(bfacp(i))
+              tbon2(tnumbnd)=bfacp(i)
               tbon1(tnumbnd)=icbper(i+nbper)
               icbper(i+nbper)=tnumbnd
           else
                   icbper(i+nbper)=imatch
           endif
 c
-c          if (.not.lespert.or.bscale.eq.3) go to 2220
           imatch=0
           do 1240 j=1,tnumbnd
               if (ticbper(i).eq.tbon1(j)) then
@@ -862,9 +791,7 @@ c          if (.not.lespert.or.bscale.eq.3) go to 2220
           imatch=0
           do 1250 j=1,tnumbnd
               if (ticbper(i+nbper).eq.tbon1(j)) then
-                  if (1.eq.tbon2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tbon2(j)) imatch=j
               endif
 1250      continue
           if (imatch.eq.0) then
@@ -900,31 +827,19 @@ c
           imatch=0
           do 310 j=1,tnumang
               if (icth(i).eq.tang1(j)) then
-                  if (afach(i).eq.tang2(j).or.
-     &                        (lespert.and.ascale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (afach(i).eq.tang2(j))  imatch=j
               endif
 310       continue
           if (imatch.eq.0) then
               tnumang=tnumang+1
               tteq(tnumang)=teq(icth(i))
-              if (lespert.and.ascale.eq.3) then
-c
-c icth should point to the scaled angle, and ticth will be the full angle
-c
-                      ttk(tnumang)=tk(icth(i))
-                      tang2(tnumang)=1
-              else
-                      ttk(tnumang)=tk(icth(i))/dble(afach(i))
-                      tang2(tnumang)=afach(i)
-              endif
+              ttk(tnumang)=tk(icth(i))/dble(afach(i))
+              tang2(tnumang)=afach(i)
               tang1(tnumang)=icth(i)
               icth(i)=tnumang
           else
               icth(i)=imatch
           endif
-c          if (.not.lespert.or.ascale.eq.3) go to 300
 c
 c now add in the full force constant angle type for single -> mult perts
 c use ticth since icth has changed
@@ -932,9 +847,7 @@ c
           imatch=0
           do 1255 j=1,tnumang
               if (ticth(i).eq.tang1(j)) then
-                  if (1.eq.tang2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tang2(j)) imatch=j
               endif
 1255      continue
           if (imatch.eq.0) then
@@ -955,34 +868,24 @@ c
           imatch=0
           do 330 j=1,tnumang
               if (ict(i).eq.tang1(j)) then
-                  if (afac(i).eq.tang2(j).or.
-     &                        (lespert.and.ascale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (afac(i).eq.tang2(j))  imatch=j
               endif
 330       continue
           if (imatch.eq.0) then
               tnumang=tnumang+1
               tteq(tnumang)=teq(ict(i))
-              if (lespert.and.ascale.eq.3) then
-                      ttk(tnumang)=tk(ict(i))
-                      tang2(tnumang)=1
-              else
-                      ttk(tnumang)=tk(ict(i))/dble(afac(i))
-                      tang2(tnumang)=afac(i)
-              endif
+              ttk(tnumang)=tk(ict(i))/dble(afac(i))
+              tang2(tnumang)=afac(i)
               tang1(tnumang)=ict(i)
               ict(i)=tnumang
           else
               ict(i)=imatch
           endif
-c          if (.not.lespert.or.ascale.eq.3) go to 320
+c 
           imatch=0
           do 1260 j=1,tnumang
               if (tict(i).eq.tang1(j)) then
-                  if (1.eq.tang2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tang2(j)) imatch=j
               endif
 1260      continue
           if (imatch.eq.0) then
@@ -1000,22 +903,14 @@ c          if (.not.lespert.or.ascale.eq.3) go to 320
           imatch=0
           do 2330 j=1,tnumang
               if (ictper(i).eq.tang1(j)) then
-                  if (afacp(i).eq.tang2(j).or.
-     &                        (lespert.and.ascale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (afacp(i).eq.tang2(j))  imatch=j
               endif
 2330      continue
           if (imatch.eq.0) then
               tnumang=tnumang+1
               tteq(tnumang)=teq(ictper(i))
-              if (lespert.and.ascale.eq.3) then
-                      ttk(tnumang)=tk(ictper(i))
-                      tang2(tnumang)=1
-              else
-                      ttk(tnumang)=tk(ictper(i))/dble(afacp(i))
-                      tang2(tnumang)=afacp(i)
-              endif
+              ttk(tnumang)=tk(ictper(i))/dble(afacp(i))
+              tang2(tnumang)=afacp(i)
               tang1(tnumang)=ictper(i)
               ictper(i)=tnumang
           else
@@ -1027,28 +922,19 @@ c
           imatch=0
           do 2332 j=1,tnumang
               if (ictper(i+ngper).eq.tang1(j)) then
-                  if (afacp(i).eq.tang2(j).or.
-     &                        (lespert.and.ascale.eq.3)) then
-                      imatch=j
-                  endif
+                  if (afacp(i).eq.tang2(j)) imatch=j
               endif
 2332      continue
           if (imatch.eq.0) then
               tnumang=tnumang+1
               tteq(tnumang)=teq(ictper(i+ngper))
-              if (lespert.and.ascale.eq.3) then
-                      ttk(tnumang)=tk(ictper(i+ngper))
-                      tang2(tnumang)=1
-              else
-                      ttk(tnumang)=tk(ictper(i+ngper))/dble(afacp(i))
-                      tang2(tnumang)=afacp(i)
-              endif
+              ttk(tnumang)=tk(ictper(i+ngper))/dble(afacp(i))
+              tang2(tnumang)=afacp(i)
               tang1(tnumang)=ictper(i+ngper)
               ictper(i+ngper)=tnumang
           else
               ictper(i+ngper)=imatch
           endif
-c          if (.not.lespert.or.ascale.eq.3) go to 2320
 c
 c now get the unscaled versions for single -> mult perts
 c use tictper since ictper was changed above
@@ -1056,9 +942,7 @@ c
           imatch=0
           do 1265 j=1,tnumang
               if (tictper(i).eq.tang1(j)) then
-                  if (1.eq.tang2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tang2(j)) imatch=j
               endif
 1265      continue
           if (imatch.eq.0) then
@@ -1074,9 +958,7 @@ c
           imatch=0
           do 1270 j=1,tnumang
               if (tictper(i+ngper).eq.tang1(j)) then
-                  if (1.eq.tang2(j)) then
-                      imatch=j
-                  endif
+                  if (1.eq.tang2(j)) imatch=j
               endif
 1270      continue
           if (imatch.eq.0) then
@@ -1115,13 +997,7 @@ c
 c tphi1 is the comparison for type icph(), tphi2 is for scale factor tfach()
 c
                 if (icph(i).eq.tphi1(j)) then
-                    if (tfach(i).eq.tphi2(j).or.
-     &                        lespert.and.dscale.eq.3) then
-c 
-c same type and scale factor
-c
-                        imatch=j
-                    endif
+                    if (tfach(i).eq.tphi2(j))  imatch=j
                 endif
 410         continue
             if (imatch.eq.0) then
@@ -1142,21 +1018,13 @@ c only set icph the first term (also don't use tphi1 and tphi2 for extra terms
 c since we never want to match an second (or 3rd, etc) term)
 c
                       tphi1(tnptra)=icph(i)
-                      if (lespert.and.dscale.eq.3) then
-                                tphi2(tnptra)=1
-                      else
-                                tphi2(tnptra)=tfach(i)
-                      endif
+                      tphi2(tnptra)=tfach(i)
                 else
                       write (6,*) 'multi-term torsion',i,tnptra
                         tphi1(tnptra)=-1
                         tphi2(tnptra)=-1
                 endif
-                if (dscale.eq.3.and.lespert) then
-                        tpk(tnptra)=pk(l+k)
-                else
-                        tpk(tnptra)=pk(l+k)/dble(tfach(i))
-                endif
+                tpk(tnptra)=pk(l+k)/dble(tfach(i))
                 tpn(tnptra)=pn(l+k)
                 tphase(tnptra)=phase(l+k)
 c
@@ -1177,13 +1045,10 @@ c
                 icph(i)=imatch
             endif
 C
-c          if (.not.lespert.or.dscale.eq.3) go to 400
           imatch=0
           do 1275 j=1,tnptra
                 if (ticph(i).eq.tphi1(j)) then
-                    if (1.eq.tphi2(j)) then
-                        imatch=j
-                    endif
+                    if (1.eq.tphi2(j)) imatch=j
                 endif
 1275      continue
             if (imatch.eq.0) then
@@ -1216,10 +1081,7 @@ c
           imatch=0
           do 430 j=1,tnptra
               if (icp(i).eq.tphi1(j)) then
-                  if (tfac(i).eq.tphi2(j).or.
-     &                        lespert.and.dscale.eq.3) then
-                      imatch=j
-                  endif
+                  if (tfac(i).eq.tphi2(j))  imatch=j
               endif
 430       continue
           if (imatch.eq.0) then
@@ -1228,21 +1090,13 @@ c
 435             tnptra=tnptra+1
                 if (k.eq.0) then
                       tphi1(tnptra)=icp(i)
-                    if (lespert.and.dscale.eq.3) then
-                              tphi2(tnptra)=1
-                    else
-                              tphi2(tnptra)=tfac(i)
-                    endif
+                      tphi2(tnptra)=tfac(i)
                 else  
                     write (6,*) 'multi-term torsion',i,tnptra
                       tphi1(tnptra)=-1
                       tphi2(tnptra)=-1
                 endif
-                if (lespert.and.dscale.eq.3) then
-                          tpk(tnptra)=pk(l+k)
-                else
-                          tpk(tnptra)=pk(l+k)/dble(tfac(i))
-                endif
+                tpk(tnptra)=pk(l+k)/dble(tfac(i))
                 tpn(tnptra)=pn(l+k)
                 tphase(tnptra)=phase(l+k)
                 if (k.eq.0) icp(i)=tnptra
@@ -1254,13 +1108,10 @@ c
                 icp(i)=imatch
           endif
 c
-c          if (.not.lespert.or.dscale.eq.3) go to 420
           imatch=0
           do 1290 j=1,tnptra
                 if (ticp(i).eq.tphi1(j)) then
-                    if (1.eq.tphi2(j)) then
-                        imatch=j
-                    endif
+                    if (1.eq.tphi2(j)) imatch=j
                 endif
 1290        continue
             if (imatch.eq.0) then
@@ -1294,10 +1145,7 @@ c
           imatch=0
           do 2430 j=1,tnptra
               if (icpper(i).eq.tphi1(j)) then
-                  if (tfacp(i).eq.tphi2(j).or.
-     &                        lespert.and.dscale.eq.3) then
-                      imatch=j
-                  endif
+                  if (tfacp(i).eq.tphi2(j))  imatch=j
               endif
 2430      continue
           if (imatch.eq.0) then
@@ -1306,20 +1154,12 @@ c
 2435            tnptra=tnptra+1
                 if (k.eq.0) then
                       tphi1(tnptra)=icpper(i)
-                      if (lespert.and.dscale.eq.3) then
-                                tphi2(tnptra)=1
-                      else
-                                tphi2(tnptra)=tfacp(i)
-                      endif
+                      tphi2(tnptra)=tfacp(i)
                 else  
                       tphi1(tnptra)=-1
                       tphi2(tnptra)=-1
                 endif
-                if (lespert.and.dscale.eq.3) then
-                          tpk(tnptra)=pk(l+k)
-                else
-                          tpk(tnptra)=pk(l+k)/dble(tfacp(i))
-                endif
+                tpk(tnptra)=pk(l+k)/dble(tfacp(i))
                 tpn(tnptra)=pn(l+k)
                 tphase(tnptra)=phase(l+k)
                 if (k.eq.0) icpper(i)=tnptra
@@ -1333,10 +1173,7 @@ c
           imatch=0
           do 2437 j=1,tnptra
               if (icpper(i+ndper).eq.tphi1(j)) then
-                  if (tfacp(i).eq.tphi2(j).or.
-     &                        lespert.and.dscale.eq.3) then
-                      imatch=j
-                  endif
+                  if (tfacp(i).eq.tphi2(j))  imatch=j
               endif
 2437      continue
           if (imatch.eq.0) then
@@ -1345,20 +1182,12 @@ c
 2440            tnptra=tnptra+1
                 if (k.eq.0) then
                       tphi1(tnptra)=icpper(i+ndper)
-                      if (lespert.and.dscale.eq.3) then
-                                tphi2(tnptra)=1
-                      else
-                                tphi2(tnptra)=tfacp(i)
-                      endif
+                      tphi2(tnptra)=tfacp(i)
                 else  
                       tphi1(tnptra)=-1
                       tphi2(tnptra)=-1
                 endif
-                if (lespert.and.dscale.eq.3) then
-                        tpk(tnptra)=pk(l+k)
-                else
-                        tpk(tnptra)=pk(l+k)/dble(tfacp(i))
-                endif
+                tpk(tnptra)=pk(l+k)/dble(tfacp(i))
                 tpn(tnptra)=pn(l+k)
                 tphase(tnptra)=phase(l+k)
                 if (k.eq.0) icpper(i+ndper)=tnptra
@@ -1370,13 +1199,10 @@ c
                 icpper(i+ndper)=imatch
           endif
 c
-c          if (.not.lespert) go to 2420
           imatch=0
           do 1300 j=1,tnptra
                 if (ticpper(i).eq.tphi1(j)) then
-                    if (1.eq.tphi2(j)) then
-                        imatch=j
-                    endif
+                    if (1.eq.tphi2(j)) imatch=j
                 endif
 1300      continue
           if (imatch.eq.0) then
@@ -1407,9 +1233,7 @@ c
           imatch=0
           do 1310 j=1,tnptra
                 if (ticpper(i+ndper).eq.tphi1(j)) then
-                    if (1.eq.tphi2(j)) then
-                        imatch=j
-                    endif
+                    if (1.eq.tphi2(j)) imatch=j
                 endif
 1310      continue
           if (imatch.eq.0) then
@@ -1440,23 +1264,6 @@ c
 c
 2420  continue
 c
-c now add dummy dihedrals- no barriers, but all else same. this is for 
-c free rotation about torsions for LES copies when they 'do not exist' 
-c (dummy copies) only do it if doing a LES perturbation. make a FULL
-c second set of torsions although some might not be needed. that could
-c be cleaned up but for now it is just fine.
-c
-c THIS IS NOT SUPPORTED UNTIL FURTHER TESTS ON CONVERGENCE 
-c        if (lespert) then
-c                realtors=tnptra
-c                do 2600 i=1,realtors
-c                   tnptra=tnptra+1
-c                   tpk(tnptra)=0.d0
-c                   tphase(tnptra)=tphase(i)
-c                   tpn(tnptra)=tpn(i)
-c2600                continue
-c        endif
-c
       write (6,'(a,i5,a,a,i5)') 'There were ',nptra,' dihedral types, ',
      .            'now there are ',tnptra
 c
@@ -1480,12 +1287,7 @@ c
 c look for the type in list, both atom type and scale factor
 c
               if (iac(i).eq.newiac(j)) then
-                  if (iacfac(i).eq.newiacfac(j)) then
-c
-c set the pointer to this type
-c
-                      imatch=j
-                  endif
+                  if (iacfac(i).eq.newiacfac(j)) imatch=j
               endif
 510       continue
           if (imatch.eq.0) then
@@ -1516,82 +1318,7 @@ c gibbs. do that down a bit...
 c
           iac(i)=imatch
 c
-c
-c look for original types if we are saving them to write les pert 
-c topology files. just like bonds, etc above.
-c
-          if (.not.lespert) go to 1400
-c
-          imatch=0
-          do 1410 j=1,tntypes
-              if (tiac(i).eq.newiac(j)) then
-                  if (1.eq.newiacfac(j)) then
-                      imatch=j
-                  endif
-              endif
-1410      continue
-          if (imatch.eq.0) then
-              tntypes = tntypes + 1
-              newiac(tntypes)=tiac(i)
-              newiacfac(tntypes)=1
-              imatch=tntypes
-          endif
-          tiac(i)=imatch
-c
-c so tiac is what the atom was originally. need it for perturbing 
-c 1 to many copies
-c
-c now look for the perturbed types (if they exist)
-c
-1400      if (ifpert.eq.0) go to 500
-c
-          imatch=0
-          do 2510 j=1,tntypes
-              if (iacper(i).eq.newiac(j)) then
-                  if (iacpfac(i).eq.newiacfac(j)) then
-                      imatch=j
-                  endif
-              endif
-2510      continue
-          if (imatch.eq.0) then
-              tntypes = tntypes + 1
-              newiac(tntypes)=iacper(i)
-              newiacfac(tntypes)=iacpfac(i)
-              imatch=tntypes
-          endif
-          iacper(i)=imatch
-c
-c now the original perturbed type, if we are saving it
-c
-          if (.not.lespert) go to 500
-c
-          imatch=0
-          do 1430 j=1,tntypes
-              if (tiacper(i).eq.newiac(j)) then
-                  if (1.eq.newiacfac(j)) then
-                      imatch=j
-                  endif
-              endif
-1430      continue
-          if (imatch.eq.0) then
-              tntypes = tntypes + 1
-              newiac(tntypes)=tiacper(i)
-              newiacfac(tntypes)=1
-              imatch=tntypes
-          endif
-          tiacper(i)=imatch
-c
-c next atom
-c
-500   continue
-c
-c now add a dummy type for disappearing atoms in LES- extra copies when
-c not used
-c
-      if (lespert) then
-          tntypes=tntypes+1
-          dumiac=tntypes
-      endif
+500    continue
 c
       write (6,'(a,i5,a,a,i5)') 'There were ',ntypes,' atom types',
      .            'Now there are ',tntypes
@@ -1843,14 +1570,6 @@ c
 !              write (6,1021) i,origpt(i)
 !1021          format ('ATOM ',i6,' original atom # ',i6)
 !1020  continue
-c
-c write extra topology files if requested for perturbations
-c do this before stuff gets changed by writprm()
-c
-      if (lespert) then
-              call lesprm(uw3prm)
-              call les2prm(uw2prm)
-      endif
 c
 c write new topology file
 c
