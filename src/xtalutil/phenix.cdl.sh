@@ -2,24 +2,24 @@
 
 #   cdl refinement
 
-if [ "$#" -lt 3 ]; then
-   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <id> <ciffiles>"
+if [ "$#" -lt 4 ]; then
+   echo "Usage:  phenix.cdl.sh <pdbfile> <mtzfile> <id> <serial> <ciffiles>"
    exit 1
 fi
 
-cat <<EOF > ${3}_001.eff
+cat <<EOF > ${3}_00$4.eff
 refinement {
   input {
     xray_data {
       outliers_rejection = True
       r_free_flags {
-        generate = True
+        generate = False
       }
     }
   }
   output {
     prefix = "$3"
-    serial = 1
+    serial = $4
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -30,15 +30,17 @@ refinement {
   refine {
     strategy = individual_sites individual_sites_real_space rigid_body \
                *individual_adp group_adp tls occupancies group_anomalous
+    sites {
+    }
     adp { 
       individual {
-         anisotropic = not element H
+         anisotropic = none
       }
     }
   }
   main {
     nqh_flips = True
-    number_of_macro_cycles = 1
+    number_of_macro_cycles = 5
     target = auto *ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
@@ -62,5 +64,5 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2 $4  ${3}_001.eff --overwrite
+phenix.refine  $1  $2 $5  ${3}_00$4.eff --overwrite
 

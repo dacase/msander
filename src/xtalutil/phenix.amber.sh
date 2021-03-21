@@ -2,12 +2,12 @@
 
 #   standard amber refinement
 
-if [ "$#" -lt 3 ]; then
-   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <cif-files>"
+if [ "$#" -lt 4 ]; then
+   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <serial> <cif-files>"
    exit 1
 fi
 
-cat <<EOF > ${3}_002.eff
+cat <<EOF > ${3}_00$4.eff
 refinement {
   input {
     xray_data {
@@ -19,7 +19,7 @@ refinement {
   }
   output {
     prefix = "$3"
-    serial = 2
+    serial = $4
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -29,19 +29,17 @@ refinement {
   }
   refine {
     strategy = *individual_sites individual_sites_real_space rigid_body \
-               *individual_adp group_adp tls *occupancies group_anomalous
+               *individual_adp group_adp tls occupancies group_anomalous
     sites {
     }
     adp {
       individual {
-         anisotropic = not element H
+         anisotropic = none
       }
     }
   }
   target_weights {
     optimize_xyz_weight = False
-    fix_wxc = 1
-    wc = 3.333
   } 
   main {
     nqh_flips = True
@@ -68,9 +66,9 @@ refinement {
   }
   amber {
     use_amber = True
-    topology_file_name = "../XrayPrep_27uc/alt5.5_uc.parm7"
-    coordinate_file_name = "../XrayPrep_27uc/alt5.5_uc.rst7"
-    order_file_name = "../XrayPrep_27uc/alt5.5_uc.order"
+    topology_file_name = "isoB_001_uc.parm7"
+    coordinate_file_name = "isoB_001_uc.rst7"
+    order_file_name = "isoB_001_uc.order"
     wxc_factor = 0.2
     restraint_wt = 0
     restraintmask = ""
@@ -82,11 +80,11 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2  $4  ${3}_002.eff --overwrite > $3.amber.log
+phenix.refine  $1  $2  $5  ${3}_00$4.eff --overwrite > $3.amber.log
 
-diff ${3}_002.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
-     > ${3}_002.dat
+diff ${3}_00$4.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
+     > ${3}_00$4.dat
 
-/bin/mv $3.amber.log ${3}_002.log
+/bin/mv $3.amber.log ${3}_00$4.log
 
 
