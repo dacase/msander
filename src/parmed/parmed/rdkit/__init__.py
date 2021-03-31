@@ -1,7 +1,7 @@
 """
 A package dealing with RDKit integration.
 """
-from .rdkit import RDKit
+from parmed.rdkit.rdkit import RDKit
 
 __all__ = ['load_rdkit', 'from_smiles', 'from_sdf']
 

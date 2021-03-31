@@ -24,8 +24,9 @@ Acknowledgements:
 """
 
 import re
-from ...exceptions import PdbxError, PdbxSyntaxError
-from .PdbxContainers import (DataCategory, DefinitionContainer, DataContainer)
+from parmed.exceptions import PdbxError, PdbxSyntaxError
+from parmed.formats.pdbx.PdbxContainers import (
+        DataCategory, DefinitionContainer, DataContainer)
 
 class PdbxReader(object):
     """ PDBx reader for data files and dictionaries.

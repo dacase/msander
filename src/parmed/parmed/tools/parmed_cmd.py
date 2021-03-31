@@ -10,6 +10,8 @@ import traceback
 from glob import glob
 
 from ..exceptions import ParmedError, ParmedWarning
+from ..utils.six import iteritems
+from ..utils.six.moves import range  # pylint: disable=W0622,E0401
 from .actions import COMMANDMAP, Usages
 from .argumentlist import ArgumentList
 from .exceptions import InterpreterError
@@ -139,13 +141,14 @@ class ParmedCmd(cmd.Cmd):
             self.parmout = COMMANDMAP['parmout'](self.parm, line)
         except (ParmedError, ParmedWarning) as err:
             self.stdout.write('Action parmout failed.\n\t')
-            self.stdout.write(f'{type(err).__name__}: {err}\n')
+            self.stdout.write('%s: %s\n' % (type(err).__name__, err))
             if self._exit_on_fatal:
                 raise
         except Exception as err:
             if self._exit_on_fatal:
                 raise
-            self.stdout.write(f'Unexpected failure:\n{type(err).__name__}: {err}\n\nTraceback is\n\n')
+            self.stdout.write('Unexpected failure:\n%s: %s\n\n'
+                              'Traceback is\n\n' % (type(err).__name__, err))
             traceback.print_tb(sys.exc_info()[2], file=self.stdout)
 
     def _normaldo(self, ActionClass, line):
@@ -175,19 +178,20 @@ class ParmedCmd(cmd.Cmd):
         auto-complete. This eliminates the need to modify the ParmedCmd class
         when a new command is added
         """
-        for _cmd, cmdclass in COMMANDMAP.items():
+        for _cmd, cmdclass in iteritems(COMMANDMAP):
             if _cmd in ('source', 'go', 'EOF', 'quit', 'help', 'parmout'):
                 continue
             cmdname = cmdclass.__name__
-            exec(f'cls.do_{cmdname} = lambda self, line: self._normaldo(COMMANDMAP["{_cmd}"], line)')
+            exec('cls.do_%s = lambda self, line: '
+                 'self._normaldo(COMMANDMAP["%s"], line)' % (cmdname, _cmd))
         cls._populated = True
 
     def do_source(self, line):
         action = COMMANDMAP['source'](self.parm, line)
-        if not action.valid:
-            return
-        self.stdout.write(f'{str(action)}\n')
-        _cmd = ParmedCmd(self.parm, stdin=open(action.filename, 'r'), stdout=self.stdout)
+        if not action.valid: return
+        self.stdout.write('%s\n' % action)
+        _cmd = ParmedCmd(self.parm, stdin=open(action.filename, 'r'),
+                         stdout=self.stdout)
         _cmd.prompt = ''
         _cmd.interpreter = self.interpreter
         _cmd.use_rawinput = 0
@@ -211,18 +215,18 @@ class ParmedCmd(cmd.Cmd):
         been issued
         """
         if hasattr(self, 'parmout'):
-            self.stdout.write(f'{str(self.parmout)}\n')
+            self.stdout.write('%s\n' % self.parmout)
             try:
                 self.parmout.execute()
             except ParmedError as err:
-                self.stdout.write(f'{type(err).__name__}: {err}\n')
+                self.stdout.write('%s: %s\n' % (type(err).__name__, err))
                 if self._exit_on_fatal:
                     raise
             except Exception as err:
                 if self._exit_on_fatal:
                     raise
-                self.stdout.write(f'Unexpected failure:\n{type(err).__name__}: {err}\n\n')
-                self.stdout.write('Traceback is\n\n')
+                self.stdout.write('Unexpected failure:\n%s: %s\n\nTraceback is'
+                                  '\n\n' % (type(err).__name__, err))
                 traceback.print_tb(sys.exc_info()[2], file=self.stdout)
 
         return True
@@ -244,16 +248,16 @@ class ParmedCmd(cmd.Cmd):
         global _COMMANDLOGS
         if readline is None:
             for line in _COMMANDLOGS:
-                self.stdout.write(f'{line}\n')
+                self.stdout.write('%s\n' % line)
         else:
             for i in range(readline.get_current_history_length()):
-                self.stdout.write(f'{readline.get_history_item(i + 1)}\n')
+                self.stdout.write('%s\n' % readline.get_history_item(i+1))
 
     def default(self, line):
         words = line.split()
         mycmd = words[0].lower()
         if mycmd not in COMMANDMAP:
-            self.stdout.write(f"{words[0]} command not recognized\n")
+            self.stdout.write("%s command not recognized\n" % words[0])
         else:
             args = ArgumentList(words[1:])
             self._normaldo(COMMANDMAP[mycmd], args)
@@ -261,7 +265,8 @@ class ParmedCmd(cmd.Cmd):
     def do_shell(self, line):
         """ Support the limited interpreter """
         if not self.interpreter:
-            raise InterpreterError("Interpreter not enabled! Use '-e' to enable")
+            raise InterpreterError("Interpreter not enabled! Use '-e' "
+                                   "to enable")
         line = str(line)
         if line.strip() == '!':
             self._python_shell()
@@ -271,7 +276,7 @@ class ParmedCmd(cmd.Cmd):
             try:
                 exec(line.strip(), globals_)
             except Exception as err:
-                self.stdout.write(f"{type(err).__name__}: {err}\n")
+                self.stdout.write("%s: %s\n" % (type(err).__name__, err))
 
     def completedefault(self, text, line, begidx, endidx):
         partial = line[:endidx]
@@ -281,19 +286,18 @@ class ParmedCmd(cmd.Cmd):
 
     def _python_shell(self):
         """ Drop into a limited interpreter and read until we see !! """
-        from . import actions
+        from parmed.tools import actions
         python_interpreter = PythonCmd(stdin=self.stdin, stdout=self.stdout)
         python_interpreter.use_rawinput = self.use_rawinput
         python_interpreter.setlog(self._logfile)
-        if not self.prompt:
-            python_interpreter.prompt = ''
+        if not self.prompt: python_interpreter.prompt = ''
         python_interpreter.cmdloop()
         try:
             globals_ = dict(amber_prmtop=self.parm, actions=actions)
             globals_.update(globals())
             exec(python_interpreter.command_string, globals_)
         except Exception as err:
-            self.stdout.write(f"{type(err).__name__}: {err}\n")
+            self.stdout.write("%s: %s\n" % (type(err).__name__, err))
       
     def do_help(self, arg):
         " Modify the original do_help to pull docstrings from actions "
@@ -305,23 +309,24 @@ class ParmedCmd(cmd.Cmd):
                 try:
                     doc=getattr(self, 'do_' + arg).__doc__
                     if doc:
-                        self.stdout.write(f"{str(doc)}\n")
+                        self.stdout.write("%s\n" % str(doc))
                         return
                 except (AttributeError, TypeError):
                     pass
                 try:
                     _action = COMMANDMAP[arg.lower()]
                     if _action.needs_parm:
-                        doc = '{} [parm <idx>|<name>]\n{}'
+                        doc = '%s [parm <idx>|<name>]\n%s'
                     else:
-                        doc = '{}\n{}'
-                    doc = doc.format(_fmt_usage(Usages[arg.lower()]), _action.__doc__)
+                        doc = '%s\n%s'
+                    doc = doc % (_fmt_usage(Usages[arg.lower()]),
+                                 _action.__doc__)
                     if doc:
-                        self.stdout.write(f"{str(doc)}\n")
+                        self.stdout.write("%s\n"%str(doc))
                         return
                 except (AttributeError, KeyError):
                     pass
-                self.stdout.write(f"No help available for {arg}\n")
+                self.stdout.write("%s\n" % str(self.nohelp % (arg,)))
                 return
                 func()
         else:
@@ -350,9 +355,9 @@ class ParmedCmd(cmd.Cmd):
                         cmds_doc.append(cmd)
                     else:
                         cmds_undoc.append(cmd)
-            self.stdout.write(f"{str(self.doc_leader)}\n")
-            self.print_topics(self.doc_header, cmds_doc, 15,80)
-            self.print_topics(self.misc_header, help.keys(), 15,80)
+            self.stdout.write("%s\n"%str(self.doc_leader))
+            self.print_topics(self.doc_header,   cmds_doc,   15,80)
+            self.print_topics(self.misc_header,  help.keys(),15,80)
             self.print_topics(self.undoc_header, cmds_undoc, 15,80)
 
 class PythonCmd(cmd.Cmd):
@@ -394,8 +399,7 @@ class PythonCmd(cmd.Cmd):
 
     def default(self, line):
         """ Add this onto the command string """
-        if line.strip() == '!!':
-            return True
+        if line.strip() == '!!': return True
         self.command_string += line + '\n'
 
 # To pretty-print usage statements. Some are getting long, so they need to be
@@ -463,6 +467,5 @@ def _fmt_usage(usage):
         else:
             lines.append(line)
             line = ' ' * indent_size + uword
-    if line:
-        lines.append(line)
+    if line: lines.append(line)
     return '\n'.join(lines)

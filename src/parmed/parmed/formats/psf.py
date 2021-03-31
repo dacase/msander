@@ -2,14 +2,16 @@
 This module contains classes for reading and writing CHARMM- and XPLOR-style PSF
 files
 """
+from parmed.charmm import CharmmPsfFile
 # TODO -- move this functionality to a more centralized location
-from contextlib import closing
-from ..charmm.psf import CharmmPsfFile
-from ..formats.registry import FileFormatType
-from ..utils import tag_molecules
-from ..utils.io import genopen
+from parmed.charmm.psf import set_molecules
+from parmed.formats.registry import FileFormatType
+from parmed.utils.io import genopen
+from parmed.utils.six import add_metaclass, string_types
+from parmed.utils.six.moves import range
 
-class PSFFile(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class PSFFile(object):
     """
     CHARMM- or XPLOR-style PSF file parser and writer. This class is
     specifically a holder for the writing functionality and a vessel for
@@ -17,6 +19,7 @@ class PSFFile(metaclass=FileFormatType):
     directly, use :class:`parmed.charmm.CharmmPsfFile` or the
     :func:`parmed.formats.load_file` function instead.
     """
+    #===================================================
 
     @staticmethod
     def id_format(filename):
@@ -32,8 +35,12 @@ class PSFFile(metaclass=FileFormatType):
         is_fmt : bool
             True if it is a CHARMM or Xplor-style PSF file
         """
-        with closing(genopen(filename, 'r')) as f:
-            return f.readline().strip().startswith("PSF")
+        f = genopen(filename, 'r')
+        line = f.readline()
+        f.close()
+        return line.strip().startswith('PSF')
+
+    #===================================================
 
     @staticmethod
     def parse(filename):
@@ -50,6 +57,8 @@ class PSFFile(metaclass=FileFormatType):
             The PSF file instance with all information loaded
         """
         return CharmmPsfFile(filename)
+
+    #===================================================
 
     @staticmethod
     def write(struct, dest, vmd=False):
@@ -84,14 +93,14 @@ class PSFFile(metaclass=FileFormatType):
             xplor = 'XPLOR' in struct.flags
         except AttributeError:
             for atom in struct.atoms:
-                if isinstance(atom.type, str):
+                if isinstance(atom.type, string_types):
                     xplor = True
                     break
             else:
                 xplor = False
         own_handle = False
         # Index the atoms and residues TODO delete
-        if isinstance(dest, str):
+        if isinstance(dest, string_types):
             own_handle = True
             dest = genopen(dest, 'w')
 
@@ -114,7 +123,7 @@ class PSFFile(metaclass=FileFormatType):
             if xplor:
                 dest.write(' XPLOR')
         dest.write('\n\n')
-        if isinstance(struct.title, str):
+        if isinstance(struct.title, string_types):
             dest.write(intfmt % 1 + ' !NTITLE\n')
             dest.write('%s\n\n' % struct.title)
         else:
@@ -258,7 +267,7 @@ class PSFFile(metaclass=FileFormatType):
         # The next two sections are never found in VMD prmtops...
         if not vmd:
             # Molecule section; first set molecularity
-            tag_molecules(struct)
+            set_molecules(struct.atoms)
             mollist = [a.marked for a in struct.atoms]
             dest.write(intfmt % max(mollist) + ' !MOLNT\n')
             for i, atom in enumerate(struct.atoms):

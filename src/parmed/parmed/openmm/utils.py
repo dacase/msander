@@ -1,8 +1,10 @@
 """
 This package contains some useful functionality for common tasks in OpenMM
 """
-from .. import unit as u
-from ..utils.decorators import needs_openmm
+from parmed import unit as u
+from parmed.utils.decorators import needs_openmm
+from parmed.utils.six import iteritems
+from parmed.utils.six.moves import range, zip, map
 
 def energy_decomposition(structure, context, nrg=u.kilocalories_per_mole):
     """
@@ -40,7 +42,7 @@ def energy_decomposition(structure, context, nrg=u.kilocalories_per_mole):
         gp = force.getForceGroup()
         force_group_names[gp] = all_names[gp]
 
-    for grp, name in force_group_names.items():
+    for grp, name in iteritems(force_group_names):
         state = context.getState(getEnergy=True, groups=1<<grp)
         energy_components[name] = state.getPotentialEnergy().value_in_unit(nrg)
 
@@ -93,9 +95,8 @@ def energy_decomposition_system(structure, system, platform=None,
         if platform is None:
             con = mm.Context(system, mm.VerletIntegrator(0.001))
         else:
-            con = mm.Context(
-                system, mm.VerletIntegrator(0.001), mm.Platform.getPlatformByName(platform)
-            )
+            con = mm.Context(system, mm.VerletIntegrator(0.001),
+                             mm.Platform.getPlatformByName(platform))
         con.setPositions(structure.positions)
         if structure.box is not None:
             con.setPeriodicBoxVectors(*structure.box_vectors)

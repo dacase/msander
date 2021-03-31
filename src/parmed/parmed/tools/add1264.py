@@ -2,7 +2,10 @@
 This module contains the necessary machinery to add the LENNARD_JONES_CCOEF to a
 topology file given a list of atomic polarizabilities
 """
-from .exceptions import LJ12_6_4Error, DuplicateParamWarning
+from __future__ import division, print_function
+
+from parmed.utils.six.moves import range, zip
+from parmed.tools.exceptions import LJ12_6_4Error, DuplicateParamWarning
 import warnings
 
 WATER_POL = 1.444 # Polarizability of water
@@ -51,28 +54,29 @@ DEFAULT_C4_PARAMS = {
 
 def params1264(parm, mask, c4file, watermodel, polfile, tunfactor):
    
-    from .. import periodic_table as pt
+    from parmed import periodic_table as pt
+
+    global DEFAULT_C4_PARAMS, WATER_POL
 
     try:
         pollist = _get_params(polfile)
-    except ValueError as err:
-        raise LJ12_6_4Error(
-            f'Bad polarizability file {polfile}. Expected a file with '
-            '2 columns: <Amber Atom Type> <Polarizability>'
-        ) from err
+    except ValueError:
+        raise LJ12_6_4Error('Bad polarizability file %s. Expected a file with '
+                            '2 columns: <Amber Atom Type> <Polarizability>' %
+                            polfile)
    
     if c4file is None:
         c4list = DEFAULT_C4_PARAMS[watermodel]
     else:
         try:
             c4list = _get_params(c4file)
-        except ValueError as err:
-            raise LJ12_6_4Error(
-                f'Bad C4 parameter file {c4file}. Expected a file with 2 columns: '
-                '<Atom Element> <C4 Parameter>'
-            ) from err
+        except ValueError:
+            raise LJ12_6_4Error('Bad C4 parameter file %s. Expected a file '
+                                'with 2 columns: <Atom Element> '
+                                '<C4 Parameter>' % c4file)
 
 
+    print("***********************************************************")
     # Determine which atom type was treated as the center metal ion
     mettypdict = dict()
     for i in mask.Selected():
@@ -80,7 +84,8 @@ def params1264(parm, mask, c4file, watermodel, polfile, tunfactor):
         metchg = parm.parm_data['CHARGE'][i]
         if mettypind in mettypdict: continue
         mettypdict[mettypind] = (parm.atoms[i].atomic_number, int(metchg))
-        print(f"The selected metal ion is {pt.Element[parm.atoms[i].atomic_number]}")
+        print("The selected metal ion is %s" %
+              pt.Element[parm.atoms[i].atomic_number])
     mettypinds = sorted(mettypdict.keys())
 
     # 1. Get the dict between AMBER_ATOM_TYPE and ATOM_TYPE_INDEX for all 
@@ -108,7 +113,8 @@ def params1264(parm, mask, c4file, watermodel, polfile, tunfactor):
 
     for mettypind in mettypinds:
         # Obtain the C4 parameters
-        c4 = c4list[pt.Element[mettypdict[mettypind][0]] + str(mettypdict[mettypind][1])]
+        c4 = c4list[pt.Element[mettypdict[mettypind][0]] +
+                    str(mettypdict[mettypind][1])]
         i = mettypind - 1
         for j in range(1, ntypes+1):
             jj = j - 1
@@ -120,18 +126,22 @@ def params1264(parm, mask, c4file, watermodel, polfile, tunfactor):
                         try:
                             pol = pollist[typjs]
                         except KeyError:
-                            raise LJ12_6_4Error(f"Could not find parameters for ATOM_TYPE {typjs}")
+                            raise LJ12_6_4Error("Could not find parameters for "
+                                                "ATOM_TYPE %s" % typjs )
                     else:
                         try:
                             anthpol = pollist[typjs]
                             if anthpol != pol:
                                 raise LJ12_6_4Error(
-                                    f'Polarizability parameter of AMBER_ATOM_TYPE {attypjs[0]} is '
-                                    f'not the same as that of AMBER_ATOM_TYPE {typjs}, but '
-                                    'their VDW parameters are the same. '
+                                        'Polarizability parameter of '
+                                        'AMBER_ATOM_TYPE %s is not the same '
+                                        'as that of AMBER_ATOM_TYPE %s, but '
+                                        'their VDW parameters are the same. ' %
+                                        (attypjs[0], typjs)
                                 )
                         except KeyError:
-                            raise LJ12_6_4Error(f"Could not find parameters for ATOM_TYPE {typjs}")
+                            raise LJ12_6_4Error("Could not find parameters for "
+                                                "ATOM_TYPE %s" % typjs)
                 # Get index
                 if jj < i:
                     idx = parm.parm_data['NONBONDED_PARM_INDEX'][ntypes*jj+i]-1
@@ -157,8 +167,8 @@ def _get_params(fname):
             atomtype, param = line.split()[:2]
             param = float(param)
             if atomtype in params and abs(param - params[atomtype]) > 0.0001:
-                warnings.warn(f'Atom type {atomtype} has multiple parameters in {fname}.',
-                              DuplicateParamWarning)
+                warnings.warn('Atom type %s has multiple parameters in %s.' %
+                              (atomtype, fname), DuplicateParamWarning)
             params[atomtype] = param
 
         return params

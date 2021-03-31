@@ -2,19 +2,21 @@
 This module contains a handful of extra reporter classes for OpenMM
 simulations
 """
+from __future__ import division, print_function
+
+from parmed.amber.asciicrd import AmberMdcrd
+from parmed.geometry import box_vectors_to_lengths_and_angles
+from parmed.amber.netcdffiles import NetCDFTraj
+from parmed.amber.readparm import Rst7
+from parmed import unit as u
+from parmed.utils.decorators import needs_openmm
+from parmed.utils.six.moves import range
 from math import isnan, isinf
 from time import time
-
-from ..amber.asciicrd import AmberMdcrd
-from ..geometry import box_vectors_to_lengths_and_angles
-from ..amber.netcdffiles import NetCDFTraj
-from ..amber.readparm import Rst7
-from .. import unit as u
-from ..utils.decorators import needs_openmm
 VELUNIT = u.angstrom / u.picosecond
 FRCUNIT = u.kilocalorie_per_mole / u.angstrom
 
-class StateDataReporter:
+class StateDataReporter(object):
     """
     This class acts as a state data reporter for OpenMM simulations, but it is a
     little more generalized. Notable differences are:
@@ -96,7 +98,8 @@ class StateDataReporter:
         self._needsPositions = False
         self._needsVelocities = False
         self._needsForces = False
-        self._needEnergy = (potentialEnergy or kineticEnergy or totalEnergy or temperature)
+        self._needEnergy = (potentialEnergy or kineticEnergy or
+                            totalEnergy or temperature)
         self._energyUnit = energyUnit
         self._densityUnit = densityUnit
         self._timeUnit = timeUnit
@@ -120,7 +123,8 @@ class StateDataReporter:
         """
         steps_left = simulation.currentStep % self._reportInterval
         steps = self._reportInterval - steps_left
-        return (steps, self._needsPositions, self._needsVelocities, self._needsForces, self._needEnergy)
+        return (steps, self._needsPositions, self._needsVelocities,
+                self._needsForces, self._needEnergy)
 
     def report(self, simulation, state):
         """Generate a report.
@@ -135,8 +139,7 @@ class StateDataReporter:
         if not self._hasInitialized:
             self._initializeConstants(simulation)
             headers = self._constructHeaders()
-            header = f'"{self._separator}"'.join(headers)
-            self._out.write(f'#"{header}"\n')
+            self._out.write('#"%s"\n' % ('"'+self._separator+'"').join(headers))
             self._hasInitialized = True
 
         # Check for errors.
@@ -147,8 +150,7 @@ class StateDataReporter:
 
         # Write the values.
         self._out.write(self._separator.join(str(v) for v in values) + '\n')
-        if hasattr(self._out, 'flush'):
-            self._out.flush()
+        hasattr(self._out, 'flush') and self._out.flush()
 
     def _constructReportValues(self, simulation, state):
         """
@@ -237,17 +239,17 @@ class StateDataReporter:
         if self._time:
             headers.append('Time (ps)')
         if self._potentialEnergy:
-            headers.append(f'Potential Energy ({self._energyUnit})')
+            headers.append('Potential Energy (%s)' % self._energyUnit)
         if self._kineticEnergy:
-            headers.append(f'Kinetic Energy ({self._energyUnit})')
+            headers.append('Kinetic Energy (%s)' % self._energyUnit)
         if self._totalEnergy:
-            headers.append(f'Total Energy ({self._energyUnit})')
+            headers.append('Total Energy (%s)' % self._energyUnit)
         if self._temperature:
             headers.append('Temperature (K)')
         if self._volume:
-            headers.append(f'Box Volume ({self._volumeUnit})')
+            headers.append('Box Volume (%s)' % self._volumeUnit)
         if self._density:
-            headers.append(f'Density ({self._densityUnit})')
+            headers.append('Density (%s)' % self._densityUnit)
         return headers
 
     def _checkForErrors(self, simulation, state):
@@ -301,9 +303,13 @@ class NetCDFReporter(object):
             Should we write forces to this trajectory? (Default False)
         """
         if not crds and not vels and not frcs:
-            raise ValueError('Either coordinates, velocities, or forces needed for NetCDFReporter')
+            raise ValueError('You must print either coordinates, velocities, '
+                             'or forces in a NetCDFReporter')
         # Control flags
         self.crds, self.vels, self.frcs = crds, vels, frcs
+#       if not (crds or vels or frcs): TODO delete
+#           raise ValueError('Cannot write a trajectory without coordinates, '
+#                            'velocities, or forces! Pick at least one.')
         self._reportInterval = reportInterval
         self._out = None # not written yet
         self.fname = file
@@ -356,15 +362,14 @@ class NetCDFReporter(object):
                 atom = len(frcs)
             self.uses_pbc = simulation.topology.getUnitCellDimensions() is not None
             self._out = NetCDFTraj.open_new(
-                self.fname, atom, self.uses_pbc, self.crds, self.vels,
-                self.frcs, title="ParmEd-created trajectory using OpenMM",
+                    self.fname, atom, self.uses_pbc, self.crds, self.vels,
+                    self.frcs, title="ParmEd-created trajectory using OpenMM"
             )
         if self.uses_pbc:
             vecs = state.getPeriodicBoxVectors()
             lengths, angles = box_vectors_to_lengths_and_angles(*vecs)
-            self._out.add_cell_lengths_angles(
-                lengths.value_in_unit(u.angstrom), angles.value_in_unit(u.degree)
-            )
+            self._out.add_cell_lengths_angles(lengths.value_in_unit(u.angstrom),
+                                              angles.value_in_unit(u.degree))
 
         # Add the coordinates, velocities, and/or forces as needed
         if self.crds:
@@ -425,9 +430,8 @@ class MdcrdReporter(object):
         if vels: ntrue += 1
         if frcs: ntrue += 1
         if ntrue != 1:
-            raise ValueError(
-                'MdcrdReporter must print exactly one of either coordinates, velocities, or forces.'
-            )
+            raise ValueError('MdcrdReporter must print exactly one of either '
+                             'coordinates, velocities, or forces.')
         # Control flags
         self.crds, self.vels, self.frcs = crds, vels, frcs
         self._reportInterval = reportInterval
@@ -462,7 +466,7 @@ class MdcrdReporter(object):
             - simulation (Simulation) The Simulation to generate a report for
             - state (State) The current state of the simulation
         """
-        from ..amber.asciicrd import VELSCALE
+        from parmed.amber.asciicrd import VELSCALE
         global VELUNIT, FRCUNIT
         if self.crds:
             crds = state.getPositions().value_in_unit(u.angstrom)
@@ -593,7 +597,8 @@ class RestartReporter(object):
             self.uses_pbc = sim.topology.getUnitCellDimensions() is not None
             self.atom = len(crds)
             # First time written
-            self.rst7 = Rst7(natom=self.atom, title='Restart file written by ParmEd with OpenMM')
+            self.rst7 = Rst7(natom=self.atom,
+                             title='Restart file written by ParmEd with OpenMM')
         self.rst7.time = state.getTime().value_in_unit(u.picosecond)
         flatcrd = [0.0 for i in range(self.atom*3)]
         for i in range(self.atom):
@@ -614,7 +619,8 @@ class RestartReporter(object):
             lengths, angles = box_vectors_to_lengths_and_angles(*boxvecs)
             lengths = lengths.value_in_unit(u.angstrom)
             angles = angles.value_in_unit(u.degree)
-            self.rst7.box = [lengths[0], lengths[1], lengths[2], angles[0], angles[1], angles[2]]
+            self.rst7.box = [lengths[0], lengths[1], lengths[2],
+                             angles[0], angles[1], angles[2]]
 
         if self.write_multiple:
             fname = self.fname + '.%d' % sim.currentStep
@@ -658,10 +664,10 @@ class ProgressReporter(StateDataReporter):
         The mass of the system used when reporting density (useful in instances
         where masses are set to 0 to constrain their positions)
 
-    Notes
-    -----
-    In addition to the above, :class:`ProgressReporter` also accepts arguments for
-    :class:`StateDataReporter`
+    See Also
+    --------
+    In addition to the above, ProgressReporter also accepts arguments for
+    StateDataReporter
     """
 
     @needs_openmm
@@ -673,13 +679,14 @@ class ProgressReporter(StateDataReporter):
         # a bad thing, but also prepares it for reports
         kwargs['time'] = kwargs['step'] = True
         super(ProgressReporter, self).__init__(
-            f, reportInterval, potentialEnergy=potentialEnergy,
-            kineticEnergy=kineticEnergy, totalEnergy=totalEnergy,
-            temperature=temperature, volume=volume, density=density,
-            systemMass=systemMass, **kwargs
+                f, reportInterval, potentialEnergy=potentialEnergy,
+                kineticEnergy=kineticEnergy, totalEnergy=totalEnergy,
+                temperature=temperature, volume=volume, density=density,
+                systemMass=systemMass, **kwargs
         )
         if not self._openedFile:
-            raise ValueError('ProgressReporter requires a file name (not file object)')
+            raise ValueError('ProgressReporter requires a file name '
+                             '(not file object)')
         self._out.close()
         del self._out
         self.fname = f
@@ -739,7 +746,8 @@ class ProgressReporter(StateDataReporter):
         partial_time = now - self._lastReportTime
         self._lastReportTime = now
 
-        total_nsperday = (values['step'] - self._firstStep) * self._timeStep / total_time
+        total_nsperday = ((values['step'] - self._firstStep) * self._timeStep /
+                           total_time)
         partial_nsperday = (self._reportInterval*self._timeStep) / partial_time
 
         # Get total and partial ns/day (currently ns/second)
@@ -756,32 +764,35 @@ class ProgressReporter(StateDataReporter):
         with open(self.fname, 'w') as f:
             f.write('-+' * 39 + '\n')
             f.write('\n')
-            f.write(f'  On step {values["step"] - self._firstStep} of {self._totalSteps}\n')
+            f.write('  On step %d of %d\n' % (values['step'] - self._firstStep,
+                                              self._totalSteps))
             f.write('\n')
             if self._totalEnergy:
-                f.write(f'  Total Energy     = {values["totalEnergy"]:12.4f}\n')
+                f.write('  Total Energy     = %12.4f\n' % values['totalEnergy'])
             if self._potentialEnergy:
-                f.write(f'  Potential Energy = {values["potentialEnergy"]:12.4f}\n')
+                f.write('  Potential Energy = %12.4f\n' %
+                        values['potentialEnergy'])
             if self._kineticEnergy:
-                f.write(f'  Kinetic Energy   = {values["kineticEnergy"]:12.4f}\n')
+                f.write('  Kinetic Energy   = %12.4f\n' %
+                        values['kineticEnergy'])
             if self._volume:
-                f.write(f'  Volume           = {values["volume"]:12.4f}\n')
+                f.write('  Volume           = %12.4f\n' % values['volume'])
             if self._density:
-                f.write(f'  Density          = {values["density"]:12.4f}\n')
+                f.write('  Density          = %12.4f\n' % values['density'])
             if self._temperature:
-                f.write(f'  Temperature      = {values["temperature"]:12.4f}\n')
+                f.write('  Temperature      = %12.4f\n' % values['temperature'])
             f.write('\n')
-            f.write(
-                f' Time for last {self._reportInterval:8d} steps: {partial_time:10.4f} s. ({partial_nsperday:.3f} ns/day)\n'
+            f.write(' Time for last %8d steps: %10.4f s. (%.3f ns/day)\n' %
+                    (self._reportInterval, partial_time, partial_nsperday))
+            f.write(' Time for all %9d steps: %10.4f s. (%.3f ns/day)\n' %
+                    (values['step']-self._firstStep, total_time, total_nsperday)
             )
-            f.write(f' Time for all {values["step"] - self._firstStep:9d} steps: {total_time:10.4f} s. ({total_nsperday:.3f} ns/day)\n')
             f.write('\n')
-            f.write(f' Estimated time to completion: {etc:.3f} {unitstr}\n')
+            f.write(' Estimated time to completion: %.3f %s\n' % (etc, unitstr))
             f.write('\n')
             f.write('-+' * 39 + '\n')
 
-        if remaining_steps == 0:
-            self._startTime = None
+        if remaining_steps == 0: self._startTime = None
 
     def _constructReportValues(self, simulation, state):
         """
@@ -842,7 +853,7 @@ class EnergyMinimizerReporter(StateDataReporter):
     """
 
     def __init__(self, f, volume=False, **kwargs):
-        super().__init__(f, 1, **kwargs)
+        super(EnergyMinimizerReporter, self).__init__(f, 1, **kwargs)
         self._volume = volume
 
     def describeNextReport(self, *args, **kwargs):
@@ -853,15 +864,17 @@ class EnergyMinimizerReporter(StateDataReporter):
     def report(self, simulation, frame=None):
         """ Print out the current energy """
         has_pbc = simulation.topology.getUnitCellDimensions() is not None
-        state = simulation.context.getState(getEnergy=True, enforcePeriodicBox=has_pbc)
+        state = simulation.context.getState(getEnergy=True,
+                                            enforcePeriodicBox=has_pbc)
         if frame is not None:
-            self._out.write(f'Frame: {frame:10d}\n')
+            self._out.write('Frame: %10d\n' % frame)
         e = state.getPotentialEnergy().value_in_unit(self._energyUnit)
-        self._out.write(f'   Potential Energy = {e:12.4f} {self._energyUnit}\n')
+        self._out.write('   Potential Energy = %12.4f %s\n' % (e,
+                self._energyUnit))
         if has_pbc and (self._volume or self._density):
             vol = state.getPeriodicBoxVolume().value_in_unit(self._volumeUnit)
         if has_pbc and self._volume:
-            self._out.write(f'   Volume = {vol:12.4f} {self._volumeUnit}\n')
+            self._out.write('   Volume = %12.4f %s\n' % (vol, self._volumeUnit))
         self._out.write('\n')
 
     def finalize(self):

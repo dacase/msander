@@ -3,6 +3,8 @@ This module contains an amber prmtop class that will read in all
 parameters and allow users to manipulate that data and write a new
 prmtop object.
 """
+from __future__ import division
+
 import copy as _copy
 from collections import defaultdict
 from math import sqrt
@@ -11,7 +13,12 @@ from warnings import warn
 import numpy as np
 
 from .. import unit as u
-from ..constants import PrmtopPointers, TRUNCATED_OCTAHEDRON_ANGLE, RAD_TO_DEG, SMALL, DEG_TO_RAD
+from ..constants import (DEG_TO_RAD, IFBOX, IFCAP, IFPERT, MBONA, MBPER, MDPER,
+                         MGPER, MPHIA, MTHETA, NATOM, NATYP, NBONA, NBONH,
+                         NBPER, NCOPY, NDPER, NEXT, NGPER, NHPARM, NMXRS, NNB,
+                         NPARM, NPHB, NPHIA, NPHIH, NPTRA, NRES, NTHETA,
+                         NTHETH, NTYPES, NUMANG, NUMBND, NUMEXTRA, RAD_TO_DEG,
+                         SMALL, TRUNCATED_OCTAHEDRON_ANGLE)
 from ..exceptions import AmberError, AmberWarning, MoleculeError
 from ..geometry import box_lengths_and_angles_to_vectors
 from ..periodic_table import AtomicNum, element_by_mass
@@ -20,6 +27,8 @@ from ..structure import Structure, needs_openmm
 from ..topologyobjects import (Angle, AngleType, Atom, AtomList, AtomType,
                                Bond, BondType, Dihedral, DihedralType,
                                DihedralTypeList, ExtraPoint, Cmap, CmapType)
+from ..utils.six import iteritems, string_types
+from ..utils.six.moves import range, zip
 from ..vec3 import Vec3
 from .amberformat import AmberFormat
 from .asciicrd import AmberAsciiRestart
@@ -30,6 +39,8 @@ try:
     from simtk.openmm import app
 except ImportError:
     mm = app = None
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 class AmberParm(AmberFormat, Structure):
     """
@@ -136,7 +147,7 @@ class AmberParm(AmberFormat, Structure):
 
     #===================================================
 
-    def __init__(self, prm_name=None, xyz=None, box=None):
+    def __init__(self, prm_name=None, xyz=None, box=None, rst7_name=None):
         """
         Instantiates an AmberParm object from data in prm_name and establishes
         validity based on presence of POINTERS and CHARGE sections. In general,
@@ -149,7 +160,14 @@ class AmberParm(AmberFormat, Structure):
         self.hasbox = False
         self._box = None
         self.crdname = None
-        if isinstance(xyz, str):
+        if xyz is None and rst7_name is not None:
+            warn('rst7_name keyword is deprecated. Use xyz instead',
+                 DeprecationWarning)
+            self.crdname = xyz = rst7_name
+        elif xyz is not None and rst7_name is not None:
+            warn('rst7_name keyword is deprecated and ignored in favor of xyz',
+                 DeprecationWarning)
+        if isinstance(xyz, string_types):
             self.crdname = xyz
         if prm_name is not None:
             self.initialize_topology(xyz, box)
@@ -161,11 +179,12 @@ class AmberParm(AmberFormat, Structure):
         Initializes topology data structures, like the list of atoms, bonds,
         etc., after the topology file has been read.
         """
-        from .. import load_file
+        from parmed import load_file
         # We need to handle RESIDUE_ICODE properly since it may have picked up
         # some extra values
         if 'RESIDUE_ICODE' in self.flag_list:
-            self._truncate_array('RESIDUE_ICODE', self.parm_data['POINTERS'][PrmtopPointers.NRES])
+            self._truncate_array('RESIDUE_ICODE',
+                                 self.parm_data['POINTERS'][NRES])
         # Set up some of the attributes provided
         self.pointers = {}
         self.LJ_types = {}
@@ -184,7 +203,7 @@ class AmberParm(AmberFormat, Structure):
         # Instantiate the Structure data structures
         self.load_structure()
 
-        if isinstance(xyz, str):
+        if isinstance(xyz, string_types):
             f = load_file(xyz, skip_bonds=True)
             if not hasattr(f, 'coordinates') or f.coordinates is None:
                 raise TypeError('%s does not have coordinates' % xyz)
@@ -199,7 +218,7 @@ class AmberParm(AmberFormat, Structure):
             self.box = box
 
         # If all else fails, set the box from the prmtop file
-        if self.parm_data['POINTERS'][PrmtopPointers.IFBOX] > 0 and self.box is None:
+        if self.parm_data['POINTERS'][IFBOX] > 0 and self.box is None:
             box = self.parm_data['BOX_DIMENSIONS']
             self.box = list(box[1:]) + [box[0], box[0], box[0]]
 
@@ -322,7 +341,7 @@ class AmberParm(AmberFormat, Structure):
         nbfixes = inst._set_nbidx_lj_params()
         inst._add_standard_flags()
         inst.pointers['NATOM'] = len(inst.atoms)
-        inst.parm_data['POINTERS'][PrmtopPointers.NATOM] = len(inst.atoms)
+        inst.parm_data['POINTERS'][NATOM] = len(inst.atoms)
         # pmemd likes to skip torsions with periodicities of 0, which may be
         # present as a way to hack entries into the 1-4 pairlist. See
         # https://github.com/ParmEd/ParmEd/pull/145 for discussion. The solution
@@ -382,10 +401,13 @@ class AmberParm(AmberFormat, Structure):
         other._set_nonbonded_tables()
         # Add back the original L-J tables to restore any NBFIXes that may have
         # been there
-        other.parm_data['LENNARD_JONES_ACOEF'] = self.parm_data['LENNARD_JONES_ACOEF'][:]
-        other.parm_data['LENNARD_JONES_BCOEF'] = self.parm_data['LENNARD_JONES_BCOEF'][:]
+        other.parm_data['LENNARD_JONES_ACOEF'] = \
+                self.parm_data['LENNARD_JONES_ACOEF'][:]
+        other.parm_data['LENNARD_JONES_BCOEF'] = \
+                self.parm_data['LENNARD_JONES_BCOEF'][:]
         if 'LENNARD_JONES_CCOEF' in self.parm_data:
-            other.parm_data['LENNARD_JONES_CCOEF'] = self.parm_data['LENNARD_JONES_CCOEF'][:]
+            other.parm_data['LENNARD_JONES_CCOEF'] = \
+                    self.parm_data['LENNARD_JONES_CCOEF'][:]
         return other
 
     def _copy_lj_data(self, other):
@@ -421,51 +443,51 @@ class AmberParm(AmberFormat, Structure):
         Loads the data in POINTERS section into a pointers dictionary with each
         key being the pointer name according to http://ambermd.org/formats.html
         """
-        self.pointers["NATOM"] = self.parm_data["POINTERS"][PrmtopPointers.NATOM]
-        self.pointers["NTYPES"] = self.parm_data["POINTERS"][PrmtopPointers.NTYPES]
-        self.pointers["NBONH"] = self.parm_data["POINTERS"][PrmtopPointers.NBONH]
-        self.pointers["MBONA"] = self.parm_data["POINTERS"][PrmtopPointers.MBONA]
-        self.pointers["NTHETH"] = self.parm_data["POINTERS"][PrmtopPointers.NTHETH]
-        self.pointers["MTHETA"] = self.parm_data["POINTERS"][PrmtopPointers.MTHETA]
-        self.pointers["NPHIH"] = self.parm_data["POINTERS"][PrmtopPointers.NPHIH]
-        self.pointers["MPHIA"] = self.parm_data["POINTERS"][PrmtopPointers.MPHIA]
-        self.pointers["NHPARM"] = self.parm_data["POINTERS"][PrmtopPointers.NHPARM]
-        self.pointers["NPARM"] = self.parm_data["POINTERS"][PrmtopPointers.NPARM]
-        self.pointers["NEXT"] = self.parm_data["POINTERS"][PrmtopPointers.NEXT]
-        self.pointers["NNB"] = self.parm_data["POINTERS"][PrmtopPointers.NNB] # alias for above
-        self.pointers["NRES"] = self.parm_data["POINTERS"][PrmtopPointers.NRES]
-        self.pointers["NBONA"] = self.parm_data["POINTERS"][PrmtopPointers.NBONA]
-        self.pointers["NTHETA"] = self.parm_data["POINTERS"][PrmtopPointers.NTHETA]
-        self.pointers["NPHIA"] = self.parm_data["POINTERS"][PrmtopPointers.NPHIA]
-        self.pointers["NUMBND"] = self.parm_data["POINTERS"][PrmtopPointers.NUMBND]
-        self.pointers["NUMANG"] = self.parm_data["POINTERS"][PrmtopPointers.NUMANG]
-        self.pointers["NPTRA"] = self.parm_data["POINTERS"][PrmtopPointers.NPTRA]
-        self.pointers["NATYP"] = self.parm_data["POINTERS"][PrmtopPointers.NATYP]
-        self.pointers["NPHB"] = self.parm_data["POINTERS"][PrmtopPointers.NPHB]
-        self.pointers["IFPERT"] = self.parm_data["POINTERS"][PrmtopPointers.IFPERT]
-        self.pointers["NBPER"] = self.parm_data["POINTERS"][PrmtopPointers.NBPER]
-        self.pointers["NGPER"] = self.parm_data["POINTERS"][PrmtopPointers.NGPER]
-        self.pointers["NDPER"] = self.parm_data["POINTERS"][PrmtopPointers.NDPER]
-        self.pointers["MBPER"] = self.parm_data["POINTERS"][PrmtopPointers.MBPER]
-        self.pointers["MGPER"] = self.parm_data["POINTERS"][PrmtopPointers.MGPER]
-        self.pointers["MDPER"] = self.parm_data["POINTERS"][PrmtopPointers.MDPER]
-        self.pointers["IFBOX"] = self.parm_data["POINTERS"][PrmtopPointers.IFBOX]
-        self.pointers["NMXRS"] = self.parm_data["POINTERS"][PrmtopPointers.NMXRS]
-        self.pointers["IFCAP"] = self.parm_data["POINTERS"][PrmtopPointers.IFCAP]
-        self.pointers["NUMEXTRA"] = self.parm_data["POINTERS"][PrmtopPointers.NUMEXTRA]
-        if self.parm_data['POINTERS'][PrmtopPointers.IFBOX] > 0:
+        self.pointers["NATOM"] = self.parm_data["POINTERS"][NATOM]
+        self.pointers["NTYPES"] = self.parm_data["POINTERS"][NTYPES]
+        self.pointers["NBONH"] = self.parm_data["POINTERS"][NBONH]
+        self.pointers["MBONA"] = self.parm_data["POINTERS"][MBONA]
+        self.pointers["NTHETH"] = self.parm_data["POINTERS"][NTHETH]
+        self.pointers["MTHETA"] = self.parm_data["POINTERS"][MTHETA]
+        self.pointers["NPHIH"] = self.parm_data["POINTERS"][NPHIH]
+        self.pointers["MPHIA"] = self.parm_data["POINTERS"][MPHIA]
+        self.pointers["NHPARM"] = self.parm_data["POINTERS"][NHPARM]
+        self.pointers["NPARM"] = self.parm_data["POINTERS"][NPARM]
+        self.pointers["NEXT"] = self.parm_data["POINTERS"][NEXT]
+        self.pointers["NNB"] = self.parm_data["POINTERS"][NNB] # alias for above
+        self.pointers["NRES"] = self.parm_data["POINTERS"][NRES]
+        self.pointers["NBONA"] = self.parm_data["POINTERS"][NBONA]
+        self.pointers["NTHETA"] = self.parm_data["POINTERS"][NTHETA]
+        self.pointers["NPHIA"] = self.parm_data["POINTERS"][NPHIA]
+        self.pointers["NUMBND"] = self.parm_data["POINTERS"][NUMBND]
+        self.pointers["NUMANG"] = self.parm_data["POINTERS"][NUMANG]
+        self.pointers["NPTRA"] = self.parm_data["POINTERS"][NPTRA]
+        self.pointers["NATYP"] = self.parm_data["POINTERS"][NATYP]
+        self.pointers["NPHB"] = self.parm_data["POINTERS"][NPHB]
+        self.pointers["IFPERT"] = self.parm_data["POINTERS"][IFPERT]
+        self.pointers["NBPER"] = self.parm_data["POINTERS"][NBPER]
+        self.pointers["NGPER"] = self.parm_data["POINTERS"][NGPER]
+        self.pointers["NDPER"] = self.parm_data["POINTERS"][NDPER]
+        self.pointers["MBPER"] = self.parm_data["POINTERS"][MBPER]
+        self.pointers["MGPER"] = self.parm_data["POINTERS"][MGPER]
+        self.pointers["MDPER"] = self.parm_data["POINTERS"][MDPER]
+        self.pointers["IFBOX"] = self.parm_data["POINTERS"][IFBOX]
+        self.pointers["NMXRS"] = self.parm_data["POINTERS"][NMXRS]
+        self.pointers["IFCAP"] = self.parm_data["POINTERS"][IFCAP]
+        self.pointers["NUMEXTRA"] = self.parm_data["POINTERS"][NUMEXTRA]
+        if self.parm_data['POINTERS'][IFBOX] > 0:
             self.pointers['IPTRES'] = self.parm_data['SOLVENT_POINTERS'][0]
             self.pointers['NSPM'] = self.parm_data['SOLVENT_POINTERS'][1]
             self.pointers['NSPSOL'] = self.parm_data['SOLVENT_POINTERS'][2]
         # The next is probably only there for LES-prmtops
         try:
-            self.pointers["NCOPY"] = self.parm_data["POINTERS"][PrmtopPointers.NCOPY]
-        except (KeyError, IndexError):
+            self.pointers["NCOPY"] = self.parm_data["POINTERS"][NCOPY]
+        except:
             pass
         # If CMAP is not present, don't load the pointers
         if self.has_cmap:
-            self.pointers['CMAP'] = self.parm_data[f"{self._cmap_prefix}CMAP_COUNT"][0]
-            self.pointers['CMAP_TYPES'] = self.parm_data[f"{self._cmap_prefix}CMAP_COUNT"][1]
+            self.pointers['CMAP'] = self.parm_data[self._cmap_prefix + 'CMAP_COUNT'][0]
+            self.pointers['CMAP_TYPES'] = self.parm_data[self._cmap_prefix + 'CMAP_COUNT'][1]
 
     #===================================================
 
@@ -483,7 +505,7 @@ class AmberParm(AmberFormat, Structure):
         self._load_dihedral_info()
         self._load_cmap_info()
         self._load_extra_exclusions()
-        super().unchange()
+        super(AmberParm, self).unchange()
 
     #===================================================
 
@@ -559,7 +581,7 @@ class AmberParm(AmberFormat, Structure):
 
     #===================================================
 
-    def ptr(self, pointer: str) -> int:
+    def ptr(self, pointer):
         """
         Returns the value of the given pointer, and converts to upper-case so
         it's case-insensitive. A non-existent pointer meets with a KeyError
@@ -660,7 +682,7 @@ class AmberParm(AmberFormat, Structure):
         # Load the pointers dict
         self.load_pointers()
         # Mark atom list as unchanged
-        super().unchange()
+        super(AmberParm, self).unchange()
 
     #===================================================
 
@@ -701,12 +723,11 @@ class AmberParm(AmberFormat, Structure):
         in terms of the 'old' atom indexes if re-ordering was necessary to fix
         the tleap bug. Returns None otherwise.
         """
-        from ..utils import tag_molecules
         # Bail out of we are not doing a solvated prmtop
-        if self.parm_data['POINTERS'][PrmtopPointers.IFBOX] == 0 or self.box is None:
+        if self.parm_data['POINTERS'][IFBOX] == 0 or self.box is None:
             return None
 
-        owner = tag_molecules(self)
+        owner = set_molecules(self)
         all_solvent = SOLVENT_NAMES
         if not solute_ions:
             all_solvent = all_solvent | ALLION_NAMES
@@ -722,7 +743,8 @@ class AmberParm(AmberFormat, Structure):
             self.parm_data['SOLVENT_POINTERS'][0] = len(self.residues)
             self.parm_data['SOLVENT_POINTERS'][2] = len(owner) + 1
         else:
-            self.parm_data['SOLVENT_POINTERS'][2] = self.residues[first_solvent].atoms[0].marked
+            self.parm_data['SOLVENT_POINTERS'][2] = \
+                    self.residues[first_solvent].atoms[0].marked
 
         # Now set up ATOMS_PER_MOLECULE and catch any errors
         self.parm_data['ATOMS_PER_MOLECULE'] = [len(mol) for mol in owner]
@@ -739,7 +761,8 @@ class AmberParm(AmberFormat, Structure):
             if not fix_broken:
                 raise MoleculeError('Molecule atoms are not contiguous!')
             # Non-contiguous molecules detected... time to fix (ugh!)
-            warn('Molecule atoms are not contiguous! Attempting to reorder to fix.', AmberWarning)
+            warn('Molecule atoms are not contiguous! I am attempting to '
+                 'reorder the atoms to fix this.', AmberWarning)
             # Make sure that no residues are split up by this
             for res in self.residues:
                 molid = res.atoms[0].marked
@@ -747,7 +770,8 @@ class AmberParm(AmberFormat, Structure):
                     if molid != atom.marked:
                         warn('Residues cannot be part of 2 molecules! Molecule '
                              'section will not be correctly set. [Offending '
-                             f'residue is {repr(res)}', AmberWarning)
+                             'residue is %d: %r]' % (res.idx, res),
+                             AmberWarning)
                         return None
             new_atoms = AtomList()
             for mol in owner:
@@ -805,8 +829,8 @@ class AmberParm(AmberFormat, Structure):
         Lorentz-Berthelot combining rules to the values in :attr:`LJ_radius` and
         :attr:`LJ_depth`.
 
-        Notes
-        -----
+        Note
+        ----
         This will undo any off-diagonal L-J modifications you may have made, so
         call this function with care.
         """
@@ -856,7 +880,7 @@ class AmberParm(AmberFormat, Structure):
         fac = 2**(-1/6) * 2
         LJ_sigma = [x*fac for x in self.LJ_radius]
         pd = self.parm_data
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
         fac = 2**(1/6)
         for i in range(ntypes):
             for j in range(ntypes):
@@ -887,7 +911,7 @@ class AmberParm(AmberFormat, Structure):
             If True, 10-12 interactions *are* defined for this particular system
         """
         indices_with_1012 = []
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
         for i in range(ntypes):
             for j in range(ntypes):
                 idx = self.parm_data['NONBONDED_PARM_INDEX'][i*ntypes+j] - 1
@@ -988,8 +1012,7 @@ class AmberParm(AmberFormat, Structure):
             return nonbfrc
 
         # If we have NBFIX, omm_nonbonded_force returned a tuple
-        if hasnbfix:
-            nonbfrc = nonbfrc[0]
+        if hasnbfix: nonbfrc = nonbfrc[0]
 
         # If we have a 10-12 potential, toggle hasnbfix since the 12-6 terms
         # need to be handled via a lookup table (to avoid counting *both* 10-12
@@ -1001,51 +1024,46 @@ class AmberParm(AmberFormat, Structure):
         if hasnbfix and has1264:
             if has1012:
                 force = mm.CustomNonbondedForce(
-                    '(a/r6)^2-b/r6-c/r4+(ah/r6)^2-bh/(r6*r4); r6=r4*r2;'
-                    'r4=r2^2; r2=r^2;'
-                    'a=acoef(type1, type2);'
-                    'b=bcoef(type1, type2);'
-                    'c=ccoef(type1, type2);'
-                    'ah=ahcoef(type1, type2);'
-                    'bh=bhcoef(type1, type2);'
+                        '(a/r6)^2-b/r6-c/r4+(ah/r6)^2-bh/(r6*r4); r6=r4*r2;'
+                                                'r4=r2^2; r2=r^2;'
+                                                'a=acoef(type1, type2);'
+                                                'b=bcoef(type1, type2);'
+                                                'c=ccoef(type1, type2);'
+                                                'ah=ahcoef(type1, type2);'
+                                                'bh=bhcoef(type1, type2);'
                 )
             else:
-                force = mm.CustomNonbondedForce(
-                    '(a/r6)^2-b/r6-c/r4; r6=r4*r2;'
-                    'r4=r2^2; r2=r^2;'
-                    'a=acoef(type1, type2);'
-                    'b=bcoef(type1, type2);'
-                    'c=ccoef(type1, type2);'
-                )
+                force = mm.CustomNonbondedForce('(a/r6)^2-b/r6-c/r4; r6=r4*r2;'
+                                                'r4=r2^2; r2=r^2;'
+                                                'a=acoef(type1, type2);'
+                                                'b=bcoef(type1, type2);'
+                                                'c=ccoef(type1, type2);')
         elif hasnbfix:
             if has1012:
                 force = mm.CustomNonbondedForce(
-                    '(a/r6)^2-b/r6+(ah/r6)^2-bh/(r6*r4);'
-                    'r6=r4*r2;r4=r2^2;r2=r^2;'
-                    'a=acoef(type1, type2);'
-                    'b=bcoef(type1, type2);'
-                    'ah=ahcoef(type1, type2);'
-                    'bh=bhcoef(type1, type2);'
+                        '(a/r6)^2-b/r6+(ah/r6)^2-bh/(r6*r4);'
+                        'r6=r4*r2;r4=r2^2;r2=r^2;'
+                        'a=acoef(type1, type2);'
+                        'b=bcoef(type1, type2);'
+                        'ah=ahcoef(type1, type2);'
+                        'bh=bhcoef(type1, type2);'
                 )
             else:
-                force = mm.CustomNonbondedForce(
-                    '(a/r6)^2-b/r6; r6=r2*r2*r2;'
-                    'r2=r^2; a=acoef(type1, type2);'
-                    'b=bcoef(type1, type2);'
-                )
+                force = mm.CustomNonbondedForce('(a/r6)^2-b/r6; r6=r2*r2*r2;'
+                                                'r2=r^2; a=acoef(type1, type2);'
+                                                'b=bcoef(type1, type2);')
         elif has1264:
             force = mm.CustomNonbondedForce('-c/r^4;c=ccoef(type1, type2);')
 
         # Set up the force with all of the particles
         force.addPerParticleParameter('type')
         force.setForceGroup(self.NONBONDED_FORCE_GROUP)
-        for atom in self.atoms:
-            force.addParticle([atom.nb_idx-1])
+        for atom in self.atoms: force.addParticle([atom.nb_idx-1])
 
         # Now construct the lookup tables
         ene_conv = u.kilocalories.conversion_factor_to(u.kilojoules)
         length_conv = u.angstroms.conversion_factor_to(u.nanometers)
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
         if hasnbfix:
             acoef = [0 for i in range(ntypes*ntypes)]
             parm_acoef = self.parm_data['LENNARD_JONES_ACOEF']
@@ -1108,8 +1126,7 @@ class AmberParm(AmberFormat, Structure):
             for i in range(ntypes):
                 for j in range(ntypes):
                     idx = nbidx[ntypes*i+j] - 1
-                    if idx < 0:
-                        continue
+                    if idx < 0: continue
                     ccoef[i+ntypes*j] = parm_ccoef[idx] * cfac
             force.addTabulatedFunction('ccoef', mm.Discrete2DFunction(ntypes, ntypes, ccoef))
             # Copy the exclusions
@@ -1127,12 +1144,13 @@ class AmberParm(AmberFormat, Structure):
         force.setUseLongRangeCorrection(True)
         # Determine which nonbonded method we should use and transfer the
         # nonbonded cutoff
-        assert nonbondedMethod in {app.NoCutoff, app.CutoffNonPeriodic, app.PME, app.LJPME, app.Ewald, app.CutoffPeriodic}, 'Bad nonbondedMethod'
+        assert nonbondedMethod in (app.NoCutoff, app.CutoffNonPeriodic, app.PME, app.Ewald,
+                                   app.CutoffPeriodic), 'Bad nonbondedMethod'
         if nonbondedMethod is app.NoCutoff:
             force.setNonbondedMethod(mm.CustomNonbondedForce.NoCutoff)
         elif nonbondedMethod is app.CutoffNonPeriodic:
             force.setNonbondedMethod(mm.CustomNonbondedForce.CutoffNonPeriodic)
-        elif nonbondedMethod in (app.PME, app.Ewald, app.CutoffPeriodic, app.LJPME):
+        elif nonbondedMethod in (app.PME, app.Ewald, app.CutoffPeriodic):
             force.setNonbondedMethod(mm.CustomNonbondedForce.CutoffPeriodic)
         force.setCutoffDistance(nonbfrc.getCutoffDistance())
 
@@ -1145,14 +1163,16 @@ class AmberParm(AmberFormat, Structure):
     def bonds_inc_h(self):
         """ All bonds including hydrogen """
         for bond in self.bonds:
-            if bond.atom1.atomic_number == 1 or bond.atom2.atomic_number == 1:
+            if (bond.atom1.atomic_number == 1 or
+                    bond.atom2.atomic_number == 1):
                 yield bond
 
     @property
     def bonds_without_h(self):
         """ All bonds without hydrogen """
         for bond in self.bonds:
-            if bond.atom1.atomic_number == 1 or bond.atom2.atomic_number == 1:
+            if (bond.atom1.atomic_number == 1 or
+                    bond.atom2.atomic_number == 1):
                 continue
             yield bond
 
@@ -1209,7 +1229,7 @@ class AmberParm(AmberFormat, Structure):
     @property
     def has_cmap(self):
         """ Whether this instance has correction map terms or not """
-        return len(self.cmaps) > 0 or (f'{self._cmap_prefix}CMAP_COUNT') in self.parm_data
+        return len(self.cmaps) > 0 or (self._cmap_prefix + 'CMAP_COUNT') in self.parm_data
 
 
     #===========  PRIVATE INSTANCE METHODS  ============
@@ -1225,12 +1245,12 @@ class AmberParm(AmberFormat, Structure):
         if not self.has_cmap: return
         del self.cmaps[:]
         del self.cmap_types[:]
-        resolution_key = f"{self._cmap_prefix}CMAP_RESOLUTION"
-        parameter_key = f"{self._cmap_prefix}CMAP_PARAMETER_{{:02d}}"
+        resolution_key = self._cmap_prefix + 'CMAP_RESOLUTION'
+        parameter_key = self._cmap_prefix + 'CMAP_PARAMETER_%02d'
         for i in range(self.pointers['CMAP_TYPES']):
             resolution = self.parm_data[resolution_key][i]
-            grid = self.parm_data[parameter_key.format(i + 1)]
-            cmts = self.parm_comments[parameter_key.format(i + 1)]
+            grid = self.parm_data[parameter_key % (i+1)]
+            cmts = self.parm_comments[parameter_key % (i+1)]
             self.cmap_types.append(CmapType(resolution, grid, cmts, list=self.cmap_types))
         it = iter(self.parm_data[self._cmap_prefix + 'CMAP_INDEX'])
         for i, j, k, l, m, n in zip(it, it, it, it, it, it):
@@ -1254,7 +1274,8 @@ class AmberParm(AmberFormat, Structure):
             if not required and key not in self.parm_data:
                 return
             if len(self.parm_data[key]) != length:
-                raise AmberError(f'FLAG {key} has {len(self.parm_data[key])} elements; expected {length}')
+                raise AmberError('FLAG %s has %d elements; expected %d' %
+                                 (key, len(self.parm_data[key]), length))
         natom = self.ptr('NATOM')
         check_length('ATOM_NAME', natom)
         check_length('CHARGE', natom)
@@ -1320,7 +1341,7 @@ class AmberParm(AmberFormat, Structure):
         del self.residues[:]
         del self.atoms[:]
         # Figure out on which atoms the residues start and stop
-        natom = self.parm_data['POINTERS'][PrmtopPointers.NATOM]
+        natom = self.parm_data['POINTERS'][NATOM]
         res_ptr = self.parm_data['RESIDUE_POINTER'] + [natom+1]
         try:
             atnums = self.parm_data['ATOMIC_NUMBER']
@@ -1329,11 +1350,11 @@ class AmberParm(AmberFormat, Structure):
         try:
             res_icd = self.parm_data['RESIDUE_ICODE']
         except KeyError:
-            res_icd = ['' for i in range(self.parm_data['POINTERS'][PrmtopPointers.NRES])]
+            res_icd = ['' for i in range(self.parm_data['POINTERS'][NRES])]
         try:
             res_chn = self.parm_data['RESIDUE_CHAINID']
         except KeyError:
-            res_chn = ['' for i in range(self.parm_data['POINTERS'][PrmtopPointers.NRES])]
+            res_chn = ['' for i in range(self.parm_data['POINTERS'][NRES])]
         for i, resname in enumerate(self.parm_data['RESIDUE_LABEL']):
             resstart = res_ptr[i] - 1
             resend = res_ptr[i+1] - 1
@@ -1392,17 +1413,20 @@ class AmberParm(AmberFormat, Structure):
         """ Loads the bond types and bond arrays """
         del self.bond_types[:]
         del self.bonds[:]
-        for k, req in zip(self.parm_data['BOND_FORCE_CONSTANT'], self.parm_data['BOND_EQUIL_VALUE']):
+        for k, req in zip(self.parm_data['BOND_FORCE_CONSTANT'],
+                          self.parm_data['BOND_EQUIL_VALUE']):
             self.bond_types.append(BondType(k, req, self.bond_types))
         it = iter(self.parm_data['BONDS_WITHOUT_HYDROGEN'])
         for i, j, k in zip(it, it, it):
             self.bonds.append(
-                Bond(self.atoms[i//3], self.atoms[j//3], self.bond_types[k-1])
+                    Bond(self.atoms[i//3], self.atoms[j//3],
+                         self.bond_types[k-1])
             )
         it = iter(self.parm_data['BONDS_INC_HYDROGEN'])
         for i, j, k in zip(it, it, it):
             self.bonds.append(
-                Bond(self.atoms[i//3], self.atoms[j//3], self.bond_types[k-1])
+                    Bond(self.atoms[i//3], self.atoms[j//3],
+                         self.bond_types[k-1])
             )
 
     #===================================================
@@ -1411,20 +1435,21 @@ class AmberParm(AmberFormat, Structure):
         """ Loads the angle types and angle arrays """
         del self.angle_types[:]
         del self.angles[:]
-        for k, theteq in zip(
-            self.parm_data['ANGLE_FORCE_CONSTANT'], self.parm_data['ANGLE_EQUIL_VALUE']
-        ):
+        for k, theteq in zip(self.parm_data['ANGLE_FORCE_CONSTANT'],
+                             self.parm_data['ANGLE_EQUIL_VALUE']):
             theteq *= RAD_TO_DEG
             self.angle_types.append(AngleType(k, theteq, self.angle_types))
         it = iter(self.parm_data['ANGLES_WITHOUT_HYDROGEN'])
         for i, j, k, l in zip(it, it, it, it):
             self.angles.append(
-                Angle(self.atoms[i//3], self.atoms[j//3], self.atoms[k//3], self.angle_types[l-1])
+                    Angle(self.atoms[i//3], self.atoms[j//3], self.atoms[k//3],
+                          self.angle_types[l-1])
             )
         it = iter(self.parm_data['ANGLES_INC_HYDROGEN'])
         for i, j, k, l in zip(it, it, it, it):
             self.angles.append(
-                Angle(self.atoms[i//3], self.atoms[j//3], self.atoms[k//3], self.angle_types[l-1])
+                    Angle(self.atoms[i//3], self.atoms[j//3], self.atoms[k//3],
+                          self.angle_types[l-1])
             )
 
     #===================================================
@@ -1441,37 +1466,33 @@ class AmberParm(AmberFormat, Structure):
             scnb = self.parm_data['SCNB_SCALE_FACTOR']
         except KeyError:
             scnb = [2.0 for i in self.parm_data['DIHEDRAL_FORCE_CONSTANT']]
-        for k, per, ph, e, n in zip(
-            self.parm_data['DIHEDRAL_FORCE_CONSTANT'],
-            self.parm_data['DIHEDRAL_PERIODICITY'],
-            self.parm_data['DIHEDRAL_PHASE'],
-            scee,
-            scnb,
-        ):
+        for k, per, ph, e, n in zip(self.parm_data['DIHEDRAL_FORCE_CONSTANT'],
+                                    self.parm_data['DIHEDRAL_PERIODICITY'],
+                                    self.parm_data['DIHEDRAL_PHASE'],
+                                    scee, scnb):
             ph *= RAD_TO_DEG
             self.dihedral_types.append(
-                DihedralType(k, per, ph, e, n, list=self.dihedral_types)
+                    DihedralType(k, per, ph, e, n, list=self.dihedral_types)
             )
         it = iter(self.parm_data['DIHEDRALS_WITHOUT_HYDROGEN'])
         for i, j, k, l, m in zip(it, it, it, it, it):
             ignore_end = k < 0
             improper = l < 0
             self.dihedrals.append(
-                Dihedral(self.atoms[i//3], self.atoms[j//3],
-                         self.atoms[abs(k)//3], self.atoms[abs(l)//3],
-                         improper=improper, ignore_end=ignore_end,
-                         type=self.dihedral_types[m-1])
+                    Dihedral(self.atoms[i//3], self.atoms[j//3],
+                             self.atoms[abs(k)//3], self.atoms[abs(l)//3],
+                             improper=improper, ignore_end=ignore_end,
+                             type=self.dihedral_types[m-1])
             )
         it = iter(self.parm_data['DIHEDRALS_INC_HYDROGEN'])
         for i, j, k, l, m in zip(it, it, it, it, it):
             ignore_end = k < 0
             improper = l < 0
             self.dihedrals.append(
-                Dihedral(
-                    self.atoms[i//3], self.atoms[j//3],
-                    self.atoms[abs(k)//3], self.atoms[abs(l)//3],
-                    improper=improper, ignore_end=ignore_end,
-                    type=self.dihedral_types[m-1])
+                    Dihedral(self.atoms[i//3], self.atoms[j//3],
+                             self.atoms[abs(k)//3], self.atoms[abs(l)//3],
+                             improper=improper, ignore_end=ignore_end,
+                             type=self.dihedral_types[m-1])
             )
 
     #===================================================
@@ -1483,7 +1504,7 @@ class AmberParm(AmberFormat, Structure):
         """
         natom = len(self.atoms)
         data = self.parm_data
-        data['POINTERS'][PrmtopPointers.NATOM] = natom
+        data['POINTERS'][NATOM] = natom
         self.pointers['NATOM'] = natom
         data['ATOM_NAME'] = [atom.name[:4] for atom in self.atoms]
         data['AMBER_ATOM_TYPE'] = [atom.type[:4] for atom in self.atoms]
@@ -1514,12 +1535,12 @@ class AmberParm(AmberFormat, Structure):
                 nextra += 1
             max_typ = max(max_typ, atom.nb_idx)
         nnb = len(data['EXCLUDED_ATOMS_LIST'])
-        data['POINTERS'][PrmtopPointers.NNB] = nnb
+        data['POINTERS'][NNB] = nnb
         self.pointers['NNB'] = self.pointers['NEXT'] = nnb
-        data['POINTERS'][PrmtopPointers.NUMEXTRA] = nextra
+        data['POINTERS'][NUMEXTRA] = nextra
         self.pointers['NUMEXTRA'] = nextra
-        max_typ = max(data['POINTERS'][PrmtopPointers.NTYPES], max_typ)
-        data['POINTERS'][PrmtopPointers.NTYPES] = max_typ
+        max_typ = max(data['POINTERS'][NTYPES], max_typ)
+        data['POINTERS'][NTYPES] = max_typ
         self.pointers['NTYPES'] = max_typ
 
     #===================================================
@@ -1531,7 +1552,7 @@ class AmberParm(AmberFormat, Structure):
         """
         data = self.parm_data
         nres = len(self.residues)
-        data['POINTERS'][PrmtopPointers.NRES] = nres
+        data['POINTERS'][NRES] = nres
         self.pointers['NRES'] = nres
         data['RESIDUE_LABEL'] = [r.name[:4] for r in self.residues]
         data['RESIDUE_POINTER'] = [r.atoms[0].idx+1 for r in self.residues]
@@ -1542,7 +1563,7 @@ class AmberParm(AmberFormat, Structure):
         if 'RESIDUE_ICODE' in data:
             data['RESIDUE_ICODE'] = [r.insertion_code for r in self.residues]
         nmxrs = max([len(res) for res in self.residues]) if self.residues else 0
-        data['POINTERS'][PrmtopPointers.NMXRS] = nmxrs
+        data['POINTERS'][NMXRS] = nmxrs
         self.pointers['NMXRS'] = nmxrs
 
     #===================================================
@@ -1561,23 +1582,21 @@ class AmberParm(AmberFormat, Structure):
         self.bond_types.prune_unused()
         data['BOND_FORCE_CONSTANT'] = [type.k for type in self.bond_types]
         data['BOND_EQUIL_VALUE'] = [type.req for type in self.bond_types]
-        data['POINTERS'][PrmtopPointers.NUMBND] = len(self.bond_types)
+        data['POINTERS'][NUMBND] = len(self.bond_types)
         self.pointers['NUMBND'] = len(self.bond_types)
         # Now do the bond arrays
         data['BONDS_INC_HYDROGEN'] = bond_array = []
         bond_list = list(self.bonds_inc_h)
         for bond in bond_list:
             bond_array.extend([bond.atom1.idx*3, bond.atom2.idx*3, bond.type.idx+1])
-        data['POINTERS'][PrmtopPointers.NBONH] = len(bond_list)
+        data['POINTERS'][NBONH] = len(bond_list)
         self.pointers['NBONH'] = len(bond_list)
         data['BONDS_WITHOUT_HYDROGEN'] = bond_array = []
         bond_list = list(self.bonds_without_h)
         for bond in bond_list:
             bond_array.extend([bond.atom1.idx*3, bond.atom2.idx*3, bond.type.idx+1])
-        data['POINTERS'][PrmtopPointers.MBONA] = len(bond_list)
-        data['POINTERS'][PrmtopPointers.NBONA] = len(bond_list)
-        self.pointers['MBONA'] = len(bond_list)
-        self.pointers['NBONA'] = len(bond_list)
+        data['POINTERS'][MBONA] = data['POINTERS'][NBONA] = len(bond_list)
+        self.pointers['MBONA'] = self.pointers['NBONA'] = len(bond_list)
 
     #===================================================
 
@@ -1595,27 +1614,23 @@ class AmberParm(AmberFormat, Structure):
         self.angle_types.prune_unused()
         data['ANGLE_FORCE_CONSTANT'] = [type.k for type in self.angle_types]
         data['ANGLE_EQUIL_VALUE'] = [type.theteq*DEG_TO_RAD for type in self.angle_types]
-        data['POINTERS'][PrmtopPointers.NUMANG] = len(self.angle_types)
+        data['POINTERS'][NUMANG] = len(self.angle_types)
         self.pointers['NUMANG'] = len(self.angle_types)
         # Now do the angle arrays
         data['ANGLES_INC_HYDROGEN'] = angle_array = []
         angle_list = list(self.angles_inc_h)
         for angle in angle_list:
-            angle_array.extend(
-                [angle.atom1.idx*3, angle.atom2.idx*3, angle.atom3.idx*3, angle.type.idx+1]
-            )
-        data['POINTERS'][PrmtopPointers.NTHETH] = len(angle_list)
+            angle_array.extend([angle.atom1.idx*3, angle.atom2.idx*3,
+                                angle.atom3.idx*3, angle.type.idx+1])
+        data['POINTERS'][NTHETH] = len(angle_list)
         self.pointers['NTHETH'] = len(angle_list)
         data['ANGLES_WITHOUT_HYDROGEN'] = angle_array = []
         angle_list = list(self.angles_without_h)
         for angle in angle_list:
-            angle_array.extend(
-                [angle.atom1.idx*3, angle.atom2.idx*3, angle.atom3.idx*3, angle.type.idx+1]
-            )
-        data['POINTERS'][PrmtopPointers.NTHETA] = len(angle_list)
-        data['POINTERS'][PrmtopPointers.MTHETA] = len(angle_list)
-        self.pointers['NTHETA'] = len(angle_list)
-        self.pointers['MTHETA'] = len(angle_list)
+            angle_array.extend([angle.atom1.idx*3, angle.atom2.idx*3,
+                                angle.atom3.idx*3, angle.type.idx+1])
+        data['POINTERS'][NTHETA] = data['POINTERS'][MTHETA] = len(angle_list)
+        self.pointers['NTHETA'] = self.pointers['MTHETA'] = len(angle_list)
 
     #===================================================
 
@@ -1638,7 +1653,7 @@ class AmberParm(AmberFormat, Structure):
             data['SCEE_SCALE_FACTOR'] = [type.scee for type in self.dihedral_types]
         if 'SCNB_SCALE_FACTOR' in data:
             data['SCNB_SCALE_FACTOR'] = [type.scnb for type in self.dihedral_types]
-        data['POINTERS'][PrmtopPointers.NPTRA] = len(self.dihedral_types)
+        data['POINTERS'][NPTRA] = len(self.dihedral_types)
         self.pointers['NPTRA'] = len(self.dihedral_types)
         # Now do the dihedral arrays
         data['DIHEDRALS_INC_HYDROGEN'] = dihed_array = []
@@ -1647,26 +1662,14 @@ class AmberParm(AmberFormat, Structure):
             imp_sign = -1 if dihed.improper else 1
             end_sign = -1 if dihed.ignore_end else 1
             if dihed.atom3.idx == 0 or dihed.atom4.idx == 0:
-                dihed_array.extend(
-                    [
-                        dihed.atom4.idx *3,
-                        dihed.atom3.idx *3,
-                        dihed.atom2.idx *3 * end_sign,
-                        dihed.atom1.idx *3 * imp_sign,
-                        dihed.type.idx + 1,
-                    ]
-                )
+                dihed_array.extend([dihed.atom4.idx*3, dihed.atom3.idx*3,
+                                    dihed.atom2.idx*3*end_sign, dihed.atom1.idx*3*imp_sign,
+                                    dihed.type.idx+1])
             else:
-                dihed_array.extend(
-                    [
-                        dihed.atom1.idx * 3,
-                        dihed.atom2.idx * 3,
-                        dihed.atom3.idx * 3 * end_sign,
-                        dihed.atom4.idx * 3 * imp_sign,
-                        dihed.type.idx + 1,
-                    ]
-                )
-        data['POINTERS'][PrmtopPointers.NPHIH] = len(dihed_list)
+                dihed_array.extend([dihed.atom1.idx*3, dihed.atom2.idx*3,
+                                    dihed.atom3.idx*3*end_sign, dihed.atom4.idx*3*imp_sign,
+                                    dihed.type.idx+1])
+        data['POINTERS'][NPHIH] = len(dihed_list)
         self.pointers['NPHIH'] = len(dihed_list)
         data['DIHEDRALS_WITHOUT_HYDROGEN'] = dihed_array = []
         dihed_list = list(self.dihedrals_without_h)
@@ -1674,29 +1677,15 @@ class AmberParm(AmberFormat, Structure):
             imp_sign = -1 if dihed.improper else 1
             end_sign = -1 if dihed.ignore_end else 1
             if dihed.atom3.idx == 0 or dihed.atom4.idx == 0:
-                dihed_array.extend(
-                    [
-                        dihed.atom4.idx *3,
-                        dihed.atom3.idx *3,
-                        dihed.atom2.idx *3 * end_sign,
-                        dihed.atom1.idx *3 * imp_sign,
-                        dihed.type.idx + 1,
-                    ]
-                )
+                dihed_array.extend([dihed.atom4.idx*3, dihed.atom3.idx*3,
+                                    dihed.atom2.idx*3*end_sign, dihed.atom1.idx*3*imp_sign,
+                                    dihed.type.idx+1])
             else:
-                dihed_array.extend(
-                    [
-                        dihed.atom1.idx * 3,
-                        dihed.atom2.idx * 3,
-                        dihed.atom3.idx * 3 * end_sign,
-                        dihed.atom4.idx * 3 * imp_sign,
-                        dihed.type.idx + 1,
-                    ]
-                )
-        data['POINTERS'][PrmtopPointers.NPHIA] = len(dihed_list)
-        data['POINTERS'][PrmtopPointers.MPHIA] = len(dihed_list)
-        self.pointers['NPHIA'] = len(dihed_list)
-        self.pointers['MPHIA'] = len(dihed_list)
+                dihed_array.extend([dihed.atom1.idx*3, dihed.atom2.idx*3,
+                                    dihed.atom3.idx*3*end_sign, dihed.atom4.idx*3*imp_sign,
+                                    dihed.type.idx+1])
+        data['POINTERS'][NPHIA] = data['POINTERS'][MPHIA] = len(dihed_list)
+        self.pointers['NPHIA'] = self.pointers['MPHIA'] = len(dihed_list)
 
     #===================================================
 
@@ -1707,7 +1696,7 @@ class AmberParm(AmberFormat, Structure):
         if len(self.cmaps) == 0:
             # We have deleted all cmaps. Get rid of them from the parm file and
             # bail out. This is probably pretty unlikely, though...
-            flag_prefix = f"{self._cmap_prefix}CMAP"
+            flag_prefix = self._cmap_prefix + 'CMAP'
             flags_to_delete = [flag for flag in self.flag_list if flag.startswith(flag_prefix)]
             for flag in flags_to_delete:
                 self.delete_flag(flag)
@@ -1782,8 +1771,7 @@ class AmberParm(AmberFormat, Structure):
         self.add_flag('DIHEDRAL_PHASE', '5E16.8', num_items=0)
         self.add_flag('SCEE_SCALE_FACTOR', '5E16.8', num_items=0)
         self.add_flag('SCNB_SCALE_FACTOR', '5E16.8', num_items=0)
-        self.pointers['NATYP'] = 1
-        self.parm_data['POINTERS'][PrmtopPointers.NATYP] = 1
+        self.pointers['NATYP'] = self.parm_data['POINTERS'][NATYP] = 1
         self.add_flag('SOLTY', '5E16.8', num_items=1)
         self.add_flag('LENNARD_JONES_ACOEF', '5E16.8', num_items=0)
         self.add_flag('LENNARD_JONES_BCOEF', '5E16.8', num_items=0)
@@ -1825,7 +1813,7 @@ class AmberParm(AmberFormat, Structure):
         """
         Sets the tables of Lennard-Jones nonbonded interaction pairs
         """
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
         ntypes2 = ntypes * ntypes
         # Set up the index lookup tables (not a unique solution)
         self.parm_data['NONBONDED_PARM_INDEX'] = [0 for i in range(ntypes2)]
@@ -1879,7 +1867,7 @@ class AmberParm(AmberFormat, Structure):
             acoef = self.parm_data['LENNARD_JONES_ACOEF']
             bcoef = self.parm_data['LENNARD_JONES_BCOEF']
         nbidx = self.parm_data['NONBONDED_PARM_INDEX']
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
         sigma_scale = 2**(-1/6) * length_conv
         for ii in range(nonbfrc.getNumExceptions()):
             i, j, qq, ss, ee = nonbfrc.getExceptionParameters(ii)
@@ -1950,8 +1938,8 @@ class AmberParm(AmberFormat, Structure):
                 if dih.ignore_end or dih.improper: continue
                 scalings[(dih.type.scee, dih.type.scnb)] += 1
             if len(scalings) > 0:
-                maxkey, maxval = next(iter(scalings.items()))
-                for key, val in scalings.items():
+                maxkey, maxval = next(iteritems(scalings))
+                for key, val in iteritems(scalings):
                     if maxval < val:
                         maxkey, maxval = key, val
                 scee, scnb = maxkey
@@ -2065,7 +2053,8 @@ class AmberParm(AmberFormat, Structure):
                                         scnb = 1.0
                                     else:
                                         raise TypeError('Cannot translate exceptions')
-                                tortype = DihedralType(0, 1, 0, scee, scnb, list=self.dihedral_types)
+                                tortype = DihedralType(0, 1, 0, scee, scnb,
+                                                       list=self.dihedral_types)
                                 self.dihedral_types.append(tortype)
                         dihedral = Dihedral(atom, batom, aatom, datom, ignore_end=False,
                                             improper=False, type=tortype)
@@ -2101,7 +2090,7 @@ class AmberParm(AmberFormat, Structure):
         possible_labels = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
         for _, adict in enumerate(atom_collection):
-            for atom_name, atom_list in adict.items():
+            for atom_name, atom_list in iteritems(adict):
                 if len(atom_list) > 1:
                     for i, atom in enumerate(atom_list):
                         label = possible_labels[i%len(possible_labels)]
@@ -2176,18 +2165,14 @@ class AmberParm(AmberFormat, Structure):
     def _set_ifbox(self):
         """ Sets the IFBOX pointers to 1 (ortho), 2 (octahedral) , or 3 (other) """
         if self.box is None:
-            self.parm_data['POINTERS'][PrmtopPointers.IFBOX] = 0
-            self.pointers['IFBOX'] = 0
+            self.parm_data['POINTERS'][IFBOX] = self.pointers['IFBOX'] = 0
         elif np.allclose(self.box[3:], 90):
-            self.parm_data['POINTERS'][PrmtopPointers.IFBOX] = 1
-            self.pointers['IFBOX'] = 1
+            self.parm_data['POINTERS'][IFBOX] = self.pointers['IFBOX'] = 1
         elif np.allclose(self.box[3:], TRUNCATED_OCTAHEDRON_ANGLE, atol=0.02):
-            self.parm_data['POINTERS'][PrmtopPointers.IFBOX] = 2
-            self.pointers['IFBOX'] = 2
+            self.parm_data['POINTERS'][IFBOX] = self.pointers['IFBOX'] = 2
         else:
             # General triclinic
-            self.parm_data['POINTERS'][PrmtopPointers.IFBOX] = 3
-            self.pointers['IFBOX'] = 3
+            self.parm_data['POINTERS'][IFBOX] = self.pointers['IFBOX'] = 3
 
     def _cleanup_dihedrals_with_periodicity_zero(self):
         """
@@ -2390,6 +2375,65 @@ class Rst7(object):
     def hasvels(self):
         """ Whether or not this Rst7 has velocities """
         return self.vels is not None
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def set_molecules(parm):
+    """
+    Correctly sets the ATOMS_PER_MOLECULE and SOLVENT_POINTERS sections of the
+    topology file.
+    """
+    from sys import setrecursionlimit, getrecursionlimit
+    # Since we use a recursive function here, we make sure that the recursion
+    # limit is large enough to handle the maximum possible recursion depth we'll
+    # need (NATOM). We don't want to shrink it, though, since we use list
+    # comprehensions in list constructors in some places that have an implicit
+    # (shallow) recursion, therefore, reducing the recursion limit too much here
+    # could raise a recursion depth exceeded exception during a _Type/Atom/XList
+    # creation. Therefore, set the recursion limit to the greater of the current
+    # limit or the number of atoms
+    setrecursionlimit(max(len(parm.atoms), getrecursionlimit()))
+
+    # Unmark all atoms so we can track which molecule each goes into
+    parm.atoms.unmark()
+
+    if not parm.ptr('ifbox'):
+        raise MoleculeError('Only periodic prmtops can have '
+                            'Molecule definitions')
+    # The molecule "ownership" list
+    owner = []
+    # The way I do this is via a recursive algorithm, in which
+    # the "set_owner" method is called for each bonded partner an atom
+    # has, which in turn calls set_owner for each of its partners and
+    # so on until everything has been assigned.
+    molecule_number = 1 # which molecule number we are on
+    for i, atom in enumerate(parm.atoms):
+        # If this atom has not yet been "owned", make it the next molecule
+        # However, we only increment which molecule number we're on if
+        # we actually assigned a new molecule (obviously)
+        if not atom.marked:
+            tmp = set()
+            tmp.add(i)
+            _set_owner(parm, tmp, i, molecule_number)
+            # Make sure the atom indexes are sorted
+            owner.append(tmp)
+            molecule_number += 1
+    return owner
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def _set_owner(parm, owner_array, atm, mol_id):
+    """ Recursively sets ownership of given atom and all bonded partners """
+    parm.atoms[atm].marked = mol_id
+    for partner in parm.atoms[atm].bond_partners:
+        if not partner.marked:
+            owner_array.add(partner.idx)
+            _set_owner(parm, owner_array, partner.idx, mol_id)
+        elif partner.marked != mol_id:
+            raise MoleculeError('Atom %d in multiple molecules' %
+                                partner.idx)
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def _zeros(length):
     """ Returns an array of zeros of the given length """

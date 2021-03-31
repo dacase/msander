@@ -2,6 +2,8 @@
 Tool for parsing and writing OFF library files to and from dictionaries of
 ResidueTemplate objects
 """
+from __future__ import print_function
+
 from collections import OrderedDict
 from contextlib import closing
 import numpy as np
@@ -13,10 +15,13 @@ from ..modeller.residue import ResidueTemplate, ResidueTemplateContainer
 from ..modeller.residue import PROTEIN, NUCLEIC, SOLVENT, UNKNOWN
 from .. import periodic_table as pt
 from ..utils.io import genopen
+from ..utils.six import string_types, add_metaclass
+from ..utils.six.moves import range
 import re
 import warnings
 
-class AmberOFFLibrary(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class AmberOFFLibrary(object):
     """
     Class containing static methods responsible for parsing and writing OFF
     libraries
@@ -57,8 +62,8 @@ class AmberOFFLibrary(metaclass=FileFormatType):
 
     #===================================================
 
-    @classmethod
-    def id_format(cls, filename):
+    @staticmethod
+    def id_format(filename):
         """ Sees if an open file is an OFF library file.
 
         Parameters
@@ -72,14 +77,14 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             True if it is recognized as OFF, False otherwise
         """
         with closing(genopen(filename, 'r')) as f:
-            if cls._headerre.match(f.readline()):
+            if AmberOFFLibrary._headerre.match(f.readline()):
                 return True
             return False
 
     #===================================================
 
-    @classmethod
-    def parse(cls, filename):
+    @staticmethod
+    def parse(filename):
         """ Parses an Amber OFF library
 
         Parameters
@@ -104,7 +109,7 @@ class AmberOFFLibrary(metaclass=FileFormatType):
         RuntimeError if EOF is reached prematurely or other formatting issues
         found
         """
-        if isinstance(filename, str):
+        if isinstance(filename, string_types):
             fileobj = genopen(filename, 'r')
             own_handle = True
         else:
@@ -112,18 +117,18 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             own_handle = False
         # Now parse the library file
         line = fileobj.readline()
-        if not cls._headerre.match(line):
+        if not AmberOFFLibrary._headerre.match(line):
             raise ValueError('Unrecognized OFF file format')
         # Build the return value
         residues = OrderedDict()
         # Pull a list of all the residues we expect to find
         line = fileobj.readline()
-        rematch = cls._resre.match(line)
+        rematch = AmberOFFLibrary._resre.match(line)
         while rematch and line:
             name = rematch.groups()[0]
             residues[name] = None
             line = fileobj.readline()
-            rematch = cls._resre.match(line)
+            rematch = AmberOFFLibrary._resre.match(line)
         if not line:
             raise RuntimeError('Unexpected EOF in Amber OFF library')
         # Now make sure we have the next expected line
@@ -131,22 +136,21 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             if not line.strip():
                 line = fileobj.readline()
                 continue
-            rematch = cls._sec1re.match(line)
+            rematch = AmberOFFLibrary._sec1re.match(line)
             if not rematch:
                 raise RuntimeError('Expected atoms table not found')
             name = rematch.groups()[0]
-            residues[name] = cls._parse_residue(fileobj, name)
+            residues[name] = AmberOFFLibrary._parse_residue(fileobj, name)
             line = fileobj.readline()
 
-        if own_handle:
-            fileobj.close()
+        if own_handle: fileobj.close()
 
         return residues
 
     #===================================================
 
-    @classmethod
-    def _parse_residue(cls, fileobj, name):
+    @staticmethod
+    def _parse_residue(fileobj, name):
         """
         Parses the residue information out of the OFF file assuming the file
         is pointed at the first line of an atoms table section of the OFF file
@@ -191,13 +195,12 @@ class AmberOFFLibrary(metaclass=FileFormatType):
                 start_atoms.append(runsum)
                 runsum += len(res)
         # Make sure we get the next section
-        rematch = cls._sec2re.match(line)
+        rematch = AmberOFFLibrary._sec2re.match(line)
         if not rematch:
             raise RuntimeError('Expected pertinfo table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f'Found residue {rematch.groups()[0]} while processing residue {name}'
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         line = fileobj.readline()
         while line[0] != '!':
             if not line:
@@ -205,13 +208,12 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             # Not used, just skip
             # TODO sanity check
             line = fileobj.readline()
-        rematch = cls._sec3re.match(line)
+        rematch = AmberOFFLibrary._sec3re.match(line)
         if not rematch:
             raise RuntimeError('Expected boundbox table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f'Found residue {rematch.groups()[0]} while processing residue {name}'
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         # Only 5 lines
         try:
             hasbox = float(fileobj.readline().strip())
@@ -229,30 +231,27 @@ class AmberOFFLibrary(metaclass=FileFormatType):
                 container.box = [a, b, c, angle, angle, angle]
         # Get the child sequence entry
         line = fileobj.readline()
-        rematch = cls._sec4re.match(line)
+        rematch = AmberOFFLibrary._sec4re.match(line)
         if not rematch:
             raise RuntimeError('Expected childsequence table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         n = int(fileobj.readline().strip())
         if nres + 1 != n:
-            warnings.warn(
-                f"Unexpected childsequence ({n}); expected {nres+1} for residue {name}",
-                AmberWarning,
-            )
+            warnings.warn('Unexpected childsequence (%d); expected %d for '
+                          'residue %s' % (n, nres+1, name), AmberWarning)
         elif not isinstance(templ, ResidueTemplate) and n != len(templ) + 1:
-            raise RuntimeError("child sequence must be # of residues in the unit + 1")
+            raise RuntimeError('child sequence must be 1 greater than the '
+                               'number of residues in the unit')
         # Get the CONNECT array to set head and tail
         line = fileobj.readline()
-        rematch = cls._sec5re.match(line)
+        rematch = AmberOFFLibrary._sec5re.match(line)
         if not rematch:
             raise RuntimeError('Expected connect array not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         try:
             head = int(fileobj.readline().strip())
             tail = int(fileobj.readline().strip())
@@ -267,19 +266,17 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             templ.tail = templ[tail-1]
         elif tail > 0 and nres > 1:
             if tail < sum((len(r) for r in container)):
-                warnings.warn(
-                    f'TAIL on multi-residue unit not supported ({name}). Ignored...', AmberWarning
-                )
+                warnings.warn('TAIL on multi-residue unit not supported (%s). '
+                              'Ignored...' % name, AmberWarning)
         # Get the connectivity array to set bonds
         line = fileobj.readline()
         if len(templ.atoms) > 1:
-            rematch = cls._sec6re.match(line)
+            rematch = AmberOFFLibrary._sec6re.match(line)
             if not rematch:
                 raise RuntimeError('Expected connectivity table not found')
             elif rematch.groups()[0] != name:
-                raise RuntimeError(
-                    f"Found residue {rematch.groups()[0]} while processing residue {name}"
-                )
+                raise RuntimeError('Found residue %s while processing residue %s' %
+                                   (rematch.groups()[0], name))
             line = fileobj.readline()
             while line[0] != '!':
                 i, j, flag = line.split()
@@ -297,49 +294,45 @@ class AmberOFFLibrary(metaclass=FileFormatType):
                 else:
                     templ.add_bond(int(i)-1, int(j)-1)
         # Get the hierarchy table
-        rematch = cls._sec7re.match(line)
+        rematch = AmberOFFLibrary._sec7re.match(line)
         if not rematch:
             raise RuntimeError('Expected hierarchy table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         line = fileobj.readline()
         while line[0] != '!':
             # Skip this section... not used
             # TODO turn this into a sanity check
             line = fileobj.readline()
         # Get the unit name
-        rematch = cls._sec8re.match(line)
+        rematch = AmberOFFLibrary._sec8re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit name string not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         fileobj.readline() # Skip this... not used
         line = fileobj.readline()
         # Get the atomic positions
-        rematch = cls._sec9re.match(line)
+        rematch = AmberOFFLibrary._sec9re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit positions table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         for res in container:
             for atom in res:
                 x, y, z = fileobj.readline().split()
                 atom.xx, atom.xy, atom.xz = float(x), float(y), float(z)
         line = fileobj.readline()
         # Get the residueconnect table
-        rematch = cls._sec10re.match(line)
+        rematch = AmberOFFLibrary._sec10re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit residueconnect table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         for i in range(nres):
             c1,c2,c3,c4,c5,c6 = (int(x) for x in fileobj.readline().split())
             if (c1 > 0 and templ.head is not None and
@@ -353,13 +346,12 @@ class AmberOFFLibrary(metaclass=FileFormatType):
                 templ.connections.append(templ[i-1])
         # Get the residues table
         line = fileobj.readline()
-        rematch = cls._sec11re.match(line)
+        rematch = AmberOFFLibrary._sec11re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit residues table not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         for i in range(nres):
             resname, id, next, start, typ, img = fileobj.readline().split()
             resname = _strip_enveloping_quotes(resname)
@@ -369,10 +361,9 @@ class AmberOFFLibrary(metaclass=FileFormatType):
             typ = _strip_enveloping_quotes(typ)
             img = int(img)
             if next - start != len(container[i]):
-                warnings.warn(
-                    f'residue table predicted {next - start}, not {len(container[i])} atoms for residue {name}',
-                    AmberWarning,
-                )
+                warnings.warn('residue table predicted %d, not %d atoms for '
+                              'residue %s' % (next-start, len(container[i]),
+                              name), AmberWarning)
             if typ == 'p':
                 container[i].type = PROTEIN
             elif typ == 'n':
@@ -385,25 +376,23 @@ class AmberOFFLibrary(metaclass=FileFormatType):
                 container[i].name = resname
         # Get the residues sequence table
         line = fileobj.readline()
-        rematch = cls._sec12re.match(line)
+        rematch = AmberOFFLibrary._sec12re.match(line)
         if not rematch:
             raise RuntimeError('Expected residue sequence number not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         for i in range(nres):
             #TODO sanity check
             fileobj.readline()
         line = fileobj.readline()
         # Get the solventcap array
-        rematch = cls._sec13re.match(line)
+        rematch = AmberOFFLibrary._sec13re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit solventcap array not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         # Ignore the solvent cap
         fileobj.readline()
         fileobj.readline()
@@ -412,13 +401,12 @@ class AmberOFFLibrary(metaclass=FileFormatType):
         fileobj.readline()
         # Velocities
         line = fileobj.readline()
-        rematch = cls._sec14re.match(line)
+        rematch = AmberOFFLibrary._sec14re.match(line)
         if not rematch:
             raise RuntimeError('Expected unit solventcap array not found')
         elif rematch.groups()[0] != name:
-            raise RuntimeError(
-                f"Found residue {rematch.groups()[0]} while processing residue {name}"
-            )
+            raise RuntimeError('Found residue %s while processing residue %s' %
+                               (rematch.groups()[0], name))
         for res in container:
             for atom in res:
                 vx, vy, vz = (float(x) for x in fileobj.readline().split())
@@ -430,8 +418,8 @@ class AmberOFFLibrary(metaclass=FileFormatType):
 
     #===================================================
 
-    @classmethod
-    def write(cls, lib, dest):
+    @staticmethod
+    def write(lib, dest):
         """ Writes a dictionary of ResidueTemplate units to a file in OFF format
 
         Parameters
@@ -452,7 +440,7 @@ class AmberOFFLibrary(metaclass=FileFormatType):
         for name in names:
             dest.write(' "%s"\n' % name)
         for name in names:
-            cls._write_residue(dest, lib[name])
+            AmberOFFLibrary._write_residue(dest, lib[name])
 
         if own_handle: dest.close()
 
@@ -605,7 +593,7 @@ def _imaging_atom(res):
     except 1, it is the heavy atom. Otherwise, it is the atom *closest* to the
     COM of the residue
     """
-    from ..geometry import center_of_mass
+    from parmed.geometry import center_of_mass
     #TODO implement the docstring
     found_heavy = False
     heavy_idx = -1

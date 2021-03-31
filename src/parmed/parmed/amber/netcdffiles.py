@@ -11,6 +11,8 @@ work correctly---there is no difference from a user perspective). ALL
 NetCDF-file manipulation that the parmed/amber package does should be
 contained in this module.
 """
+from __future__ import division, print_function, absolute_import
+
 try:
     # netCDF4 is *much* faster to write NetCDF files, and can make a huge
     # difference when using it as an OpenMM reporter. So do what we can to use
@@ -19,13 +21,15 @@ try:
 except ImportError:
     nc = None
 import numpy as np
-from .. import __version__
-from ..formats.registry import FileFormatType
-from .. import unit as u
-from ..utils.netcdf import netcdf_file as NetCDFFile
+from parmed import __version__
+from parmed.formats.registry import FileFormatType
+from parmed import unit as u
+from parmed.utils.netcdf import netcdf_file as NetCDFFile
+from parmed.utils.six import add_metaclass
 import warnings
 
-class NetCDFRestart(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class NetCDFRestart(object):
     """ Class to read or write NetCDF restart files """
 
     @staticmethod
@@ -115,7 +119,8 @@ class NetCDFRestart(metaclass=FileFormatType):
             if remd[0] in 'tT':
                 remd_type = 'TEMPERATURE'
                 if temp is None:
-                    raise ValueError('temp must be specified for T-REMD restarts.')
+                    raise ValueError('temp must be specified for '
+                                     'T-REMD restarts.')
             elif remd[0] in 'mM':
                 remd_type = 'MULTI'
                 if remd_dimtypes is None:
@@ -124,7 +129,8 @@ class NetCDFRestart(metaclass=FileFormatType):
                 for dt in remd_dimtypes:
                     if dt not in (1, 3):
                         raise ValueError(
-                            'remd_dimtypes only supports dimension types 1 and 3 currently'
+                                'remd_dimtypes only supports dimension types '
+                                '1 and 3 currently'
                         )
                 remd_dimension = len(remd_dimtypes)
             else:
@@ -165,20 +171,26 @@ class NetCDFRestart(metaclass=FileFormatType):
         v = ncfile.createVariable('spatial', 'c', ('spatial',))
         v[:] = np.asarray(list('xyz'))
         if inst.hasbox:
-            v = ncfile.createVariable('cell_angular', 'c', ('cell_angular', 'label'))
+            v = ncfile.createVariable('cell_angular', 'c',
+                                            ('cell_angular', 'label'))
             v[0] = np.asarray(list('alpha'))
             v[1] = np.asarray(list('beta '))
             v[2] = np.asarray(list('gamma'))
-            v = ncfile.createVariable('cell_spatial', 'c', ('cell_spatial',))
+            v = ncfile.createVariable('cell_spatial', 'c',
+                                            ('cell_spatial',))
             v[0], v[1], v[2] = 'a', 'b', 'c'
-            v = ncfile.createVariable('cell_lengths', 'd', ('cell_spatial',))
+            v = ncfile.createVariable('cell_lengths', 'd',
+                                            ('cell_spatial',))
             v.units = 'angstrom'
-            v = ncfile.createVariable('cell_angles', 'd', ('cell_angular',))
+            v = ncfile.createVariable('cell_angles', 'd',
+                                            ('cell_angular',))
             v.units = 'degree'
-        v = ncfile.createVariable('coordinates', 'd', ('atom', 'spatial'))
+        v = ncfile.createVariable('coordinates', 'd',
+                                        ('atom', 'spatial'))
         v.units = 'angstrom'
         if inst.hasvels:
-            v = ncfile.createVariable('velocities', 'd', ('atom', 'spatial'))
+            v = ncfile.createVariable('velocities', 'd',
+                                            ('atom', 'spatial'))
             v.units = 'angstrom/picosecond'
             v.scale_factor = np.float32(20.455)
             inst.velocity_scale = 20.455
@@ -190,8 +202,10 @@ class NetCDFRestart(metaclass=FileFormatType):
             v.units = 'kelvin'
             v[0] = temp
         elif remd_type == 'MULTI':
-            ncfile.createVariable('remd_indices', 'i', ('remd_dimension',))
-            v = ncfile.createVariable('remd_dimtype', 'i', ('remd_dimension',))
+            ncfile.createVariable('remd_indices', 'i',
+                                        ('remd_dimension',))
+            v = ncfile.createVariable('remd_dimtype', 'i',
+                                        ('remd_dimension',))
             v[:] = remd_dimtypes
 
         return inst
@@ -226,7 +240,8 @@ class NetCDFRestart(metaclass=FileFormatType):
             if dim == 'time': continue
             setattr(inst, dim, ncfile.dimensions[dim])
         inst.hasvels = 'velocities' in ncfile.variables
-        inst.hasbox = ('cell_lengths' in ncfile.variables and 'cell_angles' in ncfile.variables)
+        inst.hasbox = ('cell_lengths' in ncfile.variables and
+                       'cell_angles' in ncfile.variables)
         if inst.hasvels:
             vels = ncfile.variables['velocities']
             inst.velocity_scale = vels.scale_factor
@@ -237,7 +252,7 @@ class NetCDFRestart(metaclass=FileFormatType):
     @property
     def coordinates(self):
         coords = self._ncfile.variables['coordinates'][:]
-        return coords.reshape((-1, self.atom, 3))
+        return coords.reshape((1, self.atom, 3))
 
     @coordinates.setter
     def coordinates(self, stuff):
@@ -329,7 +344,8 @@ class NetCDFRestart(metaclass=FileFormatType):
             # netCDF4.Dataset's flush method is called sync :-P
             self._ncfile.sync()
 
-class NetCDFTraj(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class NetCDFTraj(object):
     """ Class to read or write NetCDF restart files
 
     Parameters
@@ -432,7 +448,8 @@ class NetCDFTraj(metaclass=FileFormatType):
             elif remd[0] in 'Mm':
                 inst.remd = 'MULTI'
                 if remd_dimension is None:
-                    raise ValueError('remd_dimension must be given for multi-D REMD')
+                    raise ValueError('remd_dimension must be given '
+                                     'for multi-D REMD')
                 inst.remd_dimension = int(remd_dimension)
             else:
                 raise ValueError('remd must be T[emperature] or M[ultiD]')
@@ -471,31 +488,38 @@ class NetCDFTraj(metaclass=FileFormatType):
         v = ncfile.createVariable('spatial', 'c', ('spatial',))
         v[:] = np.asarray(list('xyz'))
         if inst.hasbox:
-            v = ncfile.createVariable('cell_spatial', 'c', ('cell_spatial',))
+            v = ncfile.createVariable('cell_spatial', 'c',
+                                            ('cell_spatial',))
             v[:] = np.asarray(list('abc'))
-            v = ncfile.createVariable('cell_angular', 'c', ('cell_angular', 'label',))
+            v = ncfile.createVariable('cell_angular', 'c',
+                                            ('cell_angular', 'label',))
             v[:] = np.asarray([list('alpha'), list('beta '), list('gamma')])
         v = ncfile.createVariable('time', 'f', ('frame',))
         v.units = 'picosecond'
         if inst.hascrds:
-            v = ncfile.createVariable('coordinates', 'f', ('frame', 'atom', 'spatial'))
+            v = ncfile.createVariable('coordinates', 'f',
+                                            ('frame', 'atom', 'spatial'))
             v.units = 'angstrom'
             inst._last_crd_frame = 0
         if inst.hasvels:
-            v = ncfile.createVariable('velocities', 'f', ('frame', 'atom', 'spatial'))
+            v = ncfile.createVariable('velocities', 'f',
+                                            ('frame', 'atom', 'spatial'))
             v.units = 'angstrom/picosecond'
             inst.velocity_scale = v.scale_factor = 20.455
             inst._last_vel_frame = 0
             if nc is not None:
                 v.set_auto_maskandscale(False)
         if inst.hasfrcs:
-            v = ncfile.createVariable('forces', 'f', ('frame', 'atom', 'spatial'))
+            v = ncfile.createVariable('forces', 'f',
+                                            ('frame', 'atom', 'spatial'))
             v.units = 'kilocalorie/mole/angstrom'
             inst._last_frc_frame = 0
         if inst.hasbox:
-            v = ncfile.createVariable('cell_lengths', 'd', ('frame', 'cell_spatial'))
+            v = ncfile.createVariable('cell_lengths', 'd',
+                                            ('frame', 'cell_spatial'))
             v.units = 'angstrom'
-            v = ncfile.createVariable('cell_angles', 'd', ('frame', 'cell_angular'))
+            v = ncfile.createVariable('cell_angles', 'd',
+                                            ('frame', 'cell_angular'))
             v.units = 'degree'
             inst._last_box_frame = 0
         if inst.remd == 'TEMPERATURE':
@@ -503,8 +527,10 @@ class NetCDFTraj(metaclass=FileFormatType):
             v.units = 'kelvin'
             inst._last_remd_frame = 0
         elif inst.remd == 'MULTI':
-            ncfile.createVariable('remd_indices', 'i', ('frame', 'remd_dimension'))
-            ncfile.createVariable('remd_dimtype', 'i', ('remd_dimension',))
+            ncfile.createVariable('remd_indices', 'i',
+                                        ('frame', 'remd_dimension'))
+            ncfile.createVariable('remd_dimtype', 'i',
+                                        ('remd_dimension',))
             inst._last_remd_frame = 0
 
         inst._last_time_frame = 0
@@ -541,7 +567,8 @@ class NetCDFTraj(metaclass=FileFormatType):
         inst.hascrds = 'coordinates' in ncfile.variables
         inst.hasvels = 'velocities' in ncfile.variables
         inst.hasfrcs = 'forces' in ncfile.variables
-        inst.hasbox = ('cell_lengths' in ncfile.variables and 'cell_angles' in ncfile.variables)
+        inst.hasbox = ('cell_lengths' in ncfile.variables and
+                       'cell_angles' in ncfile.variables)
         if inst.hascrds:
             inst._coordinates = np.array(ncfile.variables['coordinates'][:])
         if inst.hasvels:
@@ -644,12 +671,8 @@ class NetCDFTraj(metaclass=FileFormatType):
     @property
     def cell_lengths_angles(self):
         try:
-            return np.hstack(
-                (
-                    self._ncfile.variables['cell_lengths'][:],
-                    self._ncfile.variables['cell_angles'][:],
-                )
-            )
+            return np.hstack((self._ncfile.variables['cell_lengths'][:],
+                              self._ncfile.variables['cell_angles'][:]))
         except KeyError:
             return None
 
@@ -684,8 +707,10 @@ class NetCDFTraj(metaclass=FileFormatType):
         if angles is None:
             angles = [strip_units(x, u.degrees) for x in lengths[3:]]
         lengths = [strip_units(x, u.angstroms) for x in lengths[:3]]
-        self._ncfile.variables['cell_lengths'][self._last_box_frame] = np.asarray(lengths)
-        self._ncfile.variables['cell_angles'][self._last_box_frame] = np.asarray(angles)
+        self._ncfile.variables['cell_lengths'][self._last_box_frame] = \
+                np.asarray(lengths)
+        self._ncfile.variables['cell_angles'][self._last_box_frame] = \
+                np.asarray(angles)
         self._last_box_frame += 1
         self.flush()
 
