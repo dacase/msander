@@ -364,7 +364,7 @@
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
 
-         call xray_init()
+         if( xray_active) call xray_init()
 
       ! ----- SET THE INITIAL VELOCITIES -----
 
