@@ -536,18 +536,18 @@ subroutine getsqmx(natom,x,atnam,atnum,ncharge,excharge,chgnam,chgatnum)
    ! check header names
    ihead=0
    iend=0
-   do i=1,999
+   do i=1,9999
       read(lun,'(a)',end=10) line
       if (line(1:1) == "#") then
-         if (line(1:80) == "#EXCHARGES") then
+         if (line(1:10) == "#EXCHARGES") then
             mdin_external_charge = .true.
             ihead = ihead + 1
-            !write(0,*) 'Header "#EXCHARGES" found'
-         else if (line(1:80) == "#END") then
+            ! write(0,*) 'Header "#EXCHARGES" found'
+         else if (line(1:4) == "#END") then
             iend = iend + 1
+            ! write(0,*) 'Header "#END" found'
          else
-            write(0,*) 'Unrecognized header name'
-            write(0,*) line(1:80)
+            write(0,*) 'Unrecognized header name ', line(1:10)
             call mexit(6,1)
          end if
       end if

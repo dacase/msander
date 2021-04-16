@@ -1187,11 +1187,12 @@ subroutine qm2_pseudo_diag(matrix,vectors,noccupied,eigen,norbs,smallsum, &
 !$OMP PARALLEL &
 !$OMP& DEFAULT(PRIVATE) &
 !$OMP& SHARED(lumo, norbs, noccupied, matrix, vectors, scratch_matrix, &
-!$OMP&        matrix_workspace, veccount, eigeni, eigen, c,d, smallsum, &
-!$OMP&        vectmp1,vectmp2,vectmp3,vecjs)
+!$OMP&   matrix_workspace, veccount, eigeni, eigen, c,d, smallsum, &
+!$OMP&   vectmp1,vectmp2,vectmp3,vecjs)
 
-!workspace can be shared for OMP since no two threads should do the 
-! same value of i.
+!   Note: workspace can be shared for OMP since no two threads should do 
+!   the same value of i.
+
 !$OMP DO SCHEDULE(guided)
 #endif
   do i = lumo,norbs
@@ -2253,7 +2254,7 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
   _REAL_ :: S(n)
   _REAL_ :: U(n,n)
   _REAL_ :: VT(n,n)
-  _REAL_ :: twork(1)
+  _REAL_ :: twork
   _REAL_,ALLOCATABLE :: WORK(:)
   INTEGER :: LWORK
 
@@ -2268,7 +2269,7 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
   LWORK = -1
   CALL DGESVD("A","A",n,n, ainv,n, S,U,n, VT,n, twork,LWORK,my_err)
   
-  LWORK = NINT(twork(1))
+  LWORK = NINT(twork)
   ALLOCATE( WORK(LWORK) )
   WORK = 0.d0
   

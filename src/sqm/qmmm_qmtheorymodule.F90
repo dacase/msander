@@ -1,12 +1,12 @@
 module qmmm_qmtheorymodule
 ! ----------------------------------------------------------------------
 ! PURPOSE: Data type defining the theory we are running
-! 
+!
 ! Author: Andreas W. Goetz
 !         <agoetz@sdsc.edu>
 ! Date  : February 2010
 ! ----------------------------------------------------------------------
-  
+
   implicit none
 
   private
@@ -21,7 +21,7 @@ module qmmm_qmtheorymodule
      logical PM3
      logical AM1
      logical AM1D           ! This is AM1/d (with d orbitals), *NOT* AM1-D (with dispersion correction)
-     logical MNDO           
+     logical MNDO
      logical MNDOD          ! This is MNDO/d
      logical PDDGPM3
      logical PDDGMNDO
@@ -36,10 +36,10 @@ module qmmm_qmtheorymodule
      logical DISPERSION_HYDROGENPLUS ! This is the DH+ correction (dispersion and hydrogen bond)
      logical PM3MAIS
      logical EXTERN         !External interface to ADF/GAMESS/Gaussian/TeraChem
-     logical QUICKHF        !Interface to the Quick quantum chemistry package (HF only)
      logical SEBOMD         !External interface to SEBOMD: full QM calculation (no QM/MM)
+     logical ISQUICK
   end type qmTheoryType
-  
+
   interface Set
      module procedure SetQmTheoryType
   end interface
@@ -69,7 +69,7 @@ contains
        call sander_bomb('read_qmmm_nm_and_alloc','qmtheory is specified in the qmmm namelist.', &
                            'It is deprecated, please use qm_theory.')
     end if
-    
+
   end subroutine CheckRetiredQmTheoryInputOption
 
   ! ---------------------------------------------------------
@@ -79,12 +79,12 @@ contains
   subroutine SetQmTheoryType(self, qm_theory)
 
     use UtilitiesModule, only : Upcase
-    
+
     implicit none
     type (qmTheoryType), intent(out) :: self
     character(len=12), intent(in) :: qm_theory
-    
-    self%PM3        = .false. 
+
+    self%PM3        = .false.
     self%AM1        = .false.
     self%AM1D       = .false.
     self%MNDO       = .false.
@@ -102,9 +102,9 @@ contains
     self%DISPERSION_HYDROGENPLUS = .false.
     self%PM3MAIS    = .false.
     self%EXTERN     = .false.
-    self%QUICKHF    = .false.
     self%SEBOMD     = .false.
-    
+    self%ISQUICK      = .false.
+
     select case (Upcase(qm_theory))
     case ('', 'PM3')
        self%PM3 = .true.
@@ -152,8 +152,6 @@ contains
        self%PM3MAIS = .true.
     case ('EXTERN')
        self%EXTERN = .true.
-    case ('HF')
-       self%QUICKHF = .true.
 
        ! CHECK
 !       write(6, '(a)') '| Selection of Quick HF active.'
@@ -161,11 +159,13 @@ contains
 
     case ('SEBOMD')
        self%SEBOMD = .true.
+    case ('QUICK')
+       self%ISQUICK = .true.
     case default
        call sander_bomb('qmtheorymodule:SetQmTheoryType','Unknown method specified for qm_theory', &
             'Valid options are: PM3, AM1, RM1, MNDO, PM3-PDDG, PM3-PDDG_08, MNDO-PDDG, PM3-CARB1, '&
             //'PM3-ZNB, PM3-MAIS, AM1-D*, AM1-DH+, MNDO/D, AM1/D, PM6, PM6-D, PM6-DH+, DFTB, DFTB2, DFTB3 '&
-            //'SEBOMD (full QM) and EXTERN (external)')
+            //'QUICK, SEBOMD (full QM) and EXTERN (external)')
     end select
 
   end subroutine SetQmTheoryType
@@ -178,7 +178,7 @@ contains
     implicit none
     type(qmTheoryType), intent(in) :: self
     character(len=12)   :: qmTheoryString
-  
+
     if (self%PM3) then
        qmTheoryString = 'PM3'
     else if (self%AM1) then
@@ -211,10 +211,10 @@ contains
        qmTheoryString = 'PM3-MAIS'
     else if (self%EXTERN) then
        qmTheoryString = 'EXTERN'
-    else if (self%QUICKHF) then
-       qmTheoryString = 'HF'
     else if (self%SEBOMD) then
        qmTheoryString = 'SEBOMD'
+    else if (self%ISQUICK) then
+       qmTheoryString = 'QUICK'
     end if
 
   end function QmTheoryString
@@ -245,10 +245,10 @@ contains
     call mpi_bcast(self%PM6       , 1, mpi_logical, 0, commsander, ier)
     call mpi_bcast(self%PM3MAIS   , 1, mpi_logical, 0, commsander, ier)
     call mpi_bcast(self%EXTERN    , 1, mpi_logical, 0, commsander, ier)
-    call mpi_bcast(self%QUICKHF   , 1, mpi_logical, 0, commsander, ier)
     call mpi_bcast(self%SEBOMD    , 1, mpi_logical, 0, commsander, ier)
+    call mpi_bcast(self%ISQUICK     , 1, mpi_logical, 0, commsander, ier)
 
   end subroutine BroadcastQmTheoryType
 #endif
-   
+
 end module qmmm_qmtheorymodule

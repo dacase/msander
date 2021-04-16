@@ -19,6 +19,7 @@
 #define UNIMPLEMENTED   -1
 #define MINIMIZE        5
 #define RELAX           6
+#define LMOD_1ST_MINIM  7
 
 ! NonBond List Update control options
 #define NBL_UPDATE_ALWAYS 569
