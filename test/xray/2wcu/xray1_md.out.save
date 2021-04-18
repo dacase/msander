@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 03/04/2021 at 15:56:57
+| Run on 04/18/2021 at 08:50:47
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/xray/2wcu
+| Working directory: /home/case/msander_intel/test/xray/2wcu
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   ntx = 5, irest = 1, ntpr = 1,                                                
@@ -157,7 +157,7 @@ X-ray Refinement Parameters:
      Atom Selection Mask:   !(@H=) & !(:WAT)
      Solute Selection Mask: :*
 PDB: All atoms read successfully.
- getting box info from bottom of inpcrd
+ getting box info from bottom of eq2.x
 | peek_ewald_inpcrd: Box info found
 XRAY: UNIT CELL=    38.950   47.444   55.550  76.22  72.25  81.96
 Found   2328 atoms in !(@H=) & !(:WAT);
@@ -315,27 +315,28 @@ Found  10224 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.06 (92.75% of List )
-|                Other                      0.00 ( 7.25% of List )
-|             List time                  0.07 (15.40% of Nonbo)
-|                   Short_ene time             0.29 (97.99% of Direc)
-|                   Other                      0.01 ( 2.01% of Direc)
-|                Direct Ewald time          0.30 (78.89% of Ewald)
-|                Adjust Ewald time          0.01 ( 1.85% of Ewald)
-|                   Fill Bspline coeffs        0.01 ( 8.57% of Recip)
-|                   Fill charge grid           0.01 (12.86% of Recip)
-|                   Scalar sum                 0.01 (20.00% of Recip)
-|                   Grad sum                   0.01 (20.00% of Recip)
-|                   FFT time                   0.03 (38.57% of Recip)
-|                Recip Ewald time           0.07 (18.47% of Ewald)
-|             Ewald time                 0.38 (84.60% of Nonbo)
-|          Nonbond force              0.45 ( 2.26% of Force)
-|             Fcalc loop                17.58 (91.01% of Xray )
-|             Deriv loop                 1.73 ( 8.95% of Xray )
-|          Xray restaints            19.32 (97.62% of Force)
-|       Force time                19.79 (100.0% of Runmd)
-|    Runmd Time                19.81 (98.98% of Total)
-| Total time                20.01 (100.0% of ALL  )
+|                Build the list             0.06 (90.50% of List )
+|                Other                      0.01 ( 9.50% of List )
+|             List time                  0.06 ( 8.30% of Nonbo)
+|                   Short_ene time             0.52 (98.99% of Direc)
+|                   Other                      0.01 ( 1.01% of Direc)
+|                Direct Ewald time          0.52 (76.30% of Ewald)
+|                Adjust Ewald time          0.01 ( 2.03% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 5.78% of Recip)
+|                   Fill charge grid           0.02 (14.25% of Recip)
+|                   Scalar sum                 0.03 (19.82% of Recip)
+|                   Grad sum                   0.03 (21.47% of Recip)
+|                   FFT time                   0.06 (38.68% of Recip)
+|                Recip Ewald time           0.15 (21.17% of Ewald)
+|             Ewald time                 0.69 (91.70% of Nonbo)
+|          Nonbond force              0.75 ( 8.50% of Force)
+|             Fcalc loop                 7.50 (93.29% of Xray )
+|             Deriv loop                 0.53 ( 6.64% of Xray )
+|          Xray restaints             8.04 (91.30% of Force)
+|       Force time                 8.81 (99.81% of Runmd)
+|    Runmd Time                 8.83 (98.49% of Total)
+|    Other                      0.13 ( 1.42% of Total)
+| Total time                 8.96 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -345,11 +346,11 @@ Found  10224 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      19.81 Per Step(ms) =    1980.70
-|         ns/day =       0.04   seconds/ns = 1980700.00
+|     Elapsed(s) =       8.83 Per Step(ms) =     882.53
+|         ns/day =       0.10   seconds/ns =  882530.00
 | -----------------------------------------------------
 
-|           Job began  at 15:56:57.581  on 03/04/2021
-|           Setup done at 15:56:57.787  on 03/04/2021
-|           Run   done at 15:57:17.593  on 03/04/2021
+|           Job began  at 08:50:47.266  on 04/18/2021
+|           Setup done at 08:50:47.401  on 04/18/2021
+|           Run   done at 08:50:56.226  on 04/18/2021
 |     wallclock() was called     565 times
