@@ -48,7 +48,7 @@ fi
 
 /bin/rm -f foo.parm7 parmed
 
-if false; then
+if true; then
 #============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
@@ -56,7 +56,7 @@ phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
 
 echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F"
 phenix.refine  \
-   ${id}_uc.pdb $id-sf.mtz $ciffiles \
+   ${id}.pdb $id-sf.mtz $ciffiles \
    refinement.input.xray_data.r_free_flags.generate=True \
    refinement.main.number_of_macro_cycles=0 \
    xray_data.outliers_rejection=True \
