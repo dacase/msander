@@ -1682,11 +1682,6 @@ locmem.LES.o:   locmem.F90
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
 
 
-look.o:   look.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ look.F90
-
-
 matinv.o:   matinv.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
@@ -1781,7 +1776,6 @@ mdread.o: \
                     ips.o\
                     emap.o\
                     dssp.o\
-                    xray_interface.o\
                     xray_globals.o\
                     softcore.o\
                     mbar.o\
@@ -1838,7 +1832,6 @@ mdread.LES.o: \
                     ips.o\
                     emap.o\
                     dssp.o\
-                    xray_interface.o\
                     xray_globals.o\
                     softcore.o\
                     mbar.o\
@@ -1894,7 +1887,6 @@ mdread.PUPIL.o: \
                     ips.o\
                     emap.o\
                     dssp.o\
-                    xray_interface.o\
                     xray_globals.o\
                     softcore.o\
                     mbar.o\
@@ -4469,6 +4461,7 @@ xray_fourier.o: \
                     xray_globals.o\
                     constants.o\
                     parallel.h\
+                    omp_lib.o\
                     xray_bulk_solvent.o\
                     xray_ml.o
 
@@ -4495,7 +4488,8 @@ xray_interface.o: \
                     xray_reciprocal_space.o\
                     parallel.h\
                     xray_utils.o\
-                    nonbond_list.o\
+                    AmberNetcdf.o\
+                    binrestart.o\
                     xray_fourier.o\
                     findmask.o\
                     xray_ml.o\
