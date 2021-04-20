@@ -489,7 +489,7 @@ contains
         call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
       else
         if( master ) &
-          write(6,'(a)') ' getting box info from bottom of ',trim(inpcrd)
+          write(6,'(a,a)') ' getting box info from bottom of ',trim(inpcrd)
         call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
       endif
 
