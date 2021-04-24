@@ -320,14 +320,11 @@ contains
       integer, save :: ires = 1
       integer :: i,j
       lname = adjustl(name)
-      ! first find the matching residue:
-      !   (comparing just the first two letters of the residue name
-      !    allows for CYS/CYX and HIS/{HIP,HID,HIE} mismatches
+      ! first find the matching residue: (ignore resName!)
       do i=1,num_residues
          if (resSeq==residue_number(ires) &
                .and. chainID==residue_chainid(ires) &
-               .and. iCode==residue_icode(ires) &
-               .and. resName(1:2)==residue_label(ires)(1:2)) then
+               .and. iCode==residue_icode(ires)) then
             ! then find the matching atom name:
             do j = residue_pointer(ires),residue_pointer(ires+1)-1
                if (lname==atom_name(j)) then
