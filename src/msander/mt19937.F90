@@ -184,7 +184,7 @@ module mt19937
 #ifndef ASSUME_GFORTRAN
     data mult_a /z'6C078965'/ ! gfortran does not like this
 #else
-    mult_a = ieor(ishft(z'6C07', 16), z'8965') ! but this is okay
+    mult_a = ieor(ishft(int(z'6C07'), 16), z'8965') ! but this is okay
 #endif /* ASSUME_GFORTRAN */
 
     self%mtinit = .true._wi
@@ -226,7 +226,7 @@ module mt19937
     data mult_b /z'5D588B65'/
     data msb1_d /z'80000000'/
 #else
-    mult_b = ieor(ishft(z'5D58', 16), z'8B65')
+    mult_b = ieor(ishft(int(z'5D58'), 16), z'8B65')
     msb1_d = 1
     msb1_d = ishft(msb1_d, 31)
 #endif /* ASSUME_GFORTRAN */
