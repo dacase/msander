@@ -565,7 +565,8 @@ contains
             phi = sigFobs(i) * 0.0174532925d0
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
             ! first guess at proper weights for vls:
-            f_weight(i) = 1.d0/abs_Fobs(i)
+            ! f_weight(i) = 1.d0/abs_Fobs(i)
+            f_weight(:) = 1.d0
          end do
       endif
 
@@ -594,15 +595,7 @@ contains
       if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(solute_selection), &
            ' atoms in ', trim(solute_selection_mask)
 
-      ! if( target(1:2)=='ml' .or. bulk_solvent_model=='opt') then
-         call init_ml(target, nstlim, d_star_sq, resolution)
-      ! else
-      !    if( bulk_solvent_model/='none' .and. resolution_high==0.d0 ) then
-      !       write(6,'(a)') 'Error: resolution_high must be set in &xray'
-      !       call mexit(6,1)
-      !    end if
-      !    resolution = resolution_high
-      ! end if
+      call init_ml(target, nstlim, d_star_sq, resolution)
 
       if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution)
 
