@@ -529,6 +529,9 @@ contains
       !  if target /= "vls"  reals are Fobs, sigFobs (for diffraction)
       !  if target == "vls", reals are Fobs, phiFobs (for cryoEM)
 
+      !  further, if user_fmask is set, each line has two additional
+      !  reals, giving fabs_solvent and phi_solvent
+
       if( user_fmask ) then
          do i = 1,num_hkl
             read(hkl_lun,*,end=1,err=1) &
@@ -548,18 +551,21 @@ contains
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
+
       ! 'ls' is an unweighted least-squares target; use 'wls' for
       !    weighted least-squares
-      if( target(1:2) == 'ls' .or. target == 'vls' ) f_weight(:) = 1.0_rk_
+      if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
          allocate(Fobs(num_hkl),stat=alloc_status)
          REQUIRE(alloc_status==0)
          do i = 1,num_hkl
-            !  sigFobs() here is assumed to be really phi()
+            !  sigFobs() here is assumed to be really phi(), in degrees
             phi = sigFobs(i) * 0.0174532925d0
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
+            ! first guess at proper weights for vls:
+            f_weight(i) = 1.d0/abs_Fobs(i)
          end do
       endif
 
@@ -588,15 +594,15 @@ contains
       if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(solute_selection), &
            ' atoms in ', trim(solute_selection_mask)
 
-      if( target(1:2)=='ml' .or. bulk_solvent_model=='opt') then
+      ! if( target(1:2)=='ml' .or. bulk_solvent_model=='opt') then
          call init_ml(target, nstlim, d_star_sq, resolution)
-      else
-         if( bulk_solvent_model/='none' .and. resolution_high==0.d0 ) then
-            write(6,'(a)') 'Error: resolution_high must be set in &xray'
-            call mexit(6,1)
-         end if
-         resolution = resolution_high
-      end if
+      ! else
+      !    if( bulk_solvent_model/='none' .and. resolution_high==0.d0 ) then
+      !       write(6,'(a)') 'Error: resolution_high must be set in &xray'
+      !       call mexit(6,1)
+      !    end if
+      !    resolution = resolution_high
+      ! end if
 
       if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution)
 
