@@ -687,7 +687,12 @@ subroutine sander()
     end if masterwork
     ! End of master process setup
 
-   ! rism initialization
+#ifdef OPENMP
+    ! set up and print some information
+    call set_omp_num_threads()
+#endif
+
+    ! rism initialization
 #  if defined(RISMSANDER)
     call rism_init(commsander)
 #  endif /* RISMSANDER */
@@ -1040,11 +1045,6 @@ subroutine sander()
    ! }}}
 
 #endif /* MPI */
-
-#ifdef OPENMP
-    ! set up and print some information
-    call set_omp_num_threads()
-#endif
 
     ! Allocate memory for crg relocation
     if (ifcr /= 0) then
