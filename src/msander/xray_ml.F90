@@ -295,6 +295,11 @@ contains
         write(6,'(a,f7.3)') '| highest resolution: ', resolution
     endif
 
+    if (target(1:3) == 'vls' ) then
+       deallocate(d_star_sq_tmp)
+       return
+    end if
+
     if (target(1:2) == 'ml') then
 
        allocate(delta_array(NRF))
