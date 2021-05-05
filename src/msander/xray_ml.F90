@@ -179,6 +179,7 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_ml(target, nstlim, d_star_sq, resolution)
 
+    use constants, only : omp_num_threads
     implicit none
 
     character(len=4), intent(in) :: target
@@ -201,30 +202,12 @@ contains
     integer, dimension(:,:), allocatable :: hkl
     double precision, dimension(:), allocatable :: f_obs_tmp, sigma_tmp
     integer :: index_start, index_end
+    double precision :: time0, time1
 
+    call wallclock( time0 )
     N_steps = nstlim
     NRF = num_hkl
 
-    allocate(f_calc_tmp(NRF))
-    allocate(k_iso(NRF))
-    allocate(k_iso_test(NRF))
-    allocate(k_iso_exp(NRF))
-    allocate(k_iso_exp_test(NRF))
-    allocate(k_aniso(NRF))
-    allocate(k_aniso_test(NRF))
-
-    allocate(s(3, NRF))
-    allocate(s_squared(NRF))
-    allocate(s_squared_for_scaling(NRF))
-    allocate(scat_factors_precalc(5, NRF))
-
-    allocate(d_star_sq_tmp(NRF))
-    allocate(reflection_bin(NRF))
-    allocate(reflection_bin_tmp(NRF))
-
-    allocate(hkl(3,NRF))
-    allocate(f_obs_tmp(NRF))
-    allocate(sigma_tmp(NRF))
 
     r_work_factor_denominator = zero
     r_free_factor_denominator = zero
@@ -267,16 +250,26 @@ contains
 
     resolution = 50.d0
     low_res = 0.d0
+
+!$omp parallel do  num_threads(omp_num_threads)
     do i = 1, NRF
-      d_star =  (square(hkl_index(1,i) * norm2_vas) + &
+      d_star_sq(i)  =  (square(hkl_index(1,i) * norm2_vas) + &
                  square(hkl_index(2,i) * norm2_vbs) + &
                  square(hkl_index(3,i) * norm2_vcs) + &
                  2 * hkl_index(2,i) * hkl_index(3,i) * dot_product(vbs, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(2,i) * dot_product(vbs, vas))
-      d = sqrt(1.0 / d_star)
-      low_res = max( d, low_res )
-      resolution = min( d, resolution )
+    enddo
+!$omp end parallel do
+
+    low_res = sqrt( 1.d0/minval( d_star_sq ))
+    resolution = sqrt( 1.d0/maxval( d_star_sq ))
+    NRF_work = sum( test_flag )
+    r_work_factor_denominator = sum( abs_Fobs, MASK=test_flag==1 )
+    r_free_factor_denominator = sum( abs_Fobs, MASK=test_flag/=1 )
+
+#if 0
+    do i = 1, NRF
       if (test_flag(i) == 1) then
         NRF_work = NRF_work + 1
         r_work_factor_denominator = r_work_factor_denominator + abs_Fobs(i)
@@ -284,21 +277,40 @@ contains
         r_free_counter = r_free_counter + 1
         r_free_factor_denominator = r_free_factor_denominator + abs_Fobs(i)
       endif
-      d_star_sq(i) = d_star
-      d_star_sq_tmp(i) = d_star
     enddo
+#endif
 
     NRF_free = NRF - NRF_work
-    REQUIRE( NRF_free == r_free_counter )
     if (mytaskid == 0 ) then
         write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
         write(6,'(a,f7.3)') '| highest resolution: ', resolution
     endif
 
-    if (target(1:3) == 'vls' ) then
-       deallocate(d_star_sq_tmp)
-       return
-    end if
+    call wallclock( time1 )
+    write(6,*) 'resolution time: ', time1 - time0
+    if (target(1:3) == 'vls' ) return
+
+    allocate(d_star_sq_tmp(NRF))
+    d_star_sq_tmp(:) = d_star_sq(:)
+
+    allocate(f_calc_tmp(NRF))
+    allocate(k_iso(NRF))
+    allocate(k_iso_test(NRF))
+    allocate(k_iso_exp(NRF))
+    allocate(k_iso_exp_test(NRF))
+    allocate(k_aniso(NRF))
+    allocate(k_aniso_test(NRF))
+
+    allocate(s(3, NRF))
+    allocate(s_squared(NRF))
+    allocate(s_squared_for_scaling(NRF))
+    allocate(scat_factors_precalc(5, NRF))
+
+    allocate(reflection_bin(NRF))
+    allocate(reflection_bin_tmp(NRF))
+    allocate(hkl(3,NRF))
+    allocate(f_obs_tmp(NRF))
+    allocate(sigma_tmp(NRF))
 
     if (target(1:2) == 'ml') then
 
