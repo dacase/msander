@@ -537,12 +537,16 @@ contains
       endif
       Fcalc(:) = k_scale(:) * Fcalc(:)
 
-      if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
+      if( nstep==0 ) then
+         norm_scale = 1.0_rk_ / sum(abs_Fobs)
+         if( mytaskid == 0 ) &
+            write(6,'(a,e12.5)') '| setting norm_scale to ', norm_scale
+      end if
       nstep = nstep + 1
 
       vecdif(:) = Fobs(:) - Fcalc(:)
-      xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
-      deriv(:) = - norm_scale * 2._rk_ * k_scale(:) * vecdif(:)
+      xray_energy = norm_scale * sum( f_weight(:)*vecdif(:)*conjg(vecdif(:)) )
+      deriv(:) = - norm_scale * 2._rk_ * k_scale(:) * f_weight(:) * vecdif(:)
       residual = sum (abs(vecdif)) / sum(abs_Fobs)
       ! write(6,*) 'in dTargetV_dF, residual = ', residual
 
