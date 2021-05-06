@@ -204,7 +204,6 @@ contains
     integer :: index_start, index_end
     double precision :: time0, time1
 
-    call wallclock( time0 )
     N_steps = nstlim
     NRF = num_hkl
 
@@ -286,8 +285,6 @@ contains
         write(6,'(a,f7.3)') '| highest resolution: ', resolution
     endif
 
-    call wallclock( time1 )
-    write(6,*) 'resolution time: ', time1 - time0
     if (target(1:3) == 'vls' ) return
 
     allocate(d_star_sq_tmp(NRF))
