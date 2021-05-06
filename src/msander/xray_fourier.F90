@@ -339,7 +339,6 @@ contains
                aimag(f_mask(i)),char(9),abs(f_mask(i))
 #endif
          end do
-         write(6,'(a,5e14.6)') '| updating fmask'
       endif
 #ifdef MPI
       call mpi_bcast( f_mask, num_hkl, MPI_DOUBLE_COMPLEX, 0, commsander, ier )
@@ -530,7 +529,8 @@ contains
          endif
       else
          if (mod(nstep,scale_update_frequency) == 0) then
-            k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
+            k_scale(:) = sum( real(Fobs(:)*conjg(Fcalc(:))) ) &
+                       / sum( abs(Fcalc(:))**2 )
             if (mytaskid == 0 ) write(6,'(a,f12.5)') &
               '| updating isotropic scaling: ', k_scale(1)
          endif
@@ -538,15 +538,15 @@ contains
       Fcalc(:) = k_scale(:) * Fcalc(:)
 
       if( nstep==0 ) then
-         norm_scale = 1.0_rk_ / sum(abs_Fobs)
+         norm_scale = 1.0_rk_ / sum(abs_Fobs**2)
          if( mytaskid == 0 ) &
             write(6,'(a,e12.5)') '| setting norm_scale to ', norm_scale
       end if
       nstep = nstep + 1
 
       vecdif(:) = Fobs(:) - Fcalc(:)
-      xray_energy = norm_scale * sum( f_weight(:)*vecdif(:)*conjg(vecdif(:)) )
-      deriv(:) = - norm_scale * 2._rk_ * k_scale(:) * f_weight(:) * vecdif(:)
+      xray_energy = norm_scale * sum( vecdif(:)*conjg(vecdif(:)) )
+      deriv(:) = - norm_scale * 2._rk_ * k_scale(:) * vecdif(:)
       residual = sum (abs(vecdif)) / sum(abs_Fobs)
       ! write(6,*) 'in dTargetV_dF, residual = ', residual
 
