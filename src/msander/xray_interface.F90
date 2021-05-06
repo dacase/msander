@@ -465,6 +465,7 @@ contains
       double precision :: a,b,c,alpha,beta,gamma
       real(real_kind) :: phi
       logical :: master
+      double precision :: time0, time1
       ! following is local: copied into f_mask in this routine, after
       !     f_mask itself is allocated.  (could be simplified)
       complex(real_kind), allocatable, save :: f_solvent(:)
@@ -560,14 +561,14 @@ contains
       if( target(1:3) == 'vls' ) then
          allocate(Fobs(num_hkl),stat=alloc_status)
          REQUIRE(alloc_status==0)
+!$omp parallel do  private(phi)
          do i = 1,num_hkl
             !  sigFobs() here is assumed to be really phi(), in degrees
             phi = sigFobs(i) * 0.0174532925d0
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
-            ! first guess at proper weights for vls:
-            ! f_weight(i) = 1.d0/abs_Fobs(i)
-            f_weight(:) = 1.d0
          end do
+!$omp end parallel do
+         ! f_weight(:) = 1.d0
       endif
 
       ! if( fft_method > 0 ) call FFT_setup()
@@ -576,6 +577,7 @@ contains
             igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
             lbres=ih(m02),crd=x(lcrd), &
             maskstr=atom_selection_mask,mask=atom_selection)
+
       NAT_for_mask1 = sum(atom_selection)
       if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
            ' atoms in ', trim(atom_selection_mask)
@@ -604,6 +606,7 @@ contains
          f_mask(:) = f_solvent(:)
          deallocate( f_solvent )
       endif
+
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
       return
