@@ -1,9 +1,8 @@
 ! <compile=optimized>
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
-#define VACUUM3 603
 
-! simplified egb() routines: no LES, no MPI.  Hope this may help
+! simplified egb() routines: no LES, no MPI, no QMMM.  Hope this may help
 !   with other optimizations, like openmp
 
 module genborn
@@ -85,14 +84,7 @@ end subroutine igb7_init
 subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
       natex,dcharge,cut,ntypes,natom,natbel, &
       epol,eelt,evdw,esurf,dvdl,vdwrad,ineighbor,p1,p2,p3,p4, &
-      ncopy &
-#ifndef LES
-      ,gbvalpha,gbvbeta,gbvgamma &
-#endif
-      )
-      ! gbvalpha,gbvbeta,gbvgamma arrays for GB
-      ! put all gbalpha, gbbeta, gbgamma for each atom in these 3 arrays
-      ! (look at mdread.f for details)
+      ncopy,gbvalpha,gbvbeta,gbvgamma )
 
    !--------------------------------------------------------------------------
 
@@ -123,12 +115,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    !     atoms, for which gas-phase electrostatics and LJ terms are skipped;
    !     note that GB terms are computed for all pairs of atoms.
 
-   !     If gbsa=1, then an approximate surface-area dependent term is
-   !     computed, with the resulting energy placed into "esurf".  The
-   !     algorithm is from J. Weiser, P.S. Shenkin, and W.C. Still,
-   !     "Approximate atomic sufraces from linear combinations of pariwise
-   !     overlaps (LCPO)", J. Computat. Chem. 20:217 (1999).
-
    !     The code also supports a multiple-time-step facility:
 
    !       pairs closer than sqrt(cut_inner) are evaluated every nrespai steps;
@@ -154,14 +140,12 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    !       T. Hewitt, and D. A. Case.  Work presented at CUG Fall of 2000.
    !--------------------------------------------------------------------------
 
-   use icosasurf, only : icosa_init, icosa_sphere_approx
    use qmmm_module, only : qmmm_nml,qmmm_struct,qm2_struct
    use parms, only: cn1,cn2
    use constants, only: zero, one, two, three, four, five, six, seven, &
                         eight, nine, ten, eleven, twelve, half, third, &
                         fourth, eighth, pi, fourpi, alpb_alpha, &
                         AMBER_ELECTROSTATIC
-   use crg_reloc, only: ifcr, cr_add_dcdr_factor
    use commandline_module, only: cpein_specified
 
    implicit none
@@ -171,7 +155,7 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    _REAL_ temp7
 
    _REAL_ deel
-   logical onstep,onstepi,oncpstep,oncestep,doeel, dovdw
+   logical onstep,onstepi
    _REAL_ x,f,rborn,fs,reff,onereff,charge,cut, &
          epol,eelt,evdw,esurf,vdwrad,p1,p2,p3,p4, &
          dcharge
@@ -208,9 +192,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    _REAL_ :: forcemod(3)
    integer :: lnk_no, mm_no, qm_no
 
-
-   ! variables needed for icosa surface area calculation
-   integer ineighborpt
 
    ! variables needed for smooth integration cutoff in Reff:
    _REAL_ rgbmax2, rgbmax1i, rgbmax2i,rgbmaxpsmax2
@@ -261,52 +242,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    f6 = 0.d0
    f12 = 0.d0
 
-!============ QMMM ==========================================================
-!  If ifqnt == True and igb /=0 and igb /= 6 then we will do EGB with QMMM.
-
-!  In this case the charge array should currently be zero for the QM atoms.
-!  This corresponds to qmgb = 0 where we do only EGB(MM-MM) -- skipping
-!  QM-MM and QM-QM interactions.
-
-!  If qmgb==1 then we need to copy back the qm resp charges from
-!  qm_resp_charges, so we can do EGB on everything. When done we need to
-!  ensure we zero the QM charge array again.
-
-!  Before doing the non-bonded electrostatics:
-   if (qmmm_nml%ifqnt) then
-      if (qmmm_nml%qmgb == 1) then
-
-         call qmmm_restore_mm_charges(qmmm_struct%nquant,qmmm_struct%qm_resp_charges,charge, &
-                                      qmmm_struct%scaled_mm_charges, qmmm_struct%iqmatoms, &
-                                      qmmm_nml%chg_lambda,qmmm_struct%nlink,qmmm_struct%link_pairs, &
-                                      qmmm_struct%mm_link_pair_resp_charges, &
-                                      .false.)
-
-         ! Unlike ewald where we don't explicitly skip QM-MM interactions,
-         ! in GB we do explicitly skip them so it doesn't matter that the
-         ! QM charges are not set to zero in the charge array.
-
-      else if (qmmm_nml%qmgb > 1 ) then
-
-        ! In this case we need to fill the charge array with the Mulliken
-        ! charges from the SCF.  Note if igb==2 we skip the radii calculation
-        ! below as this has already been done before the call to qm_mm.
-        do qm_temp_count = 1, qmmm_struct%nquant_nlink
-           charge(qmmm_struct%iqmatoms(qm_temp_count)) = &
-                   qm2_struct%scf_mchg(qm_temp_count)*AMBER_ELECTROSTATIC
-        end do
-      end if
-
-      !We need to replace the MM link pair coordinates with
-      !the MM link atom coordinates.
-      call adj_mm_link_pair_crd(x)
-
-      !We also need to zero the nlink part of dxyzqm so we can accumulate link atom forces in this routine.
-      qmmm_struct%dxyzqm(1:3,qmmm_struct%nquant+1:qmmm_struct%nquant_nlink) = zero
-
-   end if
-!============ END QMMM =======================================================
-
    epol = zero
    eelt = zero
    evdw = zero
@@ -326,22 +261,10 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    oncestep = ((icnste == 1 .and. mod(irespa, ntcnste) == 0) .or. icnste == 2) &
               .and. .not. cpein_specified
 
-!     variable for gas phase calculations (future fix by Dan Parkin)
-!  intdiele_inv = one/intdiel
-
-   if(alpb == 1) then
-!     Sigalov Onufriev ALPB (epsilon-dependent GB):
-      alpb_beta = alpb_alpha*(intdiel/extdiel)
-      extdieli = one/(extdiel*(one + alpb_beta))
-      intdieli = one/(intdiel*(one + alpb_beta))
-      one_Arad_beta = alpb_beta/Arad
-      if (kappa/=zero) onekappa = one/kappa
-   else
    !  Standard Still's GB - alpb=0
-      extdieli = one/extdiel
-      intdieli = one/intdiel
-      one_Arad_beta = zero
-   end if
+   extdieli = one/extdiel
+   intdieli = one/intdiel
+   one_Arad_beta = zero
 
    ! Smooth "cut-off" in calculating GB effective radii.
    ! Implementd by Andreas Svrcek-Seiler and Alexey Onufriev.
@@ -415,13 +338,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
       dumy = zero
       dumz = zero
 
-#if defined(LES)
-      icnum = cnum(i)
-      nrg_vdw_tmp = zero
-      nrg_ele_tmp = zero
-      nrg_egb_tmp = zero
-#endif
-
       !         -- check the exclusion list for eel and vdw:
 
       do k=i+1,natom
@@ -430,32 +346,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
       do jjv=jexcl,jexcl_last
          skipv(natex(jjv))=.true.
       end do
-
-      ! QMMM:  We have 2 lists here:
-      !        atom_mask which is natom long and .true. for each qm atom
-      !        skipv which is natom long and is .true. if atom v should
-      !             be skipped for this atom
-
-      !Step 1 - is current atom i a QM atom - NOT link atoms?
-
-      if (qmmm_nml%ifqnt) then
-         if ( qmmm_struct%atom_mask(i) ) then  !yes it is
-           !step 2 - exclude all other QM atoms
-           do qm_temp_count = 1, qmmm_struct%nquant
-              skipv(qmmm_struct%iqmatoms(qm_temp_count)) = .true.
-              !The VDW between the link atom and the MM atoms is not
-              !calculated. Instead MM link pair atom with Real QM atoms is calculated.
-           end do
-         !Is atom i an MM link pair atom?
-         else if ( qmmm_struct%mm_link_mask(i) ) then !yes it is
-           !Exclude all interactions (eel and VDW) with this
-           !atom. We will do the MM link pair VDW terms manually
-           !at the end of this routine.
-           skipv(i+1:natom) = .true. !We can't just cycle here because we want the GB interactions.
-         end if
-      end if
-
-      ! END QMMM
 
       icount = 0
       do j=i+1,natom
@@ -466,17 +356,12 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          r2 = xij*xij + yij*yij + zij*zij
 
          if( r2 <= cut .and. (onstep .or. r2 <= cut_inner)) then
-! set for non-LES case so we can refer to reff_j not reff(j)
-! this is needed with LES since each atom j has multiple reff
 
              reff_j = reff(j)
 
              icount = icount + 1
              temp_jj(icount) = j
              r2x(icount) = r2
-
-! carlos changed this, we are STILL INSIDE LOOP OVER K for multiple LES reff_j
-! so we need to use reff_j not reff(j) (since LES may have multiple reff_j for atom j)
 
              rjx(icount) = reff_j
 
@@ -493,18 +378,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
               ! [ends up with Exp(-rij^2/[4*ai*aj])]
          vectmp3(1:icount) = r2x(1:icount) + rjx(1:icount)*ri*vectmp1(1:icount)
               ! [ends up with fij]
-
-         ! CARLOS: LES
-         ! we now have two sets of vectors: one is 1 to last atom, the other
-         ! is 1 to icount
-         ! the atom one is for vdw/ele and for excl, the other is for gb offdiag
-         ! which do we loop over? unless we have a pointer we need to loop
-         ! over the bigger one, have a pointer j in it, and pull excl out
-         ! of that. but how to know to skip the nonbonds for all after the
-         ! first in a loop over a pair? maybe we should have the excl loop
-         ! done for icount, not atoms.
-         ! SKIPV PART OK, DO THE DISTANCE PART SO WE DON'T HAVE TO INV ALL RIJ
-         ! FOR NOW IT'S OK, JUST SLOW
 
          call vdinvsqrt( icount, vectmp3, vectmp2 ) !vectmp2 = 1/fij
 
@@ -525,8 +398,10 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
                           !distance to mm_link pairs not to QM link atoms.
 
   !---- Start first outer loop ----
-!!! !dir$ ivdep
 
+!!!$omp parallel do &
+!!!$&
+private(j,xij,yij,zij,r2,qiqj,fgbk,expmkf,dl,fgbi,temp1,e,temp6,de,temp4,rj,temp5,
       do k=1,icount
          j = temp_jj(k)
 
@@ -542,8 +417,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
               expmkf = extdieli
            else
               expmkf = vectmp4(k)*extdieli
-
-
               fgbk = vectmp3(k)*expmkf !-kappa*fij*exp(-kappa*fij)/Eout
               if(alpb == 1) then ! Sigalov Onufriev ALPB:
                  fgbk = fgbk+(fgbk*one_Arad_beta*(-vectmp3(k)*onekappa))
@@ -558,15 +431,8 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
            temp1 = -dl*(fgbi + one_Arad_beta)
            e = qiqj*temp1
-           if ( ifcr /= 0 ) then
-              call cr_add_dcdr_factor( i, temp1*charge(j) )
-              call cr_add_dcdr_factor( j, temp1*qi )
-           end if
            epol = epol + e
 
-           if (oncpstep .or. oncestep) then
-              dvdl = dvdl - (dl*fgbi*dcharge(i)*dcharge(j)+e)
-           end if
            temp4 = fgbi*fgbi*fgbi !1/fij^3
 
            !   [here, and in the gas-phase part, "de" contains -(1/r)(dE/dr)]
@@ -594,65 +460,20 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
             !   -- gas-phase Coulomb energy:
 
-            ! Note: With QMMM we don't need to explicitly exclude QM-MM
-            !       interactions here since the QM charges should
-            !       be zero.  Unless qmgb/=0 in which case they are not
-            !       zero so we need to exclude them.
-            ! We also need to exclude the QM link atom interactions.
-
-            doeel = .true.
-            dovdw = .true.
-            !  check if i or j is a quantum atom:
-            if ( qmmm_nml%ifqnt ) then
-               if ( qmmm_struct%atom_mask(i) .OR. qmmm_struct%atom_mask(j) ) then
-                  doeel = .false.
-               end if
-
-               ! if i or j is an MM link pair atom we also need to exclude it.
-               ! We also need to skip the VDW term if either is a mm link
-               ! pair atom
-               if (qmmm_struct%mm_link_mask(i) .or. qmmm_struct%mm_link_mask(j)) then
-                 doeel = .false.
-                 dovdw = .false.
-               end if
-            end if
-
-            !we can use the cached values.
             rinv = vectmp5(k) !1/rij
             r2inv = rinv*rinv
 
-            if( doeel ) then
-
-               ! A future fix implemented by Dan Parkin from Waseda Uni.
-               ! intdieli is not 1/Ein when alpb=1
-               ! intdiel               : Ein
-               ! intdieli (alpb==1)    : one/(intdiel*(one + alpb_beta))
-               ! intdieli (alpb/=1)    : one/intdiel
-               ! intdiele_inv (always) : one/intdiel [newly added variable]
-               temp1 = intdieli*rinv !comment out to implement Dan Parkin's fix
-!              temp1 = intdiele_inv*rinv !add to implement Dan Parkin's fix
-               eel = qiqj*temp1
-               if ( ifcr /= 0 ) then
-                  call cr_add_dcdr_factor( i, temp1*charge(j) )
-                  call cr_add_dcdr_factor( j, temp1*qi )
-               end if
-               deel=eel*r2inv
-            else
-               eel = zero
-               deel = zero
-            end if
+            temp1 = intdieli*rinv !comment out to implement Dan Parkin's fix
+            eel = qiqj*temp1
+            deel=eel*r2inv
 
             eelt = eelt + eel
             de = de + deel
-            if (oncpstep .or. oncestep) then
-               dvdl = dvdl + (intdieli*rinv*dcharge(i) &
-                     *dcharge(j) - eel)
-            end if
 
             !    -- van der Waals energy:
 
             ic = ico( iaci + iac(j) )
-            if( ic > 0 .and. dovdw ) then
+            if( ic > 0 ) then
                !                                    6-12 potential:
                r6inv = r2inv*r2inv*r2inv
                f6 = cn2(ic)*r6inv
@@ -676,64 +497,22 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          dumy = dumy + dedy
          dumz = dumz + dedz
 
-         if (qmmm_nml%ifqnt) then
-           !Currently if j is a link atom then
-           !dedxy,y,z are force on the link atom, not on the MM link pair.
-           !we have to use the chain rule to put the forces back onto the MM link
-           !pair atom.
-           !For the moment we just accumulate the forces on the end of dxyzqm
-           !this should have been zeroed at the beginning of this routine.
-           if (qmmm_struct%mm_link_mask(j)) then
-             !j is a link atom, instead of adding it to the main force
-             !array, accumulate it in dxyzqm
-             !Find the link id for this j
-             do qm_temp_count = 1,qmmm_struct%nlink
-               if (qmmm_struct%link_pairs(1,qm_temp_count) == j) exit
-             end do
-             qm_temp_count = qm_temp_count + qmmm_struct%nquant
-             qmmm_struct%dxyzqm(1,qm_temp_count) = qmmm_struct%dxyzqm(1,qm_temp_count) + dedx
-             qmmm_struct%dxyzqm(2,qm_temp_count) = qmmm_struct%dxyzqm(2,qm_temp_count) + dedy
-             qmmm_struct%dxyzqm(3,qm_temp_count) = qmmm_struct%dxyzqm(3,qm_temp_count) + dedz
-           else
-             !Not a link atom, can just add to main force array.
-             f(3*j-2) = f(3*j-2) - dedx
-             f(3*j-1) = f(3*j-1) - dedy
-             f(3*j  ) = f(3*j  ) - dedz
-           end if
-         else
-           f(3*j-2) = f(3*j-2) - dedx
-           f(3*j-1) = f(3*j-1) - dedy
-           f(3*j  ) = f(3*j  ) - dedz
-         end if
+         f(3*j-2) = f(3*j-2) - dedx
+         f(3*j-1) = f(3*j-1) - dedy
+         f(3*j  ) = f(3*j  ) - dedz
       end do !k=1,icount
 
   !---- End first outer loop ----
 
-      if (qmmm_nml%ifqnt) then
-        if (qmmm_struct%mm_link_mask(i)) then
-          do qm_temp_count = 1,qmmm_struct%nlink
-            if (qmmm_struct%link_pairs(1,qm_temp_count) == i) exit
-          end do
-          qm_temp_count = qm_temp_count + qmmm_struct%nquant
-          qmmm_struct%dxyzqm(1,qm_temp_count) = qmmm_struct%dxyzqm(1,qm_temp_count) - dumx
-          qmmm_struct%dxyzqm(2,qm_temp_count) = qmmm_struct%dxyzqm(2,qm_temp_count) - dumy
-          qmmm_struct%dxyzqm(3,qm_temp_count) = qmmm_struct%dxyzqm(3,qm_temp_count) - dumz
-        else
-          !Not a link atom, can just add to main force array.
-          f(3*i-2) = f(3*i-2) + dumx
-          f(3*i-1) = f(3*i-1) + dumy
-          f(3*i  ) = f(3*i  ) + dumz
-        end if
-      else
-        f(3*i-2) = f(3*i-2) + dumx
-        f(3*i-1) = f(3*i-1) + dumy
-        f(3*i  ) = f(3*i  ) + dumz
-      end if
+      f(3*i-2) = f(3*i-2) + dumx
+      f(3*i-1) = f(3*i-1) + dumy
+      f(3*i  ) = f(3*i  ) + dumz
+
       iexcl = iexcl + numex(i)
    end do  !  i=1,maxi
    call timer_stop(TIME_GBFRC)
 
-   if( igb==6 ) goto VACUUM3
+   if( igb==6 ) return
 
    !--------------------------------------------------------------------------
    !
@@ -743,8 +522,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    !             respect to the effective radii.  This is done by computing
    !             the vector dai/dxj, and using the chain rule with the
    !             previously-computed sumdeijda vector.
-   !
-   !             Also, compute a surface-area dependent term if igbsa=1
    !
    !             Do these terms only at "nrespa" multiple-time step intervals;
    !             (when igb=2 or 5, one may need to do this at every step)
@@ -772,8 +549,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
          temp1 = (onereff(i) + one_Arad_beta)
          self_e = qid2h*temp1
-         if ( ifcr /= 0 ) &
-            call cr_add_dcdr_factor( i, -qi*temp1*dl )
 
          temp7 = -sumdeijda(i) + qid2h - &
                kappa*qi2h*expmkf*reff(i)*(one+one_Arad_beta*reff(i))
@@ -789,8 +564,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          ! temp7 = ... + qiqj/2*[1/Ein - exp[-kappa*effbornrad]/Eout]
          !         -kappa*qiqj/2*exp[-kappa*effbornrad]/Eout*effbornrad
          ! temp7 without the -sumdeijda part is the diagonal gradient.
-
-         ! carlos: moved temp7 calculation up into the LES region above
 
          xi = x(3*i-2)
          yi = x(3*i-1)
@@ -931,8 +704,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
               if( (igb == 7 .or. igb ==8) .and. dij < rborn(i) +rborn(j) + GBNECKCUT) then
 
-                 ! (no changes needed for LES)
-
                  ! Derivative of neck with respect to dij is:
                  !                     5
                  !              9 mdist
@@ -969,25 +740,9 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
               f_x = xij*datmp
               f_y = yij*datmp
               f_z = zij*datmp
-              if (qmmm_nml%ifqnt) then
-                if (qmmm_struct%mm_link_mask(j)) then
-                  do qm_temp_count = 1,qmmm_struct%nlink
-                    if (qmmm_struct%link_pairs(1,qm_temp_count) == j) exit
-                  end do
-                  qm_temp_count = qm_temp_count + qmmm_struct%nquant
-                  qmmm_struct%dxyzqm(1,qm_temp_count) = qmmm_struct%dxyzqm(1,qm_temp_count) - f_x
-                  qmmm_struct%dxyzqm(2,qm_temp_count) = qmmm_struct%dxyzqm(2,qm_temp_count) - f_y
-                  qmmm_struct%dxyzqm(3,qm_temp_count) = qmmm_struct%dxyzqm(3,qm_temp_count) - f_z
-                else
-                  !Not a link atom, can just add to main force array.
-                  f(j3-2) = f(j3-2) + f_x
-                  f(j3-1) = f(j3-1) + f_y
-                  f(j3  ) = f(j3  ) + f_z
-                end if
-              else
-                f(j3-2) = f(j3-2) + f_x
-                f(j3-1) = f(j3-1) + f_y
-                f(j3  ) = f(j3  ) + f_z
+              f(j3-2) = f(j3-2) + f_x
+              f(j3-1) = f(j3-1) + f_y
+              f(j3  ) = f(j3  ) + f_z
               end if
 
               f_xi = f_xi - f_x
@@ -997,220 +752,17 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
            end if ! (dij <= rgbmax +sj)
          end do  !  k=1,icount
 
-         if (qmmm_nml%ifqnt) then
-           if (qmmm_struct%mm_link_mask(i)) then
-             do qm_temp_count = 1,qmmm_struct%nlink
-               if (qmmm_struct%link_pairs(1,qm_temp_count) == i) exit
-             end do
-             qm_temp_count = qm_temp_count + qmmm_struct%nquant
-             qmmm_struct%dxyzqm(1,qm_temp_count) = qmmm_struct%dxyzqm(1,qm_temp_count) - f_xi
-             qmmm_struct%dxyzqm(2,qm_temp_count) = qmmm_struct%dxyzqm(2,qm_temp_count) - f_yi
-             qmmm_struct%dxyzqm(3,qm_temp_count) = qmmm_struct%dxyzqm(3,qm_temp_count) - f_zi
-           else
-             !Not a link atom, can just add to main force array.
-             f(3*i-2) = f(3*i-2) + f_xi
-             f(3*i-1) = f(3*i-1) + f_yi
-             f(3*i  ) = f(3*i  ) + f_zi
-           end if
-         else
-           f(3*i-2) = f(3*i-2) + f_xi
-           f(3*i-1) = f(3*i-1) + f_yi
-           f(3*i  ) = f(3*i  ) + f_zi
-         end if
-
-         !  --- Define neighbor list ineighbor for calc of LCPO areas ---
-
-         if ( gbsa > 0 ) then
-            do k=1,icount
-               j = temp_jj(k)
-               dij = sqrt(r2x(k))
-               if ((vdwrad(i) + vdwrad(j)) > dij ) then
-
-                  ! Consider all atoms for icosa, only non-H's for LCPO:
-
-                  if ( (gbsa == 2) .or. &
-                       (vdwrad(i) > 2.5).and.(vdwrad(j) > 2.5) ) then
-                     count=count+1
-                     ineighbor(count) = j
-                  end if
-               end if
-            end do
-            count=count+1
-            ineighbor(count)=0
-         end if
-
-         if ( gbsa == 2 ) then
-
-            !  --- Calc surface area with icosasurf algo;
-            !  does not provide forces ==> only for single point calculations
-
-            if(i == 1) then
-               ineighborpt = 1
-               call icosa_init(2, 3, zero)
-            end if
-
-          !  if(i == 1) then
-          !     ineighborpt = 1
-          !     call icosa_init(2, 3, zero)
-          !  end if
-            totsasa = totsasa + icosa_sphere_approx(i,x, &
-                   vdwrad,ineighborpt,ineighbor)
-
-         end if  !  ( gbsa == 2 )
+         f(3*i-2) = f(3*i-2) + f_xi
+         f(3*i-1) = f(3*i-1) + f_yi
+         f(3*i  ) = f(3*i  ) + f_zi
 
       end do   ! end loop over atom i
 
       call timer_stop(TIME_GBRAD2)
-
-      if ( gbsa == 1 ) then
-
-         !       --- calculate surface area by computing LCPO (Still) over
-         !           all atoms ---
-
-#        include "gbsa.h"
-
-      end if  !  ( gbsa == 1 )
       esurf = surften*totsasa
    end if  !  onstep
 
 
-VACUUM3 &
-
-!======== QMMM ==========
-   if (qmmm_nml%ifqnt) then
-     call timer_start(TIME_QMMM)
-     if (qmmm_nml%qmgb /= 0) then
-
-        ! We filled the main charge array with charges for QM atoms; make sure
-        ! we zero it again so the 1-4's which are done outside of EGB will be
-        ! correctly skipped for QM-MM on the next step. Note here we don't have the routine
-        ! save the charges again since depending on the GB option they may have been filled
-        ! with either RESP charges or mulliken charges.
-        call qm_zero_charges(charge,qmmm_struct%scaled_mm_charges,.false.)
-        if (qmmm_struct%nlink > 0 ) then
-           !Don't save the charges here since they could be the resp charges.
-           call qm_zero_mm_link_pair_main_chg(qmmm_struct%nlink,qmmm_struct%link_pairs,charge, &
-                                              qmmm_struct%scaled_mm_charges,.false.)
-        end if
-     end if
-
-     call timer_start(TIME_QMMMCOLLATEF)
-     !We need to restore the MM link pair coordinates and then
-     !Use the chain rule to put the link pair forces back onto the
-     !QM and MM link pairs.
-     call rst_mm_link_pair_crd(x)
-     do i=1,qmmm_struct%nlink
-       mm_no = 3*qmmm_struct%link_pairs(1,i)-2  !location of atom in x array
-       lnk_no = qmmm_struct%link_pairs(2,i) !Nquant number of QM atom bound to link atom
-       qm_no = 3*qmmm_struct%iqmatoms(lnk_no)-2
-       !Note this routine uses the flink in the form -flink.
-       call distribute_lnk_f(forcemod,qmmm_struct%dxyzqm(1:3,qmmm_struct%nquant+i),x(mm_no), &
-                             x(qm_no),qmmm_nml%lnk_dis)
-
-       !NOTE: forces are reversed in QM calc with respect to amber force array
-       !so we subtract forcemod from MM atom and add it to QM atom.
-       j = (qmmm_struct%link_pairs(1,i)-1)*3 !Natom number of MM link pair.
-       !MM atom's new force = FMM(x,y,z) - FORCEMOD(x,y,z)
-       f(j+1) = f(j+1) - forcemod(1)
-       f(j+2) = f(j+2) - forcemod(2)
-       f(j+3) = f(j+3) - forcemod(3)
-
-       j = (qmmm_struct%iqmatoms(lnk_no)-1)*3
-       !QM atom's new force = FQM(x,y,z) - Flink(x,y,z) + FORCEMOD(x,y,z)
-       !Note QM forces should be subtracted from sander F array to leave total force.
-       f(j+1) = f(j+1) - qmmm_struct%dxyzqm(1,qmmm_struct%nquant+i) + forcemod(1)
-       f(j+2) = f(j+2) - qmmm_struct%dxyzqm(2,qmmm_struct%nquant+i) + forcemod(2)
-       f(j+3) = f(j+3) - qmmm_struct%dxyzqm(3,qmmm_struct%nquant+i) + forcemod(3)
-     end do
-     call timer_stop_start(TIME_QMMMCOLLATEF,TIME_QMMMENERGY)
-     call timer_start(TIME_QMMMGBENERGY)
-     !Finally we need to calculate the VDW terms
-     !for the MM link pair atoms as they were skipped above.
-
-!------------ START MM LINK PAIR VDW -------------------
-     do i = 1, qmmm_struct%nlink
-       skipv(1:natom) = .false.
-       jexcl = 1
-       mm_no = qmmm_struct%link_pairs(1,i)
-       iminus = mm_no-1
-       do j = 1, iminus
-         !As we loop over each atom check if this atom is supposed to exclude this MM
-         !link pair atom.
-         jexcl_last = jexcl + numex(j) -1
-         do jjv = jexcl, jexcl_last
-           iexcl = natex(jjv)
-           !Should this atom exclude the MM atom?
-           if (iexcl == mm_no) skipv(j) = .true.
-         end do
-         jexcl = jexcl + numex(j)
-       end do
-       jexcl_last = jexcl + numex(mm_no) -1
-       do jjv = jexcl, jexcl_last
-         skipv(natex(jjv)) = .true.
-       end do
-       !We need to avoid double counting so we should exclude ourself and
-       !all link atoms of lower number
-       !Note this assumes the link atom list is numerically sorted...
-       do k = 1, i !To i ensures we skip the self interaction.
-         skipv(qmmm_struct%link_pairs(1,k)) = .true.
-       end do
-       xi = x(3*mm_no-2)
-       yi = x(3*mm_no-1)
-       zi = x(3*mm_no  )
-
-       iaci = ntypes * (iac(mm_no) - 1)
-       dumx = zero
-       dumy = zero
-       dumz = zero
-       de = zero
-       do j=1,maxi !1 to natom
-
-         !Do all atoms that are not excluded and
-         !are within the cutoff for this i. Skip other
-         !MM interactions that are less than i to avoid double
-         !counting.
-         if ( .not. skipv(j) ) then
-           xij = xi - x(3*j-2)
-           yij = yi - x(3*j-1)
-           zij = zi - x(3*j  )
-           r2 = xij*xij + yij*yij + zij*zij
-           if ( r2 <= cut ) then
-             r2inv = one/r2
-             ic = ico( iaci + iac(j) )
-             if (ic > 0) then
-               !6-12 potential:
-               r6inv = r2inv*r2inv*r2inv
-               f6 = cn2(ic)*r6inv
-               f12 = cn1(ic)*(r6inv*r6inv)
-               evdw = evdw + (f12 - f6)
-               de = (twelve*f12 - six*f6)*r2inv
-             end if !if ic>0
-             de = de*nrespai
-             dedx = de * xij
-             dedy = de * yij
-             dedz = de * zij
-             dumx = dumx + dedx
-             dumy = dumy + dedy
-             dumz = dumz + dedz
-             f(3*j-2) = f(3*j-2) - dedx
-             f(3*j-1) = f(3*j-1) - dedy
-             f(3*j  ) = f(3*j  ) - dedz
-           end if !if r2<=cut
-         end if !if not skipv(i)
-       end do
-
-       f(3*mm_no-2) = f(3*mm_no-2) + dumx
-       f(3*mm_no-1) = f(3*mm_no-1) + dumy
-       f(3*mm_no  ) = f(3*mm_no  ) + dumz
-     end do ! i = 1, qmmm_struct%nlink
-     call timer_stop(TIME_QMMMGBENERGY)
-     call timer_stop(TIME_QMMMENERGY)
-!------------ END MM LINK PAIR VDW ---------------------
-     call timer_stop(TIME_QMMM)
-   end if !if ifqnt.
-!======== END QMMM ==========
-
-   return
 end subroutine egb
 
 subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
@@ -1386,9 +938,6 @@ subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
             if ((dij > rgbmax - sj)) then
                uij = 1.0d0/(dij -sj)
 
-! carlos: store descreening contrib in temp3, this makes it easier to
-! apply to multiple atoms for LES
-
                temp3 = temp3  - eighth * dij1i * (one + two * dij *uij + &
                      rgbmax2i * (r2 - four * rgbmax * dij - sj2) + &
                      two * log((dij-sj)*rgbmax1i))
@@ -1502,9 +1051,6 @@ subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
 
    end do  !  i = 1,natom
 
-! set end variable since LES arrays are longer than normal
-! this will make the changes for LES code simpler to understand and modify
-
    vecend = natom
 
    if( igb == 2 .or. igb == 5 .or. igb == 7 .or. igb == 8) then
@@ -1516,14 +1062,11 @@ subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
       vectmp2(1:vecend) = vectmp1(1:vecend)-offset
       call vdinv(vecend, vectmp1, vectmp1) !1.0d0/rborn
 
-! use of onereff here means that we need changes for LES to accomodate multiple onereff per atom
-
       psi(1:vecend) = -vectmp2(1:vecend)*onereff(1:vecend)
       call vdinv(vecend, vectmp2, vectmp2) !1.0d0/(rborn-offset)
 
-  !if not LES: use gbalpha, gbgamma, gbbeta arrays instead
       vectmp3(1:vecend) = ((gbalpha(1:vecend)+gbgamma(1:vecend)*psi(1:vecend)*   &
-                            psi(1:vecend)-gbbeta(1:vecend)*psi(1:vecend))*psi(1:vecend))
+                 psi(1:vecend)-gbbeta(1:vecend)*psi(1:vecend))*psi(1:vecend))
       call vdtanh(vecend, vectmp3, vectmp3)
 
       ! vectmp1 = 1.0d0/rborn
