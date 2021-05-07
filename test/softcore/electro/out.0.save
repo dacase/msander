@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 02/27/2020 at 14:00:45
+| Run on 05/06/2021 at 15:53:46
 
 |   Executable path: ../../../bin/msander.MPI
-| Working directory: /home/case/msander/test/softcore/electro
+| Working directory: /home/case/msander_intel/test/softcore/electro
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -35,9 +35,9 @@ File Assignments:
 | RESERVOIR: reserv/frame
 |   REMDDIM: 
 
-
+ 
  Here is the input file:
-
+ 
 NPT run V0                                                                     
  &cntrl                                                                        
   imin = 0, ntx = 5, irest = 1,                                                
@@ -59,7 +59,6 @@ NPT run V0
 
 | Flags: MPI                                                                    
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    13.787
  NATOM  =    2993 NTYPES =       8 NBONH =    2244 MBONA  =     748
  NTHETH =      12 MTHETA =       1 NPHIH =      13 MPHIA  =       0
@@ -103,7 +102,7 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       1, ntpr    =       5, ntrx    =       1, ntwr    =      20
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
@@ -341,7 +340,7 @@ eto
  ------------------------------------------------------------------------------
 
       TI atoms summary
-
+ 
  Atom:      1 - C1   eto    1
  Atom:      2 - C2   eto    1
  Atom:      3 - O1   eto    1
@@ -359,30 +358,33 @@ eto
 --------------------------------------------------------------------------------
 
 |>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
-|                Build the list             0.02 (73.91% of List )
-|                Other                      0.01 (26.09% of List )
-|             List time                  0.02 (15.86% of Nonbo)
-|                   Short_ene time             0.09 (98.94% of Direc)
-|                   Other                      0.00 ( 1.06% of Direc)
-|                Direct Ewald time          0.09 (77.05% of Ewald)
-|                   Fill charge grid           0.00 ( 5.77% of Recip)
-|                   Grad sum                   0.01 (44.23% of Recip)
-|                      FFT back comm time         0.00 (16.00% of FFT t)
-|                      Other                      0.01 (84.00% of FFT t)
-|                   FFT time                   0.01 (48.08% of Recip)
-|                   Other                      0.00 ( 1.92% of Recip)
-|                Recip Ewald time           0.01 (10.66% of Ewald)
-|                Force Adjust               0.01 ( 9.63% of Ewald)
-|                Other                      0.00 ( 1.64% of Ewald)
-|             Ewald time                 0.12 (84.14% of Nonbo)
-|          Nonbond force              0.14 (97.81% of Force)
-|          FRC Collect time           0.00 ( 2.19% of Force)
-|       Force time                 0.15 (81.34% of Runmd)
-|       Verlet update time         0.02 (12.89% of Runmd)
-|       Other                      0.01 ( 4.25% of Runmd)
-|    Runmd Time                 0.18 (84.77% of Total)
-|    Other                      0.03 (14.77% of Total)
-| Total time                 0.21 (99.88% of ALL  )
+|                Build the list             0.03 (73.74% of List )
+|                Other                      0.01 (26.26% of List )
+|             List time                  0.04 (18.50% of Nonbo)
+|                   Short_ene time             0.13 (98.31% of Direc)
+|                   Other                      0.00 ( 1.69% of Direc)
+|                Direct Ewald time          0.13 (68.60% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 9.94% of Recip)
+|                   Fill charge grid           0.00 (14.39% of Recip)
+|                   Scalar sum                 0.00 ( 3.15% of Recip)
+|                   Grad sum                   0.01 (23.52% of Recip)
+|                      FFT back comm time         0.00 (16.09% of FFT t)
+|                      Other                      0.01 (83.91% of FFT t)
+|                   FFT time                   0.01 (41.71% of Recip)
+|                   Other                      0.00 ( 7.28% of Recip)
+|                Recip Ewald time           0.03 (16.14% of Ewald)
+|                Force Adjust               0.03 (13.38% of Ewald)
+|                Other                      0.00 ( 1.25% of Ewald)
+|             Ewald time                 0.19 (81.50% of Nonbo)
+|          Nonbond force              0.24 (98.69% of Force)
+|       Force time                 0.24 (79.05% of Runmd)
+|       Shake time                 0.00 ( 1.39% of Runmd)
+|       Verlet update time         0.03 (10.75% of Runmd)
+|       CRD distribute time        0.01 ( 1.96% of Runmd)
+|       Other                      0.02 ( 6.84% of Runmd)
+|    Runmd Time                 0.30 (87.03% of Total)
+|    Other                      0.04 (12.57% of Total)
+| Total time                 0.35 (100.0% of ALL  )
 
 | Number of list builds   :          2
 
@@ -392,11 +394,11 @@ eto
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.19 Per Step(ms) =       9.45
-|         ns/day =      18.29   seconds/ns =    4725.00
+|     Elapsed(s) =       0.31 Per Step(ms) =      15.57
+|         ns/day =      11.10   seconds/ns =    7782.50
 | -----------------------------------------------------
 
-|           Job began  at 14:00:45.669  on 02/27/2020
-|           Setup done at 14:00:45.702  on 02/27/2020
-|           Run   done at 14:00:45.890  on 02/27/2020
+|           Job began  at 15:53:46.844  on 05/06/2021
+|           Setup done at 15:53:46.889  on 05/06/2021
+|           Run   done at 15:53:47.200  on 05/06/2021
 |     wallclock() was called    1161 times
