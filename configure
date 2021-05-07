@@ -389,7 +389,7 @@ if [ "$flibs_fftw" != "" ]; then
        fi
 
        # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
-       enable_sse="--enable-sse2=yes"
+       enable_sse="--enable-sse2=yes --enable-avx=yes"
 
        if [ "$conda" == "yes" ]; then
           printf "\nConfiguring fftw-3.3 with $CC and $FC..."
