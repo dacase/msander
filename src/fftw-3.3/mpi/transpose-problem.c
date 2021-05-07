@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -34,8 +34,8 @@ static void hash(const problem *p_, md5 *m)
      X(md5puts)(m, "mpi-transpose");
      X(md5int)(m, p->I == p->O);
      /* don't include alignment -- may differ between processes
-	X(md5int)(m, X(alignment_of)(p->I));
-	X(md5int)(m, X(alignment_of)(p->O));
+	X(md5int)(m, X(ialignment_of)(p->I));
+	X(md5int)(m, X(ialignment_of)(p->O));
 	... note that applicability of MPI plans does not depend
 	    on alignment (although optimality may, in principle). */
      X(md5INT)(m, p->vn);
@@ -54,8 +54,8 @@ static void print(const problem *ego_, printer *p)
      MPI_Comm_size(ego->comm, &i);
      p->print(p, "(mpi-transpose %d %d %d %D %D %D %D %D %d)", 
 	      ego->I == ego->O,
-	      X(alignment_of)(ego->I),
-	      X(alignment_of)(ego->O),
+	      X(ialignment_of)(ego->I),
+	      X(ialignment_of)(ego->O),
 	      ego->vn,
 	      ego->nx, ego->ny,
 	      ego->block, ego->tblock,

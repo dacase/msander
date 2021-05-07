@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -23,7 +23,7 @@
    set of alignment contraints.  So this alignment stuff cannot be
    defined in the SIMD header files.  Rather than defining a separate
    set of "machine" header files, we just do this ugly ifdef here. */
-#if defined(HAVE_SSE2) || defined(HAVE_AVX)
+#if defined(HAVE_SSE2) || defined(HAVE_AVX) || defined(HAVE_AVX2) || defined(HAVE_AVX_128_FMA) || defined(HAVE_AVX512)
 #  if defined(FFTW_SINGLE)
 #    define ALIGNMENT 8     /* Alignment for the LD/ST macros */
 #    define ALIGNMENTA 16   /* Alignment for the LDA/STA macros */
@@ -34,6 +34,32 @@
 #elif defined(HAVE_ALTIVEC)
 #  define ALIGNMENT 8     /* Alignment for the LD/ST macros */
 #  define ALIGNMENTA 16   /* Alignment for the LDA/STA macros */
+#elif defined(HAVE_NEON) || defined(HAVE_VSX)
+#  define ALIGNMENT 8     /* Alignment for the LD/ST macros */
+#  define ALIGNMENTA 8    /* Alignment for the LDA/STA macros */
+#elif defined(HAVE_KCVI)
+#  if defined(FFTW_SINGLE)
+#    define ALIGNMENT 8     /* Alignment for the LD/ST macros */
+#  else
+#    define ALIGNMENT 16     /* Alignment for the LD/ST macros */
+#  endif
+#  define ALIGNMENTA 64   /* Alignment for the LDA/STA macros */
+#elif defined(HAVE_GENERIC_SIMD256)
+#  if defined(FFTW_SINGLE)
+#    define ALIGNMENT 8
+#    define ALIGNMENTA 32
+#  else
+#    define ALIGNMENT 16
+#    define ALIGNMENTA 32
+#  endif
+#elif defined(HAVE_GENERIC_SIMD128)
+#  if defined(FFTW_SINGLE)
+#    define ALIGNMENT 8
+#    define ALIGNMENTA 16
+#  else
+#    define ALIGNMENT 16
+#    define ALIGNMENTA 16
+#  endif
 #endif
 
 #if HAVE_SIMD

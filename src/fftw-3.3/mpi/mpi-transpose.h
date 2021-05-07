@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -50,6 +50,11 @@ typedef plan_rdft plan_mpi_transpose;
 #define MKPLAN_MPI_TRANSPOSE(type, adt, apply) \
   (type *)X(mkplan_rdft)(sizeof(type), adt, apply)
 
+/* transpose-pairwise.c: */
+int XM(mkplans_posttranspose)(const problem_mpi_transpose *p, planner *plnr,
+			      R *I, R *O, int my_pe,
+			      plan **cld2, plan **cld2rest, plan **cld3,
+			      INT *rest_Ioff, INT *rest_Ooff);
 /* various solvers */
 void XM(transpose_pairwise_register)(planner *p);
 void XM(transpose_alltoall_register)(planner *p);

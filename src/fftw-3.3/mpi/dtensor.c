@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -100,7 +100,7 @@ dtensor *XM(dtensor_canonical)(const dtensor *sz, int compress)
      for (i = rnk = 0; i < sz->rnk; ++i) {
 	  if (!compress || sz->dims[i].n > 1) {
                x->dims[rnk].n = sz->dims[i].n;
-	       for (k = IB; k <= OB; ++k) {
+	       FORALL_BLOCK_KIND(k) {
 		    if (XM(num_blocks)(sz->dims[i].n, sz->dims[i].b[k]) == 1)
 			 x->dims[rnk].b[k] = sz->dims[i].n;
 		    else

@@ -14,11 +14,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-#include "ifftw.h"
+#include "kernel/ifftw.h"
 #include <string.h>
 
 /* GNU Coding Standards, Sec. 5.2: "Please write the comments in a GNU
@@ -114,7 +114,7 @@ static void register_solver(planner *ego, solver *s)
 
 	  kind = s->adt->problem_kind;
 	  n->next_for_same_problem_kind = ego->slvdescs_for_problem_kind[kind];
-	  ego->slvdescs_for_problem_kind[kind] = ego->nslvdesc;
+	  ego->slvdescs_for_problem_kind[kind] = (int)/*from unsigned*/ego->nslvdesc;
 
 	  ego->nslvdesc++;
      }
@@ -127,7 +127,7 @@ static unsigned slookup(planner *ego, char *nam, int id)
 	  UNUSED(s);
 	  if (sp->reg_id == id && sp->nam_hash == h
 	      && !strcmp(sp->reg_nam, nam))
-	       return sp - ego->slvdescs;
+	       return (unsigned)/*from ptrdiff_t*/(sp - ego->slvdescs);
      });
      return INFEASIBLE_SLVNDX;
 }
@@ -552,13 +552,13 @@ static plan *search0(planner *ego, const problem *p, unsigned *slvndx,
 		    if (pln->pcost < best->pcost) {
 			 X(plan_destroy_internal)(best);
 			 best = pln;
-			 *slvndx = sp - ego->slvdescs;
+                         *slvndx = (unsigned)/*from ptrdiff_t*/(sp - ego->slvdescs);
 		    } else {
 			 X(plan_destroy_internal)(pln);
 		    }
 	       } else {
 		    best = pln;
-		    *slvndx = sp - ego->slvdescs;
+                    *slvndx = (unsigned)/*from ptrdiff_t*/(sp - ego->slvdescs);                    
 	       }
 
 	       if (ALLOW_PRUNINGP(ego) && could_prune_now_p) 
@@ -614,9 +614,11 @@ static plan *search(planner *ego, const problem *p, unsigned *slvndx,
      return pln;
 }
 
-#define CHECK_FOR_BOGOSITY			\
-     if (ego->wisdom_state == WISDOM_IS_BOGUS)	\
-	  goto wisdom_is_bogus
+#define CHECK_FOR_BOGOSITY						\
+     if ((ego->bogosity_hook ?						\
+	  (ego->wisdom_state = ego->bogosity_hook(ego->wisdom_state, p)) \
+	  : ego->wisdom_state) == WISDOM_IS_BOGUS)			\
+	  goto wisdom_is_bogus;
 
 static plan *mkplan(planner *ego, const problem *p)
 {
@@ -781,7 +783,7 @@ static void forget(planner *ego, amnesia a)
 }
 
 /* FIXME: what sort of version information should we write? */
-#define WISDOM_PREAMBLE STRINGIZE(PACKAGE) "-" STRINGIZE(VERSION) " " STRINGIZE(X(wisdom))
+#define WISDOM_PREAMBLE PACKAGE "-" VERSION " " STRINGIZE(X(wisdom))
 static const char stimeout[] = "TIMEOUT";
 
 /* tantus labor non sit cassus */
@@ -793,7 +795,9 @@ static void exprt(planner *ego, printer *p)
 
      signature_of_configuration(&m, ego);
 
-     p->print(p, "(" WISDOM_PREAMBLE " #x%M #x%M #x%M #x%M\n", m.s[0], m.s[1], m.s[2], m.s[3]);
+     p->print(p, 
+	      "(" WISDOM_PREAMBLE " #x%M #x%M #x%M #x%M\n",
+	      m.s[0], m.s[1], m.s[2], m.s[3]);
 
      for (h = 0; h < ht->hashsiz; ++h) {
 	  solution *l = ht->solutions + h;
@@ -921,6 +925,7 @@ planner *X(mkplanner)(void)
      p->cost_hook = 0;
      p->wisdom_ok_hook = 0;
      p->nowisdom_hook = 0;
+     p->bogosity_hook = 0;
      p->cur_reg_nam = 0;
      p->wisdom_state = WISDOM_NORMAL;
 

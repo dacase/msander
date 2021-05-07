@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,14 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
 
 /* plans for rank-0 RDFTs (copy operations) */
 
-#include "rdft.h"
+#include "rdft/rdft.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>		/* for memcpy() */
@@ -214,7 +214,7 @@ static int applicable_memcpy(const P *pln, const problem_rdft *p)
    transposes of vl-tuples ... for large vl it should be more
    efficient to use memcpy than the tiled stuff). */
 
-static void memcpy_loop(INT cpysz, int rnk, const iodim *d, R *I, R *O)
+static void memcpy_loop(size_t cpysz, int rnk, const iodim *d, R *I, R *O)
 {
      INT i, n = d->n, is = d->is, os = d->os;
      if (rnk == 1)
@@ -331,6 +331,7 @@ static plan *mkplan(const solver *ego_, const problem *p_, planner *plnr)
      pln = MKPLAN_RDFT(P, &padt, ego->apply);
 
      retval = fill_iodim(pln, p);
+     (void)retval; /* UNUSED unless DEBUG */
      A(retval);
      A(pln->vl > 0); /* because FINITE_RNK(p->vecsz->rnk) holds */
      pln->nam = ego->nam;

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,11 +14,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-#include "api.h"
+#include "api/api.h"
 #include "fftw3-mpi.h"
 #include "ifftw-mpi.h"
 #include "mpi-transpose.h"
@@ -118,6 +118,17 @@ static void nowisdom_hook(const problem *p)
      XM(any_true)(1, comm); /* signal nowisdom to any wisdom_ok_hook */
 }
 
+/* needed to synchronize planner bogosity flag, in case non-MPI problems
+   on a subset of processes encountered bogus wisdom */
+static wisdom_state_t bogosity_hook(wisdom_state_t state, const problem *p)
+{
+     MPI_Comm comm = problem_comm(p);
+     if (comm != MPI_COMM_NULL /* an MPI problem */
+	 && XM(any_true)(state == WISDOM_IS_BOGUS, comm)) /* bogus somewhere */
+	  return WISDOM_IS_BOGUS;
+     return state;
+}
+
 void XM(init)(void)
 {
      if (!mpi_inited) {
@@ -125,6 +136,7 @@ void XM(init)(void)
 	  plnr->cost_hook = cost_hook;
 	  plnr->wisdom_ok_hook = wisdom_ok_hook;
 	  plnr->nowisdom_hook = nowisdom_hook;
+	  plnr->bogosity_hook = bogosity_hook;
           XM(conf_standard)(plnr);
 	  mpi_inited = 1;	  
      }
@@ -172,7 +184,7 @@ static dtensor *default_sz(int rnk, const XM(ddim) *dims0, int n_pes,
 	block sizes weren't specified (i.e. 0), then set the
 	unspecified blocks so as to use as many processes as
 	possible with as few distributed dimensions as possible. */
-     for (k = IB; k <= OB; ++k) {
+     FORALL_BLOCK_KIND(k) {
 	  INT nb = XM(num_blocks_total)(sz, k);
 	  INT np = n_pes / nb;
 	  for (i = 0; i < rnk && np > 1; ++i)
@@ -634,8 +646,6 @@ X(plan) XM(plan_dft_3d)(ptrdiff_t nx, ptrdiff_t ny, ptrdiff_t nz,
 
 /*************************************************************************/
 /* R2R API */
-
-extern rdft_kind *X(map_r2r_kind)(int rank, const X(r2r_kind) * kind);
 
 X(plan) XM(plan_guru_r2r)(int rnk, const XM(ddim) *dims0,
 			  ptrdiff_t howmany,

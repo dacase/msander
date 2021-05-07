@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -22,8 +22,8 @@
 #ifndef __IFFTW_MPI_H__
 #define __IFFTW_MPI_H__
 
-#include "ifftw.h"
-#include "rdft.h"
+#include "kernel/ifftw.h"
+#include "rdft/rdft.h"
 
 #include <mpi.h>
 
@@ -62,6 +62,9 @@ typedef struct {
      INT n;
      INT b[2]; /* b[IB], b[OB] */
 } ddim;
+
+/* Loop over k in {IB, OB}.  Note: need explicit casts for C++. */
+#define FORALL_BLOCK_KIND(k) for (k = IB; k <= OB; k = (block_kind) (((int) k) + 1))
 
 /* unlike tensors in the serial FFTW, the ordering of the dtensor
    dimensions matters - both the array and the block layout are
@@ -136,7 +139,7 @@ typedef enum {
 
 /* skipping SQUARE_AFTER since it doesn't seem to offer any advantage
    over SQUARE_BEFORE */
-#define FORALL_REARRANGE(rearrange) for (rearrange = CONTIG; rearrange <= SQUARE_MIDDLE; ++rearrange)
+#define FORALL_REARRANGE(rearrange) for (rearrange = CONTIG; rearrange <= SQUARE_MIDDLE; rearrange = (rearrangement) (((int) rearrange) + 1))
 
 int XM(rearrange_applicable)(rearrangement rearrange, 
 			     ddim dim0, INT vn, int n_pes);

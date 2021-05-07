@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
 
-#include "ifftw.h"
+#include "kernel/ifftw.h"
 
 static int signof(INT x)
 {
@@ -54,7 +54,7 @@ int X(dimcmp)(const iodim *a, const iodim *b)
 static void canonicalize(tensor *x)
 {
      if (x->rnk > 1) {
-	  qsort(x->dims, (size_t)x->rnk, sizeof(iodim),
+	  qsort(x->dims, (unsigned)x->rnk, sizeof(iodim),
 		(int (*)(const void *, const void *))X(dimcmp));
      }
 }
@@ -137,7 +137,7 @@ tensor *X(tensor_compress_contiguous)(const tensor *sz)
 
      /* sort in descending order of |istride|, so that compressible
 	dimensions appear contigously */
-     qsort(sz2->dims, (size_t)sz2->rnk, sizeof(iodim),
+     qsort(sz2->dims, (unsigned)sz2->rnk, sizeof(iodim),
 		(int (*)(const void *, const void *))compare_by_istride);
 
      /* compute what the rank will be after compression */

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,11 +14,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-#include "threads.h"
+#include "threads/threads.h"
 
 typedef struct {
      plan_rdft super;
@@ -206,8 +206,10 @@ static plan *mkplan(const solver *ego_, const problem *p_, planner *plnr)
      pln->nthr = nthr;
      pln->r = r;
      X(ops_zero)(&pln->super.super.ops);
-     for (i = 0; i < nthr; ++i)
+     for (i = 0; i < nthr; ++i) {
           X(ops_add2)(&cldws[i]->ops, &pln->super.super.ops);
+	  pln->super.super.could_prune_now_p |= cldws[i]->could_prune_now_p;
+     }
      X(ops_add2)(&cld->ops, &pln->super.super.ops);
      return &(pln->super.super);
 

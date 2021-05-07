@@ -1,12 +1,12 @@
 /* Re-use libbench2 and the test program, but override bench_main so that
    we can have different command-line syntax. */
-#include "my-getopt.h"
-#include "bench.h"
+#include "libbench2/my-getopt.h"
+#include "libbench2/bench.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <fftw3.h>
+#include "api/fftw3.h"
 #include <string.h>
 #include <time.h>
 
@@ -40,7 +40,7 @@ int verbose;
 static void do_problem(bench_problem *p)
 {
      if (verbose)
-	  printf("PLANNING PROBLEM: %s\n", p->pstring);
+	  printf("Planning transform: %s\n", p->pstring);
      /* BENCH_ASSERT(can_do(p)); */
      problem_alloc(p);
      setup(p);
@@ -182,8 +182,8 @@ int bench_main(int argc, char *argv[])
 		   printf("fftw-wisdom tool for FFTW version " VERSION ".\n");
 		   printf(
 "\n"
-"Copyright (c) 2003, 2007-11 Matteo Frigo\n"
-"Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology\n"
+"Copyright (c) 2003, 2007-14 Matteo Frigo\n"
+"Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology\n"
 "\n"
 "This program is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public License as published by\n"
@@ -197,7 +197,7 @@ int bench_main(int argc, char *argv[])
 "\n"
 "You should have received a copy of the GNU General Public License\n"
 "along with this program; if not, write to the Free Software\n"
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
+"Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA\n"
 			);
 		   exit(EXIT_SUCCESS);
 		   break;
