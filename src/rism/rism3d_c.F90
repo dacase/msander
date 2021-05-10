@@ -76,7 +76,7 @@ module rism3d_c
      ! FFTW options
 
      ! FFTW_ESTIMATE, FFTW_MEASURE, FFTW_PATIENT, FFTW_EXHAUSTIVE
-     integer :: fftw_planner = FFT_ESTIMATE
+     integer :: fftw_planner = FFT_PATIENT
      ! .true.  - use aligned memory and to enable SIMD;
      ! .false. - don't use aligned memory
      logical :: fft_aligned = .true.
