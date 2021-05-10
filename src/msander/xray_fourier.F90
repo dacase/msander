@@ -502,7 +502,7 @@ contains
    ! Fobs
 
    subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
-      use ml_mod, only : &
+      use ml_mod, only : optimize_k_scale_k_mask, &
            init_scales, k_iso, k_iso_exp, k_aniso
       use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
@@ -514,6 +514,7 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
+#if 1
       call get_solvent_contribution(nstep, crd, .true.)
       if( inputscale ) then
          ! scale using phenix-like approximation:
@@ -536,6 +537,20 @@ contains
          endif
       endif
       Fcalc(:) = k_scale(:) * Fcalc(:)
+#else
+      if( bulk_solvent_model .eq. 'opt' ) then
+         if (mod(nstep, mask_update_frequency) == 0) then
+           call get_solvent_contribution(nstep, crd, .false.)
+           call init_scales()
+           call optimize_k_scale_k_mask()
+           k_scale = k_iso * k_iso_exp * k_aniso
+         endif
+         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
+      else 
+         call get_solvent_contribution(nstep, crd, .true.)
+         call scale_Fcalc( nstep )
+      endif
+#endif
 
       if( nstep==0 ) then
          norm_scale = 1.0_rk_ / sum(abs_Fobs**2)
