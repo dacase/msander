@@ -534,6 +534,10 @@ contains
                        / sum( abs(Fcalc(:))**2 )
             if (mytaskid == 0 ) write(6,'(a,f12.5)') &
               '| updating isotropic scaling: ', k_scale(1)
+            ! k_scale(:) = sum( abs(Fobs)*abs(Fcalc) )  &
+            !            / sum( abs(Fcalc(:))**2 )
+            ! if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+            !   '| updating abs isotropic scaling: ', k_scale(1)
          endif
       endif
       Fcalc(:) = k_scale(:) * Fcalc(:)
