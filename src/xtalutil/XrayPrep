@@ -106,12 +106,6 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
-fi
-
-#============================================================================
-if false; then
-echo "Running zero-cycle phenix.refine on P1-expanded structure:"
-
 cad hklin1 tmp.mtz hklout $id.mtz <<EOF >> $id-prep.log
 LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
 LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
@@ -121,6 +115,12 @@ cad hklin1 tmp-P1.mtz hklout $id-P1.mtz <<EOF >> $id-prep.log
 LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
 LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
 EOF
+
+fi
+
+#============================================================================
+if false; then
+echo "Running zero-cycle phenix.refine on P1-expanded structure:"
 
 $MSANDERHOME/bin/ambpdb -p ${id}_uc.parm7 -ext -bres < ${id}_uc.rst7 > tmp.pdb
 
