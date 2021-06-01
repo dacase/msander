@@ -373,6 +373,8 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
        echo "OK"
    fi
    cd ../..
+else
+   echo "Using the existing netcdf libraries"
 fi
 
 #--------------------------------------------------------------------------
