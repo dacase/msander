@@ -88,7 +88,9 @@ for var in "$@"; do
             cc="icc"
             cxx="icpc"
             fc="ifort"
-            gccsys="-gcc-sys "
+            mpicc="mpiicc"
+            mpif90="mpiifort"
+            # gccsys="-gcc-sys "
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
