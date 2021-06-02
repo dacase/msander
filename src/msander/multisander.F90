@@ -378,6 +378,6 @@ program multisander
   end if
 #endif /* DISABLE_NFE */
 
-  call mexit(-8, 0)
+  call exit(0)
 
 end program multisander
