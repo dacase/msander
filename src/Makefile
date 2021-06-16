@@ -9,8 +9,9 @@ serial:
 	@cd msander && $(MAKE) msander.LES
 	@cd msander && $(MAKE) libsander
 	@cd msander && $(MAKE) libsanderles
-	@cd pysander && $(MAKE) pysander
-	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
+	@cd pysander && $(MAKE) $(PYSANDER)
+	@cd parmed && $(MAKE) $(PARMED)
+#	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles

@@ -26,6 +26,7 @@ compiler="gnu"
 cc="gcc -Wno-unused-result"
 cxx="g++"
 mpicc="mpicc"
+iccflags=""
 
 fc="gfortran"
 flibs_arch="-lgfortran -w"
@@ -45,6 +46,9 @@ installtype="serial"
 
 lapack="skip"
 blas="skip"
+parmed="parmed"
+pysander="pysander"
+
 inc="-I$msanderhome/include"
 netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 # netcdflibf="-L$msanderhome/lib -lnetcdff -lnetcdf"
@@ -190,6 +194,12 @@ if [ "$OS" = "Darwin" ]; then
    make_shared=-dynamiclib
    libgfortran=`$msanderhome/src/libgfortran.sh`
    lm=
+   if [ "$compiler" = 'intel' ] ; then
+      optflags="-g -O3"
+      iccflags="-std=c99"
+      parmed="skip"
+      pysander="skip"
+   fi
 else
    is_mac='no'
    shared_suffix=.so
@@ -237,7 +247,7 @@ else
   fi
 
   # Determine how we are linking MKL
-  if  [ "$compiler" = 'gnu' -o "$compiler" = 'clang' ] ; then
+  if  [ "$compiler" = 'gnu' -o "$is_mac" = 'yes' ] ; then
     link_type='line'
   else
     link_type='mkl'   #assuming Intel
@@ -310,7 +320,7 @@ else
     fi
 
   else
-    # ----- Use simple flag for Intel compilers ------------
+    # ----- Use simple flag for Intel compilers on Linux ------------
     flibs_la='-mkl'
   fi
 fi
@@ -549,7 +559,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
-CFLAGS=$bintraj $clangf $inc $gcc10c $ompflag -fPIC
+CFLAGS=$bintraj $clangf $inc $gcc10c $ompflag -fPIC $iccflags
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -594,7 +604,8 @@ PLUMED_DEPENDENCIES=Plumed.o
 PYTHON=python
 PYTHON_INSTALL=--prefix=\$(BASEDIR)
 PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
-PYINSTALL=PYTHONPATH=\$(PYTHONPATH) \$(PYTHON) setup.py install -f \$(PYTHON_INSTALL)
+PARMED=$parmed
+PYSANDER=$pysander
 
 EOF
 
