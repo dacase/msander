@@ -191,7 +191,7 @@ $(LIBDIR)/libsander$(SHARED_SUFFIX): libs $(APIOBJ) \
         $(NETCDFLIBF) $(LDFLAGS) $(FLIBSF) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
-$(LIBDIR)/libsanderles$(SHARED_SUFFIX): $(LESAPIOBJ) \
+$(LIBDIR)/libsanderles$(SHARED_SUFFIX): libs $(LESAPIOBJ) \
         $(QMAPIOBJ) $(INCDIR)/sanderles_api.mod \
         $(NFE_OBJECTS) $(XRAY_OBJS) \
         $(PLUMED_DEPENDENCIES) 
