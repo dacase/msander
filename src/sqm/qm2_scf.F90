@@ -496,9 +496,9 @@ end subroutine qm2_scf
 subroutine level_shift(fock, dens, norbs, vshift)
   
   implicit none
+  integer, intent(in) :: norbs
   _REAL_, intent(inout) :: fock(norbs*(norbs+1)/2)
   _REAL_, intent(in) :: dens(norbs*(norbs+1)/2)
-  integer, intent(in) :: norbs
   _REAL_, intent(in) :: vshift
 
   integer :: i, j, ij
@@ -2254,7 +2254,7 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
   _REAL_ :: S(n)
   _REAL_ :: U(n,n)
   _REAL_ :: VT(n,n)
-  _REAL_ :: twork
+  _REAL_ :: twork(1)
   _REAL_,ALLOCATABLE :: WORK(:)
   INTEGER :: LWORK
 
@@ -2269,7 +2269,7 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
   LWORK = -1
   CALL DGESVD("A","A",n,n, ainv,n, S,U,n, VT,n, twork,LWORK,my_err)
   
-  LWORK = NINT(twork)
+  LWORK = NINT(twork(1))
   ALLOCATE( WORK(LWORK) )
   WORK = 0.d0
   

@@ -1139,10 +1139,10 @@ contains
 
     implicit none
 
-    _REAL_ :: xyz(3,natom)
     _REAL_ :: vec(3), dum
     integer :: natom
     integer :: iatom, jatom
+    _REAL_ :: xyz(3,natom)
 
     vec(1:3) = xyz(1:3,iatom) - xyz(1:3,jatom)
     dum = vec(1)**2 + vec(2)**2 + vec(3)**2
@@ -1155,10 +1155,10 @@ contains
 
     implicit none
 
+    integer :: natom
     _REAL_ :: xyz(3,natom)
     _REAL_ :: vec1(3), vec2(3)
     _REAL_ :: ra, rb, dum
-    integer :: natom
     integer :: iatom, jatom, katom
 
     vec1(1:3) = xyz(1:3,iatom) - xyz(1:3,jatom)
@@ -1186,11 +1186,11 @@ contains
 
     implicit none
 
+    integer :: natom
     _REAL_ :: xyz(3,natom)
     _REAL_ :: vec1(3), vec2(3), vec3(3)
     _REAL_ :: ax, ay, az, bx, by, bz, ra, rb
     _REAL_ :: dum, dum1, dum2, dum3, dum4
-    integer :: natom
     integer :: iatom, jatom, katom, latom
 
     vec1(1:3) = xyz(1:3,jatom) - xyz(1:3,iatom)
