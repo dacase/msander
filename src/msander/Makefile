@@ -160,6 +160,12 @@ libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
 
 libsanderles: $(LIBDIR)/libsanderles$(SHARED_SUFFIX)
 
+libsander_skip::
+	@echo "Skipping libsander"
+
+libsanderles_skip::
+	@echo "Skipping libsander"
+
 dummy:
 
 #---------------------------------------------------------------------------
