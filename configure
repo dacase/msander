@@ -48,10 +48,14 @@ lapack="skip"
 blas="skip"
 parmed="parmed"
 pysander="pysander"
+libsander="libsander"
+libsanderles="libsanderles"
 
 inc="-I$msanderhome/include"
-netcdflibf="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
-# netcdflibf="-L$msanderhome/lib -lnetcdff -lnetcdf"
+netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
+netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
+netcdflibf=$netcdflib_shared
+
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
 
@@ -95,6 +99,11 @@ for var in "$@"; do
             mpicc="mpiicc"
             mpif90="mpiifort"
             optflags="-g -O3 -fast"
+            parmed="skip"
+            pysander="skip"
+            libsander="libsander_skip"
+            libsanderles="libsanderles_skip"
+            netcdflibf=$netcdflibf_static
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
@@ -197,8 +206,6 @@ if [ "$OS" = "Darwin" ]; then
    if [ "$compiler" = 'intel' ] ; then
       optflags="-g -O3"
       iccflags="-std=c99"
-      parmed="skip"
-      pysander="skip"
    fi
 else
    is_mac='no'
@@ -606,6 +613,8 @@ PYTHON_INSTALL=--prefix=\$(BASEDIR)
 PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
 PARMED=$parmed
 PYSANDER=$pysander
+LIBSANDER=$libsander
+LIBSANDERLES=$libsanderles
 
 EOF
 

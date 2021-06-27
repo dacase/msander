@@ -7,8 +7,8 @@ install: $(INSTALLTYPE)
 serial:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
-	@cd msander && $(MAKE) libsander
-	@cd msander && $(MAKE) libsanderles
+	@cd msander && $(MAKE) $(LIBSANDER)
+	@cd msander && $(MAKE) $(LIBSANDERLES)
 	@cd pysander && $(MAKE) $(PYSANDER)
 	@cd parmed && $(MAKE) $(PARMED)
 #	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
