@@ -126,7 +126,7 @@ contains
     include 'mpif.h'
 #endif /*MPI*/
     type(rism3d_solute), intent(inout) :: this
-    integer, intent(in) :: numAtoms, atomTypeIndex(numAtoms), nonbondedParmIndex(numTypes**2), numTypes
+    integer, intent(in) :: numAtoms, numTypes, atomTypeIndex(numAtoms), nonbondedParmIndex(numTypes**2)
     _REAL_, intent(in) :: charge(numAtoms), ljA(numTypes * (numTypes + 1) / 2), &
          ljB(numTypes * (numTypes + 1) / 2), mass(numAtoms), temperature
     integer, optional, intent(in) :: o_mpicomm

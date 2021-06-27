@@ -34,9 +34,7 @@ contains
       
       integer :: id,iatu
       _REAL_ :: totmass,totfrc(3)
-      _REAL_ :: rel_drift(3),drift,magtotfrc,norm(3)
       integer :: err
-      _REAL_ :: mpitmp(3)
 #ifdef RISM_DEBUG
       write(6,*) "CORR_DRIFT"
 #endif /*RISM_DEBUG*/
@@ -68,7 +66,6 @@ contains
       ! processors.
       
       totmass = sum(mass)
-      magtotfrc = sqrt(sum(totfrc**2))
       do iatu=1,numAtoms
 #if defined(MPI)
          ff(:,iatu) = ff(:,iatu) - totfrc*mass(iatu)/totmass/size
@@ -194,9 +191,9 @@ end function largestPrimeFactor
 
 subroutine indexArray(val, ptr, n)
   implicit none
+  integer, intent(in) :: n
   _REAL_, intent(in) :: val(n)
   integer, intent(out) :: ptr(n)
-  integer, intent(in) :: n
   integer :: i, temp
 
   !Following Numerical Recipes, we are using heapsort to sort the array in place.
@@ -236,9 +233,9 @@ end subroutine indexArray
 
 subroutine siftDown(val, ptr, i, n, m)
   implicit none
+  integer, intent(in) :: i,n,m
   _REAL_, intent(in) :: val(m)
   integer, intent(inout) :: ptr(m)
-  integer, intent(in) :: i,n,m
   integer:: root,child
   integer :: temp
   root=i
@@ -275,10 +272,10 @@ end subroutine siftDown
 !!    dy :: (out) error estimate in y
 subroutine polynomialInterpolation_progressive(xa, ya,n, x, y, dy)
   implicit none
+  integer, intent(in) :: n
   _REAL_, intent(in) :: xa(n),ya(n),x
   _REAL_, intent(out) :: y, dy
-  integer, intent(in) :: n
-  _REAL_ :: P(n),rel_diff,rel_diff0, y0,dy0
+  _REAL_ :: P(n),rel_diff,rel_diff0, y0
   integer :: i,m
   rel_diff=huge(1d0)
   rel_diff0=huge(1d0)
@@ -305,7 +302,6 @@ subroutine polynomialInterpolation_progressive(xa, ya,n, x, y, dy)
      end if
      !update old values
      y0=y
-     dy0=dy
      rel_diff0=rel_diff
   end do
   !if we get here, we are just returning the y from using all points
@@ -324,9 +320,9 @@ end subroutine polynomialInterpolation_progressive
 !!    error :: Error estimate in y.
 subroutine polynomialInterpolation(xa, ya, n, x, y, error)
   implicit none
+  integer, intent(in) :: n
   _REAL_, intent(in) :: xa(n), ya(n), x
   _REAL_, intent(out) :: y, error
-  integer, intent(in) :: n
   _REAL_ :: P(n)
   integer :: i, m
   P = ya
@@ -347,9 +343,9 @@ function checksum(a,n,comm)
 #ifdef MPI
   include 'mpif.h'
 #endif /*MPI*/
-  _REAL_, intent(in) :: a(n)
   integer, intent(in) :: n,comm
-  _REAL_ :: checksum, temp
+  _REAL_, intent(in) :: a(n)
+  _REAL_ :: checksum
   integer :: err
   checksum = sum(a)
 #ifdef MPI
@@ -403,14 +399,11 @@ end function gcd
 subroutine  caseup (cc)
   implicit none
   character(len=*)  cc
-  character(len=1) ::  bc
-  integer*1  bi
-  equivalence (bc,bi)
-  integer ::  i
+  integer :: i,bi
   do i=1,len(cc)
-     bc = cc(i:i)
-     if (bi >= ichar('a') .AND. bi <= ichar('z')) &
-          cc(i:i) = char(ibclr(bi,5))
+     bi = iachar(cc(i:i))
+     if (bi >= iachar('a') .AND. bi <= iachar('z')) &
+          cc(i:i) = achar(iachar(cc(i:i)) - 32 )
   end do
   return
 end subroutine caseup
@@ -422,14 +415,11 @@ end subroutine caseup
 subroutine  caselow (cc)
   implicit none
   character(len=*)  cc
-  character(len=1) ::  bc
-  integer*1  bi
-  equivalence (bc,bi)
-  integer ::  i
+  integer :: i,bi
   do i=1,len(cc)
-     bc = cc(i:i)
-     if (bi >= ichar('A') .AND. bi <= ichar('Z')) &
-          cc(i:i) = char(ibset(bi,5))
+     bi = iachar(cc(i:i))
+     if (bi >= iachar('A') .AND. bi <= iachar('Z')) &
+          cc(i:i) = achar(iachar(cc(i:i)) + 32 )
   end do
   return
 end subroutine caselow
