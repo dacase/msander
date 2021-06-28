@@ -154,6 +154,9 @@ fi
 if [ "$compiler" == "intel" -a "$openmp" == "yes" ]; then
   ompflag="-qopenmp -DOPENMP"
 fi
+if [ "$compiler" == "intel" -a "$mpi" == "yes" ]; then
+  optflags="-g -O3"
+fi
 if [ "$mpi" == "yes" ]; then
   fc="$mpif90"
   cc="$mpicc"
