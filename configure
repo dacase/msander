@@ -91,6 +91,9 @@ for var in "$@"; do
             openblas="yes";;
         --static)
             ldflags="-static";;
+        --nag)
+            fc="nagfor"
+            optflags="-g -O3";;
         --intel)
             compiler="intel"
             cc="icc"
