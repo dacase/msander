@@ -664,14 +664,25 @@ contains
     ! rare event, it should not add to the expense of the calculation
     ! in any practical way.
     call rism3d_destroy(rism_3d)
-    call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
-       closurelist, rismprm%solvcut, &
-       rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
-       rismprm%mdiis_restart, &
-       rismprm%chargeSmear, &
-       o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
-       o_periodic=periodicPotential, &
-       o_unitCellDimensions=unitCellDimensions)
+    if (rismprm%ng3(1) == -1) then
+       call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
+          closurelist, rismprm%solvcut, &
+          rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
+          rismprm%mdiis_restart, &
+          rismprm%chargeSmear, &
+          o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
+          o_periodic=periodicPotential,&
+          o_unitCellDimensions=unitCellDimensions)
+    else
+       call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
+          closurelist, rismprm%solvcut, &
+          rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
+          rismprm%mdiis_restart, &
+          rismprm%chargeSmear, &
+          o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
+          o_periodic=periodicPotential, &
+          o_unitCellDimensions=unitCellDimensions)
+    end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
 
     call rismthermo_new(rismthermo, rism_3d%solvent%numAtomTypes, mpicomm)

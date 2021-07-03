@@ -116,9 +116,6 @@ module rism3d_c
      !> Number of Cartesian grid points in each dimension for a fixed box size.
      integer :: fixedNumGridPoints(3)
 
-     !> Variable box size.
-     logical :: varbox = .true.
-
      !> Number of vectors used for MDIIS (consequently, the number of
      !! copies of CUV we need to keep for MDIIS).
      integer :: NVec
@@ -207,12 +204,16 @@ contains
   !> Constructor - precalculates the solute solvent terms that are not
   !! configuration dependent and sets box parameters.
   !!
-  !! The unit cell parameters give the size of
-  !! the box, and the grdspc(1:3) array gives an approximate grid
+  !! The unit cell parameters always give the size of the box. 
+  !!
+  !! If grdspc(1:3) is set, this array gives an approximate grid
   !! spacing.  The actual spacing will be set that an exact number of 
   !! grids spans the box, and so that the number of grid points is even.  
   !! (In addtion, for MPI runs, the number of grids along y and z will 
   !! be adjusted to be a multiple of the number of MPI threads.)
+  !!
+  !! Alternatively, if ng3(1:3) is set, these values will be used for
+  !! the number of grids in each direction, and grdspc() will be ignored.
   !!
   !! If this is an MPI run, supply the MPI communicator.  Only the rank
   !! 0 parameters will be used. However, due to the limitations of
@@ -234,8 +235,7 @@ contains
   !!   mdiis_method :: which implementation of the algorithm
   !!   chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
-  !!   o_grdspc :: (optional) linear grid spacing for the solvent box in each dimension
-  !!   o_boxlen :: (optional) solvent box size in each dimension [A]
+  !!   o_grdspc :: (optional) grid spacing for the solvent box in each dimension
   !!   o_ng3    :: (optional) number of grid points in each dimension
   !!   o_mpicomm :: (optional) MPI communicator
   !!   o_periodic :: (optional) periodic electric potential to use, if any
@@ -243,7 +243,7 @@ contains
 
   subroutine rism3d_new(this, solute, solvent, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       chargeSmear, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
+       chargeSmear, o_grdspc, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions)
     use rism3d_solute_c
     use rism3d_solvent_c
@@ -261,7 +261,6 @@ contains
     integer, intent(in) :: mdiis_nvec, mdiis_method
     _REAL_, intent(in) :: mdiis_del, mdiis_restart
     _REAL_, optional, intent(in) :: o_grdspc(3)
-    _REAL_, optional, intent(in) :: o_boxlen(3)
     integer, optional, intent(in) :: o_ng3(3)
     integer, optional, intent(in) :: o_mpicomm
     character(len = *), optional, intent(in) :: o_periodic
@@ -273,7 +272,6 @@ contains
     integer :: t_mdiis_nvec, t_mdiis_method
     _REAL_ :: t_mdiis_del, t_mdiis_restart
     _REAL_ :: t_grdspc(3)
-    _REAL_ :: t_boxlen(3)
     integer :: t_ng3(3)
     _REAL_ :: t_unitCellDimensions(6)
     integer :: t_mpicomm
@@ -331,23 +329,15 @@ contains
        t_mdiis_restart = mdiis_restart
        ! check box parameters
        if (present(o_grdspc)) then
-          ! (When the user specifies the grid spacing, this is called
-          ! a "variable" box, even though it is not really variable.)
           t_grdspc = o_grdspc
-          if (present(o_boxlen) .or. present(o_ng3)) &
-               call rism_report_error( &
-                 "RISM3D: do not set BOXLEN or NG3 for variable box size")
+          if (present(o_ng3)) &
+             call rism_report_error("RISM3D: do not set both GRDSPC and NG3")
        else if (present(o_ng3)) then
-          ! User giving requested number of grid points is called
-          ! a "fixed" box size.
-          t_boxlen = o_boxlen
           t_ng3 = o_ng3
           if (present(o_grdspc)) &
-               call rism_report_error( &
-                 "RISM3D: do not set GRDSPC for fixed box size")
+             call rism_report_error( "RISM3D: do not set both GRDSPC and NG3")
        else
-          call rism_report_error( &
-             "RISM3D: not enough parameters for fixed or variable box size")
+          call rism_report_error( "RISM3D: must set either GRDSPC or NG3")
        end if
        if (present(o_unitCellDimensions)) then
           t_unitCellDimensions = o_unitCellDimensions
@@ -384,8 +374,6 @@ contains
        call mpi_bcast(t_grdspc, 3, mpi_double_precision, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast GRDSPC in constructor failed")
     else
-       call mpi_bcast(t_boxlen, 3, mpi_double_precision, 0, this%mpicomm, err)
-       if (err /=0) call rism_report_error("RISM3D: broadcast BOXLEN in constructor failed")
        call mpi_bcast(t_ng3, 3, mpi_integer, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast NG3 in constructor failed")
     end if
@@ -416,16 +404,12 @@ contains
     call rism3d_setcut(this, t_cut)
     call rism3d_setclosurelist(this, t_closure)
     if (present(o_grdspc)) then
-       this%varbox = .true.
        call rism3d_grid_setSpacing(this%grid, t_grdspc)
     else
-       this%varbox = .false.
-       this%fixedBoxDimensionsR = t_boxlen
        this%fixedNumGridPoints = t_ng3
     end if
 
     if (present(o_unitCellDimensions)) then
-       !TODO: This can probably be made a local variable.
        this%unitCellDimensions = t_unitCellDimensions
        call rism3d_grid_setUnitCellDimensions(this%grid, this%unitCellDimensions, this%periodic)
     end if
@@ -950,8 +934,6 @@ contains
     ! previously calculated box size values.
 
     if (this%periodic) then
-
-       !TODO: Support both grid spacing or grid dimensions.
 
        boxlen(:) = this%grid%unitCellLengths(:)
 
