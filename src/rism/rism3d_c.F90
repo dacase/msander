@@ -6,6 +6,7 @@
 !! elements are public.  In general, read but do not write these
 !! variables.  This provides an object-orientiented interface without
 !! needing a function to access every variable.
+!!
 !! Features of this solver include:
 !! o Multiple closures w/ temperature derivatives: KH, HNC, PSE-n
 !! o Temperature derivative expressed as T*d/dT
@@ -21,6 +22,7 @@
 !!           density      [#/A^3]
 !!           mass         [au]
 !! o To convert [e] to [sqrt(kT A)] * sqrt(COULOMB_CONST_E/ KB / temperature)
+
 module rism3d_c
   use rism3d_solute_c
   use rism3d_solvent_c
@@ -109,8 +111,6 @@ module rism3d_c
      !> Number of past direct correlation function time step saves.
      integer :: ncuvsteps ! numDCFsteps
 
-     !> Buffer distance to the edge of the box for the solvent. [A]
-     _REAL_ :: buffer = 12d0
      !> Fixed box size for 3D-RISM.
      _REAL_ :: fixedBoxDimensionsR(3)
      !> Number of Cartesian grid points in each dimension for a fixed box size.
@@ -207,8 +207,7 @@ contains
   !> Constructor - precalculates the solute solvent terms that are not
   !! configuration dependent and sets box parameters.
   !!
-  !! For periodic simulations, buffer can be set but will be ignored;
-  !! (this should get fixed).  The unit cell parameters give the size of
+  !! The unit cell parameters give the size of
   !! the box, and the grdspc(1:3) array gives an approximate grid
   !! spacing.  The actual spacing will be set that an exact number of 
   !! grids spans the box, and so that the number of grid points is even.  
@@ -229,13 +228,12 @@ contains
   !!   closure :: list of closures. Closures may be KH, HNC or PSEn
   !!              where n is an integer. Ensure the length attribute is
   !!              the same on all processes.
-  !!   cut     :: distance cutoff for potential and force calculations, periodic calculations only
+  !!   cut     :: distance cutoff for potential and force calculations
   !!   mdiis_nvec :: number of MDIIS vectors (previous iterations) to keep
-  !!   mdiis_del :: scaling factor (step size) applied to estimated gradient (residual)
+  !!   mdiis_del :: scaling factor applied to estimated gradient (residual)
   !!   mdiis_method :: which implementation of the algorithm
   !!   chargeSmear :: Charge smearing parameter for long-range
   !!       asymtotics and Ewald, typically eta in the literature
-  !!   o_buffer :: (optional) shortest distance between solute and solvent box boundary
   !!   o_grdspc :: (optional) linear grid spacing for the solvent box in each dimension
   !!   o_boxlen :: (optional) solvent box size in each dimension [A]
   !!   o_ng3    :: (optional) number of grid points in each dimension
@@ -245,7 +243,7 @@ contains
 
   subroutine rism3d_new(this, solute, solvent, ncuvsteps, &
        closure, cut, mdiis_nvec, mdiis_del, mdiis_method, mdiis_restart, &
-       chargeSmear, o_buffer, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
+       chargeSmear, o_grdspc, o_boxlen, o_ng3, o_mpicomm, &
        o_periodic, o_unitCellDimensions)
     use rism3d_solute_c
     use rism3d_solvent_c
@@ -262,7 +260,7 @@ contains
     _REAL_, intent(in) :: cut
     integer, intent(in) :: mdiis_nvec, mdiis_method
     _REAL_, intent(in) :: mdiis_del, mdiis_restart
-    _REAL_, optional, intent(in) :: o_buffer, o_grdspc(3)
+    _REAL_, optional, intent(in) :: o_grdspc(3)
     _REAL_, optional, intent(in) :: o_boxlen(3)
     integer, optional, intent(in) :: o_ng3(3)
     integer, optional, intent(in) :: o_mpicomm
@@ -274,7 +272,7 @@ contains
     _REAL_ :: t_cut
     integer :: t_mdiis_nvec, t_mdiis_method
     _REAL_ :: t_mdiis_del, t_mdiis_restart
-    _REAL_ :: t_buffer, t_grdspc(3)
+    _REAL_ :: t_grdspc(3)
     _REAL_ :: t_boxlen(3)
     integer :: t_ng3(3)
     _REAL_ :: t_unitCellDimensions(6)
@@ -335,8 +333,6 @@ contains
        if (present(o_grdspc)) then
           ! (When the user specifies the grid spacing, this is called
           ! a "variable" box, even though it is not really variable.)
-          ! (This branch should also be taken for periodic RISM)
-          t_buffer = o_buffer
           t_grdspc = o_grdspc
           if (present(o_boxlen) .or. present(o_ng3)) &
                call rism_report_error( &
@@ -348,7 +344,7 @@ contains
           t_ng3 = o_ng3
           if (present(o_grdspc)) &
                call rism_report_error( &
-                 "RISM3D: do not set BUFFER or GRDSPC for fixed box size")
+                 "RISM3D: do not set GRDSPC for fixed box size")
        else
           call rism_report_error( &
              "RISM3D: not enough parameters for fixed or variable box size")
@@ -384,9 +380,7 @@ contains
     if (err /=0) call rism_report_error("RISM3D: broadcast MDIIS_RESTART in constructor failed")
     call mpi_bcast(t_mdiis_method, 1, mpi_integer, 0, this%mpicomm, err)
     if (err /=0) call rism_report_error("RISM3D: broadcast MDIIS_METHOD in constructor failed")
-    if (present(o_buffer) .and. present(o_grdspc)) then
-       call mpi_bcast(t_buffer, 1, mpi_double_precision, 0, this%mpicomm, err)
-       if (err /=0) call rism_report_error("RISM3D: broadcast BUFFER in constructor failed")
+    if (present(o_grdspc)) then
        call mpi_bcast(t_grdspc, 3, mpi_double_precision, 0, this%mpicomm, err)
        if (err /=0) call rism_report_error("RISM3D: broadcast GRDSPC in constructor failed")
     else
@@ -423,7 +417,6 @@ contains
     call rism3d_setclosurelist(this, t_closure)
     if (present(o_grdspc)) then
        this%varbox = .true.
-       this%buffer = t_buffer
        call rism3d_grid_setSpacing(this%grid, t_grdspc)
     else
        this%varbox = .false.
@@ -646,7 +639,7 @@ contains
     ! iclosure :: counter for closures
     integer :: iclosure
 
-    _REAL_ :: offset(3), buffer(3)
+    _REAL_ :: offset(3)
     integer :: id, iu
 
     ! 1) Quick check that the tolerance list is of the correct length.
@@ -726,7 +719,7 @@ contains
        call timer_stop(TIME_RXRISM)
     end if
 
-    ! 11) Update stored variables.
+    ! 6) Update stored variables.
     call timer_start(TIME_CUVPROP)
     this%nsolution = this%nsolution + 1
     call updateDCFguessHistory(this)
