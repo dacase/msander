@@ -78,7 +78,6 @@ module rism3d_potential_c
 
      !> Specifies the periodic potential to use.
      !! Current valid values include:
-     !!   'ewald' = Ewald sum potential
      !!   'pme'   = Particle Mesh Ewald potential
      character(len=256) :: periodicPotential = ''
 

@@ -438,18 +438,6 @@ contains
 
   end subroutine rism3d_new
 
-  !> Check if we can calculate molecular reconstructions
-  !! IN:
-  !!   this : rism3d object
-  !! OUT:
-  !!    .true. if we can, .false. if we can't
-  function rism3d_canCalc_molReconstruct(this) result(can_molReconstruct)
-    implicit none
-    type(rism3d), intent(in) :: this
-    logical :: can_molReconstruct
-    can_molReconstruct = rism3d_solvent_canCalc_molReconstruct(this%solvent)
-  end function rism3d_canCalc_molReconstruct
-
   !> Sets the closure list and sets the current closure to the first one
   !! in the list.  When there is no previous solution to work from, the
   !! solver will use each closure in the list in turn. By choosing the

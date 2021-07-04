@@ -436,23 +436,6 @@ contains
   end subroutine rism3d_solvent_mpi_clone
 #endif /*MPI*/
 
-!! check if we can perform a molecular reconstruction calculation.
-!! The xvv needs to be for 3-point water and provide the coordinates
-!! IN:
-!!    this : rism3d_solvent object
-!! OUT:
-!!     .true. if we can, .false. if we can't
-
-  function rism3d_solvent_canCalc_molReconstruct(this) result(can_molReconstruct)
-    implicit none
-    type(rism3d_solvent), intent(in) :: this
-    logical :: can_molReconstruct
-    can_molReconstruct = associated(this%coord) &
-         .and. trim(this%atomName(1)) .eq. "O" &
-         .and. this%numMolecules == 1 &
-         .and. this%numAtomTypes < 4
-  end function rism3d_solvent_canCalc_molReconstruct
-
 !! destroyer
 
   subroutine rism3d_solvent_destroy(this)
