@@ -771,6 +771,17 @@ subroutine sander()
                    0, commsander, ier)
     call mpi_bcast(mol_info%atom_mass, mol_info%natom, MPI_DOUBLE_PRECISION, &
                    0, commsander, ier)
+
+    ! Use old parallelism for energy minimization
+    !    (move here from later, since startup() calls setpar() which needs
+    !     mpi_orig)
+    if (imin .ne. 0) then
+      mpi_orig = .true.
+      notdone = 1
+    else
+      mpi_orig = .false.
+    end if
+
     call startup_groups(ier)
     call startup(x, ix, ih)
 
@@ -915,14 +926,6 @@ subroutine sander()
       end if
     end if
    ! }}}
-
-    ! Use old parallelism for energy minimization
-    if (imin .ne. 0) then
-      mpi_orig = .true.
-      notdone = 1
-    else
-      mpi_orig = .false.
-    end if
 
     if (mpi_orig .and. .not. master) then
       ! All nodes only do the force calculations.  Minimization  {{{
