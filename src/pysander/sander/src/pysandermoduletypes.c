@@ -17,6 +17,7 @@ typedef struct {
     PyObject *ew_type;  // int
     PyObject *ntb;      // int
     PyObject *ifqnt;    // int
+    PyObject *irism;    //int, JJS
     PyObject *jfastw;   // int
     PyObject *ntf;      // int
     PyObject *ntc;      // int
@@ -51,6 +52,7 @@ pysander_InputOptions_dealloc(pysander_InputOptions* self) {
     Py_DECREF(self->ew_type);
     Py_DECREF(self->ntb);
     Py_DECREF(self->ifqnt);
+    Py_DECREF(self->irism);
     Py_DECREF(self->jfastw);
     Py_DECREF(self->ntf);
     Py_DECREF(self->ntc);
@@ -95,6 +97,7 @@ pysander_InputOptions_new(PyTypeObject *type) {
         self->ew_type = PyInt_FromLong(0);
         self->ntb = PyInt_FromLong(0);
         self->ifqnt = PyInt_FromLong(0);
+	self->irism = PyInt_FromLong(0);
         self->jfastw = PyInt_FromLong(0);
         self->ntf = PyInt_FromLong(0);
         self->ntc = PyInt_FromLong(0);
@@ -143,6 +146,8 @@ static PyMemberDef pysander_InputOptionMembers[] = {
                 "Whether PBC are present"},
     {"ifqnt", T_OBJECT_EX, offsetof(pysander_InputOptions, ifqnt), 0,
                 "Whether to use QM/MM"},
+    {"irism", T_OBJECT_EX, offsetof(pysander_InputOptions, irism), 0,
+	    "must use MM"},
     {"jfastw", T_OBJECT_EX, offsetof(pysander_InputOptions, jfastw), 0,
                 "Whether to use analytical constraint algo. for 3-pt. waters"},
     {"ntf", T_OBJECT_EX, offsetof(pysander_InputOptions, ntf), 0,

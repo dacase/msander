@@ -102,6 +102,8 @@ pysander_setup(PyObject *self, PyObject *args) {
     input.vdwmeth = (int) PyInt_AsLong(mm_inp->vdwmeth);
     input.ew_type = (int) PyInt_AsLong(mm_inp->ew_type);
     input.ntb = (int) PyInt_AsLong(mm_inp->ntb);
+    //irism modification, JJS, 7/6/21
+    input.irism = (int) PyInt_AsLong(mm_inp->irism);
     input.ifqnt = (int) PyInt_AsLong(mm_inp->ifqnt);
     input.jfastw = (int) PyInt_AsLong(mm_inp->jfastw);
     input.ntf = (int) PyInt_AsLong(mm_inp->ntf);
@@ -527,6 +529,8 @@ pysander_gas_input(PyObject *self, PyObject *args) {
     ASSIGN_INT(ew_type);
     ASSIGN_INT(ntb);
     ASSIGN_INT(ifqnt);
+    //Modification for irism, 7/6/21, 8:12pm
+    ASSIGN_INT(irism);
     ASSIGN_INT(jfastw);
     ASSIGN_INT(ntf);
     ASSIGN_INT(ntc);
