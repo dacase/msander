@@ -97,7 +97,7 @@ pysander_InputOptions_new(PyTypeObject *type) {
         self->ew_type = PyInt_FromLong(0);
         self->ntb = PyInt_FromLong(0);
         self->ifqnt = PyInt_FromLong(0);
-	self->irism = PyInt_FromLong(0);
+        self->irism = PyInt_FromLong(0);
         self->jfastw = PyInt_FromLong(0);
         self->ntf = PyInt_FromLong(0);
         self->ntc = PyInt_FromLong(0);
@@ -863,5 +863,97 @@ static PyTypeObject pysander_QmInputOptionsType = {
     0,                              // tp_init
     0,                              // tp_alloc
     (newfunc)pysander_QmInputOptions_new,// tp_new
+
+};
+
+//  RISM options
+//    dac, 7/19/21: just a stub copy of what is above, but replacing
+//                  "Qm" with "Rism"
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *solvcut;
+} pysander_RismInputOptions;
+
+
+#define ASSIGN_FLOAT(var) self->var = PyFloat_FromDouble(inp.var)
+#define ASSIGN_LIST(var, len) self->var = PyList_New(len)
+#define ASSIGN_INT(var) self->var = PyLong_FromLong(inp.var)
+
+static PyObject *
+pysander_RismInputOptions_new(PyTypeObject *type) {
+    Py_ssize_t i;
+    rism_input_options inp;
+    rism_input(&inp);
+    pysander_RismInputOptions *self;
+    self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
+    if (self != NULL) {
+        ASSIGN_FLOAT(solvcut);
+    }
+
+    return (PyObject *) self;
+}
+
+#undef ASSIGN_INT
+#undef ASSIGN_FLOAT
+#undef ASSIGN_LIST
+#undef ASSIGN_STRING
+
+static void pysander_RismInputOptions_dealloc(pysander_RismInputOptions *self) {
+    Py_DECREF(self->solvcut);
+    PY_DESTROY_TYPE;
+}
+
+static PyMemberDef pysander_RismInputOptionsMembers[] = {
+    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solcut), 0,
+        "Solvent cutoff radius (float)"},
+    {NULL} /* sentinel */
+};
+
+
+static PyTypeObject pysander_RismInputOptionsType = {
+#if PY_MAJOR_VERSION >= 3
+    PyVarObject_HEAD_INIT(NULL, 0)
+#else
+    PyObject_HEAD_INIT(NULL)
+    0,                              // ob_size
+#endif
+    "sander.pysander.RismInputOptions",// tp_name
+    sizeof(pysander_RismInputOptions),  // tp_basicsize
+    0,                              // tp_itemsize
+    (destructor)pysander_RismInputOptions_dealloc, // tp_dealloc
+    0,                              // tp_print
+    0,                              // tp_getattr
+    0,                              // tp_setattr
+    0,                              // tp_compare
+    0,                              // tp_repr
+    0,                              // tp_as_number
+    0,                              // tp_as_sequence
+    0,                              // tp_as_mapping
+    0,                              // tp_hash
+    0,                              // tp_call
+    0,                              // tp_str
+    0,                              // tp_getattro
+    0,                              // tp_setattro
+    0,                              // tp_as_buffer
+    Py_TPFLAGS_DEFAULT,             // tp_flags
+    "List of RISM input options",  // tp_doc
+    0,		                        // tp_traverse
+    0,		                        // tp_clear
+    0,		                        // tp_richcompare
+    0,		                        // tp_weaklistoffset
+    0,		                        // tp_iter
+    0,		                        // tp_iternext
+    0,                              // tp_methods
+    pysander_RismInputOptionsMembers, // tp_members
+    0,                              // tp_getset
+    0,                              // tp_base
+    0,                              // tp_dict
+    0,                              // tp_descr_get
+    0,                              // tp_descr_set
+    0,                              // tp_dictoffset
+    0,                              // tp_init
+    0,                              // tp_alloc
+    (newfunc)pysander_RismInputOptions_new,// tp_new
 
 };

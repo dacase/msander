@@ -42,17 +42,18 @@ pysander_setup(PyObject *self, PyObject *args) {
     double *coordinates;
     double box[6];
     size_t i;
-    PyObject *arg2, *arg3, *arg4, *arg5;
-    arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL;
+    PyObject *arg2, *arg3, *arg4, *arg5, *arg6;
+    arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL; arg6 = NULL;
 
     sander_input input;
     qmmm_input_options qm_input;
+    rism_input_options rism_input;
 
     // Needed to blank-out the strings
     qm_sander_input(&qm_input);
 
     // The passed arguments
-    if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, &arg5))
+    if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, &arg5, &arg6))
         return NULL;
 
     if (IS_SETUP) {
@@ -87,6 +88,12 @@ pysander_setup(PyObject *self, PyObject *args) {
     if (arg5 && !PyObject_TypeCheck(arg5, &pysander_QmInputOptionsType)) {
         PyErr_SetString(PyExc_TypeError,
                         "5th argument must be of type QmInputOptions");
+        return NULL;
+    }
+
+    if (arg6 && !PyObject_TypeCheck(arg6, &pysander_RismInputOptionsType)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "6th argument must be of type RismInputOptions");
         return NULL;
     }
 
@@ -374,6 +381,10 @@ pysander_setup(PyObject *self, PyObject *args) {
             for (i = PyList_Size(qm_inp->buffer_iqmatoms); i < MAX_QUANTUM_ATOMS; i++)
                 qm_input.buffer_iqmatoms[i] = 0;
         }
+    }
+
+    //  stub for now
+    if( arg6 ){
     }
 
     Py_ssize_t ii;
