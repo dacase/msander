@@ -905,7 +905,7 @@ static void pysander_RismInputOptions_dealloc(pysander_RismInputOptions *self) {
 }
 
 static PyMemberDef pysander_RismInputOptionsMembers[] = {
-    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solcut), 0,
+    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solvcut), 0,
         "Solvent cutoff radius (float)"},
     {NULL} /* sentinel */
 };

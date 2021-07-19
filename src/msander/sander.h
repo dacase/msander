@@ -158,6 +158,11 @@ typedef struct {
 } qmmm_input_options;
 
 typedef struct {
+    // Floats (input parameters)
+    double solvcut;
+} rism_input_options;
+
+typedef struct {
     double tot;
     double vdw;
     double elec;
@@ -292,6 +297,10 @@ void pme_sander_input(sander_input*);
 
 /// Prepare a QM input struct with default values
 void qm_sander_input(qmmm_input_options*);
+
+/// Prepare a RISM input struct with default values
+void rism_sander_input(rism_input_options*);
+
 
 /* I've found that you really need to fix strings to the same number of
  * characters when you want to pass them from C to Fortran or vice-versa. As a
