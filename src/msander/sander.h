@@ -157,10 +157,33 @@ typedef struct {
     char qm_theory[12];
 } qmmm_input_options;
 
-typedef struct {
-    // Floats (input parameters)
+  /*  rism routine interfaces: */
+  /*  N.B.: must match the rismprm_t struct in amber_rism_interface.F90 */
+  typedef struct {
     double solvcut;
-} rism_input_options;
+    double grdspc[3];
+    double mdiis_del;
+    double mdiis_restart;
+    double chargeSmear;
+    int closureOrder;
+    int ng3[3];
+    int rism;      /* non-zero if RISM is turned on */
+    int mdiis_nvec;
+    int mdiis_method;
+    int maxstep;
+    int npropagate;
+    int zerofrc;
+    int apply_rism_force;
+    int rismnrespa;
+    int saveprogress;
+    int ntwrism;
+    int verbose;
+    int progress;
+    int write_thermo;
+    /*This is an unused variable that aligns
+      the type on eight byte boundaries*/
+    int padding;
+  } rism_input_options;
 
 typedef struct {
     double tot;
