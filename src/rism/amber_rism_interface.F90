@@ -1756,4 +1756,18 @@ contains
     mylcm = lcm(a, b)
   end function mylcm
 
+! Initializes a struct with RISM options to all default values
+!
+! Parameters
+! ----------
+! inp : type(rismprm_t)
+!     struct of RISM input options that will be filled by this subroutine
+subroutine rism_sander_input(inp)
+
+   implicit none
+   type(rismprm_t), intent(out) :: inp
+   call defaults
+
+end subroutine rism_sander_input
+
 end module sander_rism_interface
