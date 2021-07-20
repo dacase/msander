@@ -18,19 +18,19 @@ def run():
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
     "$mtzin").as_miller_arrays()
   for ma in miller_arrays:
-    if(ma.info().label_string()=="F-obs-filtered,SIGF-obs-filtered"):
+    if(ma.info().label_string()=="FOBS,SIGFOBS"):
       f_obs = ma
   #
-  print "Using Phenix default bulk-solvent:"
+  print("Using Phenix default bulk-solvent:")
   fmodel = mmtbx.f_model.manager(
     xray_structure = xrs,
     f_obs          = f_obs)
   fmodel.update_all_scales(update_f_part1=False, remove_outliers=False)
   fmodel.show(show_header=False, show_approx=False)
-  print "r_work: %6.4f"%fmodel.r_work()
-  print
+  print("r_work: %6.4f"%fmodel.r_work())
+  print("")
   #
-  print "Using Amber bulk-solvent:"
+  print("Using Amber bulk-solvent:")
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
     "solvent.mtz").as_miller_arrays()
   for ma in miller_arrays:
@@ -53,7 +53,7 @@ def run():
     f_mask = f_mask)
   fmodel.update_all_scales(update_f_part1=False, remove_outliers=False)
   fmodel.show(show_header=False, show_approx=False)
-  print "r_work: %6.4f"%fmodel.r_work()
+  print("r_work: %6.4f"%fmodel.r_work())
 
 
 

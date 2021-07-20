@@ -91,20 +91,20 @@ $(LIBDIR)/libcifparse.a:
 #_____________________________________________________________________________
 # compilation rules.
 
-$(BINDIR)/x/acdoctor$(SFX): $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/x/acdoctor$(SFX): $(ACDOCTOROBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ACDOCTOROBJS) \
-	    -L$(LIBDIR) -lcifparse $(LM) -o $@
+	    $(LM) -o $@
 
 $(BINDIR)/x/am1bcc$(SFX): $(AM1BCCOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(AM1BCCOBJS) \
 	    $(LM) -o $@
 
-$(BINDIR)/x/antechamber$(SFX): $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/x/antechamber$(SFX): $(ANTECHAMBEROBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ANTECHAMBEROBJS) \
-	    -L$(LIBDIR) -lcifparse $(LM) -o $@
+	    $(LM) -o $@
 
 $(BINDIR)/x/atomtype$(SFX): $(ATOMTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
@@ -284,16 +284,16 @@ test-combination: ncsu-penalties.h ncsu-penalties.c
 #_____________________________________________________________________________
 # Dependencies, from ./makedepend:
 
-acdoctor.o: common.h
+ac.o: eprintf.h
 acdoctor.o: define.h
 acdoctor.o: atom.h
+acdoctor.o: eprintf.h
 acdoctor.o: utility.c
 acdoctor.o: common.c
 acdoctor.o: rotate.c
 acdoctor.o: ac.c
 acdoctor.o: charmm.c
 acdoctor.o: mol2.c
-acdoctor.o: mmcif.c
 acdoctor.o: mopcrt.c
 acdoctor.o: divcrt.c
 acdoctor.o: mopint.c
@@ -303,9 +303,10 @@ acdoctor.o: sqmcrt.c
 acdoctor.o: sqmout.c
 acdoctor.o: gesp.c
 acdoctor.o: gcrt.c
+acdoctor.o: orca.c
 acdoctor.o: gzmat.c
 acdoctor.o: gout.c
-acdoctor.o: gamess.c
+acdoctor.o: orcout.c
 acdoctor.o: pdb.c
 acdoctor.o: csd.c
 acdoctor.o: mdl.c
@@ -318,10 +319,9 @@ acdoctor.o: jcrt.c
 acdoctor.o: jout.c
 acdoctor.o: checkmolecule.c
 acdoctor.o: fileformat.c
-am1bcc.o: common.h
 am1bcc.o: define.h
 am1bcc.o: atom.h
-am1bcc.o: utility.c
+am1bcc.o: eprintf.h
 am1bcc.o: common.c
 am1bcc.o: rotate.c
 am1bcc.o: ac.c
@@ -335,7 +335,6 @@ antechamber.o: equatom.c
 antechamber.o: ac.c
 antechamber.o: charmm.c
 antechamber.o: mol2.c
-antechamber.o: mmcif.c
 antechamber.o: mopcrt.c
 antechamber.o: divcrt.c
 antechamber.o: sqmcrt.c
@@ -344,10 +343,11 @@ antechamber.o: mopint.c
 antechamber.o: mopout.c
 antechamber.o: divout.c
 antechamber.o: gcrt.c
+antechamber.o: orca.c
 antechamber.o: gzmat.c
 antechamber.o: gout.c
+antechamber.o: orcout.c
 antechamber.o: gamess.c
-antechamber.o: rotate.c
 antechamber.o: pdb.c
 antechamber.o: csd.c
 antechamber.o: mdl.c
@@ -362,9 +362,9 @@ antechamber.o: gesp.c
 antechamber.o: charge.c
 antechamber.o: fileformat.c
 antechamber.o: checkmolecule.c
-atomtype.o: common.h
 atomtype.o: define.h
 atomtype.o: atom.h
+atomtype.o: eprintf.h
 atomtype.o: utility.c
 atomtype.o: common.c
 atomtype.o: ring.c
@@ -372,17 +372,19 @@ atomtype.o: rotate.c
 atomtype.o: ac.c
 atomtype.o: mol2.c
 bondtype.o: ncsu-penalties.h
-bondtype.o: common.h
 bondtype.o: define.h
 bondtype.o: atom.h
+bondtype.o: eprintf.h
 bondtype.o: utility.c
 bondtype.o: common.c
 bondtype.o: ring.c
 bondtype.o: ac.c
 bondtype.o: mol2.c
-charmmgen.o: common.h
+charge.o: eprintf.h
+charmm.o: eprintf.h
 charmmgen.o: define.h
 charmmgen.o: atom.h
+charmmgen.o: eprintf.h
 charmmgen.o: utility.c
 charmmgen.o: common.c
 charmmgen.o: rotate.c
@@ -391,10 +393,12 @@ charmmgen.o: mol2.c
 charmmgen.o: prep.c
 checkmolecule.o: define.h
 checkmolecule.o: atom.h
+checkmolecule.o: eprintf.h
 common.o: define.h
-crdgrow.o: common.h
+common.o: eprintf.h
 crdgrow.o: define.h
 crdgrow.o: atom.h
+crdgrow.o: eprintf.h
 crdgrow.o: utility.c
 crdgrow.o: rotate.c
 crdgrow.o: common.c
@@ -402,6 +406,7 @@ crdgrow.o: pdb.c
 crdgrow.o: ac.c
 crdgrow.o: prep.c
 database.o: define.h
+database.o: eprintf.h
 database.o: utility.c
 delphigen.o: common.h
 delphigen.o: define.h
@@ -409,19 +414,32 @@ delphigen.o: atom.h
 delphigen.o: common.c
 delphigen.o: ac.c
 delphigen.o: pdb.c
+divcrt.o: eprintf.h
 eprintf.o: eprintf.h
+equatom.o: eprintf.h
 equatom.o: rotate.c
+equatom2.o: eprintf.h
 equatom2.o: rotate.c
-errormsg.o: errormsg.h
-espgen.o: common.h
 espgen.o: define.h
 espgen.o: atom.h
+espgen.o: eprintf.h
 fileformat.o: define.h
 fileformat.o: atom.h
 fileformat.o: checkmolecule.c
+fileformat.o: eprintf.h
+gamess.o: eprintf.h
+gcrt.o: eprintf.h
+gesp.o: eprintf.h
+gout.o: eprintf.h
+gzmat.o: eprintf.h
+hin.o: eprintf.h
+jcrt.o: eprintf.h
+jzmat.o: eprintf.h
+lsfit.o: eprintf.h
 match.o: common.h
 match.o: define.h
 match.o: atom.h
+match.o: eprintf.h
 match.o: utility.c
 match.o: common.c
 match.o: ring.c
@@ -430,9 +448,9 @@ match.o: pdb.c
 match.o: mol2.c
 match.o: mdl.c
 match.o: rst.c
-match_atomname.o: common.h
 match_atomname.o: define.h
 match_atomname.o: atom.h
+match_atomname.o: eprintf.h
 match_atomname.o: utility.c
 match_atomname.o: common.c
 match_atomname.o: equatom2.c
@@ -440,11 +458,19 @@ match_atomname.o: pdb.c
 match_atomname.o: ac.c
 match_atomname.o: prep.c
 match_atomname.o: mol2.c
+mdl.o: eprintf.h
+mem.o: eprintf.h
 mmcif.o: ../cifparse/cifparse.h
+mmcif.o: eprintf.h
+mol2.o: eprintf.h
+mopint.o: eprintf.h
+mopout.o: eprintf.h
 ncsu-penalties.o: ncsu-penalties.h
-parmcal.o: common.h
+orca.o: eprintf.h
+orcout.o: eprintf.h
 parmcal.o: define.h
 parmcal.o: atom.h
+parmcal.o: eprintf.h
 parmcal.o: utility.c
 parmcal.o: common.c
 parmchk2.o: common.h
@@ -459,6 +485,8 @@ parmchk2.o: prep.c
 parmjoin.o: common.h
 parmjoin.o: define.h
 parmjoin.o: utility.c
+pdb.o: eprintf.h
+prep.o: eprintf.h
 prepgen.o: common.h
 prepgen.o: define.h
 prepgen.o: atom.h
@@ -473,20 +501,24 @@ residuegen.o: atom.h
 residuegen.o: utility.c
 residuegen.o: common.c
 residuegen.o: ac.c
-respgen.o: common.h
 respgen.o: define.h
 respgen.o: atom.h
-respgen.o: utility.c
+respgen.o: eprintf.h
 respgen.o: common.c
 respgen.o: ac.c
 respgen.o: equatom.c
-rotate.o: common.h
+ring.o: eprintf.h
+rotate.o: eprintf.h
+rst.o: eprintf.h
 smiles.o: define.h
 smiles.o: eprintf.h
+sqmout.o: eprintf.h
 test-penalties.o: ncsu-penalties.h
-translate.o: common.h
+top2ff.o: eprintf.h
+top2mol2.o: eprintf.h
 translate.o: define.h
 translate.o: atom.h
+translate.o: eprintf.h
 translate.o: utility.c
 translate.o: common.c
 translate.o: rotate.c

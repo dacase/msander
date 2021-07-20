@@ -19,7 +19,6 @@ extern int checkformat;         // check file format in the manner of acdoctor
 # include <stdlib.h>
 # include "define.h"
 # include "atom.h"
-// # include "mmcif.h"  // for blockId
 # include "checkmolecule.c"  // change to .h when split
 # include "eprintf.h"
 
@@ -305,6 +304,8 @@ void read_and_validate_input_file()
             adjustatomname_flag = 0;
         checkbyatomtype = 1;
         checkbybondtype = 1;
+
+#if 0
     } else if (strcmp("ccif", cinfo.intype) == 0 || strcmp("27", cinfo.intype) == 0) {
         check_input_file_format(ifilename, cinfo.intype);
         overflow_flag =
@@ -325,6 +326,8 @@ void read_and_validate_input_file()
         atomtype_flag = 1;
         bondtype_flag = 2;
         connect_flag = 1;
+#endif
+
     } else if (strcmp("mopint", cinfo.intype) == 0 || strcmp("9", cinfo.intype) == 0) {
         check_input_file_format(ifilename, cinfo.intype);
         overflow_flag = rmopint(ifilename, &atomnum, atom, cinfo, minfo);
