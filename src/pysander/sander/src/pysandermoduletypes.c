@@ -884,7 +884,7 @@ static PyObject *
 pysander_RismInputOptions_new(PyTypeObject *type) {
     Py_ssize_t i;
     rism_input_options inp;
-    rism_input(&inp);
+    rism_sander_input(&inp);
     pysander_RismInputOptions *self;
     self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
     if (self != NULL) {
