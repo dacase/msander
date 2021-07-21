@@ -263,7 +263,7 @@ contains
     norm2_vbs = sqrt( dot_product(vbs,vbs) )
     norm2_vcs = sqrt( dot_product(vcs,vcs) )
 
-    temp_grid = resolution / 4.0
+    temp_grid = max( 0.3, resolution / 4.0 )
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
     nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
     nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
@@ -285,10 +285,10 @@ contains
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
 #if 0
-    write(6, *) 'resolution', resolution
-    write(6, *) 'mask_cell_params', mask_cell_params
-    write(6, *) 'mask_grid_steps', mask_grid_steps
-    write(6, *) 'mask_grid_size', mask_grid_size
+    write(0, *) 'resolution', resolution
+    ! write(0, *) 'mask_cell_params', mask_cell_params
+    write(0, *) 'mask_grid_steps', mask_grid_steps
+    write(0, *) 'mask_grid_size', mask_grid_size
 #endif
     allocate(mask_bs_grid(mask_grid_size(4)))
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))
@@ -308,12 +308,14 @@ contains
       hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
              hkl_index(3,i), na, nb, nc)
       if (hkl_indexing_bs_mask(i) == -1) then
+        write(0,*) i,hkl_index(1:3,i),na,nb,nc
         stop 'Miller indices indexing failed'
       end if
       
     end do
 
     call calc_grid_neighbors()
+
     return
 
   end subroutine init_bulk_solvent
