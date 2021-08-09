@@ -1,8 +1,16 @@
 #!/bin/sh
 
-pdbin=$1
-mtzin=$2
-#  output to stdout
+# Do single-point calculations in phenix to compare the default bulk-solvent
+#   model with a user-supplied solvent file, hard-wired here to be called
+#   "solvent.mtz".  The labels in solvent.mtz are hard-wired to be
+#   Fpart1,PHIpart1.
+
+pdbin=$1     # input pdb-file
+mtzin=$2     # input reflection file
+
+#  Output to stdout.
+
+#  Mainly developed by Pavel Afonine, modified by David Case.
 
 cat <<EOF > run_00.py
 from __future__ import division
@@ -30,7 +38,7 @@ def run():
   print("r_work: %6.4f"%fmodel.r_work())
   print("")
   #
-  print("Using Amber bulk-solvent:")
+  print("Using user-supplied bulk-solvent:")
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
     "solvent.mtz").as_miller_arrays()
   for ma in miller_arrays:
