@@ -272,6 +272,33 @@ subroutine qm_sander_input(inp)
    call default_qmmm_input_options(inp)
 
 end subroutine qm_sander_input
+!insert a routine for rism_input, JJS 
+!Initalizes a struct for rism at default value
+!Parameters
+!---------
+!inp : type(rism_input_options)
+!      struct of rism input options filled by this subroutine
+subroutine rism_input()
+!need default input here
+use sander_rism_interface, only: rismprm
+implicit none
+
+!type(rism_input_options), intent(out) :: inp
+write(0,*) 'inside_rism_input' 
+return 
+end 
+
+
+
+
+
+
+
+
+
+
+
+
 
 ! Initializes the major data structures needed to evaluate energies and forces
 !
@@ -351,6 +378,7 @@ subroutine api_mdread1(input_options, ierr)
    use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
                     mipso,gridips,dvbips
    use emap,only: temap,gammamap
+   use sander_rism_interface, only: rismprm
 #ifdef DSSP
    use dssp, only: idssp
 #endif /* DSSP */
@@ -368,15 +396,8 @@ subroutine api_mdread1(input_options, ierr)
    use linear_response, only: ilrt, lrt_interval, lrtmask
 #ifdef RISMSANDER
 #  ifndef API
-   use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
-        uuvfile, asympfile, quvFile, chgDistFile, electronMapFile, &
-        excessChemicalPotentialfile, solvationEnergyfile, entropyfile, &
-        excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
-        excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile,&
-        excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile,&
-        solventPotentialEnergyfile
-#  endif /* API */
    use sander_rism_interface, only: rismprm
+#endif /*API*/
 #endif /*RISMSANDER*/
    use nfe_sander_proxy, only: infe
    implicit none
