@@ -11,7 +11,7 @@ module bulk_solvent_mod
 
   double precision, dimension(:), allocatable :: k_mask, &
           mask_cutoffs, b_vector_mask
-  complex(8), dimension(:), allocatable :: f_mask
+  complex(8), dimension(:), allocatable :: f_mask, f_solvent
 
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
   !                               FFT'd bulk solvent mask
@@ -190,7 +190,8 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, cross
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, &
+                        num_atoms, cross, bulk_solvent_model
     use memory_module, only: i100, ix
     implicit none
     double precision, intent(in) :: resolution
@@ -202,10 +203,10 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
 
+    if( mytaskid .ne. 0 .or. bulk_solvent_model .eq. 'none' ) return
+
     allocate(k_mask(num_hkl), f_mask(num_hkl), stat=ier)
     REQUIRE( ier==0 )
-
-    if( mytaskid /= 0 ) return
 
     allocate(hkl_indexing_bs_mask(num_hkl))
 

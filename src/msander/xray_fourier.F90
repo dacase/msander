@@ -308,7 +308,9 @@ contains
    subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
-          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
+          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size, &
+          f_solvent, k_sol, b_sol
+      use xray_globals_module, only : mss4, user_fmask
 #ifdef MPI
       use mpi
 #endif
@@ -319,6 +321,10 @@ contains
 
       integer :: i, ier
       double precision :: time0, time1
+
+      if( user_fmask .and. update_Fcalc ) then
+         Fcalc(:) = Fcalc(:) + k_sol * f_solvent(:) * exp(b_sol*mss4(:))
+      endif
 
       if( bulk_solvent_model == 'none' ) return
 
@@ -350,17 +356,67 @@ contains
 
    end subroutine get_solvent_contribution
 
-   subroutine scale_Fcalc(nstep)
+   subroutine scale_Fcalc(nstep, selected)
       use ml_mod, only : b_vector_base, NRF_work, NRF_work_sq, &
            h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
       integer, intent(in) :: nstep
+      integer, intent(in), optional :: selected(num_hkl)
 
-      real(real_kind) :: sum_fo_fc, sum_fc_fc
+      real(real_kind) :: sum_fo_fc, sum_fc_fc, sum_fo_fo
+      real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind) :: b(7), Uaniso(7), u_star(6)
       double precision, parameter :: pi = 3.14159265359d0
 
-      if (mod(nstep, scale_update_frequency) == 0 ) then
+      if( inputscale ) then
+
+         ! scale using phenix-like approximation:
+         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
+         if( nstep == 0 ) then
+            k_scale(:) = k_tot * exp( b_tot * mss4(:))
+            sum_fo_fo = sum(abs_Fobs ** 2)
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if( mytaskid == 0 ) &
+               write(6,'(a,2f10.5,e12.5)') &
+                 '| setting k_scale using k_tot/b_tot: ', &
+                 k_tot, b_tot, norm_scale
+         endif
+
+      else if( target .eq. 'ls' .or. target .eq. 'wls' ) then
+         ! scale to fobs:
+         abs_Fcalc(:) = abs(Fcalc(:))
+         if( mod(nstep,scale_update_frequency) == 0 ) then
+            if (present(selected)) then
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
+               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+            else
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
+               sum_fo_fo = sum(abs_Fobs ** 2)
+               sum_fc_fc = sum(abs_Fcalc ** 2)
+            end if
+            k_scale(:) = sum_fo_fc / sum_fc_fc
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if (mytaskid == 0 ) &
+               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
+                   k_scale(1),norm_scale
+         endif
+
+      else if( target .eq. 'vls' ) then
+
+         if (mod(nstep,scale_update_frequency) == 0) then
+            k_scale(:) = sum( real(Fobs(:)*conjg(Fcalc(:))) ) &
+                       / sum( abs(Fcalc(:))**2 )
+            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+              '| updating isotropic scaling: ', k_scale(1)
+            ! k_scale(:) = sum( abs(Fobs)*abs(Fcalc) )  &
+            !            / sum( abs(Fcalc(:))**2 )
+            ! if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+            !   '| updating abs isotropic scaling: ', k_scale(1)
+         endif
+
+      ! here for ML target:
+      else if (mod(nstep, scale_update_frequency) == 0 ) then
 
          ! isotropic scaling for Fcalc, with same general notation:
          NRF_work_sq = NRF_work * NRF_work
@@ -421,43 +477,10 @@ contains
       integer :: i
 
       call get_solvent_contribution(nstep, crd, .true.)
-
-      if( inputscale ) then
-         ! scale using phenix-like approximation:
-         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
-         if( nstep == 0 ) then
-            k_scale(:) = k_tot * exp( b_tot * mss4(:))
-            sum_fo_fo = sum(abs_Fobs ** 2)
-            norm_scale = 1.0_rk_  / sum_fo_fo
-            if( mytaskid == 0 ) &
-               write(6,'(a,2f10.5,e12.5)') &
-                 '| setting k_scale using k_tot/b_tot: ', &
-                 k_tot, b_tot, norm_scale
-         endif
-      else
-         ! scale to fobs:
-         abs_Fcalc(:) = abs(Fcalc(:))
-         if( mod(nstep,scale_update_frequency) == 0 ) then
-            if (present(selected)) then
-               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
-               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
-               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
-            else
-               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
-               sum_fo_fo = sum(abs_Fobs ** 2)
-               sum_fc_fc = sum(abs_Fcalc ** 2)
-            end if
-            k_scale(:) = sum_fo_fc / sum_fc_fc
-            norm_scale = 1.0_rk_  / sum_fo_fo
-            if (mytaskid == 0 ) &
-               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
-                   k_scale(1),norm_scale
-         endif
-      endif
-      Fcalc(:) = k_scale(:) * Fcalc(:)
+      call scale_Fcalc( nstep, selected=selected )
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       nstep = nstep + 1
-      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! Note: when Fcalc is approximately zero the phase is undefined, 
       ! so no force can be determined even if the energy is high. (Similar 
@@ -514,47 +537,8 @@ contains
       complex(real_kind) :: vecdif(num_hkl)
       integer, save :: nstep=0
 
-#if 1
       call get_solvent_contribution(nstep, crd, .true.)
-      if( inputscale ) then
-         ! scale using phenix-like approximation:
-         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
-         if( nstep == 0 ) then
-            k_scale(:) = k_tot * exp( b_tot * mss4(:))
-            ! sum_fo_fo = sum(abs_Fobs ** 2)
-            ! norm_scale = 1.0_rk_  / sum_fo_fo
-            if( mytaskid == 0 ) &
-               write(6,'(a,2f10.5,e12.5)') &
-                 '| setting k_scale using k_tot/b_tot: ', &
-                 k_tot, b_tot, norm_scale
-         endif
-      else
-         if (mod(nstep,scale_update_frequency) == 0) then
-            k_scale(:) = sum( real(Fobs(:)*conjg(Fcalc(:))) ) &
-                       / sum( abs(Fcalc(:))**2 )
-            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-              '| updating isotropic scaling: ', k_scale(1)
-            ! k_scale(:) = sum( abs(Fobs)*abs(Fcalc) )  &
-            !            / sum( abs(Fcalc(:))**2 )
-            ! if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-            !   '| updating abs isotropic scaling: ', k_scale(1)
-         endif
-      endif
-      Fcalc(:) = k_scale(:) * Fcalc(:)
-#else
-      if( bulk_solvent_model .eq. 'opt' ) then
-         if (mod(nstep, mask_update_frequency) == 0) then
-           call get_solvent_contribution(nstep, crd, .false.)
-           call init_scales()
-           call optimize_k_scale_k_mask()
-           k_scale = k_iso * k_iso_exp * k_aniso
-         endif
-         Fcalc = k_scale * (Fcalc + k_mask * f_mask)
-      else 
-         call get_solvent_contribution(nstep, crd, .true.)
-         call scale_Fcalc( nstep )
-      endif
-#endif
+      call scale_Fcalc( nstep )
 
       if( nstep==0 ) then
          norm_scale = 1.0_rk_ / sum(abs_Fobs**2)

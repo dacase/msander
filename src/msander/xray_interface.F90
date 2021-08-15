@@ -457,7 +457,7 @@ contains
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
       use ml_mod, only: init_ml, init_scales
-      use bulk_solvent_mod, only: init_bulk_solvent, f_mask
+      use bulk_solvent_mod, only: init_bulk_solvent, f_mask, f_solvent
       implicit none
       ! local
       integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
@@ -466,9 +466,6 @@ contains
       real(real_kind) :: phi
       logical :: master
       double precision :: time0, time1
-      ! following is local: copied into f_mask in this routine, after
-      !     f_mask itself is allocated.  (could be simplified)
-      complex(real_kind), allocatable, save :: f_solvent(:)
 #ifdef MPI
 #     include "parallel.h"
 #else
@@ -598,14 +595,7 @@ contains
            ' atoms in ', trim(solute_selection_mask)
 
       call init_ml(target, nstlim, d_star_sq, resolution)
-
-      if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution)
-
-      if( user_fmask ) then
-         if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
-         f_mask(:) = f_solvent(:)
-         deallocate( f_solvent )
-      endif
+      call init_bulk_solvent(resolution)
 
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
