@@ -637,7 +637,7 @@ class AmberPDBFixer(object):
 
         with open(basename + '_renum.txt', 'w') as fh:
             for residue in self.parm.residues:
-                fh.write("%3s %c %5s    %3s %5s\n" %
+                fh.write("%3s %1s %5s    %3s %5s\n" %
                          (residue.name, residue.chain, residue.number, residue.name,
                           residue.idx + 1))
 
