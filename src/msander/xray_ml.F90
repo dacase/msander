@@ -180,6 +180,7 @@ contains
   subroutine init_ml(target, nstlim, d_star_sq, resolution)
 
     use constants, only : omp_num_threads
+    use bulk_solvent_mod, only : f_solvent
     implicit none
 
     character(len=4), intent(in) :: target
@@ -193,7 +194,7 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
     double precision, dimension(:), allocatable :: d_star_sq_tmp, &
-                                                   d_star_sq_sorted, bin_limits
+                    d_star_sq_sorted, bin_limits, f_solvent_tmp
     integer, dimension(:), allocatable :: counter_w, counter_f, &
                                           reflection_bin_tmp
     integer (kind = 4) :: file_status
@@ -306,6 +307,7 @@ contains
     allocate(reflection_bin(NRF))
     allocate(reflection_bin_tmp(NRF))
     allocate(hkl(3,NRF))
+    if( user_fmask ) allocate(f_solvent_tmp(NRF))
     allocate(f_obs_tmp(NRF))
     allocate(sigma_tmp(NRF))
 
@@ -439,6 +441,7 @@ contains
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
            d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
+           if( user_fmask ) f_solvent_tmp(counter_sort) = f_solvent(index_sort)
          end do
        end do
        if (minval(scale_k1_indices) == 0) then
@@ -455,6 +458,7 @@ contains
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
            d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
+           if( user_fmask ) f_solvent_tmp(counter_sort) = f_solvent(index_sort)
          end do
        end do
        reflection_bin(:) = reflection_bin_tmp(:)
@@ -469,6 +473,10 @@ contains
        hkl_index(:,:) = hkl(:,:)
        test_flag(1:NRF_work) = 1
        test_flag(NRF_work+1:NRF) = 0
+       if( user_fmask ) then
+          f_solvent(:) = f_solvent_tmp(:)
+          deallocate( f_solvent_tmp )
+       endif
 
        REQUIRE( counter_sort == NRF )
 
