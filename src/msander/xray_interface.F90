@@ -650,6 +650,7 @@ contains
 #     include "extra.h"
       ! local
       integer :: dealloc_status, i
+      double precision :: phicalc
 
       if (.not.xray_active) return
 
@@ -700,17 +701,21 @@ contains
 #  endif
             end do
          else
-            write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+            write(20,'(17a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
                'd',achar(9),'fobs',achar(9),'sigfobs',achar(9), &
-               'fcalc',achar(9),'rfree-flag'
-            write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-               '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',achar(9),'3N'
+               'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag'
+            write(20,'(17a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',&
+               achar(9),'15N',achar(9),'3N'
             do i=1,num_hkl
-               write(20,'(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,i1)') &
+               phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               write(20,&
+                '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1)') &
                 hkl_index(1,i), &
-                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                1./sqrt(d_star_sq(i)),achar(9),abs_Fobs(i), achar(9), &
-                sigFobs(i),achar(9),abs(Fcalc(i)),achar(9), test_flag(i)
+                achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
+                1./sqrt(d_star_sq(i)), achar(9),abs_Fobs(i), achar(9), &
+                sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
+                achar(9), test_flag(i)
             end do
          endif
          close(20)
