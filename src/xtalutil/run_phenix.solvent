@@ -1,9 +1,8 @@
 #!/bin/sh
 
 # Do single-point calculations in phenix to compare the default bulk-solvent
-#   model with a user-supplied solvent file, hard-wired here to be called
-#   "solvent.mtz".  The labels in solvent.mtz are hard-wired to be
-#   Fpart1,PHIpart1.
+#   model with a user-supplied solvent file.
+#   User should edit the label_string below to match the input files.
 
 pdbin=$1     # input pdb-file
 mtzin=$2     # input reflection file
@@ -26,9 +25,9 @@ def run():
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
     "$mtzin").as_miller_arrays()
   for ma in miller_arrays:
-    if(ma.info().label_string()=="FOBS,SIGFOBS"):
+    if(ma.info().label_string()=="FP,SIGFP"):
       f_obs = ma
-  #
+  #-----------------------------------------------------
   print("Using Phenix default bulk-solvent:")
   fmodel = mmtbx.f_model.manager(
     xray_structure = xrs,
@@ -37,12 +36,12 @@ def run():
   fmodel.show(show_header=False, show_approx=False)
   print("r_work: %6.4f"%fmodel.r_work())
   print("")
-  #
+  #-----------------------------------------------------
   print("Using user-supplied bulk-solvent:")
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
-    "solvent.mtz").as_miller_arrays()
+    "$mtzin").as_miller_arrays()
   for ma in miller_arrays:
-    if(ma.info().label_string()=="Fpart1,PHIpart1"):
+    if(ma.info().label_string()=="Fpart,PHIpart"):
       f_mask = ma
   fft_map = f_mask.fft_map(resolution_factor = 1./4)
   fft_map.apply_volume_scaling()
