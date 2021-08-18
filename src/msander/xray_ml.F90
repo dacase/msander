@@ -1097,7 +1097,7 @@ contains
             Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl) !&
     !     + Uaniso(1))
     r = r_factor_w(k_aniso_test * f_calc_tmp)
-#if 1
+#if 0
     if( mytaskid == 0 ) then
          write(6,'(a,f12.5)') '| mean k_aniso: ', sum(k_aniso(1:NRF_work))/NRF_work
          write(6,'(a,2f12.5)') '| anisotropic scaing: ', r, r_start
