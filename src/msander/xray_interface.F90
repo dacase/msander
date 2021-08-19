@@ -649,12 +649,12 @@ contains
 
    ! Write X-ray output files and deallocate.
    subroutine xray_fini()
-      use bulk_solvent_mod, only : k_mask
+      use bulk_solvent_mod, only : k_mask, f_mask
       implicit none
 #     include "extra.h"
       ! local
       integer :: dealloc_status, i
-      double precision :: phicalc
+      double precision :: phicalc, phimask
 
       if (.not.xray_active) return
 
@@ -705,23 +705,23 @@ contains
 #  endif
             end do
          else
-            write(20,'(21a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+            write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
                'd',achar(9),'fobs',achar(9),'sigfobs',achar(9), &
                'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag', achar(9), &
-               'k_mask',achar(9),'k_scale'
-            write(20,'(21a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               'k_scale'
+            write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
                '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',&
-               achar(9),'15N',achar(9),'3N',achar(9),'15N', achar(9), '15N'
+               achar(9),'15N',achar(9),'3N',achar(9),'15N'
             do i=1,num_hkl
                phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               phimask = atan2( aimag(f_mask(i)), real(f_mask(i)) ) * 57.2957795d0
                write(20,&
- '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3,a,f12.3)') &
+         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
                 1./sqrt(d_star_sq(i)), achar(9),abs_Fobs(i), achar(9), &
                 sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
-                achar(9), test_flag(i), achar(9), k_mask(i), achar(9), &
-                k_scale(i)
+                achar(9), test_flag(i), achar(9), k_scale(i) 
             end do
          endif
          close(20)
