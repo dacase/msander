@@ -194,7 +194,8 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
     double precision, dimension(:), allocatable :: d_star_sq_tmp, &
-                    d_star_sq_sorted, bin_limits, f_solvent_tmp
+                    d_star_sq_sorted, bin_limits
+    complex(real_kind), dimension(:), allocatable :: f_solvent_tmp
     integer, dimension(:), allocatable :: counter_w, counter_f, &
                                           reflection_bin_tmp
     integer (kind = 4) :: file_status
@@ -207,7 +208,6 @@ contains
 
     N_steps = nstlim
     NRF = num_hkl
-
 
     r_work_factor_denominator = zero
     r_free_factor_denominator = zero
