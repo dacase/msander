@@ -54,7 +54,7 @@ libsanderles="libsanderles"
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
-netcdflibf=$netcdflib_shared
+netcdflibf=$netcdflibf_shared
 
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
