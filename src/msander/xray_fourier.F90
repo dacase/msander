@@ -309,8 +309,8 @@ contains
       use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
           shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
           hkl_indexing_bs_mask, mask_cell_params, mask_grid_size, &
-          f_solvent, k_sol, b_sol
-      use xray_globals_module, only : mss4, user_fmask
+          f_solvent
+      use xray_globals_module, only : user_fmask
 #ifdef MPI
       use mpi
 #endif
@@ -322,33 +322,36 @@ contains
       integer :: i, ier
       double precision :: time0, time1
 
-      if( user_fmask .and. update_Fcalc ) then
-         Fcalc(:) = Fcalc(:) + k_sol * f_solvent(:) * exp(b_sol*mss4(:))
-      endif
-
       if( bulk_solvent_model == 'none' ) return
 
       ! only do this on the master node to save global memory
-      if (mytaskid == 0 .and. .not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
-         call grid_bulk_solvent(num_atoms, crd)
-         call shrink_bulk_solvent()
-         call fft_bs_mask()
+      if (mytaskid == 0 .and. mod(nstep, mask_update_frequency) == 0) then
 
-         do i=1,num_hkl
-            f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
-                        mask_cell_params(16) / mask_grid_size(4)
+         if( user_fmask ) then
+            f_mask(:) = f_solvent(:)
+            write(6,'(a)') '| Setting f_mask to f_solvent'
+            write(6,'(4f12.5)') f_mask(1:12)
+         else
+            call grid_bulk_solvent(num_atoms, crd)
+            call shrink_bulk_solvent()
+            call fft_bs_mask()
+
+            do i=1,num_hkl
+               f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                        * mask_cell_params(16) / mask_grid_size(4)
 #if 0
-            write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
-               hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
-               hkl_index(3,i),char(9), &
-               real(f_mask(i)),char(9), &
-               aimag(f_mask(i)),char(9),abs(f_mask(i))
+               write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
+                  hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
+                  hkl_index(3,i),char(9), &
+                  real(f_mask(i)),char(9), &
+                  aimag(f_mask(i)),char(9),abs(f_mask(i))
 #endif
-         end do
-      endif
+            end do
+         endif
 #ifdef MPI
-      call mpi_bcast( f_mask, num_hkl, MPI_DOUBLE_COMPLEX, 0, commsander, ier )
+         call mpi_bcast(f_mask,num_hkl,MPI_DOUBLE_COMPLEX,0,commsander,ier )
 #endif
+      endif
 
       if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
 
@@ -419,13 +422,13 @@ contains
       else if (mod(nstep, scale_update_frequency) == 0 ) then
 
          ! isotropic scaling for Fcalc, with same general notation:
-         NRF_work_sq = NRF_work * NRF_work
-         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-                      / NRF_work_sq
-         b(1) = sum(b_vector_base)
-         k_scale(:) = exp(b(1))
-         if(mytaskid==0) write(6,'(a,f10.5)') &
-            '| updating   isotropic scaling: ', k_scale(1)
+         ! NRF_work_sq = NRF_work * NRF_work
+         ! b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+         !              / NRF_work_sq
+         ! b(1) = sum(b_vector_base)
+         ! k_scale(:) = exp(b(1))
+         ! if(mytaskid==0) write(6,'(a,f10.5)') &
+         !    '| updating   isotropic scaling: ', k_scale(1)
 
          ! anisotropic scaling for Fcalc:
          NRF_work_sq = NRF_work * NRF_work
@@ -440,17 +443,15 @@ contains
          b(7) = sum(b_vector_base * kl(1:NRF_work))
 
          Uaniso = matmul(MUcryst_inv, b)
-         u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
-         u_star(4:6) = u_star(4:6) / 2.0d0
+         ! u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
+         ! u_star(4:6) = u_star(4:6) / 2.0d0
 
          k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
              Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
          if (mytaskid == 0 ) then
            write(6,'(a)') '| updating anisotropic scaling'
-           ! write(6,'(a,7f10.5)') '|     ', Uaniso
-           ! write(6, '(a,6f13.8)')  '| u_star: ', u_star
-           ! write(6,'(a,2f10.5)')  '|     ', exp(b(1))
-           ! write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
+           write(6,'(a,7f10.5)') '|     ', Uaniso
+           write(6,'(a,2f10.5)')  '|     ', exp(b(1))
          endif
 
       endif
@@ -525,9 +526,6 @@ contains
    ! Fobs
 
    subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
-      use ml_mod, only : optimize_k_scale_k_mask, &
-           init_scales, k_iso, k_iso_exp, k_aniso
-      use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(:)
