@@ -532,7 +532,7 @@ contains
 
       if( user_fmask ) then
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
                fabs_solvent, phi_solvent
             phi_solvent = phi_solvent * 0.0174532925d0
@@ -543,7 +543,7 @@ contains
          end do
       else
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
             test_flag(i) = min(test_flag(i),1)
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
@@ -601,6 +601,9 @@ contains
 
       return
       1 continue
+      write(stdout,'(A)') 'End-of-file reading HKL file.'
+      call mexit(stdout,1)
+      2 continue
       write(stdout,'(A)') 'Error reading HKL file.'
       call mexit(stdout,1)
    end subroutine xray_init
@@ -646,6 +649,7 @@ contains
 
    ! Write X-ray output files and deallocate.
    subroutine xray_fini()
+      use bulk_solvent_mod, only : k_mask
       implicit none
 #     include "extra.h"
       ! local
@@ -701,21 +705,23 @@ contains
 #  endif
             end do
          else
-            write(20,'(17a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+            write(20,'(21a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
                'd',achar(9),'fobs',achar(9),'sigfobs',achar(9), &
-               'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag'
-            write(20,'(17a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag', achar(9), &
+               'k_mask',achar(9),'k_scale'
+            write(20,'(21a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
                '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',&
-               achar(9),'15N',achar(9),'3N'
+               achar(9),'15N',achar(9),'3N',achar(9),'15N', achar(9), '15N'
             do i=1,num_hkl
                phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
                write(20,&
-                '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1)') &
+ '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3,a,f12.3)') &
                 hkl_index(1,i), &
                 achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
                 1./sqrt(d_star_sq(i)), achar(9),abs_Fobs(i), achar(9), &
                 sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
-                achar(9), test_flag(i)
+                achar(9), test_flag(i), achar(9), k_mask(i), achar(9), &
+                k_scale(i)
             end do
          endif
          close(20)
