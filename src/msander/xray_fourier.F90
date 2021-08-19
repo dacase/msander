@@ -330,7 +330,6 @@ contains
          if( user_fmask ) then
             f_mask(:) = f_solvent(:)
             write(6,'(a)') '| Setting f_mask to f_solvent'
-            write(6,'(4f12.5)') f_mask(1:12)
          else
             call grid_bulk_solvent(num_atoms, crd)
             call shrink_bulk_solvent()
@@ -371,11 +370,10 @@ contains
       real(real_kind) :: b(7), Uaniso(7), u_star(6)
       double precision, parameter :: pi = 3.14159265359d0
 
-      if( inputscale ) then
+      if( mod(nstep,scale_update_frequency) == 0 ) then
 
-         ! scale using phenix-like approximation:
-         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
-         if( nstep == 0 ) then
+         if( inputscale ) then
+            ! scale using k_scale = k_tot * (exp(- b_tot * s**2/4 ))
             k_scale(:) = k_tot * exp( b_tot * mss4(:))
             sum_fo_fo = sum(abs_Fobs ** 2)
             norm_scale = 1.0_rk_  / sum_fo_fo
@@ -383,12 +381,10 @@ contains
                write(6,'(a,2f10.5,e12.5)') &
                  '| setting k_scale using k_tot/b_tot: ', &
                  k_tot, b_tot, norm_scale
-         endif
 
-      else if( target .eq. 'ls' .or. target .eq. 'wls' ) then
-         ! scale to fobs:
-         abs_Fcalc(:) = abs(Fcalc(:))
-         if( mod(nstep,scale_update_frequency) == 0 ) then
+         else if( target .eq. 'ls' .or. target .eq. 'wls' ) then
+            ! scale to fobs in least-squares sense:
+            abs_Fcalc(:) = abs(Fcalc(:))
             if (present(selected)) then
                sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
                sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
@@ -403,11 +399,9 @@ contains
             if (mytaskid == 0 ) &
                write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
                    k_scale(1),norm_scale
-         endif
 
-      else if( target .eq. 'vls' ) then
+         else if( target .eq. 'vls' ) then
 
-         if (mod(nstep,scale_update_frequency) == 0) then
             k_scale(:) = sum( real(Fobs(:)*conjg(Fcalc(:))) ) &
                        / sum( abs(Fcalc(:))**2 )
             if (mytaskid == 0 ) write(6,'(a,f12.5)') &
@@ -416,44 +410,42 @@ contains
             !            / sum( abs(Fcalc(:))**2 )
             ! if (mytaskid == 0 ) write(6,'(a,f12.5)') &
             !   '| updating abs isotropic scaling: ', k_scale(1)
+
+         else if( target .eq. 'ml' ) then
+
+            ! isotropic scaling for Fcalc, with same general notation:
+            ! NRF_work_sq = NRF_work * NRF_work
+            ! b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+            !              / NRF_work_sq
+            ! b(1) = sum(b_vector_base)
+            ! k_scale(:) = exp(b(1))
+            ! if(mytaskid==0) write(6,'(a,f10.5)') &
+            !    '| updating   isotropic scaling: ', k_scale(1)
+
+            ! anisotropic scaling for Fcalc:
+            NRF_work_sq = NRF_work * NRF_work
+            b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+                         / NRF_work_sq
+            b(1) = sum(b_vector_base)
+            b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+            b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+            b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+            b(5) = sum(b_vector_base * hk(1:NRF_work))
+            b(6) = sum(b_vector_base * hl(1:NRF_work))
+            b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+            Uaniso = matmul(MUcryst_inv, b)
+
+            k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+                Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+            if (mytaskid == 0 ) then
+               write(6,'(a)') '| updating anisotropic scaling'
+               write(6,'(a,7f10.5)') '|     ', Uaniso*1000.d0
+               write(6,'(a,f10.5)')  '| mean k_scale: ',  &
+                                     sum(k_scale)/size(k_scale)
+            endif
+
          endif
-
-      ! here for ML target:
-      else if (mod(nstep, scale_update_frequency) == 0 ) then
-
-         ! isotropic scaling for Fcalc, with same general notation:
-         ! NRF_work_sq = NRF_work * NRF_work
-         ! b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-         !              / NRF_work_sq
-         ! b(1) = sum(b_vector_base)
-         ! k_scale(:) = exp(b(1))
-         ! if(mytaskid==0) write(6,'(a,f10.5)') &
-         !    '| updating   isotropic scaling: ', k_scale(1)
-
-         ! anisotropic scaling for Fcalc:
-         NRF_work_sq = NRF_work * NRF_work
-         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-                      / NRF_work_sq
-         b(1) = sum(b_vector_base)
-         b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-         b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-         b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-         b(5) = sum(b_vector_base * hk(1:NRF_work))
-         b(6) = sum(b_vector_base * hl(1:NRF_work))
-         b(7) = sum(b_vector_base * kl(1:NRF_work))
-
-         Uaniso = matmul(MUcryst_inv, b)
-         ! u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
-         ! u_star(4:6) = u_star(4:6) / 2.0d0
-
-         k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
-             Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-         if (mytaskid == 0 ) then
-           write(6,'(a)') '| updating anisotropic scaling'
-           write(6,'(a,7f10.5)') '|     ', Uaniso
-           write(6,'(a,2f10.5)')  '|     ', exp(b(1))
-         endif
-
       endif
 
       Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
