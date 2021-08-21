@@ -578,6 +578,7 @@ contains
       NAT_for_mask1 = sum(atom_selection)
       if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
            ' atoms in ', trim(atom_selection_mask)
+      REQUIRE( NAT_for_mask1 .gt. 0 )
       !  also ignore any atoms with zero occupancy:
       do i=1,natom
          if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
@@ -593,6 +594,7 @@ contains
             maskstr=solute_selection_mask,mask=solute_selection)
       if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(solute_selection), &
            ' atoms in ', trim(solute_selection_mask)
+      REQUIRE( sum(solute_selection) .gt. 0 )
 
       call init_ml(target, nstlim, d_star_sq, resolution)
       call init_bulk_solvent(resolution)
