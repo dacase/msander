@@ -4424,8 +4424,8 @@ wallclock.o:   wallclock.F90
 
 xray_bulk_solvent.o: \
                     ../include/assert.fh\
-                    parallel.h\
                     xray_globals.o\
+                    parallel.h\
                     memory_module.o
 
 
@@ -4459,10 +4459,10 @@ xray_fftpack.o:   xray_fftpack.F90
 xray_fourier.o: \
                     ../include/assert.fh\
                     xray_globals.o\
+                    xray_bulk_solvent.o\
                     constants.o\
                     parallel.h\
                     omp_lib.o\
-                    xray_bulk_solvent.o\
                     xray_ml.o
 
 
@@ -4507,7 +4507,8 @@ xray_ml.o: \
                     file_io_dat.o\
                     xray_globals.o\
                     xray_bulk_solvent.o\
-                    parallel.h
+                    parallel.h\
+                    constants.o
 
 
 xray_ml.o:   xray_ml.F90

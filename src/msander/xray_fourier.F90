@@ -44,7 +44,7 @@ module xray_fourier_module
 !                              at the beginning of fourier_Fcalc()
 
    use xray_globals_module
-   use bulk_solvent_mod, only: get_solvent_contribution
+   use bulk_solvent_module, only: get_solvent_contribution
    use constants, only: M_TWOPI => TWOPI
    implicit none
 #ifdef MPI
@@ -85,7 +85,7 @@ contains
 
       ! locals
       integer :: ihkl, i, ier, ith, ithmax
-      double precision :: time0, time1
+      real(real_kind) :: time0, time1
       logical, save :: first=.true.
 
       if( first ) then
@@ -219,7 +219,7 @@ contains
       real(real_kind) :: dhkl(3)
       complex(real_kind) :: f
       real(real_kind) :: phase
-      double precision time0, time1
+      real(real_kind) time0, time1
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
@@ -305,7 +305,7 @@ contains
    end subroutine get_residual
 
    subroutine scale_Fcalc(nstep, selected)
-      use ml_mod, only : b_vector_base, NRF_work, NRF_work_sq, &
+      use ml_module, only : b_vector_base, NRF_work, NRF_work_sq, &
            h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
       integer, intent(in) :: nstep
@@ -314,7 +314,7 @@ contains
       real(real_kind) :: sum_fo_fc, sum_fc_fc, sum_fo_fo
       real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind) :: b(7), Uaniso(7), u_star(6)
-      double precision, parameter :: pi = 3.14159265359d0
+      real(real_kind), parameter :: pi = 3.14159265359d0
 
       if( mod(nstep,scale_update_frequency) == 0 ) then
 
@@ -495,12 +495,12 @@ contains
    ! phenix maximum likelihood function
 
    subroutine dTargetML_dF(crd,deriv,xray_energy)
-      use ml_mod, only : b_vector_base, &
+      use ml_module, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
            init_scales, k_iso, k_iso_exp, k_aniso, &
            optimize_k_scale_k_mask
-      use bulk_solvent_mod, only: f_mask, k_mask
+      use bulk_solvent_module, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(num_hkl)
@@ -509,7 +509,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer, save :: nstep = 0
       integer :: i
-      double precision :: eterm1, eterm2, x
+      real(real_kind) :: eterm1, eterm2, x
 
       if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then

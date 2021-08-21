@@ -153,8 +153,8 @@ contains
       polar_c4 = cmplx(abs(c),phase)
    end function polar_c4
 
-   complex(8) elemental function polar_c8(c)
-      complex(8), intent(in) :: c
+   complex(real_kind) elemental function polar_c8(c)
+      complex(real_kind), intent(in) :: c
       real(8) :: phase
       if (abs(c) < 1D-20) then
          phase=0
@@ -173,8 +173,8 @@ contains
       c = amplitude*cmplx(cos(phase),sin(phase))
    end function complex_from_polar_c4
 
-   complex(8) elemental function complex_from_polar_c8(p) result(c)
-      complex(8), intent(in) :: p
+   complex(real_kind) elemental function complex_from_polar_c8(p) result(c)
+      complex(real_kind), intent(in) :: p
       real(8) :: phase, amplitude
       phase = aimag(p) * M_D2R
       amplitude = real(p)
@@ -187,7 +187,7 @@ contains
    end function amplitude_c4
 
    real(8) elemental function amplitude_c8(c) result(amplitude)
-      complex(8), intent(in) :: c
+      complex(real_kind), intent(in) :: c
       amplitude = abs(c)
    end function amplitude_c8
 
@@ -202,7 +202,7 @@ contains
    end function phase_c4
 
    real(8) elemental function phase_c8(c) result(phase)
-      complex(8), intent(in) :: c
+      complex(real_kind), intent(in) :: c
       if (abs(c)<1D-20) then
          phase=0.0
       else

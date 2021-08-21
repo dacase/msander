@@ -19,7 +19,7 @@ module xray_interface_module
    !  sander.f:   call xray_fini()
 
    use xray_globals_module
-   use bulk_solvent_mod, only: k_sol, b_sol
+   use bulk_solvent_module, only: k_sol, b_sol
    implicit none
    private
 
@@ -102,7 +102,7 @@ contains
    end subroutine xray_read_mdin
 
    subroutine xray_write_options()
-      use bulk_solvent_mod, only: k_sol, b_sol
+      use bulk_solvent_module, only: k_sol, b_sol
       implicit none
 
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
@@ -456,16 +456,16 @@ contains
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
-      use ml_mod, only: init_ml, init_scales
-      use bulk_solvent_mod, only: init_bulk_solvent, f_mask, f_solvent
+      use ml_module, only: init_ml, init_scales
+      use bulk_solvent_module, only: init_bulk_solvent, f_mask, f_solvent
       implicit none
       ! local
       integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
-      double precision :: resolution, fabs_solvent, phi_solvent
-      double precision :: a,b,c,alpha,beta,gamma
+      real(real_kind) :: resolution, fabs_solvent, phi_solvent
+      real(real_kind) :: a,b,c,alpha,beta,gamma
       real(real_kind) :: phi
       logical :: master
-      double precision :: time0, time1
+      real(real_kind) :: time0, time1
 #ifdef MPI
 #     include "parallel.h"
 #else
@@ -651,12 +651,12 @@ contains
 
    ! Write X-ray output files and deallocate.
    subroutine xray_fini()
-      use bulk_solvent_mod, only : k_mask, f_mask
+      use bulk_solvent_module, only : k_mask, f_mask
       implicit none
 #     include "extra.h"
       ! local
       integer :: dealloc_status, i
-      double precision :: phicalc, phimask
+      real(real_kind) :: phicalc, phimask
 
       if (.not.xray_active) return
 

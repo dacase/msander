@@ -63,7 +63,7 @@ subroutine sander()
   use xray_interface_module, only: xray_init, xray_read_parm, &
            xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
   use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
-  use bulk_solvent_mod, only: k_mask
+  use bulk_solvent_module, only: k_mask
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &

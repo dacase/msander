@@ -65,8 +65,8 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
-$modulefile{"ml_mod"} = "xray_ml";
-$modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
+# $modulefile{"ml_mod"} = "xray_ml";
+# $modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 
 # ignore certain modules:
 

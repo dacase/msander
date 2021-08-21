@@ -1,27 +1,28 @@
 #include "../include/assert.fh"
-module bulk_solvent_mod
+module bulk_solvent_module
 
+  use xray_globals_module, only : real_kind
   implicit none
 
   ! Arrays to hold the bulk solvent mask
-  complex(8), dimension(:), allocatable :: mask_bs_grid_t_c
+  complex(real_kind), dimension(:), allocatable :: mask_bs_grid_t_c
   ! Bulk solvent mask parameters
-  double precision, dimension(16)   :: mask_cell_params
-  double precision, dimension(3)    :: mask_grid_steps
+  real(real_kind), dimension(16)   :: mask_cell_params
+  real(real_kind), dimension(3)    :: mask_grid_steps
 
-  double precision, dimension(:), allocatable :: k_mask, &
+  real(real_kind), dimension(:), allocatable :: k_mask, &
           mask_cutoffs, b_vector_mask
-  complex(8), dimension(:), allocatable :: f_mask, f_solvent
+  complex(real_kind), dimension(:), allocatable :: f_mask, f_solvent
 
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
   !                               FFT'd bulk solvent mask
   integer, dimension(:), allocatable :: hkl_indexing_bs_mask
 
   ! Convenient numerical constants
-  double precision, parameter :: pi = 3.14159265359, zero = 0.0, &
+  real(real_kind), parameter :: pi = 3.14159265359, zero = 0.0, &
                                  mask_r_shrink = 0.9, &
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
-  double precision :: k_sol = 0.35, b_sol = 46.0
+  real(real_kind) :: k_sol = 0.35, b_sol = 46.0
 
   ! mask_bs_grid:      Array to hold the bulk solvent mask
   ! mask_bs_grid_tmp:  Array used in shrinking the bulk solvent mask 
@@ -130,7 +131,7 @@ contains
 
     ! Create list of neighboring grid points
     integer :: low(3), high(3), i, n0, n1, n2, p0, m0, p1, m1, p2, m2, alloc_
-    double precision :: x, shrink_truncation_radius_sq, frac(3), dist_sq
+    real(real_kind) :: x, shrink_truncation_radius_sq, frac(3), dist_sq
 
     alloc_ = 1
     do i = 1, 3
@@ -194,14 +195,14 @@ contains
                         num_atoms, cross, bulk_solvent_model
     use memory_module, only: i100, ix
     implicit none
-    double precision, intent(in) :: resolution
+    real(real_kind), intent(in) :: resolution
 
     integer :: i, atomic_number, na, nb, nc, ier
-    double precision :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
-    double precision :: a,b,c,alpha,beta,gamma
-    double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
-    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
-    double precision :: norm2_vas, norm2_vbs, norm2_vcs
+    real(real_kind) :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
+    real(real_kind) :: a,b,c,alpha,beta,gamma
+    real(real_kind) :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
+    real(real_kind), dimension(3) :: va, vb, vc, vas, vbs, vcs, s
+    real(real_kind) :: norm2_vas, norm2_vbs, norm2_vcs
 
     allocate(k_mask(num_hkl), f_mask(num_hkl), stat=ier)
     REQUIRE( ier==0 )
@@ -335,11 +336,11 @@ contains
 
     implicit none
     integer :: tid, n_atom
-    double precision :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
+    real(real_kind) :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
                         distsq, coas, cobs, cocs
     integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index, mdi, mdj, mdk
-    double precision :: frac(3)
-    double precision :: crd(3, n_atom)
+    real(real_kind) :: frac(3)
+    real(real_kind) :: crd(3, n_atom)
 
     do tid = 1, n_atom
 
@@ -441,7 +442,7 @@ contains
     !use iso_c_binding
     implicit none
 #include "fftw3.f"
-    double precision :: mask_bs_grid_3d(mask_grid_size(3), &
+    real(real_kind) :: mask_bs_grid_3d(mask_grid_size(3), &
                                         mask_grid_size(2), &
                                         mask_grid_size(1))
     double complex ::   mask_bs_grid_3d_fft(mask_grid_size(3)/2 + 1, &
@@ -513,11 +514,11 @@ contains
 #endif
       implicit none
       integer, intent(in) :: nstep
-      double precision, intent(in) :: crd(3*num_atoms)
+      real(real_kind), intent(in) :: crd(3*num_atoms)
       logical, intent(in) :: update_Fcalc
 
       integer :: i, ier
-      double precision :: time0, time1
+      real(real_kind) :: time0, time1
 
       if( bulk_solvent_model == 'none' ) return
 
@@ -555,4 +556,4 @@ contains
 
    end subroutine get_solvent_contribution
 
-end module bulk_solvent_mod
+end module bulk_solvent_module
