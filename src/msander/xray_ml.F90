@@ -550,7 +550,7 @@ contains
     NRF_work_sq = NRF_work * NRF_work
 
 #if 0
-       write(6,'(a)') '| using simple model for Ucryst'
+       ! write(6,'(a)') '| using simple model for Ucryst'
        Ucryst(1, 1) = 1.0 / NRF_work
        Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
        Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
@@ -559,7 +559,7 @@ contains
        Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
        Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
 #else
-       write(6,'(a)') '| using optimized model for Ucryst'
+       ! write(6,'(a)') '| using optimized model for Ucryst'
        Ucryst(1, 1) = 1.0
        Ucryst(1, 2) = 0.0
        Ucryst(1, 3) = 0.0
