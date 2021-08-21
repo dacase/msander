@@ -185,7 +185,7 @@ contains
     end do
   end subroutine calc_grid_neighbors
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! init_bulk_solvent: intialize the mask to one, 'solvent present here.'
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
@@ -203,10 +203,10 @@ contains
     double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
     double precision :: norm2_vas, norm2_vbs, norm2_vcs
 
-    if( mytaskid .ne. 0 .or. bulk_solvent_model .eq. 'none' ) return
-
     allocate(k_mask(num_hkl), f_mask(num_hkl), stat=ier)
     REQUIRE( ier==0 )
+
+    if( mytaskid .ne. 0 .or. bulk_solvent_model .eq. 'none' ) return
 
     allocate(hkl_indexing_bs_mask(num_hkl))
 
@@ -504,5 +504,55 @@ contains
     end if
 
   end function h_as_ih
+
+   subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
+      use xray_globals_module, only : user_fmask, bulk_solvent_model, &
+             mask_update_frequency, num_hkl, num_atoms, Fcalc
+#ifdef MPI
+      use mpi
+#endif
+      implicit none
+      integer, intent(in) :: nstep
+      double precision, intent(in) :: crd(3*num_atoms)
+      logical, intent(in) :: update_Fcalc
+
+      integer :: i, ier
+      double precision :: time0, time1
+
+      if( bulk_solvent_model == 'none' ) return
+
+      ! only do this on the master node to save global memory
+      if (mytaskid == 0 .and. mod(nstep, mask_update_frequency) == 0) then
+
+         if( user_fmask ) then
+            f_mask(:) = f_solvent(:)
+            write(6,'(a)') '| Setting f_mask to f_solvent'
+         else
+            call grid_bulk_solvent(num_atoms, crd)
+            call shrink_bulk_solvent()
+            call fft_bs_mask()
+
+            do i=1,num_hkl
+               f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                        * mask_cell_params(16) / mask_grid_size(4)
+#if 0
+               write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
+                  hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
+                  hkl_index(3,i),char(9), &
+                  real(f_mask(i)),char(9), &
+                  aimag(f_mask(i)),char(9),abs(f_mask(i))
+#endif
+            end do
+         endif
+      endif
+#ifdef MPI
+      call mpi_bcast(f_mask,num_hkl,MPI_DOUBLE_COMPLEX,0,commsander,ier )
+#endif
+
+      if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+
+      return
+
+   end subroutine get_solvent_contribution
 
 end module bulk_solvent_mod

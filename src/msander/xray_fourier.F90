@@ -17,8 +17,6 @@ module xray_fourier_module
 !
 !  scale_Fcalc       --   Carry out scaling (only for ml + simple/none for now)
 !
-!  get_solvent_contribution -- bulk_solvent mask or other models
-!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -46,6 +44,7 @@ module xray_fourier_module
 !                              at the beginning of fourier_Fcalc()
 
    use xray_globals_module
+   use bulk_solvent_mod, only: get_solvent_contribution
    use constants, only: M_TWOPI => TWOPI
    implicit none
 #ifdef MPI
@@ -304,59 +303,6 @@ contains
       end if
       return
    end subroutine get_residual
-
-   subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
-      use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
-          shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
-          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size, &
-          f_solvent
-      use xray_globals_module, only : user_fmask
-#ifdef MPI
-      use mpi
-#endif
-      implicit none
-      integer, intent(in) :: nstep
-      real(real_kind), intent(in) :: crd(3*num_atoms)
-      logical, intent(in) :: update_Fcalc
-
-      integer :: i, ier
-      double precision :: time0, time1
-
-      if( bulk_solvent_model == 'none' ) return
-
-      ! only do this on the master node to save global memory
-      if (mytaskid == 0 .and. mod(nstep, mask_update_frequency) == 0) then
-
-         if( user_fmask ) then
-            f_mask(:) = f_solvent(:)
-            write(6,'(a)') '| Setting f_mask to f_solvent'
-         else
-            call grid_bulk_solvent(num_atoms, crd)
-            call shrink_bulk_solvent()
-            call fft_bs_mask()
-
-            do i=1,num_hkl
-               f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
-                        * mask_cell_params(16) / mask_grid_size(4)
-#if 0
-               write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
-                  hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
-                  hkl_index(3,i),char(9), &
-                  real(f_mask(i)),char(9), &
-                  aimag(f_mask(i)),char(9),abs(f_mask(i))
-#endif
-            end do
-         endif
-#ifdef MPI
-         call mpi_bcast(f_mask,num_hkl,MPI_DOUBLE_COMPLEX,0,commsander,ier )
-#endif
-      endif
-
-      if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
-
-      return
-
-   end subroutine get_solvent_contribution
 
    subroutine scale_Fcalc(nstep, selected)
       use ml_mod, only : b_vector_base, NRF_work, NRF_work_sq, &
