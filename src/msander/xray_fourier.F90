@@ -119,9 +119,6 @@ contains
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-      ! special kludge to just get bulk_solvent factors:
-      ! Fcalc(:) = 0._rk_
-      ! return
       call wallclock( time0 )
 
 !$omp parallel private(ihkl,i,ith)  num_threads(omp_num_threads)
@@ -228,21 +225,20 @@ contains
 
       ! TODO: does it hurt to have if statements inside the double loop?
 #ifdef MPI
-      REFLECTION: do ihkl = ihkl1,ihkl2
-         ATOM: do iatom = 1,num_atoms
+      do ihkl = ihkl1,ihkl2
+         do iatom = 1,num_atoms
 #else
 !$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
-      ATOM: do iatom = 1,num_atoms
-         REFLECTION: do ihkl = ihkl1,ihkl2
+      do iatom = 1,num_atoms
+         do ihkl = ihkl1,ihkl2
 #endif
 
             dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
             phase = sum( dhkl * xyz(:,iatom) )
             f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
-                  * exp(mSS4(ihkl) * tempFactor(iatom)) 
-   
-            f = f * cmplx(cos(phase),sin(phase), rk_)
+                  * exp(mSS4(ihkl) * tempFactor(iatom)) &
+                  * cmplx(cos(phase),sin(phase), rk_)
 
 #if 0
             if (present(d_occupancy)) then
@@ -266,14 +262,9 @@ contains
                    ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
             ! end if
 
-#ifdef MPI
-         end do ATOM
-      end do REFLECTION
-#else
-         end do REFLECTION
-      end do ATOM
+         end do
+      end do
 !$omp end parallel do
-#endif
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
       return
@@ -359,14 +350,7 @@ contains
 
          else if( target .eq. 'ml' ) then
 
-            ! isotropic scaling for Fcalc, with same general notation:
-            ! NRF_work_sq = NRF_work * NRF_work
-            ! b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-            !              / NRF_work_sq
-            ! b(1) = sum(b_vector_base)
-            ! k_scale(:) = exp(b(1))
-            ! if(mytaskid==0) write(6,'(a,f10.5)') &
-            !    '| updating   isotropic scaling: ', k_scale(1)
+            ! N.B.: this routine is not called if bulk_solvent_model='opt'
 
             ! anisotropic scaling for Fcalc:
             NRF_work_sq = NRF_work * NRF_work
