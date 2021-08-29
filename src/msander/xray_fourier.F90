@@ -84,9 +84,10 @@ contains
       real(real_kind), intent(in), target :: occupancy(num_atoms)
 
       ! locals
-      integer :: ihkl, i, ier, ith, ithmax
+      integer :: ihkl, i, ier
       real(real_kind) :: time0, time1
       logical, save :: first=.true.
+      real(real_kind) :: f(num_atoms), angle(num_atoms)
 
       if( first ) then
          ! set up reflection partitioning for MPI
@@ -110,26 +111,14 @@ contains
          first = .false. 
       endif
 
-      allocate(f(num_atoms,omp_num_threads), stat=ier)
-      REQUIRE(ier==0)
-      allocate(angle(num_atoms,omp_num_threads), stat=ier)
-      REQUIRE(ier==0)
-
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
       call wallclock( time0 )
 
-!$omp parallel private(ihkl,i,ith)  num_threads(omp_num_threads)
+!$omp parallel do private(ihkl,f,angle)  num_threads(omp_num_threads)
 
-#ifdef OPENMP
-         ith = omp_get_thread_num() + 1
-#else
-         ith = 1
-#endif
-
-!$omp do 
       do ihkl = ihkl1, ihkl2
          ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
          !      j = 1,num_selected_atoms
@@ -150,23 +139,20 @@ contains
          ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
          !    j = 1,num_selected_atoms
 
-         f(:,ith) = exp( mSS4(ihkl) * tempFactor(:) ) &
+         f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
               * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
               * occupancy(:)
-         angle(:,ith) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
+         angle(:) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
                          hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
 
-         Fcalc(ihkl) = cmplx( sum(f(:,ith) * cos(angle(:,ith))), &
-                              sum(f(:,ith) * sin(angle(:,ith))), rk_ )
+         Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
+                              sum(f(:) * sin(angle(:))), rk_ )
 
       end do
-!$omp end do
-!$omp end parallel
+!$omp end parallel do
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
       ! if( mytaskid == 0 ) write(0,*) 'ihkl loop: ', time1-time0
-      deallocate(f, angle, stat=ier)
-      REQUIRE(ier==0)
       return
 
    end subroutine fourier_Fcalc
@@ -228,7 +214,7 @@ contains
       do ihkl = ihkl1,ihkl2
          do iatom = 1,num_atoms
 #else
-!$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
+!$omp parallel do private(ihkl,iatom,dhkl,phase,f) 
       do iatom = 1,num_atoms
          do ihkl = ihkl1,ihkl2
 #endif
@@ -259,7 +245,7 @@ contains
 
             ! if (present(dxyz)) then
                dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
-                   ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
+                   ( f%im * dF(ihkl)%re - f%re * dF(ihkl)%im )
             ! end if
 
          end do
