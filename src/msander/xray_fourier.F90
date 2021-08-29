@@ -140,8 +140,7 @@ contains
          !    j = 1,num_selected_atoms
 
          f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
-              * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
-              * occupancy(:)
+              * atomic_scatter_factor(ihkl,scatter_type_index(:))
          angle(:) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
                          hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
 
@@ -200,8 +199,8 @@ contains
       ! locals
       integer :: ihkl, iatom, i
       real(real_kind) :: dhkl(3)
-      complex(real_kind) :: f
-      real(real_kind) :: phase
+      ! complex(real_kind) :: f
+      real(real_kind) :: f, phase
       real(real_kind) time0, time1
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
@@ -221,10 +220,10 @@ contains
 
             dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
-            phase = sum( dhkl * xyz(:,iatom) )
+            phase = sum( dhkl(:) * xyz(:,iatom) )
             f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
                   * exp(mSS4(ihkl) * tempFactor(iatom)) &
-                  * cmplx(cos(phase),sin(phase), rk_)
+                  * ( sin(phase) * dF(ihkl)%re - cos(phase) * dF(ihkl)%im )
 
 #if 0
             if (present(d_occupancy)) then
@@ -244,8 +243,7 @@ contains
 #endif
 
             ! if (present(dxyz)) then
-               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
-                   ( f%im * dF(ihkl)%re - f%re * dF(ihkl)%im )
+               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * f
             ! end if
 
          end do
