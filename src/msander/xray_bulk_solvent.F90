@@ -265,7 +265,7 @@ contains
     norm2_vbs = sqrt( dot_product(vbs,vbs) )
     norm2_vcs = sqrt( dot_product(vcs,vcs) )
 
-    temp_grid = max( 0.3, resolution / 4.0 )
+    temp_grid = max( 0.25, resolution / 4.0 )
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
     nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
     nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
@@ -286,11 +286,9 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-#if 0
-    write(0, *) 'resolution', resolution
-    ! write(0, *) 'mask_cell_params', mask_cell_params
-    write(0, *) 'mask_grid_steps', mask_grid_steps
-    write(0, *) 'mask_grid_size', mask_grid_size
+#if 1
+    write(6, '(a,3f10.5)') '| mask_grid_steps: ', mask_grid_steps
+    write(6, '(a,4i10)') '| mask_grid_size: ', mask_grid_size
 #endif
     allocate(mask_bs_grid(mask_grid_size(4)))
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))
@@ -483,18 +481,21 @@ contains
 
     m = (na - 1) / 2
     if (-m > ihh .or. ihh > m) then
+      write(0,*) 'indexing error 1: ', m, ihh
       error = .true.
     elseif (ihh < 0) then
       ihh = ihh + na
     end if
     m = (nb - 1) / 2
     if (-m > ihk .or. ihk > m) then
+      write(0,*) 'indexing error 2: ', m, ihk
       error = .true.
     elseif (ihk < 0) then
       ihk = ihk + nb
     end if
     m = nc / 2 + 1
     if (0 > ihl .or. h >= m) then
+      write(0,*) 'indexing error 3: ', m, ihl, h
       error = .true.
     end if
 
