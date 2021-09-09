@@ -42,6 +42,9 @@ contains
    ! Thus is a generic front-end to utilize a specific FFT library.
    subroutine FFT_setup()
       integer :: i
+      write(0,*) 'inside FFT_setup'
+      stop
+#if 0
       if (spacegroup_number/=1) stop 'ERROR: only P1 symmetry is supported.'
       write(stdout,'(A)') '---------------- XRAY FFT SETUP -------------------'
       write(stdout,'(A,3F9.3,3F7.2)') 'Unit cell: ',unit_cell
@@ -68,6 +71,8 @@ contains
       allocate(cmap(       0:grid_size(1)-1, &
                            0:grid_size(2)-1, &
                            0:grid_size(3)))
+#endif
+      write(0,*) 'done with FFT_setup'
    end subroutine FFT_setup
 
    subroutine FFT_forward()
@@ -112,6 +117,7 @@ contains
       !  high_res_limit = 1.0_rk_/sqrt( -4.0 * minval(mSS4))
       !end if
 
+      write(0,*) 'inside FFT_Fcalc'
       density_map(:,:,:) = 0
 
       call wallclock(time0)

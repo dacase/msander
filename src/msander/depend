@@ -4265,7 +4265,8 @@ short_ene.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h
+                    eedmeth2-6.h\
+                    omp_lib.o
 
 
 short_ene.o:   short_ene.F90
@@ -4294,7 +4295,8 @@ short_ene.LES.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h
+                    eedmeth2-6.h\
+                    omp_lib.o
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'
@@ -4484,6 +4486,7 @@ xray_interface.o: \
                     file_io_dat.o\
                     xray_globals.o\
                     xray_bulk_solvent.o\
+                    xray_FFT.o\
                     memory_module.o\
                     xray_reciprocal_space.o\
                     parallel.h\

@@ -20,6 +20,7 @@ module xray_interface_module
 
    use xray_globals_module
    use bulk_solvent_module, only: k_sol, b_sol
+   use xray_FFT_module, only: FFT_Fcalc
    implicit none
    private
 
@@ -471,6 +472,7 @@ contains
 #else
       integer :: mytaskid = 0
 #endif
+      write(0,*) 'in xray_init'
       master = (mytaskid == 0)
 
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
@@ -568,7 +570,8 @@ contains
          ! f_weight(:) = 1.d0
       endif
 
-      ! if( fft_method > 0 ) call FFT_setup()
+      write(0,*) 'ready for FFT_setup'
+      if( fft_method > 0 ) call FFT_setup()
 
       call atommask(natom=natom,nres=nres,prnlev=0, &
             igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
@@ -611,6 +614,7 @@ contains
    end subroutine xray_init
 
    subroutine xray_init_globals()
+      write(0,*) 'in xray_init_globals'
       pdb_infile = ''
       pdb_outfile = ''
       fave_outfile = ''
@@ -768,6 +772,7 @@ contains
       include 'mpif.h'
 #endif
 
+      write(0,*) 'in xray_get_derivative'
       call timer_start(TIME_XRAY)
       allocate(sel_index(num_atoms),stat=alloc_status)
       REQUIRE(alloc_status==0)
@@ -786,8 +791,9 @@ contains
             atom_bfactor(sel_index(1:num_selected)), &
             atom_scatter_type(sel_index(1:num_selected)) , &
             atom_occupancy(sel_index(1:num_selected)) )
-#if 0
+#if 1
       else
+         write(0,*) 'ready for FFT_Fcalc'
          call FFT_Fcalc(num_hkl,Fcalc,test_flag-1, &
             num_selected,frac_xyz, &
             atom_bfactor(sel_index(1:num_selected)), &

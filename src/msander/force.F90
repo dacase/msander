@@ -767,6 +767,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! Built-in X-ray target function and gradient
   xray_energy = 0.d0
+  write(0,*) 'ready for xray_get_derivative'
   if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
      if( iscale > 0 ) then
         if (first) then

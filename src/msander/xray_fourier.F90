@@ -223,7 +223,7 @@ contains
             phase = sum( dhkl(:) * xyz(:,iatom) )
             f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
                   * exp(mSS4(ihkl) * tempFactor(iatom)) &
-                  * ( sin(phase) * dF(ihkl)%re - cos(phase) * dF(ihkl)%im )
+                  * ( sin(phase) * real(dF(ihkl)) - cos(phase) * aimag(dF(ihkl)) )
 
 #if 0
             if (present(d_occupancy)) then
