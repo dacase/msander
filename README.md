@@ -47,7 +47,7 @@ simulations
 
 *Conda build:
 ```
-   conda build -c conda-forge [ --python '3.8.* *_cpython' ] recipe 
+   conda build -c conda-forge [ --python x.x ] recipe 
 ```
 
 *Non-conda build:  (MacOSX, Linux)
