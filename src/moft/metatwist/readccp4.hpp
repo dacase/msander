@@ -455,19 +455,13 @@ namespace util {
                     }
                 }
 
+          myFile.close();
           return true;
 
         } else {
-
-
-
           std::cout << ">>  Could not read file:" << filename << std::endl;
           return false;
         }
-
-
-      myFile.close();
-
 
     }
 
