@@ -17,6 +17,7 @@ rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
 boost="yes"
+build_boost="no"
 moft="moft"
 gcc10f=""
 gcc10c=""
@@ -120,6 +121,8 @@ for var in "$@"; do
         --no-boost)
             boost="no"
             moft="skip";;
+        --build-boost)
+            build_boost="yes";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
@@ -139,6 +142,7 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --no-netcdf    disable NetCDF support\n"
 	printf " --no-rism      disable 3D-RISM support\n"
 	printf " --no-boost     disable moft support\n"
+	printf " --build-boost  build boost from source, else use installed\n"
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
@@ -419,7 +423,7 @@ if [ "$flibs_fftw" != "" ]; then
           cd src/fftw-3.3 && \
               ./configure --disable-doc --prefix=$msanderhome \
               --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static $enable_sse MPICC="$mpicc" \
+              --enable-static --enable-threads $enable_sse MPICC="$mpicc" \
               CFLAGS="$optflags -fPIC"  \
               FFLAGS="$optflags -fPIC"  \
               FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
@@ -469,7 +473,7 @@ fi
 #  Configure boost
 #--------------------------------------------------------------------------
 
-if [ "$boost" == "yes" ]; then
+if [ "$boost" == "yes" -a "$build_boost" == "yes" ]; then
    if [ ! -s "lib/libboost_system.a" ]; then
 
       printf "\nConfiguring boost (may be time-consuming)..."
@@ -502,7 +506,7 @@ if [ "$boost" == "yes" ]; then
       fi
       cd ../..
    else
-      echo "Using the existing boost  libraries"
+      echo "Using the existing local boost libraries"
    fi
 fi
 
