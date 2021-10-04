@@ -8,7 +8,7 @@ from sys import stderr as _stderr
 
 __all__ = ['InputOptions', 'QmInputOptions', 'setup', 'cleanup', 'pme_input',
            'gas_input', 'natom', 'energy_forces', 'set_positions', 'set_box',
-           'is_setup', 'EnergyTerms']
+           'is_setup', 'EnergyTerms', 'RismInputOptions' ]
 
 try:
     from . import pysander as _pys
@@ -23,6 +23,7 @@ APPLY_UNITS = False
 # Add some of the pysander members directly to the sander namespace
 InputOptions = _pys.InputOptions
 QmInputOptions = _pys.QmInputOptions
+RismInputOptions = _pys.RismInputOptions
 EnergyTerms = _pys.EnergyTerms
 cleanup = _pys.cleanup
 pme_input = _pys.pme_input
@@ -210,6 +211,8 @@ class setup(object):
         struct with sander options
     qm_options : QmInputOptions (optional)
         struct with the QM options in sander QM/MM calculations
+    rism_options : RismInputOptions (optional)
+        struct with the rism options in sander 3D-RISM calculations
 
     Examples
     --------
@@ -247,7 +250,9 @@ class setup(object):
     True
     """
 
-    def __init__(self, prmtop, coordinates, box, mm_options, qm_options=None):
+    def __init__(self, prmtop, coordinates, box, mm_options, 
+        qm_options=None, rism_options=None):
+
         # Handle the case where the coordinates are actually a restart file
         if isinstance(coordinates, string_types):
             # This is a restart file name. Parse it and make sure the coordinates
@@ -281,14 +286,9 @@ class setup(object):
         # Error checking
         if mm_options.ifqnt != 0 and qm_options is None:
             raise ValueError("qm_options must be provided if QM/MM is requested")
-        if mm_options.irism != 0:
-            raise ValueError("only irism=0 is allowed for now")
 
         # Call the setup routine
-        if qm_options is None:
-            _pys.setup(parm, coordinates, box, mm_options)
-        else:
-            _pys.setup(parm, coordinates, box, mm_options, qm_options)
+        _pys.setup(parm, coordinates, box, mm_options, qm_options, rism_options)
 
     def __enter__(self):
         """ Nothing needs to be done here """

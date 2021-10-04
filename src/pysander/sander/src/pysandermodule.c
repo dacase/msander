@@ -51,6 +51,7 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     // Needed to blank-out the strings
     qm_sander_input(&qm_input);
+    rism_sander_input(&rism_input);
 
     // The passed arguments
     if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, &arg5, &arg6))
@@ -65,6 +66,7 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     pysander_InputOptions *mm_inp;
     pysander_QmInputOptions *qm_inp;
+    pysander_RismInputOptions *rism_inp;
 
     if (!PyList_Check(arg2)) {
         PyErr_SetString(PyExc_TypeError, "2nd argument must be a list");
@@ -384,6 +386,9 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     //  stub for now
     if( arg6 ){
+        rism_inp = (pysander_RismInputOptions *) arg6;
+        // Copy over values from rism_inp to rism_input
+        rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
     }
 
     Py_ssize_t ii;
@@ -795,6 +800,8 @@ PyInit_pysander(void) {
         return NULL;
     if (PyType_Ready(&pysander_QmInputOptionsType) < 0)
         return NULL;
+    if (PyType_Ready(&pysander_RismInputOptionsType) < 0)
+        return NULL;
     PyObject* m = PyModule_Create(&moduledef);
 #else
 PyMODINIT_FUNC
@@ -804,6 +811,8 @@ initpysander(void) {
     if (PyType_Ready(&pysander_EnergyTermsType))
         return;
     if (PyType_Ready(&pysander_QmInputOptionsType))
+        return;
+    if (PyType_Ready(&pysander_RismInputOptionsType))
         return;
     PyObject* m = Py_InitModule3("pysander", pysanderMethods,
                 "Python interface into sander energy and force evaluation");
@@ -816,6 +825,8 @@ initpysander(void) {
     PyModule_AddObject(m, "EnergyTerms", (PyObject *) &pysander_EnergyTermsType);
     Py_INCREF(&pysander_QmInputOptionsType);
     PyModule_AddObject(m, "QmInputOptions", (PyObject *) &pysander_QmInputOptionsType);
+    Py_INCREF(&pysander_RismInputOptionsType);
+    PyModule_AddObject(m, "RismInputOptions", (PyObject *) &pysander_RismInputOptionsType);
 
 #if PY_MAJOR_VERSION >= 3
     return m;
