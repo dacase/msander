@@ -281,6 +281,9 @@ class setup(object):
         # Error checking
         if mm_options.ifqnt != 0 and qm_options is None:
             raise ValueError("qm_options must be provided if QM/MM is requested")
+        # if mm_options.irism != 0:
+        if True:
+            raise ValueError("only irism=0 is allowed for now")
 
         # Call the setup routine
         if qm_options is None:

@@ -69,6 +69,7 @@ typedef struct {
     int ew_type;
     int ntb;
     int ifqnt;
+    int irism;
     int jfastw;
     int ntf;
     int ntc;

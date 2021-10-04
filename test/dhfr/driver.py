@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-#works, JJS 7/16/21
-#need to modify rism into it 
+
 import sander
 from parmed.amber.readparm import AmberParm, Rst7
 
@@ -10,8 +9,8 @@ rst = Rst7.open("md12.x")
 
 # Set up input options 
 inp = sander.pme_input()
-sander.setup(parm, rst.coordinates, rst.box, inp)
 print(inp.irism)
+sander.setup(parm, rst.coordinates, rst.box, inp)
 # Compute the energies and forces
 ene, frc = sander.energy_forces()
 

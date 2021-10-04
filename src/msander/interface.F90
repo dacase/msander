@@ -99,6 +99,7 @@ module sander_api
       integer :: ew_type
       integer :: ntb
       integer :: ifqnt
+      integer :: irism
       integer :: jfastw
       integer :: ntf
       integer :: ntc
@@ -174,6 +175,7 @@ subroutine gas_sander_input(inp, gb)
    inp%gbsa = 0
    inp%jfastw = 0
    inp%ifqnt = 0
+   inp%irism = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
    inp%rgbmax = 25.d0
@@ -235,6 +237,7 @@ subroutine pme_sander_input(inp)
    inp%ew_type = 0
    inp%gbsa = 0
    inp%ifqnt = 0
+   inp%irism = 0
    inp%jfastw = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
@@ -896,6 +899,7 @@ subroutine api_mdread1(input_options, ierr)
    tmode = 1 !default tangent mode for NEB calculation
 
    ifqnt = NO_INPUT_VALUE
+   irism = NO_INPUT_VALUE
 
    ifcr = 0 ! no charge relocation
    cropt = 0 ! 1-4 EEL is calculated with the original charges
@@ -991,6 +995,7 @@ subroutine api_mdread1(input_options, ierr)
    cut = input_options%cut
    dielc = input_options%dielc
    ifqnt = input_options%ifqnt
+   irism = input_options%irism
    jfastw = input_options%jfastw
    ntf = input_options%ntf
    ntc = input_options%ntc
@@ -1071,6 +1076,10 @@ subroutine api_mdread1(input_options, ierr)
             '| WARNING qmmm namelist found, but ifqnt was not set! QMMM NOT &
             &active.'
       end if
+   end if
+
+   if (irism == NO_INPUT_VALUE) then
+      ifqnt = 0 ! default value
    end if
 
    ! middle scheme is requested {

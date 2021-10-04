@@ -17,7 +17,7 @@ typedef struct {
     PyObject *ew_type;  // int
     PyObject *ntb;      // int
     PyObject *ifqnt;    // int
-    PyObject *irism;    //int, JJS
+    PyObject *irism;    // int
     PyObject *jfastw;   // int
     PyObject *ntf;      // int
     PyObject *ntc;      // int
@@ -147,7 +147,7 @@ static PyMemberDef pysander_InputOptionMembers[] = {
     {"ifqnt", T_OBJECT_EX, offsetof(pysander_InputOptions, ifqnt), 0,
                 "Whether to use QM/MM"},
     {"irism", T_OBJECT_EX, offsetof(pysander_InputOptions, irism), 0,
-	    "must use MM"},
+	            "whether to use 3D-RISM"},
     {"jfastw", T_OBJECT_EX, offsetof(pysander_InputOptions, jfastw), 0,
                 "Whether to use analytical constraint algo. for 3-pt. waters"},
     {"ntf", T_OBJECT_EX, offsetof(pysander_InputOptions, ntf), 0,
@@ -884,12 +884,12 @@ static PyObject *
 pysander_RismInputOptions_new(PyTypeObject *type) {
     Py_ssize_t i;
     rism_input_options inp;
-    rism_input(&inp);
+    rism_sander_input(&inp);
     pysander_RismInputOptions *self;
     self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
     if (self != NULL) {
         ASSIGN_FLOAT(solvcut);
-	fprintf(stderr, "inside isander rism options new\n");
+	    fprintf(stderr, "inside isander rism options new\n");
     }
 
     return (PyObject *) self;

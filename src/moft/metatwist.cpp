@@ -1010,6 +1010,9 @@ int main(int ac, char* av[]) {
             
             std::vector<TVec> xyplanevectors;
             for (size_t i = 0; i != 750; ++i) {
+
+                TVec v(3, 0);
+
                 v(0) = vgen() - radius;
                 v(1) = vgen() - radius;
                 v(2) = vgen() - radius;

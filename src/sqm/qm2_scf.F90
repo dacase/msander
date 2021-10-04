@@ -2172,7 +2172,7 @@ END SUBROUTINE diis_extrap
 !   _REAL_ :: S(n)
 !   _REAL_ :: U(n,n)
 !   _REAL_ :: VT(n,n)
-!   _REAL_ :: twork
+!   _REAL_ :: twork(1)
 !   _REAL_,ALLOCATABLE :: WORK(:)
 !   INTEGER :: LWORK
 !   INTEGER :: IWORK(8*n)
@@ -2187,9 +2187,9 @@ END SUBROUTINE diis_extrap
 !   ainv = a
 !   JOBZ = "A"
 !   LWORK = -1
-!   CALL DGESDD(JOBZ,n,n,ainv,n,S,U,n,VT,n,twork,LWORK,IWORK,my_err)
+!   CALL DGESDD(JOBZ,n,n,ainv,n,S,U,n,VT,n,twork(1),LWORK,IWORK,my_err)
 
-!   LWORK = NINT(twork)
+!   LWORK = NINT(twork(1))
 !   ALLOCATE( WORK(LWORK) )
 !   WORK = 0.d0
 
@@ -2254,7 +2254,7 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
   _REAL_ :: S(n)
   _REAL_ :: U(n,n)
   _REAL_ :: VT(n,n)
-  _REAL_ :: twork
+  _REAL_ :: twork(1)
   _REAL_,ALLOCATABLE :: WORK(:)
   INTEGER :: LWORK
 
@@ -2267,9 +2267,9 @@ SUBROUTINE SvdInvert_SymMat(n,a,ainv,thresh) ! THRESH,ERR
 
   ainv = a
   LWORK = -1
-  CALL DGESVD("A","A",n,n, ainv,n, S,U,n, VT,n, twork,LWORK,my_err)
+  CALL DGESVD("A","A",n,n, ainv,n, S,U,n, VT,n, twork(1),LWORK,my_err)
   
-  LWORK = NINT(twork)
+  LWORK = NINT(twork(1))
   ALLOCATE( WORK(LWORK) )
   WORK = 0.d0
   
