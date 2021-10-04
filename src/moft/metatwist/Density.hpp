@@ -49,7 +49,6 @@ Journal of the American Chemical Society doi:10.1021/jacs.8b11474
 #include "metaFFT/ConvCorr.hpp"
 
 
-
 template <typename T>
 class Density{
     
@@ -1589,17 +1588,8 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
                 
                 T weight = factor*vdensities[j] ;
                 
-                
                 positions.push_back(v);
                 densities.push_back(weight);
-                
-                
-                /*
-                myfile <<
-                boost::format("ATOM  %5i  XXX   Y Z %3i    %8.3f%8.3f%8.3f  1.00%6.2f")
-                %j %i %v(0) %v(1) %v(2) %(weight*100)
-                << std::endl;
-                */
                 
                 integral_density += weight;
                 
@@ -1612,9 +1602,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
                 // counting the number of voxels
                 ++nvoxels;
             }
-            
-            
-            
         }
         
         for (size_t t = 0;  t != positions.size(); ++t ){
@@ -1697,7 +1684,6 @@ void Density<T>::writedxfile(const std::string &filenameout){
   std::string ext;
   ext = stokens[stokens.size()-1];
 
-
   if (ext=="dx") {
 
       std::cout << "# >> Writing density to " << filenameout  << "." << std::endl;
@@ -1740,10 +1726,7 @@ void Density<T>::writedxfile(const std::string &filenameout){
       this->writeccp4(newfilename);
 
     }
-
 }
-
-
 
 template <typename T>
 void Density<T>::writeccp4(const std::string &filenameout){
@@ -1764,9 +1747,7 @@ void Density<T>::getQDensity(Density<T> & QDensity){
 template <typename T>
 void Density<T>::getLaplacian(Density<T> & LDensity){
     
-    
     // Check if grid sizes and coordinate system match.
-    
     
     std::cout << "# >> Computing numerical Laplacian of input density." << std::endl;
     
@@ -1775,14 +1756,11 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
         && LDensity.getGridSize() == this->getGridSize()
         )
     {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
         
         T factor = this->bulkc * 6.0/std::pow(this->rotm(1,1),2);
-        
-        //std::cout << "factor = " << factor << std::endl;
         
         for (int i = 0; i != isize; ++i){
             int im = i-1, ip=i+1;
@@ -1792,10 +1770,7 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k -1, kp = k+1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0;
                     T d0 = this->data3d[i][j][k];
@@ -1806,41 +1781,19 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
                     if (ip<isize) {count++; depsilon += this->data3d[ip][j ][k ];}
                     if (jp<jsize) {count++; depsilon += this->data3d[i ][jp][k ];}
                     if (kp<ksize) {count++; depsilon += this->data3d[i ][j ][kp];}
-                    
-                    
                     depsilon /= T(count);
-                    
-                    //
-                    //                    if (std::abs(depsilon-d0) > T(1000.0) ){
-                    //
-                    //                        std::cout << i << " " << j << " " << k << " " << depsilon << " - " << d0 << " = " <<(depsilon - d0)*factor << std::endl;
-                    //                    }
-                    
-                    
                     LDensity.set(i,j,k,factor*(depsilon  - d0));
-                    
-                    
                 }
             }
-            
-            
-            
         }
-        
-        
     } else {
         
         std::cout << "# Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
-    
-    
     // go over the interior grid points
-    
     // go over the points at the grid margins
-    
 }
-
 
 template <typename T>
 void Density<T>::getNLaplacian(Density<T> & LDensity){
@@ -1854,15 +1807,11 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
         && LDensity.getGridSize() == this->getGridSize()
         )
     {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
         
         //T factor = 6.0/std::pow(this->rotm(1,1),2);
-        
-        //std::cout << "factor = " << factor << std::endl;
-        
         for (int i = 0; i != isize; ++i){
             int im = i-1, ip=i+1;
             
@@ -1871,10 +1820,7 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k -1, kp = k+1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0.0;
                     T d0 = this->data3d[i][j][k];
@@ -1892,36 +1838,16 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
                     depsilon = std::max(depsilon,1e-3);
                     
                     T tmp = /*factor * */( 1.0 - ( d0/depsilon ));
-                    
-                    //if ( std::abs(tmp)  > 50) {
-                    //    std::cout << depsilon << " vs " << d0 << " = " << depsilon/std::max(d0,1e-6) << std::endl;
-                    //}
-                    
-                    //T tmp = depsilon/std::max(d0,1e-3);
-                    
                     LDensity.set(i,j,k,tmp);
-                    
                 }
             }
-            
-            
-            
         }
-        
-        
     } else {
         
         std::cout << "Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
-    
-    
-    
-
-    
-    
     // go over the interior grid points
-    
     // go over the points at the grid margins
     
 }
@@ -1930,21 +1856,16 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
     
     // Check if grid sizes and coordinate system match.
     
-    
     std::cout << "# >> Computing numerical Normalized Laplacian of input density." << std::endl;
     
     if (LDensity.getorig() == this->getorig()
         && LDensity.getrotm() == this->getrotm()
         && LDensity.getGridSize() == this->getGridSize()
         ) {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
-        
  //       T factor = 6.0 / std::pow(this->rotm(1, 1), 2);
-        
-        //std::cout << "factor = " << factor << std::endl;
         
         for (int i = 0; i != isize; ++i) {
             int im = i - 1, ip = i + 1;
@@ -1954,10 +1875,7 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k - 1, kp = k + 1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0.0;
                     T d0 = this->data3d[i][j][k];
@@ -1993,33 +1911,14 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
                     depsilon = std::max(depsilon, 1e-3);
                     
                     T tmp =  std::log( std::max(d0/depsilon,1e-8) );
-                    
-                    //if ( std::abs(tmp)  > 50) {
-                    //    std::cout << depsilon << " vs " << d0 << " = " << depsilon/std::max(d0,1e-6) << std::endl;
-                    //}
-                    
-                    //T tmp = depsilon/std::max(d0,1e-3);
-                    
                     LDensity.set(i, j, k, tmp);
-                    
-                    
                 }
             }
-            
-            
         }
         
-        
     } else {
-        
         std::cout << "Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
 }
-
-
-
-
-
-
 #endif /* DENSITY_HPP_ */
