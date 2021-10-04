@@ -275,13 +275,14 @@ subroutine qm_sander_input(inp)
    call default_qmmm_input_options(inp)
 
 end subroutine qm_sander_input
-!insert a routine for rism_input, JJS 
+
 !Initalizes a struct for rism at default value
 !Parameters
 !---------
 !inp : type(rism_input_options)
 !      struct of rism input options filled by this subroutine
-subroutine rism_input()
+
+subroutine rism_sander_input()
 !need default input here
 use sander_rism_interface, only: rismprm
 implicit none
@@ -4560,6 +4561,24 @@ subroutine ext_qm_sander_input(inp)
    call mod_func(inp)
 
 end subroutine ext_qm_sander_input
+
+! Initializes a struct with RISM options to all default values
+!
+! Parameters
+! ----------
+! inp : type(rism_input_options)
+!     struct of QM input options that will be filled by this subroutine
+subroutine ext_rism_sander_input(inp)
+
+   use SANDER_API_MOD, only : mod_func => rism_sander_input
+
+   implicit none
+
+   type(rism_input_options), intent(out) :: inp
+
+   call mod_func(inp)
+
+end subroutine ext_rism_sander_input
 
 ! Initializes the major data structures needed to evaluate energies and forces
 !

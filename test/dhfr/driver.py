@@ -9,7 +9,8 @@ rst = Rst7.open("md12.x")
 
 # Set up input options 
 inp = sander.pme_input()
-print(inp.irism)
+print("inp.rism is %d\n" % inp.irism)
+inp.irism = 1
 sander.setup(parm, rst.coordinates, rst.box, inp)
 # Compute the energies and forces
 ene, frc = sander.energy_forces()
