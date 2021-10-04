@@ -21,7 +21,7 @@ typedef int Py_ssize_t;
 // Amber-specific includes
 #include "sander.h"
 
-// Cordion off the type definitions, since they are large
+// Cordon off the type definitions, since they are large
 #include "pysandermoduletypes.c"
 
 /* sander can only be set up once, and must be cleaned up before being set up

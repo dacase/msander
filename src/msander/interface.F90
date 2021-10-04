@@ -16,6 +16,7 @@ module sander_api
    use prmtop_type, only: prmtop_struct, destroy_prmtop_struct, read_prmtop_file
    use qmmm_module, only: qmmm_input_options
    use state, only: potential_energy_rec
+   use amber_rism_interface, only : rismprm_t
 
 ! qmmm_input options is a data structure defined in qmmm_module, shown below:
 !
@@ -124,6 +125,7 @@ module sander_api
              potential_energy_rec, sander_cleanup, MAX_FN_LEN, get_box, &
              qm_sander_input, sander_natom, prmtop_struct, read_inpcrd_file, &
              get_inpcrd_natom, destroy_prmtop_struct, read_prmtop_file, &
+             rism_sander_input,  &
 #ifdef NO_ALLOCATABLES_IN_TYPE
              is_setup, get_positions
 #else
@@ -282,26 +284,15 @@ end subroutine qm_sander_input
 !inp : type(rism_input_options)
 !      struct of rism input options filled by this subroutine
 
-subroutine rism_sander_input()
-!need default input here
-use sander_rism_interface, only: rismprm
-implicit none
+subroutine rism_sander_input(inp)
+   !need default input here
+   use sander_rism_interface, only: rismprm
+   implicit none
 
-!type(rism_input_options), intent(out) :: inp
-write(0,*) 'inside_rism_input' 
-return 
-end 
-
-
-
-
-
-
-
-
-
-
-
+   type(rismprm_t), intent(out) :: inp
+   write(0,*) 'inside_rism_input' 
+   return 
+end  subroutine rism_sander_input
 
 
 ! Initializes the major data structures needed to evaluate energies and forces
@@ -4571,10 +4562,11 @@ end subroutine ext_qm_sander_input
 subroutine ext_rism_sander_input(inp)
 
    use SANDER_API_MOD, only : mod_func => rism_sander_input
+   use amber_rism_interface, only : rismprm_t
 
    implicit none
 
-   type(rism_input_options), intent(out) :: inp
+   type(rismprm_t), intent(out) :: inp
 
    call mod_func(inp)
 

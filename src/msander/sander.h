@@ -18,6 +18,7 @@
 // These are the raw functions that we expose unaltered from the F90 API
 #define pme_sander_input ext_pme_sander_input_
 #define qm_sander_input ext_qm_sander_input_
+#define rism_sander_input ext_rism_sander_input_
 #define energy_forces ext_energy_forces_
 #define set_positions ext_set_positions_
 #define sander_cleanup ext_sander_cleanup_

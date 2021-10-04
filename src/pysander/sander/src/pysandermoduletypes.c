@@ -866,6 +866,7 @@ static PyTypeObject pysander_QmInputOptionsType = {
 
 };
 
+// ---------------------------------------------------------------------------
 //  RISM options
 //    dac, 7/19/21: just a stub copy of what is above, but replacing
 //                  "Qm" with "Rism"
@@ -883,7 +884,7 @@ typedef struct {
 static PyObject *
 pysander_RismInputOptions_new(PyTypeObject *type) {
     rism_input_options inp;
-    // rism_sander_input(&inp);
+    ext_rism_sander_input_(&inp);
     pysander_RismInputOptions *self;
     self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
     if (self != NULL) {
@@ -957,3 +958,4 @@ static PyTypeObject pysander_RismInputOptionsType = {
     (newfunc)pysander_RismInputOptions_new,// tp_new
 
 };
+// ---------------------------------------------------------------------------
