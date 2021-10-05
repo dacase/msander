@@ -292,6 +292,7 @@ subroutine rism_sander_input(inp)
    type(rismprm_t), intent(out) :: inp
    write(0,*) 'inside rism_sander_input: setting defaults' 
    call defaults()
+   write(0,*) 'solvcut = ', rismprm%solvcut
    return 
 end  subroutine rism_sander_input
 
@@ -4569,6 +4570,7 @@ subroutine ext_rism_sander_input(inp)
 
    type(rismprm_t), intent(out) :: inp
 
+   write(0,*) 'inside ext_rism_sander_input: calling mod_func'
    call mod_func(inp)
 
 end subroutine ext_rism_sander_input

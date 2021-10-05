@@ -884,13 +884,12 @@ typedef struct {
 static PyObject *
 pysander_RismInputOptions_new(PyTypeObject *type) {
     rism_input_options inp;
+	    fprintf(stderr, "inside pysander_RismInputOptions_new; call ext_rism_sander_input\n");
     ext_rism_sander_input_(&inp);
     pysander_RismInputOptions *self;
     self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
     if (self != NULL) {
         ASSIGN_FLOAT(solvcut);
-	    fprintf(stderr, "inside pysander_RismInputOptions_new %8.3f\n",
-            self->solvcut);
     }
 
     return (PyObject *) self;

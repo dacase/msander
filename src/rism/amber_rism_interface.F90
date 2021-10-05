@@ -477,9 +477,14 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
+    write(0,*) 'skipping defaults in rism_setparm()'
+#ifndef API
+    call defaults()
+#endif
+    write(0,*) 'solvcut = ', rismprm%solvcut
+
 #ifndef API
     outunit = rism_report_getMUnit()
-    call defaults()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
     open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
@@ -1780,3 +1785,16 @@ end subroutine rism_sander_input
 #endif
 
 end module sander_rism_interface
+
+!  Keep outside of the module, to avoid name mangling
+#ifdef API
+  subroutine rism_setparam2( solvcut )
+     use amber_rism_interface
+     implicit none
+     double precision, intent(in):: solvcut
+     write(0,*) 'in rism_setparam2: setting solvcut to ', solvcut
+     rismprm%solvcut = solvcut
+     return
+  end subroutine rism_setparam2
+#endif
+

@@ -393,6 +393,10 @@ pysander_setup(PyObject *self, PyObject *args) {
         rism_inp = (pysander_RismInputOptions *) arg5;
         // Copy over values from rism_inp to rism_input
         rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
+        fprintf( stderr, "in pysander_setup: solvcut = %8.3f\n",
+                      rism_input.solvcut );
+        // now call rism_setparam2() to get into rismprm_t?
+        rism_setparam2_( &rism_input.solvcut );
     }
 
     Py_ssize_t ii;
