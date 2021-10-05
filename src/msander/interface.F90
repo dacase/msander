@@ -286,11 +286,12 @@ end subroutine qm_sander_input
 
 subroutine rism_sander_input(inp)
    !need default input here
-   use sander_rism_interface, only: rismprm
+   use sander_rism_interface, only: rismprm, defaults
    implicit none
 
    type(rismprm_t), intent(out) :: inp
-   write(0,*) 'inside_rism_input' 
+   write(0,*) 'inside rism_sander_input: setting defaults' 
+   call defaults()
    return 
 end  subroutine rism_sander_input
 

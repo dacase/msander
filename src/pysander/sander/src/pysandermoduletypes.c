@@ -889,7 +889,8 @@ pysander_RismInputOptions_new(PyTypeObject *type) {
     self = (pysander_RismInputOptions *)type->tp_alloc(type, 0);
     if (self != NULL) {
         ASSIGN_FLOAT(solvcut);
-	    fprintf(stderr, "inside isander rism options new\n");
+	    fprintf(stderr, "inside pysander_RismInputOptions_new %8.3f\n",
+            self->solvcut);
     }
 
     return (PyObject *) self;

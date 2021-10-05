@@ -350,6 +350,7 @@ contains
     _REAL_ :: sd, sr
     _REAL_ :: sigma(this%solute%numAtoms,this%solvent%numAtomTypes), beta
 
+    write(0,*) 'in uvLJrEwaldMinImage, cutoff2 = ', this%cutoff2
     beta = 1.d0/this%chargeSmear
     do iu = 1, this%solute%numAtoms
        do iv = 1, this%solvent%numAtomTypes

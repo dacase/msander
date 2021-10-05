@@ -288,7 +288,7 @@ class setup(object):
             raise ValueError("qm_options must be provided if QM/MM is requested")
 
         # Call the setup routine
-        _pys.setup(parm, coordinates, box, mm_options, qm_options, rism_options)
+        _pys.setup(parm, coordinates, box, mm_options, rism_options)
 
     def __enter__(self):
         """ Nothing needs to be done here """

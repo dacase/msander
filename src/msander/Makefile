@@ -7,6 +7,8 @@ VPATH=
 # Add search paths for .mod files
 LOCALFLAGS = -I../sqm -I../rism 
 
+SANDER_RISM_INTERFACE = amber_rism_interface.API.o
+
 QMAPIOBJ = \
     abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
     qm2_extern_util_module.o qm2_extern_module.o \
@@ -165,6 +167,10 @@ libsander_skip::
 
 libsanderles_skip::
 	@echo "Skipping libsander"
+
+$(SANDER_RISM_INTERFACE): ../rism/amber_rism_interface.F90
+	@echo "[MSANDER]  FC $<"
+	$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ $< 
 
 dummy:
 

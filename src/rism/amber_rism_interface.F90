@@ -477,9 +477,9 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
+#ifndef API
     outunit = rism_report_getMUnit()
     call defaults()
-
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
     open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
@@ -488,6 +488,7 @@ contains
     end if
     call read_namelist(mdin_unit)
     if (.not.op) close(unit=mdin_unit)
+#endif
 
     ! Initialize 3D-RISM solute and solvent.
 
@@ -504,6 +505,12 @@ contains
     call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 
+#ifdef API
+    xvvfile = 'xvvfile'
+    crdFile = '2igd.rst7'
+    write(0,*) 'ready to call rism3d_solvent_new: ', xvvfile
+    outunit = 0
+#endif
     call rism3d_solvent_new(solvent, xvvfile)    
     call rism3d_solute_new_sander(solute, numAtoms, numTypes, atomTypeIndex, &
          nonbondedParmIndex, charge, ljA, ljB, mass, solvent%temperature)
@@ -1508,15 +1515,15 @@ contains
     periodicPotential         = 'pme'
 
     !solvation box
-    rismprm%solvcut         = -1
+    rismprm%solvcut         = 9.d0
     rismprm%grdspc          = 0.5d0
     rismprm%ng3             = -1
 
     !convergence
     tolerancelist => safemem_realloc(tolerancelist, nclosuredefault)
     tolerancelist             = HUGE(1d0)
-    tolerancelist(1)          = 1d-5
-    rismprm%mdiis_del         = 0.7d0
+    tolerancelist(1)          = 1d-7
+    rismprm%mdiis_del         = 0.4d0
     rismprm%mdiis_nvec        = 5
     rismprm%mdiis_method      = 2
     rismprm%mdiis_restart     = 10d0
@@ -1756,6 +1763,7 @@ contains
     mylcm = lcm(a, b)
   end function mylcm
 
+#if 0
 ! Initializes a struct with RISM options to all default values
 !
 ! Parameters
@@ -1769,5 +1777,6 @@ subroutine rism_sander_input(inp)
    call defaults
 
 end subroutine rism_sander_input
+#endif
 
 end module sander_rism_interface
