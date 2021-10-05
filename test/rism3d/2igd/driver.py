@@ -12,7 +12,7 @@ inp = sander.pme_input()
 inp.irism = 1
 
 rism_inp = sander.RismInputOptions()
-rism_inp.solvcut = 10.0
+rism_inp.solvcut = 8.0
 print("setting solvcut to %8.3f\n" % rism_inp.solvcut)
 
 sander.setup(parm, rst.coordinates, rst.box, inp, None, rism_inp)

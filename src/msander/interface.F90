@@ -284,15 +284,12 @@ end subroutine qm_sander_input
 !inp : type(rism_input_options)
 !      struct of rism input options filled by this subroutine
 
-subroutine rism_sander_input(inp)
-   !need default input here
-   use sander_rism_interface, only: rismprm, defaults
-   implicit none
+subroutine rism_sander_input()
 
-   type(rismprm_t), intent(out) :: inp
-   write(0,*) 'inside rism_sander_input: setting defaults' 
+   use sander_rism_interface, only: defaults
+   implicit none
    call defaults()
-   write(0,*) 'solvcut = ', rismprm%solvcut
+
    return 
 end  subroutine rism_sander_input
 
@@ -4561,17 +4558,12 @@ end subroutine ext_qm_sander_input
 ! ----------
 ! inp : type(rism_input_options)
 !     struct of QM input options that will be filled by this subroutine
-subroutine ext_rism_sander_input(inp)
+subroutine ext_rism_sander_input()
 
    use SANDER_API_MOD, only : mod_func => rism_sander_input
-   use amber_rism_interface, only : rismprm_t
-
    implicit none
-
-   type(rismprm_t), intent(out) :: inp
-
-   write(0,*) 'inside ext_rism_sander_input: calling mod_func'
-   call mod_func(inp)
+   call mod_func()
+   return
 
 end subroutine ext_rism_sander_input
 

@@ -457,7 +457,9 @@ contains
     logical :: op
     character(len=5) omp_threads
 
+#ifndef API
     write(whtspc, '(a16)')" "
+#endif
 
 #ifdef MPI
     mpicomm = comm
@@ -477,13 +479,8 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
-    write(0,*) 'skipping defaults in rism_setparm()'
 #ifndef API
     call defaults()
-#endif
-    write(0,*) 'solvcut = ', rismprm%solvcut
-
-#ifndef API
     outunit = rism_report_getMUnit()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
@@ -501,19 +498,20 @@ contains
     call set_omp_num_threads()
     ier = fftw_init_threads()
     if( ier == 0 ) then
-       write(6,*) 'failure in fftw_plan_with_nthreads'
+       write(0,*) 'failure in fftw_plan_with_nthreads'
        call mexit(6,1)
+#ifndef API
     else
        write(6,'(a,i2,a)') '| calling fftw_plan_with_nthreads(', &
           omp_num_threads,')'
+#endif
     end if
     call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 
 #ifdef API
     xvvfile = 'xvvfile'
-    crdFile = '2igd.rst7'
-    write(0,*) 'ready to call rism3d_solvent_new: ', xvvfile
+    crdFile = 'inpcrd'
     outunit = 0
 #endif
     call rism3d_solvent_new(solvent, xvvfile)    
@@ -524,6 +522,7 @@ contains
 
     call sanity_check()
     
+#ifndef API
     if (rismprm%rism >= 1) then
        write(outunit, '(a)') "3D-RISM:"
        if (rismprm%rism < 1) then
@@ -569,6 +568,8 @@ contains
        end if
        call flush(outunit)
     end if
+#endif
+    return
 
   end subroutine rism_setparam
 

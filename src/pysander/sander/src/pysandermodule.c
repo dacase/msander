@@ -21,6 +21,8 @@ typedef int Py_ssize_t;
 // Amber-specific includes
 #include "sander.h"
 
+extern void rism_setparam2_( double * );
+
 // Cordon off the type definitions, since they are large
 #include "pysandermoduletypes.c"
 
@@ -42,8 +44,12 @@ pysander_setup(PyObject *self, PyObject *args) {
     double *coordinates;
     double box[6];
     size_t i;
-    PyObject *arg2, *arg3, *arg4, *arg5, *arg6;
-    arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL; arg6 = NULL;
+    int has_qmmm = 0;
+    int has_rism = 0;
+
+    PyObject *arg2, *arg3, *arg4, *arg5;
+    arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL;
+
 
     sander_input input;
     qmmm_input_options qm_input;
@@ -87,18 +93,10 @@ pysander_setup(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-#if 0
-    if (arg5 && !PyObject_TypeCheck(arg5, &pysander_QmInputOptionsType)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "5th argument must be of type QmInputOptions");
-        return NULL;
-    }
-#endif
-
-    if (arg5 && !PyObject_TypeCheck(arg5, &pysander_RismInputOptionsType)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "5th argument must be of type RismInputOptions");
-        return NULL;
+    if (arg5 && PyObject_TypeCheck(arg5, &pysander_QmInputOptionsType)) {
+        has_qmmm = 1;
+    } else if (arg5 && PyObject_TypeCheck(arg5, &pysander_RismInputOptionsType)) {
+        has_rism = 1;
     }
 
     mm_inp = (pysander_InputOptions *) arg4;
@@ -177,8 +175,8 @@ pysander_setup(PyObject *self, PyObject *args) {
             input.refc[i] = ' ';
     }
 
-#if 0
-    if (arg5) {
+    if (has_qmmm) {
+
         qm_inp = (pysander_QmInputOptions *) arg5;
         // Copy over values from qm_inp to qm_input
         qm_input.qmgb = (int) PyInt_AsLong(qm_inp->qmgb);
@@ -385,18 +383,15 @@ pysander_setup(PyObject *self, PyObject *args) {
             for (i = PyList_Size(qm_inp->buffer_iqmatoms); i < MAX_QUANTUM_ATOMS; i++)
                 qm_input.buffer_iqmatoms[i] = 0;
         }
-    }
-#endif
 
-    //  stub for now
-    if( arg5 ){
+    } else if( has_rism ){
+
         rism_inp = (pysander_RismInputOptions *) arg5;
         // Copy over values from rism_inp to rism_input
         rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
-        fprintf( stderr, "in pysander_setup: solvcut = %8.3f\n",
-                      rism_input.solvcut );
-        // now call rism_setparam2() to get into rismprm_t?
+        // now call rism_setparam2() to get into rismprm
         rism_setparam2_( &rism_input.solvcut );
+
     }
 
     Py_ssize_t ii;
