@@ -391,8 +391,6 @@ pysander_setup(PyObject *self, PyObject *args) {
         rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
         rism_input.grdspc =  (double) PyFloat_AsDouble(rism_inp->grdspc);
         rism_input.verbose = (int) PyInt_AsLong(rism_inp->verbose);
-        fprintf( stderr, "pysander: solvcut, grdspc: %8.3f, %8.3f, %3d\n", 
-           rism_input.solvcut, rism_input.grdspc, rism_input.verbose );
 
         // now call rism_setparam2() to get into rismprm
         rism_setparam2_( &rism_input.solvcut, 

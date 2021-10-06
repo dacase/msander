@@ -15,7 +15,7 @@ LIBOBJ = array_util.o rism_util.o \
 	rism3d_fft.o rism_parm.o rism_io.o \
 	mdiis_orig_c.o mdiis_blas_c.o mdiis_blas2_c.o mdiis_c.o \
 	erfcfun.o safemem.o constants_rism.o \
-	bspline.o  fftw3.o 
+	bspline.o  fftw3.o rism_report_c.o amber_rism_interface.o
 
 librism: $(LIBDIR)/librism.a
 

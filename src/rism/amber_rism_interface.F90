@@ -754,7 +754,7 @@ contains
        call rism3d_setCoord(rism_3d, atomPositions_md)
        call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, &
             rismprm%progress, rismprm%maxstep, tolerancelist, &
-            rismprm%ng3)
+            rismprm%ng3, rismprm%verbose)
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
@@ -1811,7 +1811,6 @@ end module sander_rism_interface
      else
         rismprm%solvcut = solvcut
      endif
-     write(0,*) 'in setparam2: ', solvcut, grdspc, verbose
      if( grdspc <= 0.d0 ) then
         rismprm%grdspc(:) = 0.5d0  !default
      else
@@ -1822,7 +1821,6 @@ end module sander_rism_interface
      else
         rismprm%verbose = verbose
      endif
-     write(0,*) 'in setparam2: ', rismprm%solvcut, rismprm%grdspc(1), rismprm%verbose
 
      return
   end subroutine rism_setparam2

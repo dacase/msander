@@ -6,6 +6,7 @@ amber_rism_interface.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     safemem.o\
+                    rism_report_c.o\
                     rism3d_c.o\
                     rism3d_solvent_c.o\
                     rism3d_solute_c.o\
@@ -67,6 +68,7 @@ fftw3.o:   fftw3.F90
 
 mdiis_blas2_c.o: \
                     ../include/dprec.fh\
+                    rism_report_c.o\
                     safemem.o\
                     def_time.h
 
@@ -78,6 +80,7 @@ mdiis_blas2_c.o:   mdiis_blas2_c.F90
 
 mdiis_blas_c.o: \
                     ../include/dprec.fh\
+                    rism_report_c.o\
                     safemem.o\
                     def_time.h
 
@@ -118,6 +121,7 @@ rism3d_c.o: \
                     rism3d_potential_c.o\
                     rism3d_grid_c.o\
                     rism3d_closure_c.o\
+                    rism_report_c.o\
                     mdiis_c.o\
                     rism3d_fft.o\
                     rism3d_opendx.o\
@@ -136,6 +140,7 @@ rism3d_c.o:   rism3d_c.F90
 rism3d_ccp4.o: \
                     ../include/dprec.fh\
                     safemem.o\
+                    rism_report_c.o\
                     constants_rism.o\
                     rism_util.o\
                     rism3d_grid_c.o\
@@ -154,6 +159,7 @@ rism3d_closure_c.o: \
                     rism3d_kh_c.o\
                     rism3d_hnc_c.o\
                     rism3d_psen_c.o\
+                    rism_report_c.o\
                     safemem.o\
                     rism_util.o\
                     bspline.o\
@@ -230,6 +236,7 @@ rism3d_kh_c.o:   rism3d_kh_c.F90
 rism3d_opendx.o: \
                     ../include/dprec.fh\
                     safemem.o\
+                    rism_report_c.o\
                     rism_util.o\
                     rism_io.o\
                     rism3d_grid_c.o\
@@ -274,7 +281,8 @@ rism3d_psen_c.o:   rism3d_psen_c.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism3d_psen_c.F90
 
 rism3d_restart.o: \
-                    ../include/dprec.fh
+                    ../include/dprec.fh\
+                    rism_report_c.o
 
 
 rism3d_restart.o:   rism3d_restart.F90
@@ -285,6 +293,7 @@ rism3d_restart.o:   rism3d_restart.F90
 rism3d_solute_c.o: \
                     ../include/dprec.fh\
                     safemem.o\
+                    rism_report_c.o\
                     constants_rism.o\
                     rism_util.o\
                     rism_parm.o
@@ -297,6 +306,7 @@ rism3d_solute_c.o:   rism3d_solute_c.F90
 
 rism3d_solvent_c.o: \
                     ../include/dprec.fh\
+                    rism_report_c.o\
                     safemem.o\
                     rism_util.o\
                     constants_rism.o\
@@ -311,6 +321,7 @@ rism3d_solvent_c.o:   rism3d_solvent_c.F90
 rism3d_xyzv.o: \
                     ../include/dprec.fh\
                     safemem.o\
+                    rism_report_c.o\
                     rism_util.o\
                     rism3d_grid_c.o\
                     rism3d_solute_c.o
@@ -324,6 +335,7 @@ rism3d_xyzv.o:   rism3d_xyzv.F90
 rism_io.o: \
                     ../include/dprec.fh\
                     safemem.o\
+                    rism_report_c.o\
                     rism3d_grid_c.o\
                     rism3d_solute_c.o\
                     rism_util.o
@@ -340,8 +352,18 @@ rism_parm.o:   rism_parm.F90
 	$(VB)$(FC) -c \
 		$(FNOOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism_parm.F90
 
-rism_util.o: \
+rism_report_c.o: \
                     ../include/dprec.fh
+
+
+rism_report_c.o:   rism_report_c.F90
+	@echo [RISM]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism_report_c.F90
+
+rism_util.o: \
+                    ../include/dprec.fh\
+                    rism_report_c.o
 
 
 rism_util.o:   rism_util.F90
@@ -351,6 +373,7 @@ rism_util.o:   rism_util.F90
 
 safemem.o: \
                     ../include/dprec.fh\
+                    rism_report_c.o\
                     fftw3.o
 
 
