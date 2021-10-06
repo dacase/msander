@@ -1555,7 +1555,7 @@ contains
     rismprm%saveprogress     = 0
     rismprm%ntwrism          = -1
 #ifdef API
-    rismprm%verbose          = -1
+    rismprm%verbose          = -100
 #else
     rismprm%verbose          = 0
 #endif
@@ -1803,7 +1803,8 @@ end module sander_rism_interface
      use amber_rism_interface
      use constants_rism, only: NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
      implicit none
-     double precision, intent(in):: solvcut, grdspc, verbose
+     double precision, intent(in):: solvcut, grdspc
+     integer, intent(in) :: verbose
 
      if( solvcut <= 0.d0 ) then
         rismprm%solvcut = 8.d0  !default
@@ -1816,7 +1817,7 @@ end module sander_rism_interface
      else
         rismprm%grdspc(:) = grdspc
      endif
-     if( verbose == 0 ) then
+     if( verbose == -100 ) then
         rismprm%verbose = -1  !default
      else
         rismprm%verbose = verbose
