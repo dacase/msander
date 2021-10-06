@@ -250,8 +250,7 @@ class setup(object):
     True
     """
 
-    def __init__(self, prmtop, coordinates, box, mm_options, 
-        qm_options=None, rism_options=None):
+    def __init__(self, prmtop, coordinates, box, mm_options, rism_options=None):
 
         # Handle the case where the coordinates are actually a restart file
         if isinstance(coordinates, string_types):

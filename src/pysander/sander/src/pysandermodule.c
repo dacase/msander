@@ -21,7 +21,7 @@ typedef int Py_ssize_t;
 // Amber-specific includes
 #include "sander.h"
 
-extern void rism_setparam2_( double * );
+extern void rism_setparam2_( double *, double * );
 
 // Cordon off the type definitions, since they are large
 #include "pysandermoduletypes.c"
@@ -57,7 +57,7 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     // Needed to blank-out the strings
     qm_sander_input(&qm_input);
-    // rism_sander_input(&rism_input);
+    rism_sander_input(&rism_input);
 
     // The passed arguments
     if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, &arg5))
@@ -389,8 +389,15 @@ pysander_setup(PyObject *self, PyObject *args) {
         rism_inp = (pysander_RismInputOptions *) arg5;
         // Copy over values from rism_inp to rism_input
         rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
+        rism_input.grdspc =  (double) PyFloat_AsDouble(rism_inp->grdspc);
+        // rism_input.verbose = (int) PyInt_AsLong(rism_inp->verbose);
+        fprintf( stderr, "solvcut, grdspc: %8.3f, %8.3f\n", 
+           rism_input.solvcut, rism_input.grdspc );
+
         // now call rism_setparam2() to get into rismprm
-        rism_setparam2_( &rism_input.solvcut );
+        rism_setparam2_( &rism_input.solvcut, 
+                         &rism_input.grdspc );
+        fprintf( stderr, "back from rism_setparam2_\n" );
 
     }
 

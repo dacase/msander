@@ -1070,7 +1070,7 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    if (irism == NO_INPUT_VALUE) then
-      ifqnt = 0 ! default value
+      irism = 0 ! default value
    end if
 
    ! middle scheme is requested {

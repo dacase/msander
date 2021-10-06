@@ -1512,6 +1512,7 @@ contains
   !> Sets default values for 3D-RISM paramters.
   subroutine defaults()
     use amber_rism_interface
+    use constants_rism, only: NO_INPUT_VALUE, NO_INPUT_VALUE_FLOAT
     implicit none
 
     closurelist => safemem_realloc(closurelist, len(closurelist), nclosuredefault)
@@ -1521,8 +1522,13 @@ contains
     periodicPotential         = 'pme'
 
     !solvation box
+#ifdef API
+    rismprm%solvcut         = 8.d0
+    rismprm%grdspc          = 0.8d0
+#else
     rismprm%solvcut         = 9.d0
     rismprm%grdspc          = 0.5d0
+#endif
     rismprm%ng3             = -1
 
     !convergence
@@ -1793,11 +1799,33 @@ end module sander_rism_interface
 
 !  Keep outside of the module, to avoid name mangling
 #ifdef API
-  subroutine rism_setparam2( solvcut )
+  subroutine rism_setparam2( solvcut, grdspc )
      use amber_rism_interface
+     use constants_rism, only: NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
      implicit none
-     double precision, intent(in):: solvcut
-     rismprm%solvcut = solvcut
+     double precision, intent(in):: solvcut, grdspc
+     ! integer, intent(in):: verbose
+
+     if( solvcut <= 0.d0 ) then
+        rismprm%solvcut = 8.d0  !default
+     else
+        rismprm%solvcut = solvcut
+     endif
+     write(0,*) 'in setparam2: ', solvcut, grdspc
+     if( grdspc <= 0.d0 ) then
+        rismprm%grdspc(:) = 0.5d0  !default
+     else
+        rismprm%grdspc(:) = grdspc
+     endif
+#if 0
+     if( verbose == 0 ) then
+        rismprm%verbose = -1  !default
+     else
+        rismprm%verbose = verbose
+     endif
+#endif
+     write(0,*) 'in setparam2: ', rismprm%solvcut, rismprm%grdspc(1), rismprm%verbose
+
      return
   end subroutine rism_setparam2
 #endif

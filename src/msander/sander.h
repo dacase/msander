@@ -163,7 +163,9 @@ typedef struct {
   /*  N.B.: must match the rismprm_t struct in amber_rism_interface.F90 */
   typedef struct {
     double solvcut;
-    double grdspc[3];
+    double grdspc;
+    double grdspc1;
+    double grdspc2;
     double mdiis_del;
     double mdiis_restart;
     double chargeSmear;

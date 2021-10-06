@@ -12,24 +12,26 @@ inp = sander.pme_input()
 inp.irism = 1
 
 rism_inp = sander.RismInputOptions()
-rism_inp.solvcut = 8.0
-print("setting solvcut to %8.3f\n" % rism_inp.solvcut)
+rism_inp.solvcut = 8.1
+print("setting solvcut to %8.3f" % rism_inp.solvcut)
+rism_inp.grdspc = 0.8
+print("setting grdspc to %8.3f" % rism_inp.grdspc)
 
-sander.setup(parm, rst.coordinates, rst.box, inp, None, rism_inp)
+sander.setup(parm, rst.coordinates, rst.box, inp, rism_inp)
 
 # Compute the energies and forces
 ene, frc = sander.energy_forces()
 
 # Do whatever you want with the energies and forces
-print( "Energy    = %10.5f\n" % ene.tot )
-print( "  vdw     = %10.5f\n" % ene.vdw )
-print( "  elec    = %10.5f\n" % ene.elec )
-print( "  vdw_14  = %10.5f\n" % ene.vdw_14 )
-print( "  elec_14 = %10.5f\n" % ene.elec_14 )
-print( "  bond    = %10.5f\n" % ene.bond )
-print( "  angle   = %10.5f\n" % ene.angle )
-print( "  dihed   = %10.5f\n" % ene.dihedral )
-print( "  rism    = %10.5f\n" % ene.rism )
+print( "Energy    = %10.5f" % ene.tot )
+print( "  vdw     = %10.5f" % ene.vdw )
+print( "  elec    = %10.5f" % ene.elec )
+print( "  vdw_14  = %10.5f" % ene.vdw_14 )
+print( "  elec_14 = %10.5f" % ene.elec_14 )
+print( "  bond    = %10.5f" % ene.bond )
+print( "  angle   = %10.5f" % ene.angle )
+print( "  dihed   = %10.5f" % ene.dihedral )
+print( "  rism    = %10.5f" % ene.rism )
 
 # Free up our memory
 sander.cleanup()

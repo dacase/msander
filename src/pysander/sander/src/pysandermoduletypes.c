@@ -874,6 +874,7 @@ static PyTypeObject pysander_QmInputOptionsType = {
 typedef struct {
     PyObject_HEAD
     PyObject *solvcut;
+    PyObject *grdspc;
 } pysander_RismInputOptions;
 
 
@@ -897,12 +898,18 @@ pysander_RismInputOptions_new(PyTypeObject *type) {
 
 static void pysander_RismInputOptions_dealloc(pysander_RismInputOptions *self) {
     Py_DECREF(self->solvcut);
+    Py_DECREF(self->grdspc);
+    // Py_DECREF(self->verbose);
     PY_DESTROY_TYPE;
 }
 
 static PyMemberDef pysander_RismInputOptionsMembers[] = {
-    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solvcut), 0,
+    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solvcut), 8.0,
         "Solvent cutoff radius (float)"},
+    {"grdspc", T_OBJECT_EX, offsetof(pysander_RismInputOptions, grdspc), 0.5,
+        "Grid spacing (float)"},
+    // {"verbose", T_OBJECT_EX, offsetof(pysander_RismInputOptions, verbose), -1,
+    //     "Verbosity (int)"},
     {NULL} /* sentinel */
 };
 
