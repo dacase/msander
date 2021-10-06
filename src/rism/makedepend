@@ -15,6 +15,8 @@ EOF
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
 $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=1;
+#  also assume that ../msander/rism_report_c won't get out of date:
+$ignore{"rism_report_c"} = 1;
 
 #  In order to get a mapping between module names and file names, we have
 #  have to set up the following hash.

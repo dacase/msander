@@ -598,6 +598,7 @@ contains
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
           tolerance, ng3)
     use constants_rism, only : pi
+    use amber_rism_interface, only: rismprm
     implicit none
 #if defined(MPI)
     include 'mpif.h'
@@ -627,23 +628,25 @@ contains
        call resizeBox(this,ng3)
        call timer_stop(TIME_RESIZE)
 
-       call rism_report_message("||Setting solvation box to")
-       call rism_report_message("(3(a,i10))", "|grid size: ", &
+       if(rismprm%verbose >= 0 ) then
+         call rism_report_message("||Setting solvation box to")
+         call rism_report_message("(3(a,i10))", "|grid size: ", &
             this%grid%globalDimsR(1), " X ", this%grid%globalDimsR(2), &
             " X ", this%grid%globalDimsR(3))
-       call rism_report_message("(3(a,f10.3))", "|box size [A]:  ", &
+         call rism_report_message("(3(a,f10.3))", "|box size [A]:  ", &
             this%grid%boxLength(1), " X ", this%grid%boxLength(2), &
             " X ", this%grid%boxLength(3))
-       call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
+         call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
             this%grid%spacing(1), " X ", this%grid%spacing(2), &
             " X ", this%grid%spacing(3))
-       call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
+         call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
             this%grid%unitCellAngles(1) * 180 / pi, ", ", &
             this%grid%unitCellAngles(2) * 180 / pi, ", ", &
             this%grid%unitCellAngles(3) * 180 / pi)
-       call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ", &
+         call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ",&
             this%grid%inscribedSphereRadius)
-       call flush(rism_report_getmunit())
+         call flush(rism_report_getmunit())
+       end if
     end if
 
     ! 2a) Check what kind of information is in the xvv file:
@@ -1529,6 +1532,7 @@ contains
 
   subroutine check_xvv_info( this )
     use constants_rism, only : PI, FOURPI
+    use amber_rism_interface, only: rismprm
     implicit none
     type(rism3d_potential), intent(inout) :: this !< potential object.
 
@@ -1548,7 +1552,8 @@ contains
     if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
        this%huvk0(1, :) = this%solvent%background_correction(:) * soluteQ
        if (first .and. this%grid%offsetK(3) == 0) then
-          write(6,'(a,6f10.5)') '|  huvk0 = ', this%huvk0(1, :)
+          if( rismprm%verbose >= 0 ) &
+             write(6,'(a,6f10.5)') '|  huvk0 = ', this%huvk0(1, :)
           first = .false.
        end if
     else

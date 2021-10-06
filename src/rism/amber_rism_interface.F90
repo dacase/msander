@@ -435,7 +435,7 @@ contains
     use amber_rism_interface
     use binrestart, only : readUnitCellDimensionsFromCrd
 #ifdef OPENMP
-    use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
+    use constants_rism, only : KB, omp_num_threads
 #else
     use constants_rism, only : KB
 #endif
@@ -1548,7 +1548,11 @@ contains
     !output
     rismprm%saveprogress     = 0
     rismprm%ntwrism          = -1
+#ifdef API
+    rismprm%verbose          = -1
+#else
     rismprm%verbose          = 0
+#endif
     rismprm%progress         = 1
     volfmt                   = 'ccp4'
 
@@ -1793,7 +1797,6 @@ end module sander_rism_interface
      use amber_rism_interface
      implicit none
      double precision, intent(in):: solvcut
-     write(0,*) 'in rism_setparam2: setting solvcut to ', solvcut
      rismprm%solvcut = solvcut
      return
   end subroutine rism_setparam2

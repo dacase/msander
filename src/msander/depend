@@ -1382,6 +1382,7 @@ interface.o: \
                     prmtop_type.o\
                     qmmm_module.o\
                     state.o\
+                    ../rism/amber_rism_interface.o\
                     interface_setup.F90\
                     lmod.o\
                     constantph.o\
@@ -1402,7 +1403,6 @@ interface.o: \
                     mbar.o\
                     remd.o\
                     linear_response.o\
-                    ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -1444,6 +1444,7 @@ interface.LESAPI.o: \
                     prmtop_type.o\
                     qmmm_module.o\
                     state.o\
+                    ../rism/amber_rism_interface.o\
                     interface_setup.F90\
                     lmod.o\
                     constantph.o\
@@ -1464,7 +1465,6 @@ interface.LESAPI.o: \
                     mbar.o\
                     remd.o\
                     linear_response.o\
-                    ../rism/amber_rism_interface.o\
                     nfe-sander-proxy.o\
                     box.h\
                     def_time.h\
@@ -3794,6 +3794,14 @@ rgroup.o:   rgroup.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rgroup.F90
 
+rism_report_c.o: \
+                    ../include/dprec.fh
+
+
+rism_report_c.o:   rism_report_c.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rism_report_c.F90
+
 rmsgrd.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
@@ -4265,7 +4273,8 @@ short_ene.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h
+                    eedmeth2-6.h\
+                    omp_lib.o
 
 
 short_ene.o:   short_ene.F90
@@ -4294,7 +4303,8 @@ short_ene.LES.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h
+                    eedmeth2-6.h\
+                    omp_lib.o
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'

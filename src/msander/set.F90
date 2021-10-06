@@ -878,3 +878,18 @@ subroutine setnoshake_sc(ix,ntc,num_noshake,master)
 
 end subroutine setnoshake_sc
 #endif
+
+#ifdef OPENMP
+subroutine set_omp_num_threads()
+  use constants, only: omp_num_threads
+  implicit none
+  character(len=5) :: omp_threads
+  integer :: ier
+
+  call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+  if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+  write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+#endif
+end subroutine set_omp_num_threads
+#endif

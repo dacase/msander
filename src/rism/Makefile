@@ -6,7 +6,7 @@ LOCALFLAGS = -I../msander
 
 # ------- rism3d information: ----------------------------------------------
 
-LIBOBJ = array_util.o rism_util.o rism_report_c.o \
+LIBOBJ = array_util.o rism_util.o \
 	rism3d_grid_c.o rism3d_closure_c.o \
 	rism3d_kh_c.o rism3d_hnc_c.o rism3d_psen_c.o \
 	rism3d_c.o rism3d_potential_c.o rism3d_restart.o \
@@ -15,7 +15,7 @@ LIBOBJ = array_util.o rism_util.o rism_report_c.o \
 	rism3d_fft.o rism_parm.o rism_io.o \
 	mdiis_orig_c.o mdiis_blas_c.o mdiis_blas2_c.o mdiis_c.o \
 	erfcfun.o safemem.o constants_rism.o \
-	bspline.o  fftw3.o amber_rism_interface.o
+	bspline.o  fftw3.o 
 
 librism: $(LIBDIR)/librism.a
 

@@ -18,7 +18,7 @@ subroutine sander()
 #endif /* DISABLE_NFE */
 
   use lmod_driver
-  use constants, only : INV_AMBER_ELECTROSTATIC, set_omp_num_threads
+  use constants, only : INV_AMBER_ELECTROSTATIC
 
   ! The main qmmm_struct contains all the QMMM variables and arrays
   use qmmm_read_and_alloc, only : read_qmmm_nm_and_alloc
@@ -1511,4 +1511,3 @@ subroutine sander()
   return
 
 end subroutine sander
-
