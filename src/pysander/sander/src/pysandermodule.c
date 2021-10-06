@@ -21,7 +21,7 @@ typedef int Py_ssize_t;
 // Amber-specific includes
 #include "sander.h"
 
-extern void rism_setparam2_( double *, double * );
+extern void rism_setparam2_( double *, double *, double * );
 
 // Cordon off the type definitions, since they are large
 #include "pysandermoduletypes.c"
@@ -390,13 +390,13 @@ pysander_setup(PyObject *self, PyObject *args) {
         // Copy over values from rism_inp to rism_input
         rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
         rism_input.grdspc =  (double) PyFloat_AsDouble(rism_inp->grdspc);
-        // rism_input.verbose = (int) PyInt_AsLong(rism_inp->verbose);
-        fprintf( stderr, "solvcut, grdspc: %8.3f, %8.3f\n", 
-           rism_input.solvcut, rism_input.grdspc );
+        rism_input.verbose = (double) PyFloat_AsDouble(rism_inp->verbose);
+        fprintf( stderr, "solvcut, grdspc: %8.3f, %8.3f, %8.3f\n", 
+           rism_input.solvcut, rism_input.grdspc, rism_input.verbose );
 
         // now call rism_setparam2() to get into rismprm
         rism_setparam2_( &rism_input.solvcut, 
-                         &rism_input.grdspc );
+                         &rism_input.grdspc, &rism_input.verbose );
         fprintf( stderr, "back from rism_setparam2_\n" );
 
     }

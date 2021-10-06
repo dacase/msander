@@ -1799,31 +1799,28 @@ end module sander_rism_interface
 
 !  Keep outside of the module, to avoid name mangling
 #ifdef API
-  subroutine rism_setparam2( solvcut, grdspc )
+  subroutine rism_setparam2( solvcut, grdspc, verbose )
      use amber_rism_interface
      use constants_rism, only: NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
      implicit none
-     double precision, intent(in):: solvcut, grdspc
-     ! integer, intent(in):: verbose
+     double precision, intent(in):: solvcut, grdspc, verbose
 
      if( solvcut <= 0.d0 ) then
         rismprm%solvcut = 8.d0  !default
      else
         rismprm%solvcut = solvcut
      endif
-     write(0,*) 'in setparam2: ', solvcut, grdspc
+     write(0,*) 'in setparam2: ', solvcut, grdspc, verbose
      if( grdspc <= 0.d0 ) then
         rismprm%grdspc(:) = 0.5d0  !default
      else
         rismprm%grdspc(:) = grdspc
      endif
-#if 0
      if( verbose == 0 ) then
         rismprm%verbose = -1  !default
      else
         rismprm%verbose = verbose
      endif
-#endif
      write(0,*) 'in setparam2: ', rismprm%solvcut, rismprm%grdspc(1), rismprm%verbose
 
      return

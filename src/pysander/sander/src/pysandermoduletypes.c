@@ -875,6 +875,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *solvcut;
     PyObject *grdspc;
+    PyObject *verbose;
 } pysander_RismInputOptions;
 
 
@@ -899,17 +900,17 @@ pysander_RismInputOptions_new(PyTypeObject *type) {
 static void pysander_RismInputOptions_dealloc(pysander_RismInputOptions *self) {
     Py_DECREF(self->solvcut);
     Py_DECREF(self->grdspc);
-    // Py_DECREF(self->verbose);
+    Py_DECREF(self->verbose);
     PY_DESTROY_TYPE;
 }
 
 static PyMemberDef pysander_RismInputOptionsMembers[] = {
-    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solvcut), 8.0,
+    {"solvcut", T_OBJECT_EX, offsetof(pysander_RismInputOptions, solvcut), 0,
         "Solvent cutoff radius (float)"},
-    {"grdspc", T_OBJECT_EX, offsetof(pysander_RismInputOptions, grdspc), 0.5,
+    {"grdspc", T_OBJECT_EX, offsetof(pysander_RismInputOptions, grdspc), 0,
         "Grid spacing (float)"},
-    // {"verbose", T_OBJECT_EX, offsetof(pysander_RismInputOptions, verbose), -1,
-    //     "Verbosity (int)"},
+    {"verbose", T_OBJECT_EX, offsetof(pysander_RismInputOptions, verbose), 0,
+        "Verbosity (float)"},
     {NULL} /* sentinel */
 };
 
