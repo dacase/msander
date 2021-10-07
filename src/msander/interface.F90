@@ -88,6 +88,7 @@ module sander_api
       double precision :: fswitch
       double precision :: restraint_wt
       double precision :: grdspc1
+      double precision :: mdiis_del
 
       ! Integers (toggle options)
       integer :: igb
@@ -101,6 +102,7 @@ module sander_api
       integer :: ntb
       integer :: ifqnt
       integer :: irism
+      integer :: rism_verbose
       integer :: jfastw
       integer :: ntf
       integer :: ntc
@@ -173,7 +175,9 @@ subroutine gas_sander_input(inp, gb)
    inp%jfastw = 0
    inp%ifqnt = 0
    inp%irism = 0
-   inp%grdspc1 = 0.5d0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
    inp%rgbmax = 25.d0
@@ -236,7 +240,9 @@ subroutine pme_sander_input(inp)
    inp%gbsa = 0
    inp%ifqnt = 0
    inp%irism = 0
-   inp%grdspc1 = 0.5d0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%jfastw = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
@@ -400,8 +406,8 @@ subroutine api_mdread1(input_options, ierr)
 #endif /* API */
 
 #ifdef RISMSANDER
-   integer irism
-   double precision grdspc1
+   integer irism, rism_verbose
+   double precision grdspc1, mdiis_del
    character(len=8) periodicPotential
 #endif /*RISMSANDER*/
 
@@ -652,7 +658,9 @@ subroutine api_mdread1(input_options, ierr)
 
 #ifdef RISMSANDER
    irism = 0
-   grdspc1 = 0.5d0
+   rism_verbose = -1
+   grdspc1 = 0.8d0
+   mdiis_del = 0.7d0
 #endif /*RISMSANDER*/
 
    ntave = 0
@@ -856,8 +864,10 @@ subroutine api_mdread1(input_options, ierr)
    tmode = 1 !default tangent mode for NEB calculation
 
    ifqnt = NO_INPUT_VALUE
+   rism_verbose = NO_INPUT_VALUE
    irism = NO_INPUT_VALUE
    grdspc1 = NO_INPUT_VALUE_FLOAT
+   mdiis_del = NO_INPUT_VALUE_FLOAT
 
    ifcr = 0 ! no charge relocation
    cropt = 0 ! 1-4 EEL is calculated with the original charges
@@ -954,7 +964,9 @@ subroutine api_mdread1(input_options, ierr)
    dielc = input_options%dielc
    ifqnt = input_options%ifqnt
    irism = input_options%irism
+   rism_verbose = input_options%rism_verbose
    grdspc1 = input_options%grdspc1
+   mdiis_del = input_options%mdiis_del
    jfastw = input_options%jfastw
    ntf = input_options%ntf
    ntc = input_options%ntc
@@ -1040,8 +1052,14 @@ subroutine api_mdread1(input_options, ierr)
    if (irism == NO_INPUT_VALUE) then
       irism = 0 ! default value
    end if
+   if (rism_verbose == NO_INPUT_VALUE) then
+      rism_verbose = -1 ! default value
+   end if
    if (grdspc1 == NO_INPUT_VALUE) then
-      grdspc1 = 0.5d0 ! default value
+      grdspc1 = 0.8d0 ! default value
+   end if
+   if (mdiis_del == NO_INPUT_VALUE) then
+      mdiis_del = 0.7d0 ! default value
    end if
 
    ! middle scheme is requested {
@@ -1102,14 +1120,12 @@ subroutine api_mdread1(input_options, ierr)
    ! electrostatics are initialized properly.
 
    rismprm%rism=irism
+   rismprm%verbose=rism_verbose
    rismprm%grdspc(:)=grdspc1
+   rismprm%mdiis_del=mdiis_del
 
    if (irism /= 0) then
       periodicPotential = 'pme'
-
-#   ifndef API
-      write(6,'(a)') "|periodic 3D-RISM Forcing igb=0"
-#   endif
       igb = 0
    end if
 #endif /*RISMSANDER*/

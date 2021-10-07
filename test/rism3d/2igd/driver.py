@@ -11,6 +11,8 @@ rst = Rst7.open("2igd.rst7")
 inp = sander.pme_input()
 inp.irism = 1
 inp.grdspc1 = 0.9
+# inp.rism_verbose = 1
+# inp.mdiis_del = 0.8
 
 sander.setup(parm, rst.coordinates, rst.box, inp)
 

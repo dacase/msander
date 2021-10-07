@@ -57,6 +57,7 @@ typedef struct {
     double fswitch;
     double restraint_wt;
     double grdspc1;
+    double mdiis_del;
 
     // Integer choice flags
     int igb;
@@ -70,6 +71,7 @@ typedef struct {
     int ntb;
     int ifqnt;
     int irism;
+    int rism_verbose;
     int jfastw;
     int ntf;
     int ntc;

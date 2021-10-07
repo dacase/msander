@@ -457,9 +457,7 @@ contains
     logical :: op
     character(len=5) omp_threads
 
-#ifndef API
     write(whtspc, '(a16)')" "
-#endif
 
 #ifdef MPI
     mpicomm = comm
@@ -522,8 +520,11 @@ contains
 
     call sanity_check()
     
-#ifndef API
+#ifdef API
+    if (rismprm%rism >= 1 .and. rismprm%verbose > 0) then
+#else
     if (rismprm%rism >= 1) then
+#endif
        write(outunit, '(a)') "3D-RISM:"
        if (rismprm%rism < 1) then
           write(outunit, '(5x, a, i10)') 'irism   =', rismprm%rism
@@ -568,7 +569,6 @@ contains
        end if
        call flush(outunit)
     end if
-#endif
     return
 
   end subroutine rism_setparam
