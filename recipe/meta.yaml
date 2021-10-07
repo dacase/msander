@@ -1,6 +1,6 @@
 package:
   name: amber_phenix
-  version: 1.3
+  version: 1.4
 
 source:
   path: ../
@@ -21,19 +21,19 @@ requirements:
    - setuptools
    - bzip2
    - zlib
+   - fftw
 #  - libnetcdf
 #  - netcdf-fortran
 #  - openblas
 #  - arpack
-#  - fftw
 #  - llvm-openmp  # [osx]
 
   run:
    - python
    - numpy
+   - fftw
 #  - libnetcdf
 #  - netcdf-fortran
-#  - fftw
 #  - openblas
 #  - arpack
 #  - llvm-openmp  # [osx]

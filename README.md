@@ -47,7 +47,9 @@ simulations
 
 *Conda build:
 ```
-   conda build -c conda-forge [ --python x.x ] recipe 
+   conda build [ --python x.x ] recipe 
+      (note: you should have conda-forge at the top of your channel
+       list in ~/.condarc)
 ```
 
 *Non-conda build:  (MacOSX, Linux)
