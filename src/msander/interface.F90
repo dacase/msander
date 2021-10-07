@@ -125,11 +125,7 @@ module sander_api
              potential_energy_rec, sander_cleanup, MAX_FN_LEN, get_box, &
              qm_sander_input, sander_natom, prmtop_struct, read_inpcrd_file, &
              get_inpcrd_natom, destroy_prmtop_struct, read_prmtop_file, &
-#ifdef NO_ALLOCATABLES_IN_TYPE
              is_setup, get_positions
-#else
-             sander_setup2, is_setup, get_positions
-#endif
 
 contains
 
@@ -302,30 +298,6 @@ subroutine sander_setup(prmname, coordinates, inbox, input_options, qmmm_options
 #undef USE_PRMTOP_FILE
 
 end subroutine sander_setup
-
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Struct with all of the prmtop data stored in it
-! coordinates : double precision(3*natom)
-!     Starting coordinates
-! inbox : double precision(6)
-!     Box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine sander_setup2(parmdata, coordinates, inbox, input_options, qmmm_options, ierr)
-
-#include "interface_setup.F90"
-
-end subroutine sander_setup2
-#endif /* NO_ALLOCATABLES_IN_TYPE */
 
 #undef rem
 
@@ -4588,68 +4560,6 @@ subroutine ext_sander_setup(prmname, coordinates, box, input_options, qmmm_optio
    return
 
 end subroutine ext_sander_setup
-
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Name of the topology file
-! coordinates : double precision(3*natom)
-!     The starting coordinates
-! box : double precision(6)
-!     The box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : mod_func => sander_setup2, sander_input, &
-                              qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   call mod_func(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   return
-
-end subroutine ext_sander_setup2
-
-#else
-
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : sander_input, qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   write(0,*) 'Compiler does not support allocatables in structs. Recompile'
-   write(0,*) 'with a more modern compiler'
-
-   return
-end subroutine ext_sander_setup2
-
-#endif /* NO_ALLOCATABLES_IN_TYPE */
 
 ! Sets the atomic positions
 subroutine ext_set_positions(positions)
