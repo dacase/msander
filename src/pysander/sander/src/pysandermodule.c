@@ -50,7 +50,6 @@ pysander_setup(PyObject *self, PyObject *args) {
     PyObject *arg2, *arg3, *arg4, *arg5;
     arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL;
 
-
     sander_input input;
     qmmm_input_options qm_input;
     rism_input_options rism_input;
@@ -60,7 +59,8 @@ pysander_setup(PyObject *self, PyObject *args) {
     rism_sander_input(&rism_input);
 
     // The passed arguments
-    if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, &arg5))
+    if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, 
+          &arg5))
         return NULL;
 
     if (IS_SETUP) {
@@ -405,7 +405,7 @@ pysander_setup(PyObject *self, PyObject *args) {
     for (ii = 0; ii < 6; ii++)
         box[ii] = PyFloat_AsDouble(PyList_GetItem(arg3, ii));
 
-    if (sander_setup(prmtop, coordinates, box, &input, &qm_input)) {
+    if (sander_setup(prmtop, coordinates, box, &input, &rism_input)) {
         free(coordinates);
         PyErr_SetString(PyExc_RuntimeError, "Problem setting up sander");
         return NULL;

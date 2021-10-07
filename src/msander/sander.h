@@ -31,7 +31,6 @@
 #define __internal_gas_sander_input ext_gas_sander_input_
 #define __internal_set_box ext_set_box_
 #define __internal_sander_setup ext_sander_setup_
-#define __internal_sander_setup2 ext_sander_setup2_
 #define __internal_sander_natom ext_sander_natom_
 #define __internal_read_inpcrd_file ext_read_inpcrd_file_
 #define __internal_get_inpcrd_natom ext_get_inpcrd_natom_
@@ -342,14 +341,12 @@ void rism_sander_input(rism_input_options*);
  * called by programs using the API
  */
 void __internal_sander_setup(const char[__MAX_FN_LEN], double*, double*,
-                             sander_input*, qmmm_input_options*, int*);
+              sander_input*, rism_input_options*, int*);
 void __internal_sander_natom(int *);
 void __internal_read_inpcrd_file(const char[__MAX_FN_LEN], double*, double*, int*);
 void __internal_get_inpcrd_natom(const char[__MAX_FN_LEN], int*);
 void __internal_set_box(double *a, double *b, double *c,
                         double *alpha, double *beta, double *gamma);
-void __internal_sander_setup2(prmtop_struct*, double*, double*, sander_input*,
-                              qmmm_input_options*, int*);
 void __internal_is_setup(int*);
 void __internal_gas_sander_input(sander_input*, int*);
 
@@ -364,41 +361,20 @@ static inline void gas_sander_input(sander_input *inp, const int gb) {
  *                positions (and box dimensions, if applicable)
  * \param input_options struct of input options for MM terms
  * \param qmmm_options struct of input options for QM part
+ * \param rism_options struct of input options for 3D-RISM part
  * \returns 0 for success, 1 for failure
  */
 static inline int sander_setup(const char *prmname, double *coords, double *box,
-                        sander_input *input_options, qmmm_input_options *qmmm_options) {
+                        sander_input *input_options, 
+                        rism_input_options *rism_options) {
     int ierr;
     char *prmtop;
     prmtop = (char*)malloc(__MAX_FN_LEN*sizeof(char));
     strncpy(prmtop, prmname, __MAX_FN_LEN);
-    __internal_sander_setup(prmtop, coords, box, input_options, qmmm_options, &ierr);
+    __internal_sander_setup(prmtop, coords, box, input_options, 
+         rism_options, &ierr);
     free(prmtop);
     return ierr;
-}
-static inline int sander_setup_mm(const char *prmname, double *coords, double *box,
-                           sander_input *input_options) {
-    int ierr;
-    char *prmtop;
-    qmmm_input_options dummy;
-    prmtop = (char*)malloc(__MAX_FN_LEN*sizeof(char));
-    strncpy(prmtop, prmname, __MAX_FN_LEN);
-    __internal_sander_setup(prmtop, coords, box, input_options, &dummy, &ierr);
-    free(prmtop);
-    return ierr;
-}
-
-static inline int sander_setup2(prmtop_struct *parm, double *coords, double *box,
-                         sander_input *inp, qmmm_input_options *qm_inp) {
-   int ierr;
-   __internal_sander_setup2(parm, coords, box, inp, qm_inp, &ierr);
-   return ierr;
-}
-
-static inline int sander_setup2_mm(prmtop_struct *parm, double *coords, double *box,
-                            sander_input *input_options) {
-    qmmm_input_options dummy;
-    return sander_setup2(parm, coords, box, input_options, &dummy);
 }
 
 /** Sets the particle positions
