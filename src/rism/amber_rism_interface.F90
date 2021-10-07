@@ -479,8 +479,8 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
-#ifndef API
     call defaults()
+#ifndef API
     outunit = rism_report_getMUnit()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un

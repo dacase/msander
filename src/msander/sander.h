@@ -18,7 +18,6 @@
 // These are the raw functions that we expose unaltered from the F90 API
 #define pme_sander_input ext_pme_sander_input_
 #define qm_sander_input ext_qm_sander_input_
-#define rism_sander_input ext_rism_sander_input_
 #define energy_forces ext_energy_forces_
 #define set_positions ext_set_positions_
 #define sander_cleanup ext_sander_cleanup_
@@ -158,36 +157,6 @@ typedef struct {
     char qm_theory[12];
 } qmmm_input_options;
 
-  /*  rism routine interfaces: */
-  /*  N.B.: must match the rismprm_t struct in amber_rism_interface.F90 */
-  typedef struct {
-    double solvcut;
-    double grdspc;
-    double grdspc1;
-    double grdspc2;
-    double mdiis_del;
-    double mdiis_restart;
-    double chargeSmear;
-    int closureOrder;
-    int ng3[3];
-    int rism;      /* non-zero if RISM is turned on */
-    int mdiis_nvec;
-    int mdiis_method;
-    int maxstep;
-    int npropagate;
-    int zerofrc;
-    int apply_rism_force;
-    int rismnrespa;
-    int saveprogress;
-    int ntwrism;
-    int verbose;
-    int progress;
-    int write_thermo;
-    /*This is an unused variable that aligns
-      the type on eight byte boundaries*/
-    int padding;
-  } rism_input_options;
-
 typedef struct {
     double tot;
     double vdw;
@@ -324,9 +293,6 @@ void pme_sander_input(sander_input*);
 /// Prepare a QM input struct with default values
 void qm_sander_input(qmmm_input_options*);
 
-/// Prepare a RISM input struct with default values
-void rism_sander_input(rism_input_options*);
-
 
 /* I've found that you really need to fix strings to the same number of
  * characters when you want to pass them from C to Fortran or vice-versa. As a
@@ -341,7 +307,7 @@ void rism_sander_input(rism_input_options*);
  * called by programs using the API
  */
 void __internal_sander_setup(const char[__MAX_FN_LEN], double*, double*,
-              sander_input*, rism_input_options*, int*);
+                             sander_input*, qmmm_input_options*, int*);
 void __internal_sander_natom(int *);
 void __internal_read_inpcrd_file(const char[__MAX_FN_LEN], double*, double*, int*);
 void __internal_get_inpcrd_natom(const char[__MAX_FN_LEN], int*);
@@ -361,18 +327,26 @@ static inline void gas_sander_input(sander_input *inp, const int gb) {
  *                positions (and box dimensions, if applicable)
  * \param input_options struct of input options for MM terms
  * \param qmmm_options struct of input options for QM part
- * \param rism_options struct of input options for 3D-RISM part
  * \returns 0 for success, 1 for failure
  */
 static inline int sander_setup(const char *prmname, double *coords, double *box,
-                        sander_input *input_options, 
-                        rism_input_options *rism_options) {
+                  sander_input *input_options, qmmm_input_options *qmmm_options) {
     int ierr;
     char *prmtop;
     prmtop = (char*)malloc(__MAX_FN_LEN*sizeof(char));
     strncpy(prmtop, prmname, __MAX_FN_LEN);
-    __internal_sander_setup(prmtop, coords, box, input_options, 
-         rism_options, &ierr);
+    __internal_sander_setup(prmtop, coords, box, input_options, qmmm_options, &ierr);
+    free(prmtop);
+    return ierr;
+}
+static inline int sander_setup_mm(const char *prmname, double *coords, double *box,
+                           sander_input *input_options) {
+    int ierr;
+    char *prmtop;
+    qmmm_input_options dummy;
+    prmtop = (char*)malloc(__MAX_FN_LEN*sizeof(char));
+    strncpy(prmtop, prmname, __MAX_FN_LEN);
+    __internal_sander_setup(prmtop, coords, box, input_options, &dummy, &ierr);
     free(prmtop);
     return ierr;
 }

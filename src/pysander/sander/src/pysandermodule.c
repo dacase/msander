@@ -21,7 +21,7 @@ typedef int Py_ssize_t;
 // Amber-specific includes
 #include "sander.h"
 
-extern void rism_setparam2_( double *, double *, int * );
+// extern void rism_setparam2_( double *, double *, int * );
 
 // Cordon off the type definitions, since they are large
 #include "pysandermoduletypes.c"
@@ -45,18 +45,15 @@ pysander_setup(PyObject *self, PyObject *args) {
     double box[6];
     size_t i;
     int has_qmmm = 0;
-    int has_rism = 0;
 
     PyObject *arg2, *arg3, *arg4, *arg5;
     arg2 = NULL; arg3 = NULL; arg4 = NULL; arg5 = NULL;
 
     sander_input input;
     qmmm_input_options qm_input;
-    rism_input_options rism_input;
 
     // Needed to blank-out the strings
     qm_sander_input(&qm_input);
-    rism_sander_input(&rism_input);
 
     // The passed arguments
     if (!PyArg_ParseTuple(args, "sOOO|O", &prmtop, &arg2, &arg3, &arg4, 
@@ -72,7 +69,6 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     pysander_InputOptions *mm_inp;
     pysander_QmInputOptions *qm_inp;
-    pysander_RismInputOptions *rism_inp;
 
     if (!PyList_Check(arg2)) {
         PyErr_SetString(PyExc_TypeError, "2nd argument must be a list");
@@ -95,8 +91,6 @@ pysander_setup(PyObject *self, PyObject *args) {
 
     if (arg5 && PyObject_TypeCheck(arg5, &pysander_QmInputOptionsType)) {
         has_qmmm = 1;
-    } else if (arg5 && PyObject_TypeCheck(arg5, &pysander_RismInputOptionsType)) {
-        has_rism = 1;
     }
 
     mm_inp = (pysander_InputOptions *) arg4;
@@ -384,17 +378,6 @@ pysander_setup(PyObject *self, PyObject *args) {
                 qm_input.buffer_iqmatoms[i] = 0;
         }
 
-    } else if( has_rism ){
-
-        rism_inp = (pysander_RismInputOptions *) arg5;
-        // Copy over values from rism_inp to rism_input
-        rism_input.solvcut = (double) PyFloat_AsDouble(rism_inp->solvcut);
-        rism_input.grdspc =  (double) PyFloat_AsDouble(rism_inp->grdspc);
-        rism_input.verbose = (int) PyInt_AsLong(rism_inp->verbose);
-
-        // now call rism_setparam2() to get into rismprm
-        rism_setparam2_( &rism_input.solvcut, 
-                         &rism_input.grdspc, &rism_input.verbose );
     }
 
     Py_ssize_t ii;
@@ -405,7 +388,7 @@ pysander_setup(PyObject *self, PyObject *args) {
     for (ii = 0; ii < 6; ii++)
         box[ii] = PyFloat_AsDouble(PyList_GetItem(arg3, ii));
 
-    if (sander_setup(prmtop, coordinates, box, &input, &rism_input)) {
+    if (sander_setup(prmtop, coordinates, box, &input, &qm_input)) {
         free(coordinates);
         PyErr_SetString(PyExc_RuntimeError, "Problem setting up sander");
         return NULL;
@@ -806,8 +789,6 @@ PyInit_pysander(void) {
         return NULL;
     if (PyType_Ready(&pysander_QmInputOptionsType) < 0)
         return NULL;
-    if (PyType_Ready(&pysander_RismInputOptionsType) < 0)
-        return NULL;
     PyObject* m = PyModule_Create(&moduledef);
 #else
 PyMODINIT_FUNC
@@ -817,8 +798,6 @@ initpysander(void) {
     if (PyType_Ready(&pysander_EnergyTermsType))
         return;
     if (PyType_Ready(&pysander_QmInputOptionsType))
-        return;
-    if (PyType_Ready(&pysander_RismInputOptionsType))
         return;
     PyObject* m = Py_InitModule3("pysander", pysanderMethods,
                 "Python interface into sander energy and force evaluation");
@@ -831,8 +810,6 @@ initpysander(void) {
     PyModule_AddObject(m, "EnergyTerms", (PyObject *) &pysander_EnergyTermsType);
     Py_INCREF(&pysander_QmInputOptionsType);
     PyModule_AddObject(m, "QmInputOptions", (PyObject *) &pysander_QmInputOptionsType);
-    Py_INCREF(&pysander_RismInputOptionsType);
-    PyModule_AddObject(m, "RismInputOptions", (PyObject *) &pysander_RismInputOptionsType);
 
 #if PY_MAJOR_VERSION >= 3
     return m;

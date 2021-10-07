@@ -16,7 +16,6 @@ module sander_api
    use prmtop_type, only: prmtop_struct, destroy_prmtop_struct, read_prmtop_file
    use qmmm_module, only: qmmm_input_options
    use state, only: potential_energy_rec
-   use amber_rism_interface, only : rismprm_t
 
 ! qmmm_input options is a data structure defined in qmmm_module, shown below:
 !
@@ -125,7 +124,6 @@ module sander_api
              potential_energy_rec, sander_cleanup, MAX_FN_LEN, get_box, &
              qm_sander_input, sander_natom, prmtop_struct, read_inpcrd_file, &
              get_inpcrd_natom, destroy_prmtop_struct, read_prmtop_file, &
-             rism_sander_input,  &
 #ifdef NO_ALLOCATABLES_IN_TYPE
              is_setup, get_positions
 #else
@@ -278,22 +276,6 @@ subroutine qm_sander_input(inp)
 
 end subroutine qm_sander_input
 
-!Initalizes a struct for rism at default value
-!Parameters
-!---------
-!inp : type(rism_input_options)
-!      struct of rism input options filled by this subroutine
-
-subroutine rism_sander_input()
-
-   use sander_rism_interface, only: defaults
-   implicit none
-   call defaults()
-
-   return 
-end  subroutine rism_sander_input
-
-
 ! Initializes the major data structures needed to evaluate energies and forces
 !
 ! Parameters
@@ -390,8 +372,15 @@ subroutine api_mdread1(input_options, ierr)
    use linear_response, only: ilrt, lrt_interval, lrtmask
 #ifdef RISMSANDER
 #  ifndef API
+   use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
+        uuvfile, asympfile, quvFile, chgDistFile, electronMapFile, &
+        excessChemicalPotentialfile, solvationEnergyfile, entropyfile, &
+        excessChemicalPotentialGFfile, solvationEnergyGFfile, entropyGFfile, &
+        excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile,&
+        excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile,&
+        solventPotentialEnergyfile
+#  endif /* API */
    use sander_rism_interface, only: rismprm
-#endif /*API*/
 #endif /*RISMSANDER*/
    use nfe_sander_proxy, only: infe
    implicit none
@@ -4551,21 +4540,6 @@ subroutine ext_qm_sander_input(inp)
    call mod_func(inp)
 
 end subroutine ext_qm_sander_input
-
-! Initializes a struct with RISM options to all default values
-!
-! Parameters
-! ----------
-! inp : type(rism_input_options)
-!     struct of QM input options that will be filled by this subroutine
-subroutine ext_rism_sander_input()
-
-   use SANDER_API_MOD, only : mod_func => rism_sander_input
-   implicit none
-   call mod_func()
-   return
-
-end subroutine ext_rism_sander_input
 
 ! Initializes the major data structures needed to evaluate energies and forces
 !

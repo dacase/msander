@@ -8,7 +8,7 @@ from sys import stderr as _stderr
 
 __all__ = ['InputOptions', 'QmInputOptions', 'setup', 'cleanup', 'pme_input',
            'gas_input', 'natom', 'energy_forces', 'set_positions', 'set_box',
-           'is_setup', 'EnergyTerms', 'RismInputOptions' ]
+           'is_setup', 'EnergyTerms' ]
 
 try:
     from . import pysander as _pys
@@ -23,7 +23,6 @@ APPLY_UNITS = False
 # Add some of the pysander members directly to the sander namespace
 InputOptions = _pys.InputOptions
 QmInputOptions = _pys.QmInputOptions
-RismInputOptions = _pys.RismInputOptions
 EnergyTerms = _pys.EnergyTerms
 cleanup = _pys.cleanup
 pme_input = _pys.pme_input
@@ -211,8 +210,6 @@ class setup(object):
         struct with sander options
     qm_options : QmInputOptions (optional)
         struct with the QM options in sander QM/MM calculations
-    rism_options : RismInputOptions (optional)
-        struct with the rism options in sander 3D-RISM calculations
 
     Examples
     --------
@@ -250,7 +247,7 @@ class setup(object):
     True
     """
 
-    def __init__(self, prmtop, coordinates, box, mm_options, rism_options=None):
+    def __init__(self, prmtop, coordinates, box, mm_options, qm_options=None):
 
         # Handle the case where the coordinates are actually a restart file
         if isinstance(coordinates, string_types):
@@ -287,7 +284,7 @@ class setup(object):
             raise ValueError("qm_options must be provided if QM/MM is requested")
 
         # Call the setup routine
-        _pys.setup(parm, coordinates, box, mm_options, rism_options)
+        _pys.setup(parm, coordinates, box, mm_options, qm_options)
 
     def __enter__(self):
         """ Nothing needs to be done here """

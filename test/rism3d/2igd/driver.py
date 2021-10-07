@@ -11,15 +11,7 @@ rst = Rst7.open("2igd.rst7")
 inp = sander.pme_input()
 inp.irism = 1
 
-rism_inp = sander.RismInputOptions()
-rism_inp.solvcut = 8.1
-print("setting solvcut to %8.3f" % rism_inp.solvcut)
-rism_inp.grdspc = 0.8
-print("setting grdspc to %8.3f" % rism_inp.grdspc)
-rism_inp.verbose = -1
-print("setting verbose to %3d" % rism_inp.verbose)
-
-sander.setup(parm, rst.coordinates, rst.box, inp, rism_inp)
+sander.setup(parm, rst.coordinates, rst.box, inp, None)
 
 # Compute the energies and forces
 ene, frc = sander.energy_forces()
