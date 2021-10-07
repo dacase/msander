@@ -10,8 +10,9 @@ rst = Rst7.open("2igd.rst7")
 # Set up input options 
 inp = sander.pme_input()
 inp.irism = 1
+inp.grdspc1 = 0.9
 
-sander.setup(parm, rst.coordinates, rst.box, inp, None)
+sander.setup(parm, rst.coordinates, rst.box, inp)
 
 # Compute the energies and forces
 ene, frc = sander.energy_forces()

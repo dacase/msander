@@ -34,6 +34,7 @@ typedef struct {
     PyObject *rdt;      // double
     PyObject *fswitch;  // double
     PyObject *restraint_wt; // double
+    PyObject *grdspc1;  // double
 
     PyObject *restraintmask; // string
     PyObject *bellymask; // string
@@ -69,6 +70,7 @@ pysander_InputOptions_dealloc(pysander_InputOptions* self) {
     Py_DECREF(self->rdt);
     Py_DECREF(self->fswitch);
     Py_DECREF(self->restraint_wt);
+    Py_DECREF(self->grdspc1);
 
     Py_DECREF(self->restraintmask);
     Py_DECREF(self->bellymask);
@@ -114,6 +116,7 @@ pysander_InputOptions_new(PyTypeObject *type) {
         self->rdt = PyFloat_FromDouble(0.0);
         self->fswitch = PyFloat_FromDouble(0.0);
         self->restraint_wt = PyFloat_FromDouble(0.0);
+        self->grdspc1 = PyFloat_FromDouble(0.0);
 
         ASSIGN_STRING(restraintmask, "");
         ASSIGN_STRING(bellymask, "");
@@ -181,6 +184,8 @@ static PyMemberDef pysander_InputOptionMembers[] = {
                  "Jones\ninteractions"},
     {"restraint_wt", T_OBJECT_EX, offsetof(pysander_InputOptions, restraint_wt), 0,
                 "Force constant (kcal/mol/A^2) for positional restraints"},
+    {"grdspc1", T_OBJECT_EX, offsetof(pysander_InputOptions, grdspc1), 0,
+                "Grid spacing for 3D-RISM"},
 
     {"restraintmask", T_OBJECT_EX, offsetof(pysander_InputOptions, restraintmask), 0,
                 "Mask string selecting the atoms to restrain positions of"},

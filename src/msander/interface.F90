@@ -87,6 +87,7 @@ module sander_api
       double precision :: rdt
       double precision :: fswitch
       double precision :: restraint_wt
+      double precision :: grdspc1
 
       ! Integers (toggle options)
       integer :: igb
@@ -176,6 +177,7 @@ subroutine gas_sander_input(inp, gb)
    inp%jfastw = 0
    inp%ifqnt = 0
    inp%irism = 0
+   inp%grdspc1 = 0.5d0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
    inp%rgbmax = 25.d0
@@ -238,6 +240,7 @@ subroutine pme_sander_input(inp)
    inp%gbsa = 0
    inp%ifqnt = 0
    inp%irism = 0
+   inp%grdspc1 = 0.5d0
    inp%jfastw = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
@@ -426,6 +429,7 @@ subroutine api_mdread1(input_options, ierr)
 
 #ifdef RISMSANDER
    integer irism
+   double precision grdspc1
    character(len=8) periodicPotential
 #endif /*RISMSANDER*/
 
@@ -676,6 +680,7 @@ subroutine api_mdread1(input_options, ierr)
 
 #ifdef RISMSANDER
    irism = 0
+   grdspc1 = 0.5d0
 #endif /*RISMSANDER*/
 
    ntave = 0
@@ -880,6 +885,7 @@ subroutine api_mdread1(input_options, ierr)
 
    ifqnt = NO_INPUT_VALUE
    irism = NO_INPUT_VALUE
+   grdspc1 = NO_INPUT_VALUE_FLOAT
 
    ifcr = 0 ! no charge relocation
    cropt = 0 ! 1-4 EEL is calculated with the original charges
@@ -976,6 +982,7 @@ subroutine api_mdread1(input_options, ierr)
    dielc = input_options%dielc
    ifqnt = input_options%ifqnt
    irism = input_options%irism
+   grdspc1 = input_options%grdspc1
    jfastw = input_options%jfastw
    ntf = input_options%ntf
    ntc = input_options%ntc
@@ -1061,6 +1068,9 @@ subroutine api_mdread1(input_options, ierr)
    if (irism == NO_INPUT_VALUE) then
       irism = 0 ! default value
    end if
+   if (grdspc1 == NO_INPUT_VALUE) then
+      grdspc1 = 0.5d0 ! default value
+   end if
 
    ! middle scheme is requested {
       if (ithermostat < 0 .or. ithermostat > 2) then
@@ -1120,6 +1130,7 @@ subroutine api_mdread1(input_options, ierr)
    ! electrostatics are initialized properly.
 
    rismprm%rism=irism
+   rismprm%grdspc(:)=grdspc1
 
    if (irism /= 0) then
       periodicPotential = 'pme'

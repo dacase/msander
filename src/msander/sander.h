@@ -56,6 +56,7 @@ typedef struct {
     double rdt;
     double fswitch;
     double restraint_wt;
+    double grdspc1;
 
     // Integer choice flags
     int igb;
@@ -292,6 +293,9 @@ void pme_sander_input(sander_input*);
 
 /// Prepare a QM input struct with default values
 void qm_sander_input(qmmm_input_options*);
+
+/// Set up rism defaults:
+void rism_defaults_();
 
 
 /* I've found that you really need to fix strings to the same number of

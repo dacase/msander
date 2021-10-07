@@ -479,8 +479,8 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
-    call defaults()
 #ifndef API
+    call defaults()
     outunit = rism_report_getMUnit()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
@@ -1797,6 +1797,14 @@ end subroutine rism_sander_input
 
 end module sander_rism_interface
 
+subroutine rism_defaults()
+   use sander_rism_interface, only: defaults
+   implicit none
+   call defaults()
+   return
+end subroutine rism_defaults
+
+#if 0
 !  Keep outside of the module, to avoid name mangling
 #ifdef API
   subroutine rism_setparam2( solvcut, grdspc, verbose )
@@ -1825,4 +1833,4 @@ end module sander_rism_interface
      return
   end subroutine rism_setparam2
 #endif
-
+#endif
