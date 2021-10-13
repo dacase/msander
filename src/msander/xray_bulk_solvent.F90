@@ -307,10 +307,12 @@ contains
 
       hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
              hkl_index(3,i), na, nb, nc)
+#if 0  /* we will try to set fmask to zero when -1 is returned */
       if (hkl_indexing_bs_mask(i) == -1) then
         write(0,*) i,hkl_index(1:3,i),na,nb,nc
         stop 'Miller indices indexing failed'
       end if
+#endif
       
     end do
 
@@ -481,21 +483,21 @@ contains
 
     m = (na - 1) / 2
     if (-m > ihh .or. ihh > m) then
-      write(0,*) 'indexing error 1: ', m, ihh
+      ! write(0,*) 'indexing error 1: ', m, ihh
       error = .true.
     elseif (ihh < 0) then
       ihh = ihh + na
     end if
     m = (nb - 1) / 2
     if (-m > ihk .or. ihk > m) then
-      write(0,*) 'indexing error 2: ', m, ihk
+      ! write(0,*) 'indexing error 2: ', m, ihk
       error = .true.
     elseif (ihk < 0) then
       ihk = ihk + nb
     end if
     m = nc / 2 + 1
     if (0 > ihl .or. h >= m) then
-      write(0,*) 'indexing error 3: ', m, ihl, h
+      ! write(0,*) 'indexing error 3: ', m, ihl, h
       error = .true.
     end if
 
@@ -535,8 +537,13 @@ contains
             call fft_bs_mask()
 
             do i=1,num_hkl
-               f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
-                        * mask_cell_params(16) / mask_grid_size(4)
+               if( hkl_indexing_bs_mask(i) .ne. -1 ) then
+                  f_mask(i) = &
+                     conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                     * mask_cell_params(16) / mask_grid_size(4)
+               else
+                  f_mask(i) = 0.d0
+               endif
 #if 0
                write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
                   hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
