@@ -254,6 +254,13 @@
            ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
 #endif /*RISMSANDER*/
 
+#ifdef OPENMP
+      ! In the future, the msander and rism values for omp_num_threads might
+      !   be different; for now, they are the same
+      call set_omp_num_threads()
+      call set_omp_num_threads_rism()
+#endif
+
       if ( ifcr /= 0 ) then
          call cr_read_input(natom)
          call cr_check_input( ips )
