@@ -493,7 +493,6 @@ contains
     ! Initialize 3D-RISM solute and solvent.
 
 #ifdef OPENMP
-    call set_omp_num_threads()
     ier = fftw_init_threads()
     if( ier == 0 ) then
        write(0,*) 'failure in fftw_plan_with_nthreads'
@@ -1796,6 +1795,21 @@ end subroutine rism_sander_input
 #endif
 
 end module sander_rism_interface
+
+#ifdef OPENMP
+  subroutine set_omp_num_threads_rism()
+    use constants_rism, only: omp_num_threads
+    implicit none
+    character(len=5) :: omp_threads
+    integer :: ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+#endif
+  end subroutine set_omp_num_threads_rism
+#endif
 
 subroutine rism_defaults()
    use sander_rism_interface, only: defaults
