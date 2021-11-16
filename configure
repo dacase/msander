@@ -101,10 +101,10 @@ for var in "$@"; do
             mpif90="mpiifort"
             optflags="-g -O3 -fast"
             parmed="skip"
-            pysander="skip"
-            libsander="libsander_skip"
-            libsanderles="libsanderles_skip"
-            netcdflibf=$netcdflibf_static
+            # pysander="skip"
+            # libsander="libsander_skip"
+            # libsanderles="libsanderles_skip"
+            netcdflibf=$netcdflibf_shared
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
