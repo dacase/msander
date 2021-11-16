@@ -688,13 +688,15 @@ subroutine sander()
     ! End of master process setup
 
 #ifdef OPENMP
-    ! set up and print some information
     call set_omp_num_threads()
 #endif
 
     ! rism initialization
 #  if defined(RISMSANDER)
     call rism_init(commsander)
+#  ifdef OPENMP
+    call set_omp_num_threads_rism()
+#  endif
 #  endif /* RISMSANDER */
 
 #ifdef MPI
