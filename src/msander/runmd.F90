@@ -514,11 +514,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekhf2 = 0.0d0
 
 !------------------------------------------------------------------------------
+#ifdef PLUMED
   ! PLUMED initialization.  PLUMED is an open-source plugin that
   ! confers the functionality of a number of enhanced sampling methods.
   if (plumed == 1) then
 #   include "Plumed_init.inc"
   endif
+#endif
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -560,9 +562,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
     ! PLUMED force is added in this routine.
     plumed_stopflag=0
+#ifdef PLUMED
     if (plumed == 1) then
 #     include "Plumed_force.inc"
     end if
+#endif
 
 #ifdef MPI /* SOFT CORE */
 !------------------------------------------------------------------------------
@@ -983,10 +987,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
+#ifdef PLUMED
   ! PLUMED force added
   if (plumed == 1) then
 #     include "Plumed_force.inc"
   end if
+#endif
 
 #ifdef MPI
 !------------------------------------------------------------------------------
