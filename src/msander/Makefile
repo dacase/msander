@@ -33,7 +33,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     mexit.o new_time.API.o extra_pts.LESAPI.o thermo_int.o matinv.o assert.o \
     erfcfun.o md_scheme.LES.o \
     constantph.o constante.o ips.o sglds.o iwrap2.o emap.o \
-    $(SANDER_RISM_INTERFACE) \
+    amber_rism_interface.API.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o \
     linear_response.o molecule.o dssp.o \
     charmm.API.o crg_reloc.o barostats.o prmtop_type.o \
@@ -82,7 +82,8 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     debug.API.o mexit.o new_time.API.o extra_pts.API.o thermo_int.o les.o \
     matinv.o assert.o erfcfun.o md_scheme.o \
     constantph.o constante.o ips.o sglds.o iwrap2.o emap.o\
-    $(SANDER_RISM_INTERFACE) AmberNetcdf.o bintraj.o binrestart.o \
+    amber_rism_interface.API.o \
+    AmberNetcdf.o bintraj.o binrestart.o \
     spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o \
     molecule.o dssp.o \
     charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
@@ -120,7 +121,7 @@ MMOBJ = \
     sander_lib.o sander.o scaledMD.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
     spatial_recip.o stack.o state.o thermo_int.o trajene.o \
-    wallclock.o xminC.o veclib.o dsarpack.o
+    wallclock.o xminC.o veclib.o dsarpack.o 
 
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o \
@@ -144,7 +145,7 @@ LESOBJ= \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
-    xminC.o veclib.o dsarpack.o
+    xminC.o veclib.o dsarpack.o 
 
 XRAY_OBJS = \
    xray_fourier.o xray_globals.o xray_interface.o xray_utils.o \
@@ -159,6 +160,16 @@ msander.LES: $(BINDIR)/msander.LES$(SFX)
 libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
 
 libsanderles: $(LIBDIR)/libsanderles$(SHARED_SUFFIX)
+
+libsander_skip::
+	@echo "Skipping libsander"
+
+libsanderles_skip::
+	@echo "Skipping libsander"
+
+amber_rism_interface.API.o: ../rism/amber_rism_interface.F90
+	@echo "[MSANDER]  FC $<"
+	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ $< 
 
 dummy:
 
@@ -187,18 +198,18 @@ $(LIBDIR)/libsander$(SHARED_SUFFIX): libs $(APIOBJ) \
 	@echo "[MSANDER API]  FC $@"
 	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@  \
         $(APIOBJ) $(QMAPIOBJ) force.o \
-        -L$(LIBDIR) -lsqm $(NFE_OBJECTS) $(XRAY_OBJS)  \
+        -L$(LIBDIR) $(NFE_OBJECTS) $(XRAY_OBJS)  \
         $(NETCDFLIBF) $(LDFLAGS) $(FLIBSF) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
-$(LIBDIR)/libsanderles$(SHARED_SUFFIX): $(LESAPIOBJ) \
+$(LIBDIR)/libsanderles$(SHARED_SUFFIX): libs $(LESAPIOBJ) \
         $(QMAPIOBJ) $(INCDIR)/sanderles_api.mod \
         $(NFE_OBJECTS) $(XRAY_OBJS) \
         $(PLUMED_DEPENDENCIES) 
 	@echo "[MSANDER_LES API]  FC $@"
 	$(VB)$(FC) $(MAKE_SHARED) $(FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ \
         $(LESAPIOBJ) $(QMAPIOBJ) \
-        $(XRAY_OBJS) -L$(LIBDIR) -lsqm $(PLUMED_LOAD) \
+        $(XRAY_OBJS) -L$(LIBDIR) $(PLUMED_LOAD) \
         $(NFE_OBJECTS) $(NETCDFLIBF) $(LDFLAGS) $(FLIBSF) 
 
 $(INCDIR)/sander_api.mod: interface.o

@@ -1,6 +1,7 @@
 package:
   name: amber_phenix
-  version: 1.3
+#  version 1.4.1 adds --openmp to configure
+  version: 1.4.1
 
 source:
   path: ../
@@ -13,7 +14,7 @@ requirements:
    - {{ compiler('fortran') }}
    - {{ compiler('c') }}
    - {{ compiler('cxx') }}
-#  - llvm-openmp  # [osx]
+   - llvm-openmp  # [osx]
 
   host:
    - python
@@ -21,22 +22,22 @@ requirements:
    - setuptools
    - bzip2
    - zlib
+#  - mkl
 #  - libnetcdf
 #  - netcdf-fortran
 #  - openblas
 #  - arpack
-#  - fftw
-#  - llvm-openmp  # [osx]
+   - llvm-openmp  # [osx]
 
   run:
    - python
    - numpy
+#  - mkl
 #  - libnetcdf
 #  - netcdf-fortran
-#  - fftw
 #  - openblas
 #  - arpack
-#  - llvm-openmp  # [osx]
+   - llvm-openmp  # [osx]
 
 about:
     home: https://www.phenix-online.org/documentation/reference/amber.html

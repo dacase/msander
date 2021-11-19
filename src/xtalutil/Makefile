@@ -1,6 +1,6 @@
 include ../../config.h
 
-LOCALFLAGS=-Wno-unused-result
+# LOCALFLAGS=-Wno-unused-result
 
 .c.o:
 	@echo "[XTALUTIL]  CC $<"

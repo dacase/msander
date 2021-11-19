@@ -1,8 +1,15 @@
 #!/bin/sh
 
-pdbin=$1
-mtzin=$2
-#  output to stdout
+# Do single-point calculations in phenix to compare the default bulk-solvent
+#   model with a user-supplied solvent file.
+#   User should edit the label_string below to match the input files.
+
+pdbin=$1     # input pdb-file
+mtzin=$2     # input reflection file
+
+#  Output to stdout.
+
+#  Mainly developed by Pavel Afonine, modified by David Case.
 
 cat <<EOF > run_00.py
 from __future__ import division
@@ -18,23 +25,29 @@ def run():
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
     "$mtzin").as_miller_arrays()
   for ma in miller_arrays:
-    if(ma.info().label_string()=="F-obs-filtered,SIGF-obs-filtered"):
+    if(ma.info().label_string()=="FP,SIGFP"):
       f_obs = ma
-  #
-  print "Using Phenix default bulk-solvent:"
+
+  #-----------------------------------------------------
+
+  print("Using Phenix default bulk-solvent:")
   fmodel = mmtbx.f_model.manager(
     xray_structure = xrs,
     f_obs          = f_obs)
   fmodel.update_all_scales(update_f_part1=False, remove_outliers=False)
   fmodel.show(show_header=False, show_approx=False)
-  print "r_work: %6.4f"%fmodel.r_work()
-  print
-  #
-  print "Using Amber bulk-solvent:"
+  print("r_work: %6.4f"%fmodel.r_work())
+  print("")
+  mtzfile = open('phenix.flat.mtz','wb')
+  fmodel.export(out=mtzfile)
+
+  #-----------------------------------------------------
+
+  print("Using user-supplied bulk-solvent:")
   miller_arrays = reflection_file_reader.any_reflection_file(file_name =
-    "solvent.mtz").as_miller_arrays()
+    "$mtzin").as_miller_arrays()
   for ma in miller_arrays:
-    if(ma.info().label_string()=="Fpart1,PHIpart1"):
+    if(ma.info().label_string()=="Fpart,PHIpart"):
       f_mask = ma
   fft_map = f_mask.fft_map(resolution_factor = 1./4)
   fft_map.apply_volume_scaling()
@@ -53,8 +66,9 @@ def run():
     f_mask = f_mask)
   fmodel.update_all_scales(update_f_part1=False, remove_outliers=False)
   fmodel.show(show_header=False, show_approx=False)
-  print "r_work: %6.4f"%fmodel.r_work()
-
+  print("r_work: %6.4f"%fmodel.r_work())
+  mtzfile = open('phenix.part.mtz','wb')
+  fmodel.export(out=mtzfile)
 
 
 if (__name__ == "__main__"):

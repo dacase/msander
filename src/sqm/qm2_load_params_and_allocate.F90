@@ -11,7 +11,7 @@
 ! Updates by: Taisung Lee (Rutgers, 2011)
 
 ! This routine should be called before running any qm2 routine calculations.
-! It is responsible for filling the parameter arrays with the designated 
+! It is responsible for filling the parameter arrays with the designated
 ! parameters for the method chosen.
 
 ! All parameters are loaded into qm2_params structure.
@@ -29,14 +29,14 @@
     use constants, only : half, EV_TO_KCAL, AU_TO_EV
     use ElementOrbitalIndex, only: MaxValenceOrbitals, &
          SPPrincipalQuantumNumber, DPrincipalQuantumNumber
-            
+
     use QM2_parameters
     use qm2_params_module, only : new
     use qmmm_module, only : qmmm_nml,qmmm_struct, qm2_struct, qm2_params, &
                             qmmm_mpi, qmmm_scratch, qmmm_opnq
     use MNDOChargeSeparation, only : GetDDAndPho
     use qm2_diagonalizer_module, only : qm2_diagonalizer_setup
-                                
+
     implicit none
 
     logical, intent(in) :: silence
@@ -61,7 +61,7 @@
     integer, dimension(:), allocatable :: gather_array !Allocated and deallocated in this routine.
 #endif
 
-    logical :: test
+    logical :: test, skip
 
     !  Initialize the parameter module
     call InitializeParameter(qmmm_nml%qmtheory)
@@ -84,20 +84,20 @@
       do i=1,qmmm_struct%qm_ntypes
          qm2_params%sp_quantum_number(i)=SPPrincipalQuantumNumber(qmmm_struct%qm_type_id(i))
          qm2_params%d_quantum_number(i)=DPrincipalQuantumNumber(qmmm_struct%qm_type_id(i))
-      end do 
+      end do
 
       do i=1,qmmm_struct%nquant_nlink
          iqm_atomic=qmmm_struct%iqm_atomic_numbers(i)
          qm2_params%core_chg(i)=dble(core_chg(iqm_atomic))
-        
+
          nelectrons=nelectrons+core_chg(iqm_atomic)
-         
-         n_atomic_orb=natomic_orbs(iqm_atomic)         
-         
+
+         n_atomic_orb=natomic_orbs(iqm_atomic)
+
          if (n_atomic_orb==1) ns_atoms=ns_atoms+1
          if (n_atomic_orb==4) nsp_atoms=nsp_atoms+1
          if (n_atomic_orb==9) nspd_atoms=nspd_atoms+1
-                  
+
          ! Check we don't bust any static arrays
          ! DFTB is independent of this and checks are done in qm2_dftb_load_params
          if ( .not. qmmm_nml%qmtheory%DFTB ) then
@@ -121,12 +121,12 @@
       !!ns_atoms=qmmm_struct%nquant_nlink-nsp_atoms
       !!qm2_struct%n2el=50*nsp_atoms*(nsp_atoms-1)+10*nsp_atoms*ns_atoms+ &
       !!                ishft((ns_atoms*(ns_atoms-1)),-1)
-      
-      !! TL_Work 
-      qm2_struct%n2el= max(ns_atoms*(ns_atoms-1)/2,0) & 
+
+      !! TL_Work
+      qm2_struct%n2el= max(ns_atoms*(ns_atoms-1)/2,0) &
           +10*nsp_atoms*ns_atoms + 45 *nspd_atoms*ns_atoms &
           +max(100*nsp_atoms*(nsp_atoms-1)/2,0) + 450*nspd_atoms*nsp_atoms &
-          +max(2025*nspd_atoms*(nspd_atoms-1)/2,0)            
+          +max(2025*nspd_atoms*(nspd_atoms-1)/2,0)
 
       !QMMM e-repul memory depends on QM-MM pair list size so is
       !allocated later on and checked on every call.
@@ -137,11 +137,11 @@
         if (qmmm_mpi%commqmmm_master.and.qmmm_struct%qm_mm_first_call) then
           write(6,'(''QMMM: ERROR-number of electrons: '',i5,'' is more'')') nelectrons
           write(6,'(''QMMM: than 2xnorbs of: '',i5)') qm2_struct%norbs
-          write(6,'(''QMMM: Check qmcharge in qmmm namelist and rerun'')')                                            
-          write(6,'(''QMMM: the calculation.'')')                                                                     
-        end if                                                                                                    
+          write(6,'(''QMMM: Check qmcharge in qmmm namelist and rerun'')')
+          write(6,'(''QMMM: the calculation.'')')
+        end if
         call mexit(6,1)
-      end if  
+      end if
       !Now we know the number of electrons work out how many closed and open shells there are.
       if(qmmm_nml%spin==1 .OR. qmmm_nml%spin==3 .OR.qmmm_nml%spin==5)then
 !        Make sure we have an even number of electrons
@@ -179,7 +179,7 @@
       else if (qmmm_nml%spin == 6) then
          nopen = 5
       end if
-      qm2_struct%nclosed = nelectrons/2          
+      qm2_struct%nclosed = nelectrons/2
       if( nopen > 0 ) then
          qm2_struct%nclosed = qm2_struct%nclosed - nopen/2
          if ((qm2_struct%nclosed + nopen) > qm2_struct%norbs) then
@@ -275,27 +275,27 @@
          qm2_struct%den_matrix(qm2_params%pascal_tri2(j))=-pdiag_guess1
          qm2_struct%old_den_matrix(qm2_params%pascal_tri2(j))=-pdiag_guess1
       end do
-      
+
       do i=1,qmmm_struct%nquant_nlink
          first_orb=qm2_params%orb_loc(1,i)
          last_orb=qm2_params%orb_loc(2,i)
-         
+
          k=4  ! default number of orbitals to be populated
- 
+
          ! S only
          if ((qm2_params%core_chg(i).le.2) .and. &
                 (qm2_params%natomic_orbs(i)==1)) then
             k=1
-         end if   
- 
+         end if
+
          ! when the atom has d electrons
          if ((qm2_params%core_chg(i).gt.8) .and. &
                 (qm2_params%natomic_orbs(i).gt.4)) then
             k= qm2_params%natomic_orbs(i)
-         end if   
- 
+         end if
+
          pdiag_guess2=dble(qm2_params%core_chg(i))/dble(k)
- 
+
          do j=first_orb,first_orb+k-1
            qm2_struct%den_matrix(qm2_params%pascal_tri2(j))= pdiag_guess2 + &
                 qm2_struct%den_matrix(qm2_params%pascal_tri2(j))
@@ -321,15 +321,15 @@
         qm2_struct%den_matrix(1:qm2_struct%matsize) = qm2_struct%den_matrix(1:qm2_struct%matsize) * 0.5d0
 
       end if
-      
+
 !!            qxd_s, qxd_z0, qxd_zq, qxd_d0, qxd_dq, qxd_q0, qxd_qq, qxd_neff
 !----------------------------------------
 !
 ! OPNQ parameter loding
 !
-!--------------------------------------           
-         
-    if (qmmm_opnq%useOPNQ) then   
+!--------------------------------------
+
+    if (qmmm_opnq%useOPNQ) then
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%qxd_supported(i) = qxd_supported(qmmm_struct%qm_type_id(i))
            if (qm2_params%qxd_supported(i)) then
@@ -339,9 +339,9 @@
                qm2_params%qxd_d0(i) = qxd_d0(qmmm_struct%qm_type_id(i))
                qm2_params%qxd_dq(i) = qxd_dq(qmmm_struct%qm_type_id(i))
                qm2_params%qxd_q0(i) = qxd_q0(qmmm_struct%qm_type_id(i))
-               qm2_params%qxd_qq(i) = qxd_qq(qmmm_struct%qm_type_id(i))  
-               qm2_params%qxd_neff(i) = qxd_neff(qmmm_struct%qm_type_id(i))                                       
-           end if                            
+               qm2_params%qxd_qq(i) = qxd_qq(qmmm_struct%qm_type_id(i))
+               qm2_params%qxd_neff(i) = qxd_neff(qmmm_struct%qm_type_id(i))
+           end if
         end do
     end if ! (qmmm_opnq%useOPNQ)
 !----------------------------------------
@@ -363,9 +363,9 @@
                               'QM MNDO NOT AVAILABLE FOR THIS ATOM')
           end if
 
-          
+
           !----------------------------------------
-          ! Calculate parameters that are actually 
+          ! Calculate parameters that are actually
           ! derived from other parameters.
           !----------------------------------------
 
@@ -435,7 +435,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_mndo(iqm_atomic)-gp2_mndo(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_mndo(iqm_atomic)-gp2_mndo(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -458,7 +458,7 @@
             qm2_params%multip_2c_elec_params(5,i) = 0.5d0/dd2_temp
             !end AQ
           end if
-      
+
           !----------------------------------------
           ! End calculation of derived parameters.
           !----------------------------------------
@@ -480,7 +480,7 @@
         ! the chance of cache hits.
         do i=1,qmmm_struct%qm_ntypes
           qm2_params%s_orb_exp_by_type(i) = s_orb_exp_mndo(qmmm_struct%qm_type_id(i))
-          qm2_params%p_orb_exp_by_type(i) = p_orb_exp_mndo(qmmm_struct%qm_type_id(i)) 
+          qm2_params%p_orb_exp_by_type(i) = p_orb_exp_mndo(qmmm_struct%qm_type_id(i))
            do j = 1,qmmm_struct%qm_ntypes
             qm2_params%betasas(i,j) = betas_mndo(qmmm_struct%qm_type_id(i))+betas_mndo(qmmm_struct%qm_type_id(j))
             qm2_params%betasap(i,j) = betas_mndo(qmmm_struct%qm_type_id(i))+betap_mndo(qmmm_struct%qm_type_id(j))
@@ -500,7 +500,7 @@
 !           MNDOD PARAMS               *
 !--------------------------------------
       else if (qmmm_nml%qmtheory%MNDOD) then
-      
+
         do i = 1,qmmm_struct%nquant_nlink
           iqm_atomic=qmmm_struct%iqm_atomic_numbers(i)
 ! Check that parameters exist for this element in MNDOD
@@ -512,9 +512,9 @@
                               'QM MNDOD NOT AVAILABLE FOR THIS ATOM')
           end if
 
-          
+
           !----------------------------------------
-          ! Calculate parameters that are actually 
+          ! Calculate parameters that are actually
           ! derived from other parameters.
           !----------------------------------------
 
@@ -586,7 +586,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_MNDOD(iqm_atomic)-gp2_MNDOD(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_MNDOD(iqm_atomic)-gp2_MNDOD(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -609,7 +609,7 @@
             qm2_params%multip_2c_elec_params(5,i) = 0.5d0/dd2_temp
             !end AQ
           end if
-      
+
           !----------------------------------------
           ! End calculation of derived parameters.
           !----------------------------------------
@@ -620,48 +620,48 @@
           qm2_params%onec2elec_params(3,i) = 0.5d0*GPP_MNDOD(iqm_atomic)
           qm2_params%onec2elec_params(4,i) = 1.25d0*GP2_MNDOD(iqm_atomic)
           qm2_params%onec2elec_params(5,i) = 0.5d0*HSP_MNDOD(iqm_atomic)
-     
+
           qm2_params%cc_exp_params(i) = alp_MNDOD(iqm_atomic)
           qm2_params%orb_elec_ke(1,i) = uss_MNDOD(iqm_atomic)
           qm2_params%orb_elec_ke(2,i) = upp_MNDOD(iqm_atomic)
-          qm2_params%orb_elec_ke(3,i) = udd_MNDOD(iqm_atomic)          
+          qm2_params%orb_elec_ke(3,i) = udd_MNDOD(iqm_atomic)
         end do
-        
+
         ! move the zeta loading to here so that the derived dd and rho_0 can be calculated
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_MNDOD(qmmm_struct%qm_type_id(i))
            qm2_params%p_orb_exp_by_type(i) = p_orb_exp_MNDOD(qmmm_struct%qm_type_id(i))
-           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_MNDOD(qmmm_struct%qm_type_id(i))                
+           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_MNDOD(qmmm_struct%qm_type_id(i))
            qm2_params%s_orb_exp_tail_by_type(i) = s_orb_exp_tail_MNDOD(qmmm_struct%qm_type_id(i))
            qm2_params%p_orb_exp_tail_by_type(i) = p_orb_exp_tail_MNDOD(qmmm_struct%qm_type_id(i))
-           qm2_params%d_orb_exp_tail_by_type(i) = d_orb_exp_tail_MNDOD(qmmm_struct%qm_type_id(i))    
-           
-           qm2_params%gss(i) = gss_MNDOD(qmmm_struct%qm_type_id(i))               
-           qm2_params%hsp(i) = hsp_MNDOD(qmmm_struct%qm_type_id(i))   
-           qm2_params%hpp(i) = (gpp_MNDOD(qmmm_struct%qm_type_id(i))-gp2_MNDOD(qmmm_struct%qm_type_id(i)))*half 
-           
+           qm2_params%d_orb_exp_tail_by_type(i) = d_orb_exp_tail_MNDOD(qmmm_struct%qm_type_id(i))
+
+           qm2_params%gss(i) = gss_MNDOD(qmmm_struct%qm_type_id(i))
+           qm2_params%hsp(i) = hsp_MNDOD(qmmm_struct%qm_type_id(i))
+           qm2_params%hpp(i) = (gpp_MNDOD(qmmm_struct%qm_type_id(i))-gp2_MNDOD(qmmm_struct%qm_type_id(i)))*half
+
            DD=0.0D0
            PO=0.0D0
            call GetDDAndPho(i, DD, PO)
 
            qm2_params%dd(1:6,i)=DD
            qm2_params%po(1:9,i)=PO
- 
+
            temp=rho_core_mndod(qmmm_struct%qm_type_id(i))
            if (abs(temp) > 1.0d-5 ) then
                qm2_params%po(9,i)=temp
            end if
-                              
+
           do j = 1,qmmm_struct%qm_ntypes
             qm2_params%betasas(i,j) = betas_MNDOD(qmmm_struct%qm_type_id(i))+betas_MNDOD(qmmm_struct%qm_type_id(j))
             qm2_params%betasap(i,j) = betas_MNDOD(qmmm_struct%qm_type_id(i))+betap_MNDOD(qmmm_struct%qm_type_id(j))
             qm2_params%betasad(i,j) = betas_MNDOD(qmmm_struct%qm_type_id(i))+betad_MNDOD(qmmm_struct%qm_type_id(j))
             qm2_params%betapap(i,j) = betap_MNDOD(qmmm_struct%qm_type_id(i))+betap_MNDOD(qmmm_struct%qm_type_id(j))
             qm2_params%betapad(i,j) = betap_MNDOD(qmmm_struct%qm_type_id(i))+betad_MNDOD(qmmm_struct%qm_type_id(j))
-            qm2_params%betadad(i,j) = betad_MNDOD(qmmm_struct%qm_type_id(i))+betad_MNDOD(qmmm_struct%qm_type_id(j))            
+            qm2_params%betadad(i,j) = betad_MNDOD(qmmm_struct%qm_type_id(i))+betad_MNDOD(qmmm_struct%qm_type_id(j))
           end do
         end do
-   
+
 !--------------------------------------
 !       end  MNDOD PARAMS              *
 !--------------------------------------
@@ -751,7 +751,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_am1(iqm_atomic)-gp2_am1(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_am1(iqm_atomic)-gp2_am1(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -798,7 +798,7 @@
         do i=1,qmmm_struct%qm_ntypes
            ! get the Slater orbital expansion coefficients
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_am1(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_am1(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_am1(qmmm_struct%qm_type_id(i))
           qm2_params%NUM_FN(i) = NUM_FN_am1(qmmm_struct%qm_type_id(i))
           do j=1,4
              qm2_params%FN1(j,i) = FN1_am1(j,qmmm_struct%qm_type_id(i))
@@ -823,7 +823,7 @@
 !           AM1D PARAMS               *
 !--------------------------------------
       else if (qmmm_nml%qmtheory%AM1D) then
-      
+
         do i = 1,qmmm_struct%nquant_nlink
           iqm_atomic=qmmm_struct%iqm_atomic_numbers(i)
 ! Check that parameters exist for this element in AM1D
@@ -833,9 +833,9 @@
              call sander_bomb('qm2_load_params_and_allocate','UNSUPPORTED ELEMENT','QM AM1D NOT AVAILABLE FOR THIS ATOM')
           end if
 
-          
+
           !----------------------------------------
-          ! Calculate parameters that are actually 
+          ! Calculate parameters that are actually
           ! derived from other parameters.
           !----------------------------------------
 
@@ -907,7 +907,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_AM1D(iqm_atomic)-gp2_AM1D(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_AM1D(iqm_atomic)-gp2_AM1D(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -930,7 +930,7 @@
             qm2_params%multip_2c_elec_params(5,i) = 0.5d0/dd2_temp
             !end AQ
           end if
-      
+
           !----------------------------------------
           ! End calculation of derived parameters.
           !----------------------------------------
@@ -941,49 +941,49 @@
           qm2_params%onec2elec_params(3,i) = 0.5d0*GPP_AM1D(iqm_atomic)
           qm2_params%onec2elec_params(4,i) = 1.25d0*GP2_AM1D(iqm_atomic)
           qm2_params%onec2elec_params(5,i) = 0.5d0*HSP_AM1D(iqm_atomic)
-     
+
           qm2_params%cc_exp_params(i) = alp_AM1D(iqm_atomic)
           qm2_params%orb_elec_ke(1,i) = uss_AM1D(iqm_atomic)
           qm2_params%orb_elec_ke(2,i) = upp_AM1D(iqm_atomic)
-          qm2_params%orb_elec_ke(3,i) = udd_AM1D(iqm_atomic)          
+          qm2_params%orb_elec_ke(3,i) = udd_AM1D(iqm_atomic)
         end do
-        
+
         ! move the zeta loading to here so that the derived dd and rho_0 can be calculated
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_AM1D(qmmm_struct%qm_type_id(i))
            qm2_params%p_orb_exp_by_type(i) = p_orb_exp_AM1D(qmmm_struct%qm_type_id(i))
-           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_AM1D(qmmm_struct%qm_type_id(i))                
+           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_AM1D(qmmm_struct%qm_type_id(i))
            qm2_params%s_orb_exp_tail_by_type(i) = s_orb_exp_tail_AM1D(qmmm_struct%qm_type_id(i))
            qm2_params%p_orb_exp_tail_by_type(i) = p_orb_exp_tail_AM1D(qmmm_struct%qm_type_id(i))
-           qm2_params%d_orb_exp_tail_by_type(i) = d_orb_exp_tail_AM1D(qmmm_struct%qm_type_id(i))    
-           
-           qm2_params%gss(i) = gss_AM1D(qmmm_struct%qm_type_id(i))               
-           qm2_params%hsp(i) = hsp_AM1D(qmmm_struct%qm_type_id(i))   
-           qm2_params%hpp(i) = (gpp_AM1D(qmmm_struct%qm_type_id(i))-gp2_AM1D(qmmm_struct%qm_type_id(i)))*half 
-           
-           qm2_params%GNN(i) = GNN_AM1D(qmmm_struct%qm_type_id(i))   
-           
+           qm2_params%d_orb_exp_tail_by_type(i) = d_orb_exp_tail_AM1D(qmmm_struct%qm_type_id(i))
+
+           qm2_params%gss(i) = gss_AM1D(qmmm_struct%qm_type_id(i))
+           qm2_params%hsp(i) = hsp_AM1D(qmmm_struct%qm_type_id(i))
+           qm2_params%hpp(i) = (gpp_AM1D(qmmm_struct%qm_type_id(i))-gp2_AM1D(qmmm_struct%qm_type_id(i)))*half
+
+           qm2_params%GNN(i) = GNN_AM1D(qmmm_struct%qm_type_id(i))
+
            DD=0.0D0
            PO=0.0D0
-           call GetDDAndPho(i, DD, PO) 
-           
+           call GetDDAndPho(i, DD, PO)
+
            qm2_params%dd(1:6,i)=DD
            qm2_params%po(1:9,i)=PO
-           
+
            temp=rho_core_am1d(qmmm_struct%qm_type_id(i))
            if (abs(temp) > 1.0d-5 ) then
                qm2_params%po(9,i)=temp
            end if
-                    
+
           do j = 1,qmmm_struct%qm_ntypes
             qm2_params%betasas(i,j) = betas_AM1D(qmmm_struct%qm_type_id(i))+betas_AM1D(qmmm_struct%qm_type_id(j))
             qm2_params%betasap(i,j) = betas_AM1D(qmmm_struct%qm_type_id(i))+betap_AM1D(qmmm_struct%qm_type_id(j))
             qm2_params%betasad(i,j) = betas_AM1D(qmmm_struct%qm_type_id(i))+betad_AM1D(qmmm_struct%qm_type_id(j))
             qm2_params%betapap(i,j) = betap_AM1D(qmmm_struct%qm_type_id(i))+betap_AM1D(qmmm_struct%qm_type_id(j))
             qm2_params%betapad(i,j) = betap_AM1D(qmmm_struct%qm_type_id(i))+betad_AM1D(qmmm_struct%qm_type_id(j))
-            qm2_params%betadad(i,j) = betad_AM1D(qmmm_struct%qm_type_id(i))+betad_AM1D(qmmm_struct%qm_type_id(j))            
+            qm2_params%betadad(i,j) = betad_AM1D(qmmm_struct%qm_type_id(i))+betad_AM1D(qmmm_struct%qm_type_id(j))
           end do
-          
+
           qm2_params%NUM_FN(i) = NUM_FN_am1d(qmmm_struct%qm_type_id(i))
           do j=1,4
              qm2_params%FN1(j,i) = FN1_am1d(j,qmmm_struct%qm_type_id(i))
@@ -992,7 +992,7 @@
           end do
 
         end do
-        
+
 !--------------------------------------
 !       end  AM1D PARAMS              *
 !--------------------------------------
@@ -1080,7 +1080,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_pm3(iqm_atomic)-gp2_pm3(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_pm3(iqm_atomic)-gp2_pm3(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -1138,12 +1138,12 @@
         do i=1,qmmm_struct%qm_ntypes
            ! get the Slater orbital expansion coefficients
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_pm3(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pm3(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pm3(qmmm_struct%qm_type_id(i))
           qm2_params%NUM_FN(i) = NUM_FN_pm3(qmmm_struct%qm_type_id(i))
           do j=1,4
-             qm2_params%FN1(j,i) = FN1_pm3(j,qmmm_struct%qm_type_id(i))   
-             qm2_params%FN2(j,i) = FN2_pm3(j,qmmm_struct%qm_type_id(i))   
-             qm2_params%FN3(j,i) = FN3_pm3(j,qmmm_struct%qm_type_id(i))   
+             qm2_params%FN1(j,i) = FN1_pm3(j,qmmm_struct%qm_type_id(i))
+             qm2_params%FN2(j,i) = FN2_pm3(j,qmmm_struct%qm_type_id(i))
+             qm2_params%FN3(j,i) = FN3_pm3(j,qmmm_struct%qm_type_id(i))
           end do
         end do
 
@@ -1172,14 +1172,14 @@
           !do i = 1,qmmm_struct%nquant_nlink
           do i = 1,qmmm_struct%qm_ntypes
             iqm_atomic=qmmm_struct%qm_type_id(i)
-            ! Check parameter availability for PM3/MM* 
+            ! Check parameter availability for PM3/MM*
             ! Current params are for QM H, C, N and O only.
             if (.NOT. element_supported_pm3mmx(iqm_atomic)) then
               write(6,'("QMMM: Atom with atomic number ",i4,".")') iqm_atomic
               write(6,'("QMMM: There are no PM3/MM* parameters for this element. Sorry.")')
               call sander_bomb('qm2_load_params_and_allocate','UNSUPPORTED ELEMENT','QM PM3/MM* NOT AVAILABLE FOR THIS ATOM')
             end if
-          
+
             ! Load params - Should ultimately be done on atom types.
             qm2_params%scale_factor1_pm3mmx(1,i) = scale_f1_pm3mmx(1,iqm_atomic)
             qm2_params%scale_factor2_pm3mmx(1,i) = scale_f2_pm3mmx(1,iqm_atomic)
@@ -1200,7 +1200,7 @@
               write(6,'("QMMM: There are no PM3/MMX2 parameters for this element. Sorry.")')
               call sander_bomb('qm2_load_params','UNSUPPORTED ELEMENT','QM PM3/MMX2 NOT AVAILABLE FOR THIS ATOM')
             end if
-          
+
             ! Load params - Should ultimately be done on atom types.
             qm2_params%scale_factor1_pm3mmx(1,i) = scale_f1_pm3mmx2(1,iqm_atomic)
             qm2_params%scale_factor2_pm3mmx(1,i) = scale_f2_pm3mmx2(1,iqm_atomic)
@@ -1344,7 +1344,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_pm6(iqm_atomic)-gp2_pm6(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_pm6(iqm_atomic)-gp2_pm6(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -1391,7 +1391,7 @@
            qm2_params%F0SD(i) = F0SD_pm6(iat)
            qm2_params%G2SD(i) = G2SD_pm6(iat)
         end do
-       
+
         ! Precompute some parameters to save time later
         do i=1,qmmm_struct%qm_ntypes
 
@@ -1401,15 +1401,15 @@
 
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_pm6(iat)
            qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pm6(iat)
-           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_pm6(iat)  
+           qm2_params%d_orb_exp_by_type(i) = d_orb_exp_pm6(iat)
            qm2_params%s_orb_exp_tail_by_type(i) = s_orb_exp_tail_pm6(iat)
            qm2_params%p_orb_exp_tail_by_type(i) = p_orb_exp_tail_pm6(iat)
            qm2_params%d_orb_exp_tail_by_type(i) = d_orb_exp_tail_pm6(iat)
-           
-           qm2_params%gss(i) = gss_pm6(iat)               
-           qm2_params%hsp(i) = hsp_pm6(iat)   
-           qm2_params%hpp(i) = (gpp_pm6(iat)-gp2_pm6(iat))*half 
-           
+
+           qm2_params%gss(i) = gss_pm6(iat)
+           qm2_params%hsp(i) = hsp_pm6(iat)
+           qm2_params%hpp(i) = (gpp_pm6(iat)-gp2_pm6(iat))*half
+
            DD=0.0D0
            PO=0.0D0
            call GetDDAndPho(i, DD, PO)
@@ -1421,11 +1421,11 @@
            if (abs(temp) > 1.0d-5 ) then
                qm2_params%po(9,i)=temp
            end if
-                              
+
            do j=1,4
-              qm2_params%FN1(j,i) = FN1_pm6(j,iat)   
-              qm2_params%FN2(j,i) = FN2_pm6(j,iat)   
-              qm2_params%FN3(j,i) = FN3_pm6(j,iat)   
+              qm2_params%FN1(j,i) = FN1_pm6(j,iat)
+              qm2_params%FN2(j,i) = FN2_pm6(j,iat)
+              qm2_params%FN3(j,i) = FN3_pm6(j,iat)
            end do
         end do
 
@@ -1438,7 +1438,7 @@
               qm2_params%betasad(i,j) = betas_pm6(iat)+betad_pm6(jat)
               qm2_params%betapap(i,j) = betap_pm6(iat)+betap_pm6(jat)
               qm2_params%betapad(i,j) = betap_pm6(iat)+betad_pm6(jat)
-              qm2_params%betadad(i,j) = betad_pm6(iat)+betad_pm6(jat)            
+              qm2_params%betadad(i,j) = betad_pm6(iat)+betad_pm6(jat)
            end do
         end do
 
@@ -1456,7 +1456,7 @@
               end if
               qm2_params%pm6_alpab(i,j) = alpab_pm6(iat,jat)
               qm2_params%pm6_xab(i,j)   = xab_pm6(iat,jat)
-              qm2_params%pm6_alpab(j,i) = qm2_params%pm6_alpab(i,j) 
+              qm2_params%pm6_alpab(j,i) = qm2_params%pm6_alpab(i,j)
               qm2_params%pm6_xab(j,i)   = qm2_params%pm6_xab(i,j)
            end do
         end do
@@ -1536,7 +1536,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_pddgpm3(iqm_atomic)-gp2_pddgpm3(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_pddgpm3(iqm_atomic)-gp2_pddgpm3(iqm_atomic))
 !            hpp = max(0.1d0,hpp) - It seems that PM3/PDDG does not have this maximum
 !                                   adding it changes Cl results.
             dd1_temp = (16.0d0*hpp &
@@ -1583,7 +1583,7 @@
         ! the chance of cache hits.
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_pddgpm3(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgpm3(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgpm3(qmmm_struct%qm_type_id(i))
           qm2_params%NUM_FN(i) = NUM_FN_pddgpm3(qmmm_struct%qm_type_id(i))
           do j=1,4
              qm2_params%FN1(j,i) = FN1_pddgpm3(j,qmmm_struct%qm_type_id(i))
@@ -1695,7 +1695,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_pddgpm3_08(iqm_atomic)-gp2_pddgpm3_08(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_pddgpm3_08(iqm_atomic)-gp2_pddgpm3_08(iqm_atomic))
 !            hpp = max(0.1d0,hpp) - It seems that PM3/PDDG does not have this maximum
 !                                   adding it changes Cl results.
             dd1_temp = (16.0d0*hpp &
@@ -1742,7 +1742,7 @@
         ! the chance of cache hits.
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_pddgpm3_08(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgpm3_08(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgpm3_08(qmmm_struct%qm_type_id(i))
           qm2_params%NUM_FN(i) = NUM_FN_pddgpm3_08(qmmm_struct%qm_type_id(i))
           do j=1,4
              qm2_params%FN1(j,i) = FN1_pddgpm3_08(j,qmmm_struct%qm_type_id(i))
@@ -1855,7 +1855,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_pddgmndo(iqm_atomic)-gp2_pddgmndo(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_pddgmndo(iqm_atomic)-gp2_pddgmndo(iqm_atomic))
 !            hpp = max(0.1d0,hpp) - It seems that like PM3/PDDG, MNDO/PDDG does not have this maximum.
             dd1_temp = (16.0d0*hpp &
                        /(AU_TO_EV*48.0d0*qm2_params%multip_2c_elec_params(2,i)**4))**(1.0d0/5.0d0)
@@ -1902,7 +1902,7 @@
         ! the chance of cache hits.
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_pddgmndo(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgmndo(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_pddgmndo(qmmm_struct%qm_type_id(i))
           do j = 1,qmmm_struct%qm_ntypes
             qm2_params%betasas(i,j) = &
                betas_pddgmndo(qmmm_struct%qm_type_id(i)) &
@@ -2021,7 +2021,7 @@
             qm2_params%multip_2c_elec_params(4,i) = 0.5d0/dd2_temp
             !end AD
             !AQ
-            hpp = 0.5D0*(gpp_rm1(iqm_atomic)-gp2_rm1(iqm_atomic)) 
+            hpp = 0.5D0*(gpp_rm1(iqm_atomic)-gp2_rm1(iqm_atomic))
             hpp = max(0.1d0,hpp) !I have no idea where this max comes from but it is required to
                                  !match mopac results for Chlorine and potentially other elements.
             dd1_temp = (16.0d0*hpp &
@@ -2067,7 +2067,7 @@
         ! the chance of cache hits.
         do i=1,qmmm_struct%qm_ntypes
            qm2_params%s_orb_exp_by_type(i) = s_orb_exp_rm1(qmmm_struct%qm_type_id(i))
-           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_rm1(qmmm_struct%qm_type_id(i))        
+           qm2_params%p_orb_exp_by_type(i) = p_orb_exp_rm1(qmmm_struct%qm_type_id(i))
           qm2_params%NUM_FN(i) = NUM_FN_rm1(qmmm_struct%qm_type_id(i))
           do j=1,4
              qm2_params%FN1(j,i) = FN1_rm1(j,qmmm_struct%qm_type_id(i))
@@ -2100,6 +2100,9 @@
       else if (qmmm_nml%qmtheory%SEBOMD) then
          ! GM: Same as EXTERN: no parameter is loaded here
          continue
+      else if (qmmm_nml%qmtheory%ISQUICK) then
+         ! VWDC: We will use the QUICK library
+         continue
       else
         !UNKNOWN method - should never actually get this far but might as well call
         !sander bomb just in case.
@@ -2108,7 +2111,8 @@
                          'SELECTED LEVEL OF THEORY IS NOT AVAILABLE - PLEASE CHECK YOUR INPUT FILE')
       end if
 
-      if (.not. qmmm_nml%qmtheory%DFTB) then
+      skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%ISQUICK
+      if (.not. skip) then
         ! ------------------------------------------------------
         ! Now see if user wants an MM peptide torsion correction
         ! ------------------------------------------------------
@@ -2245,7 +2249,9 @@
       ! ------------------------------------------------
       ! Choose diagonalizer and allocate required memory
       ! ------------------------------------------------
-      if (.not. ( qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%SEBOMD ) ) then
+      skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. &
+             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK
+      if (.not. skip ) then
          call qm2_diagonalizer_setup(qmmm_nml%diag_routine, qmmm_nml%allow_pseudo_diag, &
               qmmm_nml%verbosity, &
               qmmm_mpi%commqmmm_master, &
@@ -2262,8 +2268,9 @@
       ! ----------------------------------------------------------------
       ! Analytical integral derivatives are not available for d orbitals
       ! for MNDO type Hamiltonians
-      if ( (.not. qmmm_nml%qmtheory%DFTB) .and. (.not. qmmm_nml%qmtheory%EXTERN) &
-                                          .and. (.not. qmmm_nml%qmtheory%SEBOMD) ) then
+      skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. &
+             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK
+      if ( .not. skip ) then
 
          test = .false.
          do i=1,qmmm_struct%qm_ntypes

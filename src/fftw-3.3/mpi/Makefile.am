@@ -1,18 +1,20 @@
-AM_CPPFLAGS = -I$(top_srcdir)/kernel -I$(top_srcdir)/dft	\
--I$(top_srcdir)/rdft -I$(top_srcdir)/api -I$(top_srcdir)/tests	\
--I$(top_srcdir)/libbench2
+# -I $(top_srcdir)/api is necessary because fftw3-mpi.h includes
+# "fftw3.h", and we cannot change the latter to "api/fftw3.h" because
+# fftw3-mpi.h is installed in /usr/include.
+AM_CPPFLAGS = -I $(top_srcdir) -I $(top_srcdir)/api
 
 if MPI
 lib_LTLIBRARIES = libfftw3@PREC_SUFFIX@_mpi.la
 include_HEADERS = fftw3-mpi.h
-nodist_include_HEADERS = fftw3-mpi.f03
+nodist_include_HEADERS = fftw3-mpi.f03 fftw3l-mpi.f03
 noinst_PROGRAMS = mpi-bench
 endif
 
 CC=@MPICC@
 
-EXTRA_DIST = testsched.c f03api.sh f03-wrap.sh genf03-wrap.pl fftw3-mpi.f03.in
-BUILT_SOURCES = fftw3-mpi.f03.in fftw3-mpi.f03 f03-wrap.c
+EXTRA_DIST = testsched.c f03api.sh f03-wrap.sh genf03-wrap.pl fftw3-mpi.f03.in fftw3l-mpi.f03.in
+BUILT_SOURCES = fftw3-mpi.f03.in fftw3-mpi.f03 fftw3l-mpi.f03.in fftw3l-mpi.f03 f03-wrap.c
+CLEANFILES = fftw3-mpi.f03 fftw3l-mpi.f03
 
 TRANSPOSE_SRC = transpose-alltoall.c transpose-pairwise.c transpose-recurse.c transpose-problem.c transpose-solve.c mpi-transpose.h
 DFT_SRC = dft-serial.c dft-rank-geq2.c dft-rank-geq2-transposed.c dft-rank1.c dft-rank1-bigvec.c dft-problem.c dft-solve.c mpi-dft.h
@@ -23,6 +25,7 @@ SRC = any-true.c api.c block.c choose-radix.c conf.c dtensor.c fftw3-mpi.h ifftw
 libfftw3@PREC_SUFFIX@_mpi_la_SOURCES = $(SRC) $(TRANSPOSE_SRC) $(DFT_SRC) $(RDFT_SRC) $(RDFT2_SRC)
 
 libfftw3@PREC_SUFFIX@_mpi_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@
+libfftw3@PREC_SUFFIX@_mpi_la_LIBADD = ../libfftw3@PREC_SUFFIX@.la @MPILIBS@
 
 if THREADS
 mpi_bench_CFLAGS = $(PTHREAD_CFLAGS)
@@ -78,13 +81,19 @@ smallcheck: mpi-bench$(EXEEXT)
 
 endif
 
-fftw3-mpi.f03: fftw3-mpi.f03.in
+fftw3-mpi.f03: fftw3-mpi.f03.in Makefile
 	sed 's/C_MPI_FINT/@C_MPI_FINT@/' $(srcdir)/fftw3-mpi.f03.in > $@
+
+fftw3l-mpi.f03: fftw3l-mpi.f03.in Makefile
+	sed 's/C_MPI_FINT/@C_MPI_FINT@/' $(srcdir)/fftw3l-mpi.f03.in > $@
 
 if MAINTAINER_MODE
 
 fftw3-mpi.f03.in: fftw3-mpi.h f03api.sh $(top_srcdir)/api/genf03.pl
-	sh $(srcdir)/f03api.sh > $@
+	sh $(srcdir)/f03api.sh d f > $@
+
+fftw3l-mpi.f03.in: fftw3-mpi.h f03api.sh $(top_srcdir)/api/genf03.pl
+	sh $(srcdir)/f03api.sh l | grep -v parameter | sed 's/fftw3.f03/fftw3l.f03/' > $@
 
 f03-wrap.c: fftw3-mpi.h f03-wrap.sh genf03-wrap.pl
 	sh $(srcdir)/f03-wrap.sh > $@

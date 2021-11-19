@@ -8,7 +8,7 @@ install:
 	@cd msander && $(MAKE) libsander
 	@cd msander && $(MAKE) libsanderles
 	@cd pysander && $(MAKE) pysander
-	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
+	@cd parmed && $(MAKE) parmed
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles

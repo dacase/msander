@@ -1,23 +1,28 @@
-from argparse import ArgumentParser
-import datetime
-import os
-try:
-    import readline
-except ImportError:
-    readline = None
-import signal
-import sys
-import warnings
-from . import load_file
-from .exceptions import ParmedError
-from .tools.logos import Logo
-from .tools.exceptions import SeriousParmWarning, InterpreterError, ParmError
-from .tools.parmed_cmd import ParmedCmd
-from .tools.actions import Action
-from .tools.parmlist import ParmList
-from . import __version__
+from __future__ import print_function, absolute_import, division
 
 def clapp():
+    # Load system modules.
+    from argparse import ArgumentParser
+    import datetime
+    import os
+    try:
+        import readline
+    except ImportError:
+        readline = None
+    import signal
+    import sys
+    import warnings
+
+    # Load custom modules
+    from parmed.exceptions import ParmedError
+
+    from parmed.tools.logos import Logo
+    from parmed.tools.exceptions import SeriousParmWarning, InterpreterError
+    from parmed.tools.parmed_cmd import ParmedCmd
+    from parmed.tools.actions import Action
+    from parmed.tools.parmlist import ParmList
+    from parmed import __version__
+
     # Set up new excepthook to clean up fatal exception printouts
     def interrupted(*args, **kwargs):
         """ Handle interruptions gracefully """
@@ -29,9 +34,9 @@ def clapp():
     # Define our own custom warning printer
     def _print_warnings(message, category, filename, lineno, file=None, line=None):
         """ Override the default showwarning method """
-        file = sys.stderr if file is None else file
+        if file is None: file = sys.stderr
         try:
-            file.write(f'{category.__name__}: {message}\n')
+            file.write('%s: %s\n' % (category.__name__, message))
         except IOError:
             pass
 
@@ -39,15 +44,17 @@ def clapp():
 
     # Set up parser
     parser = ArgumentParser()
-    parser.add_argument('-v', '--version', action='version', version=f"%(prog)s: Version {__version__}")
+    parser.add_argument('-v', '--version', action='version',
+             version='%%(prog)s: Version %s' % __version__)
     group = parser.add_argument_group('Input Files')
     group.add_argument('-i', '--input', dest='script', default=[],
              metavar='FILE', help='''Script with ParmEd commands to execute. Default
              reads from stdin. Can be specified multiple times to process multiple
              input files.''', action='append')
     group.add_argument('-p', '--parm', dest='prmtop', default=[],
-             metavar='<prmtop>', action='append', help='''List of topology files to load into
-             ParmEd. Can be specified multiple times to process multiple topologies.''')
+             metavar='<prmtop>', action='append', help='''List of topology files to
+             load into ParmEd. Can be specified multiple times to process multiple
+             topologies.''')
     group.add_argument('-c', '--inpcrd', dest='inpcrd', default=[],
              metavar='<inpcrd>', action='append', help='''List of inpcrd files to
              load into ParmEd. They are paired with the topology files in the same
@@ -74,10 +81,11 @@ def clapp():
              ParmEd handles various errors and warnings that appear occur during the
              course of Action execution''')
     group.add_argument('-s', '--strict', dest='strict', action='store_true',
-             default=True, help='''Prevent scripts from running past unrecognized input and actions
-             that end with an error. In interactive mode, actions with unrecognized inputs and
-             failed actions prevent any changes from being made to the topology, but does not quit
-             the interpreter. This is the default behavior.''')
+             default=True, help='''Prevent scripts from running past unrecognized
+             input and actions that end with an error. In interactive mode, actions
+             with unrecognized inputs and failed actions prevent any changes from
+             being made to the topology, but does not quit the interpreter. This is
+             the default behavior.''')
     group.add_argument('-r', '--relaxed', dest='strict', action='store_false',
              help='''Scripts ignore unrecognized input and simply skip over failed
              actions, executing the rest of the script. Unrecognized input in the
@@ -114,10 +122,11 @@ def clapp():
         if i < len(opt.inpcrd):
             amber_prmtop.add_parm(parm)
             amber_prmtop.parm.load_rst7(opt.inpcrd[i])
-            print(f'Loaded Amber topology file {parm} with coordinates from {opt.inpcrd[i]}\n')
+            print('Loaded Amber topology file %s with coordinates from %s\n' %
+                  (parm, opt.inpcrd[i]))
         else:
             amber_prmtop.add_parm(parm)
-            print(f'Loaded Amber topology file {parm}')
+            print('Loaded Amber topology file %s' % parm)
 
     if len(opt.script) > 0:
         # Read from the list of scripts
@@ -126,13 +135,13 @@ def clapp():
         # scripts exist. Don't do anything until we know that all scripts exist.
         for script in opt.script:
             if not os.path.exists(script):
-                warnings.warn(f'Script file {script} cannot be found.', SeriousParmWarning)
+                warnings.warn('Script file %s cannot be found.' % script,
+                              SeriousParmWarning)
 
         # We have already pre-screened the scripts.
         for script in opt.script:
-            if not os.path.exists(script):
-                continue
-            print(f'Reading actions from {script}\n')
+            if not os.path.exists(script): continue
+            print('Reading actions from %s\n' % script)
             parmed_commands = ParmedCmd(amber_prmtop, stdin=open(script, 'r'))
             parmed_commands.use_rawinput = 0
             parmed_commands.interpreter = opt.interpreter
@@ -141,7 +150,7 @@ def clapp():
             try:
                 parmed_commands.cmdloop()
             except InterpreterError as err:
-                sys.exit(f'{err.__class__.__name__}: {err}')
+                sys.exit('%s: %s' % (type(err).__name__, err))
             except ParmedError:
                 # This has already been caught and printed. If it was re-raised,
                 # then that means we wanted to exit
@@ -164,8 +173,7 @@ def clapp():
                     pass # Do not have permission or something
                 else:
                     for line in f:
-                        if line.startswith('# Log started on'):
-                            continue
+                        if line.startswith('# Log started on'): continue
                         readline.add_history(line.rstrip())
                     f.close()
             try:
@@ -175,12 +183,15 @@ def clapp():
                 close_log_file = False
             else:
                 now = datetime.datetime.now()
-                logfile.write(f'# Log started on {now.month:02d}/{now.day:02d}/{now.year:d} '
-                              f'[mm/dd/yyyy] at {now.hour:02d}:{now.minute:02d}:{now.second:02d}\n')
+                logfile.write('# Log started on %02d/%02d/%d [mm/dd/yyyy] at '
+                              '%02d:%02d:%02d\n' % (now.month, now.day, now.year,
+                                                now.hour, now.minute, now.second))
                 if len(sys.argv) > 1:
-                    logfile.write(f"# Command line arguments: {' '.join(sys.argv[1:])}\n")
+                    logfile.write('# Command line arguments: %s\n' %
+                            ' '.join(sys.argv[1:]))
                 if len(amber_prmtop) > 0:
-                    logfile.write(f"# Loaded topologies: {', '.join(parm.name for parm in amber_prmtop)}")
+                    logfile.write('# Loaded topologies: %s\n' % ', '.join(
+                            name for name in amber_prmtop._parm_names))
                 parmed_commands.setlog(logfile)
                 close_log_file = True
         # Loop through all of the commands
@@ -188,7 +199,7 @@ def clapp():
             try:
                 parmed_commands.cmdloop()
             except InterpreterError as err:
-                sys.exit(f"{err.__class__.__name__}: {err}")
+                sys.exit('%s: %s' % (type(err).__name__, err))
             except ParmedError:
                 # This has already been caught and printed. If it was re-raised,
                 # then that means we wanted to exit
@@ -198,3 +209,77 @@ def clapp():
                 logfile.close()
 
     print('Done!')
+
+def guiapp():
+    from parmed import load_file
+    from parmed.utils.six.moves import tkinter as tk
+    from parmed.utils.six.moves.tkinter_messagebox import showerror
+    from optparse import OptionParser
+    from os.path import split
+    from parmed.tools.exceptions import ParmError
+    from parmed.tools.gui.guitools import ParmedApp
+    from parmed.tools.gui.guifiletools import file_chooser
+    from parmed.tools.logos import Logo
+    from parmed.tools.actions import Action
+    from parmed.tools.parmlist import ParmList
+    import sys
+
+    debug = False
+
+    def excepthook(exc, msg, tb):
+        """ Default exception handler """
+        import traceback
+        if debug:
+            traceback.print_tb(tb)
+        showerror('Fatal Error', '%s: %s' % (exc.__name__, msg))
+        sys.exit(1)
+
+    # Launch the root window
+    root = tk.Tk()
+    root.resizable(True, True)
+
+    # Replace the default excepthook with mine
+    sys.excepthook = excepthook
+
+    # See if we were provided a topology file on the command-line
+    parser = OptionParser(usage = '%prog [<prmtop>]')
+    parser.add_option('-d', '--debug', dest='debug', default=False,
+                      action='store_true', help='Show detailed tracebacks ' +
+                      'when an error is detected.')
+    opt, args = parser.parse_args()
+
+    debug = opt.debug
+
+    # If the user provided a CL argument, that is the prmtop_name. Otherwise,
+    # open up a file choosing dialog box to get the input from the user
+    if len(args) == 0:
+        prmtop_name = file_chooser('Topology')
+    elif len(args) == 1:
+        prmtop_name = args[0]
+    else:
+        sys.stderr.write('Unknown command-line options. Ignoring\n')
+        prmtop_name = file_chooser('Topology')
+
+    # If we chose no prmtop file, throw an error
+    if not prmtop_name:
+        raise ParmError('No prmtop chosen!')
+
+    # Load the amber prmtop and check for errors
+    amber_prmtop = ParmList()
+    parm = load_file(prmtop_name)
+    amber_prmtop.add_parm(parm)
+
+    # Make this overwritable -- the all of the file save boxes will ask the user
+    # for verification before saving over an existing file. There's no need for
+    # the AmberParm security layer.
+    Action.overwrite = True
+
+    fname = split(prmtop_name)[1]
+    root.title('xParmED: Editing/viewing [%s] Choose an operation' % fname)
+
+    # Now build the action list on root
+    app = ParmedApp(root, amber_prmtop)
+    app.pack(fill=tk.BOTH, expand=1)
+    root.mainloop()
+
+    print('Thank you for using xParmEd!\n%s' % Logo())

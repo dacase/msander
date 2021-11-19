@@ -14,7 +14,8 @@ It tries to (greatly) simplify the code base, choosing the best and
 most useful parts of the code, and to serve as a test bed for how 
 modern Fortran coding techniques can be used.  Key application areas 
 are expected to be in structure refinements using NMR, cryoEM or 
-Xray diffraction information.
+Xray diffraction information.  This version has a fair amount of OpenMP
+support, especially for Xray and 3D-RISM calculations.
 
 * Some pieces are missing from the sander program in AmberTools:
 
@@ -47,7 +48,9 @@ simulations
 
 *Conda build:
 ```
-   conda build -c conda-forge [ --python x.x ] recipe 
+   conda build [ --python x.x ] recipe 
+      (note: you should have conda-forge at the top of your channel
+       list in ~/.condarc)
 ```
 
 *Non-conda build:  (MacOSX, Linux)

@@ -13,25 +13,25 @@ FFTW_EXTERN ptrdiff_t XM(local_size_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, MPI_Fint
 FFTW_EXTERN ptrdiff_t XM(local_size_2d_transposed_f03)(ptrdiff_t n0, ptrdiff_t n1, MPI_Fint f_comm, ptrdiff_t * local_n0, ptrdiff_t * local_0_start, ptrdiff_t * local_n1, ptrdiff_t * local_1_start);
 FFTW_EXTERN ptrdiff_t XM(local_size_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, MPI_Fint f_comm, ptrdiff_t * local_n0, ptrdiff_t * local_0_start);
 FFTW_EXTERN ptrdiff_t XM(local_size_3d_transposed_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, MPI_Fint f_comm, ptrdiff_t * local_n0, ptrdiff_t * local_0_start, ptrdiff_t * local_n1, ptrdiff_t * local_1_start);
-FFTW_EXTERN fftw_plan XM(plan_many_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t howmany, ptrdiff_t block0, ptrdiff_t block1, double * in, double * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_many_dft_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_1d_f03)(ptrdiff_t n0, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_many_r2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, double * in, double * out, MPI_Fint f_comm, const fftw_r2r_kind * kind, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_r2r_f03)(int rnk, const ptrdiff_t * n, double * in, double * out, MPI_Fint f_comm, const fftw_r2r_kind * kind, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_r2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double * out, MPI_Fint f_comm, fftw_r2r_kind kind0, fftw_r2r_kind kind1, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_r2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, double * in, double * out, MPI_Fint f_comm, fftw_r2r_kind kind0, fftw_r2r_kind kind1, fftw_r2r_kind kind2, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_many_dft_r2c_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_r2c_f03)(int rnk, const ptrdiff_t * n, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_r2c_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_r2c_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_many_dft_c2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_c2r_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_c2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags);
-FFTW_EXTERN fftw_plan XM(plan_dft_c2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_many_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t howmany, ptrdiff_t block0, ptrdiff_t block1, R * in, R * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, R * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_many_dft_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_f03)(int rnk, const ptrdiff_t * n, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_1d_f03)(ptrdiff_t n0, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_many_r2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, R * in, R * out, MPI_Fint f_comm, const X(r2r_kind) * kind, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_r2r_f03)(int rnk, const ptrdiff_t * n, R * in, R * out, MPI_Fint f_comm, const X(r2r_kind) * kind, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_r2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, R * out, MPI_Fint f_comm, X(r2r_kind) kind0, X(r2r_kind) kind1, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_r2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, R * in, R * out, MPI_Fint f_comm, X(r2r_kind) kind0, X(r2r_kind) kind1, X(r2r_kind) kind2, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_many_dft_r2c_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_r2c_f03)(int rnk, const ptrdiff_t * n, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_r2c_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_r2c_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_many_dft_c2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_c2r_f03)(int rnk, const ptrdiff_t * n, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_c2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags);
+FFTW_EXTERN X(plan) XM(plan_dft_c2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags);
 FFTW_EXTERN void XM(gather_wisdom_f03)(MPI_Fint f_comm_);
 FFTW_EXTERN void XM(broadcast_wisdom_f03)(MPI_Fint f_comm_);
 
@@ -115,7 +115,7 @@ ptrdiff_t XM(local_size_3d_transposed_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t
      return XM(local_size_3d_transposed)(n0,n1,n2,comm,local_n0,local_0_start,local_n1,local_1_start);
 }
 
-fftw_plan XM(plan_many_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t howmany, ptrdiff_t block0, ptrdiff_t block1, double * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_many_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t howmany, ptrdiff_t block0, ptrdiff_t block1, R * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -123,7 +123,7 @@ fftw_plan XM(plan_many_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t howm
      return XM(plan_many_transpose)(n0,n1,howmany,block0,block1,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -131,7 +131,7 @@ fftw_plan XM(plan_transpose_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double
      return XM(plan_transpose)(n0,n1,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_many_dft_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags)
+X(plan) XM(plan_many_dft_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -139,7 +139,7 @@ fftw_plan XM(plan_many_dft_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany,
      return XM(plan_many_dft)(rnk,n,howmany,block,tblock,in,out,comm,sign,flags);
 }
 
-fftw_plan XM(plan_dft_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags)
+X(plan) XM(plan_dft_f03)(int rnk, const ptrdiff_t * n, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -147,7 +147,7 @@ fftw_plan XM(plan_dft_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, fftw
      return XM(plan_dft)(rnk,n,in,out,comm,sign,flags);
 }
 
-fftw_plan XM(plan_dft_1d_f03)(ptrdiff_t n0, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags)
+X(plan) XM(plan_dft_1d_f03)(ptrdiff_t n0, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -155,7 +155,7 @@ fftw_plan XM(plan_dft_1d_f03)(ptrdiff_t n0, fftw_complex * in, fftw_complex * ou
      return XM(plan_dft_1d)(n0,in,out,comm,sign,flags);
 }
 
-fftw_plan XM(plan_dft_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags)
+X(plan) XM(plan_dft_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -163,7 +163,7 @@ fftw_plan XM(plan_dft_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in, fft
      return XM(plan_dft_2d)(n0,n1,in,out,comm,sign,flags);
 }
 
-fftw_plan XM(plan_dft_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, fftw_complex * in, fftw_complex * out, MPI_Fint f_comm, int sign, unsigned flags)
+X(plan) XM(plan_dft_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, X(complex) * in, X(complex) * out, MPI_Fint f_comm, int sign, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -171,7 +171,7 @@ fftw_plan XM(plan_dft_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, fftw_com
      return XM(plan_dft_3d)(n0,n1,n2,in,out,comm,sign,flags);
 }
 
-fftw_plan XM(plan_many_r2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, double * in, double * out, MPI_Fint f_comm, const fftw_r2r_kind * kind, unsigned flags)
+X(plan) XM(plan_many_r2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, R * in, R * out, MPI_Fint f_comm, const X(r2r_kind) * kind, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -179,7 +179,7 @@ fftw_plan XM(plan_many_r2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany,
      return XM(plan_many_r2r)(rnk,n,howmany,iblock,oblock,in,out,comm,kind,flags);
 }
 
-fftw_plan XM(plan_r2r_f03)(int rnk, const ptrdiff_t * n, double * in, double * out, MPI_Fint f_comm, const fftw_r2r_kind * kind, unsigned flags)
+X(plan) XM(plan_r2r_f03)(int rnk, const ptrdiff_t * n, R * in, R * out, MPI_Fint f_comm, const X(r2r_kind) * kind, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -187,7 +187,7 @@ fftw_plan XM(plan_r2r_f03)(int rnk, const ptrdiff_t * n, double * in, double * o
      return XM(plan_r2r)(rnk,n,in,out,comm,kind,flags);
 }
 
-fftw_plan XM(plan_r2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double * out, MPI_Fint f_comm, fftw_r2r_kind kind0, fftw_r2r_kind kind1, unsigned flags)
+X(plan) XM(plan_r2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, R * out, MPI_Fint f_comm, X(r2r_kind) kind0, X(r2r_kind) kind1, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -195,7 +195,7 @@ fftw_plan XM(plan_r2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, double * 
      return XM(plan_r2r_2d)(n0,n1,in,out,comm,kind0,kind1,flags);
 }
 
-fftw_plan XM(plan_r2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, double * in, double * out, MPI_Fint f_comm, fftw_r2r_kind kind0, fftw_r2r_kind kind1, fftw_r2r_kind kind2, unsigned flags)
+X(plan) XM(plan_r2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, R * in, R * out, MPI_Fint f_comm, X(r2r_kind) kind0, X(r2r_kind) kind1, X(r2r_kind) kind2, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -203,7 +203,7 @@ fftw_plan XM(plan_r2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, double *
      return XM(plan_r2r_3d)(n0,n1,n2,in,out,comm,kind0,kind1,kind2,flags);
 }
 
-fftw_plan XM(plan_many_dft_r2c_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_many_dft_r2c_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -211,7 +211,7 @@ fftw_plan XM(plan_many_dft_r2c_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howm
      return XM(plan_many_dft_r2c)(rnk,n,howmany,iblock,oblock,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_r2c_f03)(int rnk, const ptrdiff_t * n, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_r2c_f03)(int rnk, const ptrdiff_t * n, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -219,7 +219,7 @@ fftw_plan XM(plan_dft_r2c_f03)(int rnk, const ptrdiff_t * n, double * in, fftw_c
      return XM(plan_dft_r2c)(rnk,n,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_r2c_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_r2c_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -227,7 +227,7 @@ fftw_plan XM(plan_dft_r2c_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, double * in, fftw_
      return XM(plan_dft_r2c_2d)(n0,n1,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_r2c_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, double * in, fftw_complex * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_r2c_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, R * in, X(complex) * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -235,7 +235,7 @@ fftw_plan XM(plan_dft_r2c_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, doub
      return XM(plan_dft_r2c_3d)(n0,n1,n2,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_many_dft_c2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_many_dft_c2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howmany, ptrdiff_t iblock, ptrdiff_t oblock, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -243,7 +243,7 @@ fftw_plan XM(plan_many_dft_c2r_f03)(int rnk, const ptrdiff_t * n, ptrdiff_t howm
      return XM(plan_many_dft_c2r)(rnk,n,howmany,iblock,oblock,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_c2r_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_c2r_f03)(int rnk, const ptrdiff_t * n, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -251,7 +251,7 @@ fftw_plan XM(plan_dft_c2r_f03)(int rnk, const ptrdiff_t * n, fftw_complex * in, 
      return XM(plan_dft_c2r)(rnk,n,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_c2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_c2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 
@@ -259,7 +259,7 @@ fftw_plan XM(plan_dft_c2r_2d_f03)(ptrdiff_t n0, ptrdiff_t n1, fftw_complex * in,
      return XM(plan_dft_c2r_2d)(n0,n1,in,out,comm,flags);
 }
 
-fftw_plan XM(plan_dft_c2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, fftw_complex * in, double * out, MPI_Fint f_comm, unsigned flags)
+X(plan) XM(plan_dft_c2r_3d_f03)(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2, X(complex) * in, R * out, MPI_Fint f_comm, unsigned flags)
 {
      MPI_Comm comm;
 

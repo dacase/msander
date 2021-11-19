@@ -22,7 +22,7 @@ $(BINDIR)/addles$(SFX) : $(LESOBJ)
 
 .F.o:   $<
 	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -Wno-unused-variable -o $@ $<
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
 
 .F90.o:   $<
 	@echo "[ADDLES]  FC $<"

@@ -30,12 +30,14 @@ write ${id}_box2.mtz
 quit
 EOF
 
+/bin/mv ${id}_box2.mtz ${id}_box.mtz
+
 
 #============================================================================
 echo "Making the -sf.dat file"
 
 #  convert to formatted file:
-phenix.mtz.dump -c -f s ${id}_box2.mtz  | tr ',' '\t' > ${id}_box.fmtz \
+phenix.mtz.dump -c -f s ${id}_box.mtz  | tr ',' '\t' > ${id}_box.fmtz \
      || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
 
 #  make the -sf.dat file needed by xray3:
@@ -47,7 +49,7 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
-/bin/rm tmp.* ${id}_box.mtz ${id}_box.fmtz
+/bin/rm tmp.* ${id}_box.fmtz
 fi
 
 #============================================================================

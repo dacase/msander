@@ -65,7 +65,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    use qmmm_qmtheorymodule
    use ElementOrbitalIndex, only : numberElements
    use ParameterReader, only : ReadParameterFile
-    
+
    implicit none
 
 !Passed in
@@ -92,7 +92,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    type(qmmm_input_options), intent(in), optional :: options
 #endif
 
-!local  
+!local
    _REAL_ :: qmcut      ! local copied to qmmm_nml%qmcut - specified cutoff to use for QM-MM electrostatics.
                          ! Default = same as regular MM cutoff.
    _REAL_ :: lnk_dis     ! Distance from the QM atom to place link atom.
@@ -126,13 +126,13 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
                            ! 1 = Converged both Energy and Density to SCFCONV
    integer :: printcharges !Local copied to qmmm_nml%printcharges as a logical. 1 = true - print mulliken and cm1a and cm2a charges
                            !on every step. 0 = false = don't print charges. Default = 0 (.false.)
-   integer :: printdipole  !Local copied to qmmm_nml%printdipole as an integer 1 = QM dipole moment, 2 = QM + MM dipole moment, (0=Def) 
+   integer :: printdipole  !Local copied to qmmm_nml%printdipole as an integer 1 = QM dipole moment, 2 = QM + MM dipole moment, (0=Def)
    integer :: print_eigenvalues  !Local copied to qmmm_nml%print_eigenvalues, 0 = no printing, 1 = at end of run (default), 2 = each SCF cycle, 3 = each SCF iteration
    integer :: peptide_corr !Local copied to the logical qmmm_nml%peptide_corr
                            !Add MM correction to peptide linkages 0 = No (Default), 1 = Yes.
    integer :: itrmax       !Local copied to qmmm_nml%itrmax - Maximum number of scf cycles to run
                            !before assuming convergence has failed (default = 1000)
-   integer :: printbondorders !Local copied to qmmm_nml%printbondorders as a logical. 
+   integer :: printbondorders !Local copied to qmmm_nml%printbondorders as a logical.
                               ! 1 = true - print bondorders at the end of the
                               ! calculation. 0 = false = dont print bondorders. Default = 0 (.false.)
    integer :: qmshake      !Local copied to qmmm_nml%qmshake - shake QM atoms if ntc>1?
@@ -181,7 +181,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    integer :: dftb_maxiter     ! Max # of iterations before resetting Broyden (default: 70 ) ==> qmmm_nml%dftb_maxiter
    integer :: dftb_disper      ! Use dispersion?  (default: 0 = false) ==> qmmm_nml%dftb_disper
    integer :: dftb_chg         ! DFTB CM3 charges (default: 0 = Mulliken, 1 = CM3) ==> qmmm_nml%dftb_chg
-   _REAL_  :: dftb_telec       ! Electronic temperature, in Kelvins. (Default = 0.0K) ==> qmmm_nml%dftb_telec 
+   _REAL_  :: dftb_telec       ! Electronic temperature, in Kelvins. (Default = 0.0K) ==> qmmm_nml%dftb_telec
    _REAL_  :: dftb_telec_step  ! Telec step size for convergence accelerator (Default = 0.0K) ==> qmmm_nml%dftb_telec_step
    character(Len=256) :: dftb_3rd_order  ! 3rd order SCC-DFTB (default: 'NONE'== No third order)
                                        !     'PA' == Do 3rd order, Proton Affinities parameterization
@@ -190,8 +190,8 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    character(len=256) :: dftb_slko_path
    _REAL_ :: r_switch_lo    !Lower bound of the QM/MM switching function
    _REAL_ :: r_switch_hi    !Upper bound of the QM/MM switching function
-   integer :: qmmm_switch   !0           Turn off QM/MM switching function 
-                            !1           Turn on QM/MM switching function 
+   integer :: qmmm_switch   !0           Turn off QM/MM switching function
+                            !1           Turn on QM/MM switching function
 
    integer :: abfqmmm
    integer :: hot_spot
@@ -232,7 +232,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
 #include "../include/memory.h"
 
    !Apparently you can't use a pointer in a namelist :-( Therefore
-   !we need a local scratch array that will be big enough that 
+   !we need a local scratch array that will be big enough that
    !the iqmatoms list never exceeds it
    integer :: iqmatoms( MAX_QUANTUM_ATOMS )
    integer :: core_iqmatoms( MAX_QUANTUM_ATOMS )
@@ -254,7 +254,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
 
    character(len=8192) :: centermask
 
-   character(len=12) :: qm_theory 
+   character(len=12) :: qm_theory
         !Options=PM3,AM1,MNDO,PDDG-PM3,PM3PDDG,PDDG-MNDO,PDDGMNDO,
         !        PM3-CARB1,PM3CARB1,DFTB,SCC-DFTB,RM1,PM6,PM3-ZnB,PM3-MAIS
         !        EXTERNAL (for external programs like ADF/GAMESS/TeraChem)
@@ -262,7 +262,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    integer, dimension(:), pointer :: isqm
 #endif
    integer :: ier=0
-   character(len=80) :: parameter_file   
+   character(len=80) :: parameter_file
    logical :: qxd
 
    namelist /qmmm/ qmcut, iqmatoms,qmmask,qmgb,qm_theory, qmtheory, &
@@ -318,7 +318,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    lnk_method=1 !treat MMLink as being MM atom.
    qmgb = 2 !Gets set to zero if igb==6 or igb==0.
    qm_theory = ''
-   qmtheory = RETIRED_INPUT_OPTION 
+   qmtheory = RETIRED_INPUT_OPTION
    qmcharge = 0
    corecharge = 0
    buffercharge = 0
@@ -400,7 +400,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    r_switch_lo = r_switch_hi - 2.0D0  !Set the default value to be 2 Angstrom shorter than r_switch_hi
 
    !DFTB
-   dftb_maxiter     = 70   
+   dftb_maxiter     = 70
    dftb_disper      = 0
    dftb_chg         = 0
    dftb_telec       = 0.0d0
@@ -441,7 +441,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
 
    read_idrst_file = ''
    write_idrst_file = 'abfqmmm.idrst'
-   ntwidrst = 0 
+   ntwidrst = 0
 
    pdb_file = 'abfqmmm.pdb'
    ntwpdb = 0
@@ -539,19 +539,33 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
 
    call CheckRetiredQmTheoryInputOption(qmtheory)
    call set(qmmm_nml%qmtheory, qm_theory)
-   
+
    ! Read-in the user-defined parameter file (TL -- Rutgers, 2011)
    call ReadParameterFile(parameter_file)
-    
-   ! turn on OPNQ if necessary 
+
+   ! turn on OPNQ if necessary
    qmmm_opnq%useOPNQ=qxd
+
+#ifndef QUICK
+   ! Quit if we don't have the QUICK library but the user requests it
+   if (qmmm_nml%qmtheory%ISQUICK) then
+      call sander_bomb('read_qmmm_namelist', &
+           'Code was compiled without QUICK support. Please change qm_theory', &
+           '(qm_theory = ''QUICK'')')
+   end if
+#endif
 
 #ifdef SQM
    ! Disable EXTERN in SQM since
    ! it does not make sense for SQM to be calling the external ADF interface.
-   if (qmmm_nml%qmtheory%EXTERN) then                                                  
-      call sander_bomb('read_qmmm_namelist','External interface is not supported in SQM.', &       
-           '(qm_theory = ''EXTERN'')')                                                 
+   if (qmmm_nml%qmtheory%EXTERN) then
+      call sander_bomb('read_qmmm_namelist','External interface is not supported in SQM.', &
+           '(qm_theory = ''EXTERN'')')
+   end if
+
+   if (qmmm_nml%qmtheory%ISQUICK) then
+      call sander_bomb('read_qmmm_namelist','QUICK library is not supported in SQM.', &
+           '(qm_theory = ''QUICK'')')
    end if
 
    if (qmmm_nml%qmtheory%SEBOMD) then
@@ -725,7 +739,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
                write(6,'(a)') 'INFO: qm subset was specified for the extended qm region'
                write(6,'(a)') 'INFO: loading qm subset atoms'
             end if
-            
+
             call atommask(natom, nres, 0, ih(m04), ih(m06), &
                           ix(i02), ih(m02), x(lcrd), ext_qmmask_subset, isqm )
 
@@ -786,7 +800,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
                write(6,'(a)') 'INFO: reduced calculation will be full MM calculation'
                write(6,'(a)') 'INFO: using FF parameters from topology file'
             end if
-            
+
             qmmm_struct%core_nquant = 0
 
          end if
@@ -1141,7 +1155,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    call int_legal_range('QMMM: (PRINT CHARGES) ', printcharges,0,1)
    call int_legal_range('QMMM: (PRINT BONDORDERS) ',printbondorders,0,1)
    call int_legal_range('QMMM: (PRINT QM/Dipole) ', printdipole,0,2)
-   if (qmmm_nml%qmtheory%EXTERN) then                                                  
+   if (qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%ISQUICK) then
      !AWG: Allow any spin multiplicity for external QM programs
      call int_legal_range('QMMM: (Spin multiplicity) ', spin, 1,100)
    else
@@ -1294,18 +1308,18 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    !       derivatives if we don't have an element with d orbitals
    if (qmqmdx /= 1 .or. qmmm_nml%qmtheory%MNDOD .or. qmmm_nml%qmtheory%AM1D) then
       ! Do numerical QM-QM derivatives in qm2
-      qmmm_nml%qmqm_analyt = .false. 
+      qmmm_nml%qmqm_analyt = .false.
    else
       !Do analytical QM-QM dericatives in qm2
-      qmmm_nml%qmqm_analyt = .true.  
+      qmmm_nml%qmqm_analyt = .true.
    end if
 
    if (tight_p_conv /= 1) then
       ! Loose density matrix convergence (0.05*sqrt(SCFCRT))
-      qmmm_nml%tight_p_conv = .false. 
+      qmmm_nml%tight_p_conv = .false.
    else
       ! Tight density matrix convergence (SCFCRT)
-      qmmm_nml%tight_p_conv = .true.  
+      qmmm_nml%tight_p_conv = .true.
    end if
 
    !Write a warning about excessively tight convergence requests.
@@ -1348,7 +1362,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
       qmmm_nml%peptide_corr = .false.
    else
       qmmm_nml%peptide_corr =  .true.
-   end if 
+   end if
    if ( qmmmrij_incore == 0 .or. qmmm_int==0 .or. qmmm_int == 5 ) then
       qmmm_nml%qmmmrij_incore = .false.
    else
@@ -1365,7 +1379,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    else
      qmmm_nml%allow_pseudo_diag = .false.
    end if
- 
+
    qmmm_nml%qm_ewald = qm_ewald
    qmmm_nml%ksqmaxq = ksqmaxq
    qmmm_nml%kmaxqx = kmaxqx
@@ -1433,7 +1447,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    if ( (qmmm_nml%r_switch_hi - qmmm_nml%r_switch_lo) < 0.0D0 ) then
      call sander_bomb('read_qmmm_namelist', &
        & 'r_switch_hi is smaller than r_switch_lo!', &
-       & 'please try a different set.') 
+       & 'please try a different set.')
    end if
 
 !Setup some specific calculation flags that depend on namelist variables.
@@ -1661,9 +1675,20 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
       call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=EXTERN but qmgb /= 0.', &
                        'The external interface does not currently support Generalized Born.')
     end if
+  else if (qmmm_nml%qmtheory%ISQUICK) then
+    ! 1) PME and EWALD are not supported with QUICK.
+    if (qmmm_nml%qm_ewald /= 0) then
+      call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=QUICK but qm_ewald /= 0.', &
+                       'The Quick interface does not currently support EWALD or PME.')
+    end if
+    ! 2) GB is not currently supported with QUICK.
+    if (qmmm_nml%qmgb /= 0) then
+      call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=QUICK but qmgb /= 0.', &
+                       'The Quick interface does not currently support Generalized Born.')
+    end if
   end if
   !--- END EXTERNAL INTERFACE LIMITATIONS ---
- 
+
 
 ! --- END CHECK FOR LIMITATIONS ---
   return

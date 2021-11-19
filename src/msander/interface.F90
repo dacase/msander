@@ -87,6 +87,8 @@ module sander_api
       double precision :: rdt
       double precision :: fswitch
       double precision :: restraint_wt
+      double precision :: grdspc1
+      double precision :: mdiis_del
 
       ! Integers (toggle options)
       integer :: igb
@@ -99,6 +101,8 @@ module sander_api
       integer :: ew_type
       integer :: ntb
       integer :: ifqnt
+      integer :: irism
+      integer :: rism_verbose
       integer :: jfastw
       integer :: ntf
       integer :: ntc
@@ -123,11 +127,7 @@ module sander_api
              potential_energy_rec, sander_cleanup, MAX_FN_LEN, get_box, &
              qm_sander_input, sander_natom, prmtop_struct, read_inpcrd_file, &
              get_inpcrd_natom, destroy_prmtop_struct, read_prmtop_file, &
-#ifdef NO_ALLOCATABLES_IN_TYPE
              is_setup, get_positions
-#else
-             sander_setup2, is_setup, get_positions
-#endif
 
 contains
 
@@ -174,6 +174,10 @@ subroutine gas_sander_input(inp, gb)
    inp%gbsa = 0
    inp%jfastw = 0
    inp%ifqnt = 0
+   inp%irism = 0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
    inp%rgbmax = 25.d0
@@ -235,6 +239,10 @@ subroutine pme_sander_input(inp)
    inp%ew_type = 0
    inp%gbsa = 0
    inp%ifqnt = 0
+   inp%irism = 0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%jfastw = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
@@ -297,30 +305,6 @@ subroutine sander_setup(prmname, coordinates, inbox, input_options, qmmm_options
 
 end subroutine sander_setup
 
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Struct with all of the prmtop data stored in it
-! coordinates : double precision(3*natom)
-!     Starting coordinates
-! inbox : double precision(6)
-!     Box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine sander_setup2(parmdata, coordinates, inbox, input_options, qmmm_options, ierr)
-
-#include "interface_setup.F90"
-
-end subroutine sander_setup2
-#endif /* NO_ALLOCATABLES_IN_TYPE */
-
 #undef rem
 
 subroutine api_mdread1(input_options, ierr)
@@ -351,6 +335,7 @@ subroutine api_mdread1(input_options, ierr)
    use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
                     mipso,gridips,dvbips
    use emap,only: temap,gammamap
+   use sander_rism_interface, only: rismprm
 #ifdef DSSP
    use dssp, only: idssp
 #endif /* DSSP */
@@ -421,7 +406,8 @@ subroutine api_mdread1(input_options, ierr)
 #endif /* API */
 
 #ifdef RISMSANDER
-   integer irism
+   integer irism, rism_verbose
+   double precision grdspc1, mdiis_del
    character(len=8) periodicPotential
 #endif /*RISMSANDER*/
 
@@ -672,6 +658,9 @@ subroutine api_mdread1(input_options, ierr)
 
 #ifdef RISMSANDER
    irism = 0
+   rism_verbose = -1
+   grdspc1 = 0.8d0
+   mdiis_del = 0.7d0
 #endif /*RISMSANDER*/
 
    ntave = 0
@@ -875,6 +864,10 @@ subroutine api_mdread1(input_options, ierr)
    tmode = 1 !default tangent mode for NEB calculation
 
    ifqnt = NO_INPUT_VALUE
+   rism_verbose = NO_INPUT_VALUE
+   irism = NO_INPUT_VALUE
+   grdspc1 = NO_INPUT_VALUE_FLOAT
+   mdiis_del = NO_INPUT_VALUE_FLOAT
 
    ifcr = 0 ! no charge relocation
    cropt = 0 ! 1-4 EEL is calculated with the original charges
@@ -970,6 +963,10 @@ subroutine api_mdread1(input_options, ierr)
    cut = input_options%cut
    dielc = input_options%dielc
    ifqnt = input_options%ifqnt
+   irism = input_options%irism
+   rism_verbose = input_options%rism_verbose
+   grdspc1 = input_options%grdspc1
+   mdiis_del = input_options%mdiis_del
    jfastw = input_options%jfastw
    ntf = input_options%ntf
    ntc = input_options%ntc
@@ -1052,6 +1049,19 @@ subroutine api_mdread1(input_options, ierr)
       end if
    end if
 
+   if (irism == NO_INPUT_VALUE) then
+      irism = 0 ! default value
+   end if
+   if (rism_verbose == NO_INPUT_VALUE) then
+      rism_verbose = -1 ! default value
+   end if
+   if (grdspc1 == NO_INPUT_VALUE) then
+      grdspc1 = 0.8d0 ! default value
+   end if
+   if (mdiis_del == NO_INPUT_VALUE) then
+      mdiis_del = 0.7d0 ! default value
+   end if
+
    ! middle scheme is requested {
       if (ithermostat < 0 .or. ithermostat > 2) then
          write(6,'(1x,a,/)') &
@@ -1110,13 +1120,12 @@ subroutine api_mdread1(input_options, ierr)
    ! electrostatics are initialized properly.
 
    rismprm%rism=irism
+   rismprm%verbose=rism_verbose
+   rismprm%grdspc(:)=grdspc1
+   rismprm%mdiis_del=mdiis_del
 
    if (irism /= 0) then
       periodicPotential = 'pme'
-
-#   ifndef API
-      write(6,'(a)') "|periodic 3D-RISM Forcing igb=0"
-#   endif
       igb = 0
    end if
 #endif /*RISMSANDER*/
@@ -4567,68 +4576,6 @@ subroutine ext_sander_setup(prmname, coordinates, box, input_options, qmmm_optio
    return
 
 end subroutine ext_sander_setup
-
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Name of the topology file
-! coordinates : double precision(3*natom)
-!     The starting coordinates
-! box : double precision(6)
-!     The box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : mod_func => sander_setup2, sander_input, &
-                              qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   call mod_func(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   return
-
-end subroutine ext_sander_setup2
-
-#else
-
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : sander_input, qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   write(0,*) 'Compiler does not support allocatables in structs. Recompile'
-   write(0,*) 'with a more modern compiler'
-
-   return
-end subroutine ext_sander_setup2
-
-#endif /* NO_ALLOCATABLES_IN_TYPE */
 
 ! Sets the atomic positions
 subroutine ext_set_positions(positions)

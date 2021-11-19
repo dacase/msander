@@ -1,6 +1,6 @@
 #!/bin/env python
 """
-Module openmm.unit.standard_dimensions
+Module simtk.unit.standard_dimensions
 
 Definition of principal dimensions: mass, length, time, etc.
 

@@ -25,7 +25,7 @@ module rismthermo_c
 
      !> Excess chemical potential.
      _REAL_, pointer :: excessChemicalPotential(:) => NULL()
-     !> Gaussian fluctuation excess chemical potential.
+     !> Solvent potential energy
      _REAL_, pointer :: solventPotentialEnergy(:) => NULL()
      !> Solvation energy.
      _REAL_, pointer :: solvationEnergy(:) => NULL()
@@ -41,7 +41,6 @@ module rismthermo_c
      !> Direct correlation function integral.
      _REAL_, pointer :: DCFintegral(:) => NULL()
 
-     !> TODO: Document me.
      integer :: mpirank = 0, mpisize = 1, mpicomm = 0
 
      !> All the results are stored in a single array so
@@ -119,33 +118,6 @@ contains
     this%mpi_buffer = huge(1d0)
   end subroutine rismthermo_reset
 
-  
-!!!Subtracts all of the values from rismthermo object C from B and
-!!!puts the result in A
-!!!
-!!!  A = B - C
-!!!
-!!!Any values that are HUGE in either B or C will be HUGE in A.
-!!!
-!!!This is useful for calculating polar contributions from full and
-!!!apolar calculations, as an example.
-!!!
-!!!IN:
-!!! A : the rismthermo object in which to place the result
-!!! B : the rismthermo object substracted from
-!!! C : the rismthermo object subtracted
-  subroutine rismthermo_sub(A, B, C)
-    implicit none
-    type(rismthermo_t), intent(inout) :: A
-    type(rismthermo_t), intent(in) :: B, C
-    where(B%mpi_buffer /= HUGE(1d0) .and. C%mpi_buffer /= HUGE(1D0))
-       A%mpi_buffer = B%mpi_buffer - C%mpi_buffer
-    elsewhere
-       A%mpi_buffer = huge(1d0)
-    end where
-  end subroutine rismthermo_sub
-
-  
 !!!Does an MPI reduction on all thermodynamic values
 !!!IN:
 !!! this : the rismthermo object
@@ -259,28 +231,19 @@ module amber_rism_interface
   use safemem
   use rismthermo_c
 
-  !> Parameter derived type for storing calculation parameters. This can be use
-  !! to transfer parameters from a C program.
-  !! This must match the RismData struct in 'sff.h'.
+  !> Parameter derived type for storing calculation parameters. 
   type rismprm_t
      sequence
      !> Cutoff for rism calculations (separate from SANDER non-bond).
      _REAL_ :: solvcut
-     !> Buffer distance to the edge of the box for the solvent.
-     _REAL_ :: buffer
      !> Grid spacing for all of the grids.
      _REAL_ :: grdspc(3)
-     !> Box size for 3d-rism. For PBC calculations, these should generally be equal.
-     _REAL_ :: solvbox(3)
      !> 'Step size' for MDIIS.
      _REAL_ :: mdiis_del
      !> Restart threshold factor. Ratio of the current residual to the
      !! minimum residual in the basis that causes a restart.
      _REAL_ :: mdiis_restart
-     !> Coefficients for the temperature dependent universal correction.
-     !! a,b,a1,b1
-     _REAL_ :: uccoeff(4)
-     !> Charge smearing parameter for long-range asymtotics and Ewald,
+     !> Charge smearing parameter for Ewald,
      !! typically eta in the literature
      _REAL_ :: chargeSmear
      !> For backwards compatibility, we still need to read this.
@@ -301,16 +264,8 @@ module amber_rism_interface
      !> 0 - Do nothing.
      !! 1 - Redistribute forces to get zero total force.
      integer :: zerofrc
-     !> If 0, the 3D-RISM solution is calculated but the resulting forces are not.
+     !> If 0, the 3D-RISM solution is calculated but the forces are not.
      integer :: apply_rism_force
-     !> Do a polar/apolar decomposition of the chemical potential.
-     integer :: polarDecomp
-     !> Do a energy/entropy decomposition of the chemical potential.
-     integer :: entropicDecomp
-     !> Include Gaussian fluctuation functional in output
-     integer :: gfCorrection
-     !> Include PC+/3D-RISM correction in output
-     integer :: pcplusCorrection
      !> Size of rism multiple timestep.
      integer :: rismnrespa
 
@@ -329,12 +284,6 @@ module amber_rism_interface
      !> Calculate and print out thermodynamics.  This is primarily used
      !! by sander but also serves as padding for alignment for NAB.
      integer :: write_thermo
-
-     !> perform internal consistency test. Done after output.
-     logical*4 :: selftest
-
-     !> output molecular_reconstruction
-     logical*4 :: molReconstruct
 
      !> BPR: Make sure the number of INTEGERs is not odd, to shut up a
      !! compiler whinge about misalignment.
@@ -356,17 +305,12 @@ module amber_rism_interface
   type(rism3d), save :: rism_3d
   type(rism3d_solvent), save :: solvent
   type(rism3d_solute), save :: solute
-  integer :: pa_orient, rmsd_orient
   _REAL_ :: centerOfMass(3)
   ! Read from prmtop file during parameter processing and passed to
   ! child MPI processes.
   _REAL_ :: unitCellDimensions(6)
 
   integer :: outunit
-
-  !> If true, calculate Universal Correction excess chemical
-  !! potential and, if possible, solvation energy and entropy
-  logical :: canCalculateUC
 
   !> List of closures to use in order.  Only the last closure is used
   !! for thermodynamic output.  This can be used to progressively
@@ -376,7 +320,7 @@ module amber_rism_interface
   !! namelist in sander.
   character(len=8), pointer :: closurelist(:) => NULL()
   !> Name of potential used for periodic calculations.
-  character(len=8) :: periodicPotential = ''
+  character(len=8) :: periodicPotential = 'pme'
   !> Residual tolerance for the solution of each closure in the
   !! list. On input this can be of length one, two or
   !! size(closurelist). If length one, use this value for the final
@@ -402,13 +346,11 @@ module amber_rism_interface
   !solvationEnergyfile   : (output) solvation energy map [kcal/mol/A^3]. Volumetric file.
   !entropyfile   : (output) solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
   !solventPotentialEnergyfile     : (output) solvent-solute potential energy map [kcal/mol/A^3]. Volumetric file.
-  !periodicPotential : Specify periodic potential used for periodic calculations.
-  !                    Either 'ewald' or 'pme' or 'pmekh'.
   !volfmt        : either 'ccp4', 'dx', or 'xyzv'
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
        uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
-       solventPotentialEnergyfile='', volfmt='dx', crdFile=''
+       solventPotentialEnergyfile='', volfmt='ccp4', crdFile=''
 
   integer :: mpirank = 0, mpisize = 1, mpicomm = 0
 
@@ -493,7 +435,7 @@ contains
     use amber_rism_interface
     use binrestart, only : readUnitCellDimensionsFromCrd
 #ifdef OPENMP
-    use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
+    use constants_rism, only : KB, omp_num_threads
 #else
     use constants_rism, only : KB
 #endif
@@ -535,9 +477,9 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
-    outunit = rism_report_getMUnit()
+#ifndef API
     call defaults()
-
+    outunit = rism_report_getMUnit()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
     open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
@@ -546,22 +488,29 @@ contains
     end if
     call read_namelist(mdin_unit)
     if (.not.op) close(unit=mdin_unit)
+#endif
 
     ! Initialize 3D-RISM solute and solvent.
 
 #ifdef OPENMP
-    call set_omp_num_threads()
     ier = fftw_init_threads()
     if( ier == 0 ) then
-       write(6,*) 'failure in fftw_plan_with_nthreads'
+       write(0,*) 'failure in fftw_plan_with_nthreads'
        call mexit(6,1)
+#ifndef API
     else
        write(6,'(a,i2,a)') '| calling fftw_plan_with_nthreads(', &
           omp_num_threads,')'
+#endif
     end if
     call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 
+#ifdef API
+    xvvfile = 'xvvfile'
+    crdFile = 'inpcrd'
+    outunit = 0
+#endif
     call rism3d_solvent_new(solvent, xvvfile)    
     call rism3d_solute_new_sander(solute, numAtoms, numTypes, atomTypeIndex, &
          nonbondedParmIndex, charge, ljA, ljB, mass, solvent%temperature)
@@ -570,24 +519,23 @@ contains
 
     call sanity_check()
     
+#ifdef API
+    if (rismprm%rism >= 1 .and. rismprm%verbose > 0) then
+#else
     if (rismprm%rism >= 1) then
+#endif
        write(outunit, '(a)') "3D-RISM:"
        if (rismprm%rism < 1) then
           write(outunit, '(5x, a, i10)') 'irism   =', rismprm%rism
        else if (rismprm%rism == 1) then
           write(outunit, '(5x, 3(a10, "=", 100a10))') &
                'closure'//whtspc, closurelist
-          write(outunit, '(5x, a10, "= ",1p, 4(e12.5, 1x))') &
-               'uccoeff'//whtspc, rismprm%uccoeff
-          write(outunit, '(5x, 3(a10, "="f10.5))') &
-               'solvcut'//whtspc, rismprm%solvcut, &
-               ', buffer'//whtspc, rismprm%buffer
+          write(outunit, '(5x, 2(a10, "="f10.5))') &
+               'solvcut'//whtspc, rismprm%solvcut
           write(outunit, '(5x, a10, "=", 3(f10.5, 1x))') &
                'grd_spc'//whtspc, rismprm%grdspc
           write(outunit, '(5x, a10, "=", 3(i10, 1x))') &
                'ng3'//whtspc, rismprm%ng3
-          write(outunit, '(5x, a10, "=", 3(f10.5, 1x))') &
-               'solvbox'//whtspc, rismprm%solvbox
           write(outunit, '(5x, a10, "=", 1p, 100e10.2)')  &
                'tolerance'//whtspc, tolerancelist
           write(outunit, '(5x, a10, "=", f10.5, a10, "=", i10)')  &
@@ -600,21 +548,18 @@ contains
                'maxstep'//whtspc, rismprm%maxstep, &
                ', npropagate'//whtspc, rismprm%npropagate
           write(outunit, '(5x, a10, "=", i10)') &
-               ', zerofrc'//whtspc, rismprm%zerofrc
+               'zerofrc'//whtspc, rismprm%zerofrc
           write(outunit, '(5x, a10, "=", i10)') &
                'apply_rism_force'//whtspc, rismprm%apply_rism_force
           write(outunit, '(5x, a10, "=", i10)') &
                'rismnrespa'//whtspc, rismprm%rismnrespa
-          write(outunit, '(5x, a20, "= ", a8)') &
-               'periodic'//whtspc, periodicPotential
-          write(outunit, '(5x, 1(a10, "=", i10), a10, "=  ", a8)') &
+          write(outunit, '(5x, a15, "=", i5, a10, "=  ", a8)') &
                'write_thermo'//whtspc, rismprm%write_thermo, &
                ', volfmt'//whtspc, volfmt
-          write(outunit, '(5x, 3(a10, "=", i10))') &
+          write(outunit, '(5x, 3(a15, "=", i5))') &
                'saveprogress'//whtspc, rismprm%saveprogress, &
                ', ntwrism'//whtspc, rismprm%ntwrism, &
                ', verbose'//whtspc, rismprm%verbose
-          write(outunit, '(5x, a15, "=", l5)') 'molReconstruct'//whtspc, rismprm%molReconstruct
           write(outunit, '(5x, 3(a10, "=", i10))') &
                'progress'//whtspc, rismprm%progress
           write(outunit, '(5x, a14, "=", f6.3)') &
@@ -623,6 +568,7 @@ contains
        end if
        call flush(outunit)
     end if
+    return
 
   end subroutine rism_setparam
 
@@ -668,13 +614,13 @@ contains
     ! rare event, it should not add to the expense of the calculation
     ! in any practical way.
     call rism3d_destroy(rism_3d)
-    if (rismprm%buffer >= 0) then
+    if (rismprm%ng3(1) == -1) then
        call rism3d_new(rism_3d, solute, solvent, rismprm%npropagate, &
           closurelist, rismprm%solvcut, &
           rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
           rismprm%mdiis_restart, &
           rismprm%chargeSmear, &
-          o_buffer=rismprm%buffer, o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
+          o_grdspc=rismprm%grdspc, o_mpicomm=mpicomm, &
           o_periodic=periodicPotential,&
           o_unitCellDimensions=unitCellDimensions)
     else
@@ -683,17 +629,13 @@ contains
           rismprm%mdiis_nvec, rismprm%mdiis_del, rismprm%mdiis_method, &
           rismprm%mdiis_restart, &
           rismprm%chargeSmear, &
-          o_boxlen=rismprm%solvbox, o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
+          o_ng3=rismprm%ng3, o_mpicomm=mpicomm, &
           o_periodic=periodicPotential, &
           o_unitCellDimensions=unitCellDimensions)
     end if
     call rism3d_setverbosity(rism_3d, rismprm%verbose)
 
     call rismthermo_new(rismthermo, rism_3d%solvent%numAtomTypes, mpicomm)
-    if (rismprm%polarDecomp == 1) then
-       call rismthermo_new(rismthermo_pol, rism_3d%solvent%numAtomTypes, mpicomm)
-       call rismthermo_new(rismthermo_apol, rism_3d%solvent%numAtomTypes, mpicomm)
-    end if
 
     ! Allocate working memory.
     ff => safemem_realloc(ff, 3, rism_3d%solute%numAtoms)
@@ -811,7 +753,7 @@ contains
        call rism3d_setCoord(rism_3d, atomPositions_md)
        call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, &
             rismprm%progress, rismprm%maxstep, tolerancelist, &
-            rismprm%ng3)
+            rismprm%ng3, rismprm%verbose)
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
@@ -856,15 +798,7 @@ contains
 
   
   !> Calculates and stores thermodynamics for 3D-RISM, optionally
-  !! printing distribution files.  Decompostion is performed based off
-  !! of the global parameters 'polarDecomp' and 'entropicDecomp'.  If
-  !! polarDecomp==.true. repeat the most recent calculation with solute
-  !! charges turned off.  Report the usual quanities but also decompose
-  !! the chemical potential into polar and non-polar terms. May be
-  !! combined with entropicDecomp.  If entropicDecomp ==
-  !! .true. calculate the temperature derivative of the most recent
-  !! calculation.  Report the energetic and entropic components of the
-  !! excess chemical potential.  May be combined with polarDecomp.
+  !! printing distribution files.
   !! 
   !! Since performing polar decomposition destroys solvent distributions
   !! for both standard solutions and entropic decompositions,
@@ -1174,16 +1108,6 @@ contains
   
 !!! I/O: performs RISM related I/O for files that only deal with RISM data
 
-  
-  !> Provides access to writeVolumetricData for non-Fortran code.
-  !! @param[in] step Step number used as a suffix.
-  subroutine rism_writeVolumetricDataC(step)
-    use amber_rism_interface
-    implicit none
-    integer, intent(in) :: step
-    call rism_writeVolumetricData(rism_3d, step)
-  end subroutine rism_writeVolumetricDataC
-
   !> Outputs volumetric data, such as solvent and electric potential
   !! distributions, to their respective files. Each distribution
   !! is written in a separate file with the step number before the
@@ -1475,15 +1399,9 @@ contains
        call mpi_bcast(rismprm%solvcut, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast SOLVCUT")
-       call mpi_bcast(rismprm%buffer, 1, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast BUFFER")
        call mpi_bcast(rismprm%grdspc, 3, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast GRDSPC")
-       call mpi_bcast(rismprm%solvbox, 3, mpi_double_precision, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast SOLVBOX")
        call mpi_bcast(rismprm%mdiis_del, 1, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MDIIS_DEL")
@@ -1494,26 +1412,9 @@ contains
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast chargeSmear")
 
-
-       call mpi_bcast(rismprm%uccoeff, size(rismprm%uccoeff), mpi_double_precision, 0, mpicomm, err)
-
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast uccoeff")
        call mpi_bcast(rismprm%ng3, 3, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast NG3")
-       call mpi_bcast(rismprm%polarDecomp, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast POLARDECOMP")
-       call mpi_bcast(rismprm%entropicDecomp, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast ENTROPICDECOMP")
-       call mpi_bcast(rismprm%gfCorrection, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast GFCORRECTION")
-       call mpi_bcast(rismprm%pcplusCorrection, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast pcplusCorrection")
        call mpi_bcast(rismprm%maxstep, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast MAXSTEP")
@@ -1541,9 +1442,6 @@ contains
        call mpi_bcast(rismprm%progress, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast PROGRESS")       
-       call mpi_bcast(rismprm%selftest, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast SELFTEST")
 
        if (mpirank==0) &
             nclosure=ubound(closurelist, 1)
@@ -1564,14 +1462,6 @@ contains
        call mpi_bcast(rismprm%write_thermo, 1, mpi_integer, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast WRITE_THERMO")
-
-       ! These are not being used currently.
-       call mpi_bcast(pa_orient, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast PA_ORIENT")
-       call mpi_bcast(rmsd_orient, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast RMSD_ORIENT")
 
        ! I/O
        ! Special output files that all nodes write to.
@@ -1605,15 +1495,12 @@ contains
        call mpi_bcast(solventPotentialEnergyfile, len(solventPotentialEnergyfile), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast POTUVFILE")
-       call mpi_bcast(rismprm%molReconstruct, 1, mpi_integer, 0, mpicomm, err)
-       if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast MOLRECONSTRUCT")
        call mpi_bcast(volfmt, len(volfmt), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast VOLFMT")
        call mpi_bcast(periodicPotential, len(periodicPotential), mpi_character, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
-            ("RISM3D interface: could not broadcast PERIODIC")
+            ("RISM3D interface: could not broadcast PERIODICPOTENTIAL")
        call mpi_bcast(unitCellDimensions, 6, mpi_double_precision, 0, mpicomm, err)
        if (err /= 0) call rism_report_error&
             ("RISM3D interface: could not broadcast UNITCELLDIMENSIONS")
@@ -1624,31 +1511,30 @@ contains
   !> Sets default values for 3D-RISM paramters.
   subroutine defaults()
     use amber_rism_interface
+    use constants_rism, only: NO_INPUT_VALUE, NO_INPUT_VALUE_FLOAT
     implicit none
 
     closurelist => safemem_realloc(closurelist, len(closurelist), nclosuredefault)
     closurelist(2:)           = ''
     closurelist(1)            = 'KH'
     rismprm%closureOrder      = 1
-    rismprm%uccoeff           = 0d0
-    rismprm%polarDecomp       = 0
-    rismprm%entropicDecomp    = 0
-    rismprm%gfCorrection     = 0
-    rismprm%pcplusCorrection = 0
-    periodicPotential         = ''
+    periodicPotential         = 'pme'
 
     !solvation box
-    rismprm%solvcut         = -1
-    rismprm%buffer          = 14d0
+#ifdef API
+    rismprm%solvcut         = 8.d0
+    rismprm%grdspc          = 0.8d0
+#else
+    rismprm%solvcut         = 9.d0
     rismprm%grdspc          = 0.5d0
+#endif
     rismprm%ng3             = -1
-    rismprm%solvbox         = -1d0
 
     !convergence
     tolerancelist => safemem_realloc(tolerancelist, nclosuredefault)
     tolerancelist             = HUGE(1d0)
-    tolerancelist(1)          = 1d-5
-    rismprm%mdiis_del         = 0.7d0
+    tolerancelist(1)          = 1d-7
+    rismprm%mdiis_del         = 0.4d0
     rismprm%mdiis_nvec        = 5
     rismprm%mdiis_method      = 2
     rismprm%mdiis_restart     = 10d0
@@ -1660,8 +1546,6 @@ contains
 
     !imin = 5 (trajectory analysis)
     rismprm%apply_rism_force = 1
-    pa_orient        = 0
-    rmsd_orient      = 0
 
     !imin = 0 (MD)
     rismprm%rismnrespa       = 1
@@ -1669,14 +1553,14 @@ contains
     !output
     rismprm%saveprogress     = 0
     rismprm%ntwrism          = -1
+#ifdef API
+    rismprm%verbose          = -100
+#else
     rismprm%verbose          = 0
+#endif
     rismprm%progress         = 1
-    volfmt                   = 'dx'
-    rismprm%selftest         = .false.
+    volfmt                   = 'ccp4'
 
-    ! molecular reconstruction
-    rismprm%molReconstruct = .false.
-    
     !charge smear
     rismprm%chargeSmear = 1d0
     rismprm%write_thermo=1
@@ -1691,17 +1575,10 @@ contains
     _REAL_ :: tolerance(nclosuredefault)
     integer :: closureOrder
     integer, intent(in) :: mdin_unit
-    integer :: entropicDecomp
-    integer :: polarDecomp
-    integer :: gfCorrection
-    integer :: pcplusCorrection
     character(len=8) :: periodic
-    _REAL_ :: uccoeff(size(rismprm%uccoeff))
     _REAL_ :: solvcut
-    _REAL_ :: buffer
     _REAL_ :: grdspc(3)
     integer ::  ng3(3)
-    _REAL_ :: solvbox(3)
     _REAL_ :: mdiis_del
     integer :: mdiis_nvec
     integer :: mdiis_method
@@ -1712,11 +1589,9 @@ contains
     integer :: apply_rism_force
     integer :: rismnrespa
     integer :: saveprogress
-    logical :: molReconstruct
     integer :: ntwrism
     integer :: verbose
     integer :: progress
-    logical :: selftest
     _REAL_ :: chargeSmear
     integer :: write_thermo
     namelist /rism/ &
@@ -1724,26 +1599,19 @@ contains
          grdspc, solvcut, ng3, &
          tolerance, mdiis_del, mdiis_nvec, mdiis_method, &
          mdiis_restart, maxstep, npropagate, zerofrc, &
-         apply_rism_force, pa_orient, rmsd_orient, &
-         rismnrespa, chargeSmear, molReconstruct, write_thermo, &
-         saveprogress, ntwrism, verbose, progress, volfmt, selftest
+         apply_rism_force, &
+         rismnrespa, chargeSmear, write_thermo, &
+         saveprogress, ntwrism, verbose, progress, volfmt
     
     call flush(0)
 
     closure = closurelist
     tolerance = tolerancelist
     closureOrder = rismprm%closureOrder
-    entropicDecomp = rismprm%entropicDecomp
-    polarDecomp = rismprm%polarDecomp
-    gfCorrection = rismprm%gfCorrection
-    pcplusCorrection = rismprm%pcplusCorrection
     periodic = periodicPotential
-    uccoeff = rismprm%uccoeff
     solvcut = rismprm%solvcut
-    buffer = rismprm%buffer
     grdspc= rismprm%grdspc
     ng3 = rismprm%ng3
-    solvbox = rismprm%solvbox
     mdiis_del = rismprm%mdiis_del
     mdiis_nvec = rismprm%mdiis_nvec
     mdiis_method = rismprm%mdiis_method
@@ -1754,11 +1622,9 @@ contains
     apply_rism_force = rismprm%apply_rism_force
     rismnrespa = rismprm%rismnrespa
     saveprogress = rismprm%saveprogress
-    molreconstruct = rismprm%molReconstruct
     ntwrism = rismprm%ntwrism
     verbose= rismprm%verbose
     progress = rismprm%progress
-    selftest = rismprm%selftest
     chargeSmear = rismprm%chargeSmear
     write_thermo = rismprm%write_thermo
 
@@ -1772,18 +1638,11 @@ contains
     closurelist = closure
     tolerancelist = tolerance
     rismprm%closureOrder = closureOrder
-    rismprm%entropicDecomp = entropicDecomp
-    rismprm%polarDecomp = polarDecomp
-    rismprm%gfCorrection = gfCorrection
-    rismprm%pcplusCorrection = pcplusCorrection
     periodicPotential = periodic
-    rismprm%uccoeff = uccoeff
     ! Solvation box.
-    rismprm%buffer=buffer
     rismprm%grdspc=grdspc
     rismprm%solvcut=solvcut
     rismprm%ng3=ng3
-    rismprm%solvbox=solvbox
     ! Convergence.
     rismprm%mdiis_del=mdiis_del
     rismprm%mdiis_nvec=mdiis_nvec
@@ -1795,23 +1654,19 @@ contains
     rismprm%zerofrc=zerofrc
     ! imin=5
     rismprm%apply_rism_force=apply_rism_force
-    pa_orient=pa_orient
-    rmsd_orient=rmsd_orient
     ! md
     rismprm%rismnrespa=rismnrespa
     ! Output.
     rismprm%saveprogress=saveprogress
-    rismprm%molReconstruct = molReconstruct
     rismprm%ntwrism=ntwrism
     rismprm%verbose=verbose
     rismprm%progress=progress
-    rismprm%selftest=selftest
     rismprm%chargeSmear = chargeSmear
     rismprm%write_thermo = write_thermo
 
     ! Set the RISM cutoff if not set by the user.
     if (rismprm%solvcut < 0) then
-       rismprm%solvcut = rismprm%buffer
+       rismprm%solvcut = 9.0
     end if
 
   end subroutine read_namelist
@@ -1825,16 +1680,6 @@ contains
     character(len=32) :: fmt
     !iclosure :: counter for closures
     integer :: iclosure
-
-    if (periodicPotential /= '') then
-       if (periodicPotential /= "ewald" & 
-             .and. periodicPotential /= "ewaldn"  &
-             .and. periodicPotential /= "pme"  &
-             .and. periodicPotential /= "pmen" ) then
-          call rism_report_error( &
-          "Only 'ewald', 'ewaldn', 'pme' and 'pmen' periodic potentials are supported.")
-       end if 
-    end if
 
     ! Ensure that an apropriate file format has been chosen for
     ! volumetric output.
@@ -1933,4 +1778,73 @@ contains
     mylcm = lcm(a, b)
   end function mylcm
 
+#if 0
+! Initializes a struct with RISM options to all default values
+!
+! Parameters
+! ----------
+! inp : type(rismprm_t)
+!     struct of RISM input options that will be filled by this subroutine
+subroutine rism_sander_input(inp)
+
+   implicit none
+   type(rismprm_t), intent(out) :: inp
+   call defaults
+
+end subroutine rism_sander_input
+#endif
+
 end module sander_rism_interface
+
+#ifdef OPENMP
+  subroutine set_omp_num_threads_rism()
+    use constants_rism, only: omp_num_threads
+    implicit none
+    character(len=5) :: omp_threads
+    integer :: ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+#endif
+  end subroutine set_omp_num_threads_rism
+#endif
+
+subroutine rism_defaults()
+   use sander_rism_interface, only: defaults
+   implicit none
+   call defaults()
+   return
+end subroutine rism_defaults
+
+#if 0
+!  Keep outside of the module, to avoid name mangling
+#ifdef API
+  subroutine rism_setparam2( solvcut, grdspc, verbose )
+     use amber_rism_interface
+     use constants_rism, only: NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
+     implicit none
+     double precision, intent(in):: solvcut, grdspc
+     integer, intent(in) :: verbose
+
+     if( solvcut <= 0.d0 ) then
+        rismprm%solvcut = 8.d0  !default
+     else
+        rismprm%solvcut = solvcut
+     endif
+     if( grdspc <= 0.d0 ) then
+        rismprm%grdspc(:) = 0.5d0  !default
+     else
+        rismprm%grdspc(:) = grdspc
+     endif
+     if( verbose == -100 ) then
+        rismprm%verbose = -1  !default
+     else
+        rismprm%verbose = verbose
+     endif
+
+     return
+  end subroutine rism_setparam2
+#endif
+#endif

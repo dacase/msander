@@ -2,12 +2,12 @@
 
 #   standard amber refinement
 
-if [ "$#" -lt 3 ]; then
-   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <cif-files>"
+if [ "$#" -lt 4 ]; then
+   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <serial> <cif-files>"
    exit 1
 fi
 
-cat <<EOF > ${3}_002.eff
+cat <<EOF > ${3}_00$4.eff
 refinement {
   input {
     xray_data {
@@ -19,7 +19,7 @@ refinement {
   }
   output {
     prefix = "$3"
-    serial = 2
+    serial = $4
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -29,19 +29,19 @@ refinement {
   }
   refine {
     strategy = *individual_sites individual_sites_real_space rigid_body \
-               *individual_adp group_adp tls *occupancies group_anomalous
+               *individual_adp group_adp tls occupancies group_anomalous
     sites {
     }
     adp {
       individual {
-         anisotropic = not element H
+         anisotropic = none
       }
     }
   }
   target_weights {
     optimize_xyz_weight = False
     fix_wxc = 1
-    wc = 3.333
+    wc = 1.667
   } 
   main {
     nqh_flips = True
@@ -49,9 +49,10 @@ refinement {
     target = auto *ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
+    ordered_solvent = False
   }
   hydrogens {
-    refine = individual *riding Auto
+    refine = *individual riding Auto
   }
   pdb_interpretation {
     c_beta_restraints = False
@@ -68,9 +69,9 @@ refinement {
   }
   amber {
     use_amber = True
-    topology_file_name = "../XrayPrep_27uc/alt5.5_uc.parm7"
-    coordinate_file_name = "../XrayPrep_27uc/alt5.5_uc.rst7"
-    order_file_name = "../XrayPrep_27uc/alt5.5_uc.order"
+    topology_file_name = "a7final_uc.parm7"
+    coordinate_file_name = "a7final_uc.rst7"
+    order_file_name = "a7final_uc.order"
     wxc_factor = 0.2
     restraint_wt = 0
     restraintmask = ""
@@ -79,14 +80,30 @@ refinement {
     netcdf_trajectory_file_name = ""
     print_amber_energies = True
   }
+  ordered_solvent {
+    low_resolution = 2.8
+    b_iso_min = 1.0
+    b_iso_max = 50.0
+    b_iso = 25.0
+    primary_map_type = mFobs-DFmodel
+    primary_map_cutoff = 3.0
+    secondary_map_and_map_cc_filter
+    {
+      cc_map_2_type = 2mFobs-DFmodel
+    }
+  }
+  peak_search {
+    map_next_to_model {
+      min_model_peak_dist = 1.8
+      max_model_peak_dist = 6.0
+      min_peak_peak_dist = 1.8
+    }
+  }
 }
 EOF
 
-phenix.refine  $1  $2  $4  ${3}_002.eff --overwrite > $3.amber.log
+phenix.refine  $1  $2  $5  ${3}_00$4.eff --overwrite > $3.amber_00$4.log
 
-diff ${3}_002.log $3.amber.log | awk 'NF==8 && $2!="Amber" {print $2}' \
-     > ${3}_002.dat
-
-/bin/mv $3.amber.log ${3}_002.log
+/bin/mv $3.amber_00$4.log ${3}_00$4.log
 
 

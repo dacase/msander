@@ -66,21 +66,21 @@ module qmmm_module
   ! -----------------
   ! Exponential decay factor for the MM atom in the core-core interaction
   _REAL_, parameter :: ALPH_MM = 5.0d0
-  
+
   _REAL_, parameter :: AXIS_TOL = 1.0d-8  !Tolerance at which to define a vector is along the axis.
   _REAL_, parameter :: OVERLAP_CUTOFF = 100.0d0*A2_TO_BOHRS2 !Distance^2 in bohrs at which to assume
                                                              !Gaussian overlap is zero.
   _REAL_, parameter :: EXPONENTIAL_CUTOFF = 30.0d0 !Value of x at which to assume Exp(-x) = zero.
                                                    !AWG: MNDO97, MOPAC2007, DCQTP use 25.0d0
-  
-  
+
+
   ! ----------
   ! DATA TYPES
   ! ----------
   type qm2_structure  !Variables that are specific to qm_routine=2 (qm2)
-  
+
    !+TJG 01/26/2010   Not sure if this should be in qm
-  
+
      ! The total density matrix
      _REAL_, dimension(:), pointer :: den_matrix => null()
 
@@ -90,19 +90,19 @@ module qmmm_module
 
      ! Used by qm2_cnvg as workspace, norbs
      _REAL_, dimension(:), pointer :: old2_density => null()
-  
+
      ! These two guesses are only used when density_predict=1
      ! They contain Pguess(t-1) and Pguess(t-2).
      _REAL_, dimension(:), pointer :: md_den_mat_guess1 => null()
      _REAL_, dimension(:), pointer :: md_den_mat_guess2 => null()
-  
-     ! Final Fock matrices from previous MD steps. In the case of fock_predict=1 
+
+     ! Final Fock matrices from previous MD steps. In the case of fock_predict=1
      ! it contains the previous 4 MD step fock matrices. F4 = t-4, F3 = t-3, F2 = t-2, F1 = t-1.
      _REAL_, dimension(:), pointer :: fock_mat_final4 => null()
      _REAL_, dimension(:), pointer :: fock_mat_final3 => null()
      _REAL_, dimension(:), pointer :: fock_mat_final2 => null()
-     _REAL_, dimension(:), pointer :: fock_mat_final1 => null() 
-  
+     _REAL_, dimension(:), pointer :: fock_mat_final1 => null()
+
      ! Fock matrix
      _REAL_, dimension(:), pointer :: fock_matrix => null()
 
@@ -118,7 +118,7 @@ module qmmm_module
      _REAL_, dimension(:), pointer :: hmatrix => null()
 
      ! QM-QM electron repulsion integrals
-     ! This was originally written as a file to disk in the energy routines and then re-read in the derivative 
+     ! This was originally written as a file to disk in the energy routines and then re-read in the derivative
      ! routines. Now it is stored in memory. Allocated in qm_mm on first call - deallocated by deallocate_qmmm
      _REAL_, dimension(:,:), pointer :: qm_qm_e_repul => null()
 
@@ -134,7 +134,7 @@ module qmmm_module
      ! Mulliken charges at each scf step if calc_mchg_scf is true.
      ! Otherwise only do it at the end of the scf.
      _REAL_, dimension(:), pointer :: scf_mchg => null()
-  
+
      !+TJG 01/26/2010
      ! previous fock matrices for diis extrapolation, matsize x ndiis
      _REAL_, dimension(:,:), pointer :: diis_fock => null()
@@ -149,14 +149,14 @@ module qmmm_module
      ! ndiis+1 x ndiis+1
      _REAL_, dimension(:,:), pointer :: diis_mat => null()
      !-TJG 01/26/2010
-  
+
      ! Size of the various packed symmetric matrices. (norbs(norbs+1)/2)
      integer :: matsize
 
      ! Number of 2 electron repulsion integrals, calculated by
      ! moldat = 50*nheavy(nheavy-1)+10*nheavy*nlight+(nlight*(nlight-1))/2
      integer :: n2el
-                                             
+
      ! Total Number of atomic orbitals.
      integer :: norbs
 
@@ -180,15 +180,15 @@ module qmmm_module
      ! If set to true the mulliken charges will be calculated on each SCF iteration.
      logical calc_mchg_scf
 
-  end type qm2_structure  
-  
+  end type qm2_structure
+
   type  qm2_rij_eqns_structure !This structure is used to store RIJ info for each QM-QM pair and related equations
   !QM-MM                                           !equations. See array_locations.h for the first dimension
    _REAL_, dimension(:,:), pointer ::  qmmmrijdata !offsets.
    integer :: qmmmrij_allocated
   end type qm2_rij_eqns_structure
-  
-  
+
+
   !QMEwald specific structure
   type qm_ewald_structure
      _REAL_, dimension(:), pointer :: kvec !Array storing K vectors (totkq long
@@ -215,10 +215,10 @@ module qmmm_module
      integer :: natom  !Same as sander's natom, copied here by qm_mm for convenience.
      logical :: ewald_startup !True if this is the very first MD step and we are doing qmewald.
   end type qm_ewald_structure
-  
+
   type qm_gb_structure
      _REAL_, dimension(:), pointer :: qmqm_onefij !Stores the 1.0/fij equations for qm-qm pairs. Since these
-                                               !values only depend on Rij and the effective radii 
+                                               !values only depend on Rij and the effective radii
                                                !they remain fixed during the SCF and so are calculated
                                                !once outside the SCF and then reused inside.
      _REAL_, dimension(:), pointer :: qmqm_kappafij !Stores exp(-kappa*fij) - These are calculated outside of the
@@ -229,15 +229,15 @@ module qmmm_module
      _REAL_ :: intdieli, extdieli !1.0d0/intdiel and extdiel respectively
      _REAL_ :: kappa    !Debye-Huckel kappa (A**-1) from salt concentration (M), assuming:
                         !T = 298.15, epsext=78.5, kappa = sqrt( 0.10806d0 * saltcon )
-                        !scaled kappa by 0.73 to account(?) for lack of ion exlcusions. 
+                        !scaled kappa by 0.73 to account(?) for lack of ion exlcusions.
      _REAL_ :: mmcut2   !cut^2 in angstroms^2 from cntrl namelist
      _REAL_ :: one_Arad_beta !alpb_beta/Arad when alpb/=0
      integer, dimension(:,:), pointer :: qmqm_gb_list !1+nquant,nquant - list of qm atoms that interact with current qm atom.
-                                                      !+1 because the first entry stores the number of interactions for QM atom y. 
+                                                      !+1 because the first entry stores the number of interactions for QM atom y.
      logical :: saltcon_on !True if saltcon /= 0.0d0
      logical :: alpb_on !True if alpb = 1
   end type qm_gb_structure
-  
+
   type qmmm_mpi_structure
     integer :: commqmmm !Communications within a given set of QMMM threads potentially a subset of processors of commsander.
     integer :: numthreads !Number of threads in commqmmm.
@@ -251,7 +251,7 @@ module qmmm_module
     integer :: kvec_start !Where this thread starts and ends in 1 to totkq loops.
     integer :: kvec_end
     integer :: two_e_offset !Offset into two electron matrix for this thread
-  
+
   !Below are for matrix type double loop load balancing
     integer ::                        nquant_nlink_istart !These three control load balancing
     integer ::                        nquant_nlink_iend
@@ -261,12 +261,12 @@ module qmmm_module
                                                           !           do j=1,i-1
                                                           !loop. Basically istart and iend define
                                                           !the extent of the outer loop and then
-                                                          !(1,i) and (2,i) of jrange define the 
+                                                          !(1,i) and (2,i) of jrange define the
                                                           !limits of the inner loop for this processor.
     logical :: commqmmm_master !True if master thread of commqmmm
-  
+
   end type qmmm_mpi_structure
-  
+
 #ifdef OPENMP
   type qmmm_openmp_structure
     integer :: diag_threads  !number of threads to use for diagonalization routines.
@@ -277,7 +277,7 @@ module qmmm_module
   type qmmm_scratch_structure
   !Various scratch arrays used as part of QMMM - one should typically assume that upon leaving a routine
   !the contents of these arrays can be assumed to be junk.
-    _REAL_, dimension(:), pointer  :: matsize_red_scratch !Allocated as qm2_struct%matsize when doing MPI during the 
+    _REAL_, dimension(:), pointer  :: matsize_red_scratch !Allocated as qm2_struct%matsize when doing MPI during the
                                                           !load parameters routine. ONLY ALLOCATED IF WE CAN'T
                                                           !DO MPI_IN_PLACE.
                                                           !+1 in size so we can pack extra energies on the end etc.
@@ -294,7 +294,7 @@ module qmmm_module
     _REAL_, dimension(:), pointer :: pdiag_vectmp2               !(noccupied*(norbs-noccupied))
     _REAL_, dimension(:), pointer :: pdiag_vectmp3               !(noccupied*(norbs-noccupied))
     integer, dimension(:,:), pointer :: pdiag_vecjs                !(2,noccupied*(norbs-noccupied))
-  
+
    _REAL_, dimension(:), pointer :: lapack_dc_real_scr
    _REAL_, dimension(:), pointer :: lapack_dc_int_scr
   !END ONLY ALLOCATED ON COMMQMMM MASTER THREAD
@@ -307,7 +307,7 @@ module qmmm_module
    integer :: lapack_dc_int_scr_aloc !Number of ints allocated for lapack_dc_int_scr_aloc
    integer :: qm_mm_pairs_allocated !Size of expected qm_mm_pairs that scratch arrays and calc_rij_array was allocated to.
   end type qmmm_scratch_structure
-  
+
   type qmmm_div_structure
      !Specific for the divcon version of QMMM
      integer :: ntotatm
@@ -323,7 +323,7 @@ module qmmm_module
      _REAL_::OPNQCorrection, vdWCorrection ! in EV
      logical::switching=.true.
      _REAL_::NB_cutoff  ! the non-bond cutoff used in the MM region--required for MM-correction in OPNQ
-     _REAL_::switch_cutoff1  ! the distance where the opnq correction will begin being switched off        
+     _REAL_::switch_cutoff1  ! the distance where the opnq correction will begin being switched off
      _REAL_::switch_cutoff2  ! the distance where the opnq correction will be totally zeroed
      integer, dimension(:), pointer::MM_atomType  ! the MM atom types for each atom
      logical, dimension(:), pointer::supported
@@ -375,10 +375,10 @@ module qmmm_module
   type(qmmm_vsolv_type) , save :: qmmm_vsolv
   type(qmmm_div_structure)     :: qmmm_div
   type(qmmm_opnq_structure),save::qmmm_opnq
-  
+
 contains
-  
-  
+
+
 #ifdef MPI
   subroutine qmmm_mpi_setup( master, natom )
 
@@ -389,7 +389,7 @@ contains
     use qmmm_vsolv_module, only : broadcast
 
     implicit none
-  
+
 #  include "parallel.h"
      include 'mpif.h'
 
@@ -414,12 +414,12 @@ contains
 #ifdef OPENMP
      ! for the moment diag_threads and pdiag_threads are just
      ! set to qmmm_omp_max_threads
-     call mpi_bcast(qmmm_omp%diag_threads, 1, mpi_integer, 0, commsander, ier) 
-     call mpi_bcast(qmmm_omp%pdiag_threads, 1, mpi_integer, 0, commsander, ier) 
+     call mpi_bcast(qmmm_omp%diag_threads, 1, mpi_integer, 0, commsander, ier)
+     call mpi_bcast(qmmm_omp%pdiag_threads, 1, mpi_integer, 0, commsander, ier)
 #endif
 
      call mpi_bcast(qm2_struct%calc_mchg_scf,1, mpi_logical, 0, commsander, ier)
-  
+
      call mpi_bcast(qm_gb%alpb_on,1,mpi_logical, 0, commsander, ier)
      call mpi_bcast(qm_gb%saltcon_on,1,mpi_logical, 0, commsander, ier)
      call mpi_bcast(qm_gb%kappa,1,MPI_DOUBLE_PRECISION, 0, commsander, ier)
@@ -437,18 +437,18 @@ contains
         ! scf_mchg has not been allocated yet on non-master threads so allocate it.
         allocate ( qm2_struct%scf_mchg(qmmm_struct%nquant_nlink), stat = ier )
         REQUIRE(ier == 0) !Deallocated in deallocate qmmm
-  
+
      end if
 
      ! Set the master flag on all threads
      qmmm_mpi%commqmmm_master = master
-  
+
      ! Setup the commqmmm communicator. For regular QMMM MD simulations this will
      ! be the same size as commsander and have the same members. For QMMM LES
      ! simulations this will contain only the current processor and be of numtasks=1
-  
+
      ! In theory we could use this later to make a smaller commqmmm than commsander for efficiency reasons.
-  
+
      ! A single commqmm that is the same on all threads that make up commsander
      qmmm_mpi%commqmmm = commsander
      qmmm_mpi%numthreads = sandersize
@@ -459,11 +459,12 @@ contains
      !     But check below for variable solvent MPI setup
      if (qmmm_nml%qmtheory%EXTERN) return
      if (qmmm_nml%qmtheory%SEBOMD) return
-  
+     if (qmmm_nml%qmtheory%ISQUICK) return
+
      ! Divide up i=2,nquant_nlink
      !              j=1,i-1
      ! loops
-  
+
      ! Matrix looks like this. E.g. for 4 cpus and 12 QM atoms - thread id's listed
      ! Total elements = 66
      ! cpus 0,1 and 2 do 17 elements each
@@ -480,11 +481,11 @@ contains
      !  9                   2  3  3
      ! 10                      3  3
      ! 11                         3
-     ! 12 
-  
+     ! 12
+
      ! first of all work out out the total extent of the loop.
      ! allocate the memory for the jrange array
-  
+
      allocate(qmmm_mpi%nquant_nlink_jrange(2,qmmm_struct%nquant_nlink),stat=ier)
      REQUIRE(ier==0)
      loop_extent = qmmm_struct%nquant_nlink*(qmmm_struct%nquant_nlink-1)/2
@@ -499,32 +500,32 @@ contains
      qmmm_mpi%nquant_nlink_iend   = ceiling((1.0d0+sqrt(1.0d0+8.0d0*dble(loop_extent_end)))/2.d0)
      qmmm_mpi%nquant_nlink_loop_extent_begin = loop_extent_begin
      qmmm_mpi%nquant_nlink_loop_extent_end = loop_extent_end
-  
+
      !Now we need to work out what range of j values we do for each i we will be doing.
      !What value of j would, when coupled with our istart give us loop_extent_begin?
      ! j = loop_extent_begin -((-i-1)(i-2)/2)
-  
+
      jstart = loop_extent_begin - ((qmmm_mpi%nquant_nlink_istart-1)*(qmmm_mpi%nquant_nlink_istart-2)/2)
      jend   = loop_extent_end - ((qmmm_mpi%nquant_nlink_iend-1)*(qmmm_mpi%nquant_nlink_iend-2)/2)
-  
+
      do i = qmmm_mpi%nquant_nlink_istart, qmmm_mpi%nquant_nlink_iend
-  
+
        if (i == qmmm_mpi%nquant_nlink_istart) then
          qmmm_mpi%nquant_nlink_jrange(1,i) = jstart
        else
          qmmm_mpi%nquant_nlink_jrange(1,i) = 1
        end if
-  
+
        if (i == qmmm_mpi%nquant_nlink_iend) then
          qmmm_mpi%nquant_nlink_jrange(2,i) = jend
        else
          qmmm_mpi%nquant_nlink_jrange(2,i) = i-1
        end if
-  
+
      end do
-  
+
      !------- End Matrix Type Calc Load Balancing ------------
-  
+
      ! Now divide up the atoms between threads
      ! We will divide up evenly as best we can. E.g. with 1603 atoms on 4 threads
      ! we would ideally do 1->401, 402->802, 803->1203, 1204->1603
@@ -533,12 +534,12 @@ contains
      ! Thus threads 1 to 3 do 401 atoms and thread 4 does 400 atoms. This approach
      ! allows linear movement in memory.
      ! Note the last thread is responsible for ALL link atoms.
-  
+
      ! NATOM division first.
      mpi_division = (natom + (qmmm_mpi%numthreads-1))/qmmm_mpi%numthreads
      qmmm_mpi%natom_end = min(mpi_division*(qmmm_mpi%mytaskid+1),natom)
      qmmm_mpi%natom_start = min(mpi_division*qmmm_mpi%mytaskid+1,natom+1)
-  
+
      ! write info about atom division - Get each thread to send the master it's values
      ! This allows a sanity check.
      if (qmmm_mpi%commqmmm_master) then
@@ -565,18 +566,18 @@ contains
        istartend(2) = qmmm_mpi%natom_end
        call mpi_send(istartend,2,mpi_integer,0,0,qmmm_mpi%commqmmm,ier)
      end if
-  
+
      ! Nquant
      mpi_division = (qmmm_struct%nquant + (qmmm_mpi%numthreads-1))/qmmm_mpi%numthreads
      qmmm_mpi%nquant_nlink_end = min(mpi_division*(qmmm_mpi%mytaskid+1),qmmm_struct%nquant)
      qmmm_mpi%nquant_nlink_start = min(mpi_division*qmmm_mpi%mytaskid+1,qmmm_struct%nquant+1)
-  
+
      ! Nquant_nlink - Last thread gets all the link atoms
      if (qmmm_mpi%mytaskid == qmmm_mpi%numthreads - 1) then
         ! Last thread
         qmmm_mpi%nquant_nlink_end = qmmm_mpi%nquant_nlink_end + qmmm_struct%nlink
      end if
-  
+
      if (qmmm_mpi%commqmmm_master) then
       if(qmmm_struct%abfqmmm /= 1) then  ! lam81
        write (6,'(/a)') '|QMMM: Quantum atom + link atom division among threads:'
@@ -600,15 +601,15 @@ contains
        istartend(2) = qmmm_mpi%nquant_nlink_end
        call mpi_send(istartend,2,mpi_integer,0,0,qmmm_mpi%commqmmm,ier)
      end if
-  
+
      ! Now we need to calculate the offset into the 2 electron matrix that
      ! this thread will have - this depends on the number of light and heavy
      ! atoms and so is calculated at the end of qm2_load_params_and_allocate.
-  
+
   end subroutine qmmm_mpi_setup
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #endif
-  
+
    ! Set default options
    subroutine default_qmmm_input_options(options)
 
@@ -676,7 +677,7 @@ contains
       options%r_switch_lo = options%r_switch_hi - 2.0D0
 
       !DFTB
-      options%dftb_maxiter     = 70   
+      options%dftb_maxiter     = 70
       options%dftb_disper      = 0
       options%dftb_chg         = 0
       options%dftb_telec       = 0.0d0
@@ -698,7 +699,7 @@ contains
 
      use qmmm_nml_module   , only : qmmm_nml_type, new
      use qmmm_struct_module, only : qmmm_struct_type, new
-    
+
      implicit none
 
      type(qmmm_nml_type)   , intent(inout) :: qmmm_nml
@@ -706,13 +707,13 @@ contains
      integer, intent(in) :: natom
 
      integer :: ier
-  
-     !WARNING - nlink is NOT known when the master thread enters this routine (is zero). 
+
+     !WARNING - nlink is NOT known when the master thread enters this routine (is zero).
      !          Thus you cannot do allocations which depend on nlink in here. The exception
      !          is iqmatoms which first gets allocated with nlink = 0 on the master thread
      !          and then gets reallocated to include the link atoms later on.
 
-     !iqmatoms and iqm_atomic_numbers are allocated here as nquant+nlink long but 
+     !iqmatoms and iqm_atomic_numbers are allocated here as nquant+nlink long but
      !initially nlink is zero so it only gets allocated as nquant long on the master
      !thread. It is then resized when nlink are known about. When all other mpi threads
      !call this allocation routine nquant+nlink should include both qm and link atoms.
@@ -728,9 +729,9 @@ contains
 
   end subroutine allocate_qmmm
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  
+
   subroutine deallocate_qmmm(qmmm_nml, qmmm_struct, qmmm_vsolv, qm2_params)
-    
+
     use qmmm_nml_module   , only : qmmm_nml_type, delete
     use qmmm_struct_module, only : qmmm_struct_type, delete
     use qmmm_vsolv_module , only : qmmm_vsolv_type, delete
@@ -748,7 +749,7 @@ contains
     !If this is a parallel run the non master threads will only have
     !allocated this memory if LES is on since otherwise QM calc is
     !currently only done on master thread.
-    !Deallocate pointers 
+    !Deallocate pointers
 
     call delete(qmmm_struct, qmmm_nml%qmmm_int, qmmm_nml%idc, qmmm_nml%qmmm_switch)
 
@@ -782,7 +783,7 @@ contains
        deallocate ( qmewald%qmpot, stat = ier )
        REQUIRE(ier == 0)
        deallocate ( qmewald%coulpot, stat = ier )
-       REQUIRE(ier == 0)       
+       REQUIRE(ier == 0)
     end if
 
     !Deallocate QM-GB arrays - only used with qmgb=2.
@@ -804,6 +805,7 @@ contains
     ! The rest was not allocated if we are using an external program
     if (qmmm_nml%qmtheory%EXTERN) return
     if (qmmm_nml%qmtheory%SEBOMD) return
+    if (qmmm_nml%qmtheory%ISQUICK) return
 
     !MPI Specific deallocations
 #ifdef MPI
@@ -935,21 +937,21 @@ contains
 
   end subroutine deallocate_qmmm
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  
+
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !+Sorts the array iqmatoms into numerical order
   subroutine qmsort( iqmatoms)
-  
+
     implicit none
     integer, intent(inout) :: iqmatoms(*)
-  
+
     ! Local
     integer i,j,lcurrent
-  
+
     !  sort array iqmatoms in ascending order
     !  sort only over nquant atoms don't sort the link atom
     !  MM link pair atoms on the end.
-    
+
     do i = 1, qmmm_struct%nquant
        lcurrent = iqmatoms(i)
        do j = i+1,qmmm_struct%nquant
@@ -962,7 +964,7 @@ contains
     end do
   end subroutine qmsort
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  
+
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   ! ----------------------
   ! Identify atom elements
@@ -973,22 +975,22 @@ contains
     ! which has been read in from the topology file and based upon the mass.
     ! The assumption here is that an atom name matches the first letter of the
     ! element. If it doesn't then this routine will need to be modified.
-    
+
     use UtilitiesModule, only : Upcase
 
     implicit none
-    
+
     character(len=4), intent(in)  :: atom_name
     _REAL_,           intent(in)  :: atom_mass
     logical, optional, intent(out) :: errorFlag
     integer,          intent(out) :: atomic_number
-    
+
     logical::localErrorFlag
     localErrorFlag=.false.
-    
+
     ! Lanthanides are not supported.
     ! Actinides are not supported.
-    
+
     if( Upcase(atom_name(1:1)) .eq. 'A' ) then
        if(atom_mass > 24.0d0 .and. atom_mass <= 28.0d0) then
           atomic_number =  13 !Aluminium
@@ -1042,7 +1044,7 @@ contains
        else
           localErrorFlag=.true.
        endif
-    
+
     elseif( Upcase(atom_name(1:1)) .eq. 'D' ) then
        localErrorFlag=.true.
 
@@ -1259,7 +1261,7 @@ contains
     else
        localErrorFlag=.true.
     endif
-    
+
     if (localErrorFlag) then
        if (present(errorFlag)) then
            ! not to force the program to terminate--left to the calling program
@@ -1271,11 +1273,11 @@ contains
            write(6,'(a)') '      Mass Repartitioning if ATOMIC_NUMBER is not'
            write(6,'(a)') '      present in the topology file'
            call mexit(6,1)
-       end if          
+       end if
     end if
-  
+
   end subroutine get_atomic_number
-  
+
   subroutine validate_qm_atoms(iqmatoms, nquant, natom)
 
     ! Validate range of QM atom numbers
@@ -1286,16 +1288,16 @@ contains
     ! 2) All are unique integer numbers
     !
     ! Written by Ross Walker, TSRI, 2004
-  
+
     implicit none
-    
+
     !Passed in
     integer, intent(in) :: nquant, natom
     integer, intent(in) :: iqmatoms(nquant)
-    
+
     !Local
     integer :: icount1, icount2, iatom
-    
+
     ! Sanity check 1, ensure nquant isn't zero or bigger than natom (it can't be)
     if ((nquant < 1) .OR. (nquant > natom)) then
        write (6,'(" QM ATOM VALIDATION: nquant has a value of ",i8)') nquant
@@ -1325,9 +1327,8 @@ contains
           call sander_bomb('validate_qm_atoms','invalid QM atom ID', 'Need 0 < QM atom ID <= natom')
        end if
     end do
-  
+
   end subroutine validate_qm_atoms
-  
+
   !END SUBROUTINES
 end module qmmm_module
-

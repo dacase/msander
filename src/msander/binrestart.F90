@@ -473,10 +473,10 @@ end subroutine read_nc_restart_extents
 
     ! Check for new Netcdf restart format
     if ( NC_checkRestart(file) ) then
-        write(6,'(a)') ' getting box info from netcdf restart file'
+        ! write(6,'(a)') ' getting box info from netcdf restart file'
         call read_nc_restart_box(file,ax,bx,cx,alphax,betax,gammax)
     else
-         write(6,'(a)') ' getting new box info from bottom of inpcrd'
+         ! write(6,'(a)') ' getting new box info from bottom of inpcrd'
          call peek_ewald_inpcrd(file,ax,bx,cx,alphax,betax,gammax)
     endif
     unitCellDimensions = (/ax,bx,cx, alphax,betax,gammax/)

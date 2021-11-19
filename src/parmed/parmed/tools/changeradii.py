@@ -1,4 +1,4 @@
-from .exceptions import ChangeRadiiError
+from parmed.tools.exceptions import ChangeRadiiError
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -7,13 +7,11 @@ def bondi(parm):
     for i, atom in enumerate(parm.atoms):
         # Radius of C atom depends on what type it is
         if atom.atomic_number == 6:
-            if isinstance(atom.type, int):
-                atom.solvent_radius = 1.7
-            elif atom.type.startswith('C1') and atom.mass > 13.0:
+            if atom.type.startswith('C1') and atom.mass > 13.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C2') and atom.mass > 14.0:
+            if atom.type.startswith('C2') and atom.mass > 14.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C3') and atom.mass > 15.0:
+            if atom.type.startswith('C3') and atom.mass > 15.0:
                 atom.solvent_radius = 2.2
             else:
                 atom.solvent_radius = 1.7
@@ -59,13 +57,11 @@ def amber6(parm):
                 atom.solvent_radius = 1.2
         # Radius of C atom depends on what type it is
         elif atom.atomic_number == 6:
-            if isinstance(atom.type, int):
-                atom.solvent_radius = 1.7
-            elif atom.type.startswith('C1') and atom.mass > 13.0:
+            if atom.type.startswith('C1') and atom.mass > 13.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C2') and atom.mass > 14.0:
+            if atom.type.startswith('C2') and atom.mass > 14.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C3') and atom.mass > 15.0:
+            if atom.type.startswith('C3') and atom.mass > 15.0:
                 atom.solvent_radius = 2.2
             else:
                 atom.solvent_radius = 1.7
@@ -108,13 +104,11 @@ def mbondi(parm):
                 atom.solvent_radius = 1.2
         # Radius of C atom depends on what type it is
         elif atom.atomic_number == 6:
-            if isinstance(atom.type, int):
-                atom.solvent_radius = 1.7
-            elif atom.type.startswith('C1') and atom.mass > 13.0:
+            if atom.type.startswith('C1') and atom.mass > 13.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C2') and atom.mass > 14.0:
+            if atom.type.startswith('C2') and atom.mass > 14.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C3') and atom.mass > 15.0:
+            if atom.type.startswith('C3') and atom.mass > 15.0:
                 atom.solvent_radius = 2.2
             else:
                 atom.solvent_radius = 1.7
@@ -154,13 +148,11 @@ def mbondi2(parm):
                 atom.solvent_radius = 1.2
         # Radius of C atom depends on what type it is
         elif atom.atomic_number == 6:
-            if isinstance(atom.type, int):
-                atom.solvent_radius = 1.7
-            elif atom.type.startswith('C1') and atom.mass > 13.0:
+            if atom.type.startswith('C1') and atom.mass > 13.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C2') and atom.mass > 14.0:
+            if atom.type.startswith('C2') and atom.mass > 14.0:
                 atom.solvent_radius = 2.2
-            elif atom.type.startswith('C3') and atom.mass > 15.0:
+            if atom.type.startswith('C3') and atom.mass > 15.0:
                 atom.solvent_radius = 2.2
             else:
                 atom.solvent_radius = 1.7
@@ -208,7 +200,8 @@ def mbondi3(parm):
             parm.atoms[i-1].solvent_radius = 1.4
 
     try:
-        parm.parm_data['RADIUS_SET'][0] = 'ArgH and AspGluO modified Bondi2 radii (mbondi3)'
+        parm.parm_data['RADIUS_SET'][0] = \
+                'ArgH and AspGluO modified Bondi2 radii (mbondi3)'
     except AttributeError:
         pass
     _screen1(parm)
@@ -295,6 +288,8 @@ _call_method = dict(bondi=bondi, mbondi=mbondi, mbondi2=mbondi2,
                     mbondi3=mbondi3, amber6=amber6)
 
 def ChRad(parm, radii_set):
+    global _call_method
     if radii_set not in _call_method:
-        raise ChangeRadiiError(f"You must choose from {list(_call_method.keys())} radii sets")
+        raise ChangeRadiiError("You must choose from %s radii sets" %
+                               ', '.join(_call_method.keys()))
     _call_method[radii_set](parm)

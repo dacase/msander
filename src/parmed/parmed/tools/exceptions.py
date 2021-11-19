@@ -1,21 +1,27 @@
 """ Exceptions used in parmed script """
-__all__ = [
-    'ParmedError', 'ParmedWarning', 'InputError', 'ParmError', 'ParmWarning', 'SeriousParmWarning',
-    'ChangeRadiiError', 'WriteOFFError', 'ParmedUtilsError', 'ParmedChangeError',
-    'ParmedAddLJTypeError', 'ChangeLJPairError', 'LJ_TypeError', 'ParmedMoleculeError',
-    'ChangeStateError', 'TiMergeError', 'WarningList', 'DeleteDihedralError', 'ArgumentError',
-    'NoArgument', 'InterpreterError', 'AmberIncompatibleWarning', 'BadParmWarning', 
-    'FixableParmWarning', 'NonfatalWarning', 'NonUniversalWarning', 'MissingDisulfide',
-    'LongBondWarning', 'NonexistentParm', 'ParmFileNotFound', 'DuplicateParm', 'AmbiguousParmError',
-    'IncompatibleParmsError', 'AddPDBWarning', 'AddPDBError', 'LJ12_6_4Error',
-    'DuplicateParamWarning', 'HMassRepartitionError', 'SimulationError', 'SimulationWarning',
-    'UnhandledArgumentWarning', 'ParmIndexError', 'FileExists', 'FileDoesNotExist', 'ChamberError',
-    'TiMergeError', 'WarningList'
-]
+__all__ = ['ParmedError', 'ParmedWarning', 'InputError', 'ParmError',
+           'ParmWarning', 'SeriousParmWarning', 'ChangeRadiiError',
+           'WriteOFFError', 'ParmedUtilsError', 'ParmedChangeError',
+           'ParmedAddLJTypeError', 'ChangeLJPairError', 'LJ_TypeError',
+           'ParmedMoleculeError', 'CoarseGrainError', 'ChangeStateError',
+           'DeleteDihedralError', 'ArgumentError', 'NoArgument',
+           'InterpreterError', 'AmberIncompatibleWarning', 'BadParmWarning',
+           'FixableParmWarning', 'NonfatalWarning', 'NonUniversalWarning',
+           'MissingDisulfide', 'LongBondWarning', 'NonexistentParm',
+           'ParmFileNotFound', 'DuplicateParm', 'AmbiguousParmError',
+           'IncompatibleParmsError', 'AddPDBWarning', 'AddPDBError',
+           'LJ12_6_4Error', 'DuplicateParamWarning', 'HMassRepartitionError',
+           'SimulationError', 'SimulationWarning', 'UnhandledArgumentWarning',
+           'ParmIndexError', 'FileExists', 'FileDoesNotExist', 'ChamberError',
+           'TiMergeError', 'WarningList']
 
 from sys import stderr
-from ..exceptions import ParmedError, ParmedWarning, InputError
+from parmed.exceptions import ParmedError, ParmedWarning, InputError
+from parmed.utils.six import PY2
 import warnings
+
+if PY2:
+    FileNotFoundError = IOError
 
 class ParmError(ParmedError):
     """ Base parmed error """
@@ -59,6 +65,9 @@ class LJ_TypeError(ParmError):
     pass
 
 class ParmedMoleculeError(ParmError):
+    pass
+
+class CoarseGrainError(ParmError):
     pass
 
 class ChangeStateError(ParmError):
@@ -159,11 +168,16 @@ class WarningList(list):
    
     def __init__(self, empty_msg='No warnings found'):
         self._empty_msg = empty_msg
-        super().__init__()
+        list.__init__(self)
+
+    def append(self, *args):
+        raise NotImplemented('Use warn() to add to WarningList!')
+
+    extend = append
 
     def warn(self, msg, exc_type=ParmWarning):
         """ Adds a warning to the list """
-        self.append((exc_type, msg))
+        list.append(self, (exc_type, msg))
 
     def dump(self, dest=stderr, ncols=80):
         """ Dump a list of all warnings to the destination """
@@ -171,10 +185,10 @@ class WarningList(list):
             dest.write(self._empty_msg + '\n')
             return
 
-        dest.write(f'{len(self)} total warnings\n\n')
+        dest.write('%d total warnings\n\n' % len(self))
 
         for w in self:
-            words = f'{w[0].__name__}: {w[1]}'.split()
+            words = ('%s: %s' % (w[0].__name__, w[1])).split()
             prstr = words[0] + ' '
             indent_chars = len(words[0]) + 1
             i = 1
@@ -187,3 +201,4 @@ class WarningList(list):
             if prstr:
                 dest.write(prstr + '\n')
             dest.write('\n')
+#           dest.write('%s: %s\n' % (w[0].__name__, w[1]))

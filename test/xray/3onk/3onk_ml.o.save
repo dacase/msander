@@ -3,10 +3,10 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 03/04/2021 at 15:57:17
+| Run on 08/20/2021 at 16:38:39
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/xray/3onk
+| Working directory: /home/case/msander_oneapi/test/xray/3onk
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   ntx = 1, irest = 0, ntpr = 1,                                                
@@ -54,7 +54,6 @@ Test of MD with Xray restraints
 
 | Flags:                                                                        
  getting box info from netcdf restart file
-| NetCDF restart box info found
 |Largest sphere to fit in unit cell has radius =    12.100
  NATOM  =    2269 NTYPES =      14 NBONH =    1131 MBONA  =    1154
  NTHETH =    2557 MTHETA =    1548 NPHIH =    5269 MPHIA  =    4853
@@ -135,6 +134,7 @@ Cpptraj Generated Restart
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
+| Running OpenMP with   4 threads
 
      Sum of charges from parm topology file =       1.0000
      Assuming uniform neutralizing plasma
@@ -157,15 +157,14 @@ X-ray Refinement Parameters:
      Atom Selection Mask:   :*
      Solute Selection Mask: :*
 PDB: All atoms read successfully.
- getting box info from netcdf restart file
-| NetCDF restart box info found
+ getting box info from netcdf file 3onk.ncrst
 XRAY: UNIT CELL=    26.600   37.589   38.109  77.81  86.64  65.54
 Found   2269 atoms in :*;
 Found   2269 atoms in :*;
 | number of reflections:     6591     734    7325
 | highest resolution:   2.090
+| using optimized model for Ucryst
 | creating k_mask with k_sol,b_sol =    0.350  46.000
-| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -184,49 +183,49 @@ Found   2269 atoms in :*;
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =     613262
 | TOTAL SIZE OF NONBOND LIST =     613262
-| updating fmask
-| updating   isotropic scaling:    1.00002
 | updating anisotropic scaling
+|        0.01656   1.35989   0.85553   0.45239  -1.06853   0.65125  -0.50568
+| mean k_scale:    1.10933
 | updating alpha and beta
-| gradient norms, amber/xray:  0.94430E+04 0.30304E+03 0.31160E+02
+| gradient norms, amber/xray:  0.94430E+04 0.30313E+03 0.31152E+02
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =     25436.5022  EKtot   =         0.0000  EPtot      =     25436.5022
+ Etot   =     25432.2989  EKtot   =         0.0000  EPtot      =     25432.2989
  BOND   =        58.5832  ANGLE   =       240.9092  DIHED      =      1632.3991
  1-4 NB =       667.0403  1-4 EEL =      3862.3050  VDWAALS    =       374.4581
- EELEC  =     -9241.2474  EHBOND  =         0.0000  RESTRAINT  =     27842.0546
+ EELEC  =     -9241.2474  EHBOND  =         0.0000  RESTRAINT  =     27837.8513
  EAMBER (non-restraint)  =     -2405.5524
- Exray  =     27842.0546  Rwork   =         0.2508  Rfree      =         0.2539
+ Exray  =     27837.8513  Rwork   =         0.2482  Rfree      =         0.2517
  ------------------------------------------------------------------------------
 
 
  NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =     25436.5215  EKtot   =         0.0193  EPtot      =     25436.5022
+ Etot   =     25432.3182  EKtot   =         0.0193  EPtot      =     25432.2989
  BOND   =        58.5832  ANGLE   =       240.9092  DIHED      =      1632.3991
  1-4 NB =       667.0403  1-4 EEL =      3862.3050  VDWAALS    =       374.4581
- EELEC  =     -9241.2474  EHBOND  =         0.0000  RESTRAINT  =     27842.0546
+ EELEC  =     -9241.2474  EHBOND  =         0.0000  RESTRAINT  =     27837.8513
  EAMBER (non-restraint)  =     -2405.5524
- Exray  =     27842.0546  Rwork   =         0.2508  Rfree      =         0.2539
+ Exray  =     27837.8513  Rwork   =         0.2482  Rfree      =         0.2517
  ------------------------------------------------------------------------------
 
 
  NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =   103.85  PRESS =     0.0
- Etot   =     25248.3795  EKtot   =       585.3506  EPtot      =     24663.0289
- BOND   =        58.6297  ANGLE   =       233.5065  DIHED      =      1631.9198
- 1-4 NB =       666.8737  1-4 EEL =      3848.2884  VDWAALS    =      -381.2027
- EELEC  =     -9234.9190  EHBOND  =         0.0000  RESTRAINT  =     27839.9325
- EAMBER (non-restraint)  =     -3176.9036
- Exray  =     27839.9325  Rwork   =         0.2508  Rfree      =         0.2538
+ Etot   =     25244.1987  EKtot   =       585.3563  EPtot      =     24658.8424
+ BOND   =        58.6298  ANGLE   =       233.5051  DIHED      =      1631.9196
+ 1-4 NB =       666.8759  1-4 EEL =      3848.2912  VDWAALS    =      -381.2026
+ EELEC  =     -9234.9222  EHBOND  =         0.0000  RESTRAINT  =     27835.7456
+ EAMBER (non-restraint)  =     -3176.9032
+ Exray  =     27835.7456  Rwork   =         0.2481  Rfree      =         0.2517
  ------------------------------------------------------------------------------
 
 
  NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =   188.23  PRESS =     0.0
- Etot   =     25282.3750  EKtot   =      1060.9714  EPtot      =     24221.4036
- BOND   =        65.5579  ANGLE   =       222.9320  DIHED      =      1632.2531
- 1-4 NB =       666.2609  1-4 EEL =      3834.8317  VDWAALS    =      -788.3618
- EELEC  =     -9246.6216  EHBOND  =         0.0000  RESTRAINT  =     27834.5515
- EAMBER (non-restraint)  =     -3613.1478
- Exray  =     27834.5515  Rwork   =         0.2506  Rfree      =         0.2538
+ Etot   =     25278.1943  EKtot   =      1060.9736  EPtot      =     24217.2207
+ BOND   =        65.5580  ANGLE   =       222.9283  DIHED      =      1632.2523
+ 1-4 NB =       666.2700  1-4 EEL =      3834.8426  VDWAALS    =      -788.3531
+ EELEC  =     -9246.6342  EHBOND  =         0.0000  RESTRAINT  =     27830.3567
+ EAMBER (non-restraint)  =     -3613.1361
+ Exray  =     27830.3567  Rwork   =         0.2479  Rfree      =         0.2518
  ------------------------------------------------------------------------------
 
 
@@ -234,12 +233,12 @@ Found   2269 atoms in :*;
 
 
  NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =    97.36  PRESS =     0.0
- Etot   =     25322.4254  EKtot   =       548.7804  EPtot      =     24773.6449
- BOND   =        60.9236  ANGLE   =       232.4492  DIHED      =      1632.1907
- 1-4 NB =       666.7249  1-4 EEL =      3848.4751  VDWAALS    =      -265.0354
- EELEC  =     -9240.9293  EHBOND  =         0.0000  RESTRAINT  =     27838.8462
- EAMBER (non-restraint)  =     -3065.2013
- Exray  =     27834.5515  Rwork   =         0.2506  Rfree      =         0.2538
+ Etot   =     25318.2371  EKtot   =       548.7831  EPtot      =     24769.4540
+ BOND   =        60.9237  ANGLE   =       232.4475  DIHED      =      1632.1904
+ 1-4 NB =       666.7287  1-4 EEL =      3848.4796  VDWAALS    =      -265.0325
+ EELEC  =     -9240.9346  EHBOND  =         0.0000  RESTRAINT  =     27834.6512
+ EAMBER (non-restraint)  =     -3065.1972
+ Exray  =     27830.3567  Rwork   =         0.2479  Rfree      =         0.2518
  ------------------------------------------------------------------------------
 
 
@@ -247,13 +246,13 @@ Found   2269 atoms in :*;
 
 
  NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =    76.98  PRESS =     0.0
- Etot   =        81.8632  EKtot   =       433.9031  EPtot      =       502.1906
- BOND   =         3.2770  ANGLE   =         7.3771  DIHED      =         0.2006
- 1-4 NB =         0.3351  1-4 EEL =        11.2167  VDWAALS    =       481.7736
- EELEC  =         4.7829  EHBOND  =         0.0000  RESTRAINT  =         3.1580
- EAMBER (non-restraint)  =       499.0326
-|E(PBS) =        65.3237
- Exray  =     27834.5515  Rwork   =         0.2506  Rfree      =         0.2538
+ Etot   =        81.8527  EKtot   =       433.9042  EPtot      =       502.1819
+ BOND   =         3.2770  ANGLE   =         7.3787  DIHED      =         0.2006
+ 1-4 NB =         0.3313  1-4 EEL =        11.2123  VDWAALS    =       481.7704
+ EELEC  =         4.7865  EHBOND  =         0.0000  RESTRAINT  =         3.1560
+ EAMBER (non-restraint)  =       499.0259
+|E(PBS) =        65.3355
+ Exray  =     27830.3567  Rwork   =         0.2479  Rfree      =         0.2518
  ------------------------------------------------------------------------------
 
 
@@ -261,28 +260,28 @@ Found   2269 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.02 (76.19% of List )
-|                Other                      0.01 (23.81% of List )
-|             List time                  0.02 (31.82% of Nonbo)
-|                   Short_ene time             0.03 (100.0% of Direc)
-|                Direct Ewald time          0.03 (75.56% of Ewald)
-|                Adjust Ewald time          0.00 ( 2.22% of Ewald)
-|                   Fill Bspline coeffs        0.00 (10.00% of Recip)
-|                   Fill charge grid           0.00 (10.00% of Recip)
-|                   Scalar sum                 0.00 (30.00% of Recip)
-|                   Grad sum                   0.00 (10.00% of Recip)
-|                   FFT time                   0.00 (40.00% of Recip)
-|                Recip Ewald time           0.01 (22.22% of Ewald)
-|             Ewald time                 0.05 (68.18% of Nonbo)
-|          Nonbond force              0.07 ( 2.63% of Force)
-|             Fcalc loop                 2.05 (84.15% of Xray )
-|             Deriv loop                 0.21 ( 8.52% of Xray )
-|             Other                      0.18 ( 7.33% of Xray )
-|          Xray restaints             2.44 (97.17% of Force)
-|       Force time                 2.51 (99.88% of Runmd)
-|    Runmd Time                 2.52 (97.41% of Total)
-|    Other                      0.07 ( 2.56% of Total)
-| Total time                 2.58 (100.0% of ALL  )
+|                Build the list             0.02 (62.75% of List )
+|                Other                      0.01 (37.25% of List )
+|             List time                  0.03 (41.69% of Nonbo)
+|                   Short_ene time             0.03 (99.68% of Direc)
+|                Direct Ewald time          0.03 (72.20% of Ewald)
+|                Adjust Ewald time          0.00 ( 1.87% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 5.56% of Recip)
+|                   Fill charge grid           0.00 (11.11% of Recip)
+|                   Scalar sum                 0.00 (21.30% of Recip)
+|                   Grad sum                   0.00 (11.11% of Recip)
+|                   FFT time                   0.01 (50.93% of Recip)
+|                Recip Ewald time           0.01 (25.23% of Ewald)
+|             Ewald time                 0.04 (58.31% of Nonbo)
+|          Nonbond force              0.07 (11.50% of Force)
+|             Fcalc loop                 0.09 (16.53% of Xray )
+|             Deriv loop                 0.15 (25.84% of Xray )
+|             Other                      0.32 (57.63% of Xray )
+|          Xray restaints             0.56 (88.20% of Force)
+|       Force time                 0.64 (99.81% of Runmd)
+|    Runmd Time                 0.64 (90.23% of Total)
+|    Other                      0.07 ( 9.68% of Total)
+| Total time                 0.71 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -292,11 +291,11 @@ Found   2269 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       2.52 Per Step(ms) =     838.67
-|         ns/day =       0.10   seconds/ns =  838666.67
+|     Elapsed(s) =       0.64 Per Step(ms) =     213.10
+|         ns/day =       0.41   seconds/ns =  213100.00
 | -----------------------------------------------------
 
-|           Job began  at 15:57:17.681  on 03/04/2021
-|           Setup done at 15:57:17.749  on 03/04/2021
-|           Run   done at 15:57:20.264  on 03/04/2021
+|           Job began  at 16:38:39.856  on 08/20/2021
+|           Setup done at 16:38:39.925  on 08/20/2021
+|           Run   done at 16:38:40.564  on 08/20/2021
 |     wallclock() was called     228 times

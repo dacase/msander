@@ -284,7 +284,7 @@ contains
     if (err /= 0) call rism_report_error &
          ("MDIIS_BLAS2_UPDATE: could not reduce OVERLAP")
 #else
-    call DGEMV ('T', this%np, nvecWRK, 1d0, this%ri, this%np, &
+    call DGEMV ('T', this%np, nvecWRK, 1d0, this%ri(1,1), this%np, &
          this%ri(1, this%vecMap(1)), 1,0d0, this%overlap(this%vecMap(1), 1), this%nvec)
 #endif /* defined(MPI) */
 
@@ -333,7 +333,7 @@ contains
     aij(1:nvecWRK, 0) = -1d0 
     aij(0, 1:nvecWRK) = -1d0
     do is2 = 1, nvecWRK
-       call DCOPY(nvecWRK, this%overlap(1:nvecWRK, is2), 1,aij(1:nvecWRK, is2), 1)
+       call DCOPY(nvecWRK, this%overlap(1, is2), 1,aij(1, is2), 1)
     end do
 
     call DGESV(nvecWRK + 1, 1,aij, this%nvec + 1, indx, bi, this%nvec + 1, err)
@@ -363,7 +363,7 @@ contains
        !and the scalar product is also skipped.
        call DSCAL(this%np, bi(this%vecMap(1), 1), this%xi(1, this%vecMap(1)), 1)
     else
-       call DGEMV ('N', this%np, this%vecMap(1) - 1, 1d0, this%xi, this%np, &
+       call DGEMV ('N', this%np, this%vecMap(1) - 1, 1d0, this%xi(1,1), this%np, &
             bi(1, 1), 1,bi(this%vecMap(1), 1), this%xi(1, this%vecMap(1)), 1)
     end if
     if (nvecWRK - this%vecMap(1) > 0)&
@@ -378,7 +378,7 @@ contains
        !and the scalar product is also skipped.
        call DSCAL(this%np, bi(this%vecMap(1), 1), this%ri(1, this%vecMap(1)), 1)
     else
-       call DGEMV ('N', this%np, this%vecMap(1) - 1, 1d0, this%ri, this%np, &
+       call DGEMV ('N', this%np, this%vecMap(1) - 1, 1d0, this%ri(1,1), this%np, &
             bi(1, 1), 1,bi(this%vecMap(1), 1), this%ri(1, this%vecMap(1)), 1)
     end if
     if (nvecWRK - this%vecMap(1) > 0)&
@@ -450,8 +450,8 @@ contains
        !................... restore vector to restart from ...................
        if (isirst /= 1)  then
           call timer_start(TIME_MDIIS_DATA)
-          call DCOPY(this%np, this%ri(1:this%np, isirst), 1, this%ri(1:this%np, 1), 1)
-          call DCOPY(this%np, this%xi(1:this%np, isirst), 1, this%xi(1:this%np, 1), 1)
+          call DCOPY(this%np, this%ri(1, isirst), 1, this%ri(1,1), 1)
+          call DCOPY(this%np, this%xi(1, isirst), 1, this%xi(1,1), 1)
           call timer_stop(TIME_MDIIS_DATA)
           this%overlap(1, 1) = this%overlap(isirst, isirst)
        end if

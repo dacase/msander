@@ -2,18 +2,15 @@
 
 include ../config.h
 
-parmed::
-	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
-
 install: $(INSTALLTYPE)
 
 serial:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
-	@cd msander && $(MAKE) libsander
-	@cd msander && $(MAKE) libsanderles
-	@cd pysander && $(MAKE) pysander
-	@cd parmed && $(PYINSTALL) > parmed/pyinstall.log
+	@cd msander && $(MAKE) $(LIBSANDER)
+	@cd msander && $(MAKE) $(LIBSANDERLES)
+	@cd pysander && $(MAKE) $(PYSANDER)
+	@cd parmed && $(MAKE) $(PARMED)
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
@@ -22,14 +19,14 @@ serial:
 	@cd ambpdb && $(MAKE) ambpdb
 	@cd sqm && $(MAKE) sqm
 	@cd moft && $(MAKE) $(MOFT)
-	@cd sff && $(MAKE) libsff
-	@cd nabc && $(MAKE) libnabc
+#	@cd sff && $(MAKE) libsff
+#	@cd nabc && $(MAKE) libnabc
 #	@cp pdb4amber/pdb4amber $(BINDIR)
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
 	@cd msander && $(MAKE) msander
-	@cd msander && $(MAKE) msander.LES
+#	@cd msander && $(MAKE) msander.LES
 
 clean:
 	-(cd blas && $(MAKE) clean )

@@ -2,32 +2,32 @@
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
-module ml_mod
+module ml_module
 
   use file_io_dat
   use xray_globals_module
-  use bulk_solvent_mod, only: f_mask, k_mask
+  use bulk_solvent_module, only: f_mask, k_mask
   implicit none
 
   ! 7 x 7 transformation matrices to anisotropically scale structure factors 
   !       from calculated to experimental
-  double precision, dimension(7, 7) :: Ucryst, MUcryst_inv
+  real(real_kind), dimension(7, 7) :: Ucryst, MUcryst_inv
 
   ! Arrays used in the computation of structure factors and ML parameters
-  double precision, dimension(:), allocatable :: alpha_array, beta_array, &
+  real(real_kind), dimension(:), allocatable :: alpha_array, beta_array, &
                                                  delta_array
 
   ! Arrays used in the estimation of maximum likelihood parameters,
   ! size is equal to the number of resolution bins/zones
-  double precision, dimension(:), allocatable :: A_in_zones, B_in_zones, &
+  real(real_kind), dimension(:), allocatable :: A_in_zones, B_in_zones, &
                        C_in_zones, q_in_zones, &
                        alpha_beta_bj, alpha_beta_OmegaI, alpha_beta_wi, &
                        t_optimal, alpha_in_zones, beta_in_zones, &
                        b_vector_base
 
   ! Convenient numerical constants
-  double precision, parameter :: zero = 0.0d0, d_tolerance = 1.d-10
-  double precision, parameter :: PI      = 3.1415926535897932384626433832795d0
+  real(real_kind), parameter :: zero = 0.0d0, d_tolerance = 1.d-10
+  real(real_kind), parameter :: PI      = 3.1415926535897932384626433832795d0
 
   ! h_sq, k_sq, l_sq:         Squares of H, K, and L indices (still integers)
   ! hk, kl, hl:               Products of H, K, and L indices
@@ -44,7 +44,7 @@ module ml_mod
   ! n_bins:                 Number of reflections per resolution bin
   integer :: NRF,NRF_work, NRF_free, hi_res_shell_n, hi_res_shell_n_counter, &
              call_est, N_steps, starting_N_step, total_N_steps, n_bins
-  double precision :: NRF_work_sq, r_work_factor_denominator, &
+  real(real_kind) :: NRF_work_sq, r_work_factor_denominator, &
                       r_free_factor_denominator, low_res
 
   ! bins_work_population:     Number of work reflections in each resolution zone
@@ -64,12 +64,12 @@ module ml_mod
          bins_free_reflections
   integer, dimension(:), allocatable, save :: scale_k1_indices
 
-  double precision, dimension(:), allocatable :: s_squared, &
+  real(real_kind), dimension(:), allocatable :: s_squared, &
          s_squared_for_scaling
-  double precision, dimension(:,:), allocatable ::  s, scat_factors_precalc
+  real(real_kind), dimension(:,:), allocatable ::  s, scat_factors_precalc
 
   ! Arrays for scaling coefficients optimization
-  double precision, dimension(:), allocatable :: k_mask_bin_orig, &
+  real(real_kind), dimension(:), allocatable :: k_mask_bin_orig, &
           k_iso, k_iso_test, k_aniso, k_aniso_test, &
           k_iso_exp, k_iso_exp_test, &
           s_squared_min_bin, s_squared_max_bin, s_squared_mean_bin
@@ -90,12 +90,12 @@ contains
   !----------------------------------------------------------------------------
   function i1_over_i0 (x) result(result)
 
-    double precision, dimension(7) :: &
+    real(real_kind), dimension(7) :: &
           p  = (/  1.00000000,  3.51562290,  3.08994240, &
                    1.20672920,  0.26597320,  0.03607680,  0.00458130 /), &
           pp = (/  0.50000000,  0.87890594,  0.51498869, &
                    0.15084934,  0.02658733,  0.00301532,  0.00032411 /)
-    double precision, dimension(9) :: &
+    real(real_kind), dimension(9) :: &
           q  = (/  0.39894228,  0.01328592,  0.00225319, &
                   -0.00157565,  0.00916281, -0.02057706, &
                    0.02635537, -0.01647633,  0.00392377 /), &
@@ -103,7 +103,7 @@ contains
                    0.00163801, -0.01031555,  0.02282967, &
                   -0.02895312,  0.01787654, -0.00420059 /)
 
-    double precision :: x, y, result, be1, be0, pow_y_i, abs_x
+    real(real_kind) :: x, y, result, be1, be0, pow_y_i, abs_x
     integer :: i
     be1 = 0
     be0 = 0
@@ -142,9 +142,9 @@ contains
   !----------------------------------------------------------------------------
   function ln_of_i0 (x) result(bessel_lni0)
 
-    double precision, intent(in) :: x(NRF_work) 
-    double precision :: bessel_lni0(NRF_work)
-    double precision :: y, abs_x
+    real(real_kind), intent(in) :: x(NRF_work) 
+    real(real_kind) :: bessel_lni0(NRF_work)
+    real(real_kind) :: y, abs_x
     integer :: i
 
     do i=1,NRF_work
@@ -179,52 +179,35 @@ contains
   !----------------------------------------------------------------------------
   subroutine init_ml(target, nstlim, d_star_sq, resolution)
 
+    use constants, only : omp_num_threads
+    use bulk_solvent_module, only : f_solvent
     implicit none
 
     character(len=4), intent(in) :: target
     integer, intent(in) :: nstlim
-    double precision, dimension(num_hkl), intent(inout) :: d_star_sq
-    double precision, intent(out) :: resolution
+    real(real_kind), dimension(num_hkl), intent(inout) :: d_star_sq
+    real(real_kind), intent(out) :: resolution
 
-    double precision :: a, b, c, alpha, beta, gamma, V, &
+    real(real_kind) :: a, b, c, alpha, beta, gamma, V, &
                         d, d_star, reflections_per_bin, fo_fo
-    double precision :: cosa, sina, cosb, sinb, cosg, sing
-    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs
-    double precision :: norm2_vas, norm2_vbs, norm2_vcs
-    double precision, dimension(:), allocatable :: d_star_sq_tmp, &
-                                                   d_star_sq_sorted, bin_limits
+    real(real_kind) :: cosa, sina, cosb, sinb, cosg, sing
+    real(real_kind), dimension(3) :: va, vb, vc, vas, vbs, vcs
+    real(real_kind) :: norm2_vas, norm2_vbs, norm2_vcs
+    real(real_kind), dimension(:), allocatable :: d_star_sq_tmp, &
+                    d_star_sq_sorted, bin_limits
+    complex(real_kind), dimension(:), allocatable :: f_solvent_tmp
     integer, dimension(:), allocatable :: counter_w, counter_f, &
                                           reflection_bin_tmp
     integer (kind = 4) :: file_status
     integer :: d_i, i, j, k, na, nb, nc, mdout = 6
     integer :: r_free_counter, r_free_flag, counter_sort, index_sort
     integer, dimension(:,:), allocatable :: hkl
-    double precision, dimension(:), allocatable :: f_obs_tmp, sigma_tmp
+    real(real_kind), dimension(:), allocatable :: f_obs_tmp, sigma_tmp
     integer :: index_start, index_end
+    real(real_kind) :: time0, time1
 
     N_steps = nstlim
     NRF = num_hkl
-
-    allocate(f_calc_tmp(NRF))
-    allocate(k_iso(NRF))
-    allocate(k_iso_test(NRF))
-    allocate(k_iso_exp(NRF))
-    allocate(k_iso_exp_test(NRF))
-    allocate(k_aniso(NRF))
-    allocate(k_aniso_test(NRF))
-
-    allocate(s(3, NRF))
-    allocate(s_squared(NRF))
-    allocate(s_squared_for_scaling(NRF))
-    allocate(scat_factors_precalc(5, NRF))
-
-    allocate(d_star_sq_tmp(NRF))
-    allocate(reflection_bin(NRF))
-    allocate(reflection_bin_tmp(NRF))
-
-    allocate(hkl(3,NRF))
-    allocate(f_obs_tmp(NRF))
-    allocate(sigma_tmp(NRF))
 
     r_work_factor_denominator = zero
     r_free_factor_denominator = zero
@@ -267,16 +250,26 @@ contains
 
     resolution = 50.d0
     low_res = 0.d0
+
+!$omp parallel do  num_threads(omp_num_threads)
     do i = 1, NRF
-      d_star =  (square(hkl_index(1,i) * norm2_vas) + &
+      d_star_sq(i)  =  (square(hkl_index(1,i) * norm2_vas) + &
                  square(hkl_index(2,i) * norm2_vbs) + &
                  square(hkl_index(3,i) * norm2_vcs) + &
                  2 * hkl_index(2,i) * hkl_index(3,i) * dot_product(vbs, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(3,i) * dot_product(vas, vcs) + &
                  2 * hkl_index(1,i) * hkl_index(2,i) * dot_product(vbs, vas))
-      d = sqrt(1.0 / d_star)
-      low_res = max( d, low_res )
-      resolution = min( d, resolution )
+    enddo
+!$omp end parallel do
+
+    low_res = sqrt( 1.d0/minval( d_star_sq ))
+    resolution = sqrt( 1.d0/maxval( d_star_sq ))
+    NRF_work = sum( test_flag )
+    r_work_factor_denominator = sum( abs_Fobs, MASK=test_flag==1 )
+    r_free_factor_denominator = sum( abs_Fobs, MASK=test_flag/=1 )
+
+#if 0
+    do i = 1, NRF
       if (test_flag(i) == 1) then
         NRF_work = NRF_work + 1
         r_work_factor_denominator = r_work_factor_denominator + abs_Fobs(i)
@@ -284,16 +277,39 @@ contains
         r_free_counter = r_free_counter + 1
         r_free_factor_denominator = r_free_factor_denominator + abs_Fobs(i)
       endif
-      d_star_sq(i) = d_star
-      d_star_sq_tmp(i) = d_star
     enddo
+#endif
 
     NRF_free = NRF - NRF_work
-    REQUIRE( NRF_free == r_free_counter )
     if (mytaskid == 0 ) then
         write(6,'(a,3i8)') '| number of reflections: ', NRF_work, NRF_free, NRF
         write(6,'(a,f7.3)') '| highest resolution: ', resolution
     endif
+
+    if (target(1:3) == 'vls' ) return
+
+    allocate(d_star_sq_tmp(NRF))
+    d_star_sq_tmp(:) = d_star_sq(:)
+
+    allocate(f_calc_tmp(NRF))
+    allocate(k_iso(NRF))
+    allocate(k_iso_test(NRF))
+    allocate(k_iso_exp(NRF))
+    allocate(k_iso_exp_test(NRF))
+    allocate(k_aniso(NRF))
+    allocate(k_aniso_test(NRF))
+
+    allocate(s(3, NRF))
+    allocate(s_squared(NRF))
+    allocate(s_squared_for_scaling(NRF))
+    allocate(scat_factors_precalc(5, NRF))
+
+    allocate(reflection_bin(NRF))
+    allocate(reflection_bin_tmp(NRF))
+    allocate(hkl(3,NRF))
+    if( user_fmask ) allocate(f_solvent_tmp(NRF))
+    allocate(f_obs_tmp(NRF))
+    allocate(sigma_tmp(NRF))
 
     if (target(1:2) == 'ml') then
 
@@ -425,6 +441,7 @@ contains
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
            d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
+           if( user_fmask ) f_solvent_tmp(counter_sort) = f_solvent(index_sort)
          end do
        end do
        if (minval(scale_k1_indices) == 0) then
@@ -441,6 +458,7 @@ contains
            reflection_bin_tmp(counter_sort) = reflection_bin(index_sort)
            hkl(:,counter_sort) = hkl_index(:,index_sort)
            d_star_sq(counter_sort) = d_star_sq_tmp(index_sort)
+           if( user_fmask ) f_solvent_tmp(counter_sort) = f_solvent(index_sort)
          end do
        end do
        reflection_bin(:) = reflection_bin_tmp(:)
@@ -455,6 +473,10 @@ contains
        hkl_index(:,:) = hkl(:,:)
        test_flag(1:NRF_work) = 1
        test_flag(NRF_work+1:NRF) = 0
+       if( user_fmask ) then
+          f_solvent(:) = f_solvent_tmp(:)
+          deallocate( f_solvent_tmp )
+       endif
 
        REQUIRE( counter_sort == NRF )
 
@@ -527,7 +549,8 @@ contains
 
     NRF_work_sq = NRF_work * NRF_work
 
-    if( bulk_solvent_model == 'simple' ) then
+#if 0
+       ! write(6,'(a)') '| using simple model for Ucryst'
        Ucryst(1, 1) = 1.0 / NRF_work
        Ucryst(1, 2) = sum(1.0 * h_sq(1:NRF_work) / NRF_work_sq)
        Ucryst(1, 3) = sum(1.0 * k_sq(1:NRF_work) / NRF_work_sq)
@@ -535,7 +558,8 @@ contains
        Ucryst(1, 5) = sum(1.0 *   hk(1:NRF_work) / NRF_work_sq)
        Ucryst(1, 6) = sum(1.0 *   hl(1:NRF_work) / NRF_work_sq)
        Ucryst(1, 7) = sum(1.0 *   kl(1:NRF_work) / NRF_work_sq)
-    else
+#else
+       ! write(6,'(a)') '| using optimized model for Ucryst'
        Ucryst(1, 1) = 1.0
        Ucryst(1, 2) = 0.0
        Ucryst(1, 3) = 0.0
@@ -543,7 +567,7 @@ contains
        Ucryst(1, 5) = 0.0
        Ucryst(1, 6) = 0.0
        Ucryst(1, 7) = 0.0
-    endif
+#endif
 
     Ucryst(2, 1) = Ucryst(1, 2)
     Ucryst(3, 1) = Ucryst(1, 3)
@@ -606,8 +630,8 @@ contains
   ! square:  compute the square of a number
   !----------------------------------------------------------------------------
   pure function square(x)
-    double precision, intent(in) :: x
-    double precision :: square
+    real(real_kind), intent(in) :: x
+    real(real_kind) :: square
     square = x * x
   end function
 
@@ -624,9 +648,9 @@ contains
 
     implicit none
     integer n
-    double precision a(n,n), c(n,n)
-    double precision L(n,n), U(n,n), b(n), d(n), x(n)
-    double precision coeff
+    real(real_kind) a(n,n), c(n,n)
+    real(real_kind) L(n,n), U(n,n), b(n), d(n), x(n)
+    real(real_kind) coeff
     integer i, j, k
 
     ! step 0: initialization for matrices L and U and b
@@ -695,8 +719,8 @@ contains
   ! bubble_sort:  go bubble sort!  Sort a list of real numbers a.
   !----------------------------------------------------------------------------
   subroutine bubble_sort(a)
-    double precision, dimension(:) :: a
-    double precision :: temp
+    real(real_kind), dimension(:) :: a
+    real(real_kind) :: temp
     integer :: i, j
     logical :: swapped
 
@@ -726,7 +750,7 @@ contains
     
     integer, intent(in) :: zone
     integer :: i, index_start, index_end
-    double precision :: coef_norm, fm_fm, fo_fm, D, p, q
+    real(real_kind) :: coef_norm, fm_fm, fo_fm, D, p, q
 
     coef_norm = 2 * bins_free_population(zone)
     index_start = bins_free_start_indices(zone)
@@ -769,8 +793,8 @@ contains
   !----------------------------------------------------------------------------
   function blamm(t, zone) result(result)
 
-    double precision :: t
-    double precision :: result
+    real(real_kind) :: t
+    real(real_kind) :: result
     integer :: zone, i, index_start, index_end
 
     index_start = bins_free_start_indices(zone)
@@ -787,8 +811,8 @@ contains
   !----------------------------------------------------------------------------
   function t_optimal_function(t, zone) result(result)
 
-    double precision :: t
-    double precision :: result
+    real(real_kind) :: t
+    real(real_kind) :: result
     integer :: zone
 
     result = sqrt(1. + 4. * A_in_zones(zone) * B_in_zones(zone) * t * t) - 1. - &
@@ -801,7 +825,7 @@ contains
   subroutine solvm(zone)
 
     integer :: zone, n1, n2, nst1, nst2
-    double precision :: eps, fgtopt, tl, fgtl, tr, fgtr
+    real(real_kind) :: eps, fgtopt, tl, fgtl, tr, fgtr
 
     nst1 = 10 * 5 + 1
     nst2 = 20 * 5 + 1
@@ -866,7 +890,7 @@ contains
   subroutine smooth(x)
 
     integer :: i
-    double precision :: t_opt_1, t_opt_2, t_opt_3, x(n_bins)
+    real(real_kind) :: t_opt_1, t_opt_2, t_opt_3, x(n_bins)
 
     if (n_bins > 1) then
       t_opt_1 = x(1)
@@ -887,7 +911,7 @@ contains
   subroutine alpha_beta_in_zones()
 
     integer :: i
-    double precision :: Ai, Bi, tt, ww, hbeta
+    real(real_kind) :: Ai, Bi, tt, ww, hbeta
 
     do i = 1, n_bins
       Ai = A_in_zones(i)
@@ -959,8 +983,8 @@ contains
 
   function r_factor_w(f_m) result(r)
     implicit none
-    double precision :: r, sc
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r, sc
+    complex(real_kind), dimension(NRF) :: f_m
     sc = scale(f_m)
     r = r_factor_w_scale(f_m, sc)
     return
@@ -968,8 +992,8 @@ contains
 
   function r_factor_w_scale(f_m, sc) result(r)
     implicit none
-    double precision :: r, num, sc
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r, num, sc
+    complex(real_kind), dimension(NRF) :: f_m
     integer :: i
     num = sum(abs(abs_Fobs(1:NRF_work) - sc * abs(f_m(1:NRF_work))))
     if (r_work_factor_denominator == 0) then
@@ -985,16 +1009,16 @@ contains
 
   function scale(f_m) result(r)
     implicit none
-    double precision :: r
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r
+    complex(real_kind), dimension(NRF) :: f_m
     r = scale_selection(f_m, 1, NRF)
     return
   end function scale
 
   function scale_selection(f_m, index_start, index_end) result(r)
     implicit none
-    double precision :: r, num, denum
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r, num, denum
+    complex(real_kind), dimension(NRF) :: f_m
     integer :: i, index_start, index_end
 
     num = sum(abs_Fobs(index_start:index_end) * abs(f_m(index_start:index_end)))
@@ -1015,7 +1039,7 @@ contains
   subroutine optimize_k_scale_k_mask()
     implicit none
 
-    double precision :: current_r_work, r
+    real(real_kind) :: current_r_work, r
     integer :: cycle
 
     r = 1.0d0
@@ -1051,7 +1075,7 @@ contains
 
   subroutine anisotropic_scaling(r_start)
     implicit none
-    double precision :: r_start, r, b(7), Uaniso(7), u_star(6)
+    real(real_kind) :: r_start, r, b(7), Uaniso(7), u_star(6)
 
     f_calc_tmp = k_iso * k_iso_exp * (Fcalc + k_mask * f_mask)
      ! write(6, '(a,f8.6)') 'k_aniso, starting r_factor = ', r_start
@@ -1075,7 +1099,7 @@ contains
             Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl) !&
     !     + Uaniso(1))
     r = r_factor_w(k_aniso_test * f_calc_tmp)
-#if 1
+#if 0
     if( mytaskid == 0 ) then
          write(6,'(a,f12.5)') '| mean k_aniso: ', sum(k_aniso(1:NRF_work))/NRF_work
          write(6,'(a,2f12.5)') '| anisotropic scaing: ', r, r_start
@@ -1091,9 +1115,9 @@ contains
 
   subroutine fit_k_iso_exp(r_start, x, y, z)
     implicit none
-    double precision, dimension(2) :: a
-    double precision :: r_start, p, q, r, s, d, v, den, u
-    double precision, dimension(NRF) :: x, y, z
+    real(real_kind), dimension(2) :: a
+    real(real_kind) :: r_start, p, q, r, s, d, v, den, u
+    real(real_kind), dimension(NRF) :: x, y, z
     integer :: i
 
     a = 0
@@ -1142,7 +1166,7 @@ contains
 
   subroutine moving_average(x, result2)
     implicit none
-    double precision :: x(n_bins), x_(n_bins + 2), result1(n_bins + 2), result2(n_bins)
+    real(real_kind) :: x(n_bins), x_(n_bins + 2), result1(n_bins + 2), result2(n_bins)
     logical :: selection(n_bins)
     integer :: cycle, i
     x_(2:n_bins + 1) = x
@@ -1172,8 +1196,8 @@ contains
 
   subroutine smooth_k_mask(x)
     implicit none
-    double precision, dimension(n_bins) :: x, result_, result1
-    double precision :: r, d
+    real(real_kind), dimension(n_bins) :: x, result_, result1
+    real(real_kind) :: r, d
     integer :: i
     call moving_average(x, result1)
     result_ = 0
@@ -1191,11 +1215,11 @@ contains
 
   subroutine k_mask_grid_search(r_start)
     implicit none
-    double precision :: r_start, r, k_mask_best, k_overall_best, r_best, k_mask_per_bin_test, k_overall_tmp, &
+    real(real_kind) :: r_start, r, k_mask_best, k_overall_best, r_best, k_mask_per_bin_test, k_overall_tmp, &
             num, denum, k_mask_test(NRF), k_overall_
-    double precision, dimension(14) :: k_mask_trial_range
-    double precision, dimension(n_bins) :: k_mask_bin
-    double precision, dimension(NRF_work) :: tmp_scale
+    real(real_kind), dimension(14) :: k_mask_trial_range
+    real(real_kind), dimension(n_bins) :: k_mask_bin
+    real(real_kind), dimension(NRF_work) :: tmp_scale
     integer :: i, j, sampling, index_start, index_end
 
     ! write(6,*) 'n_bins: ', n_bins
@@ -1256,8 +1280,8 @@ contains
   end subroutine k_mask_grid_search
 
   function scale_selection_with_modified_fobs(f_m, modifier, index_start, index_end) result(r)
-      double precision :: r, num, denum, modifier(NRF)
-      complex(8), dimension(NRF) :: f_m
+      real(real_kind) :: r, num, denum, modifier(NRF)
+      complex(real_kind), dimension(NRF) :: f_m
       integer :: i, index_start, index_end
       num = sum(abs_Fobs(index_start: index_end)/modifier(index_start: index_end) * abs(f_m(index_start: index_end)))
       denum = sum(abs(f_m(index_start: index_end)) * abs(f_m(index_start: index_end)))
@@ -1270,8 +1294,8 @@ contains
   end function scale_selection_with_modified_fobs
 
   function r_factor_w_selection_and_modified_fobs(f_m, modifier, index_start, index_end) result(r)
-      double precision :: r, num, denum, sc, modifier(NRF)
-      complex(8), dimension(NRF) :: f_m
+      real(real_kind) :: r, num, denum, sc, modifier(NRF)
+      complex(real_kind), dimension(NRF) :: f_m
       integer :: index_start, index_end
       sc = scale_selection_with_modified_fobs(f_m, modifier, index_start, index_end)
       num = sum(abs(abs_Fobs(index_start:index_end)/modifier(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
@@ -1285,8 +1309,8 @@ contains
   end function r_factor_w_selection_and_modified_fobs
 
   function r_factor_w_selection_and_modified_fobs_and_scale(f_m, modifier, sc, index_start, index_end) result(r)
-      double precision :: r, num, denum, sc, modifier(NRF)
-      complex(8), dimension(NRF) :: f_m
+      real(real_kind) :: r, num, denum, sc, modifier(NRF)
+      complex(real_kind), dimension(NRF) :: f_m
       integer :: index_start, index_end
       num = sum(abs(abs_Fobs(index_start:index_end)/modifier(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
       denum = sum(abs_Fobs(index_start:index_end)/modifier(index_start:index_end))
@@ -1300,7 +1324,7 @@ contains
 
   subroutine bin_k_isotropic_as_scale_k1(r_start, k_iso_in, k_mask_in)
     implicit none
-    double precision :: r_start, r, num, denum, sc, k_iso_in(NRF), k_mask_in(NRF)
+    real(real_kind) :: r_start, r, num, denum, sc, k_iso_in(NRF), k_mask_in(NRF)
     integer :: i, j, index_start, index_end
     k_iso_test = 1
     index_end = 0
@@ -1337,8 +1361,8 @@ contains
 
   function linear_interpolation(x1, x2, y1, y2) result (k)
     implicit none
-    double precision :: x1, x2, y1, y2
-    double precision, dimension(2) :: k
+    real(real_kind) :: x1, x2, y1, y2
+    real(real_kind), dimension(2) :: k
     k(1) = 0
     if(x1 /=x2) then
       k(1) = (y2 - y1) / (x2 - x1)
@@ -1349,11 +1373,11 @@ contains
 
   subroutine populate_k_mask_linear_interpolation(k_mask_bin, k_mask_in)
     implicit none
-    double precision, dimension(n_bins) :: k_mask_bin
-    double precision, dimension(NRF) :: k_mask_tmp, k_mask_in
+    real(real_kind), dimension(n_bins) :: k_mask_bin
+    real(real_kind), dimension(NRF) :: k_mask_tmp, k_mask_in
     integer :: i, index_start, index_end, index_start_, index_end_
-    double precision, dimension(2) :: k
-    double precision :: r0, r1, r2
+    real(real_kind), dimension(2) :: k
+    real(real_kind) :: r0, r1, r2
     !do i = 1, NRF
     !    k_mask(i) = k_mask_bin(reflection_bin(i))
     !end do
@@ -1403,7 +1427,7 @@ contains
   function solve_cubic_equation(a, b, c) result(solution)
     implicit none
     integer i
-    double precision :: a, b, c, residual, solution(3), Disc, theta, S, T, p, q, arg, eps
+    real(real_kind) :: a, b, c, residual, solution(3), Disc, theta, S, T, p, q, arg, eps
     solution = 0
     eps = d_tolerance * 10d0
     p = (3 * b - square(a)) / 3d0
@@ -1442,7 +1466,7 @@ contains
 
   subroutine bulk_solvent_scaling(r_start)
     implicit none
-    double precision :: r_start, min_f_mask, a2, b2, c2, y2, a3, b3, c3, &
+    real(real_kind) :: r_start, min_f_mask, a2, b2, c2, y2, a3, b3, c3, &
          d3, y3, p, q, r, t, I, v, w, u, den, &
          k_m_test(3), k_best, r_best, shift, k_mask_per_bin_test, &
          k_overall_, inc, k_best_test, k_mask_bin(n_bins), &
@@ -1563,9 +1587,9 @@ contains
 
   function estimate_scale_k1(f_m) result (scale_k1)
     implicit none
-    double precision :: scale_k1, cutoff, high_res, num, denum
+    real(real_kind) :: scale_k1, cutoff, high_res, num, denum
     integer :: i, min_reflections
-    complex(8), dimension(NRF) :: f_m
+    complex(real_kind), dimension(NRF) :: f_m
     ! overall scaling on min(best 1A shell, 500 reflection)
     min_reflections = 500
     scale_k1 = 1
@@ -1586,8 +1610,8 @@ contains
 
   function r_factor_w_selection(f_m, index_start, index_end) result(r)
     implicit none
-    double precision :: r, num, denum, sc
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r, num, denum, sc
+    complex(real_kind), dimension(NRF) :: f_m
     integer :: index_start, index_end
     sc = scale_selection(f_m, index_start, index_end)
     num = sum(abs(abs_Fobs(index_start:index_end) - sc * abs(f_m(index_start:index_end))))
@@ -1602,8 +1626,8 @@ contains
 
   function r_factor_w_selection_and_scale(f_m, index_start, index_end, sc) result(r)
     implicit none
-    double precision :: r, num, denum, sc
-    complex(8), dimension(NRF) :: f_m
+    real(real_kind) :: r, num, denum, sc
+    complex(real_kind), dimension(NRF) :: f_m
     integer :: index_start, index_end
     num = sum(abs(abs_Fobs(index_start:index_end) - &
           sc * abs(f_m(index_start:index_end))))
@@ -1618,9 +1642,9 @@ contains
 
   function special_r_factor(f_m) result(r_best)
     implicit none
-    double precision :: r, r_best, scale, scale_best, scale_, &
+    real(real_kind) :: r, r_best, scale, scale_best, scale_, &
         offset_factor, step_factor, step, num, denum
-    complex(8), dimension(NRF) :: f_m
+    complex(real_kind), dimension(NRF) :: f_m
     offset_factor = 3.0
     step_factor = 20.0
     num = sum(abs_Fobs(1:NRF_work) * abs(f_m(1:NRF_work)))
@@ -1645,4 +1669,4 @@ contains
     return
   end function special_r_factor
 
-end module ml_mod
+end module ml_module

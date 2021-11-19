@@ -4,10 +4,12 @@
 #  First input is the pdb-identifier: code assumes that $1-sf.cif
 #      and $1.pdb are  available in the current directory
 #  Second (optional) input would be names of cif files needed by phenix.refine
+#  Third  (optional) input is the space group, only helpful if it is "P1"
 
 id=$1
 echo "XrayPrep log file for id $id" > $id-prep.log
 ciffiles=$2
+spacegroup=$3
 
 if true; then
 #============================================================================
@@ -48,7 +50,7 @@ fi
 
 /bin/rm -f foo.parm7 parmed
 
-if false; then
+if true; then
 #============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
@@ -56,7 +58,7 @@ phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
 
 echo "Running zero-cycle phenix.refine, filter outliers, possibly convert I to F"
 phenix.refine  \
-   ${id}_uc.pdb $id-sf.mtz $ciffiles \
+   ${id}.pdb $id-sf.mtz $ciffiles \
    refinement.input.xray_data.r_free_flags.generate=True \
    refinement.main.number_of_macro_cycles=0 \
    xray_data.outliers_rejection=True \
@@ -66,18 +68,14 @@ phenix.refine  \
      || { echo "  phenix.refine:  Program error"; exit 1; }
 
 #============================================================================
-echo "Expanding reflections to P1 symmetry"
+if [ "x$spacegroup" != "xP1" ]; then
+
+echo "Making the P1-sf.dat file"
 
 phenix.reflection_file_converter cdl_001.mtz --expand_to_p1 \
     --label="F-obs-filtered,SIGF-obs-filtered" --generate_r_free_flags  \
     --r_free_flags_format=ccp4  --mtz=tmp-P1.mtz >> $id-prep.log
 
-phenix.reflection_file_converter cdl_001.mtz \
-    --label="F-obs-filtered,SIGF-obs-filtered" --generate_r_free_flags  \
-    --r_free_flags_format=ccp4  --mtz=tmp.mtz >> $id-prep.log
-
-#============================================================================
-echo "Making the P1-sf.dat file"
 #  convert to formatted file:
 phenix.mtz.dump -c -f s tmp-P1.mtz  | tr ',' '\t' > $id-P1.fmtz \
      || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
@@ -91,8 +89,20 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-P1-sf.dat
 cat tmp.dat >> $id-P1-sf.dat
 
+cad hklin1 tmp-P1.mtz hklout $id-P1.mtz <<EOF >> $id-prep.log
+LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
+LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
+EOF
+
+fi
+
 #============================================================================
 echo "Making the non-P1-sf.dat file"
+
+phenix.reflection_file_converter cdl_001.mtz \
+    --label="F-obs-filtered,SIGF-obs-filtered" --generate_r_free_flags  \
+    --r_free_flags_format=ccp4  --mtz=tmp.mtz >> $id-prep.log
+
 #  convert to formatted file:
 phenix.mtz.dump -c -f s tmp.mtz  | tr ',' '\t' > $id.fmtz \
      || { echo "  phenix.mtz.dump:  Program error"; exit 1; }
@@ -106,21 +116,16 @@ nrefl=`wc -l tmp.dat | awk '{print $1}'`
 echo "$nrefl 0" > $id-sf.dat
 cat tmp.dat >> $id-sf.dat
 
-fi
-
-#============================================================================
-if false; then
-echo "Running zero-cycle phenix.refine on P1-expanded structure:"
-
 cad hklin1 tmp.mtz hklout $id.mtz <<EOF >> $id-prep.log
 LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
 LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
 EOF
 
-cad hklin1 tmp-P1.mtz hklout $id-P1.mtz <<EOF >> $id-prep.log
-LABIN E1=F-obs-filtered E2=SIGF-obs-filtered E3=R-free-flags
-LABOUT E1=FOBS E2=SIGFOBS E3=R-free-flags
-EOF
+fi
+
+#============================================================================
+if false; then
+echo "Running zero-cycle phenix.refine on P1-expanded structure:"
 
 $MSANDERHOME/bin/ambpdb -p ${id}_uc.parm7 -ext -bres < ${id}_uc.rst7 > tmp.pdb
 
@@ -138,8 +143,10 @@ echo "Done. Created 6 files:"
 echo "   ${id}_uc.parm7        Use this as the Amber prmtop file"
 echo "   ${id}_uc.rst7         Starting coordinates in Amber restrt format"
 echo "   ${id}_uc.pdb          Use as pdb_infile"
-echo "   ${id}-P1-sf.dat       Use as reflections_infile"
-echo "   ${id}-sf.dat          Use as alternate reflections_infile"
+echo "   ${id}-sf.dat          Use as reflections_infile"
+if [ "x$spacegroup" != "xP1" ]; then
+   echo "   ${id}-P1-sf.dat       Use as alternate reflections_infile"
+fi
 echo "   ${id}-prep.log        Log file: examine this if problems arise"
 
 #============================================================================

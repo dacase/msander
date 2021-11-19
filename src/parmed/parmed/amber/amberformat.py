@@ -2,21 +2,26 @@
 This is a generalization of the readparm.AmberParm class to handle similar
 Amber-style files with %FLAG/%FORMAT tags
 """
-import datetime
-import re
+from __future__ import division, print_function
+
+from parmed.constants import (NATOM, NTYPES, NBONH, NTHETH, NPHIH,
+            NEXT, NRES, NBONA, NTHETA, NPHIA, NUMBND, NUMANG, NPTRA, NATYP,
+            NPHB, IFBOX, IFCAP, AMBER_ELECTROSTATIC, CHARMM_ELECTROSTATIC)
+from parmed.exceptions import AmberError
+from parmed.formats.registry import FileFormatType
+from parmed.utils.io import genopen
+from parmed.utils.six import string_types, add_metaclass
+from parmed.utils.six.moves import range
 from contextlib import closing
 from copy import copy
+import datetime
+from parmed.utils.fortranformat import FortranRecordReader, FortranRecordWriter
 from math import ceil
-
-from ..constants import PrmtopPointers, AMBER_ELECTROSTATIC, CHARMM_ELECTROSTATIC
-from ..exceptions import AmberError
-from ..formats.registry import FileFormatType
-from ..utils.io import genopen
-from ..utils.fortranformat import FortranRecordReader, FortranRecordWriter
+import re
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class FortranFormat:
+class FortranFormat(object):
     """
     Processes Fortran format strings according to the Fortran specification for
     such formats. This object handles reading and writing data with any valid
@@ -163,7 +168,7 @@ class FortranFormat:
         provided for this format, but the call signatures and behavior are the
         same for each of those functions.
         """
-        if hasattr(items, '__iter__') and not isinstance(items, str):
+        if hasattr(items, '__iter__') and not isinstance(items, string_types):
             mod = self.nitems - 1
             for i, item in enumerate(items):
                 dest.write(self.fmt % item)
@@ -179,7 +184,7 @@ class FortranFormat:
 
     def _write_string(self, items, dest):
         """ Writes a list/tuple of strings """
-        if hasattr(items, '__iter__') and not isinstance(items, str):
+        if hasattr(items, '__iter__') and not isinstance(items, string_types):
             mod = self.nitems - 1
             for i, item in enumerate(items):
                 dest.write((self.fmt % item).ljust(self.itemlen))
@@ -254,7 +259,8 @@ class FortranFormat:
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class AmberFormat(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class AmberFormat(object):
     """
     A class that can parse and print files stored in the Amber topology or MDL
     format. In particular, these files have the general form:
@@ -321,10 +327,11 @@ class AmberFormat(metaclass=FileFormatType):
         is_fmt : bool
             True if it is an Amber-style format, False otherwise
         """
-        if isinstance(filename, str):
+        if isinstance(filename, string_types):
             with closing(genopen(filename, 'r')) as f:
                 lines = [f.readline() for i in range(5)]
-        elif all(hasattr(filename, attr) for attr in ['readline', 'seek', 'tell']):
+        elif (hasattr(filename, 'readline') and hasattr(filename, 'seek')
+              and hasattr(filename, 'tell')):
             cur = filename.tell()
             lines = [filename.readline() for i in range(5)]
             filename.seek(cur)
@@ -347,8 +354,7 @@ class AmberFormat(metaclass=FileFormatType):
         in the prmtop file contains (i.e., either an AmberParm, ChamberParm,
         AmoebaParm, or AmberFormat)
         """
-        from .readparm import LoadParm
-        from ._tinkerparm import BeemanRestart
+        from parmed.amber import LoadParm, BeemanRestart
         try:
             return LoadParm(filename, *args, **kwargs)
         except (IndexError, KeyError):
@@ -432,7 +438,7 @@ class AmberFormat(metaclass=FileFormatType):
 
         # See if we have the optimized parser available
         try:
-            from . import _rdparm
+            from parmed.amber import _rdparm
         except ImportError:
             return self.rdparm_slow(fname)
 
@@ -491,7 +497,7 @@ class AmberFormat(metaclass=FileFormatType):
         fmtre = re.compile(r'%FORMAT *\((.+)\)')
         version = None
 
-        if isinstance(fname, str):
+        if isinstance(fname, string_types):
             prm = genopen(fname, 'r')
             own_handle = True
         elif hasattr(fname, 'read'):
@@ -628,21 +634,21 @@ class AmberFormat(metaclass=FileFormatType):
         self.add_flag('POINTERS', '10I8', data=tmp_data)
 
         # Set some of the pointers we need
-        natom = self.parm_data['POINTERS'][PrmtopPointers.NATOM]
-        ntypes = self.parm_data['POINTERS'][PrmtopPointers.NTYPES]
-        nres = self.parm_data['POINTERS'][PrmtopPointers.NRES]
-        numbnd = self.parm_data['POINTERS'][PrmtopPointers.NUMBND]
-        numang = self.parm_data['POINTERS'][PrmtopPointers.NUMANG]
-        nptra = self.parm_data['POINTERS'][PrmtopPointers.NPTRA]
-        natyp = self.parm_data['POINTERS'][PrmtopPointers.NATYP]
-        nbonh = self.parm_data['POINTERS'][PrmtopPointers.NBONH]
-        nbona = self.parm_data['POINTERS'][PrmtopPointers.NBONA]
-        ntheth = self.parm_data['POINTERS'][PrmtopPointers.NTHETH]
-        ntheta = self.parm_data['POINTERS'][PrmtopPointers.NTHETA]
-        nex = self.parm_data['POINTERS'][PrmtopPointers.NEXT]
-        nphia = self.parm_data['POINTERS'][PrmtopPointers.NPHIA]
-        nphb = self.parm_data['POINTERS'][PrmtopPointers.NPHB]
-        nphih = self.parm_data['POINTERS'][PrmtopPointers.NPHIH]
+        natom = self.parm_data['POINTERS'][NATOM]
+        ntypes = self.parm_data['POINTERS'][NTYPES]
+        nres = self.parm_data['POINTERS'][NRES]
+        numbnd = self.parm_data['POINTERS'][NUMBND]
+        numang = self.parm_data['POINTERS'][NUMANG]
+        nptra = self.parm_data['POINTERS'][NPTRA]
+        natyp = self.parm_data['POINTERS'][NATYP]
+        nbonh = self.parm_data['POINTERS'][NBONH]
+        nbona = self.parm_data['POINTERS'][NBONA]
+        ntheth = self.parm_data['POINTERS'][NTHETH]
+        ntheta = self.parm_data['POINTERS'][NTHETA]
+        nex = self.parm_data['POINTERS'][NEXT]
+        nphia = self.parm_data['POINTERS'][NPHIA]
+        nphb = self.parm_data['POINTERS'][NPHB]
+        nphih = self.parm_data['POINTERS'][NPHIH]
 
         # This is enough to convince me that we have an old-style prmtop if we
         # have the number of integers I suspect we should
@@ -775,7 +781,7 @@ class AmberFormat(metaclass=FileFormatType):
         self.add_flag('IROTAT', '10I8', data=tmp_data)
 
         # Now do PBC stuff
-        if self.parm_data['POINTERS'][PrmtopPointers.IFBOX]:
+        if self.parm_data['POINTERS'][IFBOX]:
             # Solvent pointers
             tmp_data, line_idx = read_integer(line_idx, prmtop_lines, 3)
             self.add_flag('SOLVENT_POINTERS', '10I8', data=tmp_data)
@@ -790,7 +796,7 @@ class AmberFormat(metaclass=FileFormatType):
             self.add_flag('BOX_DIMENSIONS', '5E16.8', data=tmp_data)
 
         # Now do CAP stuff
-        if self.parm_data['POINTERS'][PrmtopPointers.IFCAP]:
+        if self.parm_data['POINTERS'][IFCAP]:
             # CAP_INFO
             tmp_data, line_idx = read_integer(line_idx, prmtop_lines, 1)
             self.add_flag('CAP_INFO', '10I8', data=tmp_data)
@@ -822,7 +828,7 @@ class AmberFormat(metaclass=FileFormatType):
             Name of the file to write the topology file to or file-like object to write
         """
         # now that we know we will write the new prmtop file, open the new file
-        if isinstance(name, str):
+        if isinstance(name, string_types):
             new_prm = genopen(name, 'w')
             own_handle = True
         else:
@@ -921,7 +927,7 @@ class AmberFormat(metaclass=FileFormatType):
                                  "must be non-negative!")
             self.parm_data[flag_name.upper()] = [0 for i in range(num_items)]
         if comments is not None:
-            if isinstance(comments, str):
+            if isinstance(comments, string_types):
                 comments = [comments]
             else:
                 comments = list(comments)

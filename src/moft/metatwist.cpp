@@ -37,8 +37,8 @@ Journal of the American Chemical Society doi:10.1021/jacs.8b11474
 
 /*
 
-  This is metaTWIST: a simple low level driver for most of the functionalities available
-  in MoFT.
+  This is metaTWIST: a simple low level driver for most of the 
+  functionalities available in MoFT.
 
 */
 
@@ -254,11 +254,8 @@ int main(int ac, char* av[]) {
     
     typedef Density<double> Tdens;
     
-    
     // Tdens   dens3d(filename);
     Tdens   dens3d(dxfilenames,chemicalspecies);
-    
-    
     
     // condition moving fwd to having read the density file
     
@@ -267,13 +264,10 @@ int main(int ac, char* av[]) {
         std::cout << "# [x] Input density file could not been read. Exiting..." << std::endl;
         
         return 1;
-        
     }
     
     dens3d.setBulkC(bulkdens);
     dens3d.printDetails();
-    
-    
     //dens3d.setspecies(chemicalspecies);
     
     if (vm.count("average")) {
@@ -281,8 +275,6 @@ int main(int ac, char* av[]) {
         dens3d.average();
 
      }
-
-
     
     if (sigma > 0.0) {
         std::cout << "# Convolving density map." << std::endl;
@@ -339,12 +331,8 @@ int main(int ac, char* av[]) {
         dens3d.writedxfile(filenameout);
     }
     
-    
-    
-    
     if (maptype=="cylindrical"){
         std::cout << "# 1D-cylindrical mapping:\n Remap the input 3D map in cylindrical coordinates where \nthe cylindrical axis is along the z-axis." << std::endl;
-        
         
         size_t nz = 10, nr = 10, nt = 10;
         double z0 = -1.0 * zmax;
@@ -378,7 +366,6 @@ int main(int ac, char* av[]) {
             }
         }
         
-        
         for (size_t i = 0; i != grid.size(); ++i){
             if (gridc[i]>0){
                 std::cout << i*bin << " " << grid[i] / gridc[i] << std::endl;
@@ -386,8 +373,7 @@ int main(int ac, char* av[]) {
             
         }
         
-    } else if (maptype=="twist")
-    {
+    } else if (maptype=="twist") {
         
         std::cout << "# 2D-cylindrical twisted mapping." << std::endl;
         // number of bins
@@ -418,8 +404,6 @@ int main(int ac, char* av[]) {
             }
         }
         
-        
-        
         for (size_t i = 0; i != grid.size1();++i){
             for (size_t j = 0; j != grid.size2();++j){
                 std::cout << x0+i*bin << " " << y0+j*bin << " ";
@@ -428,17 +412,11 @@ int main(int ac, char* av[]) {
                 } else {
                     std::cout << 0.0 << std::endl;
                 }
-                
             }
-            
             std::cout << std::endl;
         }
         
-        
-        
-        
     } else if (maptype=="untwist"){
-        
         
         std::cout << "# 2D-cylindrical untwisted mapping." << std::endl;
         // number of bins
@@ -465,20 +443,15 @@ int main(int ac, char* av[]) {
             
             for (size_t ix = 0; ix != nx; ++ix){
                 for (size_t iy = 0; iy != ny; ++iy){
-                    
-                    
                     TVec v(3, 0.0);
                     v(0) = x0+ix*bin;
                     v(1) = y0+iy*bin;
                     v(2) = z0+iz*bin;
                     grid(ix,iy)  += dens3d.get(ublas::prod(rot, v + vcom));
                     gridc(ix,iy) += 1.0;
-                    
                 }
             }
         }
-        
-        
         
         for (size_t i = 0; i != grid.size1();++i){
             for (size_t j = 0; j != grid.size2();++j){
@@ -488,15 +461,11 @@ int main(int ac, char* av[]) {
                 } else {
                     std::cout << 0.0 << std::endl;
                 }
-                
             }
-            
             std::cout << std::endl;
         }
-        
-    }
-    
-    else if (maptype=="spherical"){
+
+    } else if (maptype=="spherical"){
         
         
         std::cout << "# 1D-spherical mapping." << std::endl;
@@ -520,18 +489,15 @@ int main(int ac, char* av[]) {
                     //gofr(i) += dens3d.get( rt * vgen() + vcom);
                     gofr(i) += dens3d.getper( rt * vgen() + vcom);
                 }
-                
                 gofr(i) /= c;
-                
-                
             }
             
             for (size_t i = 0 ; i != nbins; ++i){
                 std::cout << i*bin << " " << gofr(i) << std::endl;
             }
-            
             std::cout << " " << std::endl;
         }
+
     } else if (maptype=="projxyz"){
         
         std::cout << "# 1D averaging along the x,y and z axes." << std::endl;
@@ -540,7 +506,6 @@ int main(int ac, char* av[]) {
         size_t nx =size_t(2*xmax/bin);
         size_t ny =size_t(2*ymax/bin);
         size_t nz =size_t(2*zmax/bin);
-        
         
         // the grid must be centered on the solute
         //        double x0 = -1.0*xmax+vcom(0);
@@ -561,13 +526,12 @@ int main(int ac, char* av[]) {
         
         dens3d.getIntExcess(bulkdens);
         
-    } else if (maptype=="rhoel")
-    {
+    } else if (maptype=="rhoel") {
         
         dens3d.getRhoEl();
         dens3d.writedxfile(filenameout);
         
-      } else if (maptype=="rhoelreal") {
+    } else if (maptype=="rhoelreal") {
 
         dens3d.getRhoElReal();
         dens3d.writedxfile(filenameout);
@@ -582,15 +546,11 @@ int main(int ac, char* av[]) {
             std::cout << "[x] Input density file could not been read. Exiting..." << std::endl;
             return 1;
         }
-        
         dens3d.blobs (denshess, threshold, bulkdens);
         
-    }
-    
-    else if (maptype=="blobsper") {
+    } else if (maptype=="blobsper") {
         
         Tdens denshess(filenamehess,chemicalspecies);
-
         
         // condition moving fwd to having read the density file
         
@@ -603,8 +563,7 @@ int main(int ac, char* av[]) {
         denshess.printDetails();
         dens3d.blobs_periodic(denshess, threshold);
         
-      } else if (maptype=="cutresol"){
-
+    } else if (maptype=="cutresol"){
 
         std::cout << "Cutting density to keep a desired interval of resolutions." << std::endl;
         std::sort(resminmax.begin(),resminmax.end());
@@ -612,14 +571,7 @@ int main(int ac, char* av[]) {
         dens3d.cutResolution(resminmax[0],resminmax[1]);
         dens3d.writedxfile(filenameout);
 
-
-      }
-
-
-
-
-    else if (maptype=="string") {
-        
+    } else if (maptype=="string") {
         
         // where q, coms are stored
         std::vector< boost::math::quaternion <double> > vquaternion;
@@ -651,18 +603,14 @@ int main(int ac, char* av[]) {
                 counter = 1;
             } else {
                 if (stokens.size() == 4) {
-                    
                     boost::math::quaternion <double> q(tft(stokens[0]),tft(stokens[1]),tft(stokens[2]),tft(stokens[3]) ) ;
                     vquaternion.push_back(q);
                     
                 } else {
                     std::cout << " Something is worng with the worm." << std::endl;
                 }
-                
                 counter = 0;
             }
-            
-            
         }
         
         
@@ -764,16 +712,11 @@ int main(int ac, char* av[]) {
         // do b-spline interpolation
         
         interpolation::CubicInterpolator< TVec > myInterpolator(100);
-        
-        
+
         myInterpolator.setCR();
         myInterpolator.setweightsf();
         
-        
-        
         myInterpolator.interpolate(vcom,vcominterpolated);
-        
-        
         
         std::cout << "# points along the string" << std::endl;
         
@@ -792,16 +735,12 @@ int main(int ac, char* av[]) {
         std::cout << " " << std::endl;
         
         myInterpolator.setweightsdf();
-        
         myInterpolator.interpolate(vcom,vcominterpolatedder);
-        
         
         // generates tangent to the curve by normalizing the spline derivative
         for (size_t i = 0; i != vcominterpolatedder.size(); ++i) {
             vcominterpolatedder[i] *= 1.0 / ublas::norm_2(vcominterpolatedder[i]);
         }
-        
-        
         
         // create a frame of reference, with points in the x,y plane
         
@@ -809,11 +748,8 @@ int main(int ac, char* av[]) {
         
         double radius = rmax;
         
-        
         Tmt rngo(std::time(NULL));
-        
         typedef boost::uniform_real <double> Tureal;
-        
         
         //boost::variate_generator<Tmt,Tureal > vgen( rngo, Tureal(0,2.0 * radius) );
         boost::variate_generator<Tmt,Tureal > vgen( rngo, Tureal(-radius,radius) );
@@ -868,7 +804,6 @@ int main(int ac, char* av[]) {
         //          xyplanevectorsquad = (r * cos(theta), r * sin(theta) )
         //          wxyplanevectosrquad = radius *  wgauss[i] * ( 2*pi*absc[i] )/resol
         
-        
         for (size_t i = 0; i != 36; ++i){
             
             double theta = i * 2 * boost::math::constants::pi<double>()/36;
@@ -885,9 +820,7 @@ int main(int ac, char* av[]) {
                 wxyplanevectosrquad.push_back( radius * w[j] * 2.0 * boost::math::constants::pi<double>() * absc[j] * radius / 36 );
                 
             }
-            
         }
-        
         
         double distance = 0.0;
         TVec origin(vcominterpolated[0]);
@@ -898,7 +831,6 @@ int main(int ac, char* av[]) {
         for (size_t i = 0; i != vcominterpolated.size(); ++i) {
             // find the rotation quaternion taking the predetermined points
             // a quaternion can be written easily in an axis-angle representation
-            
             TVec axis(3,0);
             
             // projection of the tangent on the z-axis is tangent(2)
@@ -942,91 +874,45 @@ int main(int ac, char* av[]) {
                 rotdens.push_back(temp);
             }
             
-            
             density.push_back(dd/xyplanevectors.size());
             
-            
-            
-            
             dd = 0;
-            
             for (size_t k = 0 ; k != xyplanevectorsquad.size();++k){
                 
-                
                 TVec v(3, 0);
-                
                 v = rotations::rotatevector(xyplanevectorsquad[k], q) + vcominterpolated[i] ;
-                
                 double temp  = dens3d.get(v);
-                
                 dd +=  (temp * wxyplanevectosrquad[k])  ;
-                
-                
-                
-                
             }
-            
-            
             densityquad.push_back(dd);
-            
-            
-            
-            
-            
-            
-            
             if (dd > 1e-8) {
-                
                 TVec avevect(3, 0.0);
-                
                 
                 for (size_t t = 0; t != xyplanevectors.size(); ++t) avevect = avevect + rotdens[t] * xyplanevectors[t];
                 
-                
                 avevect /= dd;
-                
-                
                 TVec varvect(3, 0.0);
                 
                 for (size_t t = 0; t != xyplanevectors.size(); ++t) {
                     
                     TVec tmp(3, 0);
-                    
                     tmp = xyplanevectors[t] - avevect;
-                    
                     tmp(0) = tmp(0) * tmp(0);
                     tmp(1) = tmp(1) * tmp(1);
                     tmp(2) = tmp(2) * tmp(2);
-                    
                     varvect = varvect + rotdens[t] * tmp;
                 }
-                
                 varvect /= dd;
-                
-                
                 densityvar.push_back(0.5 * (std::sqrt(varvect(0)) + std::sqrt(varvect(1))));
                 
             } else {
                 //std::cout << ">>>>> " << i << " " << q <<  std::endl;
                 densityvar.push_back(0.0);
             }
-            
         }
         
-        
-        
-        //for (size_t i = 0; i != density.size();++i)
-        //{
-        //    std::cout << position[i] << " " << density[i] * radius * radius * boost::math::constants::pi<double>() << std::endl;
-        //}
-        
-        
         std::cout << " " << std::endl;
-        
-        
-        
-        //double multconst = bulkdens * 6.023 * 0.0001 *  radius * radius * boost::math::constants::pi<double>();
-        
+
         for (size_t i = 0; i != density.size();++i)
         {
             std::cout << position[i] << " "
@@ -1044,12 +930,7 @@ int main(int ac, char* av[]) {
         //    std::cout << position[i] << " " << densityvar[i]  << std::endl;
         //}
         
-        
-        
-    } // end snake approach
-    
-    
-    else if (maptype=="worm") {
+    } else if (maptype=="worm") {
         
         // read the snake file, series of 3D vectors
         // where q, coms are stored
@@ -1061,8 +942,6 @@ int main(int ac, char* av[]) {
         util::convto<double> tft;
         typedef std::vector<std::string> Tvs;
         Tvs stokens;
-        
-        
         
         while( getline( file, line ) ) {
             
@@ -1078,11 +957,7 @@ int main(int ac, char* av[]) {
             }
         }
         
-        
-        
-        
         // for ncycles
-        
         
         std::vector <TVec> vcomp = vcom ;
         size_t ncontrolp =  32;
@@ -1090,36 +965,25 @@ int main(int ac, char* av[]) {
         for (size_t nc = 0; nc !=200; ++nc) {
             
             // do b-spline interpolation
-            
             interpolation::CubicInterpolator<TVec> myInterpolator(100);
             
             //myInterpolator.setCR();
             //myInterpolator.setweightsf();
-            
-            
             myInterpolator.interpolate(vcomp, vcominterpolated);
             
             // compute the length of the curve segment
-            
-            
             double distance = 0.0;
-            
             
             for (size_t i = 1; i != vcominterpolated.size(); ++i) {
                 distance += ublas::norm_2(vcominterpolated[i] - vcominterpolated[i - 1]);
             }
             
-            
             // chose 20 equidistant points along the curve
             double segment = distance/(ncontrolp - 1);
-            
             std::vector<TVec> vcomequid;
             
-            
             vcomequid.push_back(vcominterpolated.front());
-            
             distance = 0.0;
-            
             for (size_t i = 1; i != vcominterpolated.size() - 1; ++i) {
                 
                 distance += ublas::norm_2(vcominterpolated[i] - vcominterpolated[i - 1]);
@@ -1128,9 +992,7 @@ int main(int ac, char* av[]) {
                     
                     vcomequid.push_back(vcominterpolated[i - 1]);
                     distance = ublas::norm_2(vcominterpolated[i] - vcominterpolated[i - 1]);
-                    
                 }
-                
             }
             
             vcomequid.push_back(vcominterpolated.back());
@@ -1148,13 +1010,12 @@ int main(int ac, char* av[]) {
             
             std::vector<TVec> xyplanevectors;
             for (size_t i = 0; i != 750; ++i) {
-                
+
                 TVec v(3, 0);
-                
+
                 v(0) = vgen() - radius;
                 v(1) = vgen() - radius;
                 v(2) = vgen() - radius;
-                
                 if (ublas::norm_2(v) <= radius) xyplanevectors.push_back(v);
             }
             
@@ -1164,7 +1025,6 @@ int main(int ac, char* av[]) {
             std::vector<TVec> newvcomequid;
             
             for (size_t i = 0; i != vcomequid.size(); ++i) {
-                
                 
                 TVec v = vcomequid[i];
                 double dv = dens3d.get(v);
@@ -1186,17 +1046,12 @@ int main(int ac, char* av[]) {
                 newvcomequid.push_back(v);
                 std::cout << " vs " << dv << std::endl;
             }
-            
-            
-            
-            
-            
-            // add the first and the last points of the old list at the front and back of the new control points list
-            
+
+            // add the first and the last points of the old list at the 
+            // front and back of the new control points list
             
             newvcomequid.insert(newvcomequid.begin(), 1, vcom.front());
             newvcomequid.insert(newvcomequid.end(), 1, vcom.back());
-            
             
             std::cout << " " << std::endl;
             
@@ -1204,65 +1059,16 @@ int main(int ac, char* av[]) {
                 
                 std::cout <<  newvcomequid[i] << std::endl;
             }
-            
-            
-            
             vcomp = newvcomequid;
-            
         }
-        /*
-         
-         
-         TVec origin(vcominterpolated[0]);
-         std::vector <double> position;
-         std::vector <double> density;
-         std::vector <double> densityvar;
-         
-         for (size_t i = 0; i != vcominterpolated.size(); ++i) {
-         double dd = 0;
-         
-         
-         std::vector<double> rotdens;
-         
-         for (size_t k = 0; k != xyplanevectors.size(); ++k) {
-         TVec v(3, 0);
-         v = xyplanevectors[k] + vcominterpolated[i] ;
-         dd += dens3d.get(v);
-         rotdens.push_back(dens3d.get(v));
-         }
-         
-         
-         density.push_back(dd/xyplanevectors.size());
-         
-         
-         TVec avevect(3,0.0);
-         
-         for (size_t t = 0; t != xyplanevectors.size() ; ++t) avevect = avevect + rotdens[t] * xyplanevectors[t];
-         
-         avevect /= dd;
-         
-         
-         
-         }
-         
-         
-         */
-        
     }
     
     
     //    else {
     //
-    //
     //        std::cout << "Unknown mapping type (for the moment)." << std::endl;
-    //
-    //
     //    }
     
-    
-    
     std::cout << "# metatwist completed succesfully!"  << std::endl;
-    
-    
     return 0;
 }

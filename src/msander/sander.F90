@@ -18,7 +18,7 @@ subroutine sander()
 #endif /* DISABLE_NFE */
 
   use lmod_driver
-  use constants, only : INV_AMBER_ELECTROSTATIC, set_omp_num_threads
+  use constants, only : INV_AMBER_ELECTROSTATIC
 
   ! The main qmmm_struct contains all the QMMM variables and arrays
   use qmmm_read_and_alloc, only : read_qmmm_nm_and_alloc
@@ -63,7 +63,7 @@ subroutine sander()
   use xray_interface_module, only: xray_init, xray_read_parm, &
            xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
   use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
-  use bulk_solvent_mod, only: k_mask
+  use bulk_solvent_module, only: k_mask
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -687,9 +687,16 @@ subroutine sander()
     end if masterwork
     ! End of master process setup
 
-   ! rism initialization
+#ifdef OPENMP
+    call set_omp_num_threads()
+#endif
+
+    ! rism initialization
 #  if defined(RISMSANDER)
     call rism_init(commsander)
+#  ifdef OPENMP
+    call set_omp_num_threads_rism()
+#  endif
 #  endif /* RISMSANDER */
 
 #ifdef MPI
@@ -1040,11 +1047,6 @@ subroutine sander()
    ! }}}
 
 #endif /* MPI */
-
-#ifdef OPENMP
-    ! set up and print some information
-    call set_omp_num_threads()
-#endif
 
     ! Allocate memory for crg relocation
     if (ifcr /= 0) then
@@ -1511,4 +1513,3 @@ subroutine sander()
   return
 
 end subroutine sander
-

@@ -514,11 +514,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekhf2 = 0.0d0
 
 !------------------------------------------------------------------------------
+#ifdef PLUMED
   ! PLUMED initialization.  PLUMED is an open-source plugin that
   ! confers the functionality of a number of enhanced sampling methods.
   if (plumed == 1) then
 #   include "Plumed_init.inc"
   endif
+#endif
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -560,9 +562,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
     ! PLUMED force is added in this routine.
     plumed_stopflag=0
+#ifdef PLUMED
     if (plumed == 1) then
 #     include "Plumed_force.inc"
     end if
+#endif
 
 #ifdef MPI /* SOFT CORE */
 !------------------------------------------------------------------------------
@@ -983,10 +987,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
+#ifdef PLUMED
   ! PLUMED force added
   if (plumed == 1) then
 #     include "Plumed_force.inc"
   end if
+#endif
 
 #ifdef MPI
 !------------------------------------------------------------------------------
@@ -1218,7 +1224,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
   !  Simple Newtonian dynamics on the "extra" variables  (why?)
-  !  TODO: in parallel, should be done by the final processor only
   if( mytaskid == numtasks - 1 ) then
      do im = 1, iscale
         v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
@@ -1244,14 +1249,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5
     end do
-
-#if 0  /* what used to be here  */
-  ! position update for the "extra" variables": no thermostat here??
-  do i = 1,iscale
-    f(nr3+i) = x(nr3+i)
-    x(nr3+i) = x(nr3+i) + v(nr3+i)*dtx
-  end do
-#endif
 
   call timer_stop(TIME_VERLET)
   ! }}}
@@ -1302,19 +1299,18 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Re-estimate the velocities from differences in positions.
     v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
+
+    qspatial = .false.
+    ! RATTLE-V, correct velocities
+    call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
+      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+
+    ! use SETTLE to deal with water model
+    call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
+
     call timer_stop(TIME_SHAKE)
   end if
   call timer_start(TIME_VERLET)
-
-    if (ntc /= 1) then
-      qspatial = .false.
-      ! RATTLE-V, correct velocities
-      call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
-
-      ! use SETTLE to deal with water model
-      call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
-    end if
   ! }}}
 
 !------------------------------------------------------------------------------

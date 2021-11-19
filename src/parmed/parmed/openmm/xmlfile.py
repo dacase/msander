@@ -1,18 +1,24 @@
-""" XML file parsing utilities for OpenMM serialized objects """
-import re
+"""
+XML file parsing utilities for OpenMM serialized objects
+"""
+from __future__ import division, print_function, absolute_import
+
 from contextlib import closing
-from io import StringIO
 import numpy as np
-from ..vec3 import Vec3
-from ..formats.registry import FileFormatType
-from ..geometry import box_vectors_to_lengths_and_angles
-from .. import unit as u
-from ..utils.decorators import needs_openmm
-from ..utils.io import genopen
+from parmed.vec3 import Vec3
+from parmed.formats.registry import FileFormatType
+from parmed.geometry import box_vectors_to_lengths_and_angles
+import parmed.unit as u
+from parmed.utils.decorators import needs_openmm
+from parmed.utils.io import genopen
+from parmed.utils.six import add_metaclass, string_types
+from parmed.utils.six.moves import StringIO
+import re
 
 _xmlre = re.compile('<(.*?)/?>')
 
-class XmlFile(metaclass=FileFormatType):
+@add_metaclass(FileFormatType)
+class XmlFile(object):
     """
     Wrapper for parsing OpenMM-serialized objects. Supports serialized State,
     System, Integrator, and ForceField objects.
@@ -35,8 +41,7 @@ class XmlFile(metaclass=FileFormatType):
         with closing(genopen(filename, 'r')) as f:
             for line in f:
                 line = line.strip()
-                if not line:
-                    continue
+                if not line: continue
                 rematch = _xmlre.match(line)
                 if not rematch:
                     return False
@@ -77,7 +82,7 @@ class XmlFile(metaclass=FileFormatType):
         """
         import simtk.openmm as mm
         from simtk.openmm import app
-        if isinstance(filename, str):
+        if isinstance(filename, string_types):
             with closing(genopen(filename, 'r')) as f:
                 contents = f.read()
         else:
@@ -94,7 +99,7 @@ class XmlFile(metaclass=FileFormatType):
             return _OpenMMStateContents(obj)
         return obj
 
-class _OpenMMStateContents:
+class _OpenMMStateContents(object):
     """
     A container that holds all of the information present in the OpenMM State
     object that gets deserialized. This is an internal class that is only
@@ -138,18 +143,19 @@ class _OpenMMStateContents:
             return stuff
 
     def __init__(self, state):
-        self.coordinates = self._get_data(
-            state, 'getPositions', u.angstrom, (1, -1, 3), asNumpy=True
-        )
-        self.velocities = self._get_data(
-            state, 'getVelocities', u.angstrom/u.picosecond, (1, -1, 3), asNumpy=True
-        )
-        self.forces = self._get_data(
-            state, 'getForces', u.kilocalorie_per_mole/u.angstrom, (1, -1, 3), asNumpy=True
-        )
-        self.energy = self._get_data(state, 'getPotentialEnergy', u.kilocalorie_per_mole)
+        self.coordinates = self._get_data(state, 'getPositions',
+                                u.angstrom, (1, -1, 3), asNumpy=True)
+        self.velocities = self._get_data(state, 'getVelocities',
+                                u.angstrom/u.picosecond, (1, -1, 3),
+                                asNumpy=True)
+        self.forces = self._get_data(state, 'getForces',
+                                u.kilocalorie_per_mole/u.angstrom,
+                                (1, -1, 3), asNumpy=True)
+        self.energy = self._get_data(state, 'getPotentialEnergy',
+                                u.kilocalorie_per_mole)
         self.time = self._get_data(state, 'getTime', u.picosecond)
-        box = self._get_data(state, 'getPeriodicBoxVectors', u.angstroms, (3, 3), asNumpy=True)
+        box = self._get_data(state, 'getPeriodicBoxVectors', u.angstroms,
+                             (3, 3), asNumpy=True)
         if box is not None:
             leng, ang = box_vectors_to_lengths_and_angles(*box)
             leng = leng.value_in_unit(u.angstrom)

@@ -65,14 +65,16 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
-$modulefile{"ml_mod"} = "xray_ml";
-$modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
+# $modulefile{"ml_mod"} = "xray_ml";
+# $modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 
 # ignore certain modules:
 
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
 $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
+# Also assume that the API in amber_rism_interface will be up-to-date
+$ignore{"amber_rism_interface"} = 1;
 
 foreach $file ( <*.F90> ){
     next if $file =~ /^_/;

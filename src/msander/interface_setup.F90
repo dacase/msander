@@ -254,6 +254,13 @@
            ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
 #endif /*RISMSANDER*/
 
+#ifdef OPENMP
+      ! In the future, the msander and rism values for omp_num_threads might
+      !   be different; for now, they are the same
+      call set_omp_num_threads()
+      call set_omp_num_threads_rism()
+#endif
+
       if ( ifcr /= 0 ) then
          call cr_read_input(natom)
          call cr_check_input( ips )
@@ -364,7 +371,7 @@
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
 
-         call xray_init()
+         if( xray_active) call xray_init()
 
       ! ----- SET THE INITIAL VELOCITIES -----
 

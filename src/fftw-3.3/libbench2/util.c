@@ -14,26 +14,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-#include "bench.h"
+#include "libbench2/bench.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <math.h>
-#include "config.h"
 
-#if defined(HAVE_DECL_MEMALIGN)
-#  if defined(HAVE_MALLOC_H)
-#    include <malloc.h>
-#  else
-extern void *memalign(size_t, size_t);
-#  endif
+#if defined(HAVE_MALLOC_H)
+#  include <malloc.h>
 #endif
 
-#if defined(HAVE_DECL_POSIX_MEMALIGN)
+#if defined(HAVE_DECL_MEMALIGN) && !HAVE_DECL_MEMALIGN
+extern void *memalign(size_t, size_t);
+#endif
+
+#if defined(HAVE_DECL_POSIX_MEMALIGN) && !HAVE_DECL_POSIX_MEMALIGN
 extern int posix_memalign(void **, size_t, size_t);
 #endif
 
@@ -44,14 +43,14 @@ void bench_assertion_failed(const char *s, int line, const char *file)
 }
 
 #ifdef HAVE_DRAND48
-#  if defined(HAVE_DECL_DRAND48)
+#  if defined(HAVE_DECL_DRAND48) && !HAVE_DECL_DRAND48
 extern double drand48(void);
 #  endif
 double bench_drand(void)
 {
      return drand48() - 0.5;
 }
-#  if defined(HAVE_DECL_SRAND48)
+#  if defined(HAVE_DECL_SRAND48) && !HAVE_DECL_SRAND48
 extern void srand48(long);
 #  endif
 void bench_srand(int seed)

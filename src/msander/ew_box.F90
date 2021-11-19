@@ -934,9 +934,6 @@ subroutine peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
       return
    end if
    if ( ic == justcrd+1 .or. ic == vel+1 )then
-#ifndef API
-      write(6,'(a)') '| peek_ewald_inpcrd: Box info found'
-#endif
       a = x1
       b = x2
       c = x3

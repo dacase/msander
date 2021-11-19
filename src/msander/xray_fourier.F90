@@ -17,8 +17,6 @@ module xray_fourier_module
 !
 !  scale_Fcalc       --   Carry out scaling (only for ml + simple/none for now)
 !
-!  get_solvent_contribution -- bulk_solvent mask or other models
-!
 !  fourier_dTarget_dXYZBQ  --  Calculate the derivative of the xray restraint
 !                         energy with respect to coordinate, B, or occupancy.
 !                         Uses chain rule to combine dTarget/dF (passed
@@ -46,6 +44,7 @@ module xray_fourier_module
 !                              at the beginning of fourier_Fcalc()
 
    use xray_globals_module
+   use bulk_solvent_module, only: get_solvent_contribution
    use constants, only: M_TWOPI => TWOPI
    implicit none
 #ifdef MPI
@@ -85,9 +84,10 @@ contains
       real(real_kind), intent(in), target :: occupancy(num_atoms)
 
       ! locals
-      integer :: ihkl, i, ier, ith, ithmax
-      double precision :: time0, time1
+      integer :: ihkl, i, ier
+      real(real_kind) :: time0, time1
       logical, save :: first=.true.
+      real(real_kind) :: f(num_atoms), angle(num_atoms)
 
       if( first ) then
          ! set up reflection partitioning for MPI
@@ -111,29 +111,14 @@ contains
          first = .false. 
       endif
 
-      allocate(f(num_atoms,omp_num_threads), stat=ier)
-      REQUIRE(ier==0)
-      allocate(angle(num_atoms,omp_num_threads), stat=ier)
-      REQUIRE(ier==0)
-
 #ifdef MPI
       Fcalc(:) = 0._rk_   ! needed since we will do an allreduce later
 #endif
 
-      ! special kludge to just get bulk_solvent factors:
-      ! Fcalc(:) = 0._rk_
-      ! return
       call wallclock( time0 )
 
-!$omp parallel private(ihkl,i,ith)  num_threads(omp_num_threads)
+!$omp parallel do private(ihkl,f,angle)  num_threads(omp_num_threads)
 
-#ifdef OPENMP
-         ith = omp_get_thread_num() + 1
-#else
-         ith = 1
-#endif
-
-!$omp do 
       do ihkl = ihkl1, ihkl2
          ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
          !      j = 1,num_selected_atoms
@@ -154,23 +139,19 @@ contains
          ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
          !    j = 1,num_selected_atoms
 
-         f(:,ith) = exp( mSS4(ihkl) * tempFactor(:) ) &
-              * atomic_scatter_factor(ihkl,scatter_type_index(:)) &
-              * occupancy(:)
-         angle(:,ith) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
+         f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
+              * atomic_scatter_factor(ihkl,scatter_type_index(:))
+         angle(:) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
                          hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
 
-         Fcalc(ihkl) = cmplx( sum(f(:,ith) * cos(angle(:,ith))), &
-                              sum(f(:,ith) * sin(angle(:,ith))), rk_ )
+         Fcalc(ihkl) = cmplx( sum(f(:) * cos(angle(:))), &
+                              sum(f(:) * sin(angle(:))), rk_ )
 
       end do
-!$omp end do
-!$omp end parallel
+!$omp end parallel do
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| ihkl loop time: ', time1 - time0
       ! if( mytaskid == 0 ) write(0,*) 'ihkl loop: ', time1-time0
-      deallocate(f, angle, stat=ier)
-      REQUIRE(ier==0)
       return
 
    end subroutine fourier_Fcalc
@@ -218,9 +199,9 @@ contains
       ! locals
       integer :: ihkl, iatom, i
       real(real_kind) :: dhkl(3)
-      complex(real_kind) :: f
-      real(real_kind) :: phase
-      double precision time0, time1
+      ! complex(real_kind) :: f
+      real(real_kind) :: f, phase
+      real(real_kind) time0, time1
 
       if (present(dxyz)) dxyz(:,:) = 0._rk_
       if (present(d_tempFactor)) d_tempFactor(:) = 0._rk_
@@ -229,21 +210,20 @@ contains
 
       ! TODO: does it hurt to have if statements inside the double loop?
 #ifdef MPI
-      REFLECTION: do ihkl = ihkl1,ihkl2
-         ATOM: do iatom = 1,num_atoms
+      do ihkl = ihkl1,ihkl2
+         do iatom = 1,num_atoms
 #else
-!$omp parallel do private(ihkl,dhkl,iatom,phase,f) 
-      ATOM: do iatom = 1,num_atoms
-         REFLECTION: do ihkl = ihkl1,ihkl2
+!$omp parallel do private(ihkl,iatom,dhkl,phase,f) 
+      do iatom = 1,num_atoms
+         do ihkl = ihkl1,ihkl2
 #endif
 
             dhkl = hkl(:,ihkl) * M_TWOPI ! * symmop...
 
-            phase = sum( dhkl * xyz(:,iatom) )
+            phase = sum( dhkl(:) * xyz(:,iatom) )
             f = atomic_scatter_factor(ihkl, scatter_type_index(iatom)) &
-                  * exp(mSS4(ihkl) * tempFactor(iatom)) 
-   
-            f = f * cmplx(cos(phase),sin(phase), rk_)
+                  * exp(mSS4(ihkl) * tempFactor(iatom)) &
+                  * ( sin(phase) * dF(ihkl)%re - cos(phase) * dF(ihkl)%im )
 
 #if 0
             if (present(d_occupancy)) then
@@ -263,18 +243,12 @@ contains
 #endif
 
             ! if (present(dxyz)) then
-               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * &
-                   ( aimag(f) * real(dF(ihkl)) - real(f) * aimag(dF(ihkl)) )
+               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * f
             ! end if
 
-#ifdef MPI
-         end do ATOM
-      end do REFLECTION
-#else
-         end do REFLECTION
-      end do ATOM
+         end do
+      end do
 !$omp end parallel do
-#endif
       call wallclock( time1 )
       ! write(6,'(a,f8.3)') '| dhkl loop time: ', time1 - time0
       return
@@ -305,99 +279,87 @@ contains
       return
    end subroutine get_residual
 
-   subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
-      use bulk_solvent_mod, only : f_mask, k_mask, grid_bulk_solvent, &
-          shrink_bulk_solvent, fft_bs_mask, mask_bs_grid_t_c, &
-          hkl_indexing_bs_mask, mask_cell_params, mask_grid_size
-#ifdef MPI
-      use mpi
-#endif
-      implicit none
-      integer, intent(in) :: nstep
-      real(real_kind), intent(in) :: crd(3*num_atoms)
-      logical, intent(in) :: update_Fcalc
-
-      integer :: i, ier
-      double precision :: time0, time1
-
-      if( bulk_solvent_model == 'none' ) return
-
-      ! only do this on the master node to save global memory
-      if (mytaskid == 0 .and. .not. user_fmask .and. mod(nstep, mask_update_frequency) == 0) then
-         call grid_bulk_solvent(num_atoms, crd)
-         call shrink_bulk_solvent()
-         call fft_bs_mask()
-
-         do i=1,num_hkl
-            f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i) + 1)) * &
-                        mask_cell_params(16) / mask_grid_size(4)
-#if 0
-            write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
-               hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
-               hkl_index(3,i),char(9), &
-               real(f_mask(i)),char(9), &
-               aimag(f_mask(i)),char(9),abs(f_mask(i))
-#endif
-         end do
-         write(6,'(a,5e14.6)') '| updating fmask'
-      endif
-#ifdef MPI
-      call mpi_bcast( f_mask, num_hkl, MPI_DOUBLE_COMPLEX, 0, commsander, ier )
-#endif
-
-      if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
-
-      return
-
-   end subroutine get_solvent_contribution
-
-   subroutine scale_Fcalc(nstep)
-      use ml_mod, only : b_vector_base, NRF_work, NRF_work_sq, &
+   subroutine scale_Fcalc(nstep, selected)
+      use ml_module, only : b_vector_base, NRF_work, NRF_work_sq, &
            h_sq, k_sq, l_sq, hk, kl, hl, MUcryst_inv
       implicit none
       integer, intent(in) :: nstep
+      integer, intent(in), optional :: selected(num_hkl)
 
-      real(real_kind) :: sum_fo_fc, sum_fc_fc
+      real(real_kind) :: sum_fo_fc, sum_fc_fc, sum_fo_fo
+      real(real_kind) :: abs_Fcalc(num_hkl)
       real(real_kind) :: b(7), Uaniso(7), u_star(6)
-      double precision, parameter :: pi = 3.14159265359d0
+      real(real_kind), parameter :: pi = 3.14159265359d0
 
-      if (mod(nstep, scale_update_frequency) == 0 ) then
+      if( mod(nstep,scale_update_frequency) == 0 ) then
 
-         ! isotropic scaling for Fcalc, with same general notation:
-         NRF_work_sq = NRF_work * NRF_work
-         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-                      / NRF_work_sq
-         b(1) = sum(b_vector_base)
-         k_scale(:) = exp(b(1))
-         if(mytaskid==0) write(6,'(a,f10.5)') &
-            '| updating   isotropic scaling: ', k_scale(1)
+         if( inputscale ) then
+            ! scale using k_scale = k_tot * (exp(- b_tot * s**2/4 ))
+            k_scale(:) = k_tot * exp( b_tot * mss4(:))
+            sum_fo_fo = sum(abs_Fobs ** 2)
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if( mytaskid == 0 ) &
+               write(6,'(a,2f10.5,e12.5)') &
+                 '| setting k_scale using k_tot/b_tot: ', &
+                 k_tot, b_tot, norm_scale
 
-         ! anisotropic scaling for Fcalc:
-         NRF_work_sq = NRF_work * NRF_work
-         b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
-                      / NRF_work_sq
-         b(1) = sum(b_vector_base)
-         b(2) = sum(b_vector_base * h_sq(1:NRF_work))
-         b(3) = sum(b_vector_base * k_sq(1:NRF_work))
-         b(4) = sum(b_vector_base * l_sq(1:NRF_work))
-         b(5) = sum(b_vector_base * hk(1:NRF_work))
-         b(6) = sum(b_vector_base * hl(1:NRF_work))
-         b(7) = sum(b_vector_base * kl(1:NRF_work))
+         else if( target .eq. 'ls' .or. target .eq. 'wls' ) then
+            ! scale to fobs in least-squares sense:
+            abs_Fcalc(:) = abs(Fcalc(:))
+            if (present(selected)) then
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
+               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
+               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
+            else
+               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
+               sum_fo_fo = sum(abs_Fobs ** 2)
+               sum_fc_fc = sum(abs_Fcalc ** 2)
+            end if
+            k_scale(:) = sum_fo_fc / sum_fc_fc
+            norm_scale = 1.0_rk_  / sum_fo_fo
+            if (mytaskid == 0 ) &
+               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
+                   k_scale(1),norm_scale
 
-         Uaniso = matmul(MUcryst_inv, b)
-         u_star = Uaniso(2:7) / (-2.0d0 * pi * pi)
-         u_star(4:6) = u_star(4:6) / 2.0d0
+         else if( target .eq. 'vls' ) then
 
-         k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
-             Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
-         if (mytaskid == 0 ) then
-           write(6,'(a)') '| updating anisotropic scaling'
-           ! write(6,'(a,7f10.5)') '|     ', Uaniso
-           ! write(6, '(a,6f13.8)')  '| u_star: ', u_star
-           ! write(6,'(a,2f10.5)')  '|     ', exp(b(1))
-           ! write(6,'(a,7f10.5)')  '|     ', k_scale(1:7)
+            k_scale(:) = sum( real(Fobs(:)*conjg(Fcalc(:))) ) &
+                       / sum( abs(Fcalc(:))**2 )
+            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+              '| updating isotropic scaling: ', k_scale(1)
+            ! k_scale(:) = sum( abs(Fobs)*abs(Fcalc) )  &
+            !            / sum( abs(Fcalc(:))**2 )
+            ! if (mytaskid == 0 ) write(6,'(a,f12.5)') &
+            !   '| updating abs isotropic scaling: ', k_scale(1)
+
+         else if( target .eq. 'ml' ) then
+
+            ! N.B.: this routine is not called if bulk_solvent_model='opt'
+
+            ! anisotropic scaling for Fcalc:
+            NRF_work_sq = NRF_work * NRF_work
+            b_vector_base = log(abs_Fobs(1:NRF_work) / abs(Fcalc(1:NRF_work))) &
+                         / NRF_work_sq
+            b(1) = sum(b_vector_base)
+            b(2) = sum(b_vector_base * h_sq(1:NRF_work))
+            b(3) = sum(b_vector_base * k_sq(1:NRF_work))
+            b(4) = sum(b_vector_base * l_sq(1:NRF_work))
+            b(5) = sum(b_vector_base * hk(1:NRF_work))
+            b(6) = sum(b_vector_base * hl(1:NRF_work))
+            b(7) = sum(b_vector_base * kl(1:NRF_work))
+
+            Uaniso = matmul(MUcryst_inv, b)
+
+            k_scale = exp(Uaniso(1) + Uaniso(2)*h_sq + Uaniso(3)*k_sq + &
+                Uaniso(4)*l_sq + Uaniso(5)*hk + Uaniso(6)*hl + Uaniso(7)*kl)
+            if (mytaskid == 0 ) then
+               write(6,'(a)') '| updating anisotropic scaling'
+               write(6,'(a,7f10.5)') '|     ', Uaniso*1000.d0
+               write(6,'(a,f10.5)')  '| mean k_scale: ',  &
+                                     sum(k_scale)/size(k_scale)
+            endif
+
          endif
-
       endif
 
       Fcalc = Fcalc * k_scale  !either using newly computed or stored k_scale
@@ -422,43 +384,10 @@ contains
       integer :: i
 
       call get_solvent_contribution(nstep, crd, .true.)
-
-      if( inputscale ) then
-         ! scale using phenix-like approximation:
-         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
-         if( nstep == 0 ) then
-            k_scale(:) = k_tot * exp( b_tot * mss4(:))
-            sum_fo_fo = sum(abs_Fobs ** 2)
-            norm_scale = 1.0_rk_  / sum_fo_fo
-            if( mytaskid == 0 ) &
-               write(6,'(a,2f10.5,e12.5)') &
-                 '| setting k_scale using k_tot/b_tot: ', &
-                 k_tot, b_tot, norm_scale
-         endif
-      else
-         ! scale to fobs:
-         abs_Fcalc(:) = abs(Fcalc(:))
-         if( mod(nstep,scale_update_frequency) == 0 ) then
-            if (present(selected)) then
-               sum_fo_fc = sum(abs_Fobs * abs_Fcalc,selected/=0)
-               sum_fo_fo = sum(abs_Fobs ** 2,selected/=0)
-               sum_fc_fc = sum(abs_Fcalc ** 2,selected/=0)
-            else
-               sum_fo_fc = sum(abs_Fobs * abs_Fcalc)
-               sum_fo_fo = sum(abs_Fobs ** 2)
-               sum_fc_fc = sum(abs_Fcalc ** 2)
-            end if
-            k_scale(:) = sum_fo_fc / sum_fc_fc
-            norm_scale = 1.0_rk_  / sum_fo_fo
-            if (mytaskid == 0 ) &
-               write(6,'(a,f12.5,e12.5)') '| updating isotropic scaling: ', &
-                   k_scale(1),norm_scale
-         endif
-      endif
-      Fcalc(:) = k_scale(:) * Fcalc(:)
+      call scale_Fcalc( nstep, selected=selected )
+      abs_Fcalc(:) = abs(Fcalc(:))
 
       nstep = nstep + 1
-      abs_Fcalc(:) = abs(Fcalc(:))
 
       ! Note: when Fcalc is approximately zero the phase is undefined, 
       ! so no force can be determined even if the energy is high. (Similar 
@@ -503,9 +432,6 @@ contains
    ! Fobs
 
    subroutine dTargetV_dF(crd,deriv,residual,xray_energy)
-      use ml_mod, only : &
-           init_scales, k_iso, k_iso_exp, k_aniso
-      use bulk_solvent_mod, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(:)
@@ -516,28 +442,13 @@ contains
       integer, save :: nstep=0
 
       call get_solvent_contribution(nstep, crd, .true.)
-      if( inputscale ) then
-         ! scale using phenix-like approximation:
-         !    k_scale = k_tot * (exp(- b_tot * s**2/4 ))
-         if( nstep == 0 ) then
-            k_scale(:) = k_tot * exp( b_tot * mss4(:))
-            ! sum_fo_fo = sum(abs_Fobs ** 2)
-            ! norm_scale = 1.0_rk_  / sum_fo_fo
-            if( mytaskid == 0 ) &
-               write(6,'(a,2f10.5,e12.5)') &
-                 '| setting k_scale using k_tot/b_tot: ', &
-                 k_tot, b_tot, norm_scale
-         endif
-      else
-         if (mod(nstep,scale_update_frequency) == 0) then
-            k_scale(:) = sum( real(Fobs*conjg(Fcalc)) ) / sum(abs(Fcalc)**2)
-            if (mytaskid == 0 ) write(6,'(a,f12.5)') &
-              '| updating isotropic scaling: ', k_scale(1)
-         endif
-      endif
-      Fcalc(:) = k_scale(:) * Fcalc(:)
+      call scale_Fcalc( nstep )
 
-      if( nstep==0 ) norm_scale = 1.0_rk_ / sum(abs_Fobs ** 2)
+      if( nstep==0 ) then
+         norm_scale = 1.0_rk_ / sum(abs_Fobs**2)
+         if( mytaskid == 0 ) &
+            write(6,'(a,e12.5)') '| setting norm_scale to ', norm_scale
+      end if
       nstep = nstep + 1
 
       vecdif(:) = Fobs(:) - Fcalc(:)
@@ -552,12 +463,12 @@ contains
    ! phenix maximum likelihood function
 
    subroutine dTargetML_dF(crd,deriv,xray_energy)
-      use ml_mod, only : b_vector_base, &
+      use ml_module, only : b_vector_base, &
            alpha_array, beta_array, delta_array, NRF_work, &
            i1_over_i0, ln_of_i0, estimate_alpha_beta, NRF, &
            init_scales, k_iso, k_iso_exp, k_aniso, &
            optimize_k_scale_k_mask
-      use bulk_solvent_mod, only: f_mask, k_mask
+      use bulk_solvent_module, only: f_mask, k_mask
       implicit none
       real(real_kind), intent(in) :: crd(3*num_atoms)
       complex(real_kind), intent(out) :: deriv(num_hkl)
@@ -566,7 +477,7 @@ contains
       real(real_kind) :: abs_Fcalc(num_hkl)
       integer, save :: nstep = 0
       integer :: i
-      double precision :: eterm1, eterm2, x
+      real(real_kind) :: eterm1, eterm2, x
 
       if( bulk_solvent_model .eq. 'opt' ) then
          if (mod(nstep, mask_update_frequency) == 0) then

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -37,6 +37,12 @@
 
 #if defined(__GNUC__) && !defined(__AVX__) /* sanity check */
 #error "compiling simd-avx.h without -mavx"
+#endif
+
+#ifdef _MSC_VER
+#ifndef inline
+#define inline __inline
+#endif
 #endif
 
 #include <immintrin.h>
@@ -76,6 +82,20 @@ static inline void STA(R *x, V v, INT ovs, const R *aligned_like)
 
 #if FFTW_SINGLE
 
+#  ifdef _MSC_VER
+     /* Temporarily disable the warning "uninitialized local variable
+	'name' used" and runtime checks for using a variable before it is
+	defined which is erroneously triggered by the LOADL0 / LOADH macros
+	as they only modify VAL partly each. */
+#    ifndef __INTEL_COMPILER
+#      pragma warning(disable : 4700)
+#      pragma runtime_checks("u", off)
+#    endif
+#  endif
+#  ifdef __INTEL_COMPILER
+#    pragma warning(disable : 592)
+#  endif
+
 #define LOADH(addr, val) _mm_loadh_pi(val, (const __m64 *)(addr))
 #define LOADL(addr, val) _mm_loadl_pi(val, (const __m64 *)(addr))
 #define STOREH(addr, val) _mm_storeh_pi((__m64 *)(addr), val)
@@ -101,6 +121,16 @@ static inline V LD(const R *x, INT ivs, const R *aligned_like)
      return v;
 }
 
+#  ifdef _MSC_VER
+#    ifndef __INTEL_COMPILER
+#      pragma warning(default : 4700)
+#      pragma runtime_checks("u", restore)
+#    endif
+#  endif
+#  ifdef __INTEL_COMPILER
+#    pragma warning(default : 592)
+#  endif
+
 static inline void ST(R *x, V v, INT ovs, const R *aligned_like)
 {
      __m128 h = _mm256_extractf128_ps(v, 1);
@@ -114,8 +144,21 @@ static inline void ST(R *x, V v, INT ovs, const R *aligned_like)
      STOREL(x, l);
 }
 
-#define STM2 ST
-#define STN2(x, v0, v1, ovs) /* nop */
+#define STM2(x, v, ovs, aligned_like) /* no-op */
+static inline void STN2(R *x, V v0, V v1, INT ovs)
+{
+    V x0 = VSHUF(v0, v1, SHUFVALS(0, 1, 0, 1));
+    V x1 = VSHUF(v0, v1, SHUFVALS(2, 3, 2, 3));
+    __m128 h0 = _mm256_extractf128_ps(x0, 1);
+    __m128 l0 = _mm256_castps256_ps128(x0);
+    __m128 h1 = _mm256_extractf128_ps(x1, 1);
+    __m128 l1 = _mm256_castps256_ps128(x1);
+
+    *(__m128 *)(x + 3*ovs) = h1;
+    *(__m128 *)(x + 2*ovs) = h0;
+    *(__m128 *)(x + 1*ovs) = l1;
+    *(__m128 *)(x + 0*ovs) = l0;
+}
 
 #define STM4(x, v, ovs, aligned_like) /* no-op */
 #define STN4(x, v0, v1, v2, v3, ovs)				\
@@ -209,8 +252,30 @@ static inline V FLIP_RI(V x)
 
 static inline V VCONJ(V x)
 {
-     V pmpm = VLIT(-0.0, 0.0);
-     return VXOR(pmpm, x);
+     /* Produce a SIMD vector[VL] of (0 + -0i). 
+
+        We really want to write this:
+
+           V pmpm = VLIT(-0.0, 0.0);
+
+        but historically some compilers have ignored the distiction
+        between +0 and -0.  It looks like 'gcc-8 -fast-math' treats -0
+        as 0 too.
+      */
+     union uvec {
+          unsigned u[8];
+          V v;
+     };
+     static const union uvec pmpm = {
+#ifdef FFTW_SINGLE
+          { 0x00000000, 0x80000000, 0x00000000, 0x80000000,
+            0x00000000, 0x80000000, 0x00000000, 0x80000000 }
+#else
+          { 0x00000000, 0x00000000, 0x00000000, 0x80000000,
+            0x00000000, 0x00000000, 0x00000000, 0x80000000 }
+#endif
+     };
+     return VXOR(pmpm.v, x);
 }
 
 static inline V VBYI(V x)

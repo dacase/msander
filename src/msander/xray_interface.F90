@@ -19,7 +19,7 @@ module xray_interface_module
    !  sander.f:   call xray_fini()
 
    use xray_globals_module
-   use bulk_solvent_mod, only: k_sol, b_sol
+   use bulk_solvent_module, only: k_sol, b_sol
    implicit none
    private
 
@@ -102,7 +102,7 @@ contains
    end subroutine xray_read_mdin
 
    subroutine xray_write_options()
-      use bulk_solvent_mod, only: k_sol, b_sol
+      use bulk_solvent_module, only: k_sol, b_sol
       implicit none
 
       write(stdout,'(/,A)') 'X-ray Refinement Parameters:'
@@ -320,14 +320,11 @@ contains
       integer, save :: ires = 1
       integer :: i,j
       lname = adjustl(name)
-      ! first find the matching residue:
-      !   (comparing just the first two letters of the residue name
-      !    allows for CYS/CYX and HIS/{HIP,HID,HIE} mismatches
+      ! first find the matching residue: (ignore resName!)
       do i=1,num_residues
          if (resSeq==residue_number(ires) &
                .and. chainID==residue_chainid(ires) &
-               .and. iCode==residue_icode(ires) &
-               .and. resName(1:2)==residue_label(ires)(1:2)) then
+               .and. iCode==residue_icode(ires)) then
             ! then find the matching atom name:
             do j = residue_pointer(ires),residue_pointer(ires+1)-1
                if (lname==atom_name(j)) then
@@ -459,18 +456,16 @@ contains
       use xray_fourier_module, only: get_mss4
       use findmask, only: atommask
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd
-      use ml_mod, only: init_ml, init_scales
-      use bulk_solvent_mod, only: init_bulk_solvent, f_mask
+      use ml_module, only: init_ml, init_scales
+      use bulk_solvent_module, only: init_bulk_solvent, f_mask, f_solvent
       implicit none
       ! local
       integer :: hkl_lun, i, ier, alloc_status, nstlim = 1, NAT_for_mask1
-      double precision :: resolution, fabs_solvent, phi_solvent
-      double precision :: a,b,c,alpha,beta,gamma
+      real(real_kind) :: resolution, fabs_solvent, phi_solvent
+      real(real_kind) :: a,b,c,alpha,beta,gamma
       real(real_kind) :: phi
       logical :: master
-      ! following is local: copied into f_mask in this routine, after
-      !     f_mask itself is allocated.  (could be simplified)
-      complex(real_kind), allocatable, save :: f_solvent(:)
+      real(real_kind) :: time0, time1
 #ifdef MPI
 #     include "parallel.h"
 #else
@@ -489,7 +484,7 @@ contains
         call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
       else
         if( master ) &
-          write(6,'(a)') ' getting box info from bottom of ',trim(inpcrd)
+          write(6,'(a,a)') ' getting box info from bottom of ',trim(inpcrd)
         call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
       endif
 
@@ -532,9 +527,12 @@ contains
       !  if target /= "vls"  reals are Fobs, sigFobs (for diffraction)
       !  if target == "vls", reals are Fobs, phiFobs (for cryoEM)
 
+      !  further, if user_fmask is set, each line has two additional
+      !  reals, giving fabs_solvent and phi_solvent
+
       if( user_fmask ) then
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
                fabs_solvent, phi_solvent
             phi_solvent = phi_solvent * 0.0174532925d0
@@ -545,25 +543,29 @@ contains
          end do
       else
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
             test_flag(i) = min(test_flag(i),1)
             f_weight(i) = 1._rk_/(2._rk_*sigFobs(i)**2)
          end do
       endif
+
       ! 'ls' is an unweighted least-squares target; use 'wls' for
       !    weighted least-squares
-      if( target(1:2) == 'ls' .or. target == 'vls' ) f_weight(:) = 1.0_rk_
+      if( target(1:2) == 'ls' ) f_weight(:) = 1.0_rk_
 
       ! set up complex Fobs(:), if vector target is requested
       if( target(1:3) == 'vls' ) then
          allocate(Fobs(num_hkl),stat=alloc_status)
          REQUIRE(alloc_status==0)
+!$omp parallel do  private(phi)
          do i = 1,num_hkl
-            !  sigFobs() here is assumed to be really phi()
+            !  sigFobs() here is assumed to be really phi(), in degrees
             phi = sigFobs(i) * 0.0174532925d0
             Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
          end do
+!$omp end parallel do
+         ! f_weight(:) = 1.d0
       endif
 
       ! if( fft_method > 0 ) call FFT_setup()
@@ -572,9 +574,11 @@ contains
             igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
             lbres=ih(m02),crd=x(lcrd), &
             maskstr=atom_selection_mask,mask=atom_selection)
+
       NAT_for_mask1 = sum(atom_selection)
       if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
            ' atoms in ', trim(atom_selection_mask)
+      REQUIRE( NAT_for_mask1 .gt. 0 )
       !  also ignore any atoms with zero occupancy:
       do i=1,natom
          if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
@@ -590,28 +594,18 @@ contains
             maskstr=solute_selection_mask,mask=solute_selection)
       if( master ) write(6,'(a,i6,a,a)') 'Found ',sum(solute_selection), &
            ' atoms in ', trim(solute_selection_mask)
+      REQUIRE( sum(solute_selection) .gt. 0 )
 
-      if( target(1:2)=='ml' .or. bulk_solvent_model=='opt') then
-         call init_ml(target, nstlim, d_star_sq, resolution)
-      else
-         if( bulk_solvent_model/='none' .and. resolution_high==0.d0 ) then
-            write(6,'(a)') 'Error: resolution_high must be set in &xray'
-            call mexit(6,1)
-         end if
-         resolution = resolution_high
-      end if
+      call init_ml(target, nstlim, d_star_sq, resolution)
+      call init_bulk_solvent(resolution)
 
-      if( bulk_solvent_model /= 'none' ) call init_bulk_solvent(resolution)
-
-      if( user_fmask ) then
-         if (mytaskid ==  0) write(6,'(a)') '| setting f_mask to f_solvent'
-         f_mask(:) = f_solvent(:)
-         deallocate( f_solvent )
-      endif
       call get_mss4(num_hkl, hkl_index, mSS4 )
 
       return
       1 continue
+      write(stdout,'(A)') 'End-of-file reading HKL file.'
+      call mexit(stdout,1)
+      2 continue
       write(stdout,'(A)') 'Error reading HKL file.'
       call mexit(stdout,1)
    end subroutine xray_init
@@ -657,10 +651,12 @@ contains
 
    ! Write X-ray output files and deallocate.
    subroutine xray_fini()
+      use bulk_solvent_module, only : k_mask, f_mask
       implicit none
 #     include "extra.h"
       ! local
       integer :: dealloc_status, i
+      real(real_kind) :: phicalc, phimask
 
       if (.not.xray_active) return
 
@@ -711,17 +707,23 @@ contains
 #  endif
             end do
          else
-            write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+            write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
                'd',achar(9),'fobs',achar(9),'sigfobs',achar(9), &
-               'fcalc',achar(9),'rfree-flag'
-            write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-               '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',achar(9),'3N'
+               'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag', achar(9), &
+               'k_scale'
+            write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+               '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',&
+               achar(9),'15N',achar(9),'3N',achar(9),'15N'
             do i=1,num_hkl
-               write(20,'(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,i1)') &
+               phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+               phimask = atan2( aimag(f_mask(i)), real(f_mask(i)) ) * 57.2957795d0
+               write(20,&
+         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3)') &
                 hkl_index(1,i), &
-                achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-                1./sqrt(d_star_sq(i)),achar(9),abs_Fobs(i), achar(9), &
-                sigFobs(i),achar(9),abs(Fcalc(i)),achar(9), test_flag(i)
+                achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
+                1./sqrt(d_star_sq(i)), achar(9),abs_Fobs(i), achar(9), &
+                sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
+                achar(9), test_flag(i), achar(9), k_scale(i) 
             end do
          endif
          close(20)
@@ -804,6 +806,8 @@ contains
 
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(xyz, deriv=dF, residual=r_work, xray_energy=xray_energy)
+         write(6, '(a,f15.5)') '| xray_energy: ', &
+              xray_weight * xray_energy - xray_offset
       else if( target(1:2) == 'ls' .or. target(1:3) == 'wls' ) then
          call dTargetLS_dF(xyz, selected=test_flag, deriv=dF, &
                            xray_energy=xray_energy)

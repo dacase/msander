@@ -3,10 +3,11 @@ This module contains classes regarding the Amoeba potential and loading in a
 TINKER-based parameter file.
 """
 import logging
+from ..utils.six.moves import range
+from ..exceptions import TinkerError, TinkerWarning
+from collections import OrderedDict
 import re
 import warnings
-from collections import OrderedDict
-from ..exceptions import TinkerError, TinkerWarning
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class BookmarkedFile(object):
         try:
             self._stream.close()
         except:
-            LOGGER.exception("Unexpected error closing BookmarkedFile")
+            pass
 
 def _IS_INT(thing):
     try:
@@ -45,7 +46,9 @@ def _IS_FLOAT(thing):
     except ValueError:
         return False
 
-class _ParamType:
+#==============================================================================
+
+class _ParamType(object):
     " All parameter types. This caches the list of parameters for easy access "
     TypeList = dict()
     _param_type = ''
@@ -57,7 +60,7 @@ class _ParamType:
     @classmethod
     def register(cls, obj, key):
         if key in cls.TypeList:
-            warnmsg = f'Duplicate {cls._param_type} type found: {key}'
+            warnmsg = 'Duplicate %s type found: %s' % (cls._param_type, key)
             if cls.TypeList[key] == obj:
                 warnmsg += ' [same parameters]'
             else:
@@ -76,17 +79,17 @@ class _ParamType:
         """ Make sure all attributes are the same """
         cls = type(self)
         if not isinstance(other, type(self)):
-            raise TypeError(f'cannot compare type {type(self)} to type {type(other)}')
+            raise TypeError('cannot compare type %s to type %s' %
+                            (type(self), type(other)))
         for prop in dir(cls):
-            if prop.startswith('_') or prop == 'TypeList':
-                continue
+            if prop.startswith('_') or prop == 'TypeList': continue
             # Skip all callable attributes
-            if hasattr(getattr(self, prop), '__call__'):
-                continue
-            if getattr(self, prop) != getattr(other, prop):
-                return False
+            if hasattr(getattr(self, prop), '__call__'): continue
+            if getattr(self, prop) != getattr(other, prop): return False
 
         return True
+
+#==============================================================================
 
 class _BondType(_ParamType):
     """ Bond parameter type """
@@ -95,13 +98,15 @@ class _BondType(_ParamType):
     _param_type = 'bond'
 
     def __init__(self, idx1, idx2, k, req):
-        idx1, idx2, = sorted((int(idx1), int(idx2)))
+        idx1, idx2, = int(idx1), int(idx2)
         self.k, self.req = float(k), float(req)
-        key = f'{idx1}-{idx2}'
+        key = '%d-%d' % (min(idx1, idx2), max(idx1, idx2))
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_BondType: k={self.k}; req={self.req}>'
+        return '<_BondType: k=%s; req=%s>' % (self.k, self.req)
+
+#==============================================================================
 
 def get_angle_type(typecode, *args, **kwargs):
     """ Factory that returns the appropriate angle type """
@@ -116,8 +121,7 @@ class _AngleType(_ParamType):
 
     def __init__(self, idx1, idx2, idx3, k, theteq, theteq2=None, theteq3=None):
         idx1, idx2, idx3 = int(idx1), int(idx2), int(idx3)
-        idx1, idx3 = sorted((idx1, idx3))
-        key = f'{idx1}-{idx2}-{idx3}'
+        key = '%d-%d-%d' % (min(idx1, idx3), idx2, max(idx1, idx3))
         self.k, self.theteq = float(k), float(theteq)
 
         if theteq2 is not None:
@@ -132,26 +136,26 @@ class _AngleType(_ParamType):
         self.register(self, key)
 
     def __repr__(self):
-        retval = f"<_AngleType: k={self.k}; theteq={self.theteq}"
+        retval = "<_AngleType: k=%s; theteq=%s" % (self.k, self.theteq)
         if self.theteq2 is not None:
-            retval += f'; theteq2={self.theteq2}'
+            retval += '; theteq2=%s' % self.theteq2
         if self.theteq3 is not None:
-            retval += f'; theteq3={self.theteq3}'
+            retval += '; theteq3=%s' % self.theteq3
         return retval + '>'
 
 class _FourierAngleType(_AngleType):
 
     def __init__(self, idx1, idx2, idx3, k, theteq, periodicity):
         idx1, idx2, idx3 = int(idx1), int(idx2), int(idx3)
-        idx1, idx3 = sorted((idx1, idx3))
-        key = f'{idx1}-{idx2}-{idx3}'
+        key = '%d-%d-%d' % (min(idx1, idx3), idx2, max(idx1, idx3))
         self.k = float(k)
         self.theteq = float(theteq)
         self.periodicity = float(periodicity)
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_FourierAngleType: k={self.k}; theteq={self.theteq}; periodicity={self.periodicity}>'
+        return '<_FourierAngleType: k=%s; theteq=%s; periodicity=%s>' % (
+                    self.k, self.theteq, self.periodicity)
 
 class _StretchBendType(_AngleType):
    
@@ -160,13 +164,12 @@ class _StretchBendType(_AngleType):
 
     def __init__(self, idx1, idx2, idx3, k1, k2):
         idx1, idx2, idx3 = int(idx1), int(idx2), int(idx3)
-        idx1, idx3 = sorted((idx1, idx3))
-        key = f'{idx1}-{idx2}-{idx3}'
+        key = '%d-%d-%d' % (min(idx1, idx3), idx2, max(idx1, idx3))
         self.k1, self.k2 = float(k1), float(k2)
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_StretchBendType: k1={self.k1}; k2={self.k2}>'
+        return '<_StretchBendType: k1=%s; k2=%s>' % (self.k1, self.k2)
 
 class _UreyBradleyType(_AngleType):
    
@@ -175,13 +178,14 @@ class _UreyBradleyType(_AngleType):
 
     def __init__(self, idx1, idx2, idx3, k, req):
         idx1, idx2, idx3 = int(idx1), int(idx2), int(idx3)
-        idx1, idx3 = sorted((idx1, idx3))
-        key = f'{idx1}-{idx2}-{idx3}'
+        key = '%d-%d-%d' % (min(idx1, idx3), idx2, max(idx1, idx3))
         self.k, self.req = float(k), float(req)
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_UreyBradleyType: k={self.k}; req={self.req}>'
+        return '<_UreyBradleyType: k=%s; req=%s>' % (self.k, self.req)
+
+#==============================================================================
 
 class _OPBendType(_ParamType):
 
@@ -190,13 +194,14 @@ class _OPBendType(_ParamType):
 
     def __init__(self, idx1, idx2, idx3, idx4, k):
         idx1, idx2, idx3, idx4 = int(idx1), int(idx2), int(idx3), int(idx4)
-        idx3, idx4 = sorted((idx3, idx4))
         self.k = float(k)
-        key = f'{idx1}-{idx2}-{idx3}-{idx4}'
+        key = '%d-%d-%d-%d' % (idx1, idx2, min(idx3, idx4), max(idx3, idx4))
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_OPBendType: k={self.k}>'
+        return '<_OPBendType: k=%s>' % self.k
+
+#==============================================================================
 
 class _DihedralType(_ParamType):
 
@@ -206,9 +211,9 @@ class _DihedralType(_ParamType):
     def __init__(self, idx1, idx2, idx3, idx4, *args):
         idx1, idx2, idx3, idx4 = int(idx1), int(idx2), int(idx3), int(idx4)
         if idx2 < idx3 or (idx2 == idx3 and (idx1 < idx4 or idx1 == idx4)):
-            key = f'{idx1}-{idx2}-{idx3}-{idx4}'
+            key = '%d-%d-%d-%d' % (idx1, idx2, idx3, idx4)
         elif idx2 > idx3 or (idx2 == idx3 and idx1 > idx4):
-            key = f'{idx4}-{idx3}-{idx2}-{idx1}'
+            key = '%d-%d-%d-%d' % (idx4, idx3, idx2, idx1)
         self.k, self.phase, self.periodicity = [], [], []
         for i in range(len(args)//3):
             self.k.append(float(args[i*3]))
@@ -217,7 +222,8 @@ class _DihedralType(_ParamType):
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_DihedralType: k={self.k}; phase={self.phase}; per={self.periodicity}>'
+        return '<_DihedralType: k=%r; phase=%r; per=%r>' % (self.k, self.phase,
+                self.periodicity)
 
 class _PiTorsionType(_ParamType):
 
@@ -225,13 +231,13 @@ class _PiTorsionType(_ParamType):
     _param_type = 'pi-torsion'
 
     def __init__(self, idx1, idx2, k):
-        idx1, idx2 = sorted((int(idx1), int(idx2)))
-        key = f'{idx1}-{idx2}'
+        idx1, idx2 = int(idx1), int(idx2)
+        key = '%d-%d' % (min(idx1, idx2), max(idx1, idx2))
         self.k = float(k)
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_PiTorsionType: k={self.k}>'
+        return '<_PiTorsionType: k=%s>' % self.k
 
 class _TorsionTorsionType(_ParamType):
 
@@ -240,7 +246,7 @@ class _TorsionTorsionType(_ParamType):
 
     def __init__(self, indexes, nx, ny):
         indexes = (int(i) for i in indexes)
-        key = '{}-{}-{}-{}-{}'.format(*indexes)
+        key = '%d-%d-%d-%d-%d' % tuple(indexes)
         self.nx, self.ny = int(nx), int(ny)
         self.potential_grid = OrderedDict()
         self.register(self, key)
@@ -249,7 +255,9 @@ class _TorsionTorsionType(_ParamType):
         self.potential_grid[(float(x), float(y))] = float(potential)
 
     def __repr__(self):
-        return f'<_TorsionTorsion: {self.nx} x {self.ny} potential grid>'
+        return '<_TorsionTorsion: %d x %d potential grid>' % (self.nx, self.ny)
+
+#==============================================================================
 
 class _MultipoleType(_ParamType):
 
@@ -263,11 +271,13 @@ class _MultipoleType(_ParamType):
         self.register(self, key)
 
     def __repr__(self):
-        return f'<_MultipoleType: terms={self.potential_terms}>'
+        return '<_MultipoleType: terms=%r>' % self.potential_terms
 
     def add_terms(self, terms):
         for term in terms:
             self.potential_terms.append(float(term))
+
+#==============================================================================
 
 def get_atom_type(index, atomic_number, mass, valence):
     """
@@ -346,9 +356,11 @@ class _Atom(object):
         self.connected_types = [int(i) for i in connected_types]
 
     def __repr__(self):
-        retstr = f'<_Atom "{self.description}": name={self.name}; type={self.typeindex}'
+        retstr = '<_Atom "%s": name=%s; type=%d' % (
+                            self.description, self.name, self.typeindex)
         if hasattr(self, 'polarizability'):
-            retstr += f'; dipole pol={self.polarizability}; thole={self.thole}; connected atoms={self.connected_types}'
+            retstr += '; dipole pol=%s; thole=%s; connected atoms=%r' % (
+                        self.polarizability, self.thole, self.connected_types)
         return retstr+'>'
 
     @classmethod
@@ -437,7 +449,8 @@ class AmoebaParameterSet(object):
         while line.lstrip()[:5].lower() == 'atom ':
             rematch = self.atomre.match(line)
             num, typenum, name, descrip, anum, mass, val = rematch.groups()
-            self.atoms[int(num)] = _Atom(int(num),typenum, name, descrip, anum, mass, val)
+            self.atoms[int(num)] = _Atom(int(num),typenum, name, descrip,
+                                                 anum, mass, val)
             line = f.readline().replace('\t', ' ')
         # Now parse out the van der waals terms
         while line.lstrip()[:4].lower() != 'vdw ':

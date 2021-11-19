@@ -49,7 +49,6 @@ Journal of the American Chemical Society doi:10.1021/jacs.8b11474
 #include "metaFFT/ConvCorr.hpp"
 
 
-
 template <typename T>
 class Density{
     
@@ -179,7 +178,6 @@ private:
     bool readany;
     
     // name of the dataset
-    
     std::string dataname, species, residue;
     
     std::string chemicalspecies;
@@ -192,15 +190,9 @@ private:
     Tvec a,b,c;
 
     // metric tensors
-
     Tmat metrictensor, imetrictensor;
-
     size_t count;
-    
-    
-    
 };
-
 
 template <typename T>
 Density<T>::Density(const std::vector <std::string> & filenames , const std::vector<std::string> & cspecies) {
@@ -225,8 +217,8 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
                 this->readany = true;
                 count++;
             }
-        } else if ( ext=="bz2")
-        {
+
+        } else if ( ext=="bz2") {
             
             if (ext1=="dx"){
                 
@@ -237,9 +229,8 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
                 }
             }
             
-        }
-        else if ( ext=="gz")
-        {
+        } else if ( ext=="gz") {
+
             if (ext1=="dx") {
                 if (util::files::readdxgz(filename, this->orig,this->rotm,this->data3d)){
                     // std::cout << "# >> Read density from: " << filename << std::endl ;
@@ -255,12 +246,8 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
                     this->readany = true;
                     count++;
                 }
-                
             }
-        }
-        
-        else if ( ext=="xyzv")
-        {
+        } else if ( ext=="xyzv") {
             
             if (util::files::readxyzv(filename, this->orig,this->rotm,this->data3d)){
                 //std::cout << "# >> Read density from: " << filename << std::endl ;
@@ -268,49 +255,25 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
                 count++;
             }
             
-        }
-        
-        else if ( ext=="ccp4" || ext=="mrc" )
-        {
+        } else if ( ext=="ccp4" || ext=="mrc" ) {
 
             if (util::files::readccp4(filename, this->orig,this->rotm,this->data3d)){
                 //std::cout << "# >> Read density from: " << filename << std::endl ;
                 this->readany = true;
                 count++;
             }
-        }
-        
-        else {
+        } else {
             std::cout << "Wrong extension!" << std::endl;
-            
         }
-        
     }
-    
-    
     
     if (this->readany == false){
         std::cout << "# Density data is empty!" << std::endl;
     }
     
-    
-    
- //   // taking an average in the case of multiple input densities
- //   if (count > 1) {
- //
- //       // std::cout << "# Averaging out the input densities!" << std::endl;
- //
- //       for (size_t i = 0; i != this->data3d.num_elements(); ++i) {
- //
- //           this->data3d.data()[i] = this->data3d.data()[i]/count;
- //       }
- //   }
-    
     if (this->readany == true) {
 
-
         if(!(util::InvertMatrix(rotm,irotm))){std::cout << "#>> Unable to inverted rot matrix." << std::endl ;};
-
 
         // compute voxel volume
         
@@ -326,8 +289,6 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         } else {
             this->residue = this->species;
         }
-        
-        
         this->bulkc = 1.00;
         
         this->Vvox = std::abs((-this->rotm(0,2)*this->rotm(1,1) + this->rotm(0,1)*this->rotm(1,2))*this->rotm(2,0) +
@@ -354,15 +315,11 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         this->reciprc(1)=( this->rotm(0,2)*this->rotm(1,0) - this->rotm(0,0)*this->rotm(1,2))*xdim*ydim/this->Vol;
         this->reciprc(2)=(-this->rotm(0,1)*this->rotm(1,0) + this->rotm(0,0)*this->rotm(1,1))*xdim*ydim/this->Vol;
 
-
-
-
         // compute metric tensors
         this->metrictensor.resize(3,3);
         this->imetrictensor.resize(3,3);
 
        // this->imetrictensor * = 0;
-
 
         //Tmat imetrictensor(3,3,0);
         this->imetrictensor = this->rotm;
@@ -371,9 +328,6 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         im = ublas::prod(im, ublas::trans(im));
         this->metrictensor = im;
         util::InvertMatrix(im,this->imetrictensor);
-
-
-        
         
         // compute real vectors
 
@@ -385,9 +339,6 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         this->c.resize(3); this->c(0) = tmp(0,2); this->c(1) = tmp(1,2); this->c(2) = tmp(2,2);
 
         // a, b, c, angles
-        
-        
-        
         std::vector<std::string> stokens;
         stokens =  boost::copy_range<std::vector<std::string>>
         (filenames[0] |boost::adaptors::tokenized( std::string("(\\.dx)|(\\.ccp4)|(\\.mrc)|(\\.xyzv)"), -1 ) );
@@ -399,8 +350,6 @@ Density<T>::Density(const std::vector <std::string> & filenames , const std::vec
         std::cout << "#\n#\n#" << std::endl;
     }
 }
-
-
 
 template <typename T>
 void Density<T>::printDetails(){
@@ -484,12 +433,6 @@ T Density<T>::getper(const Tvec & xyz){
                          );
 
 }
-
-
-
-
-
-
 
 template <typename T>
 T Density<T>::get(const Tvec & xyz){
@@ -587,11 +530,7 @@ void Density<T>::getProjXYZ(Tvec & projx, Tvec & projy, Tvec & projz, const T & 
     std::cout << "# Sum y: " <<  std::setprecision (15) <<  ublas::sum(projy) << " " << projy.size() << std::endl;
     std::cout << "# Sum z: " <<  std::setprecision (15) <<  ublas::sum(projz) << " " << projz.size() << std::endl;
     
-    
-    
-    
 }
-
 
 template <typename T>
 void Density<T>::convolutex(const T & sigma, const size_t convtype){
@@ -727,24 +666,14 @@ void Density<T>::convolutex(const T & sigma, const size_t convtype){
             }
         }
         
-        
     } else {
-        
         std::cout << "# This filter has not been implemented yet." << std::endl;
-        
         //return 1;
     }
     
-    
-    
-    
-    
-    
-
-    
     // A is the delta function, used to shift filter to zero
     
-    //A[xdim-dh][ydim-dh][zdim-dh] = 1.0;
+    // A[xdim-dh][ydim-dh][zdim-dh] = 1.0;
     A[xdim-dhx][ydim-dhy][zdim-dhz] = 1.0;
     // inplace convolution, overwrite B
     metafft::convolution(B,A);
@@ -752,21 +681,9 @@ void Density<T>::convolutex(const T & sigma, const size_t convtype){
     // inplace convolution, overwrite data3d
     metafft::convolution(this->data3d,B);
     
-   // for (size_t i = 0; i!= data3d.num_elements();++i){
-   //
-   //     this->data3d.data()[i] *= this->bulkc;
-   // }
-    
-    
-    
-    
-    
-    
-    
 }
 
-
-/*
+#if 0
 template <typename T>
 void Density<T>::convolute(const T & sigma, const size_t convtype){
     
@@ -908,14 +825,10 @@ void Density<T>::convolute(const T & sigma, const size_t convtype){
     metafft::convolution(this->data3d,B);
     
 }
-*/
-
-
+#endif
 
 template <typename T>
 void Density<T>::getRhoElReal(){
-
-
 
   std::cout << "#\n#\n# Computing electron distribution" << std::endl;
   std::cout << "#    Particle Distribution: " << this->dataname << std::endl;
@@ -1006,10 +919,8 @@ void Density<T>::getRhoElReal(){
 template <typename T>
 void Density<T>::getRhoEl( ){
 
-
   std::cout << "#\n#\n# Computing electron density" << std::endl;
   std::cout << "#    Particle Distribution: " << this->dataname << std::endl;
-
 
   if (scattering::themap.count(this->species) > 0 ){
 
@@ -1091,7 +1002,6 @@ void Density<T>::getRhoEl( ){
     
 }
 
-
 template <typename T>
 void Density<T>::cutResolution(const T & min, const T & max){
 
@@ -1157,9 +1067,6 @@ void Density<T>::cutResolution(const T & min, const T & max){
 
 }
 
-
-
-
 template <typename T>
 void Density<T>::nlogtrans(){
     // check whether all the values are positive
@@ -1187,56 +1094,49 @@ void Density<T>::nlogtrans(){
     }
 }
 
-
-
 template <typename T>
 void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
 
-  T min =  *std::min_element(laplacian.data3d.data(),laplacian.data3d.data()+laplacian.data3d.num_elements()) ;
+    T min =  *std::min_element(laplacian.data3d.data(),laplacian.data3d.data()+laplacian.data3d.num_elements()) ;
 
+    std::cout <<"#\n# Laplacian analysis for a periodic system." << std::endl;
+    std::cout << "# Volumetric data (rho): " << this->getName() << std::endl;
+    std::cout << "# Laplacian L[rho]: " << laplacian.getName() << std::endl;
+    std::cout << "# Considering zones with L[rho] < " << threshold << " * min(L[rho]) i.e. "<< min  << "." << std::endl;
+    min *= threshold;
+    std::cout << "# Considering zones with L[rho] < " << min << " [rho unit]/A^3" << std::endl;
+    std::cout << "#\n#\n#" << std::endl;
 
-  std::cout <<"#\n# Laplacian analysis for a periodic system." << std::endl;
-  std::cout << "# Volumetric data (rho): " << this->getName() << std::endl;
-  std::cout << "# Laplacian L[rho]: " << laplacian.getName() << std::endl;
-  std::cout << "# Considering zones with L[rho] < " << threshold << " * min(L[rho]) i.e. "<< min  << "." << std::endl;
-  min *= threshold;
-  std::cout << "# Considering zones with L[rho] < " << min << " [rho unit]/A^3" << std::endl;
-  std::cout << "#\n#\n#" << std::endl;
+    std::vector<std::vector<int>> lindeces;
+    std::vector<double> vdensities, vlaplacian ;
 
+    typedef typename Tarray::index index;
+    index xdim = this->data3d.shape()[0];
+    index ydim = this->data3d.shape()[1];
+    index zdim = this->data3d.shape()[2];
 
-  std::vector<std::vector<int>> lindeces;
-  std::vector<double> vdensities, vlaplacian ;
+    // (1) filter the vertices to be included based on the supplied Laplacian 
+    //     threshold and based on the value of density, as some crystal 
+    //     densities contain negative values
 
-  typedef typename Tarray::index index;
-  index xdim = this->data3d.shape()[0];
-  index ydim = this->data3d.shape()[1];
-  index zdim = this->data3d.shape()[2];
+    for (int i = 0 ; i != xdim; ++i){
+        for (int j = 0; j!=ydim; ++j){
+            for (int k = 0; k != zdim; ++k){
+                Tvec v(3,0);
+                v(0) = i;
+                v(1) = j;
+                v(2) = k;
 
+                v = ublas::prod(this->rotm,v) + this->orig;
 
-  //std::cout << "Latice has: "<< xdim <<"x"<<ydim<<"x"<<zdim << std::endl;
+                double td  = this->data3d[i][j][k];
+                double th = laplacian.get(v) ;
 
-
-
-  // (1) filter the vertices to be included based on the supplied laplacian threshold
-  // and based on the value of density as some crystal densities contain negative values
-  for (int i = 0 ; i != xdim; ++i){
-      for (int j = 0; j!=ydim; ++j){
-          for (int k = 0; k != zdim; ++k){
-              Tvec v(3,0);
-              v(0) = i;
-              v(1) = j;
-              v(2) = k;
-
-              v = ublas::prod(this->rotm,v) + this->orig;
-
-              double td  = this->data3d[i][j][k];
-              double th = laplacian.get(v) ;
-
-              if (th < min and td >= 0) {
-                  std::vector<int> vv = {i, j, k};
-                  lindeces.push_back(vv);
-                  vdensities.push_back(td);
-                  vlaplacian.push_back(th);
+                if (th < min and td >= 0) {
+                    std::vector<int> vv = {i, j, k};
+                    lindeces.push_back(vv);
+                    vdensities.push_back(td);
+                    vlaplacian.push_back(th);
                 }
             }
         }
@@ -1244,6 +1144,7 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
 
     
     // (2) build the adjacency matrix
+
     typedef std::pair<int,int> Edge;
     std::vector<Edge> used_by_v;
     
@@ -1262,22 +1163,18 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
 
             // generating directed graph edges.
             if ( std::abs(tmp0) + std::abs(tmp1) + std::abs(tmp2) <= 3 ) {
-                if (vlaplacian[i] <= vlaplacian[j])
-                {
+                if (vlaplacian[i] <= vlaplacian[j]) {
                     used_by_v.push_back(Edge(j,i));
                 } else {
                     used_by_v.push_back(Edge(i,j));
                 }
             }
-            
-            
         }
     }
-    
-    
 
     // (3) Init directed and undirected graphs to help
-    // separate graph in connected components and map critical pointss
+    //     separate graph in connected components and map critical points
+
     typedef boost::adjacency_list
     <
         boost::vecS, boost::vecS, boost::undirectedS,
@@ -1295,8 +1192,9 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
     Graph   g(used_by_v.data(), used_by_v.data() + used_by_v.size(), lindeces.size());
     DGraph dg(used_by_v.data(), used_by_v.data() + used_by_v.size(), lindeces.size());
 
-    // checking wethers vertices are local minima
+    // checking whether vertices are local minima
     // based on the number of outward and inwards edges
+
     std::vector<int> number_out_edges(0), number_in_edges(0);
     boost::graph_traits<DGraph>::vertex_iterator i, end;
     boost::graph_traits<DGraph>::in_edge_iterator ei, edge_end;
@@ -1311,16 +1209,11 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
     }
 
     // separating graph in connected componnets
+
     std::vector<int> component(boost::num_vertices(g));
     int num_comp = boost::connected_components(
-                                               g,
-                                               boost::make_iterator_property_map(
-                                                               component.begin(),
-                                                               boost::get(boost::vertex_index, g)
-                                                                                 )
-                                               );
-    
-    
+               g, boost::make_iterator_property_map( component.begin(),
+               boost::get(boost::vertex_index, g)));
 
     std::string rootname = this->getName()+"-"+laplacian.getName();
     const std::string pdbfilecentr(rootname + "-blobs-centroid.pdb");
@@ -1335,16 +1228,15 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
     T factor = this->bulkc * this->Vvox;
     myfilep.open(pdbfilecentr);
     myfilea.open(pdbfilemean);
-//    myfiled.open(reportfile);
     
-/*myfiled*/std::cout << "# Blob - index" << std::endl;
-/*myfiled*/std::cout << "# Max[x,y,z] - coordinates of the point where density is maximum within the blob." << std::endl;
-/*myfiled*/std::cout << "# Occ[#] - integrated occupancy of the blob. " << std::endl;
-/*myfiled*/std::cout << "# V[A^3] - volume occupied by the blob." << std::endl;
-/*myfiled*/std::cout << "# M[x,y,z] - average position (first moment) of the blob." << std::endl;
-/*myfiled*/std::cout << "# Var[A^2] - average variance (second moment) of the blob." << std::endl;
-/*myfiled*/std::cout << "# rave/max - ration between density at the average position and maximum value of density." << std::endl;
-/*myfiled*/std::cout << boost::format("%-5s%-29s%9s%9s%-29s%9s%10s") %" Blob"%" Max[x,y,z]"%"Occ[#]"%"V[A^3]"%" M[x,y,z]"%"Var[A^2]"%" rave/max[%]" << std::endl;
+    std::cout << "# Blob - index" << std::endl;
+    std::cout << "# Max[x,y,z] - coordinates of the point where density is maximum within the blob." << std::endl;
+    std::cout << "# Occ[#] - integrated occupancy of the blob. " << std::endl;
+    std::cout << "# V[A^3] - volume occupied by the blob." << std::endl;
+    std::cout << "# M[x,y,z] - average position (first moment) of the blob." << std::endl;
+    std::cout << "# Var[A^2] - average variance (second moment) of the blob." << std::endl;
+    std::cout << "# rave/max - ratio between density at the average position and maximum value of density." << std::endl;
+    std::cout << boost::format("%-5s%-29s%9s%9s%-29s%9s%10s") %" Blob"%"    Max[x,y,z]"%"Occ[#]"%"V[A^3]"%"   M[x,y,z]"%"Var[A^2]"%" rave/max" << std::endl;
     
     // index used for pdb output
     int atomindex = 1;
@@ -1354,7 +1246,6 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
 
         // integral over density
         T integral_density = 0;
-        
         
         //T maxvalue = 0.0;
         Tvec maximum_density;
@@ -1380,8 +1271,7 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
                         maxindex = loclmaxima.size()-1;
                     }
                     
-                }
-                else{
+                } else{
                     loclmaxima.push_back(0);
                 }
                 loclindeces.push_back(lindeces[j]);
@@ -1391,7 +1281,8 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
         }
         
         
-        int num_local_maxima = std::accumulate(loclmaxima.begin(),loclmaxima.end(),int(0));
+        int num_local_maxima = 
+            std::accumulate(loclmaxima.begin(),loclmaxima.end(),int(0));
         
         //std::cout << "# local maxima: " << num_local_maxima << std::endl;
         
@@ -1404,14 +1295,11 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
                     maxindex = j;
                 }
             }
-            
             loclmaxima[maxindex] = 1;
         }
 
-
         // wrapping indexes
         for (size_t j = 0; j!=loclindeces.size(); ++j ){
-           // std::cout << loclindeces[j] << " vs " ;
             if (j != maxindex){
                 int tmp0 = loclindeces[maxindex][0] - loclindeces[j][0];
                 int tmp1 = loclindeces[maxindex][1] - loclindeces[j][1];
@@ -1432,9 +1320,6 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
                 temp = tmp2 - zdim;
                 if ( std::abs(temp) < std::abs(tmp2) ) {loclindeces[j][2] += zdim; tmp2=temp;}
             }
-            
-            //std::cout << loclindeces[j] << std::endl;
-            
         }
 
         // with indexes being wrapped, compute wrapped coordinates
@@ -1444,19 +1329,14 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
         }
 
         // average position, first moment
-
         Tvec centroid_density(3,0.0);
-
         for (size_t t = 0;  t != positions.size(); ++t ){
             centroid_density += ( positions[t] * densities[t] )  ;
         }
         centroid_density /= integral_density;
         
-        
         // variance
-
         Tvec variance_density(3,0.0);
-
         for (size_t t = 0;  t != positions.size(); ++t ){
 
             Tvec tmp = positions[t] - centroid_density;
@@ -1467,26 +1347,19 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
             
             variance_density = variance_density + ( tmp * densities[t] )  ;
         }
-        
         variance_density /= integral_density;
         T variance_density_ave = ublas::sum (variance_density)/3.0;
         
         for (size_t t =0; t != loclmaxima.size();++t){
-            //std::cout << this->getper(positions[t]) << " " << positions[t] << " " << loclindeces[t] << std::endl;
             if (loclmaxima[t]==1)
             {
-                // table print
-               // myfiled <<
-                //std::cout << "-----------------" << std::endl;
-                //std::cout << this->getper(centroid_density) << " vs " << this->getper(positions[t]) << std::endl;
-                //std::cout << "---------x-------" << std::endl;
+              // table print
                 std::cout <<
                   boost::format ("%5i (%8.3f %8.3f %8.3f) %8.3f %8.3f (%8.3f %8.3f %8.3f) %8.3f %8.3f")
                   % i % positions[t][0] % positions[t][1] % positions[t][2]
                   % integral_density % (loclindeces.size() * this->Vvox)
                   % centroid_density[0] % centroid_density[1] % centroid_density[2]
                   % (0.515158 * std::pow(-1.0 * this->bulkc * laplacian.getper(positions[t]), -0.4))
-                  % laplacian.getper(positions[t])
                   % ((this->getper(centroid_density) / (maxvalue)))
                 << std::endl;
           
@@ -1496,8 +1369,8 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
                    % "ATOM" % atomindex % this->species % " " % this->residue % "C" % atomindex
                    % positions[t][0] % positions[t][1] % positions[t][2]
                    % integral_density
-                   //% (40.6753 * std::pow(-1.0 * this->bulkc * laplacian.getper(positions[maxindex]), -0.4))
-                   % laplacian.getper(positions[maxindex])
+                   % (40.6753 * std::pow(-1.0 * this->bulkc * laplacian.getper(positions[maxindex]), -0.4))
+                   // % laplacian.getper(positions[maxindex])
                    % this->species
                 << std::endl;
                 
@@ -1507,25 +1380,22 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
                 
             }
         }
+
         // pdb average print
         myfilea  << boost::format("%-6s%5i%4s%2s%3s %1s%4i    %8.3f%8.3f%8.3f%6.2f%6.2f          %2s")
             %"ATOM"%(i+1)%this->species%" "%this->residue%"C"%(i+1)
             //%centroid_density[0]%centroid_density[1]%centroid_density[2]
             % positions[maxindex][0] % positions[maxindex][1] % positions[maxindex][2]
-            //%integral_density% (variance_density_ave * 26.3189)
             %integral_density
-            //% (40.6753 * std::pow(-1.0 * this->bulkc * laplacian.get(positions[maxindex]), -0.4))
-            % laplacian.getper(positions[maxindex])
+            % (8.3776 * 40.6753 * std::pow(-1.0 * this->bulkc * laplacian.get(positions[maxindex]), -0.4))
             %this->species
         << std::endl;
         myfilea << "TER" << std::endl;
-
 
     }
     
     myfilep.close();
     myfilea.close();
-//    myfiled.close();
     
     std::cout << "# Found " << num_comp << " blobs and " << atomindex << " tightly bound modes.\n#\n#" << std::endl;
     std::cout << "# Centroid coordinates in pdb format:" << std::endl;
@@ -1537,7 +1407,6 @@ void Density<T>::blobs_periodic(Density<T> & laplacian, const T & threshold) {
 
 }
 
-
 template <typename T>
 void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bulkc) {
     
@@ -1545,7 +1414,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
     std::cout <<"# ------------------------" << std::endl;
     
     size_t count = 0;
-    
     
     std::vector<std::vector<int>> lindeces;
     std::vector<double> vdensities, vlaplacian ;
@@ -1580,7 +1448,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
         }
     }
     
-    
     // (2) build the adjacency matrix
     typedef std::pair<int,int> Edge;
     std::vector<Edge> used_by_v;
@@ -1593,22 +1460,17 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
             int tmp2 = lindeces[i][2] - lindeces[j][2];
             
             if ( (tmp0*tmp0 + tmp1*tmp1 + tmp2*tmp2) == 1 ) {
-                
                 double t  = this->data3d[lindeces[i][0] ] [ lindeces[i][1]] [ lindeces[i][2]];
                 double u  = this->data3d[lindeces[j][0] ] [ lindeces[j][1]] [ lindeces[j][2]];
-                
                 if ( t >= u ) {
                     used_by_v.push_back(Edge(j,i));
                 }
-                else
-                {
+                else {
                     used_by_v.push_back(Edge(i,j));
                 }
             }
         }
     }
-    
-    
     
     // std::cout << "# Vertices under threshold: " << count << " out of " << xdim * ydim * zdim << "."<< std::endl;
     
@@ -1630,8 +1492,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
     // init graphs
     Graph g(used_by_v.data(), used_by_v.data() + used_by_v.size(), lindeces.size());
     DGraph dg(used_by_v.data(), used_by_v.data() + used_by_v.size(), lindeces.size());
-    
-    
     
     const std::string filenameout("blobs.graphml");
     boost::dynamic_properties dp;
@@ -1657,29 +1517,15 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
     std::vector<int> component(boost::num_vertices(g));
     
     int num_comp = boost::connected_components(
-                                               g,
-                                               boost::make_iterator_property_map(
-                                                                                 component.begin(),
-                                                                                 boost::get(boost::vertex_index, g))
-                                               );
-    
-    
-    // std::cout << "# number of graph components (subgraphs): " << num_comp << std::endl;
-    
+           g, boost::make_iterator_property_map( component.begin(),
+           boost::get(boost::vertex_index, g)));
     
     std::string rootname = this->getName()+"-"+laplacian.getName();
-    
-    //rootname += laplacian.getName();
-    
-    //std::cout << "# >> rootname: " << rootname << std::endl;
-    
-    
     
     //const std::string pdbfile(rootname + "-blobs.pdb");
     const std::string pdbfilecentr(rootname + "-blobs-centroid.pdb");
     const std::string pdbfilemean(rootname + "-blobs-meanposition.pdb");
     const std::string reportfile(rootname + "-blobs-data.dat");
-    
     
     //std::cout << "# "<< pdbfile << "\t contains some information." << std::endl;
     std::cout << "# << "<< pdbfilecentr << ": centroid coordinates in pdb format." << std::endl;
@@ -1691,8 +1537,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
     std::ofstream myfilep;
     std::ofstream myfilea;
     std::ofstream myfiled;
-    
-    
     
     //double voxel_volume = this->rotm(0,0) * this->rotm(1,1) * this->rotm(2,2);
     //double factor = this->bulkc * 6.023 * 0.0001 * this->Vvox;
@@ -1724,18 +1568,12 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
         T maxvalue = 0.0;
         Tvec maximum_density;
         
-        
-        //       T sumweight = 0.0;
-        
         int nvoxels = 0;
         
-        
         // vector to store position (x,y,z)
-        
         std::vector <Tvec> positions;
         
         // vector to store density
-        
         std::vector <double> densities;
         
         // go over each vertex and check whether is in the component
@@ -1750,17 +1588,8 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
                 
                 T weight = factor*vdensities[j] ;
                 
-                
                 positions.push_back(v);
                 densities.push_back(weight);
-                
-                
-                /*
-                myfile <<
-                boost::format("ATOM  %5i  XXX   Y Z %3i    %8.3f%8.3f%8.3f  1.00%6.2f")
-                %j %i %v(0) %v(1) %v(2) %(weight*100)
-                << std::endl;
-                */
                 
                 integral_density += weight;
                 
@@ -1773,34 +1602,19 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
                 // counting the number of voxels
                 ++nvoxels;
             }
-            
-            
-            
         }
-        
-        
         
         for (size_t t = 0;  t != positions.size(); ++t ){
-            
-            centroid_density = centroid_density + ( positions[t] * densities[t] )  ;
-            
+            centroid_density = centroid_density + (positions[t]*densities[t]);
         }
-        
         centroid_density /= integral_density;
         
-        
-        
         for (size_t t = 0;  t != positions.size(); ++t ){
-            
-            
             Tvec tmp = positions[t] - centroid_density;
-            
             tmp(0) = tmp(0) * tmp(0);
             tmp(1) = tmp(1) * tmp(1);
             tmp(2) = tmp(2) * tmp(2);
-            
             variance_density = variance_density + ( tmp * densities[t] )  ;
-            
         }
         
         variance_density /= integral_density;
@@ -1808,7 +1622,6 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
         variance_density(1) = std::sqrt( variance_density(1) );
         variance_density(2) = std::sqrt( variance_density(2) );
         double variance_density_ave = ublas::norm_2(variance_density)* std::sqrt(1.0/3.0);
-        
         
         std::cout << std::fixed << std::setprecision(3) ;
         //myfile << "TER" << std::endl;
@@ -1837,37 +1650,29 @@ void Density<T>::blobs(Density<T> & laplacian, const T & threshold, const T & bu
             << std::endl;
             myfilea << "TER" << std::endl;
         }
-        
-        
     }
     
-    
-    //myfile.close();
     myfilep.close();
     myfilea.close();
     myfiled.close();
     
     std::cout << "#\n# -------------------------\n#" << std::endl;
     
-    
+#if 0
     // Write out the outgoing edges
-    //typename boost::graph_traits<DGraph>::out_edge_iterator out_i, out_end;
-    //typename boost::graph_traits<DGraph>::edge_descriptor e;
+    typename boost::graph_traits<DGraph>::out_edge_iterator out_i, out_end;
+    typename boost::graph_traits<DGraph>::edge_descriptor e;
     
-    //            boost::graph_traits<DGraph>::vertex_iterator v, v_end;
-    /*            for (boost::tie(v,v_end) = boost::vertices(dg); v != v_end; ++v)
-     {
-     std::cout << "(v"<< *v << ")\t" << boost::out_degree(*v,dg) << "\t " << boost::in_degree(*v,dg) << std::endl;
+    boost::graph_traits<DGraph>::vertex_iterator v, v_end;
+    for (boost::tie(v,v_end) = boost::vertices(dg); v != v_end; ++v) {
+        std::cout << "(v"<< *v << ")\t" << boost::out_degree(*v,dg) << "\t " << boost::in_degree(*v,dg) << std::endl;
      }
-     */
-    /*
-     for (boost::tie(v,v_end) = boost::vertices(dg); v != v_end; ++v)
-     {
-     if (boost::out_degree(*v,dg)==0){
-     std::cout << "(local max v "<< *v << " )\t" << boost::out_degree(*v,dg) << "\t " << boost::in_degree(*v,dg) << std::endl;
+     for (boost::tie(v,v_end) = boost::vertices(dg); v != v_end; ++v) {
+         if (boost::out_degree(*v,dg)==0){
+         std::cout << "(local max v "<< *v << " )\t" << boost::out_degree(*v,dg) << "\t " << boost::in_degree(*v,dg) << std::endl;
+         }
      }
-     }
-     */
+#endif
     
 }
 
@@ -1878,7 +1683,6 @@ void Density<T>::writedxfile(const std::string &filenameout){
   stokens =  boost::copy_range<std::vector<std::string>>(filenameout |boost::adaptors::tokenized( std::string("\\."), -1 ) );
   std::string ext;
   ext = stokens[stokens.size()-1];
-
 
   if (ext=="dx") {
 
@@ -1922,10 +1726,7 @@ void Density<T>::writedxfile(const std::string &filenameout){
       this->writeccp4(newfilename);
 
     }
-
 }
-
-
 
 template <typename T>
 void Density<T>::writeccp4(const std::string &filenameout){
@@ -1946,9 +1747,7 @@ void Density<T>::getQDensity(Density<T> & QDensity){
 template <typename T>
 void Density<T>::getLaplacian(Density<T> & LDensity){
     
-    
     // Check if grid sizes and coordinate system match.
-    
     
     std::cout << "# >> Computing numerical Laplacian of input density." << std::endl;
     
@@ -1957,14 +1756,11 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
         && LDensity.getGridSize() == this->getGridSize()
         )
     {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
         
         T factor = this->bulkc * 6.0/std::pow(this->rotm(1,1),2);
-        
-        //std::cout << "factor = " << factor << std::endl;
         
         for (int i = 0; i != isize; ++i){
             int im = i-1, ip=i+1;
@@ -1974,10 +1770,7 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k -1, kp = k+1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0;
                     T d0 = this->data3d[i][j][k];
@@ -1988,41 +1781,19 @@ void Density<T>::getLaplacian(Density<T> & LDensity){
                     if (ip<isize) {count++; depsilon += this->data3d[ip][j ][k ];}
                     if (jp<jsize) {count++; depsilon += this->data3d[i ][jp][k ];}
                     if (kp<ksize) {count++; depsilon += this->data3d[i ][j ][kp];}
-                    
-                    
                     depsilon /= T(count);
-                    
-                    //
-                    //                    if (std::abs(depsilon-d0) > T(1000.0) ){
-                    //
-                    //                        std::cout << i << " " << j << " " << k << " " << depsilon << " - " << d0 << " = " <<(depsilon - d0)*factor << std::endl;
-                    //                    }
-                    
-                    
                     LDensity.set(i,j,k,factor*(depsilon  - d0));
-                    
-                    
                 }
             }
-            
-            
-            
         }
-        
-        
     } else {
         
         std::cout << "# Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
-    
-    
     // go over the interior grid points
-    
     // go over the points at the grid margins
-    
 }
-
 
 template <typename T>
 void Density<T>::getNLaplacian(Density<T> & LDensity){
@@ -2036,15 +1807,11 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
         && LDensity.getGridSize() == this->getGridSize()
         )
     {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
         
         //T factor = 6.0/std::pow(this->rotm(1,1),2);
-        
-        //std::cout << "factor = " << factor << std::endl;
-        
         for (int i = 0; i != isize; ++i){
             int im = i-1, ip=i+1;
             
@@ -2053,10 +1820,7 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k -1, kp = k+1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0.0;
                     T d0 = this->data3d[i][j][k];
@@ -2074,36 +1838,16 @@ void Density<T>::getNLaplacian(Density<T> & LDensity){
                     depsilon = std::max(depsilon,1e-3);
                     
                     T tmp = /*factor * */( 1.0 - ( d0/depsilon ));
-                    
-                    //if ( std::abs(tmp)  > 50) {
-                    //    std::cout << depsilon << " vs " << d0 << " = " << depsilon/std::max(d0,1e-6) << std::endl;
-                    //}
-                    
-                    //T tmp = depsilon/std::max(d0,1e-3);
-                    
                     LDensity.set(i,j,k,tmp);
-                    
                 }
             }
-            
-            
-            
         }
-        
-        
     } else {
         
         std::cout << "Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
-    
-    
-    
-
-    
-    
     // go over the interior grid points
-    
     // go over the points at the grid margins
     
 }
@@ -2112,21 +1856,16 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
     
     // Check if grid sizes and coordinate system match.
     
-    
     std::cout << "# >> Computing numerical Normalized Laplacian of input density." << std::endl;
     
     if (LDensity.getorig() == this->getorig()
         && LDensity.getrotm() == this->getrotm()
         && LDensity.getGridSize() == this->getGridSize()
         ) {
-        //std::cout << "1" << std::endl;
         
         int isize = this->data3d.shape()[0], jsize = this->data3d.shape()[1], ksize = this->data3d.shape()[2];
         
-        
  //       T factor = 6.0 / std::pow(this->rotm(1, 1), 2);
-        
-        //std::cout << "factor = " << factor << std::endl;
         
         for (int i = 0; i != isize; ++i) {
             int im = i - 1, ip = i + 1;
@@ -2136,10 +1875,7 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
                 
                 for (int k = 0; k != ksize; ++k) {
                     int km = k - 1, kp = k + 1;
-                    
-                    
                     size_t count = 0;
-                    
                     
                     T depsilon = 0.0;
                     T d0 = this->data3d[i][j][k];
@@ -2175,33 +1911,14 @@ void Density<T>::getNpLaplacian(Density<T> & LDensity) {
                     depsilon = std::max(depsilon, 1e-3);
                     
                     T tmp =  std::log( std::max(d0/depsilon,1e-8) );
-                    
-                    //if ( std::abs(tmp)  > 50) {
-                    //    std::cout << depsilon << " vs " << d0 << " = " << depsilon/std::max(d0,1e-6) << std::endl;
-                    //}
-                    
-                    //T tmp = depsilon/std::max(d0,1e-3);
-                    
                     LDensity.set(i, j, k, tmp);
-                    
-                    
                 }
             }
-            
-            
         }
         
-        
     } else {
-        
         std::cout << "Laplacian density does not have the same size as the density object. Skipping.`" << std::endl;
         
     }
 }
-
-
-
-
-
-
 #endif /* DENSITY_HPP_ */

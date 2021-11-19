@@ -1,582 +1,429 @@
-cmake_minimum_required(VERSION 3.1)
-project(fftw)
-
-set(fftw_MAJOR_VERSION 3)
-set(fftw_MINOR_VERSION 3)
-set(fftw_PATCH_VERSION 0)
-
-# Amber CMake build file for internal FFTW3
-# File containing some little functions which wrap things which are very verbose in CMake in something a little easier to type
-# Since these functions are used all over the place in the build system, this must be included after Utils.cmake but before anything else.
-
-# allow this build file to work on its own, albeit still inside the Amber source tree
-if(INSIDE_AMBER)
-	# Define to disable Fortran wrappers.
-	set(DISABLE_FORTRAN FALSE)
-else()
-	option(DISABLE_FORTRAN "Set to true to disable Fortran" FALSE)
-	
-	include(../../../cmake/AmberBuildSystemInit.cmake)
-	
-	enable_language(C)
-	
-	if(NOT DISABLE_FORTRAN)
-		enable_language(Fortran)
-	endif()
-	
-	include(AmberBuildSystem2ndInit)
-	set(NEEDED_3RDPARTY_TOOLS libm)
-	include(3rdPartyTools)
-	include(CompilerFlags)
-endif()
-
-#------------------------------------------------------------------------
-# Figure out what processor optimizations to use
-#------------------------------------------------------------------------
-
-#enable optimizations for machines with fused multiply-add
-test(HAVE_FMA ${TARGET_ARCH} STREQUAL "ia64" OR ${TARGET_ARCH} STREQUAL "mips" OR ${TARGET_ARCH} STREQUAL "ppc")
-
-# Use our own aligned malloc routine; mainly helpful for Windows systems lacking aligned allocation system-library routines.
-test(WITH_OUR_MALLOC "${CMAKE_SYSTEM_NAME}" STREQUAL Windows)
-
-# Use common Windows Fortran mangling styles for the Fortran interfaces.
-test(WINDOWS_F77_MANGLING "${CMAKE_SYSTEM_NAME}" STREQUAL Windows)
-
-#------------------------------------------------------------------------
-# Hardcoded settings
-#------------------------------------------------------------------------
-# Define to enable extra FFTW debugging code.
-test(FFTW_DEBUG ${CMAKE_BUILD_TYPE} STREQUAL Debug)
-
-# Define to enable debugging malloc.
-set(FFTW_DEBUG_MALLOC ${FFTW_DEBUG})
-
-# Define to enable alignment debugging hacks.
-set(FFTW_DEBUG_ALIGNMENT ${FFTW_DEBUG})
-
-# Define to enable pseudorandom estimate planning for debugging.
-set(FFTW_RANDOM_ESTIMATOR FALSE)
-
-# Define to compile in single precision.
-set(FFTW_SINGLE FALSE)
-set(BENCHFFT_SINGLE FALSE)
-
-# Define to compile in long-double precision.
-set(FFTW_LDOUBLE FALSE)
-set(BENCHFFT_LDOUBLE FALSE)
-
-# Define to compile in quad precision.
-set(FFTW_QUAD FALSE)
-set(BENCHFFT_QUAD FALSE)
-
-# Define to enable SSE/SSE2 optimizations.
-set(HAVE_SSE2 ${SSE})
-
-# Define to enable AVX optimizations.
-set(HAVE_AVX FALSE)
-
-# Define to enable Altivec optimizations.
-set(HAVE_ALTIVEC FALSE)
-
-# Define to enable MIPS paired-single optimizations.
-set(HAVE_MIPS_PS FALSE)
-
-# Use low-precision timers, making planner very slow
-set(WITH_SLOW_TIMER FALSE)
-
-# Define to enable use of MIPS ZBus cycle-counter.
-set(HAVE_MIPS_ZBUS_TIMER FALSE)
-
-# Assume that stack is aligned to (1<<X) bytes
-#do not set(INCOMING_STACK_BOUNDARY )
-
-# use OpenMP directives for parallelism
-set(HAVE_OPENMP ${OPENMP}) #from Amber configuration code
-
-set(ENABLE_MPI ${MPI})
-
-# compile FFTW SMP threads library
-test(ENABLE_THREADS NOT ${CMAKE_THREAD_LIBS_INIT} MATCHES ".*-NOTFOUND") #Amber code finds the Threads package
-
-test(SMP OPENMP OR ENABLE_THREADS)
-
-# combine threads into main libfftw3
-# currently COMBINED_THREADS=FALSE can't work with shared libraries on Windows.  
-# The functions used by the threading library don't have the required DLL exports and imports.
-set(COMBINED_THREADS TRUE) 
-
-#prefer OpenMP combined threads
-test(COMBINE_OPENMP_THREADS HAVE_OPENMP AND COMBINED_THREADS)
-test(COMBINE_REGULAR_THREADS COMBINED_THREADS AND ENABLE_THREADS AND (NOT HAVE_OPENMP))
-
-
-#------------------------------------------------------------------------
-# Compiler flags
-#------------------------------------------------------------------------
-
-if(${CMAKE_C_COMPILER_ID} STREQUAL "Intel")
-	# Stop icc from defining __GNUC__, except on MacOS where this fails
-	if(NOT APPLE)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -no-gcc")
-	endif()
-	
-elseif(${CMAKE_C_COMPILER_ID} STREQUAL "HP")
-	
-	check_c_compiler_flag("-Wp,-H128000" SUPPORTS_HP_CPP_FLAG)
-	# must (sometimes) manually increase cpp limits to handle fftw3.h
-	
-	if(SUPPORTS_HP_CPP_FLAG)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wp,-H128000")
-	endif()
-	
-elseif(${CMAKE_C_COMPILER_ID} STREQUAL "PGI")
-	# -Masmkeyword required for asm("") cycle counters
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Masmkeyword")
-	
-	# 12.6 < PGI version < 13.6 will not compile FFTW3 with SSE
-	if(USE_SYSTEM_FFTW AND HAVE_SSE2)
-		if(${CMAKE_C_COMPILER_VERSION} VERSION_GREATER 12.6 AND ${CMAKE_C_COMPILER_VERSION} VERSION_LESS 13.6)
-			message(FATAL_ERROR "PGI versions in-between 12.6 and 13.6 cannot compile FFTW3 with SSE. FFTW3 will be built without SSE.")
-		endif()
-		
-		set(HAVE_SSE2 FALSE)
-		
-	endif()
-	
-endif()
-
-#SSE flags
-if(${CMAKE_C_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
-	# SSE/SSE2
-	if(HAVE_SSE2)
-	    if(FFTW_SINGLE)
-	    	set(SSE_FLAG -msse)
-    	else()
-    		set(SSE_FLAG -msse2)
-    	endif()
-    	
-    	check_c_compiler_flag(${SSE_FLAG} SUPPORTS_SSE_FLAG)
-    	
-    	if(NOT SUPPORTS_SSE_FLAG)
-    		message(FATAL_ERROR "You requested SSE support, but the sse compiler flag does not work")
-		endif()
-		
-		set(SSE2_CFLAGS ${SSE_FLAG})
-		
-	endif()
-
-	# AVX
-	if(HAVE_AVX)
-    	check_c_compiler_flag(-mavx SUPPORTS_AVX_FLAG)
-    	
-    	if(NOT SUPPORTS_AVX_FLAG)
-    		message(FATAL_ERROR "You requested AVX support, but the -mavx compiler flag does not work")
-		endif()
-		
-		set(AVX_CFLAGS -mavx)
-	endif()
-
-	#Altivec
-	if(HAVE_ALTIVEC)
-	    check_c_compiler_flag(-faltivec SUPPORTS_FALTIVEC_FLAG)
-	    
-	    check_c_compiler_flag("-maltivec -mabi=altivec" SUPPORTS_MALTIVEC_FLAG)
-	    
-	    if(SUPPORTS_FALTIVEC_FLAG)
-	    	set(ALTIVEC_CFLAGS -faltivec)
-    	elseif(SUPPORTS_MALTIVEC_FLAG)
-	    	set(ALTIVEC_CFLAGS -maltivec -mabi=altivec)
-	    else()
-    		message(FATAL_ERROR "You requested Altivec support, but no altivec compiler flag was found.")
-		endif()
-	else()
-		set(ALTIVEC_CFLAGS "")
-	endif()
-elseif(${CMAKE_C_COMPILER} STREQUAL PGI)
-	# SSE/SSE2
-	if(HAVE_SSE2)
-	    set(SSE_FLAG -fastsse)
-
-    	check_c_compiler_flag(${SSE_FLAG} SUPPORTS_SSE_FLAG)
-    	
-    	if(NOT SUPPORTS_SSE_FLAG)
-    		message(FATAL_ERROR "You requested SSE support, but the sse compiler flag does not work")
-		endif()
-		
-		set(SSE2_CFLAGS ${SSE_FLAG})
-		
-	endif()
-endif()
-
-# add stack alignment CFLAGS if so requested
-if(DEFINED INCOMING_STACK_BOUNDARY)
-	set(ISB_FLAG -mincoming-stack-boundary=${INCOMING_STACK_BOUNDARY})
-
-	check_c_compiler_flag(${ISB_FLAG} SUPPORTS_ISB_FLAG)
-    	
-	if(NOT SUPPORTS_ISB_FLAG)
-		message(SEND_ERROR "You requested to set the incoming stack boundary, but the compiler flag to do that doesn't work")
-	endif()
-
-	set(STACK_ALIGN_CFLAGS ${ISB_FLAG})
-else()
-	set(STACK_ALIGN_CFLAGS "")
-endif()
-
-#------------------------------------------------------------------------
-# system introspection checks
-#------------------------------------------------------------------------
-# header checks
-check_all_includes(C alloca.h
-sys/types.h
-sys/time.h
-dlfcn.h
-libintl.h
-malloc.h
-stddef.h
-string.h
-strings.h
-unistd.h
-limits.h
-c_asm.h # Header file for enabling asm() on Digital Unix  
-stdlib.h
-stdarg.h
-float.h
-intrinsics.h # cray unicos
-stdint.h
-mach/mach_time.h
-sys/sysctl.h)
-
-check_include_file(altivec.h HAVE_ALTIVEC_H ${ALTIVEC_CFLAGS}) # MacOS X altivec detection
-
-if(HAVE_STRING_H AND HAVE_STDLIB_H AND HAVE_STDARG_H AND HAVE_FLOAT_H)
-	set(STDC_HEADERS TRUE)
-endif()
-
-# function checks
-
-# the Automake version of this check goes all Master Prepper and builds its own version of alloca if it is not found
-# for now, we'll take the simpler approach and just disable it if we don't find it.
-
-# it seems to be defined as a macro on some platforms, so we use check_symbol_exists() since we know the header
-if(HAVE_ALLOCA_H)
-	check_symbol_exists(alloca alloca.h HAVE_ALLOCA)
-else()
-	check_function_exists(alloca HAVE_ALLOCA)
-endif()
-
-test(FFTW_ENABLE_ALLOCA HAVE_ALLOCA AND NOT (${TARGET_ARCH} STREQUAL "x86_64" AND MINGW))
-
-check_function_exists(vprintf HAVE_VPRINTF)
-
-if(FFTW_QUAD)
-	if(${CMAKE_C_COMPILER_ID} STREQUAL GNU AND ${CMAKE_C_COMPILER_VERSION} VERSION_LESS 4.6.0)
-		message(FATAL_ERROR "gcc 4.6 or later is required for quad precision support!")
-	endif()
-	
-	set(CMAKE_REQUIRED_LIBRARIES quadmath)
-	
-	check_function_exists(sinq HAVE_DECL_SINQ)
-	check_function_exists(cosq HAVE_DECL_COSQ)
-	
-	if(NOT HAVE_DECL_SINQ)
-		message(FATAL_ERROR "quad precision requires libquadmath for quad-precision trigonometric routines!")
-	endif()
-	
-endif()
-
-# the main AMBER buildfiles already find libm,so we pass it down to the compile tests from there
-if(libm_ENABLED)
-	set(CMAKE_REQUIRED_LIBRARIES ${LIBM})
-endif()
- 
-# check for the following functions in the math library and the standard library                  
-check_all_functions(BSDgettimeofday
-gettimeofday
-gethrtime
-read_real_time
-time_base_to_time
-sqrt
-memset
-_mm_malloc
-_mm_free
-clock_gettime
-mach_absolute_time
-sysctl
-abort
-snprintf
-drand48
-memalign 
-posix_memalign
-sinl
-cosl
-tanl) 
-
-# check function definitions
-check_symbol_exists(drand48 stdlib.h HAVE_DECL_DRAND48)
-check_symbol_exists(srand48 stdlib.h HAVE_DECL_SRAND48)
-check_symbol_exists(memalign malloc.h HAVE_DECL_MEMALIGN)
-check_symbol_exists(posix_memalign stdlib.h HAVE_DECL_POSIX_MEMALIGN)
-check_symbol_exists(sinl math.h HAVE_DECL_SINL)
-check_symbol_exists(cosl math.h HAVE_DECL_COSL)
-
-if(HAVE_INTRINSICS_H)
-	check_symbol_exists(_rtc intrinsics.h HAVE__RTC)
-endif()
-
-if(FFTW_LDOUBLE AND NOT (HAVE_SINL AND HAVE_COSL))
-	message(FATAL_ERROR "long-double precision requires long-double trigonometric routines!")
-endif()
-
-check_symbol_exists(isnan math.h HAVE_ISNAN)
-
-# Check type sizes
-check_all_types(double float int long "long long" "long double" "unsigned int" "unsigned long" "unsigned long long" ptrdiff_t size_t uintptr_t)
-
-set(CMAKE_EXTRA_INCLUDE_FILES sys/time.h)
-check_type_size(hrtime_t HRTIME_T)
-
-if(MPI)
-	set(CMAKE_REQUIRED_INCLUDES ${MPI_C_INCLUDE_PATH})
-	set(CMAKE_EXTRA_INCLUDE_FILES mpi.h)
-	
-	check_type_size(MPI_Fint SIZEOF_MPI_FINT)
-endif()
-
-# why are we checking the size of something inside fftw, you ask?
-# It's an enum, and the developers weren't sure that its size would be consistent.
-set(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/api)
-set(CMAKE_EXTRA_INCLUDE_FILES fftw3.h)
-check_type_size(fftw_r2r_kind SIZEOF_FFTW_R2R_KIND)
-
-
-#figure out GCC stack alignment
-set(CC_HAS_STACK_ALIGNMENT FALSE)
-check_c_compiler_flag(-mpreferred-stack-boundary=4 SUPPORTS_PREFERRED_STACK_BOUNDARY)
-if(SUPPORTS_PREFERRED_STACK_BOUNDARY)
-	check_c_compiler_flag(-malign-double SUPPORTS_MALIGN_DOUBLE)
-	if(SUPPORTS_MALIGN_DOUBLE)
-		set(TEST_CFLAGS "-O -malign-double")
-	else()
-		set(TEST_CFLAGS -O)
-	endif()
-	try_run(ALIGNMENT_RESULT_CODE ALIGNMENT_COMPILE_SUCCEEDED ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_gcc_aligns_stack.c COMPILE_DEFINITIONS "-DCMAKE_C_FLAGS=${TEST_CFLAGS}") 
-		
-	if(ALIGNMENT_COMPILE_SUCCEEDED AND "${ALIGNMENT_RESULT_CODE}" EQUAL 0)
-		set(CC_HAS_STACK_ALIGNMENT TRUE)
-	else()
-		set(CC_HAS_STACK_ALIGNMENT FALSE)
-	endif()
-	
-endif()
-		
-message(STATUS "FFTW: compiler supports stack alignment: ${CC_HAS_STACK_ALIGNMENT}")
-
-#change name of pthread variable.... twice
-set(HAVE_PTHREAD ${CMAKE_USE_PTHREADS_INIT})
-set(USING_POSIX_THREADS ${CMAKE_USE_PTHREADS_INIT})
-
-#------------------------------------------------------------------------
-# Win32 DLL
-#------------------------------------------------------------------------
-
-if(TARGET_WINDOWS AND MPI)
-	# fftw_mpi uses private fftw API which does not have dll exports and imports.  If we use MPI on Windows, we cannot build fftw as shared.
-	set(BUILD_SHARED_LIBS FALSE)
-endif()
-
-test(WINDOWS_DLL TARGET_WINDOWS AND BUILD_SHARED_LIBS)
-
-# set up the definitions to make FFTW use imports and exports
-if(WINDOWS_DLL)
-	# NOTE: each of these are used in different places.  We need to supply both (I think).
-	set(DLL_EXPORT_DEFINITIONS -DDLL_EXPORT -DFFTW_DLL -DCOMPILING_FFTW)
-	
-	set(DLL_IMPORT_DEFINITIONS -DDLL_IMPORT -DFFTW_DLL -DCALLING_FFTW)
-else()
-
-	set(DLL_EXPORT_DEFINITIONS "")
-	set(DLL_IMPORT_DEFINITIONS "")	
-endif()
-
-#------------------------------------------------------------------------
-# Set up cycle counter
-#------------------------------------------------------------------------
-set(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/kernel)
-check_c_source_compiles(
-"#include \"cycle.h\"
-#ifndef HAVE_TICK_COUNTER
-#  error No cycle counter
-#endif
-
-void main(){}" HAVE_TICK_COUNTER)
-
-if((NOT WITH_SLOW_TIMER) AND (NOT HAVE_TICK_COUNTER))
-	unset(HAVE_TICK_COUNTER CACHE)
-	message(WARNING "No cycle counter found.  FFTW will use ESTIMATE mode for all plans.  See the manual for more information.")
-endif()
-
-#------------------------------------------------------------------------
-# Set up Fortran
-#------------------------------------------------------------------------
-if(NOT DISABLE_FORTRAN)
-	include(FortranCInterface)
-		
-	FortranCInterface_VERIFY() #check that Fortran can link to C
-	
-	FortranCInterface_HEADER(${CMAKE_CURRENT_BINARY_DIR}/fortran-mangling.h MACRO_NAMESPACE FORTRAN_MANGLE)
-	
-	if(NOT FortranCInterface_GLOBAL_FOUND)
-		message(FATAL_ERROR "Failed to detect the Fortran mangling!  Internal fftw3 cannot build!")
-	endif()
-	
-	# The fftw headers include the API headers twice, once with the underscore function and one without
-	# This causes multiple definition errors if the functions are the same
-	# So we check for that here.
-	test(F77_FUNC_EQUIV ${FortranCInterface_GLOBAL_MACRO} STREQUAL ${FortranCInterface_GLOBAL__MACRO})
-	
-	
-	test(WITH_G77_WRAPPERS ${CMAKE_C_COMPILER_ID} STREQUAL GNU)
-endif()
-
-#------------------------------------------------------------------------
-# configuration file
-#------------------------------------------------------------------------
-
-#embed compiler command line into library
-set(FFTW_CC "${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS}")
-
-set(PACKAGE_VERSION "${fftw_MAJOR_VERSION}.${fftw_MINOR_VERSION}")
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-#------------------------------------------------------------------------
-# function for building generated SIMD codelets
-#------------------------------------------------------------------------
-
-#list of built codelet libraries to link into the final library
-#this must be a cache variable because it needs to be set in a lower subdirectory
-set(LIBFFTW_SIMD_OBJS "" CACHE INTERNAL "Stores list of SIMD object libraries to link into the final FFTW library")
-
-function(generate_and_build_fft_subdir LIBRARY_NAME COMMON_DIR OPTIMIZATION_NAME OPTIMIZATION_HEADER) #CODELETS...	
-
-	set(GENERATED_CODELET_DIR ${CMAKE_CURRENT_BINARY_DIR}/${OPTIMIZATION_NAME})
-	file(MAKE_DIRECTORY ${GENERATED_CODELET_DIR})
-	
-	#lit of all the files we need to compile
-	set(CODELET_FILES "")
-	
-	foreach(CODELET ${ARGN})
-
-		set(CODELET_FILE ${GENERATED_CODELET_DIR}/${CODELET})
-
-		# we use file(GENERATE) because it doesn't update the file if the content doesn't change, so we don't trigger unnecessary rebuilds		
-		file(GENERATE OUTPUT ${CODELET_FILE} 
-			CONTENT
-"/* Generated automatically.  DO NOT EDIT! */
-#define SIMD_HEADER \"${OPTIMIZATION_HEADER}\"
-#include \"${COMMON_DIR}/${CODELET}\"")
-		
-		list(APPEND CODELET_FILES ${CODELET_FILE})
-	endforeach()
-	
-	add_library(${LIBRARY_NAME} OBJECT ${CODELET_FILES})
-	target_include_directories(${LIBRARY_NAME} PRIVATE ${COMMON_DIR}/..)
-	make_pic_if_needed(${LIBRARY_NAME})
-	
-	set(LIBFFTW_SIMD_OBJS ${LIBFFTW_SIMD_OBJS} ${LIBRARY_NAME} CACHE INTERNAL "" FORCE)	
-	
-endfunction(generate_and_build_fft_subdir)
-
-#------------------------------------------------------------------------
-# recurse into subdirectories
-#------------------------------------------------------------------------
-include_directories(simd-support kernel api dft rdft reodft libbench2 tests)
-
-add_subdirectory(api)
-add_subdirectory(dft)
-add_subdirectory(rdft)
-add_subdirectory(kernel)
-add_subdirectory(libbench2)
-add_subdirectory(reodft)
-add_subdirectory(simd-support)
-
-if(SMP)
-	add_subdirectory(threads)
-endif()
-
-#------------------------------------------------------------------------
-# create the actual library
-#------------------------------------------------------------------------
-if(COMBINE_OPENMP_THREADS)
-	set(THREAD_OBJECTS fftw3_omp_obj)
-elseif(COMBINE_REGULAR_THREADS)
-	set(THREAD_OBJECTS fftw3_threads_obj)
-elseif()
-	set(THREAD_OBJECTS "")
-endif()
-
-set(ALL_FFTW_OBJ_LIBS dft dft_scalar dft_scalar_codelets fftw_kernel fftw_api reodft rdft rdft_scalar rdft_scalar_r2cb rdft_scalar_r2cf rdft_scalar_r2r simd_support ${THREAD_OBJECTS} ${LIBFFTW_SIMD_OBJS})
-
-# put the generator expression wrapper around each library name
-set(ALL_FFTW_OBJ_LIBS_GENEX "")
-foreach(OBJ_LIB ${ALL_FFTW_OBJ_LIBS})
-	# add DLL export definitions
-	target_compile_definitions(${OBJ_LIB} PRIVATE ${DLL_EXPORT_DEFINITIONS})
-
-	list(APPEND ALL_FFTW_OBJ_LIBS_GENEX $<TARGET_OBJECTS:${OBJ_LIB}>)
-endforeach()
-
-
-
-add_library(fftw ${ALL_FFTW_OBJ_LIBS_GENEX})
-	
-# set interface include directories properly for libraries linking to fftw
-target_include_directories(fftw INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/api ${CMAKE_CURRENT_BINARY_DIR}/api)	
-
-if(HAVE_OPENMP AND COMBINE_OPENMP_THREADS)
-	# link the OpenMP libraries
-	set_property(TARGET fftw PROPERTY LINK_FLAGS ${OpenMP_C_FLAGS})
-endif()
-
-if(ENABLE_THREADS AND COMBINE_REGULAR_THREADS)
-	target_link_libraries(fftw Threads::Threads)
-endif()
-
-if(libm_ENABLED)
-	target_link_libraries(fftw ${LIBM})
-endif()
-
-#library is called "fftw" in CMake, but needs to be named "fftw3"
-set_property(TARGET fftw PROPERTY OUTPUT_NAME "fftw3")
-
-install_libraries(fftw)
-
-#------------------------------------------------------------------------
-# build remaining programs and libraries
-#------------------------------------------------------------------------
-
-# CALLING_FFTW changes the dll exports to imports
-if(WINDOWS_DLL)
-	target_compile_definitions(fftw INTERFACE CALLING_FFTW)
-endif()
-
-
-# Figure out which thread lib for supporting programs to link
-# prefer openmp
-set(SUPPORT_PROGRAM_THREAD_LIB "")
-if(NOT COMBINED_THREADS)
-	if(HAVE_OPENMP)
-		set(SUPPORT_PROGRAM_THREAD_LIB fftw3_omp)
-	elseif(ENABLE_THREADS)
-		set(SUPPORT_PROGRAM_THREAD_LIB fftw3_threads)
-	endif()
-endif()
-
-add_subdirectory(tests)
-add_subdirectory(tools)
-
-if(ENABLE_MPI)
-	add_subdirectory(mpi)
-endif()
+cmake_minimum_required (VERSION 3.0)
+
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+  set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+endif ()
+
+project (fftw)
+
+if (POLICY CMP0042)
+  cmake_policy (SET CMP0042 NEW)
+endif ()
+
+option (BUILD_SHARED_LIBS "Build shared libraries" ON)
+option (BUILD_TESTS "Build tests" ON)
+
+option (ENABLE_OPENMP "Use OpenMP for multithreading" OFF)
+option (ENABLE_THREADS "Use pthread for multithreading" OFF)
+option (WITH_COMBINED_THREADS "Merge thread library" OFF)
+
+option (ENABLE_FLOAT "single-precision" OFF)
+option (ENABLE_LONG_DOUBLE "long-double precision" OFF)
+option (ENABLE_QUAD_PRECISION "quadruple-precision" OFF)
+
+option (ENABLE_SSE "Compile with SSE instruction set support" OFF)
+option (ENABLE_SSE2 "Compile with SSE2 instruction set support" OFF)
+option (ENABLE_AVX "Compile with AVX instruction set support" OFF)
+option (ENABLE_AVX2 "Compile with AVX2 instruction set support" OFF)
+
+option (DISABLE_FORTRAN "Disable Fortran wrapper routines" OFF)
+
+include(GNUInstallDirs)
+
+
+include (CheckIncludeFile)
+check_include_file (alloca.h         HAVE_ALLOCA_H)
+check_include_file (altivec.h        HAVE_ALTIVEC_H)
+check_include_file (c_asm.h          HAVE_C_ASM_H)
+check_include_file (dlfcn.h          HAVE_DLFCN_H)
+check_include_file (intrinsics.h     HAVE_INTRINSICS_H)
+check_include_file (inttypes.h       HAVE_INTTYPES_H)
+check_include_file (libintl.h        HAVE_LIBINTL_H)
+check_include_file (limits.h         HAVE_LIMITS_H)
+check_include_file (mach/mach_time.h HAVE_MACH_MACH_TIME_H)
+check_include_file (malloc.h         HAVE_MALLOC_H)
+check_include_file (memory.h         HAVE_MEMORY_H)
+check_include_file (stddef.h         HAVE_STDDEF_H)
+check_include_file (stdint.h         HAVE_STDINT_H)
+check_include_file (stdlib.h         HAVE_STDLIB_H)
+check_include_file (string.h         HAVE_STRING_H)
+check_include_file (strings.h        HAVE_STRINGS_H)
+check_include_file (sys/types.h      HAVE_SYS_TYPES_H)
+check_include_file (sys/time.h       HAVE_SYS_TIME_H)
+check_include_file (sys/stat.h       HAVE_SYS_STAT_H)
+check_include_file (sys/sysctl.h     HAVE_SYS_SYSCTL_H)
+check_include_file (time.h           HAVE_TIME_H)
+check_include_file (uintptr.h        HAVE_UINTPTR_H)
+check_include_file (unistd.h         HAVE_UNISTD_H)
+if (HAVE_TIME_H AND HAVE_SYS_TIME_H)
+  set (TIME_WITH_SYS_TIME TRUE)
+endif ()
+
+include (CheckPrototypeDefinition)
+check_prototype_definition (drand48 "double drand48 (void)" "0" stdlib.h HAVE_DECL_DRAND48)
+check_prototype_definition (srand48 "void srand48(long int seedval)" "0" stdlib.h HAVE_DECL_SRAND48)
+check_prototype_definition (cosl "long double cosl( long double arg )" "0" math.h HAVE_DECL_COSL)
+check_prototype_definition (sinl "long double sinl( long double arg )" "0" math.h HAVE_DECL_SINL)
+check_prototype_definition (memalign "void *memalign(size_t alignment, size_t size)" "0" malloc.h HAVE_DECL_MEMALIGN)
+check_prototype_definition (posix_memalign "int posix_memalign(void **memptr, size_t alignment, size_t size)" "0" stdlib.h HAVE_DECL_POSIX_MEMALIGN)
+
+include (CheckSymbolExists)
+check_symbol_exists (clock_gettime time.h HAVE_CLOCK_GETTIME)
+check_symbol_exists (gettimeofday sys/time.h HAVE_GETTIMEOFDAY)
+check_symbol_exists (getpagesize unistd.h HAVE_GETPAGESIZE)
+check_symbol_exists (drand48 stdlib.h HAVE_DRAND48)
+check_symbol_exists (srand48 stdlib.h HAVE_SRAND48)
+check_symbol_exists (memalign malloc.h HAVE_MEMALIGN)
+check_symbol_exists (posix_memalign stdlib.h HAVE_POSIX_MEMALIGN)
+check_symbol_exists (mach_absolute_time mach/mach_time.h HAVE_MACH_ABSOLUTE_TIME)
+check_symbol_exists (alloca alloca.h HAVE_ALLOCA)
+if (NOT HAVE_ALLOCA)
+  unset (HAVE_ALLOCA CACHE)
+  check_symbol_exists (alloca malloc.h HAVE_ALLOCA)
+endif ()
+check_symbol_exists (isnan math.h HAVE_ISNAN)
+check_symbol_exists (snprintf stdio.h HAVE_SNPRINTF)
+check_symbol_exists (strchr string.h HAVE_STRCHR)
+check_symbol_exists (sysctl unistd.h HAVE_SYSCTL)
+
+if (UNIX)
+  set (CMAKE_REQUIRED_LIBRARIES m)
+endif ()
+check_symbol_exists (cosl math.h HAVE_COSL)
+check_symbol_exists (sinl math.h HAVE_SINL)
+
+include (CheckTypeSize)
+check_type_size ("float" SIZEOF_FLOAT)
+check_type_size ("double" SIZEOF_DOUBLE)
+check_type_size ("int" SIZEOF_INT)
+check_type_size ("long" SIZEOF_LONG)
+check_type_size ("long long" SIZEOF_LONG_LONG)
+check_type_size ("unsigned int" SIZEOF_UNSIGNED_INT)
+check_type_size ("unsigned long" SIZEOF_UNSIGNED_LONG)
+check_type_size ("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
+check_type_size ("size_t" SIZEOF_SIZE_T)
+check_type_size ("ptrdiff_t" SIZEOF_PTRDIFF_T)
+math (EXPR SIZEOF_INT_BITS "8 * ${SIZEOF_INT}")
+set (C_FFTW_R2R_KIND "C_INT${SIZEOF_INT_BITS}_T")
+
+find_library (LIBM_LIBRARY NAMES m)
+if (LIBM_LIBRARY)
+  set (HAVE_LIBM TRUE)
+endif ()
+
+
+if (ENABLE_THREADS)
+  find_package (Threads)
+endif ()
+if (Threads_FOUND)
+  if(CMAKE_USE_PTHREADS_INIT)
+    set (USING_POSIX_THREADS 1)
+  endif ()
+  set (HAVE_THREADS TRUE)
+endif ()
+
+if (ENABLE_OPENMP)
+  find_package (OpenMP)
+endif ()
+if (OPENMP_FOUND)
+  set (HAVE_OPENMP TRUE)
+endif ()
+
+include (CheckCCompilerFlag)
+
+if (ENABLE_SSE)
+  foreach (FLAG "-msse" "/arch:SSE")
+    unset (HAVE_SSE CACHE)
+    check_c_compiler_flag (${FLAG} HAVE_SSE)
+    if (HAVE_SSE)
+      set (SSE_FLAG ${FLAG})
+      break()
+    endif ()
+  endforeach ()
+endif ()
+
+if (ENABLE_SSE2)
+  foreach (FLAG "-msse2" "/arch:SSE2")
+    unset (HAVE_SSE2 CACHE)
+    check_c_compiler_flag (${FLAG} HAVE_SSE2)
+    if (HAVE_SSE2)
+      set (SSE2_FLAG ${FLAG})
+      break()
+    endif ()
+  endforeach ()
+endif ()
+
+if (ENABLE_AVX)
+  foreach (FLAG "-mavx" "/arch:AVX")
+    unset (HAVE_AVX CACHE)
+    check_c_compiler_flag (${FLAG} HAVE_AVX)
+    if (HAVE_AVX)
+      set (AVX_FLAG ${FLAG})
+      break()
+    endif ()
+  endforeach ()
+endif ()
+
+if (ENABLE_AVX2)
+  foreach (FLAG "-mavx2" "/arch:AVX2")
+    unset (HAVE_AVX2 CACHE)
+    check_c_compiler_flag (${FLAG} HAVE_AVX2)
+    if (HAVE_AVX2)
+      set (AVX2_FLAG ${FLAG})
+      break()
+    endif ()
+  endforeach ()
+endif ()
+
+# AVX2 codelets require FMA support as well
+if (ENABLE_AVX2)
+  foreach (FLAG "-mfma" "/arch:FMA")
+    unset (HAVE_FMA CACHE)
+    check_c_compiler_flag (${FLAG} HAVE_FMA)
+    if (HAVE_FMA)
+      set (FMA_FLAG ${FLAG})
+      break()
+    endif ()
+  endforeach ()
+endif ()
+
+if (HAVE_SSE2 OR HAVE_AVX)
+  set (HAVE_SIMD TRUE)
+endif ()
+file(GLOB           fftw_api_SOURCE                 api/*.c             api/*.h)
+file(GLOB           fftw_dft_SOURCE                 dft/*.c             dft/*.h)
+file(GLOB           fftw_dft_scalar_SOURCE          dft/scalar/*.c      dft/scalar/*.h)
+file(GLOB           fftw_dft_scalar_codelets_SOURCE dft/scalar/codelets/*.c     dft/scalar/codelets/*.h)
+file(GLOB           fftw_dft_simd_SOURCE            dft/simd/*.c        dft/simd/*.h)
+
+file(GLOB           fftw_dft_simd_sse2_SOURCE       dft/simd/sse2/*.c   dft/simd/sse2/*.h)
+file(GLOB           fftw_dft_simd_avx_SOURCE        dft/simd/avx/*.c    dft/simd/avx/*.h)
+file(GLOB           fftw_dft_simd_avx2_SOURCE       dft/simd/avx2/*.c   dft/simd/avx2/*.h dft/simd/avx2-128/*.c   dft/simd/avx2-128/*.h)
+file(GLOB           fftw_kernel_SOURCE              kernel/*.c          kernel/*.h)
+file(GLOB           fftw_rdft_SOURCE                rdft/*.c            rdft/*.h)
+file(GLOB           fftw_rdft_scalar_SOURCE         rdft/scalar/*.c     rdft/scalar/*.h)
+
+file(GLOB           fftw_rdft_scalar_r2cb_SOURCE    rdft/scalar/r2cb/*.c
+                                                    rdft/scalar/r2cb/*.h)
+file(GLOB           fftw_rdft_scalar_r2cf_SOURCE    rdft/scalar/r2cf/*.c
+                                                    rdft/scalar/r2cf/*.h)
+file(GLOB           fftw_rdft_scalar_r2r_SOURCE     rdft/scalar/r2r/*.c
+                                                    rdft/scalar/r2r/*.h)
+
+file(GLOB           fftw_rdft_simd_SOURCE           rdft/simd/*.c       rdft/simd/*.h)
+file(GLOB           fftw_rdft_simd_sse2_SOURCE      rdft/simd/sse2/*.c  rdft/simd/sse2/*.h)
+file(GLOB           fftw_rdft_simd_avx_SOURCE       rdft/simd/avx/*.c   rdft/simd/avx/*.h)
+file(GLOB           fftw_rdft_simd_avx2_SOURCE      rdft/simd/avx2/*.c  rdft/simd/avx2/*.h rdft/simd/avx2-128/*.c  rdft/simd/avx2-128/*.h)
+
+file(GLOB           fftw_reodft_SOURCE              reodft/*.c          reodft/*.h)
+file(GLOB           fftw_simd_support_SOURCE        simd-support/*.c    simd-support/*.h)
+file(GLOB           fftw_libbench2_SOURCE           libbench2/*.c       libbench2/*.h)
+list (REMOVE_ITEM   fftw_libbench2_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/libbench2/useropt.c)
+
+set(SOURCEFILES
+    ${fftw_api_SOURCE}
+    ${fftw_dft_SOURCE}
+    ${fftw_dft_scalar_SOURCE}
+    ${fftw_dft_scalar_codelets_SOURCE}
+    ${fftw_dft_simd_SOURCE}
+    ${fftw_kernel_SOURCE}
+    ${fftw_rdft_SOURCE}
+    ${fftw_rdft_scalar_SOURCE}
+
+    ${fftw_rdft_scalar_r2cb_SOURCE}
+    ${fftw_rdft_scalar_r2cf_SOURCE}
+    ${fftw_rdft_scalar_r2r_SOURCE}
+
+    ${fftw_rdft_simd_SOURCE}
+    ${fftw_reodft_SOURCE}
+    ${fftw_simd_support_SOURCE}
+    ${fftw_threads_SOURCE}
+)
+
+set(fftw_par_SOURCE
+    threads/api.c
+    threads/conf.c
+    threads/ct.c
+    threads/dft-vrank-geq1.c
+    threads/f77api.c
+    threads/hc2hc.c
+    threads/rdft-vrank-geq1.c
+    threads/vrank-geq1-rdft2.c)
+
+set (fftw_threads_SOURCE ${fftw_par_SOURCE} threads/threads.c)
+set (fftw_omp_SOURCE ${fftw_par_SOURCE} threads/openmp.c)
+
+
+include_directories (.)
+
+
+if (WITH_COMBINED_THREADS)
+  list (APPEND SOURCEFILES ${fftw_threads_SOURCE})
+endif ()
+
+
+if (HAVE_SSE2)
+  list (APPEND SOURCEFILES ${fftw_dft_simd_sse2_SOURCE} ${fftw_rdft_simd_sse2_SOURCE})
+endif ()
+
+if (HAVE_AVX)
+  list (APPEND SOURCEFILES ${fftw_dft_simd_avx_SOURCE} ${fftw_rdft_simd_avx_SOURCE})
+endif ()
+
+if (HAVE_AVX2)
+  list (APPEND SOURCEFILES ${fftw_dft_simd_avx2_SOURCE} ${fftw_rdft_simd_avx2_SOURCE})
+endif ()
+
+set (FFTW_VERSION 3.3.9)
+
+set (PREC_SUFFIX)
+if (ENABLE_FLOAT)
+  set (FFTW_SINGLE TRUE)
+  set (BENCHFFT_SINGLE TRUE)
+  set (PREC_SUFFIX f)
+endif ()
+
+if (ENABLE_LONG_DOUBLE)
+  set (FFTW_LDOUBLE TRUE)
+  set (BENCHFFT_LDOUBLE TRUE)
+  set (PREC_SUFFIX l)
+endif ()
+
+if (ENABLE_QUAD_PRECISION)
+  set (FFTW_QUAD TRUE)
+  set (BENCHFFT_QUAD TRUE)
+  set (PREC_SUFFIX q)
+endif ()
+set (fftw3_lib fftw3${PREC_SUFFIX})
+
+configure_file (cmake.config.h.in config.h @ONLY)
+include_directories (${CMAKE_CURRENT_BINARY_DIR})
+
+if (BUILD_SHARED_LIBS)
+  add_definitions (-DFFTW_DLL)
+endif ()
+
+add_library (${fftw3_lib} ${SOURCEFILES})
+target_include_directories (${fftw3_lib} INTERFACE $<INSTALL_INTERFACE:include>)
+if (MSVC AND NOT (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
+  target_compile_definitions (${fftw3_lib} PRIVATE /bigobj)
+endif ()
+if (HAVE_SSE)
+  target_compile_options (${fftw3_lib} PRIVATE ${SSE_FLAG})
+endif ()
+if (HAVE_SSE2)
+  target_compile_options (${fftw3_lib} PRIVATE ${SSE2_FLAG})
+endif ()
+if (HAVE_AVX)
+  target_compile_options (${fftw3_lib} PRIVATE ${AVX_FLAG})
+endif ()
+if (HAVE_AVX2)
+  target_compile_options (${fftw3_lib} PRIVATE ${AVX2_FLAG})
+endif ()
+if (HAVE_FMA)
+  target_compile_options (${fftw3_lib} PRIVATE ${FMA_FLAG})
+endif ()
+if (HAVE_LIBM)
+  target_link_libraries (${fftw3_lib} m)
+endif ()
+
+set (subtargets ${fftw3_lib})
+
+if (Threads_FOUND)
+  if (WITH_COMBINED_THREADS)
+    target_link_libraries (${fftw3_lib} ${CMAKE_THREAD_LIBS_INIT})
+  else ()
+    add_library (${fftw3_lib}_threads ${fftw_threads_SOURCE})
+    target_include_directories (${fftw3_lib}_threads INTERFACE $<INSTALL_INTERFACE:include>)
+    target_link_libraries (${fftw3_lib}_threads ${fftw3_lib})
+    target_link_libraries (${fftw3_lib}_threads ${CMAKE_THREAD_LIBS_INIT})
+    list (APPEND subtargets ${fftw3_lib}_threads)
+  endif ()
+endif ()
+
+if (OPENMP_FOUND)
+  add_library (${fftw3_lib}_omp ${fftw_omp_SOURCE})
+  target_include_directories (${fftw3_lib}_omp INTERFACE $<INSTALL_INTERFACE:include>)
+  target_link_libraries (${fftw3_lib}_omp ${fftw3_lib})
+  target_link_libraries (${fftw3_lib}_omp ${CMAKE_THREAD_LIBS_INIT})
+  list (APPEND subtargets ${fftw3_lib}_omp)
+  target_compile_options (${fftw3_lib}_omp PRIVATE ${OpenMP_C_FLAGS})
+endif ()
+
+foreach(subtarget ${subtargets})
+  set_target_properties (${subtarget} PROPERTIES SOVERSION 3.6.9 VERSION 3)
+  install (TARGETS ${subtarget}
+	  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endforeach ()
+install(TARGETS ${fftw3_lib}
+          EXPORT FFTW3LibraryDepends
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install (FILES api/fftw3.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if (EXISTS ${CMAKE_SOURCE_DIR}/api/fftw3.f)
+  install (FILES api/fftw3.f api/fftw3l.f03 api/fftw3q.f03 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif ()
+if (EXISTS ${CMAKE_SOURCE_DIR}/api/fftw3.f03.in)
+  file (READ api/fftw3.f03.in FFTW3_F03_IN OFFSET 42)
+  file (WRITE ${CMAKE_CURRENT_BINARY_DIR}/fftw3.f03 "! Generated automatically.  DO NOT EDIT!\n\n")
+  file (APPEND ${CMAKE_CURRENT_BINARY_DIR}/fftw3.f03 "  integer, parameter :: C_FFTW_R2R_KIND = ${C_FFTW_R2R_KIND}\n\n")
+  file (APPEND ${CMAKE_CURRENT_BINARY_DIR}/fftw3.f03 "${FFTW3_F03_IN}")
+  install (FILES ${CMAKE_CURRENT_BINARY_DIR}/fftw3.f03 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif ()
+
+if (BUILD_TESTS)
+
+  add_executable (bench ${fftw_libbench2_SOURCE} tests/bench.c tests/hook.c tests/fftw-bench.c)
+
+  if (ENABLE_THREADS AND NOT WITH_COMBINED_THREADS)
+    target_link_libraries (bench ${fftw3_lib}_threads)
+  else ()
+    target_link_libraries (bench ${fftw3_lib})
+  endif ()
+
+
+  enable_testing ()
+
+  if (Threads_FOUND)
+
+    macro (fftw_add_test problem)
+      add_test (NAME ${problem} COMMAND bench -s ${problem})
+    endmacro ()
+
+    fftw_add_test (32x64)
+    fftw_add_test (ib256)
+
+  endif ()
+endif ()
+
+# pkgconfig file
+set (prefix ${CMAKE_INSTALL_PREFIX})
+set (exec_prefix ${CMAKE_INSTALL_PREFIX})
+set (libdir ${CMAKE_INSTALL_FULL_LIBDIR})
+set (includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+set (VERSION ${FFTW_VERSION})
+configure_file (fftw.pc.in fftw3${PREC_SUFFIX}.pc @ONLY)
+install (FILES
+          ${CMAKE_CURRENT_BINARY_DIR}/fftw3${PREC_SUFFIX}.pc
+         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+         COMPONENT Development)
+
+# cmake file
+set (FFTW3_LIBRARIES "FFTW3::${fftw3_lib}")
+configure_file (FFTW3Config.cmake.in FFTW3${PREC_SUFFIX}Config.cmake @ONLY)
+configure_file (FFTW3ConfigVersion.cmake.in FFTW3${PREC_SUFFIX}ConfigVersion.cmake @ONLY)
+install (FILES
+          ${CMAKE_CURRENT_BINARY_DIR}/FFTW3${PREC_SUFFIX}Config.cmake
+          ${CMAKE_CURRENT_BINARY_DIR}/FFTW3${PREC_SUFFIX}ConfigVersion.cmake
+	  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/fftw3${PREC_SUFFIX}
+         COMPONENT Development)
+
+export (TARGETS ${fftw3_lib} NAMESPACE FFTW3:: FILE ${PROJECT_BINARY_DIR}/FFTW3LibraryDepends.cmake)
+install(EXPORT FFTW3LibraryDepends
+        NAMESPACE FFTW3::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/fftw3${PREC_SUFFIX}
+        COMPONENT Development)

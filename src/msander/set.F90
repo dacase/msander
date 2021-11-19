@@ -524,7 +524,6 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 #  include "nmr.h"
    integer target,i,iat,imol,ipmol(nspm),node,j,ires,portion
 
-
    if (mpi_orig) then
       
       !   when only master will be running the non-force routines:
@@ -568,6 +567,8 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
       
       else   !  this is not a constant pressure run; divide on residues:
 
+#if 1  /* original: divide on residues, so that SHAKE will work: */
+
          if (nres < numtasks) then
             write(6,*) 'Must have more residues than processors!'
             call mexit(6,1)
@@ -587,7 +588,7 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
                   do i=1,ires
                      iat = iat + ipres(i+1) - ipres(i)
                   enddo
-                  if (amass(iat) < 3.0) cycle residues
+                  if (amass(iat) < 4.0) cycle residues
                endif
 
                !  don't stop after a residue whose single atom is a hydrogen:
@@ -598,7 +599,7 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
                      do i=1,ires-1
                         iat = iat + ipres(i+1) - ipres(i)
                      enddo
-                     if (amass(iat) < 3.0) cycle residues
+                     if (amass(iat) < 4.0) cycle residues
                   endif
                endif
  
@@ -617,6 +618,19 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
             call mexit(6,1)
 
          end do nodes
+
+#else   /* trial: assume that SHAKE is off, and we can divide how we want */
+
+         portion = natom/numtasks
+         target = 0
+         iparpt(0) = 0
+         iparpt(numtasks) = natom
+         do node=1,numtasks-1
+            target = target + portion
+            iparpt(node) = target
+         end do
+
+#endif
       
       end if  !  (ntp > 0 )
 
@@ -863,4 +877,19 @@ subroutine setnoshake_sc(ix,ntc,num_noshake,master)
    return
 
 end subroutine setnoshake_sc
+#endif
+
+#ifdef OPENMP
+subroutine set_omp_num_threads()
+  use constants, only: omp_num_threads
+  implicit none
+  character(len=5) :: omp_threads
+  integer :: ier
+
+  call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+  if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+  write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+#endif
+end subroutine set_omp_num_threads
 #endif

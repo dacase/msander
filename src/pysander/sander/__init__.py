@@ -8,7 +8,7 @@ from sys import stderr as _stderr
 
 __all__ = ['InputOptions', 'QmInputOptions', 'setup', 'cleanup', 'pme_input',
            'gas_input', 'natom', 'energy_forces', 'set_positions', 'set_box',
-           'is_setup', 'EnergyTerms']
+           'is_setup', 'EnergyTerms' ]
 
 try:
     from . import pysander as _pys
@@ -248,6 +248,7 @@ class setup(object):
     """
 
     def __init__(self, prmtop, coordinates, box, mm_options, qm_options=None):
+
         # Handle the case where the coordinates are actually a restart file
         if isinstance(coordinates, string_types):
             # This is a restart file name. Parse it and make sure the coordinates
@@ -283,10 +284,7 @@ class setup(object):
             raise ValueError("qm_options must be provided if QM/MM is requested")
 
         # Call the setup routine
-        if qm_options is None:
-            _pys.setup(parm, coordinates, box, mm_options)
-        else:
-            _pys.setup(parm, coordinates, box, mm_options, qm_options)
+        _pys.setup(parm, coordinates, box, mm_options, qm_options)
 
     def __enter__(self):
         """ Nothing needs to be done here """

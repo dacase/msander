@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-set sander = "${AMBERHOME}/bin/sander"
+set sander = ../../../bin/msander
 if( $?TESTsander ) then
     set sander = $TESTsander
 endif
@@ -27,8 +27,7 @@ Lysine: 5 cycles MD, one methylene group QM, has link atoms
  &cntrl
         imin =0, nstlim = 5, drms=0.005,
         ntpr=1, ntb=0, cut=99.,
-        ifqnt=1, 
-        tempi=300., ntt=0, temp0=300., gamma_ln=0.,
+        ifqnt=1, ithermostat=0,
         nscm=50, ntx=5, irest=1, igb=6
  /
  &qmmm

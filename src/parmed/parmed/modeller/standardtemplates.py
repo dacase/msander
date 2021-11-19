@@ -1,10 +1,9 @@
 """ Standard residue templates for biomolecular residues """
 
 import os
-from ..amber.offlib import AmberOFFLibrary
+from parmed.amber.offlib import AmberOFFLibrary as _parser
 
-__all__ = ['StandardBiomolecularResidues']
-
-StandardBiomolecularResidues = AmberOFFLibrary.parse(
-    os.path.join(os.path.split(__file__)[0], 'data', 'standard_residues.lib')
+StandardBiomolecularResidues = _parser.parse(
+        os.path.join(os.path.split(__file__)[0], 'data',
+                     'standard_residues.lib')
 )

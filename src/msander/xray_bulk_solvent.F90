@@ -1,27 +1,28 @@
 #include "../include/assert.fh"
-module bulk_solvent_mod
+module bulk_solvent_module
 
+  use xray_globals_module, only : real_kind
   implicit none
 
   ! Arrays to hold the bulk solvent mask
-  complex(8), dimension(:), allocatable :: mask_bs_grid_t_c
+  complex(real_kind), dimension(:), allocatable :: mask_bs_grid_t_c
   ! Bulk solvent mask parameters
-  double precision, dimension(16)   :: mask_cell_params
-  double precision, dimension(3)    :: mask_grid_steps
+  real(real_kind), dimension(16)   :: mask_cell_params
+  real(real_kind), dimension(3)    :: mask_grid_steps
 
-  double precision, dimension(:), allocatable :: k_mask, &
+  real(real_kind), dimension(:), allocatable :: k_mask, &
           mask_cutoffs, b_vector_mask
-  complex(8), dimension(:), allocatable :: f_mask
+  complex(real_kind), dimension(:), allocatable :: f_mask, f_solvent
 
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of 
   !                               FFT'd bulk solvent mask
   integer, dimension(:), allocatable :: hkl_indexing_bs_mask
 
   ! Convenient numerical constants
-  double precision, parameter :: pi = 3.14159265359, zero = 0.0, &
+  real(real_kind), parameter :: pi = 3.14159265359, zero = 0.0, &
                                  mask_r_shrink = 0.9, &
                                  mask_r_probe = 1.11, d_tolerance = 1.e-10
-  double precision :: k_sol = 0.35, b_sol = 46.0
+  real(real_kind) :: k_sol = 0.35, b_sol = 46.0
 
   ! mask_bs_grid:      Array to hold the bulk solvent mask
   ! mask_bs_grid_tmp:  Array used in shrinking the bulk solvent mask 
@@ -130,7 +131,7 @@ contains
 
     ! Create list of neighboring grid points
     integer :: low(3), high(3), i, n0, n1, n2, p0, m0, p1, m1, p2, m2, alloc_
-    double precision :: x, shrink_truncation_radius_sq, frac(3), dist_sq
+    real(real_kind) :: x, shrink_truncation_radius_sq, frac(3), dist_sq
 
     alloc_ = 1
     do i = 1, 3
@@ -185,27 +186,28 @@ contains
     end do
   end subroutine calc_grid_neighbors
 
-  !--------------------------------------------------------------------------------------------
+  !----------------------------------------------------------------------------
   ! init_bulk_solvent: intialize the mask to one, 'solvent present here.'
   !----------------------------------------------------------------------------
   subroutine init_bulk_solvent(resolution)
 
-    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, num_atoms, cross
+    use xray_globals_module, only: unit_cell, num_hkl, hkl_index, &
+                        num_atoms, cross, bulk_solvent_model
     use memory_module, only: i100, ix
     implicit none
-    double precision, intent(in) :: resolution
+    real(real_kind), intent(in) :: resolution
 
     integer :: i, atomic_number, na, nb, nc, ier
-    double precision :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
-    double precision :: a,b,c,alpha,beta,gamma
-    double precision :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
-    double precision, dimension(3) :: va, vb, vc, vas, vbs, vcs, s
-    double precision :: norm2_vas, norm2_vbs, norm2_vcs
+    real(real_kind) :: temp_grid, grid_stepX, grid_stepY, grid_stepZ
+    real(real_kind) :: a,b,c,alpha,beta,gamma
+    real(real_kind) :: cosa, sina, cosb, sinb, cosg, sing, V, s_squared
+    real(real_kind), dimension(3) :: va, vb, vc, vas, vbs, vcs, s
+    real(real_kind) :: norm2_vas, norm2_vbs, norm2_vcs
 
     allocate(k_mask(num_hkl), f_mask(num_hkl), stat=ier)
     REQUIRE( ier==0 )
 
-    if( mytaskid /= 0 ) return
+    if( mytaskid .ne. 0 .or. bulk_solvent_model .eq. 'none' ) return
 
     allocate(hkl_indexing_bs_mask(num_hkl))
 
@@ -263,7 +265,7 @@ contains
     norm2_vbs = sqrt( dot_product(vbs,vbs) )
     norm2_vcs = sqrt( dot_product(vcs,vcs) )
 
-    temp_grid = resolution / 4.0
+    temp_grid = max( 0.25, resolution / 4.0 )
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
     nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
     nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
@@ -284,11 +286,9 @@ contains
 
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     mask_grid_size = (/na, nb, nc, na*nb*nc/)
-#if 0
-    write(6, *) 'resolution', resolution
-    write(6, *) 'mask_cell_params', mask_cell_params
-    write(6, *) 'mask_grid_steps', mask_grid_steps
-    write(6, *) 'mask_grid_size', mask_grid_size
+#if 1
+    write(6, '(a,3f10.5)') '| mask_grid_steps: ', mask_grid_steps
+    write(6, '(a,4i10)') '| mask_grid_size: ', mask_grid_size
 #endif
     allocate(mask_bs_grid(mask_grid_size(4)))
     allocate(mask_bs_grid_tmp(mask_grid_size(4)))
@@ -307,13 +307,17 @@ contains
 
       hkl_indexing_bs_mask(i) = h_as_ih( hkl_index(1,i), hkl_index(2,i), &
              hkl_index(3,i), na, nb, nc)
+#if 0  /* we will try to set fmask to zero when -1 is returned */
       if (hkl_indexing_bs_mask(i) == -1) then
+        write(0,*) i,hkl_index(1:3,i),na,nb,nc
         stop 'Miller indices indexing failed'
       end if
+#endif
       
     end do
 
     call calc_grid_neighbors()
+
     return
 
   end subroutine init_bulk_solvent
@@ -332,11 +336,11 @@ contains
 
     implicit none
     integer :: tid, n_atom
-    double precision :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
+    real(real_kind) :: atomX, atomY, atomZ, dx, dy, dz, cutoff, cutoffsq, &
                         distsq, coas, cobs, cocs
     integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index, mdi, mdj, mdk
-    double precision :: frac(3)
-    double precision :: crd(3, n_atom)
+    real(real_kind) :: frac(3)
+    real(real_kind) :: crd(3, n_atom)
 
     do tid = 1, n_atom
 
@@ -438,7 +442,7 @@ contains
     !use iso_c_binding
     implicit none
 #include "fftw3.f"
-    double precision :: mask_bs_grid_3d(mask_grid_size(3), &
+    real(real_kind) :: mask_bs_grid_3d(mask_grid_size(3), &
                                         mask_grid_size(2), &
                                         mask_grid_size(1))
     double complex ::   mask_bs_grid_3d_fft(mask_grid_size(3)/2 + 1, &
@@ -479,18 +483,21 @@ contains
 
     m = (na - 1) / 2
     if (-m > ihh .or. ihh > m) then
+      ! write(0,*) 'indexing error 1: ', m, ihh
       error = .true.
     elseif (ihh < 0) then
       ihh = ihh + na
     end if
     m = (nb - 1) / 2
     if (-m > ihk .or. ihk > m) then
+      ! write(0,*) 'indexing error 2: ', m, ihk
       error = .true.
     elseif (ihk < 0) then
       ihk = ihk + nb
     end if
     m = nc / 2 + 1
     if (0 > ihl .or. h >= m) then
+      ! write(0,*) 'indexing error 3: ', m, ihl, h
       error = .true.
     end if
 
@@ -502,4 +509,59 @@ contains
 
   end function h_as_ih
 
-end module bulk_solvent_mod
+   subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
+      use xray_globals_module, only : user_fmask, bulk_solvent_model, &
+             mask_update_frequency, num_hkl, num_atoms, Fcalc
+#ifdef MPI
+      use mpi
+#endif
+      implicit none
+      integer, intent(in) :: nstep
+      real(real_kind), intent(in) :: crd(3*num_atoms)
+      logical, intent(in) :: update_Fcalc
+
+      integer :: i, ier
+      real(real_kind) :: time0, time1
+
+      if( bulk_solvent_model == 'none' ) return
+
+      ! only do this on the master node to save global memory
+      if (mytaskid == 0 .and. mod(nstep, mask_update_frequency) == 0) then
+
+         if( user_fmask ) then
+            f_mask(:) = f_solvent(:)
+            write(6,'(a)') '| Setting f_mask to f_solvent'
+         else
+            call grid_bulk_solvent(num_atoms, crd)
+            call shrink_bulk_solvent()
+            call fft_bs_mask()
+
+            do i=1,num_hkl
+               if( hkl_indexing_bs_mask(i) .ne. -1 ) then
+                  f_mask(i) = &
+                     conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                     * mask_cell_params(16) / mask_grid_size(4)
+               else
+                  f_mask(i) = 0.d0
+               endif
+#if 0
+               write(77,'(i4,a,i4,a,i4,af12.5,a,f12.5,a,f12.5)') &
+                  hkl_index(1,i),char(9),hkl_index(2,i),char(9), &
+                  hkl_index(3,i),char(9), &
+                  real(f_mask(i)),char(9), &
+                  aimag(f_mask(i)),char(9),abs(f_mask(i))
+#endif
+            end do
+         endif
+      endif
+#ifdef MPI
+      call mpi_bcast(f_mask,num_hkl,MPI_DOUBLE_COMPLEX,0,commsander,ier )
+#endif
+
+      if( update_Fcalc ) Fcalc(:) = Fcalc(:) + k_mask(:)*f_mask(:)
+
+      return
+
+   end subroutine get_solvent_contribution
+
+end module bulk_solvent_module

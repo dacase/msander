@@ -116,7 +116,7 @@ module xray_globals_module
          d_star_sq(:), f_weight(:)
    real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
    integer, allocatable, save :: test_flag(:)
-   integer, save :: has_f_solvent, scale_update_frequency, &
+   integer, save :: scale_update_frequency, &
           ml_update_frequency, mask_update_frequency, xray_nstep
 
    complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:), Fobs(:)
@@ -184,8 +184,8 @@ contains
   !----------------------------------------------------------------------------
   function cross(a, b) result(cross_product)
 
-    double precision, dimension(3) :: cross_product
-    double precision, dimension(3), intent(in) :: a, b
+    real(real_kind), dimension(3) :: cross_product
+    real(real_kind), dimension(3), intent(in) :: a, b
 
     cross_product(1) = a(2) * b(3) - a(3) * b(2)
     cross_product(2) = a(3) * b(1) - a(1) * b(3)

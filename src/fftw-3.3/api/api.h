@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -23,9 +23,7 @@
 #define __API_H__
 
 #ifndef CALLING_FFTW /* defined in hook.c, when calling internal functions */
-#  ifndef COMPILING_FFTW /* may already have been defined */
-#    define COMPILING_FFTW /* used for DLL symbol exporting in fftw3.h */
-#  endif
+#  define COMPILING_FFTW /* used for DLL symbol exporting in fftw3.h */
 #endif
 
 /* When compiling with GNU libtool on Windows, DLL_EXPORT is #defined
@@ -43,9 +41,7 @@
    us to mark things correctly, which is necessary for other compilers
    (such as MS VC++). */
 #ifdef DLL_EXPORT
-#  ifndef FFTW_DLL
-#    define FFTW_DLL
-#  endif
+#  define FFTW_DLL
 #endif
 
 /* just in case: force <fftw3.h> not to use C99 complex numbers
@@ -53,8 +49,14 @@
    and is defined even if <complex.h> is not included) */
 #define FFTW_NO_Complex
 
-#include "fftw3.h"
-#include "ifftw.h"
+#include "api/fftw3.h"
+#include "kernel/ifftw.h"
+#include "rdft/rdft.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
 
 /* the API ``plan'' contains both the kernel plan and problem */
 struct X(plan_s) {
@@ -92,11 +94,24 @@ int X(guru64_kosherp)(int rank, const X(iodim64) *dims,
 
 FFTW_EXTERN printer *X(mkprinter_file)(FILE *f);
 
+printer *X(mkprinter_cnt)(size_t *cnt);
+printer *X(mkprinter_str)(char *s);
+
 FFTW_EXTERN planner *X(the_planner)(void);
 void X(configure_planner)(planner *plnr);
 
 void X(mapflags)(planner *, unsigned);
 
 apiplan *X(mkapiplan)(int sign, unsigned flags, problem *prb);
+
+rdft_kind *X(map_r2r_kind)(int rank, const X(r2r_kind) * kind);
+
+typedef void (*planner_hook_t)(void);
+                                                     
+void X(set_planner_hooks)(planner_hook_t before, planner_hook_t after);
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif /* __cplusplus */
 
 #endif				/* __API_H__ */

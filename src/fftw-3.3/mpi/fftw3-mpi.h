@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003, 2007-11 Matteo Frigo
- * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
+ * Copyright (c) 2003, 2007-14 Matteo Frigo
+ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
  *
  * The following statement of license applies *only* to this header file,
  * and *not* to the other files distributed with FFTW or derived therefrom:
@@ -47,7 +47,7 @@
 #ifndef FFTW3_MPI_H
 #define FFTW3_MPI_H
 
-#include "fftw3.h"
+#include <fftw3.h>
 #include <mpi.h>
 
 #ifdef __cplusplus

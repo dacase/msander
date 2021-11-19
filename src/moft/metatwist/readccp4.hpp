@@ -100,7 +100,7 @@ namespace util {
       /*35-37   SKWTRN(T2)  */ headerccp.f[35] = 0.0;
       /*35-37   SKWTRN(T3)  */ headerccp.f[36] = 0.0;
       /*38-52   future use  */
-      /*50-52  origin       */ headerccp.f[49] = orig(2) ; headerccp.f[50] = orig(1) ; headerccp.f[51] = orig(0);
+      /*50-52  origin       */ headerccp.f[49] = orig(0) ; headerccp.f[50] = orig(1) ; headerccp.f[51] = orig(2);
       /*53      MAP         */ headerccp.c[4*52]   = 'M'; headerccp.c[4*52+1] = 'A';
       headerccp.c[4*52+2] = 'P'; headerccp.c[4*52+3] = ' ';
 
@@ -149,9 +149,9 @@ namespace util {
 //      std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //      std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[49]              << std::endl;
-      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[50]              << std::endl;
-      std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[51]              << std::endl;
+      std::cout<<"# |  50      ORIGIN      "<< headerccp.f[49]              << std::endl;
+      std::cout<<"# |  51      ORIGIN      "<< headerccp.f[50]              << std::endl;
+      std::cout<<"# |  52      ORIGIN      "<< headerccp.f[51]              << std::endl;
       //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
       std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
       std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
@@ -316,9 +316,9 @@ namespace util {
 //          std::cout<<"# |  35-37   SKWTRN(T1)  "<< headerccp.f[34]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T2)  "<< headerccp.f[35]             << std::endl;
 //          std::cout<<"# |  35-37   SKWTRN(T3)  "<< headerccp.f[36]             << std::endl;
-          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[49]             << std::endl;
-          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[50]             << std::endl;
-          std::cout<<"# |  50-52   ORIGIN      "<< headerccp.f[51]             << std::endl;
+          std::cout<<"# |  50      ORIGIN      "<< headerccp.f[49]             << std::endl;
+          std::cout<<"# |  51      ORIGIN      "<< headerccp.f[50]             << std::endl;
+          std::cout<<"# |  52      ORIGIN      "<< headerccp.f[51]             << std::endl;
           //std::cout<<" 38-52   future use  "/*<< headerccp.i[ ] */         << std::endl;
           std::cout<<"# |  53      MAP         "<< headerccp.c[4*52]<<headerccp.c[4*52+1]<<headerccp.c[4*52+2]<<headerccp.c[4*52+3]<< std::endl;
           std::cout<<"# |  54      MACHST      "<< boost::format("0x%02x0x%02x0x%02x0x%02x")
@@ -393,10 +393,10 @@ namespace util {
             orig =  ublas::prod(rot,orig);
             std::cout << "# Origin NxNyNz: " << orig << std::endl;
           } else {
-            orig(0) = headerccp.f[49 + gr2ax(0)];
-            orig(1) = headerccp.f[49 + gr2ax(1)];
-            orig(2) = headerccp.f[49 + gr2ax(2)];
-            std::cout << "# Origin MRC [v2000]: " << orig << std::endl;
+            orig(0) = headerccp.f[49];
+            orig(1) = headerccp.f[50];
+            orig(2) = headerccp.f[51];
+            // std::cout << "# Origin MRC [v2000]: " << orig << std::endl;
           };
 
           // Populating the tmp data array:
@@ -455,19 +455,13 @@ namespace util {
                     }
                 }
 
+          myFile.close();
           return true;
 
         } else {
-
-
-
           std::cout << ">>  Could not read file:" << filename << std::endl;
           return false;
         }
-
-
-      myFile.close();
-
 
     }
 

@@ -83,37 +83,3 @@ function erf(x)
   erf = 1.d0 - erfc
 end function erf
 
-#if 0
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ [Enter a one-line description of subroutine get_ee_func here]
-subroutine get_ee_func(x,switch,d_switch_dx,ee_type)
-   use constants_rism, only : zero, one, two, INVSQRTPI
-   implicit none
-   _REAL_ x,switch,d_switch_dx
-   integer ee_type
-   
-   !     ---get switch function multiplying the Coulomb interaction 1/r
-   !     r has been converted to x by x = dxdr*r for convenience
-   
-   if ( ee_type == 1 )then
-      
-      !          ---erfc function for ewald
-      
-      call rismerfcfun(x,switch)
-      d_switch_dx = -two*exp(-x*x)*INVSQRTPI
-      
-   else if ( ee_type == 2 )then
-      
-      !          ---force shift cutoff
-      
-      if ( x < one )then
-         switch = (one - x)**2
-         d_switch_dx = -two*(one - x)
-      else
-         switch = zero
-         d_switch_dx = zero
-      end if
-   end if
-   return
-end subroutine get_ee_func 
-#endif /* 0 */
