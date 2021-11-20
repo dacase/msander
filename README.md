@@ -7,6 +7,19 @@ simulations of biomolecules.  Tools inlcuded are:
 
 Also included are the API's to msander, and various X-ray-related utilities
 
+# Warning:
+
+* This is a work in progress, and may not always be in a stable
+state.  I may not be able to respond to requests for support.
+The documentation is here:
+
+    https://ambermd.org/doc12/Amber21.pdf
+
+This code is probably only useful to those who are already familiar with
+AmberTools, and there are some small differences that are not yet
+documented.  You can look in the test directory for examples of input files,
+or send email to dacase1@gmail.com if you want to participate in development.
+
 # Design goals:
 
 * This project began as a fork of the `sander` code in `AmberTools`.  
