@@ -21,7 +21,7 @@ AmberTools, and there are some small differences that are not yet
 documented.  You can look in the test directory for examples of input files,
 or send email to dacase1@gmail.com if you want to participate in development.
 
-# Design goals:
+# Design goals
 
 * This project began as a fork of the `sander` code in `AmberTools`.  
 It tries to (greatly) simplify the code base, choosing the best and 
@@ -58,7 +58,7 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
   * Replica exchange capabilities, and constant pH and redox potential
 simulations
 
-# Building the code:
+# Building the code
 
 *Conda build (serial mode only, no MPI):
 ```
