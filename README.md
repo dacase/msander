@@ -1,15 +1,16 @@
+# Overview
 
 This directory tree contains "msander", a "modern" version of parts of
 sander, plus other pieces of AmberTools needed for basic building and
 simulations of biomolecules.  Tools inlcuded are:
-
+```
    addles  antechamber  tleap  msander  parmed  sqm
-
+```
 Also included are the API's to msander, and various X-ray-related utilities
 
-# Warning:
+# Warning
 
-* This is a work in progress, and may not always be in a stable
+This is a work in progress, and may not always be in a stable
 state.  I may not be able to respond to requests for support.
 The documentation is here:
 
@@ -59,14 +60,14 @@ simulations
 
 # Building the code:
 
-*Conda build:
+*Conda build (serial mode only, no MPI):
 ```
    conda build [ --python x.x ] recipe 
       (note: you should have conda-forge at the top of your channel
        list in ~/.condarc)
 ```
 
-*Non-conda build:  (MacOSX, Linux)
+*Non-conda build  (MacOSX, Linux, probably WSL):
 ```
    ./configure --help   #  then choose the options you want
    make install
