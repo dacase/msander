@@ -2,8 +2,7 @@
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
-!   #if defined(LES) || defined(MPI) /* use the older, non-openMP version for now */
-#if 1
+#if defined(LES) || defined(MPI) /* use the older, non-openMP version for now */
 
 !------------------------------------------------------------------------------
 ! get_nb_energy: the main routine for vdw, hbond, and direct space Ewald sum
@@ -187,9 +186,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   _REAL_ comm1
   _REAL_ xktran(3,18)
   _REAL_ e3dx, e4dx
-#ifdef TVDW
-  _REAL_ r4, r6pinv
-#endif
   _REAL_ cn3(*), cn4(*), cn5(*)
   _REAL_ ecur
   integer, parameter :: mask27 = 2**27 - 1
@@ -707,7 +703,8 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
                    rips12r, aipse, aipsvc, aipsva, bipse, bipsvc, bipsva, &
                    pipsec, pipsvcc, pipsvac
-  use omp_lib
+!$ use omp_lib
+!$ use constants, only:  omp_num_threads
 
   implicit none
   character(kind=1, len=13) :: routine="get_nb_energy"
@@ -733,14 +730,10 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   _REAL_ xktran(3,18)
   _REAL_ e3dx, e4dx, eeltl, evdwl
   _REAL_ forcel(3,numatoms)
-#ifdef TVDW
-  _REAL_ r4, r6pinv
-#endif
   integer, parameter :: mask27 = 2**27 - 1
   _REAL_ delx(3), delr, delr2, cgi, delr2inv, r6, f6, f12, df, &
          dfee, dx, x, dfx(3)
 
-!$  character(len=30) omp_num_threads
 !$  integer max_threads, ier
 
 #include "../include/md.h"
@@ -763,16 +756,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   filter_cut2 = filter_cut * filter_cut
   numpack = 1
 
-#ifdef OPENMP
-  call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, &
-           status=ier)
-  if( ier == 1 ) then
-     max_threads = 1
-  else
-     read(omp_num_threads,*) max_threads
-  endif
-  max_threads = min( 8, max_threads )
-#endif
+!$ max_threads = min( 8, omp_num_threads )
 
   call timer_start(TIME_SHORT_ENE)
 
@@ -789,7 +773,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 !$  myindexhi = myindexlo + inddel - 1
 !$  if (OMP_GET_THREAD_NUM() == OMP_GET_NUM_THREADS()-1) myindexhi = nucgrd
 
-  ! local versions of reducations: will be reduced in a single critical
+  ! local versions of reductions: will be reduced in a single critical
   ! section after the end of the do loop
   evdwl = zero
   eeltl = zero
