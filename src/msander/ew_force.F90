@@ -573,11 +573,7 @@ end subroutine
 subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
       field,prefac1,prefac2,prefac3,fftable,qm_pot_only)
    use ew_recip
-   use ew_recip_spatial
    use nblist, only: recip, volume
-#if defined(MPI) && !defined(LES)
-   use fft,only:column_fft_flag
-#endif
    implicit none
 #  include "../include/memory.h"
 
@@ -616,18 +612,14 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
 
 #else /* LES */
 
-# ifdef MPI
-     if(column_fft_flag)then
-        call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
-             prefac1,prefac2,prefac3,qm_pot_only)
-     else
-# endif         
+     !  column_fft stuff is not working, November, 2021
+     ! if(column_fft_flag)then
+     !    call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
+     !         prefac1,prefac2,prefac3,qm_pot_only)
+     ! else
         call do_pmesh_kspace(numatoms,crd,charge,frc, &
             prefac1,prefac2,prefac3,fftable,qm_pot_only)
-
-# ifdef MPI
-     endif
-# endif
+     ! endif
      frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
 
 #endif /* LES */

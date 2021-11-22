@@ -830,11 +830,8 @@ end subroutine aipspbc
 !     the FFT calculation
 !-----------------------------------------------------------------------
 !
-      use ew_bspline,only:load_prefacs
-      use stack
-#ifdef MPI
-  use fft,only:fft_init,column_fft_flag
-#endif
+     use ew_bspline,only:load_prefacs
+     use stack
      implicit none
      INTEGER NATOM
 !
@@ -874,11 +871,6 @@ end subroutine aipspbc
          nfft1,nfft2,nfft3,forder,opt_infl)
    call fft_setup(dummy,fftable,ffwork, &
                   nfft1,nfft2,nfft3,nfftdim1,nfftdim2)
-#ifdef MPI
-   if(column_fft_flag)then
-      call fft_init(nfft1,nfft2,nfft3)
-   endif
-#endif
 !     IPS energy functions
       IF(IPSSIZ>0)THEN
           deallocate(elearray,vdwarray,stat=alloc_err)

@@ -1524,10 +1524,7 @@ subroutine pmesh_kspace_setup( &
       prefac1,prefac2,prefac3,fftable, &
       nfft1,nfft2,nfft3,order,sizfftab,opt_infl)
 
-  use ew_bspline
-#ifdef MPI
-  use fft,only:fft_init,column_fft_flag
-#endif
+   use ew_bspline
    implicit none
 
    !  see DO_PMESH_KSPACE for explanation of arguments
@@ -1546,11 +1543,6 @@ subroutine pmesh_kspace_setup( &
          nfft1,nfft2,nfft3,order,opt_infl)
    call fft_setup(dummy,fftable,ffwork_dummy, &
          nfft1,nfft2,nfft3,nfftdim1,nfftdim2)
-#ifdef MPI
-   if(column_fft_flag)then
-      call fft_init(nfft1,nfft2,nfft3)
-   endif
-#endif
    
    return
 end subroutine pmesh_kspace_setup 
@@ -1570,7 +1562,6 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
                      skinnbmod=>skinnb, nbflagmod=>nbflag, nbtellmod=>nbtell, &
                      nbfilter,cutoffnb, &
                      ucell,recip,dirlng,reclng,sphere,volume
-   use fft,only: column_fft_flag
    use constants, only: NO_INPUT_VALUE
    use file_io_dat
                      
@@ -1591,7 +1582,7 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
 #ifdef MPI
 #  include "parallel.h"
 #endif
-   integer gridpointers,column_fft
+   integer gridpointers
    
    !  Amber 8 (and earlier) codes allowed the user to enter a,b,c,alpha,
    !    beta, gamma, but there is no ordinary reason to do so, and it can
@@ -1607,8 +1598,7 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
          vdwmeth,eedmeth,ee_type, &
          eedtbdns,rsum_tol,use_pme, &
          maxiter,indmeth,irstdip,nquench, &
-         frameon,chngmask,scaldip, &
-         gridpointers,column_fft
+         frameon,chngmask,scaldip,gridpointers
    
    !  ---- Determine if nonperiodic system, set big box to satisfy sanity checks.
    !  ---- Box will be determined after &ewald is read.
@@ -1677,7 +1667,6 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
    scaldip = 1
    gridpointers=1
    nogrdptrs=.false.
-   column_fft = 0
    dipdamp = -1.0d0
    
    if ( mdin_ewald ) then
@@ -1788,34 +1777,6 @@ subroutine read_ewald(ax,bx,cx,alphax,betax,gammax)
       write(6,*)'only switch supported is erfc'
       call mexit(6,1)
    end if
-#ifndef MPI
-   if(column_fft == 1)then
-      write(6,'("| Column fft is only for parallel, setting to false")')
-      column_fft = 0
-   endif
-#endif
-   if(column_fft == 1) then
-      if ( ntp > 1 ) then
-         if ( abs(alpha-90.0d0 ) > 1.d-5 .or. &
-              abs(beta - 90.0d0) > 1.d-5 .or. &
-              abs(gamma - 90.0d0) > 1.d-5 ) then
-#ifndef API
-            write(6,'(a,i3/a/a)') &
-                 "| Column fft: ifbox is :",ifbox, &
-                 "| Column fft: only orthorhombic periodic boxes only at present.", & 
-                 "|             setting to false"
-#endif /* API */
-            column_fft = 0
-         endif
-      endif
-   endif
-   column_fft_flag = (column_fft == 1)
-#ifndef API
-   if(column_fft_flag ) &
-        write(6,'(a/a)') &
-        "| Column fft: orthorhombic periodic box, using COLUMN_FFT.", & 
-        "|             "
-#endif /* API */
 
    amod=a
    bmod=b

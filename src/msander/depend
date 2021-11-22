@@ -842,8 +842,6 @@ ew_force.o: \
                     ew_frc.h\
                     ew_parallel.h\
                     parallel.h\
-                    spatial_recip.o\
-                    spatial_fft.o\
                     crg_reloc.o\
                     flocntrl.h\
                     linear_response.o
@@ -880,8 +878,6 @@ ew_force.LES.o: \
                     ew_frc.h\
                     ew_parallel.h\
                     parallel.h\
-                    spatial_recip.o\
-                    spatial_fft.o\
                     crg_reloc.o\
                     flocntrl.h\
                     linear_response.o
@@ -962,7 +958,6 @@ ew_setup.o: \
                     binrestart.o\
                     file_io_dat.o\
                     ew_bspline.o\
-                    spatial_fft.o\
                     ew_legal.h
 
 
@@ -993,7 +988,6 @@ ew_setup.LES.o: \
                     binrestart.LES.o\
                     file_io_dat.o\
                     ew_bspline.o\
-                    spatial_fft.o\
                     ew_legal.h
 
 ew_setup.LES.o:   ew_setup.F90
@@ -1023,7 +1017,6 @@ ew_setup.API.o: \
                     binrestart.o\
                     file_io_dat.o\
                     ew_bspline.o\
-                    spatial_fft.o\
                     ew_legal.h
 
 ew_setup.API.o:   ew_setup.F90
@@ -1053,7 +1046,6 @@ ew_setup.LESAPI.o: \
                     binrestart.o\
                     file_io_dat.o\
                     ew_bspline.o\
-                    spatial_fft.o\
                     ew_legal.h
 
 ew_setup.LESAPI.o:   ew_setup.F90
@@ -1382,7 +1374,6 @@ interface.o: \
                     prmtop_type.o\
                     qmmm_module.o\
                     state.o\
-                    ../rism/amber_rism_interface.o\
                     interface_setup.F90\
                     lmod.o\
                     constantph.o\
@@ -1397,6 +1388,7 @@ interface.o: \
                     scaledMD.o\
                     ips.o\
                     emap.o\
+                    ../rism/amber_rism_interface.o\
                     dssp.o\
                     xray_interface.o\
                     softcore.o\
@@ -1444,7 +1436,6 @@ interface.LESAPI.o: \
                     prmtop_type.o\
                     qmmm_module.o\
                     state.o\
-                    ../rism/amber_rism_interface.o\
                     interface_setup.F90\
                     lmod.o\
                     constantph.o\
@@ -1459,6 +1450,7 @@ interface.LESAPI.o: \
                     scaledMD.o\
                     ips.o\
                     emap.o\
+                    ../rism/amber_rism_interface.o\
                     dssp.o\
                     xray_interface.o\
                     softcore.o\
@@ -1563,7 +1555,6 @@ ips.o: \
                     def_time.h\
                     box.h\
                     ew_parallel.h\
-                    spatial_fft.o\
                     file_io_dat.o\
                     ../include/md.h
 
@@ -3008,7 +2999,6 @@ parallel.o: \
                     nonbond_list.o\
                     file_io_dat.o\
                     md_scheme.o\
-                    spatial_fft.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -3053,7 +3043,6 @@ parallel.LES.o: \
                     nonbond_list.LES.o\
                     file_io_dat.o\
                     md_scheme.LES.o\
-                    spatial_fft.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -3794,14 +3783,6 @@ rgroup.o:   rgroup.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rgroup.F90
 
-rism_report_c.o: \
-                    ../include/dprec.fh
-
-
-rism_report_c.o:   rism_report_c.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rism_report_c.F90
-
 rmsgrd.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
@@ -4273,8 +4254,7 @@ short_ene.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h\
-                    omp_lib.o
+                    eedmeth2-6.h
 
 
 short_ene.o:   short_ene.F90
@@ -4303,8 +4283,7 @@ short_ene.LES.o: \
                     ew_directp.h\
                     ew_directe3.h\
                     ew_directe4.h\
-                    eedmeth2-6.h\
-                    omp_lib.o
+                    eedmeth2-6.h
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'
@@ -4327,44 +4306,6 @@ softcore.o: \
 softcore.o:   softcore.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ softcore.F90
-
-spatial_fft.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    def_time.h\
-                    parallel.h\
-                    constants.o\
-                    ew_parallel.h
-
-
-spatial_fft.o:   spatial_fft.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ spatial_fft.F90
-
-spatial_recip.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    nonbond_list.o\
-                    stack.o\
-                    spatial_fft.o\
-                    ew_recip.o\
-                    flocntrl.h\
-                    ew_pme_recip.h\
-                    ew_frc.h\
-                    def_time.h\
-                    box.h\
-                    parallel.h\
-                    ew_parallel.h\
-                    constants.o\
-                    ew_bspline.o\
-                    qmmm_module.o\
-                    extra.h\
-                    ../include/md.h
-
-
-spatial_recip.o:   spatial_recip.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ spatial_recip.F90
 
 stack.o: \
                     ../include/assert.fh\

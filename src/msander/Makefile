@@ -34,7 +34,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     erfcfun.o md_scheme.LES.o \
     constantph.o constante.o ips.o sglds.o iwrap2.o emap.o \
     amber_rism_interface.API.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o \
+    parms.o softcore.o mbar.o \
     linear_response.o molecule.o dssp.o \
     charmm.API.o crg_reloc.o barostats.o prmtop_type.o \
     AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o \
@@ -84,7 +84,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     constantph.o constante.o ips.o sglds.o iwrap2.o emap.o\
     amber_rism_interface.API.o \
     AmberNetcdf.o bintraj.o binrestart.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o \
+    parms.o softcore.o mbar.o linear_response.o \
     molecule.o dssp.o \
     charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
     random.o qm_mm.API.o \
@@ -119,8 +119,8 @@ MMOBJ = \
     random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
     sander_lib.o sander.o scaledMD.o set.o \
-    sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
-    spatial_recip.o stack.o state.o thermo_int.o trajene.o \
+    sglds.o shake.o $(SHORT_ENE) softcore.o \
+    stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o veclib.o dsarpack.o 
 
 LESOBJ= \
@@ -143,7 +143,7 @@ LESOBJ= \
     rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
-    shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
+    shake.o short_ene.LES.o softcore.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
     xminC.o veclib.o dsarpack.o 
 

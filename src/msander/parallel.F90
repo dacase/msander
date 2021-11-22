@@ -24,7 +24,6 @@ subroutine startup(xx,ix,ih)
                      BC_DIRPARS,numnptrs
    use file_io_dat
    use md_scheme, only: ithermostat, therm_par
-   use fft,only:column_fft_flag
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &
                        sceeorder, tishake
@@ -78,7 +77,6 @@ subroutine startup(xx,ix,ih)
    _REAL_ xx(*)
    integer ix(*), ier
    character(len=4) ih(*)
-   integer i_column_fft
 
    !     Send and receive common blocks from the master node:
 
@@ -142,12 +140,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(sizfftab,BC_PME_PARS_INT,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(dsum_tol,BC_PME_PARS_REAL,MPI_DOUBLE_PRECISION, &
          0,commsander,ier)
-
-   i_column_fft = 0
-   if(master .and. column_fft_flag) i_column_fft = 1
-   call mpi_bcast(i_column_fft,1,MPI_INTEGER, &
-         0,commsander,ier)
-   column_fft_flag = (i_column_fft == 1)
 
    ! ew_mpole.h
 
