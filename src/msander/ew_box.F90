@@ -256,10 +256,6 @@ subroutine get_ucell(a,b,c,alpha,beta,gamma, &
    if (master) then
       write(6, '(a,f9.3)') &
        '| Largest sphere to fit in unit cell has radius = ', sphere
-      write(6, '(a)')  '| recip matrix, for conversion to fractional coords:'
-      write(6, '(a,3f14.7)') '| ',recip(:,1)
-      write(6, '(a,3f14.7)') '| ',recip(:,2)
-      write(6, '(a,3f14.7)') '| ',recip(:,3)
    end if
 #endif
    return
