@@ -143,7 +143,11 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --no-rism      disable 3D-RISM support\n"
 	printf " --no-boost     disable moft support\n"
 	printf " --build-boost  build boost from source, else use installed\n"
+
 	printf " --intel        use Intel compilers; default is gnu\n"
+	printf " --clang        use clang/flang as compilers (not tested)\n"
+	printf " --gcc10        add flags for gcc10 and above\n"
+	printf " --conda        set up for a conda build, with conda-forge\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
 	printf " --mkl          use MKL routines from $MKLROOT\n"
