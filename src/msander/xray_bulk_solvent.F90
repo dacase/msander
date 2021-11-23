@@ -512,9 +512,6 @@ contains
    subroutine get_solvent_contribution(nstep,crd,update_Fcalc)
       use xray_globals_module, only : user_fmask, bulk_solvent_model, &
              mask_update_frequency, num_hkl, num_atoms, Fcalc
-#ifdef MPI
-      use mpi
-#endif
       implicit none
       integer, intent(in) :: nstep
       real(real_kind), intent(in) :: crd(3*num_atoms)
@@ -522,6 +519,9 @@ contains
 
       integer :: i, ier
       real(real_kind) :: time0, time1
+#ifdef MPI
+      include 'mpif.h'
+#endif
 
       if( bulk_solvent_model == 'none' ) return
 
