@@ -1,29 +1,14 @@
 #!/bin/bash
-JOB=uucgm
-output=uucg_mdgx.1gnu
-STARTDIR=`pwd`
-
-cat <<EOF > $JOB.pbs
-#!/bin/bash -f
-#SBATCH -n 1
-#SBATCH -t 100:00
-#SBATCH -p main
-#SBATCH --gres=gpu:0
-#SBATCH --export=ALL
-#SBATCH -o $JOB-%j.out
-#SBATCH -e $JOB-%j.err
-
-cd /home/dacase/amber14/benchmarks/uucg_bench
 
 cat > mdgx.inp << eof
  this is George's uucg benchmark from the NAMD page at the Amber web site
  &files
-  -p       prmtop
-  -c       inpcrd
-  -r       mdout
-  -o       $output
+  -p       uucg_tip4pew_10.parm7
+  -c       restrt.26_dyn
+  -r       restrt
+  -o       mdgx_serial
   -x       mdcrd
-  -f       foo
+  -f       force
   -osf     .o
   -rsf     .x
   -xsf     .nc
@@ -34,10 +19,10 @@ cat > mdgx.inp << eof
    DoRATTLE = 1,
    irest=1,
    ntc=2, ntf=2, tol=0.000001, 
-   nstlim=1000,
-   ntpr=200, ntwx=2000,
+   nstlim=500,
+   ntpr=50, ntwx=0,
    dt=0.001, vlimit=10.0,
-   cut=8.0,
+   cut=9.0,
    ntt=0, ioutfm=1,
  &end
  &ewald
@@ -45,9 +30,6 @@ cat > mdgx.inp << eof
  &end
 eof
 
-srun --mpi=pmi2 mdgx.MPI -O -i mdgx.inp 
+/home/case/amber20/bin/mdgx -O -i mdgx.inp 
 
-/bin/rm mdgx.inp 
-EOF
-
-sbatch $JOB.pbs
+/bin/rm -f restrt.x mdcrd.nc mdinfo mdgx.inp
