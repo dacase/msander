@@ -19,7 +19,7 @@
 !                      inverse of 18.2223 (sodium cation would read +1.0)
 !   f:                 Atomic forces (natom*3 _REAL_ elements)
 !   escf:              The calculated SCF energy, heat of formation from QM
-!   periodic:          flag to 
+!   periodic:          flag to
 !   born_radii:        The calculated Generalize Born radii (for QM with GB,
 !                      qm_gb == 2), natom _REAL_ elements
 !   one_born_radii:    The inverse of the Generalized Born radii, natom _REAL_
@@ -58,12 +58,17 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   use parms, only : cn1, cn2, nttyp
   use nblist,only: alpha,beta,gamma
   use qm2_extern_module, only: qm2_extern_get_qm_forces
+  use tcpb_module, only: get_tcpb_qmmm_forces
+#ifdef MPI
+  use remd, only : rem
+#endif
 
   implicit none
 
 #include "../include/assert.fh"
 
 #ifdef MPI
+#   include "parallel.h"
   include 'mpif.h'
 #endif
 
@@ -88,6 +93,7 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
 
   integer :: ier
   integer i, j, n, m, offset, qm_no
+  character(len=3) :: id
 
   ! Locals for link atoms
   _REAL_ :: forcemod(3)
@@ -188,8 +194,8 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
                                   qmmm_scratch%qm_real_scratch)
 
     ! QMMMCOORDSX was stopped and QMMMLISTBUILD was started
-    ! in qm_fill_qm_xcrd_periodic. 
-    call timer_stop(TIME_QMMMLISTBUILD) 
+    ! in qm_fill_qm_xcrd_periodic.
+    call timer_stop(TIME_QMMMLISTBUILD)
   else
     call timer_start(TIME_QMMMLISTBUILD)
 
@@ -346,8 +352,8 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
 
     ! qm_mm_pairs is known, so allocate the qm_mm_pair_atom_numbers array.
     ! This array will be qm_mm_pairs long and store the atomic Z-numbers of
-    ! MM atoms in the qm_mm_pairs pair list (i.e. carbon = 6, oxygen = 8). 
-    ! This uses less memory since qm_mm_pairs <= (natom-nquant+1). 
+    ! MM atoms in the qm_mm_pairs pair list (i.e. carbon = 6, oxygen = 8).
+    ! This uses less memory since qm_mm_pairs <= (natom-nquant+1).
     !
     ! qm_mm_pair_atom_numbers is nullified in type qmmm_struct_type and it
     ! can be allocated elsewhere, so check before allocating; I don't know
@@ -372,8 +378,11 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
       ! topology, so to get the atomic Z numbers of the MM atoms in the
       ! qm_mm_pair_list we must take indices and cross-reference.
       j = qmmm_struct%qm_mm_pair_list(i)
-      call get_atomic_number(atom_name(j), atomic_mass(j), &
-                             qmmm_struct%qm_mm_pair_atom_numbers(i))
+      qmmm_struct%qm_mm_pair_atom_numbers(i) = 0
+      if (atomic_mass(j) >= 0.01d0) then ! dont fail on TIP4P EP particles, for example
+         call get_atomic_number(atom_name(j), atomic_mass(j), &
+                                qmmm_struct%qm_mm_pair_atom_numbers(i))
+      end if
     end do
   end if
   ! End setup for PM3MMX interface
@@ -382,23 +391,57 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   call timer_stop(TIME_QMMMSETUP)
 
   ! Calculate Forces
-  if (qmmm_nml%qmtheory%EXTERN) then
-    nclatoms = qmmm_struct%qm_mm_pairs
-    if (qmmm_nml%qmmm_int == 5) then
-      nclatoms = 0
+  nclatoms = qmmm_struct%qm_mm_pairs
+  if (qmmm_nml%qmmm_int == 5) then
+    nclatoms = 0
+  end if
+  ! Set the mm atom types, otherwise the code gives a segfault
+  if (associated(qmmm_struct%qm_mm_pair_atom_numbers)) then
+      deallocate( qmmm_struct%qm_mm_pair_atom_numbers, stat=ier)
+      REQUIRE(ier == 0)
     end if
+    allocate (qmmm_struct%qm_mm_pair_atom_numbers(qmmm_struct%qm_mm_pairs), &
+              stat=ier)
+    REQUIRE(ier == 0)
+    do i = 1,qmmm_struct%qm_mm_pairs
+
+      ! The atom_name and atomic_mass arrays run over the list of all MM
+      ! atoms in the topology, but the qm_mm_pair_atom_numbers array runs
+      ! only over the MM atoms which make pairs with QM atoms of the system.
+      ! (That can be a good chunk of the MM atoms, but not necessarily all.)
+      ! The qm_mm_pair_list stores the number indices of MM atoms in the MM
+      ! topology, so to get the atomic Z numbers of the MM atoms in the
+      ! qm_mm_pair_list we must take indices and cross-reference.
+      j = qmmm_struct%qm_mm_pair_list(i)
+      qmmm_struct%qm_mm_pair_atom_numbers(i) = 0
+      if (atomic_mass(j) >= 0.01d0) then ! dont fail on TIP4P EP particles, for example
+         call get_atomic_number(atom_name(j), atomic_mass(j), &
+                                qmmm_struct%qm_mm_pair_atom_numbers(i))
+      end if
+    end do
+  
+  ! Determine id
+  id = ''
+#ifdef MPI
+  if ((rem > 0) .or. (qmmm_nml%vsolv > 1)) then
+      ! Add rank for parallel REMD run
+      write (id,'(i3.3)') masterrank
+  end if
+#endif /* MPI */
+ 
+  if (qmmm_nml%qmtheory%EXTERN) then
     call qm2_extern_get_qm_forces(nstep, qmmm_struct%nquant_nlink, &
                                   qmmm_struct%qm_coords, &
-                                  qmmm_struct%iqm_atomic_numbers, &
-                                  nclatoms, qmmm_struct%qm_xcrd, escf, &
-                                  qmmm_struct%dxyzqm, qmmm_struct%dxyzcl)
-!  else if (qmmm_nml%qmtheory%QUICKHF) then
-!
-!    ! CHECK
-!    write(6, '(a)') 'This is where Quick is going to get called.'
-!    write(6, '(a)') 'Exit here to avoid a seg fault.'
-!    call mexit(6, 1);
-!    ! END CHECK
+                                  qmmm_struct%iqm_atomic_numbers,scf_mchg, &
+                                  nclatoms, qmmm_struct%qm_xcrd, &
+                                  qmmm_struct%qm_mm_pair_atom_numbers, escf, &
+                                  qmmm_struct%dxyzqm, qmmm_struct%dxyzcl, id)
+  else if (qmmm_nml%qmtheory%ISTCPB) then
+    call get_tcpb_qmmm_forces(qmmm_struct%nquant_nlink, &
+                               qmmm_struct%qm_coords, &
+                               qmmm_struct%iqm_atomic_numbers, &
+                               nclatoms, qmmm_struct%qm_xcrd, escf, &
+                               qmmm_struct%dxyzqm, qmmm_struct%dxyzcl, id)
   else
     call get_qm2_forces(qmmm_mpi%commqmmm_master, qm2_struct%calc_mchg_scf, &
                         natom, born_radii, one_born_radii, coords, &
@@ -436,7 +479,7 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   ! If there is something other than mechanical embedding (qmmm_int == 0 or
   ! qmmm_int == 5) then we must include the effects of the QM region on the
   ! system's classical (MM) atoms.  Only the MM atoms that are in the list
-  ! qm_mm_pair_list need to be considered.  
+  ! qm_mm_pair_list need to be considered.
   if (qmmm_nml%qmmm_int > 0 .and. (qmmm_nml%qmmm_int /= 5) ) then
     do i = 1,qmmm_struct%qm_mm_pairs
       m = (qmmm_struct%qm_mm_pair_list(i)-1)*3
@@ -524,7 +567,7 @@ end subroutine qm_mm
 !                  included an MM atom only need to be within cut of any QM
 !                  atom.  The qm_mm_pair_list resides in the global qmmm_struct
 !                  imported from qmmm_module.
-! 
+!
 ! Arguments:
 !   x:                 The coordinates (3*natom _REAL_ numbers)
 !   natom:             The number of atoms
@@ -646,7 +689,7 @@ end subroutine qm_fill_qm_xcrd
 
 !------------------------------------------------------------------------------
 ! qm_fill_qm_xcrd_periodic: a variant of the preceding qm_fill_qm_xcrd function
-!                           for periodic systems.  
+!                           for periodic systems.
 !
 ! Arguments:
 !   x:                The coordinates (3*natom _REAL_ numbers)

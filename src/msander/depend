@@ -3249,8 +3249,8 @@ qm2_extern_gau_module.o: \
                     qm2_extern_util_module.o\
                     constants.o\
                     file_io_dat.o\
-                    elementOrbitalIndex.o\
-                    utilitiesmodule.o
+                    utilitiesmodule.o\
+                    elementOrbitalIndex.o
 
 
 qm2_extern_gau_module.o:   qm2_extern_gau_module.F90
@@ -3302,12 +3302,13 @@ qm2_extern_module.o: \
                     qm2_extern_orc_module.o\
                     qm2_extern_nw_module.o\
                     qm2_extern_mrcc_module.o\
+                    qm2_extern_quick_module.o\
+                    qm2_extern_reaxff_puremd_module.o\
                     qm2_extern_genmpi_module.o\
                     qm2_extern_qc_module.o\
                     qm2_extern_lio_module.o\
                     qm2_extern_fb_module.o\
                     file_io_dat.o\
-                    remd.o\
                     parallel.h\
                     ../include/md.h\
                     constants.o
@@ -3327,12 +3328,13 @@ qm2_extern_module.LES.o: \
                     qm2_extern_orc_module.o\
                     qm2_extern_nw_module.o\
                     qm2_extern_mrcc_module.o\
+                    qm2_extern_quick_module.o\
+                    qm2_extern_reaxff_puremd_module.o\
                     qm2_extern_genmpi_module.o\
                     qm2_extern_qc_module.o\
                     qm2_extern_lio_module.o\
                     qm2_extern_fb_module.o\
                     file_io_dat.o\
-                    remd.LES.o\
                     parallel.h\
                     ../include/md.h\
                     constants.o
@@ -3392,6 +3394,27 @@ qm2_extern_qc_module.o:   qm2_extern_qc_module.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_qc_module.F90
 
+qm2_extern_quick_module.o: \
+                    ../include/dprec.fh\
+                    qm2_extern_util_module.o\
+                    constants.o\
+                    file_io_dat.o\
+                    elementOrbitalIndex.o\
+                    utilitiesmodule.o
+
+
+qm2_extern_quick_module.o:   qm2_extern_quick_module.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_quick_module.F90
+
+qm2_extern_reaxff_puremd_module.o: \
+                    elementOrbitalIndex.o
+
+
+qm2_extern_reaxff_puremd_module.o:   qm2_extern_reaxff_puremd_module.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_reaxff_puremd_module.F90
+
 qm2_extern_tc_module.o: \
                     ../include/dprec.fh\
                     qm2_extern_util_module.o\
@@ -3445,7 +3468,10 @@ qm_mm.o: \
                     parms.o\
                     nonbond_list.o\
                     qm2_extern_module.o\
+                    tcpb_module.o\
+                    remd.o\
                     ../include/assert.fh\
+                    parallel.h\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
 
@@ -3462,7 +3488,10 @@ qm_mm.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     qm2_extern_module.LES.o\
+                    tcpb_module.o\
+                    remd.LES.o\
                     ../include/assert.fh\
+                    parallel.h\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
 
@@ -3478,7 +3507,10 @@ qm_mm.API.o: \
                     parms.o\
                     nonbond_list.API.o\
                     qm2_extern_module.o\
+                    tcpb_module.o\
+                    remd.o\
                     ../include/assert.fh\
+                    parallel.h\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
 
@@ -3494,7 +3526,10 @@ qm_mm.LESAPI.o: \
                     parms.o\
                     nonbond_list.LESAPI.o\
                     qm2_extern_module.o\
+                    tcpb_module.o\
+                    remd.o\
                     ../include/assert.fh\
+                    parallel.h\
                     qmmm_nml_module.o\
                     qmmm_struct_module.o
 
@@ -4323,6 +4358,18 @@ state.o: \
 state.o:   state.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ state.F90
+
+tcpb_module.o: \
+                    ../include/dprec.fh\
+                    utilitiesmodule.o\
+                    qmmm_module.o\
+                    elementOrbitalIndex.o\
+                    constants.o
+
+
+tcpb_module.o:   tcpb_module.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ tcpb_module.F90
 
 thermo_int.o: \
                     ../include/dprec.fh\

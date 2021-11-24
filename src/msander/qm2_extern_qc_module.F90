@@ -599,7 +599,7 @@ contains
     ! QM/MM with electrostatic embedding: E-field at point charges
     if( nclatoms > 0 ) then       
        do i = 1, nclatoms
-          read (iunit, '(3(f22.15))', iostat = ios) dxyzcl(:,i)
+          read (iunit, '(3(f22.16))', iostat = ios) dxyzcl(:,i)
           if (ios < 0) then
              call sander_bomb('read_results (qm2_extern_qc_module)', &
                   'Error reading e-field at point charge positions.',&

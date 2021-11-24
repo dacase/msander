@@ -14,7 +14,8 @@ QMAPIOBJ = \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
     qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
+    qm2_extern_genmpi_module.o tcpb_module.o \
+    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
@@ -65,7 +66,8 @@ QMOBJ= \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o \
     qm2_extern_nw_module.o qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
+    qm2_extern_genmpi_module.o tcpb_module.o \
+    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \

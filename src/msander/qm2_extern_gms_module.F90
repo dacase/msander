@@ -1,7 +1,7 @@
 #include "../include/dprec.fh"
 module qm2_extern_gms_module
 ! ----------------------------------------------------------------
-! Interface for GAMESS based QM MD 
+! Interface for GAMESS based QM MD
 !
 ! Currently supports:
 ! pure QM
@@ -11,7 +11,7 @@ module qm2_extern_gms_module
 ! (SDSC LSSI summer highschool students)
 ! under supervision of
 ! Andreas Goetz and Ross Walker (SDSC)
-! 
+!
 ! Date: August 2010
 !
 ! Extensions by Andreas Goetz (agoetz@sdsc.edu)
@@ -45,7 +45,7 @@ module qm2_extern_gms_module
      logical :: chelpg
      logical :: dipole
      logical :: use_template
-     
+
      ! Deprecated
      integer :: charge
      integer :: spinmult
@@ -78,7 +78,7 @@ contains
     type(gms_nml_type), save :: gms_nml
     logical, save :: first_call = .true.
     integer :: i
-    integer :: printed =-1 ! Used to tell if we have printed this step yet 
+    integer :: printed =-1 ! Used to tell if we have printed this step yet
                            ! since the same step may be called multiple times
 
     character(len=512)          :: call_buffer
@@ -92,9 +92,9 @@ contains
     character(len=*), parameter :: chgext = '.chg'
     character(len=*), parameter :: tplext = '.tpl'
     character(len=14) :: inpfile, outfile, datfile, logfile, dipfile, chgfile, tplfile
-    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM. 
-    !   This is triggered if 'id' is defined (not empty). 
-    character(len=25)           :: subdir 
+    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM.
+    !   This is triggered if 'id' is defined (not empty).
+    character(len=25)           :: subdir
 
     ! assemble input - / output data filenames
     inpfile = basename//trim(id)//inpext
@@ -114,7 +114,7 @@ contains
 
       call check_installation( program, id, .true., gms_nml%debug )
       call get_namelist( ntpr_default, gms_nml )
-      call print_namelist( gms_nml ) 
+      call print_namelist( gms_nml )
 
       write (6,'(80a)') ('-', i=1,80)
       write (6,'(a)') '   4.  RESULTS'
@@ -129,12 +129,12 @@ contains
     ! BPK-Separate runs into different directories if we are doing PIMD or REMD
     subdir = ''
     call_buffer = ''
-    if (trim(id)/='') then 
+    if (trim(id)/='') then
       subdir = './'//trim(id)//'/'
       call_buffer = ' mkdir -p '//trim(subdir)//'; cd '//trim(subdir)//&
         '; mv ../'//inpfile//' .;'
     end if
-    
+
     ! We assume that the datfile will be written to this same directory
     ! First remove a datfile that may potentially have been left over
     call_buffer = trim(call_buffer)//' rm -f '//datfile//';'
@@ -145,7 +145,7 @@ contains
          program//' '//trim(inpfile)//' '//gms_nml%gms_version//' ', &
          gms_nml%num_threads, &
          ' > '//trim(outfile)//' 2> '//trim(logfile)
- 
+
     call system(trim(call_buffer))
 
 
@@ -161,7 +161,7 @@ contains
         end if
         if ( gms_nml%chelpg ) then
           ! Call write_charges - will write output to chgfile
-          call write_charges( trim(chgfile), charges, gms_nml%debug )
+          call write_charges( trim(chgfile), nstep, charges, gms_nml%debug )
         end if
         printed = nstep
       end if
@@ -192,7 +192,7 @@ contains
   ! use default values if none are present.
   ! -----------------------------------------------
   subroutine get_namelist(ntpr_default, gms_nml)
-    
+
     implicit none
 
     integer, intent(in) :: ntpr_default
@@ -225,7 +225,7 @@ contains
     chelpg       = 0
     dipole       = 0
     use_template = 0
-    
+
     ! These are now deprecated and should be specified in the &qmmmm namelist
     charge   = -351
     spinmult = -351
@@ -318,7 +318,7 @@ contains
     write(6,'(a)')        "| /"
 
   end subroutine print_namelist
-  
+
   ! -------------------------------
   ! Write the input file for GAMESS
   ! -------------------------------
@@ -352,7 +352,7 @@ contains
     dft = (index(Upcase(gms_nml%method), 'MP2') == 0) .and. ( index(Upcase(gms_nml%method), 'HF') == 0 )
 
     call debug_enter_function( 'write_inpfile', module_name, gms_nml%debug )
-    
+
     if ( gms_nml%use_template ) then
       call system('cp '//tplfile//' '//inpfile)
     end if
@@ -405,13 +405,13 @@ contains
 
       ! $BASIS card
       pople = .true.
-      
+
       ! First, count and filter out '+' and '*' characters and store result in read_buffer
       nstars = 0
       nplus = 0
       j=0
       read_buffer=''
-        ! Search through each character of our basis name and write to 
+        ! Search through each character of our basis name and write to
         !  read_buffer if it does not contain a star or plus
         do i=1, len(gms_nml%basis)
         if ( gms_nml%basis(i:i)=='*') then
@@ -423,7 +423,7 @@ contains
           read_buffer(j:j)=gms_nml%basis(i:i)
         end if
       end do
-      
+
       ! Now, see if we fall under a pople case:
       select case (Upcase(trim(read_buffer)))
       case ('STO-3G')
@@ -480,7 +480,7 @@ contains
       end if
 
       ! $SCF card
-      write(iurun,'(a,/,a,/,a,E22.15,/,a,/)') &
+      write(iurun,'(a,/,a,/,a,E22.16,/,a,/)') &
            ' $SCF'        , &
            'DIRSCF=.TRUE.', &
            'CONV='        , gms_nml%scf_conv, &
@@ -526,7 +526,7 @@ contains
     !           'Error opening GAMESS punch file '//trim(datfile)//' from previous step', &
     !           'Will quit now')
     !   end if
-    !   
+    !
     !   found = .false.
     !   do
     !      read (iudat, '(a)', iostat = ios) read_buffer
@@ -559,7 +559,7 @@ contains
     !   end do
     !
     !   close(iudat)
-    !   
+    !
     !   write (iurun, '(2(a,/),a,i0,/,a,/)') &
     !        ' $GUESS'       , &
     !        'GUESS = MOREAD', &
@@ -567,7 +567,7 @@ contains
     !        ' $END'
     !
     !end if
-    
+
     close(iurun)
 
     call debug_exit_function( 'write_inpfile', module_name, gms_nml%debug )
@@ -691,7 +691,7 @@ contains
         end if
       end do
     end if
-       
+
     ! close output file after reading dipole moment and charges
     close(junit)
 
