@@ -3,7 +3,11 @@ program add_pdb
 ! This program adds data entries to the PRMTOP file from a matching PDB file.
 ! It is very simple, and requires all residues to be in the same order.
 !
-! The following four property arrays are added:
+! The following five property arrays are added:
+!
+!  %FLAG ATOM_BFACTOR
+!  %COMMENT B-factor read from PDB file; DIMENSION(NATOM)
+!  %FORMAT (10F8.2)
 !
 !  %FLAG RESIDUE_NUMBER
 !  %COMMENT Residue number (resSeq) read from PDB file; DIMENSION(NRES)
@@ -84,6 +88,7 @@ program add_pdb
    character(len=1), allocatable :: residue_chainid(:), residue_icode(:)
    character(len=4), allocatable :: atom_element(:) ! atom_altloc(:)
    integer, allocatable :: residue_number(:)
+   real, allocatable :: atom_bfactor(:)
    integer :: pdb_nres, pdb_natom
    logical :: guess_all
    
@@ -152,7 +157,7 @@ program add_pdb
    
    allocate(atom_name(natom),residue_label(nres),residue_pointer(nres+1), &
          residue_chainid(nres), residue_icode(nres), residue_number(nres), &
-         atom_element(natom))
+         atom_element(natom),atom_bfactor(natom))
    
    call nxtsec(in_lun,STDOUT,0,'*','ATOM_NAME',fmt,ierr)
    read(in_lun,fmt) atom_name
@@ -168,6 +173,7 @@ program add_pdb
    residue_icode(:) = ' '
    residue_number(:) = 0
    atom_element(:) = '????'
+   atom_bfactor(:) = 1.0
    
    prev_iCode='*'
    prev_resSeq=HUGE(prev_resSeq)
@@ -251,6 +257,7 @@ program add_pdb
             stop
          end if
          atom_element(i) = element
+         atom_bfactor(i) = tempFactor
       end if
    end do
 
@@ -277,6 +284,13 @@ program add_pdb
    
    !---------------------------------------------------------------------------
    ! Append new data to outfile
+   
+   fmt='(10F8.2)'
+   write(out_lun,'(A)') &
+         '%FLAG ATOM_BFACTOR', &
+         '%COMMENT B-factor read from PDB file; DIMENSION(NATOM)', &
+         '%FORMAT '//fmt
+   write(out_lun,fmt) atom_bfactor
    
    fmt='(20I4)'
    write(out_lun,'(A)') &
