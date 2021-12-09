@@ -3,36 +3,43 @@ program add_pdb
 ! This program adds data entries to the PRMTOP file from a matching PDB file.
 ! It is very simple, and requires all residues to be in the same order.
 !
-! The following five property arrays are added:
+! The following property arrays are added:
 !
+!  %FLAG ATOM_OCCUPANCY
+!  %COMMENT Atom occupancies read from the PDB file
+!  %FORMAT(10F8.2)
+
 !  %FLAG ATOM_BFACTOR
 !  %COMMENT B-factor read from PDB file; DIMENSION(NATOM)
-!  %FORMAT (10F8.2)
+!  %FORMAT(10F8.2)
 !
+!  %FLAG ATOM_NUMBER
+!  %COMMENT Atom serial number from the PDB file
+!  %FORMAT(10I8)
+
 !  %FLAG RESIDUE_NUMBER
 !  %COMMENT Residue number (resSeq) read from PDB file; DIMENSION(NRES)
-!  %FORMAT (20I4)
+!  %FORMAT(20I4)
 !
 !  %FLAG RESIDUE_CHAINID
 !  %COMMENT Residue chain ID (chainId) read from PDB file; DIMENSION(NRES)
-!  %FORMAT (80A1)
+!  %FORMAT(80A1)
 !
 !  %FLAG RESIDUE_ICODE
 !  %COMMENT Residue insertion code (iCode) read from PDB file; DIMENSION(NRES)
-!  %FORMAT (80A1)
+!  If the PDB file does not use iCodes (most do not), then the following comment
+!  is added to help keep the new data mostly self-documenting:
+!  %COMMENT Residue insertion code (iCode) not present in PDB file
+!  %COMMENT If all iCodes are blank, this array is not stored in the PRMTOP file.
+!  %FORMAT(80A1)
 !
 !  %FLAG ATOM_ELEMENT
 !  %COMMENT Atom element and formal charge, as read from PDB file; DIMENSION(NATOM)
-!  %COMMENT If all iCodes are blank, this array is not stored in the PRMTOP file.
-!  %FORMAT (20A4)
+!  %FORMAT(20A4)
 !
 !  The ELEMENT field is the 2-letter element name, right justified, followed
 !  by 2 characters to define the formal charge for ions. For example:
 !  ' H  ' is hydrogen, 'HE  ' is helium, and 'FE+2' is an iron ion.
-!
-!  If the PDB file does not use iCodes (most do not), then the following comment
-!  is added to help keep the new data mostly self-documenting:
-!  %COMMENT Residue insertion code (iCode) not present in PDB file
 !
 !-------------------------------------------------------------------------------
    implicit none
@@ -87,8 +94,8 @@ program add_pdb
    ! New PRMTOP data:
    character(len=1), allocatable :: residue_chainid(:), residue_icode(:)
    character(len=4), allocatable :: atom_element(:) ! atom_altloc(:)
-   integer, allocatable :: residue_number(:)
-   real, allocatable :: atom_bfactor(:)
+   integer, allocatable :: residue_number(:), atom_number(:)
+   real, allocatable :: atom_bfactor(:), atom_occupancy(:)
    integer :: pdb_nres, pdb_natom
    logical :: guess_all
    
@@ -157,7 +164,8 @@ program add_pdb
    
    allocate(atom_name(natom),residue_label(nres),residue_pointer(nres+1), &
          residue_chainid(nres), residue_icode(nres), residue_number(nres), &
-         atom_element(natom),atom_bfactor(natom))
+         atom_element(natom),atom_bfactor(natom),atom_occupancy(natom), &
+         atom_number(natom) )
    
    call nxtsec(in_lun,STDOUT,0,'*','ATOM_NAME',fmt,ierr)
    read(in_lun,fmt) atom_name
@@ -173,7 +181,9 @@ program add_pdb
    residue_icode(:) = ' '
    residue_number(:) = 0
    atom_element(:) = '????'
-   atom_bfactor(:) = 1.0
+   atom_bfactor(:) = 15.0
+   atom_occupancy(:) = 1.0
+   atom_number(:) = 1
    
    prev_iCode='*'
    prev_resSeq=HUGE(prev_resSeq)
@@ -186,7 +196,7 @@ program add_pdb
       read(pdb_lun,'(A)',end=99) buf
       if (buf(1:6)=='END   ') exit
       if (buf(1:6)=='ATOM  ' .or. buf(1:6)=='HETATM') then
-         write(0,*) buf(1:70)
+         !  write(0,*) buf(1:70)
          read(buf,'(6X,A5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
                serial,name,altLoc,resName,chainID,resSeq,iCode, &
                xyz,occupancy,tempFactor,segID,element
@@ -258,6 +268,8 @@ program add_pdb
          end if
          atom_element(i) = element
          atom_bfactor(i) = tempFactor
+         read( serial, * ) atom_number(i)
+         atom_occupancy(i) = occupancy
       end if
    end do
 
@@ -285,25 +297,23 @@ program add_pdb
    !---------------------------------------------------------------------------
    ! Append new data to outfile
    
-   fmt='(10F8.2)'
-   write(out_lun,'(A)') &
-         '%FLAG ATOM_BFACTOR', &
-         '%COMMENT B-factor read from PDB file; DIMENSION(NATOM)', &
-         '%FORMAT '//fmt
-   write(out_lun,fmt) atom_bfactor
-   
    fmt='(20I4)'
    write(out_lun,'(A)') &
          '%FLAG RESIDUE_NUMBER', &
-         '%COMMENT Residue number (resSeq) read from PDB file; DIMENSION(NRES)', &
-         '%FORMAT '//fmt
+         '%COMMENT Residue number (resSeq) read from PDB file; DIMENSION(NRES)'
+   if (.not. any(residue_icode /= ' ')) then
+       write(out_lun,'(A)') &
+          '%COMMENT Residue insertion code (iCode) not present in PDB file', &
+          '%COMMENT If present, look for: %FLAG RESIDUE_ICODE'
+   endif
+   write(out_lun,'(A)') '%FORMAT'//trim(fmt)
    write(out_lun,fmt) residue_number
    
    fmt='(80A1)'
    write(out_lun,'(A)') &
          '%FLAG RESIDUE_CHAINID', &
          '%COMMENT Residue chain ID (chainId) read from PDB file; DIMENSION(NRES)', &
-         '%FORMAT '//fmt
+         '%FORMAT'//fmt
    write(out_lun,fmt) residue_chainid
    
    if (any(residue_icode /= ' ')) then
@@ -311,21 +321,37 @@ program add_pdb
       write(out_lun,'(A)') &
          '%FLAG RESIDUE_ICODE', &
          '%COMMENT Residue insertion code (iCode) read from PDB file; DIMENSION(NRES)', &
-         '%COMMENT If all iCodes are blank, this array is not stored in the PRMTOP file.', &
-         '%FORMAT '//fmt
+         '%FORMAT'//fmt
       write(out_lun,fmt) residue_icode
-   else
-      write(out_lun,'(A)') &
-         '%COMMENT Residue insertion code (iCode) not present in PDB file', &
-         '%COMMENT If present: %FLAG RESIDUE_ICODE, %FORMAT '//fmt
    end if
    
    fmt='(20A4)'
    write(out_lun,'(A)') &
          '%FLAG ATOM_ELEMENT', &
          '%COMMENT Atom element and formal charge, as read from PDB file; DIMENSION(NATOM)', &
-         '%FORMAT '//fmt
+         '%FORMAT'//fmt
    write(out_lun,fmt) atom_element
+   
+   fmt='(10F8.2)'
+   write(out_lun,'(A)') &
+         '%FLAG ATOM_OCCUPANCY', &
+         '%COMMENT occupancies read from PDB file; DIMENSION(NATOM)', &
+         '%FORMAT'//fmt
+   write(out_lun,fmt) atom_occupancy
+   
+   fmt='(10F8.2)'
+   write(out_lun,'(A)') &
+         '%FLAG ATOM_BFACTOR', &
+         '%COMMENT B-factor read from PDB file; DIMENSION(NATOM)', &
+         '%FORMAT'//fmt
+   write(out_lun,fmt) atom_bfactor
+   
+   fmt='(10I8)'
+   write(out_lun,'(A)') &
+         '%FLAG ATOM_NUMBER', &
+         '%COMMENT atom serial number read from PDB file; DIMENSION(NATOM)', &
+         '%FORMAT'//fmt
+   write(out_lun,fmt) atom_number
    
    close(out_lun)
    
