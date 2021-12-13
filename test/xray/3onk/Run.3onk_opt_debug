@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=20
 export DO_PARALLEL=''
 
 sander=/home/case/msander/bin/msander
@@ -23,7 +23,7 @@ Test of MD with Xray restraints
   vdwmeth=0,
  /
  &xray
-   pdb_infile = 'final_structure_bf.pdb'
+   pdb_infile = 'final_structure_bfocc.pdb'
    reflection_infile = 'real.dat',
    atom_selection_mask = ':*',
    xray_weight = 1.0,
@@ -41,7 +41,7 @@ Test of MD with Xray restraints
 EOF
 
 $DO_PARALLEL $sander -O -i mdin -p 3onk.parm7 -c 4amber_3onk.rst7 \
-    -o ml_opt_debug.out \
+    -o ml_opt_debug_new.out \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 /bin/rm -f mdin

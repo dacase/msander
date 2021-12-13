@@ -847,12 +847,14 @@ contains
                num_selected,frac_xyz, &
                atom_bfactor(sel_index(1:num_selected)), &
                atom_scatter_type(sel_index(1:num_selected)), &
+               occupancy=atom_occupancy(sel_index(1:num_selected)), &
                dxyz=xray_dxyz, d_tempFactor=xray_dB )
             else
                call fourier_dTarget_dXYZBQ(num_hkl,hkl_index,dF,mSS4, &
                num_selected,frac_xyz, &
                atom_bfactor(sel_index(1:num_selected)), &
                atom_scatter_type(sel_index(1:num_selected)), &
+               occupancy=atom_occupancy(sel_index(1:num_selected)), &
                dxyz=xray_dxyz )
             endif
 #if 0

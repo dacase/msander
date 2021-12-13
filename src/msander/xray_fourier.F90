@@ -139,7 +139,7 @@ contains
          ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
          !    j = 1,num_selected_atoms
 
-         f(:) = exp( mSS4(ihkl) * tempFactor(:) ) &
+         f(:) = occupancy(:) * exp( mSS4(ihkl) * tempFactor(:) ) &
               * atomic_scatter_factor(ihkl,scatter_type_index(:))
          angle(:) = M_TWOPI * ( hkl(1,ihkl)*xyz(1,:) + &
                          hkl(2,ihkl)*xyz(2,:) +  hkl(3,ihkl)*xyz(3,:) )
@@ -231,10 +231,6 @@ contains
                  real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl))
             end if
 
-            if (present(occupancy)) then
-               f = f * occupancy(iatom)
-            end if
-
             if (present(d_tempFactor)) then
                d_tempFactor(iatom) = d_tempFactor(iatom) &
                   + ( real(f) * real(dF(ihkl)) + aimag(f) * aimag(dF(ihkl)) ) &
@@ -243,7 +239,7 @@ contains
 #endif
 
             ! if (present(dxyz)) then
-               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * f
+               dxyz(:,iatom) = dxyz(:,iatom) - dhkl(:) * f * occupancy(iatom)
             ! end if
 
          end do
