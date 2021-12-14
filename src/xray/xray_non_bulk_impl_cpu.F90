@@ -93,7 +93,7 @@ contains
     call check_precondition(size(frac, 2) == size(scatter_type_index))
     call check_precondition(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,i,f,angle)
+    !$omp parallel do private(ihkl,f,angle)
     do ihkl = 1, size(hkl, 2)
       
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),

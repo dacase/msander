@@ -46,12 +46,4 @@ uninstall: clean
 	-rm -f $(BINDIR)/add_xray$(SFX)
 	-rm -f $(BINDIR)/add_pdb$(SFX)
 
-add_xray.o:   add_xray.F90
-	@echo "[XRAY]  FC $<"
-	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
-
-add_pdb.o:   add_pdb.F90
-	@echo "[XRAY]  FC $<"
-	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
-
 include depend

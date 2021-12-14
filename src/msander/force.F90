@@ -87,8 +87,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
                              do_lrt, f_scratch, lrt_solute_sasa
   use xray_interface_module, only: xray_get_derivative
-  use xray_globals_module, only: atom_bfactor, xray_energy, xray_active, &
-                                 xray_nstep
+  use xray_globals_module, only: atom_bfactor, xray_energy, xray_active
 
   ! CHARMM Force Field Support
   use charmm_mod, only: charmm_active, charmm_calc_impropers, &
@@ -767,7 +766,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! Built-in X-ray target function and gradient
   xray_energy = 0.d0
-  if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
+  if( xray_active ) then
+#if 0
      if( iscale > 0 ) then
         if (first) then
            ! set coordinates to current bfactors:
@@ -779,8 +779,11 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         endif
         call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
      else
-        call xray_get_derivative(x,f,xray_e)
+#endif
+        call xray_get_derivative(x,f,nstep,xray_e)
+#if 0
      endif
+#endif
   endif
 
 

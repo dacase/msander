@@ -5,7 +5,7 @@ SHELL=/bin/sh
 VPATH=
 
 # Add search paths for .mod files
-LOCALFLAGS = -I../sqm -I../rism 
+LOCALFLAGS = -I../sqm -I../rism -I../xray 
 
 QMAPIOBJ = \
     abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
@@ -150,8 +150,8 @@ LESOBJ= \
     xminC.o veclib.o dsarpack.o 
 
 XRAY_OBJS = \
-   xray_fourier.o xray_globals.o xray_interface.o xray_utils.o \
-   xray_ml.o xray_reciprocal_space.o xray_bulk_solvent.o
+   xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
+   xray_interface_pre_init_data.o
 
 .PHONY: dummy
 
@@ -232,6 +232,7 @@ libs:
 	$(VB)cd ../lib && $(MAKE) libsys
 	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
 	$(VB)cd ../rism && $(MAKE) $(RISM)
+	$(VB)cd ../xray && $(MAKE) libxray
     
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c

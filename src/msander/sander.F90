@@ -62,8 +62,7 @@ subroutine sander()
 
   use xray_interface_module, only: xray_init, xray_read_parm, &
            xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
-  use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
-  use bulk_solvent_module, only: k_mask
+  use xray_globals_module, only: xray_active, num_hkl
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -911,10 +910,6 @@ subroutine sander()
       close(8)
       if( master ) call xray_write_options()
       call xray_init()
-      if( bulk_solvent_model /= 'none' )  then
-        call mpi_bcast(k_mask,num_hkl,MPI_DOUBLE_PRECISION,0,commsander,ier )
-        REQUIRE( ier==0 )
-      end if
     end if
    ! }}}
 

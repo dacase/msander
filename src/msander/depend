@@ -3965,7 +3965,6 @@ sander.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
-                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4034,7 +4033,6 @@ sander.LES.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
-                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4102,7 +4100,6 @@ sander.PUPIL.o: \
                     pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
-                    xray_bulk_solvent.o\
                     softcore.o\
                     mbar.o\
                     linear_response.o\
@@ -4420,57 +4417,10 @@ wallclock.o:   wallclock.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ wallclock.F90
 
-xray_bulk_solvent.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    parallel.h\
-                    memory_module.o
-
-
-xray_bulk_solvent.o:   xray_bulk_solvent.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_bulk_solvent.F90
-
-xray_FFT.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    constants.o\
-                    xray_reciprocal_space.o\
-                    xray_real_space.o\
-                    xray_fftpack.o\
-                    xray_utils.o
-
-
-xray_FFT.o:   xray_FFT.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_FFT.F90
-
-xray_fftpack.o: \
-                    ../include/assert.fh\
-                    xray_globals.o
-
-
-xray_fftpack.o:   xray_fftpack.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_fftpack.F90
-
-xray_fourier.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    xray_bulk_solvent.o\
-                    constants.o\
-                    parallel.h\
-                    omp_lib.o\
-                    xray_ml.o
-
-
-xray_fourier.o:   xray_fourier.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_fourier.F90
-
 xray_globals.o: \
                     ../include/dprec.fh\
-                    file_io_dat.o
+                    file_io_dat.o\
+                    ../xray/xray_unit_cell.o
 
 
 xray_globals.o:   xray_globals.F90
@@ -4478,71 +4428,53 @@ xray_globals.o:   xray_globals.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_globals.F90
 
 xray_interface.o: \
-                    ../include/assert.fh\
-                    file_io_dat.o\
-                    xray_globals.o\
-                    xray_bulk_solvent.o\
-                    memory_module.o\
-                    xray_reciprocal_space.o\
-                    parallel.h\
-                    xray_utils.o\
-                    AmberNetcdf.o\
-                    binrestart.o\
-                    xray_fourier.o\
-                    findmask.o\
-                    xray_ml.o\
-                    extra.h\
-                    def_time.h
+                    xray_interface_impl_gpu.o\
+                    xray_interface_impl_cpu.o\
+                    xray_interface_pre_init_data.o
 
 
 xray_interface.o:   xray_interface.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface.F90
 
-xray_ml.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
+xray_interface_impl_cpu.o: \
                     file_io_dat.o\
                     xray_globals.o\
-                    xray_bulk_solvent.o\
-                    parallel.h\
-                    constants.o
+                    ../xray/xray_contracts.o\
+                    ../xray/xray_bulk_mask_data.o\
+                    xray_interface_pre_init_data.o\
+                    memory_module.o\
+                    AmberNetcdf.o\
+                    binrestart.o\
+                    ../xray/xray_pure_utils.o\
+                    ../xray/xray_unit_cell.o\
+                    findmask.o\
+                    ../xray/xray_interface2.o\
+                    ../xray/xray_debug_dump.o
 
 
-xray_ml.o:   xray_ml.F90
+xray_interface_impl_cpu.o:   xray_interface_impl_cpu.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_ml.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface_impl_cpu.F90
 
-xray_real_space.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    constants.o
+xray_interface_impl_gpu.o: \
+                    ../xray/xray_contracts.o\
+                    ../xray/xray_pure_utils.o\
+                    xray_interface_impl_cpu.o\
+                    xray_globals.o
 
 
-xray_real_space.o:   xray_real_space.F90
+xray_interface_impl_gpu.o:   xray_interface_impl_gpu.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_real_space.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface_impl_gpu.F90
 
-xray_reciprocal_space.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    xray_utils.o\
-                    sort_inline.inc
+xray_interface_pre_init_data.o: \
+                    ../xray/xray_pure_utils.o
 
 
-xray_reciprocal_space.o:   xray_reciprocal_space.F90
+xray_interface_pre_init_data.o:   xray_interface_pre_init_data.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_reciprocal_space.F90
-
-xray_utils.o: \
-                    ../include/assert.fh\
-                    xray_globals.o\
-                    constants.o
-
-
-xray_utils.o:   xray_utils.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_utils.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface_pre_init_data.F90
 
 netcdf.o:  $(NETCDF)
 	@(test -e $@ || touch netcdf.o)

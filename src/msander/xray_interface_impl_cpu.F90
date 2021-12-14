@@ -1,6 +1,10 @@
+! This is a module to encapsulate all of the AMBER common blocks and
+! other global junk into a module namespace.
+module xray_common_module
+use file_io_dat
+end module xray_common_module
+
 module xray_interface_impl_cpu_module
-   use pmemd_lib_mod
-   use file_io_mod
    use xray_globals_module
    use xray_contracts_module
    use xray_bulk_mask_data_module, only: k_sol, b_sol
@@ -41,7 +45,6 @@ module xray_interface_impl_cpu_module
 contains
 
    subroutine xray_read_mdin(mdin_lun)
-      use gbl_constants_mod, only : error_hdr
       implicit none
       integer, intent(in) :: mdin_lun
 
@@ -72,7 +75,7 @@ contains
 
       ! Check input
       if (ntwsf < 0) then
-        write(stdout, '(A,A)') error_hdr, 'ntwsf must be >= 0'
+        write(stdout, '(A)') 'ntwsf must be >= 0'
         call mexit(stdout,1)
       end if
       
@@ -124,8 +127,7 @@ contains
    ! Read X-ray data from the PRMTOP file, and also save pointers to global
    ! PRMTOP data.
    subroutine xray_read_parm(prmtop_lun, out_lun)
-      use nextprmtop_section_mod, only: nxtsec, nxtsec_reset
-      use prmtop_dat_mod, only: natom, nres
+      use memory_module, only: natom, nres
       use xray_interface_pre_init_data, only: n_scatter_coeffs, scatter_coefficients
       implicit none
       integer, intent(in) :: prmtop_lun, out_lun
@@ -201,18 +203,17 @@ contains
    end subroutine xray_read_parm
 
    subroutine xray_read_pdb(filename)
-      use prmtop_dat_mod, only: gbl_res_atms,gbl_labres,atm_igraph
-      use inpcrd_dat_mod, only: atm_crd
+      use memory_module, only: residue_label,atom_name,coordinate
       implicit none
       character(len=*), intent(in) :: filename
       ! locals
       character(len=4) :: name,resName,segID,element,altLoc,chainID,iCode
-      integer :: serial,resSeq
+      integer :: resSeq
       real(real_kind) :: xyz(3),occupancy,tempFactor
       character(len=80) :: line
       integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss
       real(real_kind), parameter :: MISSING = -999.0_rk_
-      logical :: master=.true.
+      logical :: master
       ! begin
       atom_occupancy(:)=MISSING
       call amopen(allocate_lun(unit),filename,'O','F','R')
@@ -224,8 +225,8 @@ contains
          if (iostat/=0) exit
          if (line(1:6)=='END   ') exit
          if (line(1:6)=='ATOM  ' .or. line(1:6)=='HETATM') then
-            read(line,'(6X,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
-                  serial,name,altLoc,resName,chainID,resSeq,iCode, &
+            read(line,'(12X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
+                  name,altLoc,resName,chainID,resSeq,iCode, &
                   xyz,occupancy,tempFactor,segID,element
             i = find_atom(name,resName,chainID,resSeq,iCode)
             if (i<0) then
@@ -240,7 +241,7 @@ contains
                         name,resName,chainID(1:1),resSeq,iCode(1:1)
                end if
             end if
-            if (pdb_read_coordinates) atm_crd(1:3,i) = xyz
+            if (pdb_read_coordinates) coordinate(1:3,i) = xyz
             atom_bfactor(i) = tempFactor
             atom_occupancy(i) = occupancy
          end if
@@ -255,7 +256,7 @@ contains
                j=j+1
                if (j<=10) then
                   if( master ) write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Missing ATOM:', &
-                        atm_igraph(i),gbl_labres(i),residue_chainID(i)(1:1),&
+                        atom_name(i),residue_label(i),residue_chainID(i)(1:1),&
                         residue_number(i),residue_iCode(i)(1:1)
                end if
             end if
@@ -269,7 +270,7 @@ contains
    end subroutine xray_read_pdb
 
    function find_atom(name,resName,chainID,resSeq,iCode) result(atom_serial)
-      use prmtop_dat_mod, only: gbl_res_atms,gbl_labres,atm_igraph
+      use memory_module, only: residue_pointer,residue_label,atom_name
       implicit none
       integer :: atom_serial
       character(len=4), intent(in) :: name, resName, chainID, iCode
@@ -285,8 +286,8 @@ contains
                .and. chainID==residue_chainid(ires) &
                .and. iCode==residue_icode(ires)) then
             ! then find the matching atom name:
-            do j = gbl_res_atms(ires),gbl_res_atms(ires+1)-1
-               if (lname==atm_igraph(j)) then
+            do j = residue_pointer(ires),residue_pointer(ires+1)-1
+               if (lname==atom_name(j)) then
                   atom_serial = j
                   return
                end if
@@ -301,11 +302,9 @@ contains
    end function find_atom
 
    subroutine xray_write_pdb(filename)
-      use file_io_dat_mod, only: owrite
-      use inpcrd_dat_mod, only: atm_crd
-      use prmtop_dat_mod, only: &
-            gbl_res_atms,gbl_labres,atm_igraph, &
-            num_bonds=>nbona
+      use xray_common_module, only: owrite, title, title1
+      use memory_module, only: &
+           residue_pointer,residue_label,atom_name,coordinate
       implicit none
       character(len=*), intent(in) :: filename
       ! locals
@@ -331,9 +330,9 @@ contains
 
       call amopen(allocate_lun(unit),filename,owrite,'F','R')
       call date_and_time(date,time)
-      ! if (title/='') write(unit,'(2A)') 'REMARK  ', title
-      ! if (title1/='') write(unit,'(2A)') 'REMARK  ', title1
-      write(unit,'(12A)') 'REMARK  Written by Amber 20, PMEMD, ', &
+      if (title/='') write(unit,'(2A)') 'REMARK  ', title
+      if (title1/='') write(unit,'(2A)') 'REMARK  ', title1
+      write(unit,'(12A)') 'REMARK  Written by Amber 20, SANDER, ', &
             date(1:4),'.',date(5:6),'.',date(7:8),'  ', &
             time(1:2),':',time(3:4),':',time(5:6)
 
@@ -343,19 +342,19 @@ contains
 #if 0
       do ires = 1,num_residues
          if (residue_chainid(ires)=='*') cycle
-         if (gbl_labres(ires)=='HID') then
+         if (residue_label(ires)=='HID') then
             write(unit,pdbfmt_MODRES) &
                   '----','HID',
             residue_chainid(ires)(1:1), &
                   residue_number(ires),residue_icode(ires)(1:1), &
                   'HIS','HE2 ATOM REMOVED'
-         else if (gbl_labres(ires)=='HIE') then
+         else if (residue_label(ires)=='HIE') then
             write(unit,pdbfmt_MODRES) &
                   '----','HIE',
             residue_chainid(ires)(1:1), &
                   residue_number(ires),residue_icode(ires)(1:1), &
                   'HIS','HD1 ATOM REMOVED'
-         else if (gbl_labres(ires)=='HIP') then
+         else if (residue_label(ires)=='HIP') then
             write(unit,pdbfmt_MODRES) &
                   '----','HIP',
             residue_chainid(ires)(1:1), &
@@ -367,21 +366,21 @@ contains
 
       do ires = 1,num_residues
          if (residue_chainid(ires)=='*') cycle
-         do iatom = gbl_res_atms(ires), gbl_res_atms(ires+1)-1
+         do iatom = residue_pointer(ires), residue_pointer(ires+1)-1
             ! ***NOTE***
             ! This code only adds a leading space to give element-alignment
             ! where possible. It is impossible to follow the PDB version 3
             ! "remediated" format correctly, because it has no alignment rules.
             ! Instead, it assumes you have a complete database of all known
             ! residues, and any other residue names are a fatal error.
-            name = atm_igraph(iatom)
+            name = atom_name(iatom)
             if (atom_element(iatom)(1:1)==' ' &
                   .and. name(1:1) == atom_element(iatom)(2:2)) then
                if (len_trim(name) < 4 .or. pdb_wrap_names) then
                   name = name(4:4)//name(1:3)
                end if
             end if
-            resName=gbl_labres(ires)(1:3)
+            resName=residue_label(ires)(1:3)
             resName=adjustr(resName)
             ! GMS: Fix for pgf90 compiler
             this_residue_chainid = residue_chainid(ires)
@@ -395,7 +394,7 @@ contains
                   iatom_p,name,atom_altloc(iatom)(1:1), &
                   resName,residue_chainid(ires)(1:1), &
                   ires_p,residue_icode(ires)(1:1), &
-                  atm_crd(1:3,iatom), &
+                  coordinate(1:3,iatom), &
                   atom_occupancy(iatom), &
                   atom_bfactor(iatom), &
                   merge(this_residue_chainid,'    ',pdb_use_segid), &
@@ -409,12 +408,13 @@ contains
 
    subroutine init()
 
-      use pbc_mod, only: pbc_box, pbc_alpha, pbc_beta, pbc_gamma
+      use xray_common_module, only: inpcrd
+      use AmberNetcdf_mod, only: NC_checkRestart
+      use binrestart, only: read_nc_restart_box
       use xray_pure_utils, only: pack_index
       use xray_unit_cell_module, only: unit_cell_t
-      use findmask_mod, only: atommask
-      use prmtop_dat_mod, only: natom,nres,atm_igraph,gbl_res_atms, gbl_labres, atm_isymbl, atm_atomicnumber
-      use inpcrd_dat_mod, only: atm_crd
+      use findmask, only: atommask
+      use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd,i100
       use xray_interface_pre_init_data, only: scatter_coefficients
       use xray_interface2_module, only: init_interface2 => init
       use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
@@ -423,7 +423,7 @@ contains
       integer :: hkl_lun, i, j, k, nstlim = 1, NAT_for_mask1
       double precision :: resolution, fabs_solvent, phi_solvent
       complex(real_kind), allocatable, dimension(:) :: Fobs
-      real(real_kind) :: phi
+      real(real_kind) :: phi,a,b,c,alpha,beta,gamma
       integer :: has_f_solvent ! Keep it for compatibility with legacy input file format
 
       logical :: master=.true.
@@ -433,16 +433,21 @@ contains
 
       if (reflection_infile == '') xray_active = .false.
 
-      call unit_cell%init(pbc_box(1), pbc_box(2), pbc_box(3),  pbc_alpha, pbc_beta, pbc_gamma)
+      ! get the values for ucell:
+      if ( NC_checkRestart(inpcrd) ) then
+        if( master ) &
+          write(6,'(a,a)') ' getting box info from netcdf file ',trim(inpcrd)
+        call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
+      else
+        if( master ) &
+          write(6,'(a,a)') ' getting box info from bottom of ',trim(inpcrd)
+        call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
+      endif
 
-      if (.not.xray_active) then
-         spacegroup_name = 'P 1'
-         return
-      end if
+      if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
+            'XRAY: UNIT CELL= ',a, b, c, alpha, beta, gamma
+      call derive_cell_info(a, b, c, alpha, beta, gamma)
 
-      write(stdout,'(A,3F9.3,3F7.2)') &
-            'XRAY: UNIT CELL= ',pbc_box(1), pbc_box(2), pbc_box(3),  &
-                                pbc_alpha, pbc_beta, pbc_gamma
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
@@ -472,8 +477,8 @@ contains
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
-               igraph=atm_igraph,isymbl=atm_isymbl,ipres=gbl_res_atms, &
-               lbres=gbl_labres,crd=atm_crd, &
+               igraph=ih(m04),isymbl=ih(m06),ipres=ix(i02), &
+               lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
          NAT_for_mask1 = sum(atom_selection)
          if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
@@ -496,7 +501,7 @@ contains
          & hkl_index, Fobs, sigFobs, test_flag==1, &
          & unit_cell, scatter_coefficients, &
          & atom_bfactor, atom_occupancy, atom_scatter_type, &
-         & atom_selection==1, atm_atomicnumber, &
+         & atom_selection==1, ix(i100:i100+natom), &
          & mask_update_period, scale_update_period, &
          & ml_update_period, k_sol, b_sol &
       )
@@ -577,7 +582,7 @@ contains
 
    ! gets xray_energy and derivatives
    subroutine xray_get_derivative(xyz, force, current_step, xray_e)
-      use mdin_ctrl_dat_mod, only: total_steps=> nstlim
+      ! use mdin_ctrl_dat_mod, only: total_steps=> nstlim
       use xray_interface2_module, only: calc_force2 => calc_force, get_r_factors
       implicit none
       real(real_kind), intent(in) :: xyz(:, :)
@@ -598,7 +603,7 @@ contains
          return
       end if
 
-      xray_weight = get_xray_weight(current_step, total_steps)
+      ! xray_weight = get_xray_weight(current_step, total_steps)
 
       call calc_force2(xyz, xray_weight, force, xray_e)
       xray_energy = xray_e

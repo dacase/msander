@@ -1,7 +1,7 @@
 ! <compile=optimized>
 #include "../include/dprec.fh"
 module xray_globals_module
-   use file_io_dat_mod, only : MAX_FN_LEN
+   use file_io_dat, only : MAX_FN_LEN
    use xray_unit_cell_module, only: unit_cell_t
    implicit none
    public
