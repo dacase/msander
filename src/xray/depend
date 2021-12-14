@@ -1,0 +1,440 @@
+#
+#   Please do not edit the "depend" file directly, since it is created by the
+#   "makedepend" script.  If changes are needed, edit "makedepend" itself.
+#
+
+add_pdb.o:   add_pdb.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ add_pdb.F90
+
+
+add_xray.o:   add_xray.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ add_xray.F90
+
+ccp4_map.o: \
+                    ../include/assert.fh
+
+
+ccp4_map.o:   ccp4_map.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ ccp4_map.F90
+
+xray_atomic_scatter_factor.o: \
+                    xray_atomic_scatter_factor_impl_gpu.o\
+                    xray_atomic_scatter_factor_impl_cpu.o
+
+
+xray_atomic_scatter_factor.o:   xray_atomic_scatter_factor.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_atomic_scatter_factor.F90
+
+xray_atomic_scatter_factor_impl_cpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o
+
+
+xray_atomic_scatter_factor_impl_cpu.o:   xray_atomic_scatter_factor_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_atomic_scatter_factor_impl_cpu.F90
+
+xray_atomic_scatter_factor_impl_gpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_atomic_scatter_factor_impl_cpu.o
+
+
+xray_atomic_scatter_factor_impl_gpu.o:   xray_atomic_scatter_factor_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_atomic_scatter_factor_impl_gpu.F90
+
+xray_bulk_mask.o: \
+                    xray_pure_utils.o\
+                    xray_bulk_mask_impl_gpu.o\
+                    xray_bulk_mask_impl_cpu.o
+
+
+xray_bulk_mask.o:   xray_bulk_mask.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask.F90
+
+xray_bulk_mask_data.o: \
+                    xray_unit_cell.o
+
+
+xray_bulk_mask_data.o:   xray_bulk_mask_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask_data.F90
+
+xray_bulk_mask_impl_cpu.o: \
+                    xray_pure_utils.o\
+                    xray_bulk_mask_data.o\
+                    xray_contracts.o\
+                    xray_unit_cell.o
+
+
+xray_bulk_mask_impl_cpu.o:   xray_bulk_mask_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask_impl_cpu.F90
+
+xray_bulk_mask_impl_gpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_unit_cell.o\
+                    xray_bulk_mask_impl_cpu.o\
+                    xray_bulk_mask_data.o
+
+
+xray_bulk_mask_impl_gpu.o:   xray_bulk_mask_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask_impl_gpu.F90
+
+xray_bulk_model.o: \
+                    xray_pure_utils.o\
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_bulk_model_afonine_2013.o\
+                    xray_bulk_model_none.o\
+                    xray_bulk_model_simple.o
+
+
+xray_bulk_model.o:   xray_bulk_model.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model.F90
+
+xray_bulk_model_afonine_2013.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o\
+                    xray_bulk_mask.o\
+                    xray_scaling.o\
+                    xray_bulk_mask_data.o
+
+
+xray_bulk_model_afonine_2013.o:   xray_bulk_model_afonine_2013.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model_afonine_2013.F90
+
+xray_bulk_model_none.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o
+
+
+xray_bulk_model_none.o:   xray_bulk_model_none.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model_none.F90
+
+xray_bulk_model_simple.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o\
+                    xray_bulk_mask.o\
+                    xray_bulk_mask_data.o
+
+
+xray_bulk_model_simple.o:   xray_bulk_model_simple.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model_simple.F90
+
+
+xray_contracts.o:   xray_contracts.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_contracts.F90
+
+xray_debug_dump.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o
+
+
+xray_debug_dump.o:   xray_debug_dump.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_debug_dump.F90
+
+xray_dpartial.o: \
+                    xray_dpartial_impl_gpu.o\
+                    xray_dpartial_impl_cpu.o
+
+
+xray_dpartial.o:   xray_dpartial.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial.F90
+
+xray_dpartial_data.o: \
+                    xray_pure_utils.o
+
+
+xray_dpartial_data.o:   xray_dpartial_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial_data.F90
+
+xray_dpartial_impl_cpu.o: \
+                    xray_contracts.o\
+                    xray_dpartial_data.o\
+                    xray_pure_utils.o\
+                    xray_atomic_scatter_factor.o
+
+
+xray_dpartial_impl_cpu.o:   xray_dpartial_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial_impl_cpu.F90
+
+xray_dpartial_impl_gpu.o: \
+                    xray_contracts.o\
+                    xray_dpartial_data.o\
+                    xray_pure_utils.o\
+                    xray_dpartial_impl_cpu.o\
+                    xray_atomic_scatter_factor.o
+
+
+xray_dpartial_impl_gpu.o:   xray_dpartial_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial_impl_gpu.F90
+
+xray_interface2.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o\
+                    xray_interface2_data.o\
+                    xray_target.o\
+                    xray_non_bulk.o\
+                    xray_bulk_model.o\
+                    xray_dpartial.o\
+                    xray_atomic_scatter_factor.o\
+                    xray_scaling.o
+
+
+xray_interface2.o:   xray_interface2.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_interface2.F90
+
+xray_interface2_data.o: \
+                    xray_contracts.o\
+                    xray_unit_cell.o\
+                    xray_pure_utils.o
+
+
+xray_interface2_data.o:   xray_interface2_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_interface2_data.F90
+
+xray_non_bulk.o: \
+                    xray_non_bulk_impl_gpu.o\
+                    xray_non_bulk_impl_cpu.o
+
+
+xray_non_bulk.o:   xray_non_bulk.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk.F90
+
+xray_non_bulk_data.o: \
+                    xray_pure_utils.o
+
+
+xray_non_bulk_data.o:   xray_non_bulk_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_data.F90
+
+xray_non_bulk_impl_cpu.o: \
+                    xray_pure_utils.o\
+                    xray_contracts.o\
+                    xray_non_bulk_data.o\
+                    xray_atomic_scatter_factor.o
+
+
+xray_non_bulk_impl_cpu.o:   xray_non_bulk_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_impl_cpu.F90
+
+xray_non_bulk_impl_gpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_non_bulk_impl_cpu.o\
+                    xray_non_bulk_data.o\
+                    xray_atomic_scatter_factor.o
+
+
+xray_non_bulk_impl_gpu.o:   xray_non_bulk_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_impl_gpu.F90
+
+xray_pure_utils.o: \
+                    xray_contracts.o
+
+
+xray_pure_utils.o:   xray_pure_utils.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_pure_utils.F90
+
+xray_scaling.o: \
+                    xray_scaling_impl_gpu.o\
+                    xray_scaling_impl_cpu.o
+
+
+xray_scaling.o:   xray_scaling.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling.F90
+
+xray_scaling_data.o: \
+                    xray_pure_utils.o
+
+
+xray_scaling_data.o:   xray_scaling_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling_data.F90
+
+xray_scaling_impl_cpu.o: \
+                    xray_pure_utils.o\
+                    xray_contracts.o\
+                    xray_scaling_data.o
+
+
+xray_scaling_impl_cpu.o:   xray_scaling_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling_impl_cpu.F90
+
+xray_scaling_impl_gpu.o: \
+                    xray_pure_utils.o\
+                    xray_scaling_impl_cpu.o
+
+
+xray_scaling_impl_gpu.o:   xray_scaling_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling_impl_gpu.F90
+
+xray_target.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_target_least_squares.o\
+                    xray_target_vector_least_squares.o\
+                    xray_target_max_likelihood.o
+
+
+xray_target.o:   xray_target.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target.F90
+
+xray_target_least_squares.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o
+
+
+xray_target_least_squares.o:   xray_target_least_squares.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_least_squares.F90
+
+xray_target_max_likelihood.o: \
+                    xray_target_max_likelihood_impl_cpu.o
+
+
+xray_target_max_likelihood.o:   xray_target_max_likelihood.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_max_likelihood.F90
+
+xray_target_max_likelihood_data.o: \
+                    xray_pure_utils.o
+
+
+xray_target_max_likelihood_data.o:   xray_target_max_likelihood_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_max_likelihood_data.F90
+
+xray_target_max_likelihood_impl_cpu.o: \
+                    xray_pure_utils.o\
+                    xray_contracts.o\
+                    xray_target_max_likelihood_data.o
+
+
+xray_target_max_likelihood_impl_cpu.o:   xray_target_max_likelihood_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_max_likelihood_impl_cpu.F90
+
+xray_target_vector_least_squares.o: \
+                    xray_target_vector_least_squares_impl_gpu.o\
+                    xray_target_vector_least_squares_impl_cpu.o
+
+
+xray_target_vector_least_squares.o:   xray_target_vector_least_squares.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_vector_least_squares.F90
+
+xray_target_vector_least_squares_data.o: \
+                    xray_pure_utils.o
+
+
+xray_target_vector_least_squares_data.o:   xray_target_vector_least_squares_data.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_vector_least_squares_data.F90
+
+xray_target_vector_least_squares_impl_cpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_target_vector_least_squares_data.o
+
+
+xray_target_vector_least_squares_impl_cpu.o:   xray_target_vector_least_squares_impl_cpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_vector_least_squares_impl_cpu.F90
+
+xray_target_vector_least_squares_impl_gpu.o: \
+                    xray_contracts.o\
+                    xray_pure_utils.o\
+                    xray_target_vector_least_squares_data.o\
+                    xray_target_vector_least_squares_impl_cpu.o
+
+
+xray_target_vector_least_squares_impl_gpu.o:   xray_target_vector_least_squares_impl_gpu.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_vector_least_squares_impl_gpu.F90
+
+xray_unit_cell.o: \
+                    xray_pure_utils.o\
+                    xray_contracts.o
+
+
+xray_unit_cell.o:   xray_unit_cell.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_unit_cell.F90
+
