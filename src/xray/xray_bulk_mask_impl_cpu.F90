@@ -247,8 +247,8 @@ contains
     mask_grid_steps = (/grid_stepX, grid_stepY, grid_stepZ/)
     grid_dim = [na, nb, nc]
     grid_size =  na * nb * nc
-#if 0
-    write(6, *) 'resolution', resolution
+#if 1
+    write(6, *) 'resolution_high', resolution_high
     write(6, *) 'reciprocal_norms', reciprocal_norms
     write(6, *) 'mask_grid_steps', mask_grid_steps
     write(6, *) 'grid_size', grid_dim, grid_size

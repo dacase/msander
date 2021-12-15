@@ -60,8 +60,8 @@ subroutine sander()
   use pupildata
 #endif /* PUPIL */
 
-  use xray_interface_module, only: xray_init, xray_read_parm, &
-           xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
+  use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
+           xray_read_mdin, xray_fini=>finalize ,xray_write_options
   use xray_globals_module, only: xray_active, num_hkl
 
 #ifdef MPI /* SOFT CORE */
@@ -901,7 +901,7 @@ subroutine sander()
 
    ! xray initialization {{{
     if( xray_active ) then
-      call xray_init_globals()
+      ! call xray_init_globals()
       call amopen(5,mdin,'O','F','R')
       call xray_read_mdin(mdin_lun=5)
       close(5)
@@ -1029,7 +1029,7 @@ subroutine sander()
 
     ! xray initialization (non-parallel case) {{{
     if( xray_active ) then
-      call xray_init_globals()
+      ! call xray_init_globals()
       call amopen(5,mdin,'O','F','R')
       call xray_read_mdin(mdin_lun=5)
       close(5)

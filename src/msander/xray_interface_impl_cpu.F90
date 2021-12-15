@@ -446,7 +446,7 @@ contains
 
       if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
             'XRAY: UNIT CELL= ',a, b, c, alpha, beta, gamma
-      call derive_cell_info(a, b, c, alpha, beta, gamma)
+      call unit_cell%init(a, b, c, alpha, beta, gamma)
 
       !--------------------------------------------------------------
       ! Read reflection data
@@ -501,7 +501,7 @@ contains
          & hkl_index, Fobs, sigFobs, test_flag==1, &
          & unit_cell, scatter_coefficients, &
          & atom_bfactor, atom_occupancy, atom_scatter_type, &
-         & atom_selection==1, ix(i100:i100+natom), &
+         & atom_selection==1, ix(i100:i100+natom-1), &
          & mask_update_period, scale_update_period, &
          & ml_update_period, k_sol, b_sol &
       )
@@ -585,12 +585,15 @@ contains
       ! use mdin_ctrl_dat_mod, only: total_steps=> nstlim
       use xray_interface2_module, only: calc_force2 => calc_force, get_r_factors
       implicit none
+#include "../include/md.h"
       real(real_kind), intent(in) :: xyz(:, :)
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
       real(real_kind), intent(out) :: xray_e
       ! local
       real(real_kind) :: xray_weight
+      integer :: total_steps
+      total_steps = nstlim
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
@@ -603,7 +606,7 @@ contains
          return
       end if
 
-      ! xray_weight = get_xray_weight(current_step, total_steps)
+      xray_weight = get_xray_weight(current_step, total_steps)
 
       call calc_force2(xyz, xray_weight, force, xray_e)
       xray_energy = xray_e

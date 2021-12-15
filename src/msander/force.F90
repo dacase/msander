@@ -150,13 +150,18 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   _REAL_  enmr(6), devdis(4), devang(4), devtor(4), devpln(4), devplpt(4), &
           devgendis(4), entr, ecap, enfe
-  _REAL_  x(*), f(*), vir(4)
+  _REAL_, target, intent(in) :: x(3*natom)
+  _REAL_, target, intent(out) :: f(3*natom)
+  _REAL_  vir(4)
   type(state_rec)  ener
 
   ! Local
   _REAL_                     :: ene(30)    !Used locally ONLY
   type(potential_energy_rec) :: pot        !Used locally ONLY
   logical, save :: first=.true.
+
+  _REAL_, pointer :: x3(:,:)     ! to pass to xray_get_derivative()
+  _REAL_, pointer :: f3(:,:)     ! to pass to xray_get_derivative()
 
 #ifndef LES
   _REAL_ escf
@@ -179,6 +184,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! MuSiC
   _REAL_ :: music_vdisp, music_vang, music_vgauss, music_spohr89
+
+  x3(1:3,1:natom) => x(1:3*natom)   ! for xray_get_derivative
+  f3(1:3,1:natom) => f(1:3*natom)   ! for xray_get_derivative
 
   ect = 0.0
 
@@ -780,7 +788,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
      else
 #endif
-        call xray_get_derivative(x,f,nstep,xray_e)
+        call xray_get_derivative(x3,f3,nstep,xray_e)
 #if 0
      endif
 #endif
