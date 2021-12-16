@@ -1,7 +1,7 @@
 #ifndef AMBER_NON_BULK_CPU_H
 #define AMBER_NON_BULK_CPU_H
 
-#include "xray/NonBulk.h"
+#include "NonBulk.h"
 
 namespace xray {
   class NonBulkCPU : public NonBulk {

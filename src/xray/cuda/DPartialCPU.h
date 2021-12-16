@@ -1,7 +1,7 @@
 #ifndef AMBER_DPARTIAL_CPU_H
 #define AMBER_DPARTIAL_CPU_H
 
-#include "xray/DPartial.h"
+#include "DPartial.h"
 
 namespace xray {
   class DPartialCPU : public DPartial {

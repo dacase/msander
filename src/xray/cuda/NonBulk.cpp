@@ -1,4 +1,4 @@
-#include "xray/NonBulk.h"
+#include "NonBulk.h"
 
 xray::NonBulk::NonBulk(int n_hkl, const int* hkl, complex_double* f_non_bulk, const double* mSS4, int n_atom,
                        const double* b_factor, int n_scatter_types, const int* scatter_type_index,

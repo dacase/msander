@@ -1,7 +1,7 @@
 #ifndef AMBER_XRAY_BULK_MASK_GPU_H
 #define AMBER_XRAY_BULK_MASK_GPU_H
 
-#include "xray/BulkMask.h"
+#include "BulkMask.h"
 #include <thrust/device_vector.h>
 #include <cufft.h>
 

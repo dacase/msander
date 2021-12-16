@@ -1,4 +1,4 @@
-#include "xray/DPartial.h"
+#include "DPartial.h"
 
 
 xray::DPartial::DPartial(int n_hkl, const int* hkl, const double* mss4, std::complex<double>* f_calc,

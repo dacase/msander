@@ -1,4 +1,4 @@
-#include "xray/xray_unit_cell.h"
+#include "xray_unit_cell.h"
 
 xray::UnitCell::UnitCell(double a, double b, double c, double alpha_deg,
                          double beta_deg, double gamma_deg)

@@ -157,6 +157,8 @@ XRAY_OBJS = \
 
 msander: $(BINDIR)/msander$(SFX)
 
+msander.cuda: $(BINDIR)/msander.cuda$(SFX)
+
 msander.LES: $(BINDIR)/msander.LES$(SFX)
 
 libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
@@ -183,6 +185,15 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	     $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
+
+#---------------------------------------------------------------------------
+$(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
+         $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
+         dummy
+	@echo "[MSANDER]  FC $@"
+	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
+	     $(NFE_OBJECTS) $(XRAY_OBJS) \
+	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) -lxray_cuda $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
@@ -234,6 +245,8 @@ libs:
 	$(VB)cd ../rism && $(MAKE) $(RISM)
 	$(VB)cd ../xray && $(MAKE) libxray
     
+lib_cuda:
+	$(VB)cd ../xray/cuda && $(MAKE) libxray_cuda
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c
 	@echo "[MSANDER]  CC $<"

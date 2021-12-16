@@ -1,7 +1,7 @@
 #ifndef AMBER_NON_BULK_H
 #define AMBER_NON_BULK_H
 
-#include "xray/xray_common.h"
+#include "xray_common.h"
 
 namespace xray {
   class NonBulk {

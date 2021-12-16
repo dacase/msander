@@ -1,6 +1,6 @@
-#include "xray/BulkMaskCPU.h"
-#include "xray/BulkMaskGPU.h"
-#include "xray/xray_non_bulk.h"
+#include "BulkMaskCPU.h"
+#include "BulkMaskGPU.h"
+#include "xray_non_bulk.h"
 #include <cassert>
 #include <memory>
 #include <chrono>

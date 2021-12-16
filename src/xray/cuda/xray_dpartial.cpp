@@ -1,4 +1,4 @@
-#include "xray/xray_dpartial.h"
+#include "xray_dpartial.h"
 #include "DPartialCPU.h"
 #include "DPartialGPU.h"
 #include <memory>

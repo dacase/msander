@@ -1,7 +1,7 @@
 #ifndef AMBER_NON_BULK_GPU_H
 #define AMBER_NON_BULK_GPU_H
 
-#include "xray/NonBulk.h"
+#include "NonBulk.h"
 #include <thrust/device_vector.h>
 
 namespace xray {

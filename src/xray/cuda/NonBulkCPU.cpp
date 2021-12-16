@@ -1,4 +1,4 @@
-#include "xray/NonBulkCPU.h"
+#include "NonBulkCPU.h"
 #include <cassert>
 #include <cstdio>
 

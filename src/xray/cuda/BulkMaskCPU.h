@@ -2,7 +2,7 @@
 #define AMBER_XRAY_BULK_MASK_CPU_H
 
 #include <array>
-#include "xray/BulkMask.h"
+#include "BulkMask.h"
 #include <vector>
 
 namespace xray {

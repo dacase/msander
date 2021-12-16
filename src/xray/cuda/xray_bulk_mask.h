@@ -1,7 +1,7 @@
 #ifndef AMBER_XRAY_BULK_MASK_H
 #define AMBER_XRAY_BULK_MASK_H
 
-#include "xray/xray_common.h"
+#include "xray_common.h"
 
 extern "C" {
 void pmemd_xray_bulk_mask_init_gpu(

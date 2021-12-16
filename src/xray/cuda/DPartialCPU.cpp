@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "xray/DPartialCPU.h"
+#include "DPartialCPU.h"
 
 void xray::DPartialCPU::calc_d_target_d_frac(
   int n_atom,

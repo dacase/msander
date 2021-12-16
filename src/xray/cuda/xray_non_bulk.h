@@ -1,7 +1,7 @@
 #ifndef AMBER_XRAY_NON_BULK_H
 #define AMBER_XRAY_NON_BULK_H
 
-#include "xray/xray_common.h"
+#include "xray_common.h"
 
 extern "C" {
 

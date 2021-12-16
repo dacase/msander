@@ -1,6 +1,6 @@
-#include "xray/xray_non_bulk.h"
-#include "xray/NonBulkCPU.h"
-#include "xray/NonBulkGPU.h"
+#include "xray_non_bulk.h"
+#include "NonBulkCPU.h"
+#include "NonBulkGPU.h"
 #include <cassert>
 #include <memory>
 #include <chrono>

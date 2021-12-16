@@ -1,7 +1,7 @@
 #ifndef AMBER_DPARTIAL_GPU_H
 #define AMBER_DPARTIAL_GPU_H
 
-#include "xray/DPartial.h"
+#include "DPartial.h"
 #include <thrust/device_vector.h>
 #include <thrust/complex.h>
 

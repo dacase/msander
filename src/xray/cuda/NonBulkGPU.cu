@@ -1,4 +1,4 @@
-#include "xray/NonBulkGPU.h"
+#include "NonBulkGPU.h"
 #include <cassert>
 #include <thrust/complex.h>
 #include <thrust/device_vector.h>
