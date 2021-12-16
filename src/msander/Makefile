@@ -151,7 +151,7 @@ LESOBJ= \
 
 XRAY_OBJS = \
    xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
-   xray_interface_pre_init_data.o
+   xray_interface_pre_init_data.o ./xray_interface_impl_gpu.o
 
 .PHONY: dummy
 
@@ -191,9 +191,11 @@ $(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
          dummy
 	@echo "[MSANDER]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
+	$(VB)$(FC) -o $@  $(MMOBJ) $(QMOBJ) \
 	     $(NFE_OBJECTS) $(XRAY_OBJS) \
-	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) -lxray_cuda $(LDFLAGS) $(PLUMED_LOAD)
+	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD) \
+         -lxray_cuda -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib \
+         -lcurand -lcufft -lcudart -lcudadevrt -lgfortran -lstdc++
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
