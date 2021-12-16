@@ -45,6 +45,8 @@ fftw_flags=""
 mkl="no"
 installtype="serial"
 
+cudaflags=''
+
 lapack="skip"
 blas="skip"
 parmed="parmed"
@@ -76,6 +78,8 @@ for var in "$@"; do
             ompflag='-fopenmp -DOPENMP';
             flibs_fftw="-lfftw3_omp -lfftw3"
             openmp="yes";;
+        --cuda)
+            cudaflags="-DCUDA";;
         --no-netcdf)
             netcdflibf=""
             bintraj="";;
@@ -611,6 +615,9 @@ RISM=$rism
 # BOOST:
 BOOST=$boost
 MOFT=$moft
+
+# CUDA:
+CUDAFLAGS=$cudaflags
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=

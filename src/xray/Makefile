@@ -1,6 +1,6 @@
 include ../../config.h
 
-LOCALFLAGS = -ffree-line-length-none
+LOCALFLAGS = $(CUDAFLAGS) -ffree-line-length-none
 
 SRC = add_xray.F90 add_pdb.F90
 OBJ = add_xray.o add_pdb.o
