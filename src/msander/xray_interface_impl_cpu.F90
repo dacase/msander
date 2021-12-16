@@ -501,7 +501,7 @@ contains
          & hkl_index, Fobs, sigFobs, test_flag==1, &
          & unit_cell, scatter_coefficients, &
          & atom_bfactor, atom_occupancy, atom_scatter_type, &
-         & atom_selection==1, ix(i100:i100+natom-1), &
+         & atom_selection==1, ix(i100+1:i100+natom), &
          & mask_update_period, scale_update_period, &
          & ml_update_period, k_sol, b_sol &
       )

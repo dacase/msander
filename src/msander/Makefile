@@ -151,7 +151,7 @@ LESOBJ= \
 
 XRAY_OBJS = \
    xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
-   xray_interface_pre_init_data.o ./xray_interface_impl_gpu.o
+   xray_interface_pre_init_data.o
 
 .PHONY: dummy
 
