@@ -19,7 +19,7 @@ xray_target.o xray_target_least_squares.o xray_target_max_likelihood_data.o \
 xray_target_max_likelihood.o xray_target_max_likelihood_impl_cpu.o \
 xray_target_vector_least_squares_data.o xray_target_vector_least_squares.o \
 xray_target_vector_least_squares_impl_cpu.o \
-xray_target_vector_least_squares_impl_gpu.o xray_unit_cell.o
+xray_target_vector_least_squares_impl_gpu.o xray_unit_cell.o constants_xray.o
 
 libxray: $(LIBDIR)/libxray.a
 

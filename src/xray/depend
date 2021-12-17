@@ -23,6 +23,15 @@ ccp4_map.o:   ccp4_map.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ ccp4_map.F90
 
+constants_xray.o: \
+                    ../include/dprec.fh
+
+
+constants_xray.o:   constants_xray.F90
+	@echo [XRAY]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ constants_xray.F90
+
 xray_atomic_scatter_factor.o: \
                     xray_atomic_scatter_factor_impl_gpu.o\
                     xray_atomic_scatter_factor_impl_cpu.o
@@ -264,7 +273,8 @@ xray_non_bulk_impl_cpu.o: \
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_non_bulk_data.o\
-                    xray_atomic_scatter_factor.o
+                    xray_atomic_scatter_factor.o\
+                    constants_xray.o
 
 
 xray_non_bulk_impl_cpu.o:   xray_non_bulk_impl_cpu.F90

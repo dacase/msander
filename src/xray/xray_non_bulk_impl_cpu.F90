@@ -77,6 +77,7 @@ contains
   
   subroutine calc_f_non_bulk(frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
+    use constants_xray, only: omp_num_threads
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     ! locals
@@ -93,7 +94,7 @@ contains
     call check_precondition(size(frac, 2) == size(scatter_type_index))
     call check_precondition(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,f,angle)
+    !$omp parallel do private(ihkl,f,angle)  num_threads(omp_num_threads)
     do ihkl = 1, size(hkl, 2)
       
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
@@ -117,13 +118,16 @@ contains
       
       f(:) = exp(mSS4(ihkl) * b_factor(:)) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
-      if (allocated(occupancy)) then
-        f(:) = f(:) * occupancy(:)
-      endif
-      angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
+      ! if (allocated(occupancy)) then
+      !   f(:) = f(:) * occupancy(:)
+      ! endif
+      ! angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
+      angle(:) = M_TWOPI * ( hkl(1,ihkl)*frac(1,:) + &
+                             hkl(2,ihkl)*frac(2,:) + &
+                             hkl(3,ihkl)*frac(3,:) )
       
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
-          sum(f(:) * sin(angle(:))), real_kind)
+                               sum(f(:) * sin(angle(:))), real_kind)
     
     end do
     !$omp end parallel do

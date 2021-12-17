@@ -16,12 +16,12 @@ contains
   function calc_partial_d_target_d_frac(frac, d_target_d_abs_Fcalc) result(d_target_d_frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
+    use constants_xray, only : omp_num_threads
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
-    real(real_kind) :: abs_Fcalc_ihkl
     real(real_kind) :: phase
     complex(real_kind) :: f
     integer :: i
@@ -37,17 +37,18 @@ contains
     
     d_target_d_frac = 0
     
+!$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(omp_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
         
-        abs_Fcalc_ihkl = abs_Fcalc(ihkl)
-        
+#if 0
         if (abs_Fcalc_ihkl < 1e-3) then
           ! Note: when Fcalc is approximately zero the phase is undefined,
           ! so no force can be determined even if the energy is high. (Similar
           ! to a linear bond angle.)
           cycle
         end if
+#endif
         
         ! hkl-vector by 2pi
         hkl_v = hkl(:, ihkl) * 2 * PI
@@ -56,16 +57,16 @@ contains
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
         ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i))
-        
-        f = f * cmplx(cos(phase), sin(phase), real_kind)
+            * exp(mSS4(ihkl) * atom_b_factor(i)) &
+            * cmplx(cos(phase), sin(phase), real_kind)
         ! iatom's term of F^protein_calc (S1)
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
             & + hkl_v(:) * aimag(f * Fcalc(ihkl)) * &
-                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc_ihkl
+                d_target_d_abs_Fcalc(ihkl) / abs(Fcalc(ihkl))
       end do
     end do
+!$omp end parallel do
   
   end function calc_partial_d_target_d_frac
   
