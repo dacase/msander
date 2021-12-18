@@ -496,9 +496,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (igb == 10 .or. ipb /= 0) then
     write(6, 9074) esurf, edisp
   end if
-  if (econst /= 0.0) then
-    write(6, 9076) epot-econst
-  end if
   if (icfe > 0) then
     write(6, 9100) dvdl
   end if
@@ -549,6 +546,10 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
                    ener%sgld%virsg
   endif
   if (xray_active) call xray_write_md_state(6)
+
+  if (econst /= 0.0) then
+    write(6, 9076) epot-econst
+  end if
 
 #ifdef MPI
   ! Print current REMD info (replica#, temp0, excgh#) only for iout7 > 0
