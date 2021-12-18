@@ -28,6 +28,9 @@ parallel:
 	@cd msander && $(MAKE) msander
 #	@cd msander && $(MAKE) msander.LES
 
+cuda:
+	@cd msander && $(MAKE) msander.cuda
+
 clean:
 	-(cd blas && $(MAKE) clean )
 	-(cd lapack && $(MAKE) clean )

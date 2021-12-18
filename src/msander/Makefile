@@ -157,9 +157,9 @@ XRAY_OBJS = \
 
 msander: $(BINDIR)/msander$(SFX)
 
-msander.cuda: $(BINDIR)/msander.cuda$(SFX)
-
 msander.LES: $(BINDIR)/msander.LES$(SFX)
+
+msander.cuda: $(BINDIR)/msander.cuda
 
 libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
 
@@ -187,7 +187,7 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
 
 #---------------------------------------------------------------------------
-$(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
+$(BINDIR)/msander.cuda: libs lib_cuda $(MMOBJ) $(QMOBJ) \
          $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o \
          $(PLUMED_DEPENDENCIES) dummy
 	@echo "[MSANDER]  FC $@"

@@ -19,6 +19,7 @@ openblas="no"
 boost="yes"
 build_boost="no"
 moft="moft"
+sfx=""
 gcc10f=""
 gcc10c=""
 pythonv=`python --version 2>&1 | cut -c 8-10`
@@ -79,6 +80,7 @@ for var in "$@"; do
             flibs_fftw="-lfftw3_omp -lfftw3"
             openmp="yes";;
         --cuda)
+            installtype="cuda"
             cudaflags="-DCUDA";;
         --no-netcdf)
             netcdflibf=""
