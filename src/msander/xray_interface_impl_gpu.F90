@@ -64,10 +64,10 @@ contains
         end if
  
         ! TODO: sync mss4, unit cell
-        call gpu_download_crd(xyz)
-        call gpu_download_frc(force)
+        ! call gpu_download_crd(xyz)
+        ! call gpu_download_frc(force)
         call cpu_xray_get_derivative(xyz, force, current_step, xray_e)
-        call gpu_upload_frc(force)
+        ! call gpu_upload_frc(force)
         
     end subroutine xray_get_derivative
 

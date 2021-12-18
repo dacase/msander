@@ -188,11 +188,11 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
-         $(NFE_OBJECTS) $(XRAY_OBJS) $(PLUMED_DEPENDENCIES) \
-         dummy
+         $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o \
+         $(PLUMED_DEPENDENCIES) dummy
 	@echo "[MSANDER]  FC $@"
 	$(VB)$(FC) -o $@  $(MMOBJ) $(QMOBJ) \
-	     $(NFE_OBJECTS) $(XRAY_OBJS) \
+	     $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o  \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD) \
          -lxray_cuda -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib \
          -lcurand -lcufft -lcudart -lcudadevrt -lgfortran -lstdc++

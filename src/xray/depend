@@ -200,7 +200,8 @@ xray_dpartial_impl_cpu.o: \
                     xray_contracts.o\
                     xray_dpartial_data.o\
                     xray_pure_utils.o\
-                    xray_atomic_scatter_factor.o
+                    xray_atomic_scatter_factor.o\
+                    constants_xray.o
 
 
 xray_dpartial_impl_cpu.o:   xray_dpartial_impl_cpu.F90
@@ -226,6 +227,7 @@ xray_interface2.o: \
                     xray_unit_cell.o\
                     xray_pure_utils.o\
                     xray_interface2_data.o\
+                    constants_xray.o\
                     xray_target.o\
                     xray_non_bulk.o\
                     xray_bulk_model.o\
