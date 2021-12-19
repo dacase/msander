@@ -667,7 +667,6 @@ contains
       
       real(real_kind) :: weight_increment
       
-      write(0,*) 'get_xray_weight: ', current_step, total_steps
       call check_precondition(current_step <= total_steps)
       
       if (total_steps > 1) then

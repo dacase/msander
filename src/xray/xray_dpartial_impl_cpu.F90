@@ -17,6 +17,7 @@ contains
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
     use constants_xray, only : omp_num_threads
+    use xray_scaling_data_module, only : k_iso, k_iso_exp, k_aniso
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
@@ -63,6 +64,7 @@ contains
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
             & + hkl_v(:) * aimag(f * Fcalc(ihkl)) * &
+                k_iso(ihkl) * k_iso_exp(ihkl) * k_aniso(ihkl) * &
                 d_target_d_abs_Fcalc(ihkl) / abs(Fcalc(ihkl))
       end do
     end do
