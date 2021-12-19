@@ -5,7 +5,7 @@ SHELL=/bin/sh
 VPATH=
 
 # Add search paths for .mod files
-LOCALFLAGS = $(CUDAFLAGS) -ffree-line-length-none -I../sqm -I../rism -I../xray 
+LOCALFLAGS = $(CUDAFLAGS) -I../sqm -I../rism -I../xray 
 
 QMAPIOBJ = \
     abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
