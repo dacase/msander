@@ -586,6 +586,7 @@ contains
       use xray_interface2_module, only: calc_force2 => calc_force, get_r_factors
       implicit none
 #include "../include/md.h"
+#include "def_time.h"
       real(real_kind), intent(in) :: xyz(:, :)
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
@@ -606,11 +607,13 @@ contains
          return
       end if
 
+      call timer_start(TIME_XRAY)
       xray_weight = get_xray_weight(current_step, total_steps)
 
       call calc_force2(xyz, xray_weight, force, xray_e)
       xray_energy = xray_e
       call get_r_factors(r_work, r_free)
+      call timer_stop(TIME_XRAY)
 
    end subroutine xray_get_derivative
 
@@ -664,6 +667,7 @@ contains
       
       real(real_kind) :: weight_increment
       
+      write(0,*) 'get_xray_weight: ', current_step, total_steps
       call check_precondition(current_step <= total_steps)
       
       if (total_steps > 1) then

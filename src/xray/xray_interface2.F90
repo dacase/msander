@@ -90,6 +90,7 @@ contains
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)
     real(real_kind), allocatable :: grad_xyz(:, :)
+#include "../msander/def_time.h"
 
     call check_precondition(size(xyz, 1) == 3)
     call check_precondition(size(xyz, 2) == n_atom)
@@ -103,8 +104,10 @@ contains
     call check_assertion(all(frac <= 1))
     call check_assertion(all(frac >= 0))
 
+    call timer_start(TIME_IHKL)
     call calc_f_non_bulk(frac)
     Fcalc = get_f_non_bulk()
+    call timer_stop(TIME_IHKL)
 
     call add_bulk_contribution_and_rescale(&
         frac, &
@@ -118,10 +121,12 @@ contains
     call calc_partial_d_target_d_absFcalc(abs_Fobs, abs_Fcalc, deriv=d_target_d_absFcalc, xray_energy=energy)
 
     energy = xray_weight * energy
+    call timer_start(TIME_DHKL)
     grad_xyz = xray_weight * unit_cell%to_orth_derivative(calc_partial_d_target_d_frac(frac, d_target_d_absFcalc))
     call check_assertion(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
+    call timer_stop(TIME_DHKL)
 
   end subroutine calc_force
   
