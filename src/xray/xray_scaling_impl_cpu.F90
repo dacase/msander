@@ -138,6 +138,7 @@ contains
     complex(real_kind), intent(in)  :: Fcalc(:) ! Unscaled Fcalc (non-bulk) structure factors
     complex(real_kind) :: result(size(Fcalc))
     
+    k_scale = k_iso * k_iso_exp * k_aniso
     result = (k_iso * k_iso_exp * k_aniso) * Fcalc
   end function rescale
   
@@ -153,6 +154,7 @@ contains
     deallocate(k_iso)
     deallocate(k_iso_exp)
     deallocate(k_aniso)
+    deallocate(k_scale)
     
   end subroutine finalize
   
@@ -384,7 +386,8 @@ contains
         k_bulk(size(resolution)), &
         k_iso(size(resolution)), &
         k_iso_exp(size(resolution)), &
-        k_aniso(size(resolution))   &
+        k_aniso(size(resolution)),   &
+        k_scale(size(resolution))  &
         )
     
     ! Initialize scaling arrays
@@ -392,6 +395,7 @@ contains
     k_iso = 1
     k_iso_exp = 1
     k_aniso = 1
+    k_scale = 1
     
     call init_MUcryst_inv(&
         hkl(1, :n_work), &
