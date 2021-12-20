@@ -3,7 +3,7 @@ include ../../../config.h
 .SUFFIXES: .cpp .cu .o
 
 #CUDA Specific build flags
-NVCC=/usr/local/cuda/bin/nvcc -gencode arch=compute_30,code=sm_30 -gencode \
+NVCC=/usr/local/cuda/bin/nvcc -gencode \
 arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode \
 arch=compute_50,code=sm_50 -gencode arch=compute_52,code=sm_52 -gencode \
 arch=compute_53,code=sm_53 -gencode arch=compute_60,code=sm_60 -gencode \
