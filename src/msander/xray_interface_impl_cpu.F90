@@ -56,12 +56,14 @@ contains
         return
       end if
 
+#if 0
       ! Trap to catch users trying to run &xray in parallel
 #ifdef MPI
       write(stdout, '(A)') 'Running simulations with an &xray namelist requires a serial &
                            &installation.'
       write(stdout, '(A)') 'Use the GPU extensions for best performance.'
       call mexit(stdout,1)
+#endif
 #endif
       rewind(mdin_lun)
       read(unit=mdin_lun,nml=xray,iostat=stat)
