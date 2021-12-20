@@ -23,8 +23,8 @@ contains
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
-    real(real_kind) :: phase
-    complex(real_kind) :: f
+    real(real_kind) :: f, phase
+    real(real_kind) :: prefac(size(hkl,2))
     integer :: i
     integer :: ihkl
     
@@ -37,6 +37,7 @@ contains
     call check_precondition(all(mSS4 <= 0))
     
     d_target_d_frac = 0
+    prefac(:) = k_scale(:) * d_target_d_abs_Fcalc(:) / abs(Fcalc(:))
     
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(omp_num_threads)
     do i = 1, size(frac, 2)
@@ -57,14 +58,14 @@ contains
         phase = -sum(hkl_v * frac(:, i))
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
         ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
-        f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
+        f = prefac(ihkl) * atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
             * exp(mSS4(ihkl) * atom_b_factor(i)) &
-            * cmplx(cos(phase), sin(phase), real_kind)
+            * ( sin(phase)*Fcalc(ihkl)%re + cos(phase)*Fcalc(ihkl)%im )
+            
         ! iatom's term of F^protein_calc (S1)
         
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-            & + hkl_v(:) * aimag(f * Fcalc(ihkl)) * &
-                k_scale(ihkl) * d_target_d_abs_Fcalc(ihkl) / abs(Fcalc(ihkl))
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) * f
+                
       end do
     end do
 !$omp end parallel do
