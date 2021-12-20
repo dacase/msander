@@ -62,7 +62,7 @@ subroutine sander()
 
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
            xray_read_mdin, xray_fini=>finalize ,xray_write_options
-  use xray_globals_module, only: xray_active, num_hkl
+  use xray_globals_module, only: xray_active
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -775,7 +775,7 @@ subroutine sander()
     call startup_groups(ier)
     call startup(x, ix, ih)
 
-    call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
+    ! call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
     call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
     call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
     call mpi_bcast (inpcrd, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
@@ -900,7 +900,7 @@ subroutine sander()
     end if
 
    ! xray initialization {{{
-    if( xray_active ) then
+    if( xray_active .and. master ) then
       ! call xray_init_globals()
       call amopen(5,mdin,'O','F','R')
       call xray_read_mdin(mdin_lun=5)
@@ -908,7 +908,7 @@ subroutine sander()
       call amopen(8,parm,'O','F','R')
       call xray_read_parm(8,6)
       close(8)
-      if( master ) call xray_write_options()
+      call xray_write_options()
       call xray_init()
     end if
    ! }}}
