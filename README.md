@@ -38,7 +38,7 @@ why non-sander things like tleap, antechamber, etc. are here.
 creation over the years.  See https://ambermd.org/contributors.html for more
 information, although even that gets out of date.
 
-# Key differences in funcationality versus sander
+# Key differences in functionality versus sander
 
 * Some pieces are missing from the sander program in AmberTools:
 
