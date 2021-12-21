@@ -9,6 +9,7 @@ module xray_bulk_model_afonine_2013_module
   
   public :: add_bulk_contribution_and_rescale
   public :: finalize
+  public :: get_f_scale
   public :: init
   
   integer, save :: mask_update_period = 50 ! in steps
@@ -73,5 +74,13 @@ contains
     
     nstep = nstep + 1
   end subroutine add_bulk_contribution_and_rescale
-
+  
+  function get_f_scale(n_hkl) result(result)
+    use xray_scaling_module, only: scaling_get_f_scale => get_f_scale
+    implicit none
+    integer, intent(in) :: n_hkl
+    real(real_kind) :: result(n_hkl)
+    result = scaling_get_f_scale(n_hkl)
+  end function get_f_scale
+  
 end module xray_bulk_model_afonine_2013_module

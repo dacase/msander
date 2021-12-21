@@ -6,6 +6,7 @@ void xray::DPartialCPU::calc_d_target_d_frac(
   int n_atom,
   const double* frac,
   int n_hkl,
+  const double* f_scale,
   const double* d_target_d_abs_f_calc,
   double* d_target_d_frac) {
 
@@ -33,7 +34,8 @@ void xray::DPartialCPU::calc_d_target_d_frac(
       double f = scatter_factor * exp(m_mss4[i_hkl] * m_atom_b_factor[i]);
 
       std::complex<double> c_phase{cos(phase), sin(phase)};
-      double tmp = 2 * M_PI * f * std::imag(c_phase * m_f_calc[i_hkl]) * d_target_d_abs_f_calc[i_hkl] / f_abs;
+      double tmp = 2 * M_PI * f * f_scale[i_hkl] *
+        std::imag(c_phase * m_f_calc[i_hkl]) * d_target_d_abs_f_calc[i_hkl] / f_abs;
 
       d_target_d_frac[i * 3 + 0] += m_hkl[i_hkl * 3 + 0] * tmp;
       d_target_d_frac[i * 3 + 1] += m_hkl[i_hkl * 3 + 1] * tmp;

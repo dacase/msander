@@ -3,6 +3,7 @@ module xray_dpartial_impl_cpu_module
   use xray_contracts_module
   use xray_dpartial_data_module
   use xray_pure_utils, only : real_kind
+  use constants_xray, only : omp_num_threads
   
   implicit none
   private
@@ -13,44 +14,41 @@ module xray_dpartial_impl_cpu_module
 
 contains
   
-  function calc_partial_d_target_d_frac(frac, d_target_d_abs_Fcalc) result(d_target_d_frac)
+  function calc_partial_d_target_d_frac(frac, f_scale, d_target_d_abs_Fcalc) result(d_target_d_frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
-    use constants_xray, only : omp_num_threads
-    use xray_scaling_data_module, only : k_scale
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    real(real_kind), intent(in) :: f_scale(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
-    real(real_kind) :: f, phase
-    real(real_kind) :: prefac(size(hkl,2))
+    real(real_kind) :: phase
+    complex(real_kind) :: f
     integer :: i
     integer :: ihkl
     
     call check_precondition(size(frac, 1) == 3)
     call check_precondition(size(frac, 2) == size(atom_b_factor))
     call check_precondition(size(frac, 2) == size(atom_scatter_type))
+    call check_precondition(size(f_scale) == size(hkl, 2))
     call check_precondition(size(d_target_d_abs_Fcalc) == size(hkl, 2))
     
     call check_precondition(all(abs_Fcalc >= 0))
     call check_precondition(all(mSS4 <= 0))
     
     d_target_d_frac = 0
-    prefac(:) = k_scale(:) * d_target_d_abs_Fcalc(:) / abs(Fcalc(:))
     
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(omp_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
         
-#if 0
-        if (abs_Fcalc_ihkl < 1e-3) then
+        if (abs_Fcalc(ihkl) < 1e-3) then
           ! Note: when Fcalc is approximately zero the phase is undefined,
           ! so no force can be determined even if the energy is high. (Similar
           ! to a linear bond angle.)
           cycle
         end if
-#endif
         
         ! hkl-vector by 2pi
         hkl_v = hkl(:, ihkl) * 2 * PI
@@ -58,14 +56,15 @@ contains
         phase = -sum(hkl_v * frac(:, i))
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
         ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
-        f = prefac(ihkl) * atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i)) &
-            * ( sin(phase)*Fcalc(ihkl)%re + cos(phase)*Fcalc(ihkl)%im )
-            
+        f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
+            * exp(mSS4(ihkl) * atom_b_factor(i))
+        
+        f = f * cmplx(cos(phase), sin(phase), real_kind)
         ! iatom's term of F^protein_calc (S1)
         
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) * f
-                
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+            & + f_scale(ihkl) * hkl_v(:) * aimag(f * Fcalc(ihkl)) * &
+                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
       end do
     end do
 !$omp end parallel do

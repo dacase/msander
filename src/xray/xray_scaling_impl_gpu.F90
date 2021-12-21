@@ -1,7 +1,7 @@
 module xray_scaling_impl_gpu_module
   
   use xray_pure_utils, only : real_kind
-  use xray_scaling_impl_cpu_module, only: optimize_scale_factors, combine, rescale
+  use xray_scaling_impl_cpu_module, only: optimize_scale_factors, combine, rescale, get_f_scale
 
   implicit none
   
@@ -11,6 +11,7 @@ module xray_scaling_impl_gpu_module
   public :: init
   public :: optimize_scale_factors
   public :: rescale
+  public :: get_f_scale
 
 contains
 

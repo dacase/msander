@@ -27,6 +27,7 @@ namespace xray {
       int n_atom,
       const double* frac,
       int n_hkl,
+      const double* f_scale,
       const double* d_target_d_abs_f_calc,
       double* d_target_d_frac /* result variable */
     ) override;
@@ -43,6 +44,7 @@ namespace xray {
     thrust::device_vector<double> m_dev_atom_b_factor;
     thrust::device_vector<int> m_dev_atom_scatter_type;
     thrust::device_vector<double> m_dev_d_target_d_frac;
+    thrust::device_vector<double> m_dev_f_scale;
     std::vector<double> m_f_calc_phase;
 
   };

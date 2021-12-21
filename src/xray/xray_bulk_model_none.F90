@@ -9,6 +9,7 @@ module xray_bulk_model_none_module
 
   public :: add_bulk_contribution_and_rescale
   public :: finalize
+  public :: get_f_scale
   public :: init
 
   integer, save :: scale_update_period ! in steps
@@ -43,5 +44,12 @@ contains
 
     nstep = nstep + 1
   end subroutine add_bulk_contribution_and_rescale
+  
+  function get_f_scale(n_hkl)  result(result)
+    implicit none
+    integer, intent(in) :: n_hkl
+    real(real_kind) :: result(n_hkl)
+    result = k_overall
+  end function get_f_scale
 
 end module xray_bulk_model_none_module

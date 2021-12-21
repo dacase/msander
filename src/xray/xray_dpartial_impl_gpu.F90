@@ -45,6 +45,7 @@ module xray_dpartial_impl_gpu_module
         & n_atom, &
         & frac, &
         & n_hkl, &
+        & f_scale, &
         & d_target_d_abs_f_calc, &
         & d_target_d_frac &
         ) bind(C)
@@ -53,6 +54,7 @@ module xray_dpartial_impl_gpu_module
       integer(c_int), value :: n_atom
       real(c_double), intent(in) :: frac(3, n_atom)
       integer(c_int), value :: n_hkl
+      real(c_double), intent(in) :: f_scale(n_hkl)
       real(c_double), intent(in) :: d_target_d_abs_f_calc(3, n_hkl)
       real(c_double), intent(inout) :: d_target_d_frac(3, n_atom)
     
@@ -66,15 +68,17 @@ module xray_dpartial_impl_gpu_module
 
 contains
   
-  function calc_partial_d_target_d_frac(frac, d_target_d_abs_Fcalc) result(d_target_d_frac)
+  function calc_partial_d_target_d_frac(frac, f_scale, d_target_d_abs_Fcalc) result(d_target_d_frac)
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    real(real_kind), intent(in) :: f_scale(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     
     call check_precondition(size(frac, 1) == 3)
     call check_precondition(size(frac, 2) == size(atom_b_factor))
     call check_precondition(size(frac, 2) == size(atom_scatter_type))
+    call check_precondition(size(f_scale) == size(hkl, 2))
     call check_precondition(size(d_target_d_abs_Fcalc) == size(hkl, 2))
     
     call check_precondition(all(abs_Fcalc >= 0))
@@ -84,6 +88,7 @@ contains
         & size(frac, 2), &
         & frac, &
         & size(hkl, 2), &
+        & f_scale, &
         & d_target_d_abs_Fcalc, &
         & d_target_d_frac &
         &)

@@ -11,6 +11,7 @@ module xray_scaling_impl_cpu_module
   public :: init
   public :: optimize_scale_factors
   public :: combine
+  public :: get_f_scale
   public :: rescale
   public :: finalize
 
@@ -138,7 +139,6 @@ contains
     complex(real_kind), intent(in)  :: Fcalc(:) ! Unscaled Fcalc (non-bulk) structure factors
     complex(real_kind) :: result(size(Fcalc))
     
-    k_scale = k_iso * k_iso_exp * k_aniso
     result = (k_iso * k_iso_exp * k_aniso) * Fcalc
   end function rescale
   
@@ -154,7 +154,6 @@ contains
     deallocate(k_iso)
     deallocate(k_iso_exp)
     deallocate(k_aniso)
-    deallocate(k_scale)
     
   end subroutine finalize
   
@@ -386,8 +385,7 @@ contains
         k_bulk(size(resolution)), &
         k_iso(size(resolution)), &
         k_iso_exp(size(resolution)), &
-        k_aniso(size(resolution)),   &
-        k_scale(size(resolution))  &
+        k_aniso(size(resolution))   &
         )
     
     ! Initialize scaling arrays
@@ -395,7 +393,6 @@ contains
     k_iso = 1
     k_iso_exp = 1
     k_aniso = 1
-    k_scale = 1
     
     call init_MUcryst_inv(&
         hkl(1, :n_work), &
@@ -774,6 +771,17 @@ contains
     call check_postcondition(all(k_iso_exp >= 0))
   
   end function update_k_iso_exp
-
-
+  
+  function get_f_scale(n_hkl) result(result)
+    implicit none
+    integer, intent(in) :: n_hkl
+    real(real_kind) :: result(n_hkl)
+    
+    call check_precondition(size(k_iso) == n_hkl)
+    call check_precondition(size(k_iso_exp) == n_hkl)
+    call check_precondition(size(k_aniso) == n_hkl)
+    
+    result = k_iso * k_iso_exp * k_aniso
+  end function get_f_scale
+  
 end module xray_scaling_impl_cpu_module

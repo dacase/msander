@@ -22,7 +22,6 @@ module xray_scaling_data_module
     real(real_kind), save, allocatable :: k_iso(:)
     real(real_kind), save, allocatable :: k_iso_exp(:)
     real(real_kind), save, allocatable :: k_aniso(:)
-    real(real_kind), save, allocatable :: k_scale(:)
 
     real(real_kind), save :: MUcryst_inv(6, 6)
 

@@ -22,6 +22,7 @@ void pmemd_xray_dpartial_calc_d_target_d_frac(
   int n_atom,
   const double* frac,
   int n_hkl,
+  const double* f_scale,
   const double* d_target_d_abs_f_calc,
   double* d_target_d_frac /* result variable */
 );

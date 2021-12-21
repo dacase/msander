@@ -8,6 +8,7 @@ module xray_bulk_model_module
   private
   
   public :: add_bulk_contribution_and_rescale
+  public :: get_f_scale
   public :: finalize
   public :: init
   
@@ -91,6 +92,26 @@ contains
       call check_requirement(.FALSE., "Bad model id")
     end select
   end subroutine add_bulk_contribution_and_rescale
+  
+  function get_f_scale(n_hkl) result(result)
+    use xray_bulk_model_afonine_2013_module, only : afonine_f => get_f_scale
+    use xray_bulk_model_none_module, only : none_f => get_f_scale
+    use xray_bulk_model_simple_module, only : simple_f => get_f_scale
+    implicit none
+    integer, intent(in) :: n_hkl
+    real(real_kind) :: result(n_hkl)
+    
+    select case (model_id)
+    case (none_id)
+      result = none_f(n_hkl)
+    case (afonine_2013_id)
+      result = afonine_f(n_hkl)
+    case (simple_id)
+      result = simple_f(n_hkl)
+    case default
+      call check_requirement(.FALSE., "Bad model id")
+    end select
+  end function get_f_scale
   
   function model_name_to_id(name) result(result)
     implicit none

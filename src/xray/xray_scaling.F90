@@ -11,6 +11,7 @@ module xray_scaling_module
     public :: init
     public :: optimize_scale_factors
     public :: combine
+    public :: get_f_scale
     public :: rescale
     public :: finalize
 

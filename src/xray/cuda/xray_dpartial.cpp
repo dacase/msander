@@ -43,13 +43,14 @@ void pmemd_xray_dpartial_calc_d_target_d_frac(
   int n_atom,
   const double* frac,
   int n_hkl,
+  const double* f_scale,
   const double* d_target_d_abs_f_calc,
   double* d_target_d_frac /* result variable */
 ) {
   assert(dpartial);
   auto t1 = std::chrono::high_resolution_clock::now();
   dpartial->calc_d_target_d_frac(
-    n_atom, frac, n_hkl, d_target_d_abs_f_calc, d_target_d_frac
+    n_atom, frac, n_hkl, f_scale, d_target_d_abs_f_calc, d_target_d_frac
   );
   auto t2 = std::chrono::high_resolution_clock::now();
 #ifndef NDEBUG

@@ -80,7 +80,7 @@ contains
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
-    use xray_bulk_model_module, only: add_bulk_contribution_and_rescale
+    use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
     use xray_dpartial_module, only: calc_partial_d_target_d_frac
     implicit none
     real(real_kind), intent(in) :: xyz(:, :)
@@ -122,7 +122,9 @@ contains
 
     energy = xray_weight * energy
     call timer_start(TIME_DHKL)
-    grad_xyz = xray_weight * unit_cell%to_orth_derivative(calc_partial_d_target_d_frac(frac, d_target_d_absFcalc))
+    grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
+        & calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), d_target_d_absFcalc) &
+        &)
     call check_assertion(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz

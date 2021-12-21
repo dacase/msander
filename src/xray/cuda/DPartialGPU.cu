@@ -19,6 +19,7 @@ namespace {
     const double* atomic_scatter_factor,
     const int* scatter_type_index,
     const double* f_calc_phase,
+    const double* f_scale,
     const double* abs_f_calc,
     const double* d_target_d_abs_f_calc_by_2_pi,
     double* d_target_d_frac) {
@@ -51,7 +52,7 @@ namespace {
         double scatter_factor = atomic_scatter_factor[offset + i_hkl];
 
         double f = scatter_factor * exp(mSS4[i_hkl] * atom_b_factor);
-        double tmp = f * d_target_d_abs_f_calc_by_2_pi[i_hkl] * sin(phase + f_calc_phase[i_hkl]);
+        double tmp = f * f_scale[i_hkl] * d_target_d_abs_f_calc_by_2_pi[i_hkl] * sin(phase + f_calc_phase[i_hkl]);
 
         term_x[tid] += hkl[i_hkl * 3 + 0] * tmp;
         term_y[tid] += hkl[i_hkl * 3 + 1] * tmp;
@@ -96,6 +97,7 @@ xray::DPartialGPU::DPartialGPU(int n_hkl, const int* hkl, const double* mss4, st
                                                               m_atomic_scatter_factor + m_n_scatter_types * n_hkl);
   m_dev_abs_f_calc = thrust::device_vector<double>(n_hkl);
   m_dev_f_calc_phase = thrust::device_vector<double>(n_hkl);
+  m_dev_f_scale = thrust::device_vector<double>(n_hkl);
   m_dev_hkl = thrust::device_vector<int>(m_hkl, m_hkl + n_hkl * 3);
   m_dev_mss4 = thrust::device_vector<double>(m_mss4, m_mss4 + n_hkl);
   m_dev_atom_b_factor = thrust::device_vector<double>(m_atom_b_factor, m_atom_b_factor + n_atom);
@@ -109,6 +111,7 @@ void xray::DPartialGPU::calc_d_target_d_frac(
   int n_atom,
   const double* frac,
   int n_hkl,
+  const double* f_scale,
   const double* d_target_d_abs_f_calc,
   double* d_target_d_frac) {
 
@@ -119,6 +122,7 @@ void xray::DPartialGPU::calc_d_target_d_frac(
   thrust::copy(m_abs_f_calc, m_abs_f_calc + n_hkl, m_dev_abs_f_calc.begin());
   multiply_by(2 * M_PI, m_dev_frac_by_2_pi);
   thrust::copy(d_target_d_abs_f_calc, d_target_d_abs_f_calc + n_hkl, m_dev_d_target_d_abs_f_calc_by_2_pi.begin());
+  thrust::copy(f_scale, f_scale + n_hkl, m_dev_f_scale.begin());
   multiply_by(2 * M_PI, m_dev_d_target_d_abs_f_calc_by_2_pi);
 
   for (int i = 0; i < n_hkl; i++) {
@@ -142,6 +146,7 @@ void xray::DPartialGPU::calc_d_target_d_frac(
     m_dev_atomic_scatter_factor.data().get(),
     m_dev_atom_scatter_type.data().get(),
     m_dev_f_calc_phase.data().get(),
+    m_dev_f_scale.data().get(),
     m_dev_abs_f_calc.data().get(),
     m_dev_d_target_d_abs_f_calc_by_2_pi.data().get(),
     m_dev_d_target_d_frac.data().get()
