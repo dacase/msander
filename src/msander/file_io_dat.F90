@@ -52,8 +52,6 @@ character(len=MAX_FN_LEN), save :: scaledMDlog    ! Log file for scaled MD
 character(len=MAX_FN_LEN), save :: cph_dump  ! dump of CpHMD statistics
 character(len=MAX_FN_LEN), save :: ce_dump   ! dump of CEMD statistics
 character(len=MAX_FN_LEN), save :: cphe_dump ! dump of CpHEMD statistics
-character(len=MAX_FN_LEN), save :: sechgname ! dump of atomic charges in SEBOMD
-character(len=MAX_FN_LEN), save :: seboname  ! dump of bond orders in SEBOMD
 #ifdef RISMSANDER
 character(len=MAX_FN_LEN), save :: rismcrdfil
 character(len=MAX_FN_LEN), save :: rismfrcfil
@@ -196,8 +194,6 @@ subroutine initialize_fnames
    cperestrt = 'cperestrt'
    evbin = 'evbin'
    evbout = 'evbout'
-   sechgname = 'sebomd.chg'
-   seboname = 'sebomd.bnd'
    inptraj = 'inptraj'
    pimdout = 'pimdout'
 #ifdef RISMSANDER
