@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MSANDERHOME=`pwd`
-./configure --conda --no-netcdf --no-boost --openmp
+./configure --conda --no-netcdf --openmp
 
 cd src
 make -f Makefile.ap install
