@@ -16,8 +16,6 @@ rism="librism"
 rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
-boost="yes"
-build_boost="no"
 moft="moft"
 gcc10f=""
 gcc10c=""
@@ -118,11 +116,6 @@ for var in "$@"; do
             flibs_rism=""
             rismsander=""
             rism="skip";;
-        --no-boost)
-            boost="no"
-            moft="skip";;
-        --build-boost)
-            build_boost="yes";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
@@ -141,8 +134,6 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --no-netcdf    disable NetCDF support\n"
 	printf " --no-rism      disable 3D-RISM support\n"
-	printf " --no-boost     disable moft support\n"
-	printf " --build-boost  build boost from source, else use installed\n"
 
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --clang        use clang/flang as compilers (not tested)\n"
@@ -474,47 +465,6 @@ if [ "$flibs_fftw" != "" ]; then
 fi
 
 #--------------------------------------------------------------------------
-#  Configure boost
-#--------------------------------------------------------------------------
-
-if [ "$boost" == "yes" -a "$build_boost" == "yes" ]; then
-   if [ ! -s "lib/libboost_system.a" ]; then
-
-      printf "\nConfiguring boost (may be time-consuming)..."
-      cd src/boost
-      if [ "$compiler" = 'intel' ]; then
-          ./bootstrap.sh --prefix=$msanderhome --with-toolset=intel-linux > ../boost_config.log
-          ncerror=$?
-      else
-          ./bootstrap.sh --prefix=$msanderhome > ../boost_config.log
-          ncerror=$?
-      fi
-
-      if [ $ncerror -gt 0 ]; then
-          printf "\nError: Boost bootstrap returned $ncerror\n"
-          printf "       Check src/boost_config.log\n"
-          exit 1
-      else
-          printf "OK\n"
-          printf "Compiling boost (may be time-consuming)..."
-          ./b2 --with-program_options --with-iostreams --with-regex \
-               --with-system --with-timer --with-chrono --with-filesystem \
-               --with-graph --with-thread link=static install >> ../boost_config.log
-          if [ $? -ne 0 ]; then
-             printf "\nError: Boost compile failed.\n"
-             printf "       Check src/boost_config.log\n"
-             exit 1
-          else
-             printf "OK\n"
-          fi
-      fi
-      cd ../..
-   else
-      echo "Using the existing local boost libraries"
-   fi
-fi
-
-#--------------------------------------------------------------------------
 #  create the config.h file: may differ for different subsets
 #--------------------------------------------------------------------------
 
@@ -608,8 +558,6 @@ INSTALLTYPE=$installtype
 RISMSANDER=$rismsander
 RISM=$rism
 
-# BOOST:
-BOOST=$boost
 MOFT=$moft
 
 # PLUMED related variables:
