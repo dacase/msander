@@ -36,8 +36,6 @@
 #ifdef PUPIL_SUPPORT
    use pupildata
 #endif /* PUPIL */
-   use xray_globals_module, only: xray_active
-   use xray_interface_module, only: xray_init, xray_read_parm, xray_init_globals
    ! for LIE calculations
    use linear_response, only: ilrt, setup_linear_response, &
                               cleanup_linear_response
@@ -132,7 +130,6 @@
    parm = trim(prmname)
 #endif
    mtmd = 'mtmd' ! needed to prevent sander from thinking mtmd is active
-   call xray_init_globals
 
    ! ==== Flag to tell list builder to print size of list on first call =======
    first_list_flag = .true.
@@ -235,8 +232,6 @@
 #endif
 
       if (ierr /= 0) goto ERROR1
-
-      if( xray_active ) call xray_read_parm(8,6)
 
    if (qmmm_nml%ifqnt) then
       call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
@@ -370,8 +365,6 @@
          call timer_start(TIME_RDCRD)
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
-
-         if( xray_active) call xray_init()
 
       ! ----- SET THE INITIAL VELOCITIES -----
 

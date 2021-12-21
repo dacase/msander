@@ -4200,7 +4200,6 @@ subroutine sander_cleanup()
    use qmmm_module, only: deallocate_qmmm, qmmm_nml, qmmm_struct, qmmm_vsolv, &
                           qm2_params, qmewald
    use stack, only: deallocate_stacks
-   use xray_interface_module, only : xray_fini
 
    implicit none
 #include "../include/md.h"
@@ -4213,7 +4212,6 @@ subroutine sander_cleanup()
    if (igb /= 0 .and. igb /= 10 .and. ipb == 0) call deallocate_gb
    call deallocate_stacks
    call nblist_deallocate
-   call xray_fini
    if (allocated(ipairs)) deallocate(ipairs)
    ! periodic does not get reset when ntb==0 inside sander, so do it here
    periodic = 0

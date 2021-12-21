@@ -901,7 +901,6 @@ subroutine sander()
 
    ! xray initialization {{{
     if( xray_active .and. master ) then
-      ! call xray_init_globals()
       call amopen(5,mdin,'O','F','R')
       call xray_read_mdin(mdin_lun=5)
       close(5)
@@ -1029,7 +1028,6 @@ subroutine sander()
 
     ! xray initialization (non-parallel case) {{{
     if( xray_active ) then
-      ! call xray_init_globals()
       call amopen(5,mdin,'O','F','R')
       call xray_read_mdin(mdin_lun=5)
       close(5)
