@@ -1,4 +1,0 @@
-tools/build/src/engine/bin.*
-tools/build/src/engine/bootstrap
-libs/config/checks/architecture/bin
-bootstrap.log
