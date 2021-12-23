@@ -1094,7 +1094,7 @@ subroutine mdread1()
    ! --- input file polar opts read err trapping:
 
    9308 format(/10x,55('-'),/10x, &
-         'Amber 18 SANDER                              2018', &
+         'MSANDER                                      2021', &
          /10x,55('-')/)
    9309 format(/80('-')/'   1.  RESOURCE   USE: ',/80('-')/)
    9700 format(/,'File Assignments:',/,15('|',a6,': ',a,/))
