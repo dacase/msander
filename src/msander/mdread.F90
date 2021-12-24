@@ -329,12 +329,7 @@ subroutine mdread1()
 #endif /*RISMSANDER*/
 
    ntave = 0
-#ifdef BINTRAJ
-!RCW: Amber 16 default to netcdf if support is compiled in.
    ioutfm = 1
-#else
-   ioutfm = 0
-#endif
    ntr = 0
    ntrx = 1
    ivcap = 0
@@ -733,23 +728,7 @@ subroutine mdread1()
    end if
 
    if (ntxo == NO_INPUT_VALUE) then
-#ifdef MPI
-      if (rem < 0) then
-         ntxo = 2
-      else
-#  ifdef BINTRAJ
-         ntxo = 2
-#  else
-         ntxo = 1
-#  endif
-      end if
-#else /* NOT MPI */
-#  ifdef BINTRAJ
       ntxo = 2
-#  else
-      ntxo = 1
-#  endif
-#endif /* MPI */
    end if
 
    if (cut == NO_INPUT_VALUE_FLOAT) then
@@ -2840,12 +2819,6 @@ subroutine mdread2(x,ix,ih)
       write(6, '(/2x,a,i3,a)') 'NTXO (',ntxo,') must be 1 or 2.'
       DELAYED_ERROR
    end if
-#ifndef BINTRAJ
-   if (ntxo == 2) then
-      write(6, '(/2x,a)') 'ntxo cannot be 2 without NetCDF support'
-      DELAYED_ERROR
-   end if
-#endif
 
    if (imin == 5) then
       if (ifbox /= 0 .and. ntb == 2) then

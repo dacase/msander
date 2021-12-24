@@ -38,7 +38,7 @@
 
 module mt19937
 
-#if defined(MPI) && defined(BINTRAJ)
+#if defined(MPI)
 
   implicit none
 
@@ -437,7 +437,6 @@ module mt19937
   end function random_res53
   ! These real versions are due to Isaku Wada, 2002/01/09 added
 
-#ifndef NFE_NO_NETCDF
 subroutine check_ncrc(rc, sbrtn, filename)
 
    use netcdf
@@ -538,7 +537,6 @@ subroutine mt19937_load(self, filename)
    call check_ncrc(rc, sbrtn, filename)
 
 end subroutine mt19937_load
-#endif /* NFE_NO_NETCDF */
 
 #ifdef MPI
 subroutine mt19937_bcast(self, comm, root)
@@ -568,6 +566,6 @@ subroutine mt19937_bcast(self, comm, root)
 end subroutine mt19937_bcast
 #endif /* MPI */
 
-#endif /* defined(MPI) && defined(BINTRAJ) */
+#endif /* defined(MPI) */
 end module mt19937
 

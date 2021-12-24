@@ -664,12 +664,8 @@ subroutine api_mdread1(input_options, ierr)
 #endif /*RISMSANDER*/
 
    ntave = 0
-#ifdef BINTRAJ
 !RCW: Amber 16 default to netcdf if support is compiled in.
    ioutfm = 1
-#else
-   ioutfm = 0
-#endif
    ntr = 0
    ntrx = 1
    ivcap = 0
@@ -1087,23 +1083,7 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    if (ntxo == NO_INPUT_VALUE) then
-#ifdef MPI
-      if (rem < 0) then
-         ntxo = 2
-      else
-#  ifdef BINTRAJ
-         ntxo = 2
-#  else
-         ntxo = 1
-#  endif
-      end if
-#else /* NOT MPI */
-#  ifdef BINTRAJ
       ntxo = 2
-#  else
-      ntxo = 1
-#  endif
-#endif /* MPI */
    end if
 
    if (cut == NO_INPUT_VALUE_FLOAT) then
@@ -3196,12 +3176,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(6, '(/2x,a,i3,a)') 'NTXO (',ntxo,') must be 1 or 2.'
       DELAYED_ERROR
    end if
-#ifndef BINTRAJ
-   if (ntxo == 2) then
-      write(6, '(/2x,a)') 'ntxo cannot be 2 without NetCDF support'
-      DELAYED_ERROR
-   end if
-#endif
 
    if (imin == 5) then
       if (ifbox /= 0 .and. ntb == 2) then
@@ -4279,10 +4253,8 @@ end subroutine sander_natom
 ! Otherwise, it will be 0 on success
 subroutine read_inpcrd_file(filename, coordinates, box, ierr)
 
-#ifdef BINTRAJ
    use AmberNetcdf_mod
    use binrestart
-#endif
    use file_io_dat, only : INPCRD_UNIT
 
    implicit none
@@ -4308,7 +4280,6 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
    box(:) = 0.d0
    ierr = 0
 
-#ifdef BINTRAJ
    ! Make sure the NetCDF module doesn't scream at us...
    verbose_netcdf = .false.
 
@@ -4323,7 +4294,6 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
       call read_nc_restart(filename, title, 1, natom, coordinates, velocities, &
                            remd_values, 1, time)
    else
-#endif
       ! Try reading the raw file
       open(unit=INPCRD_UNIT, file=filename, status='OLD', form='FORMATTED', &
            iostat=alloc_failed)
@@ -4358,9 +4328,7 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
             (box(i), i=1,6)
       deallocate(velocities)
       close(INPCRD_UNIT)
-#ifdef BINTRAJ
    end if
-#endif
 
    return
 
@@ -4397,10 +4365,8 @@ end subroutine read_inpcrd_file
 ! can be used to protect against buffer overruns. natom is set to -1 upon errors
 subroutine get_inpcrd_natom(filename, natom)
 
-#ifdef BINTRAJ
    use AmberNetcdf_mod
    use binrestart
-#endif
    use file_io_dat, only : INPCRD_UNIT
 
    implicit none
@@ -4418,7 +4384,6 @@ subroutine get_inpcrd_natom(filename, natom)
    double precision  :: time
    integer           :: id1, id2, id3
 
-#ifdef BINTRAJ
    ! Make sure the NetCDF module doesn't scream at us...
    verbose_netcdf = .false.
 
@@ -4433,7 +4398,6 @@ subroutine get_inpcrd_natom(filename, natom)
       call NC_close(ncid)
       return
    else
-#endif
       ! Try reading the raw file
       open(unit=INPCRD_UNIT, file=filename, status='OLD', form='FORMATTED', &
            iostat=alloc_failed)
@@ -4445,9 +4409,7 @@ subroutine get_inpcrd_natom(filename, natom)
       read(INPCRD_UNIT, '(a80)', end=666) title
       read(INPCRD_UNIT, *, err=666, end=666) natom
       close(INPCRD_UNIT)
-#ifdef BINTRAJ
    end if
-#endif
 
    return
 
