@@ -44,8 +44,8 @@
 !   qsetup:    Flag to activate setup of multiple components, .false. on
 !              first call
 !------------------------------------------------------------------------------
-subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
-                 conp, skip, nsp, tma, erstop, qsetup)
+
+module runmd_module
 
 !------------------------------------------------------------------------------
 ! modules used:  {{{
@@ -144,11 +144,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
 ! local variables:
 
-  implicit none
   character(kind=1,len=5) :: routine="runmd"
-  integer   ipairs(*), ix(*)
-  _REAL_ xx(*)
-  character(len=4) ih(*)
 #ifdef MPI
 #  include "parallel.h"
   include 'mpif.h'
@@ -207,9 +203,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ etot_save,ekpbs
 
   logical do_list_update
-  logical skip(*), belly, lout, loutfm, erstop, vlim, onstep
+  logical belly, lout, loutfm, erstop, vlim, onstep
   ! Fortran does not guarantee short circuit logical expressions:
-  _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), xr(*), xc(*), conp(*)
   type(state_rec) :: ener   ! energy values per time step
   type(state_rec) :: enert  ! energy values tallied over the time steps
   type(state_rec) :: enert2 ! energy values squared tallied over the time steps
@@ -223,7 +218,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: clfac, tmpvir(3,3)
 #endif
   _REAL_ rmu(3), fac(3), onefac(3), etot_start
-  _REAL_ tma(*)
   _REAL_ tspan, atempdrop, fln, scaltp
   _REAL_ vel, vel2, vcmx, vcmy, vcmz, vmax
   _REAL_ winf, aamass, rterm, ekmh, ekph, wfac, rsd
@@ -245,14 +239,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_  :: gamma_ten_int
   _REAL_  :: press_tan_ave
 
-  integer nsp(*)
   integer idumar(4)
   integer l_temp
   integer i, j, im, i3, nitp, nits, iskip_start, iskip_end
   integer nstep, nrep, nrek, iend, istart3, iend3
   integer nrx, nr, nr3, ntcmt, izero, istart
   logical ixdump, ivdump, itdump, ifdump
-  logical qsetup
   logical irismdump
 
   integer nvalid, nvalidi
@@ -296,6 +288,21 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: plumed_energyUnits, plumed_timeUnits, plumed_lengthUnits
   _REAL_ :: plumed_chargeUnits
   ! }}}
+
+contains
+
+subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
+                 conp, nsp, tma, ntbond, erstop, qsetup)
+
+  implicit none
+  integer, intent(in) ::   ipairs(*), ix(*), nsp(*), ntbond
+  _REAL_, intent(inout) ::  xx(*)
+  character(len=4), intent(in) :: ih(*)
+  _REAL_, intent(inout) ::  x(*), winv(*), amass(*), f(*), v(*), vold(*), &
+                            xr(*), xc(*), conp(*), tma(*)
+  logical, intent(inout) ::  erstop, qsetup
+
+  logical skip(2*ntbond)   ! avoid overlapping memory usage for L95
 
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
@@ -2202,3 +2209,5 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
   return
 end subroutine runmd
+
+end module runmd_module

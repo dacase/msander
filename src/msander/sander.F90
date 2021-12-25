@@ -10,6 +10,7 @@
 subroutine sander()
 
   use state
+  use runmd_module, only : runmd
 #if !defined(DISABLE_NFE)
   use nfe_sander_hooks, only : &
       nfe_on_sander_init => on_sander_init, &
@@ -118,7 +119,7 @@ subroutine sander()
   implicit none
 
   logical belly, erstop
-  integer ier,ncalls,xmin_iter
+  integer ier,ncalls,xmin_iter,ntbond
   logical ok
   logical newstyle
 #  include "nmr.h"
@@ -1113,9 +1114,10 @@ subroutine sander()
             call nfe_on_sander_init(ih, x(lmass), x(lcrd), rem)
 #endif /* DISABLE_NFE */
 
+          ntbond = nbonh  + nbona + nbper
           call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
                        x(lforce), x(lvel), x(lvel2), x(l45), x(lcrdr), &
-                       x(l50), x(l95), ix(i70), x(l75), erstop, qsetup)
+                       x(l50), ix(i70), x(l75), ntbond, erstop, qsetup)
 
 #if !defined(DISABLE_NFE)
           if (infe == 1) call nfe_on_sander_exit()
