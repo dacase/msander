@@ -360,8 +360,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if
   !END qm/mm contributions, triggered by ifqnt in the qmmm_nml namelist
 
-#include "pupil_force.inc"
-
   ! Calculate the non-bonded contributions
   call timer_start(TIME_NONBON)
 

@@ -1179,8 +1179,7 @@ force.o: \
                     extra.h\
                     tgtmd.h\
                     multitmd.h\
-                    flocntrl.h\
-                    pupil_force.inc
+                    flocntrl.h
 
 
 force.o:   force.F90
@@ -1231,8 +1230,7 @@ force.LES.o: \
                     extra.h\
                     tgtmd.h\
                     multitmd.h\
-                    flocntrl.h\
-                    pupil_force.inc
+                    flocntrl.h
 
 force.LES.o:   force.F90
 	@echo '[MSANDER_LES]  FC $<'
@@ -2997,36 +2995,6 @@ pubfft.o: \
 pubfft.o:   pubfft.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ pubfft.F90
-
-pupildata.o: \
-                    ../include/dprec.fh\
-                    memory_module.o\
-                    parms.o\
-                    ../include/memory.h\
-                    extra_pts.h\
-                    ../include/md.h\
-                    nonbond_list.o\
-                    state.o
-
-
-pupildata.o:   pupildata.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ pupildata.F90
-
-putvalues.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    pupildata.o\
-                    constants.o\
-                    qmmm_module.o\
-                    ../include/memory.h\
-                    debug.h\
-                    memory_module.o
-
-
-putvalues.o:   putvalues.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ putvalues.F90
 
 qm2_extern_adf_module.o: \
                     ../include/dprec.fh\
