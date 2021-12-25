@@ -482,40 +482,6 @@ dynlib.LES.o:   dynlib.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
-dynlib.PUPIL.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    bintraj.o\
-                    constants.o\
-                    box.h\
-                    file_io_dat.o\
-                    mdfil.PUPIL.o\
-                    ../include/md.h\
-                    extra.h\
-                    remd.o\
-                    les.o\
-                    ../rism/amber_rism_interface.o\
-                    qmmm_module.o\
-                    xray_interface.o\
-                    xray_globals.o\
-                    state.o\
-                    charmm.o\
-                    crg_reloc.o\
-                    sglds.o\
-                    ips.o\
-                    emap.o\
-                    amd.o\
-                    ew_mpole.h\
-                    ew_cntrl.h\
-                    tgtmd.h\
-                    random.o\
-                    ../include/memory.h\
-                    parallel.h
-
-dynlib.PUPIL.o:   dynlib.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
-
 dynlib.API.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -1193,7 +1159,6 @@ force.o: \
                     scaledMD.o\
                     ips.o\
                     emap.o\
-                    pupildata.o\
                     linear_response.o\
                     xray_interface.o\
                     xray_globals.o\
@@ -1246,7 +1211,6 @@ force.LES.o: \
                     scaledMD.o\
                     ips.o\
                     emap.o\
-                    pupildata.o\
                     linear_response.o\
                     xray_interface.o\
                     xray_globals.o\
@@ -1273,58 +1237,6 @@ force.LES.o: \
 force.LES.o:   force.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
-
-force.PUPIL.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    nfe-config.h\
-                    nfe-sander-hooks.o\
-                    nfe-sander-proxy.o\
-                    file_io_dat.o\
-                    egb.o\
-                    les.o\
-                    qmmm_module.o\
-                    softcore.o\
-                    remd.o\
-                    ../rism/amber_rism_interface.o\
-                    stack.o\
-                    constants.o\
-                    relax_mat.o\
-                    ew_recip.o\
-                    parms.o\
-                    nonbond_list.o\
-                    dssp.o\
-                    amd.o\
-                    scaledMD.o\
-                    ips.o\
-                    emap.o\
-                    pupildata.o\
-                    linear_response.o\
-                    xray_interface.o\
-                    xray_globals.o\
-                    charmm.o\
-                    state.o\
-                    crg_reloc.o\
-                    music_module.o\
-                    def_time.h\
-                    ew_frc.h\
-                    ew_cntrl.h\
-                    extra_pts.h\
-                    parallel.h\
-                    ew_parallel.h\
-                    ../include/md.h\
-                    box.h\
-                    nmr.h\
-                    ../include/memory.h\
-                    extra.h\
-                    tgtmd.h\
-                    multitmd.h\
-                    flocntrl.h\
-                    pupil_force.inc
-
-force.PUPIL.o:   force.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
 
 getcor.o: \
                     ../include/dprec.fh\
@@ -1509,7 +1421,6 @@ interface_setup.F90: \
                     nonbond_list.o\
                     stack.o\
                     ../rism/amber_rism_interface.o\
-                    pupildata.o\
                     xray_globals.o\
                     xray_interface.o\
                     linear_response.o\
@@ -1735,17 +1646,6 @@ mdfil.LES.o:   mdfil.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdfil.F90
 
-mdfil.PUPIL.o: \
-                    file_io_dat.o\
-                    ../rism/amber_rism_interface.o\
-                    ew_parallel.h\
-                    parallel.h\
-                    ../include/dprec.fh
-
-mdfil.PUPIL.o:   mdfil.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdfil.F90
-
 mdread.o: \
                     ../include/dprec.fh\
                     nfe-config.h\
@@ -1857,61 +1757,6 @@ mdread.LES.o:   mdread.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdread.F90
 
-mdread.PUPIL.o: \
-                    ../include/dprec.fh\
-                    nfe-config.h\
-                    ../include/assert.fh\
-                    file_io_dat.o\
-                    lmod.o\
-                    qmmm_module.o\
-                    constants.o\
-                    constantph.o\
-                    constante.o\
-                    md_scheme.o\
-                    les.o\
-                    stack.o\
-                    nmr.o\
-                    crg_reloc.o\
-                    sglds.o\
-                    amd.o\
-                    scaledMD.o\
-                    ips.o\
-                    emap.o\
-                    dssp.o\
-                    xray_globals.o\
-                    softcore.o\
-                    mbar.o\
-                    remd.o\
-                    linear_response.o\
-                    ../rism/amber_rism_interface.o\
-                    nfe-sander-proxy.o\
-                    box.h\
-                    def_time.h\
-                    ew_cntrl.h\
-                    ew_pme_recip.h\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    nmr.h\
-                    tgtmd.h\
-                    multitmd.h\
-                    ew_erfc_spline.h\
-                    findmask.o\
-                    egb.o\
-                    parms.o\
-                    nonbond_list.o\
-                    sander_lib.o\
-                    qmmm_vsolv_module.o\
-                    mdfil.PUPIL.o\
-                    parallel.h\
-                    extra_pts.h\
-                    ew_mpole.h\
-                    ew_legal.h\
-                    mdreadutils.h
-
-mdread.PUPIL.o:   mdread.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdread.F90
-
 mdwrit.o: \
                     ../include/dprec.fh\
                     nfe-config.h\
@@ -1956,21 +1801,12 @@ memory_module.o:   memory_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ memory_module.F90
 
 mexit.o: \
-                    pupildata.o\
                     parallel.h
 
 
 mexit.o:   mexit.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mexit.F90
-
-mexit.PUPIL.o: \
-                    pupildata.o\
-                    parallel.h
-
-mexit.PUPIL.o:   mexit.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mexit.F90
 
 minrit.o: \
                     ../include/dprec.fh\
@@ -3139,32 +2975,6 @@ printe.o:   printe.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ printe.F90
 
-printe.PUPIL.o: \
-                    ../include/dprec.fh\
-                    state.o\
-                    file_io_dat.o\
-                    box.h\
-                    extra.h\
-                    ../include/md.h\
-                    ../include/memory.h\
-                    nmr.h\
-                    tgtmd.h\
-                    multitmd.h\
-                    crg_reloc.o\
-                    constants.o\
-                    ../rism/amber_rism_interface.o\
-                    qmmm_module.o\
-                    charmm.o\
-                    emap.o\
-                    xray_interface.o\
-                    xray_globals.o\
-                    ew_mpole.h\
-                    ew_cntrl.h
-
-printe.PUPIL.o:   printe.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ printe.F90
-
 
 prmtop_type.o:   prmtop_type.F90
 	@echo '[MSANDER]  FC $<'
@@ -3962,7 +3772,6 @@ sander.o: \
                     nonbond_list.o\
                     stack.o\
                     ../rism/amber_rism_interface.o\
-                    pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
                     xray_bulk_solvent.o\
@@ -4031,7 +3840,6 @@ sander.LES.o: \
                     nonbond_list.LES.o\
                     stack.o\
                     ../rism/amber_rism_interface.o\
-                    pupildata.o\
                     xray_interface.o\
                     xray_globals.o\
                     xray_bulk_solvent.o\
@@ -4074,74 +3882,6 @@ sander.LES.o: \
 sander.LES.o:   sander.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sander.F90
-
-sander.PUPIL.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    nfe-config.h\
-                    state.o\
-                    nfe-sander-hooks.o\
-                    nfe-sander-proxy.o\
-                    lmod.o\
-                    constants.o\
-                    qm2_read_nm_and_alloc.o\
-                    qmmm_vsolv_module.o\
-                    qm2_extern_module.o\
-                    qmmm_module.o\
-                    egb.o\
-                    les.o\
-                    fastwt.o\
-                    relax_mat.o\
-                    nmr.o\
-                    ew_recip.o\
-                    parms.o\
-                    molecule.o\
-                    nonbond_list.o\
-                    stack.o\
-                    ../rism/amber_rism_interface.o\
-                    pupildata.o\
-                    xray_interface.o\
-                    xray_globals.o\
-                    xray_bulk_solvent.o\
-                    softcore.o\
-                    mbar.o\
-                    linear_response.o\
-                    remd.o\
-                    bintraj.o\
-                    trajene.o\
-                    charmm.o\
-                    memory_module.o\
-                    sglds.o\
-                    ips.o\
-                    crg_reloc.o\
-                    emap.o\
-                    file_io_dat.o\
-                    constantph.o\
-                    constante.o\
-                    barostats.o\
-                    random.o\
-                    amd.o\
-                    scaledMD.o\
-                    music_module.o\
-                    mdfil.PUPIL.o\
-                    nmr.h\
-                    box.h\
-                    ../include/md.h\
-                    extra.h\
-                    tgtmd.h\
-                    multitmd.h\
-                    parallel.h\
-                    ew_pme_recip.h\
-                    ew_frc.h\
-                    ew_erfc_spline.h\
-                    ew_parallel.h\
-                    ew_mpole.h\
-                    ew_cntrl.h\
-                    def_time.h
-
-sander.PUPIL.o:   sander.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sander.F90
 
 
 sander_lib.o:   sander_lib.F90

@@ -3,7 +3,7 @@
 #  cycle through fortran files, determine which headers are included;
 #      the "used" array eliminates duplicate enties
 
-#  for LES, PUPIL and APBS programs, add these dependencies as well 
+#  for LES and APBS programs, add these dependencies as well 
 #      to the list
 
 printf <<EOF;
@@ -29,9 +29,6 @@ $LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} =
     $LES{"mdwrit"} =  $LES{"qm2_extern_module"} =  
     $LES{"lmod"} =  $LES{"ew_box"} =  $LES{"minrit"} =  
     $LES{"set"} =  $LES{"qm_mm"} = $LES{"cpparm"} = $LES{"md_scheme"} = 1;
-
-$PUPIL{"sander"} = $PUPIL{"force"} = $PUPIL{"mexit"} = $PUPIL{"mdfil"} = 
-    $PUPIL{"mdread"} = $PUPIL{"printe"} = $PUPIL{"dynlib"} = 1;
 
 $API{"rdparm"} = $API{"debug"} = $API{"set"} = $API{"fastwt"} =
     $API{"ew_setup"} = $API{"nonbond_list"} = $API{"ew_box"} =
@@ -101,7 +98,7 @@ foreach $file ( <*.F90> ){
 
     next if $file =~ /^_/;
     
-    $deps = $depsLES = $depsPUPIL = $depsAPBS = $depsAPI = $depsLESAPI = "";
+    $deps = $depsLES = $depsAPBS = $depsAPI = $depsLESAPI = "";
 
     ($fileroot) = $file =~ /(.+)\.F90$/;
 
@@ -132,12 +129,6 @@ foreach $file ( <*.F90> ){
                    $depsLES .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
                 }
                                
-               if( defined $PUPIL{$modulefile{$usee}} ){
-                  $depsPUPIL .= "\\\n                    " . $modulefile{$usee} .  ".PUPIL.o" ;
-               } else {
-                  $depsPUPIL .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
-               }
-
                if( defined $API{$modulefile{$usee}} ){
                   $depsAPI .= "\\\n                    " .  $modulefile{$usee} .  ".API.o" ;
                } else {
@@ -161,7 +152,6 @@ foreach $file ( <*.F90> ){
             if( !defined $used{ $fileroot,$included } ){
                 $deps .= "\\\n                    " . $included ;
                 $depsLES .= "\\\n                    " . $included ;
-                $depsPUPIL .= "\\\n                    " . $included ;
                 $depsAPBS .= "\\\n                    " . $included ;
                 $depsAPI .= "\\\n                    " . $included ;
                 $depsLESAPI .= "\\\n                    " . $included ;
@@ -192,16 +182,6 @@ foreach $file ( <*.F90> ){
             printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         } else {
             printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
-        }
-    }
-
-    if( defined $PUPIL{$fileroot} ){
-        printf "$fileroot.PUPIL.o: $depsPUPIL\n" unless $depsPUPIL eq "";
-        printf "\n$fileroot.PUPIL.o:   $fileroot.F90\n";
-        if( $optimized{$fileroot} ){
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
-        } else {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         }
     }
 

@@ -31,9 +31,6 @@
    use nblist, only: first_list_flag
    use stack
    use sander_rism_interface, only: rism_setparam, rism_init
-#ifdef PUPIL_SUPPORT
-   use pupildata
-#endif /* PUPIL */
    use xray_globals_module, only: xray_active
    use xray_interface_module, only: xray_init, xray_read_parm, xray_init_globals
    ! for LIE calculations
@@ -250,12 +247,10 @@
            x(LMASS:LMASS+natom-1),cn1,cn2,&
            ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
 
-#ifdef OPENMP
       ! In the future, the msander and rism values for omp_num_threads might
       !   be different; for now, they are the same
-      call set_omp_num_threads()
-      call set_omp_num_threads_rism()
-#endif
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
 
       if ( ifcr /= 0 ) then
          call cr_read_input(natom)
@@ -268,89 +263,6 @@
       nr = nrp
       nr3 = 3*nr
       belly = ibelly > 0
-
-      ! ========================= PUPIL INTERFACE =========================
-#ifdef PUPIL_SUPPORT
-
-      ! I moved the PUPIL interface down here so that write() statements work
-      ! as advertised. BPR 9/7/09
-
-      ! Initialise the CORBA interface
-      puperror = 0
-      call fixport()
-      call inicorbaintfcmd(puperror)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error creating PUPIL CORBA interface.'
-         call mexit(6,1)
-      end if
-      pupactive = .true.
-
-      ! Allocation of memory and initialization
-      pupStep  = 0
-      puperror = 0
-      allocate (qcell   (12     ),stat=puperror)
-      allocate (pupmask (natom  ),stat=puperror)
-      allocate (pupqlist(natom  ),stat=puperror)
-      allocate (pupatm  (natom  ),stat=puperror)
-      allocate (pupchg  (natom  ),stat=puperror)
-      allocate (qfpup   (natom*3),stat=puperror)
-      allocate (qcdata  (natom*9),stat=puperror)
-      allocate (keyMM   (natom  ),stat=puperror)
-      allocate (pupres  (nres   ),stat=puperror)
-      allocate (keyres  (nres   ),stat=puperror)
-
-      if (puperror /= 0) then
-         write(6,*) 'Error allocating PUPIL interface memory.'
-         call mexit(6,1)
-      end if
-
-      ! Initialise the "atomic numbers" and "quantum forces" vectors        
-      pupqatoms = 0
-      iresPup   = 1
-      pupres(1) = 1
-      do iPup=1,natom
-         bs1  = (iPup-1)*3
-         call get_atomic_number_pupil(ih(iPup+m06-1),x(lmass+iPup-1),pupatm(iPup))
-         if (iresPup .lt. nres) then
-            if (iPup .ge. ix(iresPup+i02)) then
-               iresPup = iresPup + 1
-               pupres(iresPup) = iPup
-            end if
-         end if
-         write (strAux,"(A4,'.',A4)") trim(ih(iresPup+m02-1)),adjustl(ih(iPup+m04-1))
-         keyres(iresPup) = trim(ih(iresPup+m02-1))
-         keyMM(iPup)     = trim(strAux)
-
-         ! Retrieve the initial charges
-         pupchg(iPup) = x(L15+iPup-1)
-
-         do jPup=1,3
-            qfpup(bs1+jPup) = 0.0d0
-         end do
-      end do
-
-      ! Initialise the PUPIL cell
-      do iPup=1,12
-         qcell(iPup) = 0.0d0
-      end do
-
-      ! Submit the KeyMM particles and their respective atomic numbers to PUPIL
-      puperror = 0
-      call putatomtypes(natom,puperror,pupatm,keyMM)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error sending MM atom types to PUPIL.'
-         call mexit(6,1)
-      end if
-
-      puperror = 0
-      call putresiduetypes(nres,puperror,pupres,keyres)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error sending MM residue types to PUPIL.'
-         call mexit(6,1)
-      end if
-
-#endif /* PUPIL_SUPPORT */
-      ! ========================= PUPIL INTERFACE =========================
 
       ! --- seed the random number generator ---
 
@@ -536,8 +448,6 @@
 
    call stack_setup()
 
-#ifdef OPENMP
-
    ! If -openmp was specified to configure_amber then -DOPENMP is defined and the 
    ! threaded version of MKL will have been linked in. It is important here that
    ! we set the default number of openmp threads for MKL to be 1 to stop conflicts
@@ -548,8 +458,7 @@
    call omp_set_num_threads(1)
 
    ! If we are using openmp for matrix diagonalization print some information.
-   if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
-#endif
+!$ if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
 
    ! allocate memory for crg relocation
    if (ifcr /= 0) call cr_allocate( master, natom )

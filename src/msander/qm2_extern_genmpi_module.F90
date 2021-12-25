@@ -233,7 +233,6 @@ contains
   end subroutine print_namelist
 
 
-#  ifndef MPI_1
   ! Perform MPI communications. Requires MPI 2.0 or above to use
   subroutine mpi_hook( tplfile, nqmatoms, qmcoords, qmtypes, nclatoms, clcoords,&
        self, escf, dxyzqm, dxyzcl, dipmom, do_grad, id, charge, spinmult )
@@ -560,9 +559,6 @@ contains
     call debug_exit_function( 'send_job_info', module_name, self%debug )
 
   end subroutine send_job_info
-
-#  endif /* MPI_1 */
-
 
   ! Send a final message with tag 0 to tell the QC program that we are done
   ! (this is sent in place of qmcharge)

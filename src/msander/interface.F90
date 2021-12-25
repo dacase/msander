@@ -3036,15 +3036,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       DELAYED_ERROR
 #endif
    end if
-#ifdef PUPIL_SUPPORT
-   ! BPR: PUPIL does not work with GB (or, I suppose, PB) for the
-   ! time being. It is known to either crash or produce bogus
-   ! results.
-   if (igb > 0 .or. ipb /= 0) then
-      write(6,'(a)') 'Cannot use implicit solvation (GB or PB) with PUPIL'
-      DELAYED_ERROR
-   end if
-#endif /*PUPIL_SUPPORT*/
    if( (igb > 0 .or. ipb /= 0) .and. numextra > 0) then
       if (igb /= 6) then
          write(6,'(a)') 'Cannot use igb>0 (except igb=6) with extra-point force fields'

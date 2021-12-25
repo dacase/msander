@@ -474,10 +474,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(6, 9900) escf
-#endif /* PUPIL_SUPPORT */
   if (gbsa > 0) then
     write(6, 9077) esurf
   end if
@@ -663,10 +659,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(7, 9900) escf
-#endif /* PUPIL_SUPPORT */
    if (gbsa > 0) then
      write(7, 9077) esurf
    end if
@@ -832,10 +824,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   9188 format (1x,'Ewald error estimate: ', e12.4)
   1005 format(" SGLF = ",F8.4,X,F8.2,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
   1006 format(" SGHF = ",F8.4,X,F8.4,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  9900 format (1x,'PUPESCF= ',f14.4)
-#endif /* PUPIL_SUPPORT  */
 
   return
 end subroutine prntmd

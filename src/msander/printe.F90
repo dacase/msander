@@ -298,9 +298,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
      end if
    end if
 
-#ifdef PUPIL_SUPPORT
-   write(6,9900) escf
-#endif
    if( gbsa > 0 ) write(6,9077) esurf
    if (igb == 10 .or. ipb /= 0) write(6,9074) esurf,edisp
       if (cmap_active .and. ipol > 0 ) then
@@ -392,9 +389,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
         end if
       end if
 
-#ifdef PUPIL_SUPPORT
-      write(7,9900) escf
-#endif
       if( gbsa > 0 ) write(7,9077) esurf
       if ( igb == 10 .or. ipb /= 0 ) write(7,9074) esurf,edisp
 ! FF11 CMAP SPECIFIC ENERGY TERMS
@@ -459,8 +453,5 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    9191 format(1x,'Dipole convergence: rms = ',e10.3, &
          ' temperature = ',f6.2)
    9100 format (1x,'DV/DL  = ',f14.4)
-#ifdef PUPIL_SUPPORT
-   9900 format (1x,'PUPESCF =',f14.4)
-#endif
    return
 end subroutine printe

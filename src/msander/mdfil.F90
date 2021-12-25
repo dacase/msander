@@ -481,15 +481,6 @@ subroutine mdfil(VERSION, version_requested)
       ! End REMD Options
 
 #endif
-#ifdef PUPIL_SUPPORT
-      else if ((arg == '-ORBInitialPort') .or. &
-               (arg == '-ORBInitialHost') .or. &
-               (arg == '-jxms'          ) .or. &
-               (arg == '-jxmx'          ) .or. &
-               (arg == '-jxss'          ) .or. &
-               (arg == '-OptPrint')) then
-        iarg = iarg + 1
-#endif /*PUPIL_SUPPORT*/
       else if (arg == '-pimdout') then
          iarg = iarg + 1
          call getarg_wrap(iarg,pimdout)

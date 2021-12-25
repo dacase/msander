@@ -254,9 +254,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   logical ixdump, ivdump, itdump, ifdump
   logical qsetup
   logical irismdump
-#  ifdef RISM_DEBUG
-  _REAL_ r(3),cm(3),angvel(3),erot,moi,proj(3),rxv(3)
-#  endif
 
   integer nvalid, nvalidi
   _REAL_ eke

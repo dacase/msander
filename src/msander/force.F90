@@ -63,11 +63,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use ew_recip
   use parms, only: cn1, cn2, cn6, asol, bsol, pk, rk, tk, numbnd, numang, &
                    nptra, nphb, nimprp, cn3, cn4, cn5 ! for another vdw model
-#ifdef PUPIL_SUPPORT
-  use nblist, only: nonbond_list, a, b, c, alpha, beta, gamma, ucell
-#else
   use nblist, only: nonbond_list, a, b, c, alpha, beta, gamma
-#endif /*PUPIL_SUPPORT*/
 #ifdef DSSP
   use dssp, only: fdssp, edssp, idssp
 #endif /* DSSP */
@@ -76,10 +72,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use scaledMD_mod
   use nbips, only: ips, eexips
   use emap, only: temap, emapforce
-
-#ifdef PUPIL_SUPPORT
-  use pupildata
-#endif /*PUPIL_SUPPORT*/
 
   use linear_response, only: ilrt, ee_linear_response, energy_m0, energy_w0, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
@@ -103,10 +95,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   
   integer, intent(in) :: nstep
 
-#ifdef PUPIL_SUPPORT
-  character(kind=1,len=5) :: routine="force"
-#endif
-#if defined(PUPIL_SUPPORT) || defined(MPI)
+#ifdef MPI
   integer ierr
 #endif
   integer   ipairs(*)
@@ -253,7 +242,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   virvsene = 0.d0
   f(1:3*natom+iscale) = 0.d0
 
-#ifndef PUPIL_SUPPORT
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
 
     ! For GB: do all nonbondeds together below
@@ -269,7 +257,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   if (ifcr /= 0) then
     call cr_reassign_charge(x, f, pot%ct, xx(l15), natom)
   end if
-#endif
 
 #if !defined(DISABLE_NFE)
   if (infe == 1) then
@@ -873,30 +860,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ener%aveind = aveind
   ener%avetot = avetot
    
-#ifdef PUPIL_SUPPORT
-  ! QM/MM structural considerations are now dealt with.
-  ! Add the quantum forces from last QM calculation.
-  do iPup = 1, pupparticles
-    bs1 = (abs(pupqlist(iPup))-1)*3
-    do jPup = 1, 3
-      bs2 = bs1 + jPup
-      f(bs2) = f(bs2) + qfpup(bs2)
-    enddo
-  enddo
-
-  ! If there are more that one QM Domain add vdw interaction
-  ! among qm particles from different QM Domains
-  if (pupnumdomains .gt. 1) then
-    call add_vdwqmqm(r_stack(l_puptmp),f,ener,ntypes,ih(m04),ih(m06),ix(i04))
-  endif
-
-  ! Deallocate temporary stack
-  call free_stack(l_puptmp,routine)
-
-  ! Disconnect QM/MM interactions
-  qmmm_nml%ifqnt = .false.
-#endif
-
   ! If freezemol has been set, zero out all of the forces for
   ! the real atoms. (It is no longer necessary to set ibelly.)
   if (ifreeze > 0) then

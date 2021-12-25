@@ -34,8 +34,6 @@
 #include "nfe-utils.h"
 #include "nfe-config.h"
 
-#define ASSUME_GFORTRAN yes
-
 module mt19937
 
 #if defined(MPI)
@@ -181,11 +179,7 @@ module mt19937
 
     integer( kind = wi )  :: i, mult_a
 
-#ifndef ASSUME_GFORTRAN
-    data mult_a /z'6C078965'/ ! gfortran does not like this
-#else
     mult_a = ieor(ishft(int(z'6C07'), 16), z'8965') ! but this is okay
-#endif /* ASSUME_GFORTRAN */
 
     self%mtinit = .true._wi
     self%mt(1) = ibits( s, 0, 32 )
@@ -222,14 +216,9 @@ module mt19937
     data seed_d /z'12BD6AA'/
     data mult_a /z'19660D'/
 
-#ifndef ASSUME_GFORTRAN
-    data mult_b /z'5D588B65'/
-    data msb1_d /z'80000000'/
-#else
     mult_b = ieor(ishft(int(z'5D58'), 16), z'8B65')
     msb1_d = 1
     msb1_d = ishft(msb1_d, 31)
-#endif /* ASSUME_GFORTRAN */
 
     key_length = size( init_key, dim = 1 )
     call init_by_seed(self, seed_d)
@@ -279,19 +268,10 @@ module mt19937
     integer( kind = wi )  :: seed_d
     data seed_d   /z'5489'/
 
-#ifndef ASSUME_GFORTRAN
-    integer( kind = wi)   :: matrix_a, matrix_b, temper_a, temper_b
-
-    data matrix_a /z'9908B0DF'/
-    data matrix_b /z'0'/
-    data temper_a /z'9D2C5680'/
-    data temper_b /z'EFC60000'/
-#else
-#   define matrix_a z'9908B0DF'
-#   define matrix_b z'0'
-#   define temper_a z'9D2C5680'
-#   define temper_b z'EFC60000'
-#endif /* ASSUME_GFORTRAN */
+#define matrix_a z'9908B0DF'
+#define matrix_b z'0'
+#define temper_a z'9D2C5680'
+#define temper_b z'EFC60000'
 
     if ( self%mti > n ) then ! generate N words at one time
       if ( .not. self%mtinit ) call init_by_seed(self, seed_d) ! if init_genrand() has not been called, a default initial seed is used

@@ -12,17 +12,11 @@ subroutine printflags()
    line = '| Flags:'
    n = 8
    
-#ifdef ISTAR2
-   call printflags2(' ISTAR2',7,n,line,.false.)
-#endif
 #ifdef MPI
    call printflags2(' MPI',4,n,line,.false.)
 #endif
 #ifdef LES
    call printflags2(' LES',4,n,line,.false.)
-#endif
-#ifdef NMODE
-   call printflags2(' NMODE',6,n,line,.false.)
 #endif
 
    call printflags2(' ',1,n,line,.true.)
