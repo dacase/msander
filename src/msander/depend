@@ -12,7 +12,7 @@ align.o: \
 
 align.o:   align.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ align.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ align.F90
 
 AmberNetcdf.o: \
                     netcdf.o
@@ -20,7 +20,7 @@ AmberNetcdf.o: \
 
 AmberNetcdf.o:   AmberNetcdf.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ AmberNetcdf.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ AmberNetcdf.F90
 
 ambmask.o: \
                     ../include/dprec.fh\
@@ -31,7 +31,7 @@ ambmask.o: \
 
 ambmask.o:   ambmask.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ambmask.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ ambmask.F90
 
 amd.o: \
                     ../include/assert.fh\
@@ -43,12 +43,12 @@ amd.o: \
 
 amd.o:   amd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ amd.F90
 
 
 amopen.o:   amopen.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ amopen.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ amopen.F90
 
 assert.o: \
                     ../include/assert.fh
@@ -56,7 +56,7 @@ assert.o: \
 
 assert.o:   assert.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ assert.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ assert.F90
 
 barostats.o: \
                     ../include/dprec.fh\
@@ -76,7 +76,7 @@ barostats.o: \
 
 barostats.o:   barostats.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ barostats.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ barostats.F90
 
 binrestart.o: \
                     ../include/dprec.fh\
@@ -90,7 +90,7 @@ binrestart.o: \
 
 binrestart.o:   binrestart.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ binrestart.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ binrestart.F90
 
 binrestart.LES.o: \
                     ../include/dprec.fh\
@@ -103,7 +103,7 @@ binrestart.LES.o: \
 
 binrestart.LES.o:   binrestart.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ binrestart.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ binrestart.F90
 
 bintraj.o: \
                     ../include/dprec.fh\
@@ -120,7 +120,7 @@ bintraj.o: \
 
 bintraj.o:   bintraj.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ bintraj.F90
 
 bintraj.LES.o: \
                     ../include/dprec.fh\
@@ -136,7 +136,7 @@ bintraj.LES.o: \
 
 bintraj.LES.o:   bintraj.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ bintraj.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ bintraj.F90
 
 charmm.o: \
                     ../include/assert.fh\
@@ -151,7 +151,7 @@ charmm.o: \
 
 charmm.o:   charmm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ charmm.F90
 
 charmm.API.o: \
                     ../include/assert.fh\
@@ -165,7 +165,7 @@ charmm.API.o: \
 
 charmm.API.o:   charmm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ charmm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ charmm.F90
 
 constante.o: \
                     ../include/dprec.fh\
@@ -188,7 +188,7 @@ constante.o: \
 
 constante.o:   constante.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constante.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ constante.F90
 
 constantph.o: \
                     ../include/dprec.fh\
@@ -211,7 +211,7 @@ constantph.o: \
 
 constantph.o:   constantph.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constantph.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ constantph.F90
 
 constants.o: \
                     ../include/dprec.fh
@@ -219,7 +219,7 @@ constants.o: \
 
 constants.o:   constants.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ constants.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ constants.F90
 
 cpparm.o: \
                     ../include/dprec.fh\
@@ -245,7 +245,7 @@ cpparm.o: \
 
 cpparm.o:   cpparm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cpparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ cpparm.F90
 
 cpparm.LES.o: \
                     ../include/dprec.fh\
@@ -270,7 +270,7 @@ cpparm.LES.o: \
 
 cpparm.LES.o:   cpparm.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cpparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ cpparm.F90
 
 crg_reloc.o: \
                     ../include/assert.fh\
@@ -283,7 +283,7 @@ crg_reloc.o: \
 
 crg_reloc.o:   crg_reloc.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ crg_reloc.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ crg_reloc.F90
 
 csa.o: \
                     ../include/dprec.fh\
@@ -295,7 +295,7 @@ csa.o: \
 
 csa.o:   csa.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ csa.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ csa.F90
 
 cshf.o: \
                     ../include/dprec.fh\
@@ -307,7 +307,7 @@ cshf.o: \
 
 cshf.o:   cshf.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ cshf.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ cshf.F90
 
 debug.o: \
                     ../include/dprec.fh\
@@ -333,7 +333,7 @@ debug.o: \
 
 debug.o:   debug.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ debug.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ debug.F90
 
 debug.API.o: \
                     ../include/dprec.fh\
@@ -358,7 +358,7 @@ debug.API.o: \
 
 debug.API.o:   debug.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ debug.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ debug.F90
 
 decnvh.o: \
                     ../include/dprec.fh
@@ -366,7 +366,7 @@ decnvh.o: \
 
 decnvh.o:   decnvh.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ decnvh.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ decnvh.F90
 
 decomp.o: \
                     ../include/assert.fh\
@@ -379,7 +379,7 @@ decomp.o: \
 
 decomp.o:   decomp.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ decomp.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ decomp.F90
 
 degcnt.o: \
                     ../include/dprec.fh\
@@ -389,7 +389,7 @@ degcnt.o: \
 
 degcnt.o:   degcnt.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ degcnt.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ degcnt.F90
 
 degcnt.LES.o: \
                     ../include/dprec.fh\
@@ -398,12 +398,12 @@ degcnt.LES.o: \
 
 degcnt.LES.o:   degcnt.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ degcnt.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ degcnt.F90
 
 
 dsarpack.o:   dsarpack.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dsarpack.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ dsarpack.F90
 
 dssp.o: \
                     ../include/dprec.fh
@@ -411,7 +411,7 @@ dssp.o: \
 
 dssp.o:   dssp.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dssp.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ dssp.F90
 
 dynlib.o: \
                     ../include/dprec.fh\
@@ -446,7 +446,7 @@ dynlib.o: \
 
 dynlib.o:   dynlib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
 dynlib.LES.o: \
                     ../include/dprec.fh\
@@ -480,7 +480,7 @@ dynlib.LES.o: \
 
 dynlib.LES.o:   dynlib.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
 dynlib.PUPIL.o: \
                     ../include/dprec.fh\
@@ -514,7 +514,7 @@ dynlib.PUPIL.o: \
 
 dynlib.PUPIL.o:   dynlib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
 dynlib.API.o: \
                     ../include/dprec.fh\
@@ -548,7 +548,7 @@ dynlib.API.o: \
 
 dynlib.API.o:   dynlib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
 dynlib.LESAPI.o: \
                     ../include/dprec.fh\
@@ -582,7 +582,7 @@ dynlib.LESAPI.o: \
 
 dynlib.LESAPI.o:   dynlib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ dynlib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ dynlib.F90
 
 egb.o: \
                     ../include/assert.fh\
@@ -604,7 +604,7 @@ egb.o: \
 
 egb.o:   egb.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ egb.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ egb.F90
 
 egb.LES.o: \
                     ../include/assert.fh\
@@ -625,7 +625,7 @@ egb.LES.o: \
 
 egb.LES.o:   egb.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ egb.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ egb.F90
 
 emap.o: \
                     ../include/assert.fh\
@@ -641,7 +641,7 @@ emap.o: \
 
 emap.o:   emap.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ emap.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ emap.F90
 
 ene.o: \
                     ../include/dprec.fh\
@@ -670,7 +670,7 @@ ene.o: \
 
 ene.o:   ene.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ene.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ene.F90
 
 ene.LES.o: \
                     ../include/dprec.fh\
@@ -698,7 +698,7 @@ ene.LES.o: \
 
 ene.LES.o:   ene.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ene.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ene.F90
 
 erfcfun.o: \
                     ../include/dprec.fh\
@@ -707,7 +707,7 @@ erfcfun.o: \
 
 erfcfun.o:   erfcfun.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ erfcfun.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ erfcfun.F90
 
 ew_box.o: \
                     ../include/dprec.fh\
@@ -728,7 +728,7 @@ ew_box.o: \
 
 ew_box.o:   ew_box.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_box.F90
 
 ew_box.LES.o: \
                     ../include/dprec.fh\
@@ -748,7 +748,7 @@ ew_box.LES.o: \
 
 ew_box.LES.o:   ew_box.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_box.F90
 
 ew_box.API.o: \
                     ../include/dprec.fh\
@@ -768,7 +768,7 @@ ew_box.API.o: \
 
 ew_box.API.o:   ew_box.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_box.F90
 
 ew_box.LESAPI.o: \
                     ../include/dprec.fh\
@@ -788,7 +788,7 @@ ew_box.LESAPI.o: \
 
 ew_box.LESAPI.o:   ew_box.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_box.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_box.F90
 
 ew_bspline.o: \
                     ../include/dprec.fh\
@@ -799,7 +799,7 @@ ew_bspline.o: \
 
 ew_bspline.o:   ew_bspline.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_bspline.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_bspline.F90
 
 ew_fft.o: \
                     ../include/dprec.fh\
@@ -813,7 +813,7 @@ ew_fft.o: \
 
 ew_fft.o:   ew_fft.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_fft.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_fft.F90
 
 ew_force.o: \
                     ../include/assert.fh\
@@ -849,7 +849,7 @@ ew_force.o: \
 
 ew_force.o:   ew_force.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_force.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_force.F90
 
 ew_force.LES.o: \
                     ../include/assert.fh\
@@ -884,7 +884,7 @@ ew_force.LES.o: \
 
 ew_force.LES.o:   ew_force.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_force.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_force.F90
 
 ew_recip.o: \
                     ../include/dprec.fh\
@@ -909,7 +909,7 @@ ew_recip.o: \
 
 ew_recip.o:   ew_recip.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_recip.F90
 
 ew_recip.LES.o: \
                     ../include/dprec.fh\
@@ -933,7 +933,7 @@ ew_recip.LES.o: \
 
 ew_recip.LES.o:   ew_recip.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_recip.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_recip.F90
 
 ew_setup.o: \
                     ../include/assert.fh\
@@ -963,7 +963,7 @@ ew_setup.o: \
 
 ew_setup.o:   ew_setup.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_setup.F90
 
 ew_setup.LES.o: \
                     ../include/assert.fh\
@@ -992,7 +992,7 @@ ew_setup.LES.o: \
 
 ew_setup.LES.o:   ew_setup.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_setup.F90
 
 ew_setup.API.o: \
                     ../include/assert.fh\
@@ -1021,7 +1021,7 @@ ew_setup.API.o: \
 
 ew_setup.API.o:   ew_setup.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_setup.F90
 
 ew_setup.LESAPI.o: \
                     ../include/assert.fh\
@@ -1050,7 +1050,7 @@ ew_setup.LESAPI.o: \
 
 ew_setup.LESAPI.o:   ew_setup.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ew_setup.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ ew_setup.F90
 
 extra_pts.o: \
                     ../include/dprec.fh\
@@ -1069,7 +1069,7 @@ extra_pts.o: \
 
 extra_pts.o:   extra_pts.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ extra_pts.F90
 
 extra_pts.LES.o: \
                     ../include/dprec.fh\
@@ -1087,7 +1087,7 @@ extra_pts.LES.o: \
 
 extra_pts.LES.o:   extra_pts.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ extra_pts.F90
 
 extra_pts.API.o: \
                     ../include/dprec.fh\
@@ -1105,7 +1105,7 @@ extra_pts.API.o: \
 
 extra_pts.API.o:   extra_pts.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ extra_pts.F90
 
 extra_pts.LESAPI.o: \
                     ../include/dprec.fh\
@@ -1123,7 +1123,7 @@ extra_pts.LESAPI.o: \
 
 extra_pts.LESAPI.o:   extra_pts.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ extra_pts.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ extra_pts.F90
 
 fastwt.o: \
                     ../include/dprec.fh\
@@ -1135,7 +1135,7 @@ fastwt.o: \
 
 fastwt.o:   fastwt.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fastwt.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ fastwt.F90
 
 fastwt.API.o: \
                     ../include/dprec.fh\
@@ -1146,7 +1146,7 @@ fastwt.API.o: \
 
 fastwt.API.o:   fastwt.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fastwt.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ fastwt.F90
 
 file_io_dat.o: \
                     ../include/dprec.fh
@@ -1154,7 +1154,7 @@ file_io_dat.o: \
 
 file_io_dat.o:   file_io_dat.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ file_io_dat.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ file_io_dat.F90
 
 findmask.o: \
                     ../include/dprec.fh
@@ -1162,12 +1162,12 @@ findmask.o: \
 
 findmask.o:   findmask.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ findmask.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ findmask.F90
 
 
 fixport.o:   fixport.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ fixport.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ fixport.F90
 
 force.o: \
                     ../include/dprec.fh\
@@ -1220,7 +1220,7 @@ force.o: \
 
 force.o:   force.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ force.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
 
 force.LES.o: \
                     ../include/dprec.fh\
@@ -1272,7 +1272,7 @@ force.LES.o: \
 
 force.LES.o:   force.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ force.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
 
 force.PUPIL.o: \
                     ../include/dprec.fh\
@@ -1324,7 +1324,7 @@ force.PUPIL.o: \
 
 force.PUPIL.o:   force.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ force.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
 
 getcor.o: \
                     ../include/dprec.fh\
@@ -1340,7 +1340,7 @@ getcor.o: \
 
 getcor.o:   getcor.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ getcor.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ getcor.F90
 
 getcor.LES.o: \
                     ../include/dprec.fh\
@@ -1355,7 +1355,7 @@ getcor.LES.o: \
 
 getcor.LES.o:   getcor.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ getcor.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ getcor.F90
 
 icosasurf.o: \
                     ../include/assert.fh\
@@ -1365,7 +1365,7 @@ icosasurf.o: \
 
 icosasurf.o:   icosasurf.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ icosasurf.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ icosasurf.F90
 
 interface.o: \
                     ../include/assert.fh\
@@ -1427,7 +1427,7 @@ interface.o: \
 
 interface.o:   interface.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ interface.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ interface.F90
 
 interface.LESAPI.o: \
                     ../include/assert.fh\
@@ -1488,7 +1488,7 @@ interface.LESAPI.o: \
 
 interface.LESAPI.o:   interface.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ interface.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ interface.F90
 
 interface_setup.F90: \
                     nfe-sander-hooks.o\
@@ -1561,7 +1561,7 @@ ips.o: \
 
 ips.o:   ips.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ ips.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ips.F90
 
 iwrap2.o: \
                     ../include/dprec.fh\
@@ -1571,7 +1571,7 @@ iwrap2.o: \
 
 iwrap2.o:   iwrap2.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ iwrap2.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ iwrap2.F90
 
 les.o: \
                     ../include/dprec.fh
@@ -1579,7 +1579,7 @@ les.o: \
 
 les.o:   les.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ les.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ les.F90
 
 linear_response.o: \
                     ../include/assert.fh\
@@ -1592,7 +1592,7 @@ linear_response.o: \
 
 linear_response.o:   linear_response.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ linear_response.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ linear_response.F90
 
 lmod.o: \
                     ../include/assert.fh\
@@ -1611,7 +1611,7 @@ lmod.o: \
 
 lmod.o:   lmod.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lmod.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ lmod.F90
 
 lmod.LES.o: \
                     ../include/assert.fh\
@@ -1629,7 +1629,7 @@ lmod.LES.o: \
 
 lmod.LES.o:   lmod.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ lmod.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ lmod.F90
 
 locmem.o: \
                     ../include/dprec.fh\
@@ -1650,7 +1650,7 @@ locmem.o: \
 
 locmem.o:   locmem.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ locmem.F90
 
 locmem.LES.o: \
                     ../include/dprec.fh\
@@ -1670,12 +1670,12 @@ locmem.LES.o: \
 
 locmem.LES.o:   locmem.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ locmem.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ locmem.F90
 
 
 matinv.o:   matinv.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ matinv.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ matinv.F90
 
 mbar.o: \
                     ../include/assert.fh\
@@ -1685,7 +1685,7 @@ mbar.o: \
 
 mbar.o:   mbar.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mbar.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ mbar.F90
 
 md_scheme.o: \
                     ../include/dprec.fh\
@@ -1698,7 +1698,7 @@ md_scheme.o: \
 
 md_scheme.o:   md_scheme.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ md_scheme.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ md_scheme.F90
 
 md_scheme.LES.o: \
                     ../include/dprec.fh\
@@ -1710,7 +1710,7 @@ md_scheme.LES.o: \
 
 md_scheme.LES.o:   md_scheme.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ md_scheme.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ md_scheme.F90
 
 mdfil.o: \
                     file_io_dat.o\
@@ -1722,7 +1722,7 @@ mdfil.o: \
 
 mdfil.o:   mdfil.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdfil.F90
 
 mdfil.LES.o: \
                     file_io_dat.o\
@@ -1733,7 +1733,7 @@ mdfil.LES.o: \
 
 mdfil.LES.o:   mdfil.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdfil.F90
 
 mdfil.PUPIL.o: \
                     file_io_dat.o\
@@ -1744,7 +1744,7 @@ mdfil.PUPIL.o: \
 
 mdfil.PUPIL.o:   mdfil.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdfil.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdfil.F90
 
 mdread.o: \
                     ../include/dprec.fh\
@@ -1800,7 +1800,7 @@ mdread.o: \
 
 mdread.o:   mdread.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdread.F90
 
 mdread.LES.o: \
                     ../include/dprec.fh\
@@ -1855,7 +1855,7 @@ mdread.LES.o: \
 
 mdread.LES.o:   mdread.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdread.F90
 
 mdread.PUPIL.o: \
                     ../include/dprec.fh\
@@ -1910,7 +1910,7 @@ mdread.PUPIL.o: \
 
 mdread.PUPIL.o:   mdread.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdread.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mdread.F90
 
 mdwrit.o: \
                     ../include/dprec.fh\
@@ -1926,7 +1926,7 @@ mdwrit.o: \
 
 mdwrit.o:   mdwrit.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdwrit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ mdwrit.F90
 
 mdwrit.LES.o: \
                     ../include/dprec.fh\
@@ -1941,7 +1941,7 @@ mdwrit.LES.o: \
 
 mdwrit.LES.o:   mdwrit.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mdwrit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ mdwrit.F90
 
 memory_module.o: \
                     ../include/dprec.fh\
@@ -1953,7 +1953,7 @@ memory_module.o: \
 
 memory_module.o:   memory_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ memory_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ memory_module.F90
 
 mexit.o: \
                     pupildata.o\
@@ -1962,7 +1962,7 @@ mexit.o: \
 
 mexit.o:   mexit.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mexit.F90
 
 mexit.PUPIL.o: \
                     pupildata.o\
@@ -1970,7 +1970,7 @@ mexit.PUPIL.o: \
 
 mexit.PUPIL.o:   mexit.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mexit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mexit.F90
 
 minrit.o: \
                     ../include/dprec.fh\
@@ -1982,7 +1982,7 @@ minrit.o: \
 
 minrit.o:   minrit.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ minrit.F90
 
 minrit.LES.o: \
                     ../include/dprec.fh\
@@ -1993,7 +1993,7 @@ minrit.LES.o: \
 
 minrit.LES.o:   minrit.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ minrit.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ minrit.F90
 
 molecule.o: \
                     ../include/assert.fh\
@@ -2002,7 +2002,7 @@ molecule.o: \
 
 molecule.o:   molecule.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ molecule.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ molecule.F90
 
 mt19937.o: \
                     nfe-utils.h\
@@ -2016,7 +2016,7 @@ mt19937.o: \
 
 mt19937.o:   mt19937.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mt19937.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mt19937.F90
 
 mtmdcall.o: \
                     ../include/dprec.fh\
@@ -2028,7 +2028,7 @@ mtmdcall.o: \
 
 mtmdcall.o:   mtmdcall.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ mtmdcall.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ mtmdcall.F90
 
 multisander.o: \
                     ../include/dprec.fh\
@@ -2048,7 +2048,7 @@ multisander.o: \
 
 multisander.o:   multisander.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ multisander.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ multisander.F90
 
 multisander.LES.o: \
                     ../include/dprec.fh\
@@ -2067,7 +2067,7 @@ multisander.LES.o: \
 
 multisander.LES.o:   multisander.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ multisander.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ multisander.F90
 
 multitmd.o: \
                     ../include/assert.fh\
@@ -2078,7 +2078,7 @@ multitmd.o: \
 
 multitmd.o:   multitmd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ multitmd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ multitmd.F90
 
 music_module.o: \
                     ../include/dprec.fh\
@@ -2092,7 +2092,7 @@ music_module.o: \
 
 music_module.o:   music_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ music_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ music_module.F90
 
 new_time.o: \
                     ../include/dprec.fh\
@@ -2109,7 +2109,7 @@ new_time.o: \
 
 new_time.o:   new_time.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ new_time.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ new_time.F90
 
 new_time.API.o: \
                     ../include/dprec.fh\
@@ -2125,7 +2125,7 @@ new_time.API.o: \
 
 new_time.API.o:   new_time.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ new_time.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ new_time.F90
 
 nfe-abmd-hooks.o: \
                     nfe-utils.h\
@@ -2146,7 +2146,7 @@ nfe-abmd-hooks.o: \
 
 nfe-abmd-hooks.o:   nfe-abmd-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-abmd-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-abmd-hooks.F90
 
 nfe-bbmd-ctxt.o: \
                     nfe-utils.h\
@@ -2163,7 +2163,7 @@ nfe-bbmd-ctxt.o: \
 
 nfe-bbmd-ctxt.o:   nfe-bbmd-ctxt.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-bbmd-ctxt.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-bbmd-ctxt.F90
 
 nfe-bbmd-hooks.o: \
                     nfe-utils.h\
@@ -2179,7 +2179,7 @@ nfe-bbmd-hooks.o: \
 
 nfe-bbmd-hooks.o:   nfe-bbmd-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-bbmd-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-bbmd-hooks.F90
 
 nfe-colvar-math.o: \
                     nfe-utils.h\
@@ -2190,7 +2190,7 @@ nfe-colvar-math.o: \
 
 nfe-colvar-math.o:   nfe-colvar-math.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-colvar-math.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-colvar-math.F90
 
 nfe-colvar-type.o: \
                     nfe-utils.h\
@@ -2199,7 +2199,7 @@ nfe-colvar-type.o: \
 
 nfe-colvar-type.o:   nfe-colvar-type.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-colvar-type.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-colvar-type.F90
 
 nfe-colvar-utils.o: \
                     nfe-utils.h\
@@ -2213,7 +2213,7 @@ nfe-colvar-utils.o: \
 
 nfe-colvar-utils.o:   nfe-colvar-utils.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-colvar-utils.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-colvar-utils.F90
 
 nfe-colvar.o: \
                     nfe-utils.h\
@@ -2255,7 +2255,7 @@ nfe-colvar.o: \
 
 nfe-colvar.o:   nfe-colvar.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-colvar.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-colvar.F90
 
 nfe-constants.o: \
                     nfe-config.h
@@ -2263,7 +2263,7 @@ nfe-constants.o: \
 
 nfe-constants.o:   nfe-constants.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-constants.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-constants.F90
 
 nfe-cv-ANGLE.o: \
                     nfe-utils.h\
@@ -2279,7 +2279,7 @@ nfe-cv-ANGLE.o: \
 
 nfe-cv-ANGLE.o:   nfe-cv-ANGLE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-ANGLE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-ANGLE.F90
 
 nfe-cv-COM_ANGLE.o: \
                     nfe-utils.h\
@@ -2295,7 +2295,7 @@ nfe-cv-COM_ANGLE.o: \
 
 nfe-cv-COM_ANGLE.o:   nfe-cv-COM_ANGLE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-COM_ANGLE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-COM_ANGLE.F90
 
 nfe-cv-COM_DISTANCE.o: \
                     nfe-utils.h\
@@ -2311,7 +2311,7 @@ nfe-cv-COM_DISTANCE.o: \
 
 nfe-cv-COM_DISTANCE.o:   nfe-cv-COM_DISTANCE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-COM_DISTANCE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-COM_DISTANCE.F90
 
 nfe-cv-COM_TORSION.o: \
                     nfe-utils.h\
@@ -2327,7 +2327,7 @@ nfe-cv-COM_TORSION.o: \
 
 nfe-cv-COM_TORSION.o:   nfe-cv-COM_TORSION.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-COM_TORSION.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-COM_TORSION.F90
 
 nfe-cv-COS_OF_DIHEDRAL.o: \
                     nfe-utils.h\
@@ -2342,7 +2342,7 @@ nfe-cv-COS_OF_DIHEDRAL.o: \
 
 nfe-cv-COS_OF_DIHEDRAL.o:   nfe-cv-COS_OF_DIHEDRAL.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-COS_OF_DIHEDRAL.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-COS_OF_DIHEDRAL.F90
 
 nfe-cv-DF_COM_DISTANCE.o: \
                     nfe-utils.h\
@@ -2358,7 +2358,7 @@ nfe-cv-DF_COM_DISTANCE.o: \
 
 nfe-cv-DF_COM_DISTANCE.o:   nfe-cv-DF_COM_DISTANCE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-DF_COM_DISTANCE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-DF_COM_DISTANCE.F90
 
 nfe-cv-DISTANCE.o: \
                     nfe-utils.h\
@@ -2375,7 +2375,7 @@ nfe-cv-DISTANCE.o: \
 
 nfe-cv-DISTANCE.o:   nfe-cv-DISTANCE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-DISTANCE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-DISTANCE.F90
 
 nfe-cv-HANDEDNESS.o: \
                     nfe-utils.h\
@@ -2390,7 +2390,7 @@ nfe-cv-HANDEDNESS.o: \
 
 nfe-cv-HANDEDNESS.o:   nfe-cv-HANDEDNESS.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-HANDEDNESS.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-HANDEDNESS.F90
 
 nfe-cv-LCOD.o: \
                     nfe-utils.h\
@@ -2406,7 +2406,7 @@ nfe-cv-LCOD.o: \
 
 nfe-cv-LCOD.o:   nfe-cv-LCOD.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-LCOD.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-LCOD.F90
 
 nfe-cv-MULTI_RMSD.o: \
                     nfe-utils.h\
@@ -2425,7 +2425,7 @@ nfe-cv-MULTI_RMSD.o: \
 
 nfe-cv-MULTI_RMSD.o:   nfe-cv-MULTI_RMSD.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-MULTI_RMSD.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-MULTI_RMSD.F90
 
 nfe-cv-N_OF_BONDS.o: \
                     nfe-utils.h\
@@ -2439,7 +2439,7 @@ nfe-cv-N_OF_BONDS.o: \
 
 nfe-cv-N_OF_BONDS.o:   nfe-cv-N_OF_BONDS.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-N_OF_BONDS.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-N_OF_BONDS.F90
 
 nfe-cv-N_OF_STRUCTURES.o: \
                     nfe-utils.h\
@@ -2458,7 +2458,7 @@ nfe-cv-N_OF_STRUCTURES.o: \
 
 nfe-cv-N_OF_STRUCTURES.o:   nfe-cv-N_OF_STRUCTURES.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-N_OF_STRUCTURES.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-N_OF_STRUCTURES.F90
 
 nfe-cv-ORIENTATION_ANGLE.o: \
                     nfe-utils.h\
@@ -2477,7 +2477,7 @@ nfe-cv-ORIENTATION_ANGLE.o: \
 
 nfe-cv-ORIENTATION_ANGLE.o:   nfe-cv-ORIENTATION_ANGLE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-ORIENTATION_ANGLE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-ORIENTATION_ANGLE.F90
 
 nfe-cv-ORIENTATION_PROJ.o: \
                     nfe-utils.h\
@@ -2496,7 +2496,7 @@ nfe-cv-ORIENTATION_PROJ.o: \
 
 nfe-cv-ORIENTATION_PROJ.o:   nfe-cv-ORIENTATION_PROJ.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-ORIENTATION_PROJ.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-ORIENTATION_PROJ.F90
 
 nfe-cv-PAIR_DIHEDRAL.o: \
                     nfe-utils.h\
@@ -2511,7 +2511,7 @@ nfe-cv-PAIR_DIHEDRAL.o: \
 
 nfe-cv-PAIR_DIHEDRAL.o:   nfe-cv-PAIR_DIHEDRAL.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-PAIR_DIHEDRAL.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-PAIR_DIHEDRAL.F90
 
 nfe-cv-PATTERN_DIHEDRAL.o: \
                     nfe-utils.h\
@@ -2526,7 +2526,7 @@ nfe-cv-PATTERN_DIHEDRAL.o: \
 
 nfe-cv-PATTERN_DIHEDRAL.o:   nfe-cv-PATTERN_DIHEDRAL.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-PATTERN_DIHEDRAL.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-PATTERN_DIHEDRAL.F90
 
 nfe-cv-PCA.o: \
                     nfe-utils.h\
@@ -2545,7 +2545,7 @@ nfe-cv-PCA.o: \
 
 nfe-cv-PCA.o:   nfe-cv-PCA.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-PCA.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-PCA.F90
 
 nfe-cv-QUATERNION0.o: \
                     nfe-utils.h\
@@ -2564,7 +2564,7 @@ nfe-cv-QUATERNION0.o: \
 
 nfe-cv-QUATERNION0.o:   nfe-cv-QUATERNION0.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION0.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-QUATERNION0.F90
 
 nfe-cv-QUATERNION1.o: \
                     nfe-utils.h\
@@ -2583,7 +2583,7 @@ nfe-cv-QUATERNION1.o: \
 
 nfe-cv-QUATERNION1.o:   nfe-cv-QUATERNION1.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION1.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-QUATERNION1.F90
 
 nfe-cv-QUATERNION2.o: \
                     nfe-utils.h\
@@ -2602,7 +2602,7 @@ nfe-cv-QUATERNION2.o: \
 
 nfe-cv-QUATERNION2.o:   nfe-cv-QUATERNION2.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION2.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-QUATERNION2.F90
 
 nfe-cv-QUATERNION3.o: \
                     nfe-utils.h\
@@ -2621,7 +2621,7 @@ nfe-cv-QUATERNION3.o: \
 
 nfe-cv-QUATERNION3.o:   nfe-cv-QUATERNION3.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-QUATERNION3.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-QUATERNION3.F90
 
 nfe-cv-R_OF_GYRATION.o: \
                     nfe-utils.h\
@@ -2639,7 +2639,7 @@ nfe-cv-R_OF_GYRATION.o: \
 
 nfe-cv-R_OF_GYRATION.o:   nfe-cv-R_OF_GYRATION.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-R_OF_GYRATION.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-R_OF_GYRATION.F90
 
 nfe-cv-SIN_OF_DIHEDRAL.o: \
                     nfe-utils.h\
@@ -2654,7 +2654,7 @@ nfe-cv-SIN_OF_DIHEDRAL.o: \
 
 nfe-cv-SIN_OF_DIHEDRAL.o:   nfe-cv-SIN_OF_DIHEDRAL.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-SIN_OF_DIHEDRAL.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-SIN_OF_DIHEDRAL.F90
 
 nfe-cv-SPINANGLE.o: \
                     nfe-utils.h\
@@ -2674,7 +2674,7 @@ nfe-cv-SPINANGLE.o: \
 
 nfe-cv-SPINANGLE.o:   nfe-cv-SPINANGLE.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-SPINANGLE.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-SPINANGLE.F90
 
 nfe-cv-TILT.o: \
                     nfe-utils.h\
@@ -2694,7 +2694,7 @@ nfe-cv-TILT.o: \
 
 nfe-cv-TILT.o:   nfe-cv-TILT.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-TILT.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-TILT.F90
 
 nfe-cv-TORSION.o: \
                     nfe-utils.h\
@@ -2710,7 +2710,7 @@ nfe-cv-TORSION.o: \
 
 nfe-cv-TORSION.o:   nfe-cv-TORSION.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-cv-TORSION.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-cv-TORSION.F90
 
 nfe-pmd-hooks.o: \
                     nfe-utils.h\
@@ -2725,7 +2725,7 @@ nfe-pmd-hooks.o: \
 
 nfe-pmd-hooks.o:   nfe-pmd-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-pmd-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-pmd-hooks.F90
 
 nfe-read-pca.o: \
                     nfe-utils.h\
@@ -2737,7 +2737,7 @@ nfe-read-pca.o: \
 
 nfe-read-pca.o:   nfe-read-pca.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-read-pca.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-read-pca.F90
 
 nfe-rmsd.o: \
                     nfe-utils.h\
@@ -2748,7 +2748,7 @@ nfe-rmsd.o: \
 
 nfe-rmsd.o:   nfe-rmsd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-rmsd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-rmsd.F90
 
 nfe-sander-hooks.o: \
                     nfe-utils.h\
@@ -2767,7 +2767,7 @@ nfe-sander-hooks.o: \
 
 nfe-sander-hooks.o:   nfe-sander-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-sander-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-sander-hooks.F90
 
 nfe-sander-proxy.o: \
                     nfe-utils.h\
@@ -2783,7 +2783,7 @@ nfe-sander-proxy.o: \
 
 nfe-sander-proxy.o:   nfe-sander-proxy.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-sander-proxy.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-sander-proxy.F90
 
 nfe-smd-hooks.o: \
                     nfe-utils.h\
@@ -2800,7 +2800,7 @@ nfe-smd-hooks.o: \
 
 nfe-smd-hooks.o:   nfe-smd-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-smd-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-smd-hooks.F90
 
 nfe-stsm-hooks.o: \
                     nfe-utils.h\
@@ -2815,7 +2815,7 @@ nfe-stsm-hooks.o: \
 
 nfe-stsm-hooks.o:   nfe-stsm-hooks.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-stsm-hooks.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-stsm-hooks.F90
 
 nfe-umbrella.o: \
                     nfe-utils.h\
@@ -2829,7 +2829,7 @@ nfe-umbrella.o: \
 
 nfe-umbrella.o:   nfe-umbrella.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-umbrella.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nfe-umbrella.F90
 
 nfe-utils.o: \
                     nfe-utils.h\
@@ -2841,7 +2841,7 @@ nfe-utils.o: \
 
 nfe-utils.o:   nfe-utils.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-utils.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-utils.F90
 
 nfe-value.o: \
                     nfe-utils.h\
@@ -2852,12 +2852,12 @@ nfe-value.o: \
 
 nfe-value.o:   nfe-value.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nfe-value.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nfe-value.F90
 
 
 nmlsrc.o:   nmlsrc.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmlsrc.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nmlsrc.F90
 
 nmr.o: \
                     ../include/assert.fh\
@@ -2877,7 +2877,7 @@ nmr.o: \
 
 nmr.o:   nmr.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmr.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nmr.F90
 
 nmr.LES.o: \
                     ../include/assert.fh\
@@ -2896,7 +2896,7 @@ nmr.LES.o: \
 
 nmr.LES.o:   nmr.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmr.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ nmr.F90
 
 nmrcal.o: \
                     ../include/dprec.fh\
@@ -2908,7 +2908,7 @@ nmrcal.o: \
 
 nmrcal.o:   nmrcal.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nmrcal.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nmrcal.F90
 
 nonbond_list.o: \
                     ../include/assert.fh\
@@ -2929,7 +2929,7 @@ nonbond_list.o: \
 
 nonbond_list.o:   nonbond_list.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ nonbond_list.F90
 
 nonbond_list.LES.o: \
                     ../include/assert.fh\
@@ -2949,7 +2949,7 @@ nonbond_list.LES.o: \
 
 nonbond_list.LES.o:   nonbond_list.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ nonbond_list.F90
 
 nonbond_list.API.o: \
                     ../include/assert.fh\
@@ -2969,7 +2969,7 @@ nonbond_list.API.o: \
 
 nonbond_list.API.o:   nonbond_list.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ nonbond_list.F90
 
 nonbond_list.LESAPI.o: \
                     ../include/assert.fh\
@@ -2989,7 +2989,7 @@ nonbond_list.LESAPI.o: \
 
 nonbond_list.LESAPI.o:   nonbond_list.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ nonbond_list.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ nonbond_list.F90
 
 parallel.o: \
                     ../include/dprec.fh\
@@ -3033,7 +3033,7 @@ parallel.o: \
 
 parallel.o:   parallel.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parallel.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ parallel.F90
 
 parallel.LES.o: \
                     ../include/dprec.fh\
@@ -3076,7 +3076,7 @@ parallel.LES.o: \
 
 parallel.LES.o:   parallel.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parallel.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ parallel.F90
 
 parms.o: \
                     ../include/dprec.fh\
@@ -3087,7 +3087,7 @@ parms.o: \
 
 parms.o:   parms.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ parms.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ parms.F90
 
 pcshift.o: \
                     ../include/dprec.fh\
@@ -3101,7 +3101,7 @@ pcshift.o: \
 
 pcshift.o:   pcshift.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pcshift.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ pcshift.F90
 
 pearsn.o: \
                     ../include/dprec.fh\
@@ -3110,7 +3110,7 @@ pearsn.o: \
 
 pearsn.o:   pearsn.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pearsn.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ pearsn.F90
 
 printe.o: \
                     ../include/dprec.fh\
@@ -3137,7 +3137,7 @@ printe.o: \
 
 printe.o:   printe.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ printe.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ printe.F90
 
 printe.PUPIL.o: \
                     ../include/dprec.fh\
@@ -3163,12 +3163,12 @@ printe.PUPIL.o: \
 
 printe.PUPIL.o:   printe.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ printe.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ printe.F90
 
 
 prmtop_type.o:   prmtop_type.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prmtop_type.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ prmtop_type.F90
 
 prn_qmmm_dipole.o: \
                     ../include/dprec.fh\
@@ -3178,7 +3178,7 @@ prn_qmmm_dipole.o: \
 
 prn_qmmm_dipole.o:   prn_qmmm_dipole.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ prn_qmmm_dipole.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ prn_qmmm_dipole.F90
 
 pubfft.o: \
                     ../include/dprec.fh
@@ -3186,7 +3186,7 @@ pubfft.o: \
 
 pubfft.o:   pubfft.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pubfft.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ pubfft.F90
 
 pupildata.o: \
                     ../include/dprec.fh\
@@ -3201,7 +3201,7 @@ pupildata.o: \
 
 pupildata.o:   pupildata.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ pupildata.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ pupildata.F90
 
 putvalues.o: \
                     ../include/dprec.fh\
@@ -3216,7 +3216,7 @@ putvalues.o: \
 
 putvalues.o:   putvalues.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ putvalues.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ putvalues.F90
 
 qm2_extern_adf_module.o: \
                     ../include/dprec.fh\
@@ -3229,7 +3229,7 @@ qm2_extern_adf_module.o: \
 
 qm2_extern_adf_module.o:   qm2_extern_adf_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_adf_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_adf_module.F90
 
 qm2_extern_fb_module.o: \
                     ../include/dprec.fh\
@@ -3242,7 +3242,7 @@ qm2_extern_fb_module.o: \
 
 qm2_extern_fb_module.o:   qm2_extern_fb_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_fb_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_fb_module.F90
 
 qm2_extern_gau_module.o: \
                     ../include/dprec.fh\
@@ -3255,7 +3255,7 @@ qm2_extern_gau_module.o: \
 
 qm2_extern_gau_module.o:   qm2_extern_gau_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_gau_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_gau_module.F90
 
 qm2_extern_genmpi_module.o: \
                     ../include/dprec.fh\
@@ -3267,7 +3267,7 @@ qm2_extern_genmpi_module.o: \
 
 qm2_extern_genmpi_module.o:   qm2_extern_genmpi_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_genmpi_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_genmpi_module.F90
 
 qm2_extern_gms_module.o: \
                     ../include/dprec.fh\
@@ -3279,7 +3279,7 @@ qm2_extern_gms_module.o: \
 
 qm2_extern_gms_module.o:   qm2_extern_gms_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_gms_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_gms_module.F90
 
 qm2_extern_lio_module.o: \
                     ../include/dprec.fh\
@@ -3290,7 +3290,7 @@ qm2_extern_lio_module.o: \
 
 qm2_extern_lio_module.o:   qm2_extern_lio_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_lio_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_lio_module.F90
 
 qm2_extern_module.o: \
                     ../include/dprec.fh\
@@ -3316,7 +3316,7 @@ qm2_extern_module.o: \
 
 qm2_extern_module.o:   qm2_extern_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_module.F90
 
 qm2_extern_module.LES.o: \
                     ../include/dprec.fh\
@@ -3341,7 +3341,7 @@ qm2_extern_module.LES.o: \
 
 qm2_extern_module.LES.o:   qm2_extern_module.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_module.F90
 
 qm2_extern_mrcc_module.o: \
                     ../include/dprec.fh\
@@ -3354,7 +3354,7 @@ qm2_extern_mrcc_module.o: \
 
 qm2_extern_mrcc_module.o:   qm2_extern_mrcc_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_mrcc_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_mrcc_module.F90
 
 qm2_extern_nw_module.o: \
                     ../include/dprec.fh\
@@ -3367,7 +3367,7 @@ qm2_extern_nw_module.o: \
 
 qm2_extern_nw_module.o:   qm2_extern_nw_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_nw_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_nw_module.F90
 
 qm2_extern_orc_module.o: \
                     ../include/dprec.fh\
@@ -3379,7 +3379,7 @@ qm2_extern_orc_module.o: \
 
 qm2_extern_orc_module.o:   qm2_extern_orc_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_orc_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_orc_module.F90
 
 qm2_extern_qc_module.o: \
                     ../include/dprec.fh\
@@ -3392,7 +3392,7 @@ qm2_extern_qc_module.o: \
 
 qm2_extern_qc_module.o:   qm2_extern_qc_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_qc_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_qc_module.F90
 
 qm2_extern_quick_module.o: \
                     ../include/dprec.fh\
@@ -3405,7 +3405,7 @@ qm2_extern_quick_module.o: \
 
 qm2_extern_quick_module.o:   qm2_extern_quick_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_quick_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_quick_module.F90
 
 qm2_extern_reaxff_puremd_module.o: \
                     elementOrbitalIndex.o
@@ -3413,7 +3413,7 @@ qm2_extern_reaxff_puremd_module.o: \
 
 qm2_extern_reaxff_puremd_module.o:   qm2_extern_reaxff_puremd_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_reaxff_puremd_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_reaxff_puremd_module.F90
 
 qm2_extern_tc_module.o: \
                     ../include/dprec.fh\
@@ -3425,7 +3425,7 @@ qm2_extern_tc_module.o: \
 
 qm2_extern_tc_module.o:   qm2_extern_tc_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_tc_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_tc_module.F90
 
 qm2_extern_util_module.o: \
                     ../include/dprec.fh\
@@ -3434,7 +3434,7 @@ qm2_extern_util_module.o: \
 
 qm2_extern_util_module.o:   qm2_extern_util_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm2_extern_util_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm2_extern_util_module.F90
 
 qm_div.o: \
                     ../include/dprec.fh\
@@ -3444,7 +3444,7 @@ qm_div.o: \
 
 qm_div.o:   qm_div.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_div.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ qm_div.F90
 
 qm_ewald.o: \
                     ../include/dprec.fh\
@@ -3458,7 +3458,7 @@ qm_ewald.o: \
 
 qm_ewald.o:   qm_ewald.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_ewald.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ qm_ewald.F90
 
 qm_mm.o: \
                     ../include/dprec.fh\
@@ -3478,7 +3478,7 @@ qm_mm.o: \
 
 qm_mm.o:   qm_mm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm_mm.F90
 
 qm_mm.LES.o: \
                     ../include/dprec.fh\
@@ -3497,7 +3497,7 @@ qm_mm.LES.o: \
 
 qm_mm.LES.o:   qm_mm.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm_mm.F90
 
 qm_mm.API.o: \
                     ../include/dprec.fh\
@@ -3516,7 +3516,7 @@ qm_mm.API.o: \
 
 qm_mm.API.o:   qm_mm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm_mm.F90
 
 qm_mm.LESAPI.o: \
                     ../include/dprec.fh\
@@ -3535,7 +3535,7 @@ qm_mm.LESAPI.o: \
 
 qm_mm.LESAPI.o:   qm_mm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qm_mm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qm_mm.F90
 
 qmmm_adaptive_module.o: \
                     ../include/dprec.fh\
@@ -3551,7 +3551,7 @@ qmmm_adaptive_module.o: \
 
 qmmm_adaptive_module.o:   qmmm_adaptive_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qmmm_adaptive_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ qmmm_adaptive_module.F90
 
 qmmm_vsolv.o: \
                     ../include/dprec.fh\
@@ -3565,7 +3565,7 @@ qmmm_vsolv.o: \
 
 qmmm_vsolv.o:   qmmm_vsolv.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ qmmm_vsolv.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ qmmm_vsolv.F90
 
 quench.o: \
                     ../include/dprec.fh\
@@ -3576,7 +3576,7 @@ quench.o: \
 
 quench.o:   quench.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ quench.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ quench.F90
 
 random.o: \
                     random.h
@@ -3584,7 +3584,7 @@ random.o: \
 
 random.o:   random.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ random.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ random.F90
 
 rattle.o: \
                     ../include/dprec.fh\
@@ -3594,7 +3594,7 @@ rattle.o: \
 
 rattle.o:   rattle.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rattle.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ rattle.F90
 
 rdparm.o: \
                     ../include/dprec.fh\
@@ -3619,7 +3619,7 @@ rdparm.o: \
 
 rdparm.o:   rdparm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rdparm.F90
 
 rdparm.LES.o: \
                     ../include/dprec.fh\
@@ -3643,7 +3643,7 @@ rdparm.LES.o: \
 
 rdparm.LES.o:   rdparm.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rdparm.F90
 
 rdparm.API.o: \
                     ../include/dprec.fh\
@@ -3667,7 +3667,7 @@ rdparm.API.o: \
 
 rdparm.API.o:   rdparm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rdparm.F90
 
 rdparm.LESAPI.o: \
                     ../include/dprec.fh\
@@ -3691,7 +3691,7 @@ rdparm.LESAPI.o: \
 
 rdparm.LESAPI.o:   rdparm.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rdparm.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rdparm.F90
 
 relax_mat.o: \
                     ../include/dprec.fh\
@@ -3708,7 +3708,7 @@ relax_mat.o: \
 
 relax_mat.o:   relax_mat.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ relax_mat.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ relax_mat.F90
 
 relaxmd.o: \
                     ../include/dprec.fh\
@@ -3738,7 +3738,7 @@ relaxmd.o: \
 
 relaxmd.o:   relaxmd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ relaxmd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ relaxmd.F90
 
 remd.o: \
                     ../include/assert.fh\
@@ -3764,7 +3764,7 @@ remd.o: \
 
 remd.o:   remd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ remd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ remd.F90
 
 remd.LES.o: \
                     ../include/assert.fh\
@@ -3789,7 +3789,7 @@ remd.LES.o: \
 
 remd.LES.o:   remd.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ remd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ remd.F90
 
 resamplekin.o: \
                     ../include/assert.fh\
@@ -3798,7 +3798,7 @@ resamplekin.o: \
 
 resamplekin.o:   resamplekin.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ resamplekin.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ resamplekin.F90
 
 rfree.o: \
                     ../include/dprec.fh\
@@ -3807,7 +3807,7 @@ rfree.o: \
 
 rfree.o:   rfree.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rfree.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rfree.F90
 
 rgroup.o: \
                     ../include/dprec.fh\
@@ -3816,7 +3816,7 @@ rgroup.o: \
 
 rgroup.o:   rgroup.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rgroup.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ rgroup.F90
 
 rmsgrd.o: \
                     ../include/assert.fh\
@@ -3829,7 +3829,7 @@ rmsgrd.o: \
 
 rmsgrd.o:   rmsgrd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ rmsgrd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ rmsgrd.F90
 
 runmd.o: \
                     ../include/dprec.fh\
@@ -3883,7 +3883,7 @@ runmd.o: \
 
 runmd.o:   runmd.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ runmd.F90
 
 runmd.LES.o: \
                     ../include/dprec.fh\
@@ -3936,7 +3936,7 @@ runmd.LES.o: \
 
 runmd.LES.o:   runmd.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ runmd.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ runmd.F90
 
 sander.o: \
                     ../include/dprec.fh\
@@ -4005,7 +4005,7 @@ sander.o: \
 
 sander.o:   sander.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sander.F90
 
 sander.LES.o: \
                     ../include/dprec.fh\
@@ -4073,7 +4073,7 @@ sander.LES.o: \
 
 sander.LES.o:   sander.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sander.F90
 
 sander.PUPIL.o: \
                     ../include/dprec.fh\
@@ -4141,12 +4141,12 @@ sander.PUPIL.o: \
 
 sander.PUPIL.o:   sander.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DPUPIL_SUPPORT -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sander.F90
 
 
 sander_lib.o:   sander_lib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sander_lib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ sander_lib.F90
 
 scaledMD.o: \
                     ../include/assert.fh\
@@ -4157,7 +4157,7 @@ scaledMD.o: \
 
 scaledMD.o:   scaledMD.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ scaledMD.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ scaledMD.F90
 
 set.o: \
                     ../include/dprec.fh\
@@ -4179,7 +4179,7 @@ set.o: \
 
 set.o:   set.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ set.F90
 
 set.LES.o: \
                     ../include/dprec.fh\
@@ -4200,7 +4200,7 @@ set.LES.o: \
 
 set.LES.o:   set.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ set.F90
 
 set.API.o: \
                     ../include/dprec.fh\
@@ -4221,7 +4221,7 @@ set.API.o: \
 
 set.API.o:   set.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ set.F90
 
 set.LESAPI.o: \
                     ../include/dprec.fh\
@@ -4242,7 +4242,7 @@ set.LESAPI.o: \
 
 set.LESAPI.o:   set.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ set.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ set.F90
 
 sglds.o: \
                     ../include/assert.fh\
@@ -4255,7 +4255,7 @@ sglds.o: \
 
 sglds.o:   sglds.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ sglds.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ sglds.F90
 
 shake.o: \
                     ../include/dprec.fh\
@@ -4265,7 +4265,7 @@ shake.o: \
 
 shake.o:   shake.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ shake.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ shake.F90
 
 short_ene.o: \
                     ../include/assert.fh\
@@ -4294,7 +4294,7 @@ short_ene.o: \
 
 short_ene.o:   short_ene.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ short_ene.F90
 
 short_ene.LES.o: \
                     ../include/assert.fh\
@@ -4322,7 +4322,7 @@ short_ene.LES.o: \
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ short_ene.F90
+	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ short_ene.F90
 
 softcore.o: \
                     ../include/assert.fh\
@@ -4340,7 +4340,7 @@ softcore.o: \
 
 softcore.o:   softcore.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ softcore.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ softcore.F90
 
 stack.o: \
                     ../include/assert.fh\
@@ -4349,7 +4349,7 @@ stack.o: \
 
 stack.o:   stack.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ stack.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ stack.F90
 
 state.o: \
                     ../include/dprec.fh
@@ -4357,7 +4357,7 @@ state.o: \
 
 state.o:   state.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ state.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ state.F90
 
 tcpb_module.o: \
                     ../include/dprec.fh\
@@ -4369,7 +4369,7 @@ tcpb_module.o: \
 
 tcpb_module.o:   tcpb_module.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ tcpb_module.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ tcpb_module.F90
 
 thermo_int.o: \
                     ../include/dprec.fh\
@@ -4380,7 +4380,7 @@ thermo_int.o: \
 
 thermo_int.o:   thermo_int.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ thermo_int.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ thermo_int.F90
 
 trajene.o: \
                     ../include/dprec.fh\
@@ -4402,7 +4402,7 @@ trajene.o: \
 
 trajene.o:   trajene.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ trajene.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ trajene.F90
 
 veclib.o: \
                     ../include/dprec.fh
@@ -4410,7 +4410,7 @@ veclib.o: \
 
 veclib.o:   veclib.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ veclib.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ veclib.F90
 
 wallclock.o: \
                     ../include/dprec.fh
@@ -4418,7 +4418,7 @@ wallclock.o: \
 
 wallclock.o:   wallclock.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ wallclock.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ wallclock.F90
 
 xray_bulk_solvent.o: \
                     ../include/assert.fh\
@@ -4429,7 +4429,7 @@ xray_bulk_solvent.o: \
 
 xray_bulk_solvent.o:   xray_bulk_solvent.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_bulk_solvent.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ xray_bulk_solvent.F90
 
 xray_FFT.o: \
                     ../include/assert.fh\
@@ -4443,7 +4443,7 @@ xray_FFT.o: \
 
 xray_FFT.o:   xray_FFT.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_FFT.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_FFT.F90
 
 xray_fftpack.o: \
                     ../include/assert.fh\
@@ -4452,7 +4452,7 @@ xray_fftpack.o: \
 
 xray_fftpack.o:   xray_fftpack.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_fftpack.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_fftpack.F90
 
 xray_fourier.o: \
                     ../include/assert.fh\
@@ -4466,7 +4466,7 @@ xray_fourier.o: \
 
 xray_fourier.o:   xray_fourier.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_fourier.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_fourier.F90
 
 xray_globals.o: \
                     ../include/dprec.fh\
@@ -4475,7 +4475,7 @@ xray_globals.o: \
 
 xray_globals.o:   xray_globals.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_globals.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_globals.F90
 
 xray_interface.o: \
                     ../include/assert.fh\
@@ -4497,7 +4497,7 @@ xray_interface.o: \
 
 xray_interface.o:   xray_interface.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_interface.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_interface.F90
 
 xray_ml.o: \
                     ../include/assert.fh\
@@ -4511,7 +4511,7 @@ xray_ml.o: \
 
 xray_ml.o:   xray_ml.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_ml.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_ml.F90
 
 xray_real_space.o: \
                     ../include/assert.fh\
@@ -4521,7 +4521,7 @@ xray_real_space.o: \
 
 xray_real_space.o:   xray_real_space.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_real_space.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_real_space.F90
 
 xray_reciprocal_space.o: \
                     ../include/assert.fh\
@@ -4532,7 +4532,7 @@ xray_reciprocal_space.o: \
 
 xray_reciprocal_space.o:   xray_reciprocal_space.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_reciprocal_space.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_reciprocal_space.F90
 
 xray_utils.o: \
                     ../include/assert.fh\
@@ -4542,7 +4542,7 @@ xray_utils.o: \
 
 xray_utils.o:   xray_utils.F90
 	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ xray_utils.F90
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ xray_utils.F90
 
 netcdf.o:  $(NETCDF)
 	@(test -e $@ || touch netcdf.o)

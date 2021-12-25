@@ -30,9 +30,7 @@
    use molecule, only : mol_info, allocate_molecule, deallocate_molecule
    use nblist, only: first_list_flag
    use stack
-#ifdef RISMSANDER
    use sander_rism_interface, only: rism_setparam, rism_init
-#endif /* RISMSANDER */
 #ifdef PUPIL_SUPPORT
    use pupildata
 #endif /* PUPIL */
@@ -246,13 +244,11 @@
    call api_mdread2(x,ix,ih, ierr)
    if (ierr /= 0) goto ERROR2
 
-#if defined(RISMSANDER) 
       call rism_setparam(mdin,&
            commsander,&
            natom,ntypes,x(L15:L15+natom-1),&
            x(LMASS:LMASS+natom-1),cn1,cn2,&
            ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-#endif /*RISMSANDER*/
 
 #ifdef OPENMP
       ! In the future, the msander and rism values for omp_num_threads might
@@ -529,9 +525,7 @@
    ! --- end of master process setup ---
    end if masterwork ! (master)
 
-#  if defined(RISMSANDER)
    call rism_init(commsander)
-#  endif /* RISMSANDER */
 
    !   debug needs to copy charges at start and they can't change later
    !   ---------------- Check system is neutral and print warning message ------

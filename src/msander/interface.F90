@@ -351,7 +351,6 @@ subroutine api_mdread1(input_options, ierr)
 #endif /* MPI */
    ! Parameter for LIE module
    use linear_response, only: ilrt, lrt_interval, lrtmask
-#ifdef RISMSANDER
 #  ifndef API
    use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
         uuvfile, asympfile, quvFile, chgDistFile, electronMapFile, &
@@ -362,7 +361,6 @@ subroutine api_mdread1(input_options, ierr)
         solventPotentialEnergyfile
 #  endif /* API */
    use sander_rism_interface, only: rismprm
-#endif /*RISMSANDER*/
    use nfe_sander_proxy, only: infe
    implicit none
 #  include "box.h"
@@ -405,11 +403,9 @@ subroutine api_mdread1(input_options, ierr)
    character(len=512) :: char_tmp_512
 #endif /* API */
 
-#ifdef RISMSANDER
    integer irism, rism_verbose
    double precision grdspc1, mdiis_del
    character(len=8) periodicPotential
-#endif /*RISMSANDER*/
 
 !  N.B.: If you make changes to this namelist, you also need to make
 !        corresponding changes in ./sander.h and in
@@ -473,9 +469,7 @@ subroutine api_mdread1(input_options, ierr)
 #ifdef DSSP
          idssp, &
 #endif
-#ifdef RISMSANDER
          irism,&
-#endif /*RISMSANDER*/
          vdwmodel, & ! mjhsieh - the model used for van der Waals
          ! retired:
          dtemp, dxm, heat, timlim, &
@@ -533,7 +527,6 @@ subroutine api_mdread1(input_options, ierr)
                  'RESERVOIR',  trim(reservoirname), &
                  'REMDDIM',    trim(remd_dimension_file)
 #  endif
-#ifdef RISMSANDER
    if (len_trim(xvvfile) > 0) &
         write(6,9701) 'Xvv', trim(xvvfile)
    if (len_trim(guvfile) > 0) &
@@ -578,7 +571,6 @@ subroutine api_mdread1(input_options, ierr)
         write(6,9701) '-TS_UC', trim(entropyUCfile)
    if (len_trim(solventPotentialEnergyfile) > 0) &
         write(6,9701) 'PotUV', trim(solventPotentialEnergyfile)
-#endif /*RISMSANDER*/
 
    ! Echo the input file to the user:
    call echoin(5,6)
@@ -655,14 +647,10 @@ subroutine api_mdread1(input_options, ierr)
    ntwe = 0
    ipb = 0
    inp = 2
-
-#ifdef RISMSANDER
    irism = 0
    rism_verbose = -1
    grdspc1 = 0.8d0
    mdiis_del = 0.7d0
-#endif /*RISMSANDER*/
-
    ntave = 0
 !RCW: Amber 16 default to netcdf if support is compiled in.
    ioutfm = 1
@@ -1094,7 +1082,6 @@ subroutine api_mdread1(input_options, ierr)
       end if
    end if
 
-#ifdef RISMSANDER
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
    ! electrostatics are initialized properly.
@@ -1108,7 +1095,6 @@ subroutine api_mdread1(input_options, ierr)
       periodicPotential = 'pme'
       igb = 0
    end if
-#endif /*RISMSANDER*/
 
    if (ifqnt>0) then
       qmmm_nml%ifqnt = .true.
@@ -1431,9 +1417,7 @@ subroutine api_mdread1(input_options, ierr)
          /10x,55('-')/)
    9309 format(/80('-')/'   1.  RESOURCE   USE: ',/80('-')/)
    9700 format(/,'File Assignments:',/,15('|',a6,': ',a,/))
-#  ifdef RISMSANDER
    9701 format('|',a6,': ',a)
-#  endif /* RISMSANDER */
 #  ifdef MPI
    9702 format(7('|',a10,': ',a,/))
 #  endif /* MPI */

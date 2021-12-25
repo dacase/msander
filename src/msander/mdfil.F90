@@ -19,7 +19,6 @@ subroutine mdfil(VERSION, version_requested)
 #endif
    !     Author: George Seibel; many subsequent modifications by many others.
    use file_io_dat
-#ifdef RISMSANDER
    use sander_rism_interface
 
    !, only : xvvfile, guvfile, huvfile, cuvfile, uuvfile, &
@@ -29,7 +28,6 @@ subroutine mdfil(VERSION, version_requested)
    !     excessChemicalPotentialPCPLUSfile, solvationEnergyPCPLUSfile, entropyPCPLUSfile, &
    !     excessChemicalPotentialUCfile, solvationEnergyUCfile, entropyUCfile, &
    !     solventPotentialEnergyfile, crdFile
-#endif
 
    implicit none
 
@@ -128,7 +126,6 @@ subroutine mdfil(VERSION, version_requested)
    cph_dump = 'explicit_titration.dat'
    ce_dump = 'explicit_redox_titration.dat'
    cphe_dump = 'explicit_phredox_titration.dat'
-#ifdef RISMSANDER
    xvvfile       = ''
    guvfile       = ''
    huvfile       = ''
@@ -145,7 +142,6 @@ subroutine mdfil(VERSION, version_requested)
    rismfrcfil    = ''
    rismcrdrstfil = ''
    rismfrcrstfil = ''
-#endif
    if (numgroup == 1) then
       groups(:) = ' '
       groupfile_holder(:) = ' '
@@ -223,9 +219,7 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-c') then
          iarg = iarg + 1
          call getarg_wrap(iarg,inpcrd)
-#ifdef RISMSANDER
          crdFile = inpcrd
-#endif
       else if (arg == '-vecs') then
          iarg = iarg + 1
          call getarg_wrap(iarg,vecs)
@@ -345,8 +339,6 @@ subroutine mdfil(VERSION, version_requested)
          scaledMDlog_specified = .true.
          iarg = iarg + 1
          call getarg_wrap(iarg, scaledMDlog)
-
-#ifdef RISMSANDER
       else if (arg == '-xvv') then
          iarg = iarg + 1
          call getarg_wrap(iarg,xvvfile)
@@ -392,7 +384,6 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-rismfrcrst') then
          iarg = iarg + 1
          call getarg_wrap(iarg,rismfrcrstfil)
-#endif
 
 #ifdef MPI
       else if (arg(1:3) == '-p4') then

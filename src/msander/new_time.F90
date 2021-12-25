@@ -75,7 +75,6 @@ subroutine fill_timer_array()
          TIME_EWALD,'Field Collect time')
    call add_timer(TIME_LESADJ,TIME_EWALD,'LES adjust time')
 
-#ifdef RISMSANDER
    !--3d-rism
    call add_timer(TIME_RISM,TIME_NONBON,'3D-RISM time')
    call add_timer(TIME_ULJUV,TIME_RISM,'LJ Grid time')
@@ -100,7 +99,6 @@ subroutine fill_timer_array()
    call add_timer(TIME_PARTIALMOLARVOLUME,TIME_RISM,'Partial Molar Volume time')
    call add_timer(TIME_CUVPROP,TIME_RISM,'Solution Propagation time')
    call add_timer(TIME_EDENS,TIME_RISM,'Electron density map')
-#endif
 
    !-- egb
    call add_timer(TIME_EGB,TIME_NONBON,'Gen Born time')

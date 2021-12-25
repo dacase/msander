@@ -167,10 +167,8 @@ end subroutine grdmax
 subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       atom_number_of_gmax, atom_name_of_gmax )
    
-#ifdef RISMSANDER
    use sander_rism_interface, only : rismprm, RISM_NONE, RISM_FULL, RISM_INTERP,&
         rism_calc_type, rism_thermo_print
-#endif
    use qmmm_module, only : qmmm_nml
    use state ! Access to energy_rec
    use charmm_mod, only : charmm_active
@@ -196,10 +194,8 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    _REAL_  epot,enonb,enele,ehbond,ebond,eangle,edihed,enb14,eel14,egb,epb
    _REAL_  econst,epolar,aveper,aveind,avetot,esurf,edisp,diprms,dipiter
    _REAL_  dipole_temp,escf,dvdl,enemap
-#ifdef RISMSANDER
    _REAL_ :: erism
    _REAL_ :: pot_array(potential_energy_rec_len)
-#endif /*RISMSANDER*/
    _REAL_ :: ect
 
    !     ----- Extract Energies. -----
@@ -229,13 +225,8 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    escf    = ene%pot%scf
    edisp   = ene%pot%disp
    enemap   = ene%pot%emap
-#ifdef RISMSANDER
    erism   = ene%pot%rism
-#endif /*RISMSANDER*/
    ect = ene%pot%ct
-
-
-   
 
    write(6,9018)
    write(6,9028) nstep, epot, gradient_rms, gradient_max, &
@@ -246,18 +237,12 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
                                     ene%pot%imp,      &
                                     ene%pot%cmap
 
-#ifdef RISMSANDER
    if( igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-   if( igb == 0 .and. ipb == 0 ) then
-#endif
       write(6,9048) enonb,enele,ehbond
    else if ( igb == 10 .or. ipb /= 0 ) then
       write(6,9050) enonb,enele,epb
-#ifdef RISMSANDER
    else if(rismprm%rism == 1 )then
       write(6,9051) enonb,enele,erism
-#endif
    else
       write(6,9049) enonb,enele,egb
    end if
@@ -347,18 +332,12 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
                                     ene%pot%cmap
 
 
-#ifdef RISMSANDER
       if( igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-      if( igb == 0 .and. ipb == 0 ) then
-#endif
          write(7,9048) enonb,enele,ehbond
       else if ( igb == 10 .or. ipb /= 0 ) then
          write(7,9050) enonb,enele,epb
-#ifdef RISMSANDER
       else if ( rismprm%rism == 1 ) then
          write(7,9051) enonb,enele,erism
-#endif
       else
          write(7,9049) enonb,enele,egb
       end if
@@ -429,12 +408,10 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       if ( dvdl /= 0.d0) write(7,9100) dvdl
    end if
 
-#ifdef RISMSANDER
    if(rismprm%rism==1 .and. rismprm%write_thermo==1)then
       if(rism_calc_type(nstep) == RISM_FULL)&
            call rism_thermo_print(.false.,transfer(ene%pot,pot_array))
    end if
-#endif /*RISMSANDER*/
 
    9018 format (/ /,3x,'NSTEP',7x,'ENERGY',10x,'RMS',12x,'GMAX',9x, &
          'NAME',4x,'NUMBER')
@@ -449,12 +426,8 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
          'EGB        = ',f13.4)
    9050 format (1x,'VDWAALS = ',f13.4,2x,'EEL     = ',f13.4,2x, &
          'EPB        = ',f13.4)
-
-#ifdef RISMSANDER
    9051 format (1x,'VDWAALS = ',f13.4,2x,'EEL     = ',f13.4,2x, &
          'ERISM      = ',f13.4)
-#endif
-
    9058 format (1x,'1-4 VDW = ',f13.4,2x,'1-4 EEL = ',f13.4,2x, &
          'RESTRAINT  = ',f13.4)
    9062 format (1x,'EMAP   = ',f14.4,   '  EMSCORE = ',f8.4)

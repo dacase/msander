@@ -59,11 +59,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use commandline_module, only: cpein_specified
   use md_scheme, only: thermostat_step, ithermostat
-#ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
-#endif /* RISMSANDER */
 
   use qmmm_module, only: qmmm_nml,qmmm_struct, qmmm_mpi, qm2_struct
 
@@ -255,12 +253,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   integer nrx, nr, nr3, ntcmt, izero, istart
   logical ixdump, ivdump, itdump, ifdump
   logical qsetup
-#ifdef RISMSANDER
   logical irismdump
 #  ifdef RISM_DEBUG
   _REAL_ r(3),cm(3),angvel(3),erot,moi,proj(3),rxv(3)
 #  endif
-#endif
 
   integer nvalid, nvalidi
   _REAL_ eke
@@ -817,7 +813,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (init .ne. 4 .or. nstlim == 0) then
 
     ! Print the initial energies and temperatures
-#ifdef RISMSANDER
 
     if (rismprm%rism == 1 .and. rismprm%write_thermo==1 .and. &
         nstep <= 0 .and. facc .ne. 'A') then
@@ -829,7 +824,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         end if
       end if
     end if
-#endif /* RISMSANDER */
+
     if (nstep <= 0 .and. master .and. facc .ne. 'A') then
       if (isgld > 0) call sgenergy(ener)
       rewind(7)
@@ -1482,7 +1477,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif
 
-#ifdef RISMSANDER
   ! Write RISM files this step?
   irismdump = .false.
   if (rismprm%rism == 1) then
@@ -1491,7 +1485,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (nstep + 1 >= nstlim) irismdump = .true.
     end if
   end if
-#endif
 
 #ifdef MPI
 !------------------------------------------------------------------------------
@@ -1688,7 +1681,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Step 9: output from this step if required: {{{
   !    RISM dumping: {{{
-#ifdef RISMSANDER
   ! Some 3D-RISM files require all processes to participate in output
   ! due to the distributed memory.  RISM archive:
   if (rismprm%rism == 1) then
@@ -1698,7 +1690,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         rismprm%write_thermo == 1 .and. lout)) &
       call rism_solvdist_thermo_calc(irismdump, nstep)
   end if
-#endif
    ! }}}
   !    some non-standard dumps: {{{
   if (itdump) then
@@ -1905,15 +1896,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (ntave > 0) then
       if (mod(total_nstep,ntave) == 0 .and. onstep) then
         write(6, 542)
-#ifdef RISMSANDER
         if (rismprm%rism == 1) then
           tspan = ntave / mylcm(nrespa, rismprm%rismnrespa)
         else
           tspan = ntave / nrespa
         end if
-#else
-        tspan = ntave / nrespa
-#endif /* RISMSANDER */
 
         ! Update all elements of these sequence types
         enert_tmp  = enert - enert_old
@@ -1940,15 +1927,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           end do
         end if
 #endif
-#ifdef RISMSANDER
         if (rismprm%rism == 1) then
           write(6, 540) ntave / mylcm(nrespa, rismprm%rismnrespa)
         else
           write(6, 540) ntave/nrespa
         end if
-#else
-        write(6, 540) ntave/nrespa
-#endif /* RISMSANDER */
         call prntmd(total_nstep, t, enert_tmp, onefac, 0, .false.)
 #ifdef MPI
         if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_tmp)
@@ -1959,15 +1942,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_tmp2)
 #endif /* MPI */
         if (icfe > 0) then
-#ifdef RISMSANDER
           if (rismprm%rism == 1) then
             write (6, 541) ntave / mylcm(nrespa, rismprm%rismnrespa)
           else
             write (6, 541) ntave/nrespa
           end if
-#else
-          write(6,541) ntave/nrespa
-#endif /* RISMSANDER */
           edvdl_r = edvdl_r/tspan
           edvdl_r%pot%dvdl = enert_tmp%pot%dvdl  ! fix for DV/DL output
           edvdl_r%virvsene = 0.d0 ! virvsene should not but included here

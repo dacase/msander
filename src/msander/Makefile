@@ -171,7 +171,7 @@ libsanderles_skip::
 
 amber_rism_interface.API.o: ../rism/amber_rism_interface.F90
 	@echo "[MSANDER]  FC $<"
-	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ $< 
+	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ $< 
 
 dummy:
 

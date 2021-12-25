@@ -52,9 +52,7 @@ subroutine sander()
                     first_list_flag
   use stack
 
-#ifdef RISMSANDER
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
-#endif
 
 #ifdef PUPIL_SUPPORT
   use pupildata
@@ -351,11 +349,9 @@ subroutine sander()
       end if
 #endif
 
-#if defined(RISMSANDER)
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-#endif /*RISMSANDER*/
       if (ifcr .ne. 0) then
         call cr_read_input(natom)
         call cr_check_input(ips)
@@ -692,12 +688,10 @@ subroutine sander()
 #endif
 
     ! rism initialization
-#  if defined(RISMSANDER)
     call rism_init(commsander)
 #  ifdef OPENMP
     call set_omp_num_threads_rism()
 #  endif
-#  endif /* RISMSANDER */
 
 #ifdef MPI
     call mpi_barrier(commsander,ier)
@@ -1479,9 +1473,7 @@ subroutine sander()
     call cleanup_linear_response(master)
   end if
 
-#ifdef RISMSANDER
    call rism_finalize()
-#endif
 
   if (ifcr .ne. 0) then
     call cr_cleanup()
