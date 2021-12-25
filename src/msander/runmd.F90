@@ -142,7 +142,7 @@ module runmd_module
   !  nrp         : number of atoms, adjusted for LES copies
 
 !------------------------------------------------------------------------------
-! local variables:
+! module variables:
 
   character(kind=1,len=5) :: routine="runmd"
 #ifdef MPI
@@ -289,6 +289,9 @@ module runmd_module
   _REAL_ :: plumed_chargeUnits
   ! }}}
 
+private
+public :: runmd
+
 contains
 
 subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
@@ -307,221 +310,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
 
-  ! Initialize some variables {{{
-#ifdef MPI
-  if (master) then
-    ! In Replica Exchange Molecular Dynamics (REMD), runmd will be called many
-    ! times, so we dont want to open files every time.  For normal md, mdloop
-    ! will just be 0.
-    if (mdloop .eq. 0) then
-      call amopen(7, mdinfo, 'U', 'F', facc)
-    end if
-  end if
-
-  adqmmm_first_energy = 0.d0
-#else
-  call amopen(7, mdinfo, 'U', 'F', 'W')
-#endif
-
-  vlim = (vlimit > small)
-  ntcmt = 0
-  izero = 0
-  belly = (ibelly > 0)
-  lout = .true.
-  loutfm = (ioutfm <= 0)
-  nr = nrp
-  nr3 = 3*nr
-  ekmh = 0.d0
-
-  aqmmm_flag = 0
-  etot_save = 0.d0
-  pres0x = 0.d0
-  pres0y = 0.d0
-  pres0z = 0.d0
-  gamma_ten_int = 0.d0
-  dtcp = 0.d0
-  dttp = 0.d0
-  ekph = 0.d0
-  ekpbs = 0.d0
-  eke = 0.d0
-
-#ifdef LES
-  ekmhles = 0.d0
-#endif
-  do_list_update = .false.
-#ifdef MPI
-  if (mpi_orig) then
-    istart = 1
-    iend = natom
-  else
-    istart = iparpt(mytaskid) + 1
-    iend = iparpt(mytaskid+1)
-  end if
-#else
-  istart = 1
-  iend = nr
-#endif
-  istart3 = 3*istart -2
-  iend3 = 3*iend
-  if( mytaskid == numtasks -1 )  iend3 = iend3 + iscale
-
-  if( ntc>1 ) allocate (xold(3*natom+iscale))
-#ifdef MPI
-  if (icfe /= 0) then
-    allocate(frcti(nr3 + 3*extra_atoms), stat=ierr)
-    REQUIRE(ierr == 0)
-  end if
-#endif
-
-  ! If ntwprt.NE.0, only print the atoms up to this value
-  nrx = nr3
-  if (ntwprt > 0) nrx = ntwprt*3
-
-  ! Cleanup the velocity if belly run
-  if (belly) call bellyf(nr,ix(ibellygp),v)
-
-!------------------------------------------------------------------------------
-  ! Determine system degrees of freedom (for T scaling, reporting)
-#   include "degcnt.inc"
-!   }}}
-
-!------------------------------------------------------------------------------
-!    Pressure/temp units  {{{
-  ! Begin unit conversion.  pconv eventually becomes a factor to convert
-  ! pressure in kcal/mole-A^3 to bar.
-  boltz2 = 8.31441d-3 * 0.5d0
-  pconv = 1.6604345d+04
-  boltz2 = boltz2/4.184d0
-  dtx = dt*20.455d+00
-  dtxinv = 1.0d0 / dtx
-  dt5 = dtx * 0.5d0
-  pconv = pconv*4.184d0
-
-  ! fac() are #deg freedom * kboltz / 2.  Multiply by T to get the expected
-  ! kinetic energy.  fac(1) is for the entire system.
-  fac(1) = boltz2*rndf
-  fac(2) = boltz2*rndfp
-  if (rndfp < 0.1d0) fac(2) = 1.d-6
-
-#ifdef LES
-  ! Replaced solvent variables with LES ones
-  ! since separate solvent coupling no longer used
-  ! ASSUME SAME COUPLING CONSTANT FOR BOTH BATHS, just different target T
-
-  ! will also have to accumulate LES and non-LES kinetic energies separately
-  if (temp0les < 0.d0) then
-    fac(3) = boltz2*rndfs
-    if (rndfs < 0.1d0) fac(3) = 1.d-6
-  else
-    fac(3) = boltz2*rndfles
-    if (rndfles < 0.1d0) fac(3) = 1.d-6
-  end if
-#else
-  fac(3) = boltz2*rndfs
-  if (rndfs < 0.1d0) fac(3) = 1.d-6
-#endif
-  onefac(1) = 1.0d0 / fac(1)
-  onefac(2) = 1.0d0 / fac(2)
-  onefac(3) = 1.0d0 / fac(3)
-  factt = rndf/(rndf+ndfmin)
-
-  ! These are "desired" kinetic energies based on the number of
-  ! degrees of freedom and target temperature.  They will be used
-  ! for calculating the velocity scaling factor
-  ekinp0 = fac(2)*temp0
-#ifdef LES
-
-  ! Modified for LES temperature
-  ekins0=0.d0
-  ekinles0=0.d0
-  if (temp0les < 0.d0) then
-    ekins0 = fac(3) * temp0
-    ekin0  = fac(1) * temp0
-    if (master) &
-      write (6,*) "Single temperature bath for LES and non-LES"
-  else
-    ekinles0 = fac(3)*temp0les
-    ekin0  = ekinp0 + ekinles0
-    if (master) then
-      write (6,*) "LES particles coupled to separate bath"
-      write (6,'(a,f8.2)')"    LES target temperature:    ",temp0les
-      write (6,'(a,f8.2)')"    LES target kinetic energy: ",ekinles0
-      write (6,'(a,f8.2)')"non-LES target temperature:    ",temp0
-      write (6,'(a,f8.2)')"non-LES target kinetic energy: ",ekinp0
-    end if
-  end if
-#else
-  ekins0 = fac(3)*temp0
-  ekin0  = fac(1)*temp0
-#endif
-  ! }}}
-
-!------------------------------------------------------------------------------
-  !    Langevin dynamics setup  {{{
-  if (nscm > 0) then
-     if (ifbox == 0) then
-        call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
-#ifdef MPI
-        ! Soft core position mixing
-        if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
-#endif /* MPI */
-     end if ! ifbox==0: non-periodic
-  end if ! nscm is enabled
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Constant pH and constant Redox potential setup: {{{
-  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
-  if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
-  ! }}}
-
-  !   General initialization:  {{{
-  nrek = 4
-  nrep = 15
-
-  nvalid = 0
-  nvalidi = 0
-  nstep = 0
-  total_nstep = 0
-#ifdef MPI
-  ! For REMD, total_nstep is the number of steps * the number of exchanges
-  ! we've already attempted
-  if (rem .ne. 0) total_nstep = (mdloop - 1) * nstlim
-#endif /* MPI */
-  fit = 0.d0
-  fiti = 0.d0
-  fit2 = 0.d0
-
-!------------------------------------------------------------------------------
-  ! Zero all elements of these sequence types
-  ener       = null_state_rec
-  enert      = null_state_rec
-  enert2     = null_state_rec
-  enert_old  = null_state_rec
-  enert2_old = null_state_rec
-  edvdl      = null_state_rec
-  edvdl_r    = null_state_rec
-
-!------------------------------------------------------------------------------
-
-  ener%kin%pres_scale_solt = 1.d0
-  ener%kin%pres_scale_solv = 1.d0
-  ener%box(1:3) = box(1:3)
-  ener%cmt(1:4) = 0.d0
-  nitp = 0
-  nits = 0
-  ekhf = 0.0d0
-  ekhf2 = 0.0d0
-
-!------------------------------------------------------------------------------
-#ifdef PLUMED
-  ! PLUMED initialization.  PLUMED is an open-source plugin that
-  ! confers the functionality of a number of enhanced sampling methods.
-  if (plumed == 1) then
-#   include "Plumed_init.inc"
-  endif
-#endif
-  ! }}}
+  call initialize_runmd(x,ix,v)
 
 !------------------------------------------------------------------------------
   ! Make a first dynamics step. {{{
@@ -2209,5 +1998,228 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
   return
 end subroutine runmd
+
+subroutine initialize_runmd(x,ix,v)
+
+  implicit none
+  integer, intent(in) :: ix(*)
+  _REAL_, intent(in) :: x(*), v(*)
+
+  ! Initialize some variables {{{
+#ifdef MPI
+  if (master) then
+    ! In Replica Exchange Molecular Dynamics (REMD), runmd will be called many
+    ! times, so we dont want to open files every time.  For normal md, mdloop
+    ! will just be 0.
+    if (mdloop .eq. 0) then
+      call amopen(7, mdinfo, 'U', 'F', facc)
+    end if
+  end if
+
+  adqmmm_first_energy = 0.d0
+#else
+  call amopen(7, mdinfo, 'U', 'F', 'W')
+#endif
+
+  vlim = (vlimit > small)
+  ntcmt = 0
+  izero = 0
+  belly = (ibelly > 0)
+  lout = .true.
+  loutfm = (ioutfm <= 0)
+  nr = nrp
+  nr3 = 3*nr
+  ekmh = 0.d0
+
+  aqmmm_flag = 0
+  etot_save = 0.d0
+  pres0x = 0.d0
+  pres0y = 0.d0
+  pres0z = 0.d0
+  gamma_ten_int = 0.d0
+  dtcp = 0.d0
+  dttp = 0.d0
+  ekph = 0.d0
+  ekpbs = 0.d0
+  eke = 0.d0
+
+#ifdef LES
+  ekmhles = 0.d0
+#endif
+  do_list_update = .false.
+#ifdef MPI
+  if (mpi_orig) then
+    istart = 1
+    iend = natom
+  else
+    istart = iparpt(mytaskid) + 1
+    iend = iparpt(mytaskid+1)
+  end if
+#else
+  istart = 1
+  iend = nr
+#endif
+  istart3 = 3*istart -2
+  iend3 = 3*iend
+  if( mytaskid == numtasks -1 )  iend3 = iend3 + iscale
+
+  if( ntc>1 ) allocate (xold(3*natom+iscale))
+#ifdef MPI
+  if (icfe /= 0) then
+    allocate(frcti(nr3 + 3*extra_atoms), stat=ierr)
+    REQUIRE(ierr == 0)
+  end if
+#endif
+
+  ! If ntwprt.NE.0, only print the atoms up to this value
+  nrx = nr3
+  if (ntwprt > 0) nrx = ntwprt*3
+
+  ! Cleanup the velocity if belly run
+  if (belly) call bellyf(nr,ix(ibellygp),v)
+  ! Determine system degrees of freedom (for T scaling, reporting)
+#   include "degcnt.inc"
+
+!   }}}
+
+!------------------------------------------------------------------------------
+!    Pressure/temp units  {{{
+  ! Begin unit conversion.  pconv eventually becomes a factor to convert
+  ! pressure in kcal/mole-A^3 to bar.
+  boltz2 = 8.31441d-3 * 0.5d0
+  pconv = 1.6604345d+04
+  boltz2 = boltz2/4.184d0
+  dtx = dt*20.455d+00
+  dtxinv = 1.0d0 / dtx
+  dt5 = dtx * 0.5d0
+  pconv = pconv*4.184d0
+
+  ! fac() are #deg freedom * kboltz / 2.  Multiply by T to get the expected
+  ! kinetic energy.  fac(1) is for the entire system.
+  fac(1) = boltz2*rndf
+  fac(2) = boltz2*rndfp
+  if (rndfp < 0.1d0) fac(2) = 1.d-6
+
+#ifdef LES
+  ! Replaced solvent variables with LES ones
+  ! since separate solvent coupling no longer used
+  ! ASSUME SAME COUPLING CONSTANT FOR BOTH BATHS, just different target T
+
+  ! will also have to accumulate LES and non-LES kinetic energies separately
+  if (temp0les < 0.d0) then
+    fac(3) = boltz2*rndfs
+    if (rndfs < 0.1d0) fac(3) = 1.d-6
+  else
+    fac(3) = boltz2*rndfles
+    if (rndfles < 0.1d0) fac(3) = 1.d-6
+  end if
+#else
+  fac(3) = boltz2*rndfs
+  if (rndfs < 0.1d0) fac(3) = 1.d-6
+#endif
+  onefac(1) = 1.0d0 / fac(1)
+  onefac(2) = 1.0d0 / fac(2)
+  onefac(3) = 1.0d0 / fac(3)
+  factt = rndf/(rndf+ndfmin)
+
+  ! These are "desired" kinetic energies based on the number of
+  ! degrees of freedom and target temperature.  They will be used
+  ! for calculating the velocity scaling factor
+  ekinp0 = fac(2)*temp0
+#ifdef LES
+
+  ! Modified for LES temperature
+  ekins0=0.d0
+  ekinles0=0.d0
+  if (temp0les < 0.d0) then
+    ekins0 = fac(3) * temp0
+    ekin0  = fac(1) * temp0
+    if (master) &
+      write (6,*) "Single temperature bath for LES and non-LES"
+  else
+    ekinles0 = fac(3)*temp0les
+    ekin0  = ekinp0 + ekinles0
+    if (master) then
+      write (6,*) "LES particles coupled to separate bath"
+      write (6,'(a,f8.2)')"    LES target temperature:    ",temp0les
+      write (6,'(a,f8.2)')"    LES target kinetic energy: ",ekinles0
+      write (6,'(a,f8.2)')"non-LES target temperature:    ",temp0
+      write (6,'(a,f8.2)')"non-LES target kinetic energy: ",ekinp0
+    end if
+  end if
+#else
+  ekins0 = fac(3)*temp0
+  ekin0  = fac(1)*temp0
+#endif
+  ! }}}
+
+!------------------------------------------------------------------------------
+  !    Langevin dynamics setup  {{{
+  if (nscm > 0) then
+     if (ifbox == 0) then
+        call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
+#ifdef MPI
+        ! Soft core position mixing
+        if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
+#endif /* MPI */
+     end if ! ifbox==0: non-periodic
+  end if ! nscm is enabled
+  ! }}}
+
+!------------------------------------------------------------------------------
+  ! Constant pH and constant Redox potential setup: {{{
+  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
+  if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
+  ! }}}
+
+  !   General initialization:  {{{
+  nrek = 4
+  nrep = 15
+
+  nvalid = 0
+  nvalidi = 0
+  nstep = 0
+  total_nstep = 0
+#ifdef MPI
+  ! For REMD, total_nstep is the number of steps * the number of exchanges
+  ! we've already attempted
+  if (rem .ne. 0) total_nstep = (mdloop - 1) * nstlim
+#endif /* MPI */
+  fit = 0.d0
+  fiti = 0.d0
+  fit2 = 0.d0
+
+!------------------------------------------------------------------------------
+  ! Zero all elements of these sequence types
+  ener       = null_state_rec
+  enert      = null_state_rec
+  enert2     = null_state_rec
+  enert_old  = null_state_rec
+  enert2_old = null_state_rec
+  edvdl      = null_state_rec
+  edvdl_r    = null_state_rec
+
+!------------------------------------------------------------------------------
+
+  ener%kin%pres_scale_solt = 1.d0
+  ener%kin%pres_scale_solv = 1.d0
+  ener%box(1:3) = box(1:3)
+  ener%cmt(1:4) = 0.d0
+  nitp = 0
+  nits = 0
+  ekhf = 0.0d0
+  ekhf2 = 0.0d0
+
+!------------------------------------------------------------------------------
+#ifdef PLUMED
+  ! PLUMED initialization.  PLUMED is an open-source plugin that
+  ! confers the functionality of a number of enhanced sampling methods.
+  if (plumed == 1) then
+#   include "Plumed_init.inc"
+  endif
+#endif
+  ! }}}
+
+end subroutine initialize_runmd
 
 end module runmd_module
