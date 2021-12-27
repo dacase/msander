@@ -13,9 +13,6 @@ subroutine mexit(output_unit, status)
 #ifdef PUPIL_SUPPORT
   use pupildata
 #endif
-#ifdef CUDA
-  use xray_interface_impl_cpu_module, only: xray_fini=>finalize
-#endif
 
   implicit none
   integer output_unit
@@ -54,8 +51,5 @@ subroutine mexit(output_unit, status)
     close(unit = output_unit)
   endif
 
-#ifdef CUDA
-  call xray_fini()
-#endif
   call exit(status)
 end subroutine mexit 
