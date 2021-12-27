@@ -343,33 +343,8 @@ contains
       ! Actually '(6A,3F9.3A9,3F7.2,1X,A11,I4)', with last value = Z
       write(unit,'(A6,3F9.3,3F7.2,1X,A11)') &
             'CRYST1', unit_cell%as_array(), spacegroup_name
-#if 0
-      do ires = 1,num_residues
-         if (residue_chainid(ires)=='*') cycle
-         if (residue_label(ires)=='HID') then
-            write(unit,pdbfmt_MODRES) &
-                  '----','HID',
-            residue_chainid(ires)(1:1), &
-                  residue_number(ires),residue_icode(ires)(1:1), &
-                  'HIS','HE2 ATOM REMOVED'
-         else if (residue_label(ires)=='HIE') then
-            write(unit,pdbfmt_MODRES) &
-                  '----','HIE',
-            residue_chainid(ires)(1:1), &
-                  residue_number(ires),residue_icode(ires)(1:1), &
-                  'HIS','HD1 ATOM REMOVED'
-         else if (residue_label(ires)=='HIP') then
-            write(unit,pdbfmt_MODRES) &
-                  '----','HIP',
-            residue_chainid(ires)(1:1), &
-                  residue_number(ires),residue_icode(ires)(1:1), &
-                  'HIS','HD1 AND HE2 ATOMS REMOVED'
-         end if
-      end do
-#endif
 
       do ires = 1,num_residues
-         if (residue_chainid(ires)=='*') cycle
          do iatom = residue_pointer(ires), residue_pointer(ires+1)-1
             ! ***NOTE***
             ! This code only adds a leading space to give element-alignment
