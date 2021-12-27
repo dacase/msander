@@ -76,7 +76,7 @@ contains
 
   end subroutine init
   
-  subroutine calc_force(xyz, xray_weight, force, energy)
+  subroutine calc_force(xyz, current_step, xray_weight, force, energy)
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
@@ -84,6 +84,7 @@ contains
     use xray_dpartial_module, only: calc_partial_d_target_d_frac
     implicit none
     real(real_kind), intent(in) :: xyz(:, :)
+    integer, intent(in) :: current_step
     real(real_kind), intent(in) :: xray_weight
     real(real_kind), intent(out) :: force(:, :)
     real(real_kind), intent(out) :: energy
@@ -118,7 +119,10 @@ contains
     abs_Fcalc(:) = abs(Fcalc(:))
     
     allocate(d_target_d_absFcalc(size(Fcalc)))
-    call calc_partial_d_target_d_absFcalc(abs_Fobs, abs_Fcalc, deriv=d_target_d_absFcalc, xray_energy=energy)
+    call calc_partial_d_target_d_absFcalc(current_step, &
+            abs_Fobs, abs_Fcalc, &
+            deriv=d_target_d_absFcalc, xray_energy=energy &
+    )
 
     energy = xray_weight * energy
     call timer_start(TIME_DHKL)

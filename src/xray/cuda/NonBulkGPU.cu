@@ -9,17 +9,6 @@ namespace {
   const int WARP_SIZE = 32;
   const int MAX_N_SCATTER_TYPES = 16;
 
-  enum class KernelVersion {
-    ManualCaching,
-    StraightForward,
-  };
-
-  enum class KernelPrecision {
-    Single,
-    Double,
-  };
-
-
   /***
    * Alternative implementation to calc_f_non_bulk_kernel
    *    with manual GPU cache management
@@ -231,40 +220,40 @@ namespace {
   }
 }
 
-xray::NonBulkGPU::NonBulkGPU(int n_hkl, const int* hkl, complex_double* f_non_bulk, const double* mSS4, int n_atom,
-                             const double* b_factor, int n_scatter_types, const int* scatter_type_index,
-                             const double* atomic_scatter_factor) : NonBulk(n_hkl, hkl, f_non_bulk, mSS4, n_atom,
-                                                                            b_factor, n_scatter_types,
-                                                                            scatter_type_index, atomic_scatter_factor) {
-  m_dev_frac_xyz = thrust::device_vector<double>(n_atom * 3);
-  m_dev_b_factor = thrust::device_vector<double>(m_b_factor, m_b_factor + n_atom);
+template<xray::NonBulkKernelVersion KERNEL_VERSION, xray::KernelPrecision PRECISION>
+xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::NonBulkGPU(
+  int n_hkl, const int* hkl, complex_double* f_non_bulk, const double* mSS4, int n_atom,
+  const double* b_factor, int n_scatter_types, const int* scatter_type_index,
+  const double* atomic_scatter_factor) : NonBulk(n_hkl, hkl, f_non_bulk, mSS4, n_atom,
+                                                 b_factor, n_scatter_types,
+                                                 scatter_type_index, atomic_scatter_factor) {
+  m_dev_frac_xyz = thrust::device_vector<FloatType>(n_atom * 3);
+  m_dev_b_factor = thrust::device_vector<FloatType>(m_b_factor, m_b_factor + n_atom);
   m_dev_hkl = thrust::device_vector<int>(m_hkl, m_hkl + m_n_hkl * 3);
-  m_dev_mSS4 = thrust::device_vector<double>(m_mSS4, m_mSS4 + m_n_hkl);
-  m_dev_atomic_scatter_factor = thrust::device_vector<double>(m_atomic_scatter_factor,
+  m_dev_mSS4 = thrust::device_vector<FloatType>(m_mSS4, m_mSS4 + m_n_hkl);
+  m_dev_atomic_scatter_factor = thrust::device_vector<FloatType>(m_atomic_scatter_factor,
                                                               m_atomic_scatter_factor + m_n_hkl * m_n_scatter_types);
   m_dev_scatter_type_index = thrust::device_vector<int>(m_scatter_type_index, m_scatter_type_index + n_atom);
-  m_dev_f_non_bulk = thrust::device_vector<thrust::complex<double>>(m_n_hkl);
+  m_dev_f_non_bulk = thrust::device_vector<thrust::complex<FloatType>>(m_n_hkl);
 }
 
-void xray::NonBulkGPU::calc_f_non_bulk(int n_atom, const double* frac_xyz) {
+template<xray::NonBulkKernelVersion KERNEL_VERSION, xray::KernelPrecision PRECISION>
+void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, const double* frac_xyz) {
   assert(n_atom == m_n_atom);
 
   thrust::copy(frac_xyz, frac_xyz + n_atom * 3, m_dev_frac_xyz.begin());
   thrust::fill(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), 0.0);
 
-  auto kernel_precision = KernelPrecision::Double;
-  auto kernel_version = KernelVersion::StraightForward;
-
   cudaEvent_t start, stop;
   float elapsed_ms = 0;
 
-  auto start_kernel_timer = [&]{
+  auto start_kernel_timer = [&] {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start);
   };
 
-  auto stop_kernel_timer = [&]{
+  auto stop_kernel_timer = [&] {
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsed_ms, start, stop);
@@ -272,116 +261,59 @@ void xray::NonBulkGPU::calc_f_non_bulk(int n_atom, const double* frac_xyz) {
     cudaEventDestroy(stop);
   };
 
-  switch (kernel_precision) {
-    case (KernelPrecision::Single): {
+  start_kernel_timer();
+  switch (KERNEL_VERSION) {
+    case (NonBulkKernelVersion::ManualCaching): {
 
-      thrust::device_vector<float> dev_frac_float(m_dev_frac_xyz.begin(), m_dev_frac_xyz.end());
-      thrust::device_vector<float> dev_b_factor_float(m_dev_b_factor.begin(), m_dev_b_factor.end());
-      thrust::device_vector<float> dev_mss4_float(m_dev_mSS4.begin(), m_dev_mSS4.end());
-      thrust::device_vector<float> dev_atomic_scatter_factor_float(m_dev_atomic_scatter_factor.begin(),
-                                                                   m_dev_atomic_scatter_factor.end());
-      thrust::device_vector<thrust::complex<float>> dev_f_non_bulk_float(m_dev_f_non_bulk.begin(),
-                                                                         m_dev_f_non_bulk.end());
-      start_kernel_timer();
-      switch (kernel_version) {
-        case (KernelVersion::ManualCaching): {
+      const int block_size = 256;
+      dim3 numBlocks((m_n_hkl + WARP_SIZE - 1) / WARP_SIZE * WARP_SIZE);
+      dim3 threadsPerBlock(block_size);
 
-          const int block_size = 256;
-          dim3 numBlocks((m_n_hkl + WARP_SIZE - 1) / WARP_SIZE * WARP_SIZE);
-          dim3 threadsPerBlock(block_size);
-
-          calc_f_non_bulk_w_manual_caching_kernel<block_size>
-          <<<numBlocks, threadsPerBlock>>>(
-            n_atom,
-            dev_frac_float.data().get(),
-            dev_b_factor_float.data().get(),
-            m_n_hkl,
-            m_dev_hkl.data().get(),
-            dev_mss4_float.data().get(),
-            m_n_scatter_types,
-            dev_atomic_scatter_factor_float.data().get(),
-            m_dev_scatter_type_index.data().get(),
-            dev_f_non_bulk_float.data().get()
-          );
-          break;
-        }
-        case (KernelVersion::StraightForward): {
-
-          dim3 numBlocks(m_n_hkl);
-          const int block_size = 32;
-          dim3 threadsPerBlock(block_size);
-
-          calc_f_non_bulk_kernel<block_size>
-          <<<numBlocks, threadsPerBlock>>>(
-            n_atom,
-            dev_frac_float.data().get(),
-            dev_b_factor_float.data().get(),
-            m_n_hkl,
-            m_dev_hkl.data().get(),
-            dev_mss4_float.data().get(),
-            m_n_scatter_types,
-            dev_atomic_scatter_factor_float.data().get(),
-            m_dev_scatter_type_index.data().get(),
-            dev_f_non_bulk_float.data().get()
-          );
-          break;
-        }
-      }
-      stop_kernel_timer();
-      thrust::copy(dev_f_non_bulk_float.begin(), dev_f_non_bulk_float.end(), m_f_non_bulk);
+      calc_f_non_bulk_w_manual_caching_kernel<block_size>
+      <<<numBlocks, threadsPerBlock>>>(
+        n_atom,
+        m_dev_frac_xyz.data().get(),
+        m_dev_b_factor.data().get(),
+        m_n_hkl,
+        m_dev_hkl.data().get(),
+        m_dev_mSS4.data().get(),
+        m_n_scatter_types,
+        m_dev_atomic_scatter_factor.data().get(),
+        m_dev_scatter_type_index.data().get(),
+        m_dev_f_non_bulk.data().get()
+      );
       break;
     }
-    case (KernelPrecision::Double): {
-      start_kernel_timer();
-      switch (kernel_version) {
-        case (KernelVersion::ManualCaching): {
+    case (NonBulkKernelVersion::StraightForward): {
 
-          const int block_size = 256;
-          dim3 numBlocks((m_n_hkl + WARP_SIZE - 1) / WARP_SIZE * WARP_SIZE);
-          dim3 threadsPerBlock(block_size);
+      dim3 numBlocks(m_n_hkl);
+      const int block_size = 32;
+      dim3 threadsPerBlock(block_size);
 
-          calc_f_non_bulk_w_manual_caching_kernel<block_size>
-          <<<numBlocks, threadsPerBlock>>>(
-            n_atom,
-            m_dev_frac_xyz.data().get(),
-            m_dev_b_factor.data().get(),
-            m_n_hkl,
-            m_dev_hkl.data().get(),
-            m_dev_mSS4.data().get(),
-            m_n_scatter_types,
-            m_dev_atomic_scatter_factor.data().get(),
-            m_dev_scatter_type_index.data().get(),
-            m_dev_f_non_bulk.data().get()
-          );
-          break;
-        }
-        case (KernelVersion::StraightForward): {
-
-          dim3 numBlocks(m_n_hkl);
-          const int block_size = 32;
-          dim3 threadsPerBlock(block_size);
-
-          calc_f_non_bulk_kernel<block_size>
-          <<<numBlocks, threadsPerBlock>>>(
-            n_atom,
-            m_dev_frac_xyz.data().get(),
-            m_dev_b_factor.data().get(),
-            m_n_hkl,
-            m_dev_hkl.data().get(),
-            m_dev_mSS4.data().get(),
-            m_n_scatter_types,
-            m_dev_atomic_scatter_factor.data().get(),
-            m_dev_scatter_type_index.data().get(),
-            m_dev_f_non_bulk.data().get()
-          );
-          break;
-        }
-      }
-      stop_kernel_timer();
-      thrust::copy(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), m_f_non_bulk);
+      calc_f_non_bulk_kernel<block_size>
+      <<<numBlocks, threadsPerBlock>>>(
+        n_atom,
+        m_dev_frac_xyz.data().get(),
+        m_dev_b_factor.data().get(),
+        m_n_hkl,
+        m_dev_hkl.data().get(),
+        m_dev_mSS4.data().get(),
+        m_n_scatter_types,
+        m_dev_atomic_scatter_factor.data().get(),
+        m_dev_scatter_type_index.data().get(),
+        m_dev_f_non_bulk.data().get()
+      );
       break;
     }
   }
+  stop_kernel_timer();
+  thrust::copy(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), m_f_non_bulk);
 
-  // fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
+
+  fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
 }
+
+template class xray::NonBulkGPU<xray::NonBulkKernelVersion::ManualCaching, xray::KernelPrecision::Single>;
+template class xray::NonBulkGPU<xray::NonBulkKernelVersion::ManualCaching, xray::KernelPrecision::Double>;
+template class xray::NonBulkGPU<xray::NonBulkKernelVersion::StraightForward, xray::KernelPrecision::Single>;
+template class xray::NonBulkGPU<xray::NonBulkKernelVersion::StraightForward, xray::KernelPrecision::Double>;
