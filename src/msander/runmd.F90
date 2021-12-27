@@ -558,6 +558,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekmhles = 0.0d0
 #endif /* LES */
 
+  ! kinetic energy calculation:
   i3 = 0
   do j = 1, nrp
     aamass = amass(j)
@@ -602,7 +603,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
-  ! If init .ne. 4, or only one step, or ABF QM/MM {{{
+  ! If init .ne. 4, or only one step {{{
   if (init .ne. 4 .or. nstlim == 0) then
 
     ! Print the initial energies and temperatures
