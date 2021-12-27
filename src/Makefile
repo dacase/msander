@@ -40,6 +40,7 @@ clean:
 	-(cd msander && $(MAKE) clean )
 	-(cd lib && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
+	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
 	-(cd leap && $(MAKE) clean )
 	-(cd ambpdb && $(MAKE) clean )
