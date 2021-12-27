@@ -4,8 +4,6 @@ include ../../../config.h
 
 #CUDA Specific build flags
 NVCC=/usr/local/cuda/bin/nvcc \
-   -gencode arch=compute_35,code=sm_35 \
-   -gencode arch=compute_50,code=sm_50 \
    -gencode arch=compute_52,code=sm_52 \
    -gencode arch=compute_53,code=sm_53 \
    -gencode arch=compute_60,code=sm_60 \
@@ -13,7 +11,7 @@ NVCC=/usr/local/cuda/bin/nvcc \
    -gencode arch=compute_60,code=sm_75 \
    -gencode arch=compute_80,code=sm_80 \
    -Wno-deprecated-declarations -use_fast_math -O3 \
-   -I/usr/local/cuda/include -IB40C -DCUDA --std c++11
+   -I/usr/local/cuda/include -IB40C -DCUDA --std c++14
 
 CPPOBJS = BulkMask.o BulkMaskCPU.o DPartial.o DPartialCPU.o NonBulk.o \
           NonBulkCPU.o xray_bulk_mask.o xray_dpartial.o xray_non_bulk.o \
