@@ -123,17 +123,17 @@ contains
   
   subroutine finalize()
   
-    deallocate(hkl)
-    deallocate(hkl_io_order)
-    deallocate(Fobs)
-    deallocate(Fcalc)
+    if(allocated(hkl)) deallocate(hkl)
+    if(allocated(hkl_io_order)) deallocate(hkl_io_order)
+    if(allocated(Fobs)) deallocate(Fobs)
+    if(allocated(Fcalc)) deallocate(Fcalc)
     
-    deallocate(non_bulk_atom_indices)
-    deallocate(atom_is_not_bulk)
-    deallocate(atom_scatter_type)
-    deallocate(atom_occupancy)
-    deallocate(atom_b_factor)
-    deallocate(scatter_coefficients)
+    if(allocated(non_bulk_atom_indices)) deallocate(non_bulk_atom_indices)
+    if(allocated(atom_is_not_bulk)) deallocate(atom_is_not_bulk)
+    if(allocated(atom_scatter_type)) deallocate(atom_scatter_type)
+    if(allocated(atom_occupancy)) deallocate(atom_occupancy)
+    if(allocated(atom_b_factor)) deallocate(atom_b_factor)
+    if(allocated(scatter_coefficients)) deallocate(scatter_coefficients)
     
   end subroutine finalize
 end module xray_interface2_data_module

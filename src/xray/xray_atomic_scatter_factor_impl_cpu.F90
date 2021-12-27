@@ -41,7 +41,7 @@ contains
     end subroutine init
 
     subroutine finalize()
-        deallocate(atomic_scatter_factor)
+        if (allocated(atomic_scatter_factor)) deallocate(atomic_scatter_factor)
     end subroutine finalize
 
     ! Private

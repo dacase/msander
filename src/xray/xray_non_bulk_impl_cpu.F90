@@ -52,14 +52,12 @@ contains
     hkl => null()
     mSS4 => null()
     xyz => null()
-    deallocate(b_factor)
-    deallocate(scatter_type_index)
-    if (allocated(occupancy)) then
-      deallocate(occupancy)
-    endif
-    deallocate(F_non_bulk)
-    deallocate(f)
-    deallocate(angle)
+    if(allocated(b_factor)) deallocate(b_factor)
+    if(allocated(scatter_type_index)) deallocate(scatter_type_index)
+    if (allocated(occupancy)) deallocate(occupancy)
+    if (allocated(F_non_bulk)) deallocate(F_non_bulk)
+    if (allocated(f)) deallocate(f)
+    if (allocated(angle)) deallocate(angle)
   end subroutine finalize
   
   !-------------------------------------------------------------------

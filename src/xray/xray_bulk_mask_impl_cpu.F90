@@ -274,13 +274,13 @@ contains
 
 
   subroutine finalize()
-    deallocate(atom_types)
-    deallocate(f_mask)
-    deallocate(grid_neighbors)
-    deallocate(hkl_indexing_bs_mask )
-    deallocate(mask_bs_grid)
-    deallocate(mask_bs_grid_t_c)
-    deallocate(mask_cutoffs)
+    if(allocated(atom_types)) deallocate(atom_types)
+    if(allocated(f_mask)) deallocate(f_mask)
+    if(allocated(grid_neighbors)) deallocate(grid_neighbors)
+    if(allocated(hkl_indexing_bs_mask)) deallocate(hkl_indexing_bs_mask)
+    if(allocated(mask_bs_grid)) deallocate(mask_bs_grid)
+    if(allocated(mask_bs_grid_t_c)) deallocate(mask_bs_grid_t_c)
+    if(allocated(mask_cutoffs)) deallocate(mask_cutoffs)
   end subroutine finalize
 
   pure function wrap_frac(x) result(result)

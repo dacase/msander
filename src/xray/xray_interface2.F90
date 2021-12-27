@@ -112,6 +112,7 @@ contains
 
     call add_bulk_contribution_and_rescale(&
         frac, &
+        current_step, &
         abs_Fobs, Fcalc, &
         mSS4, hkl &
     )
@@ -218,10 +219,10 @@ contains
     call finalize_bulk()
     call finalize_target()
     
-    deallocate(abs_Fobs)
-    deallocate(abs_Fcalc)
-    deallocate(resolution)
-    deallocate(mSS4)
+    if(allocated(abs_Fobs)) deallocate(abs_Fobs)
+    if(allocated(abs_Fcalc)) deallocate(abs_Fcalc)
+    if(allocated(resolution)) deallocate(resolution)
+    if(allocated(mSS4)) deallocate(mSS4)
   end subroutine finalize_submodules
   
   

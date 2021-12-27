@@ -102,9 +102,9 @@ contains
     mSS4 => null()
     Fcalc => null()
     abs_Fcalc => null()
-    !  dac: atom_b_factor is also deallocated in xray_interface2_data.F90
+    !  dac: These are also deallocated in xray_interface2_data.F90
     !  deallocate(atom_b_factor)
-    deallocate(atom_scatter_type)
+    ! deallocate(atom_scatter_type)
   end subroutine finalize
 
 end module xray_dpartial_impl_cpu_module

@@ -144,16 +144,16 @@ contains
   
   subroutine finalize()
   
-    deallocate(hkl_scale_resolution_bin)
-    deallocate(work_scale_resolution_bin_start)
-    deallocate(work_scale_resolution_bin_size)
-    deallocate(free_scale_resolution_bin_start)
-    deallocate(free_scale_resolution_bin_size)
+    if (allocated(hkl_scale_resolution_bin)) deallocate(hkl_scale_resolution_bin)
+    if (allocated(work_scale_resolution_bin_start)) deallocate(work_scale_resolution_bin_start)
+    if (allocated(work_scale_resolution_bin_size)) deallocate(work_scale_resolution_bin_size)
+    if (allocated(free_scale_resolution_bin_start)) deallocate(free_scale_resolution_bin_start)
+    if (allocated(free_scale_resolution_bin_size)) deallocate(free_scale_resolution_bin_size)
  
-    deallocate(k_bulk)
-    deallocate(k_iso)
-    deallocate(k_iso_exp)
-    deallocate(k_aniso)
+    if (allocated(k_bulk)) deallocate(k_bulk)
+    if (allocated(k_iso)) deallocate(k_iso)
+    if (allocated(k_iso_exp)) deallocate(k_iso_exp)
+    if (allocated(k_aniso)) deallocate(k_aniso)
     
   end subroutine finalize
   

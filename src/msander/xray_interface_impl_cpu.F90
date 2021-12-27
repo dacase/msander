@@ -577,10 +577,12 @@ contains
 
       call finalize2()
       
+#if 0
       deallocate(atom_bfactor,atom_occupancy,atom_scatter_type, &
             atom_selection,residue_chainid,residue_icode, &
             atom_element,atom_altloc,residue_number, &
             hkl_index,abs_Fobs,sigFobs,test_flag)
+#endif
 
    end subroutine finalize
 

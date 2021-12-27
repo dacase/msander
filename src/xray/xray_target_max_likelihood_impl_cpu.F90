@@ -87,15 +87,20 @@ contains
   
   subroutine finalize()
     
-    deallocate(ml_alpha)
-    deallocate(ml_beta)
+    if(allocated(ml_alpha)) deallocate(ml_alpha)
+    if(allocated(ml_beta)) deallocate(ml_beta)
     
-    deallocate(resolution_bin_average_abs_Fobs_pow_2)
-    deallocate(resolution_bin_average_abs_Fobs_pow_4)
+    if(allocated(resolution_bin_average_abs_Fobs_pow_2)) &
+       deallocate(resolution_bin_average_abs_Fobs_pow_2)
+    if(allocated(resolution_bin_average_abs_Fobs_pow_4)) &
+       deallocate(resolution_bin_average_abs_Fobs_pow_4)
     
-    deallocate(hkl_index_to_ml_resolution_bin)
-    deallocate(ml_bin_free_flag_start_index)
-    deallocate(ml_bin_free_flag_count)
+    if(allocated(hkl_index_to_ml_resolution_bin)) &
+       deallocate(hkl_index_to_ml_resolution_bin)
+    if(allocated(ml_bin_free_flag_start_index)) &
+       deallocate(ml_bin_free_flag_start_index)
+    if(allocated(ml_bin_free_flag_count)) &
+       deallocate(ml_bin_free_flag_count)
     
   end subroutine finalize
   

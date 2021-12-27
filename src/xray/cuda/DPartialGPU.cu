@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "xray/DPartialGPU.h"
+#include "DPartialGPU.h"
 #include <thrust/device_vector.h>
 #include <thrust/complex.h>
 #include <thrust/functional.h>

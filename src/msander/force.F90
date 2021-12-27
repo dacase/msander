@@ -178,6 +178,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   _REAL_ epolar, aveper, aveind, avetot, emtot, dipiter, dipole_temp
   integer, save :: newbalance
+  integer, save :: xray_nstep = 0
    
   ! Aceelerated MD variables
   _REAL_ amd_totdih
@@ -785,15 +786,15 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
            ! get current bfactors from the end of the coordinate array:
            atom_bfactor(1:natom) = x(3*natom+1:4*natom)
         endif
-        call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
+        call xray_get_derivative(x,f,nstep,xray_e,dB=f(3*natom+1))
      else
 #endif
-        call xray_get_derivative(x3,f3,nstep,xray_e)
+        call xray_get_derivative(x3,f3,xray_nstep,xray_e)
 #if 0
      endif
 #endif
+     xray_nstep = xray_nstep + 1
   endif
-
 
 #ifdef MPI
   call timer_barrier( commsander )
