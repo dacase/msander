@@ -45,34 +45,32 @@ contains
     call finalize_mask()
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(frac, absFobs, Fcalc, mSS4, hkl)
+  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4, hkl)
     use xray_pure_utils, only : calc_k_overall
     use xray_scaling_module, only : rescale, combine, optimize_scale_factors
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     real(real_kind), intent(in) :: mSS4(:)
     integer, intent(in) :: hkl(:, :)
-    
-    integer, save :: nstep = 0
-    
+
     call check_precondition(size(frac, 1) == 3)
-    
-    if (mod(nstep, mask_update_period) == 0) then
+
+    if (mod(current_step, mask_update_period) == 0) then
       call update_f_bulk(frac)
     end if
     
-    if(mod(nstep, scale_update_period) == 0) then
+    if(mod(current_step, scale_update_period) == 0) then
       call optimize_scale_factors(absFobs, Fcalc, f_mask, mSS4, hkl)
     end if
     
     Fcalc = combine(Fcalc, f_mask)
     Fcalc = rescale(Fcalc)
-    
-    nstep = nstep + 1
+
   end subroutine add_bulk_contribution_and_rescale
   
   function get_f_scale(n_hkl) result(result)

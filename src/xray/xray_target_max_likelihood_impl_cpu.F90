@@ -104,9 +104,10 @@ contains
   ! Compute derivative of |Fobs|:|Fcalc| Maximum Likelihood (ML) target
   ! with respect to |Fcalc|.
   ! -------------------------------------------------------------------------
-  subroutine calc_partial_d_target_d_absFcalc(absFobs, absFcalc, deriv, xray_energy)
+  subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
     use xray_pure_utils, only: i1_over_i0, ln_of_i0
     implicit none
+    integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     real(real_kind), intent(in) :: absFcalc(size(absFobs))
     real(real_kind), intent(out), optional :: deriv(size(absFobs))
@@ -115,6 +116,7 @@ contains
     real(real_kind), parameter :: epsilon = 1.0
     
     call estimate_alpha_beta(   &
+        current_step, &
         absFobs(n_work + 1:),  &
         absFcalc(n_work + 1:)  &
         )
@@ -157,9 +159,10 @@ contains
   !                       eq. 29     - estimate_t_optimal() estimates root of function G(t)
   !                       eq. 30, 31 - calc_alpha_beta_in_bins() calculates alpha and beta from t
   !--------------------------------------------------------------------------------------------
-  subroutine estimate_alpha_beta(abs_Fobs, abs_Fcalc)
+  subroutine estimate_alpha_beta(current_step, abs_Fobs, abs_Fcalc)
     use xray_pure_utils, only: estimate_t_optimal, calc_bin_alpha_beta, smooth_resolution_bins
     implicit none
+    integer, intent(in) :: current_step
     real(real_kind), intent(in) :: abs_Fobs(:)
     real(real_kind), intent(in) :: abs_Fcalc(size(abs_Fobs))
     real(real_kind) :: t_optimal(num_ml_resolution_bins)
@@ -168,14 +171,12 @@ contains
     real(real_kind) :: A_in_bins(num_ml_resolution_bins)
     real(real_kind) :: p_in_bins_i
     integer :: i, start, count
-    integer, save :: n_step = 0
     
     ! Precondition
     call check_precondition(size(abs_Fobs) == size(abs_Fcalc))
     call check_precondition(size(abs_Fobs) == sum(ml_bin_free_flag_count))
     
-    n_step = n_step + 1
-    if (mod(n_step - 1, ml_update_period) /= 0) then
+    if (mod(current_step, ml_update_period) /= 0) then
       return
     end if
     

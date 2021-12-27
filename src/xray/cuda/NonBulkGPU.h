@@ -5,7 +5,15 @@
 #include <thrust/device_vector.h>
 
 namespace xray {
+
+  enum class NonBulkKernelVersion {
+    ManualCaching,
+    StraightForward,
+  };
+
+  template<NonBulkKernelVersion KERNEL_VERSION, KernelPrecision PRECISION>
   class NonBulkGPU : public NonBulk {
+    using FloatType = typename KernelConfig<PRECISION>::FloatType;
   public:
     NonBulkGPU(int n_hkl,
                const int* hkl,
@@ -25,14 +33,14 @@ namespace xray {
     ) override;
 
   private:
-    thrust::device_vector<double> m_dev_frac_xyz;
-    thrust::device_vector<double> m_dev_b_factor;
+    thrust::device_vector<FloatType> m_dev_frac_xyz;
+    thrust::device_vector<FloatType> m_dev_b_factor;
     thrust::device_vector<int> m_dev_hkl;
-    thrust::device_vector<double> m_dev_mSS4;
-    thrust::device_vector<double> m_dev_atomic_scatter_factor;
+    thrust::device_vector<FloatType> m_dev_mSS4;
+    thrust::device_vector<FloatType> m_dev_atomic_scatter_factor;
 
     thrust::device_vector<int> m_dev_scatter_type_index;
-    thrust::device_vector<thrust::complex<double>> m_dev_f_non_bulk;
+    thrust::device_vector<thrust::complex<FloatType>> m_dev_f_non_bulk;
 
   };
 }

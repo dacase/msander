@@ -63,14 +63,22 @@ contains
         end select
     end subroutine finalize
 
-    subroutine calc_partial_d_target_d_absFcalc(absFobs, absFcalc, deriv, xray_energy)
+    subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
         use xray_target_least_squares_module, only : ls_partial => calc_partial_d_target_d_absFcalc
         use xray_target_max_likelihood_module, only : ml_partial => calc_partial_d_target_d_absFcalc
         implicit none
+        integer, intent(in) :: current_step
         real(real_kind), intent(in) :: absFobs(:)
         real(real_kind), intent(in) :: absFcalc(size(absFobs))
         real(real_kind), intent(out) :: deriv(size(absFobs))
         real(real_kind), intent(out), optional :: xray_energy
+
+        logical, save :: first_call = .TRUE.
+
+        call check_requirement(.not. first_call .or. current_step == 0, &
+            & "First call of `xray_target_module::calc_partial_d_target_d_absFcalc(...)` &
+            & must be made with current_step=0")
+        first_call = .FALSE.
 
         select case(target_function_id)
         case (least_squares_id)
@@ -78,7 +86,7 @@ contains
         case (vector_least_squares_id)
             ! FIXME
         case (max_likehood_id)
-            call ml_partial(absFobs, absFcalc, deriv, xray_energy)
+            call ml_partial(current_step, absFobs, absFcalc, deriv, xray_energy)
         end select
     end subroutine calc_partial_d_target_d_absFcalc
 

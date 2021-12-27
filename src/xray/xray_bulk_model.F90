@@ -70,24 +70,31 @@ contains
     end select
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(frac, absFobs, Fcalc, mSS4, hkl)
+  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4, hkl)
     use xray_bulk_model_afonine_2013_module, only : afonine_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_none_module, only : none_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_simple_module, only : simple_f => add_bulk_contribution_and_rescale
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     real(real_kind), intent(in) :: mSS4(:)
     integer, intent(in) :: hkl(:, :)
-    
+    logical, save :: first_call = .TRUE.
+
+    call check_requirement(.not. first_call .or. current_step == 0, &
+        & "First call of `xray_bulk_model_module::add_bulk_contribution_and_rescale(...)` &
+        & must be made with current_step=0")
+    first_call = .FALSE.
+
     select case (model_id)
     case (none_id)
-      call none_f(absFobs, Fcalc)
+      call none_f(current_step, absFobs, Fcalc)
     case (afonine_2013_id)
-      call afonine_f(frac, absFobs, Fcalc, mSS4, hkl)
+      call afonine_f(frac, current_step, absFobs, Fcalc, mSS4, hkl)
     case (simple_id)
-      call simple_f(frac, absFobs, Fcalc, mSS4)
+      call simple_f(frac, current_step, absFobs, Fcalc, mSS4)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select

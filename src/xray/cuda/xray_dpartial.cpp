@@ -8,6 +8,7 @@
 
 namespace {
   std::unique_ptr<xray::DPartial> dpartial;
+
 }
 
 extern "C"
@@ -24,18 +25,19 @@ void pmemd_xray_dpartial_init_gpu(
   const double* atomic_scatter_factor
 ) {
   assert(!dpartial);
-  dpartial = std::unique_ptr<xray::DPartial>(new xray::DPartialGPU(
-    n_hkl,
-    hkl,
-    mss4,
-    reinterpret_cast<std::complex<double>*>(f_calc),
-    abs_f_calc,
-    n_atom,
-    atom_b_factor,
-    atom_scatter_type,
-    n_scatter_types,
-    atomic_scatter_factor
-  ));
+  dpartial = std::unique_ptr<xray::DPartial>(
+    new xray::DPartialGPU<xray::KernelPrecision::Single>(
+      n_hkl,
+      hkl,
+      mss4,
+      reinterpret_cast<std::complex<double>*>(f_calc),
+      abs_f_calc,
+      n_atom,
+      atom_b_factor,
+      atom_scatter_type,
+      n_scatter_types,
+      atomic_scatter_factor
+    ));
 }
 
 extern "C"

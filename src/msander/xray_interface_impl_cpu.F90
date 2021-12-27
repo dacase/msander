@@ -255,11 +255,13 @@ contains
          do i=1,num_atoms
             if (atom_occupancy(i)==MISSING) then
                atom_occupancy(i)=0
+               ires = residue_number(i)
                j=j+1
                if (j<=10) then
-                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Missing ATOM:', &
-                        atom_name(i),residue_label(i),residue_chainID(i)(1:1),&
-                        residue_number(i),residue_iCode(i)(1:1)
+                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') &
+                     'PDB: Missing ATOM:', &
+                      atom_name(i),residue_label(i),residue_chainID(ires)(1:1),&
+                      ires,residue_iCode(ires)(1:1)
                end if
             end if
          end do
@@ -612,7 +614,7 @@ contains
       call timer_start(TIME_XRAY)
       xray_weight = get_xray_weight(current_step, total_steps)
 
-      call calc_force2(xyz, xray_weight, force, xray_e)
+      call calc_force2(xyz, current_step, xray_weight, force, xray_e)
       xray_energy = xray_e
       call get_r_factors(r_work, r_free)
       call timer_stop(TIME_XRAY)
