@@ -310,7 +310,7 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
   thrust::copy(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), m_f_non_bulk);
 
 
-  fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
+  // fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
 }
 
 template class xray::NonBulkGPU<xray::NonBulkKernelVersion::ManualCaching, xray::KernelPrecision::Single>;
