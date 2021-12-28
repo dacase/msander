@@ -187,8 +187,7 @@ subroutine rdparm1(nf)
 
 #ifndef API
    ! Write implicit solvent radius and screening info to mdout
-   if (( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) &
-                                  .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) then
+   if ( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
       fmtin = afmt
       type = 'RADIUS_SET'
       call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)
@@ -749,8 +748,7 @@ subroutine rdparm2(x,ix,ih,nf)
       call mexit(6,1)
    end if
 
-   if (( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) &
-                                  .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) then
+   if ( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
       fmtin = rfmt
       type = 'RADII'
       call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)

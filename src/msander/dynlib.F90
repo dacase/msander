@@ -187,15 +187,6 @@ subroutine open_dump_files
     else
       call open_binary_files
     end if  ! (ioutfm <= 0)
-    if (icnstph /= 0 .and. .not. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpout, owrite, 'F', 'W')
-    end if
-    if (icnste /= 0 .and. .not. cpein_specified) then
-      call amopen(CEOUT_UNIT, ceout, owrite, 'F', 'W')
-    end if
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpeout, owrite, 'F', 'W')
-    end if
     if (ntwe > 0) then
       call amopen(MDEN_UNIT, mden, owrite, 'F', 'W')
     end if
@@ -231,9 +222,6 @@ subroutine close_dump_files
     if (ntwe > 0) close(MDEN_UNIT)
     if (imin == 5) close(INPTRAJ_UNIT)
     if (ntpr > 0) close(7)
-    if (icnstph /= 0.and. .not. cpein_specified) close (CPOUT_UNIT)
-    if (icnste /= 0.and. .not. cpein_specified) close (CEOUT_UNIT)
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) close (CPOUT_UNIT)
   end if
 
   return

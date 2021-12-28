@@ -101,8 +101,6 @@ subroutine sander()
   use emap,only: temap,pemap,qemap
 
   use file_io_dat
-  use constantph, only: cnstph_finalize
-  use constante, only: cnste_finalize
   use barostats, only: mcbar_setup
   use random, only: amrset
 
@@ -284,8 +282,7 @@ subroutine sander()
         ! Allocate the parm arrays
         call allocate_parms()
 
-        if ((igb .ne. 0 .and. igb .ne. 10 .and. ipb == 0) .or. &
-            hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
+        if (igb .ne. 0 .and. igb .ne. 10 .and. ipb == 0)  then
           call allocate_gb( natom, ncopy )
         end if
 
@@ -694,8 +691,7 @@ subroutine sander()
 
     ! Allocate memory for GB on the non-master nodes:
     if (.not. master) then
-      if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
-          hybridgb > 0 .or. icnstph.gt.1 .or. icnste.gt.1) then
+      if (igb /= 0 .and. igb /= 10 .and. ipb == 0) then
           call allocate_gb( natom, ncopy )
       end if
     end if
@@ -1267,16 +1263,6 @@ subroutine sander()
     end if
 #endif
 
-    ! Close out constant pH work
-    if (icnstph .ne. 0 .or. (icnste .ne. 0 .and. cpein_specified)) then
-      call cnstph_finalize
-    end if
-
-    ! Close out constant Redox potential work
-    if (icnste .ne. 0 .and. .not. cpein_specified) then
-      call cnste_finalize
-    end if
-
     ! Write out the final timings, taking Replica Exchange MD into account
 #ifdef MPI
     if (rem .ne. 0) then
@@ -1344,8 +1330,7 @@ subroutine sander()
 
   call nblist_deallocate()
   call deallocate_stacks()
-  if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
-      hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
+  if (igb /= 0 .and. igb /= 10 .and. ipb == 0)  then
     call deallocate_gb()
   end if
   deallocate(ih, stat=ier)

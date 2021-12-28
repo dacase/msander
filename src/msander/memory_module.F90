@@ -73,8 +73,6 @@ module memory_module
        nmr_xmet, nmr_force, nmr_ddep, nmr_dddep, &
        nmr_dorat, nmr_ddrat, nmr_rate, nmr_trp, nmr_dint
 
-   _REAL_, pointer, dimension(:) :: cnstph_dcharge
-
 contains
    ! This routine intitializes all of the pointer arrays after they
    ! have been allocated by LOCMEM. Currently, some of the arrays
@@ -204,10 +202,6 @@ contains
          nmr_dint => x(l145:l145+3*ma+mxvar-1)
       end if
 
-      if ( icnstph /= 0 .or. icnste /= 0 ) then
-         cnstph_dcharge => x(l190:l190+natom-1)
-      end if
-
       return
    end subroutine memory_init
 
@@ -333,10 +327,6 @@ contains
          nullify(nmr_rate)
          nullify(nmr_trp)
          nullify(nmr_dint)
-      end if
-
-      if ( icnstph /= 0 .or. icnste /= 0 ) then
-         nullify(cnstph_dcharge)
       end if
 
       ! Now deallocate the arrays

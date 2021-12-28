@@ -3504,9 +3504,6 @@ end subroutine hremd_exchange
 !+ Performs pH exchanges
 subroutine ph_remd_exchange(rem_dim, solvph)
 
-   use constantph, only : total_protonation
-   use constants, only  : LN_TO_LOG, TWO
-
    implicit none
 
 #  include "parallel.h"
@@ -3554,17 +3551,6 @@ subroutine ph_remd_exchange(rem_dim, solvph)
 #ifdef VERBOSE_REMD
       write(6,'(a)') '| =============== REMD ==============='
 #endif
-      ! compile the pH table
-      call mpi_allgather(solvph, 1, mpi_double_precision, &
-                         all_ph, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-
-      ! Get the total protonation counts
-      call total_protonation(prot)
-
-      call mpi_allgather(prot, 1, mpi_integer, prot_table, &
-                         1, mpi_integer, remd_comm, ierror)
-
       ! Determine our index and our neighbor's index, wrapping the replicas
       ! if we go off either end of the ladder
       my_index = replica_indexes(rem_dim)
@@ -3723,8 +3709,6 @@ end subroutine ph_remd_exchange
 !+ Performs Redox potential exchanges
 subroutine e_remd_exchange(rem_dim, temp0, solve)
 
-   use constante, only : total_reduction
-   use constantph, only : total_reduction2
    use constants, only  : KB, FARADAY, TWO
 
    implicit none
@@ -3779,16 +3763,6 @@ subroutine e_remd_exchange(rem_dim, temp0, solve)
       call mpi_allgather(solve, 1, mpi_double_precision, &
                          all_e, 1, mpi_double_precision, &
                          remd_comm, ierror)
-
-      ! Get the total reduction counts
-      if (.not. cpein_specified) then
-        call total_reduction(elec)
-      else
-        call total_reduction2(elec)
-      end if
-
-      call mpi_allgather(elec, 1, mpi_integer, elec_table, &
-                         1, mpi_integer, remd_comm, ierror)
 
       ! Determine our index and our neighbor's index, wrapping the replicas
       ! if we go off either end of the ladder

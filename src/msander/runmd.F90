@@ -105,12 +105,6 @@ module runmd_module
                    bar_collect_cont, do_mbar
 #endif /* MPI */
 
-  use constantph, only: cnstphinit, cnstphwrite, cnstphupdatepairs, &
-                        cnstphbeginstep, cnstphendstep, chrgdat, &
-                        cnstph_explicitmd, cnstphwriterestart, cphfirst_sol
-  use constante, only: cnsteinit, cnstewrite, &
-                       cnstebeginstep, cnsteendstep, chrgdat_e, &
-                       cnste_explicitmd, cnstewriterestart, cefirst_sol
   use emap, only:temap,emap_move
   use barostats, only : mcbar_trial, mcbar_summary
 
@@ -325,21 +319,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !----------------------------------------------------------------------------
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-    ! Write information concerning constant PH molecular dynamics
-    if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. master .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-      call cnstphwrite(rem,remd_types,replica_indexes)
-    end if
-
-!------------------------------------------------------------------------------
-    ! Write information concerning constant Redox potential molecular dynamics
-    if (icnste /= 0 .and. .not. cpein_specified .and. master .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-      call cnstewrite(rem,remd_types,replica_indexes)
-    end if
 
 !------------------------------------------------------------------------------
 
@@ -674,59 +653,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   260 continue
   onstep = mod(irespa,nrespa) == 0
 
-  ! Constant pH/redox setup  {{{
-  ! Deciding if in the current step we are gonna perform a constant pH titration
-  ! attempt and/or a constant Redox potential titration attempt
-  if (icnstph .gt. 0 .or. (icnste .gt. 0 .and. cpein_specified)) then
-    on_cpstep = mod(irespa + nstlim*mdloop, ntcnstph) == 0
-  end if
-  if (icnste .gt. 0 .and. .not. cpein_specified) then
-    on_cestep = mod(irespa + nstlim*mdloop, ntcnste) == 0
-  end if
-
-  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-    if (ntnb == 1) then ! rebuild pairlist
-      call cnstphupdatepairs(x)
-    end if
-    if (on_cpstep) then
-      if (icnstph .eq. 1 .or. (icnste .eq. 1 .and. cpein_specified)) then
-        call cnstphbeginstep(xx(l190))
-      else
-        call cnstph_explicitmd(xx, ix, ih, ipairs, x, winv, amass, f, v, &
-                               vold, xr, xc, conp, skip, nsp, tma, erstop, &
-                               qsetup, do_list_update,rem,remd_types,replica_indexes)
-      end if
-    end if
-  end if
-
-  ! If constant pH and constant Redox potential titration attempts 
-  ! are performed in the same step for implicit solvent, then we 
-  ! need to compute gb_pot_ene here and finish constant pH
-  if (on_cpstep .and. icnstph == 1 .and. &
-      on_cestep .and. icnste == 1 .and. .not. cpein_specified) then
-    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-               xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-    call cnstphendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solvph, solve)
-    if (master) call cnstphwrite(rem,remd_types,replica_indexes)
-  end if
-
-  ! Constant Redox potential setup 
-  if (icnste /= 0 .and. .not. cpein_specified .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-    if (on_cestep) then
-      if (icnste .eq. 1) then
-        call cnstebeginstep(xx(l190))
-      else
-        call cnste_explicitmd(xx, ix, ih, ipairs, x, winv, amass, f, v, &
-                              vold, xr, xc, conp, skip, nsp, tma, erstop, &
-                              qsetup, do_list_update,rem,remd_types,replica_indexes)
-      end if
-    end if
-  end if
-  ! }}}
-
 !------------------------------------------------------------------------------
   ! Step 1a: do some setup for pressure calculations: {{{
 
@@ -758,21 +684,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
 
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Constant pH transition evaluation for GB CpHMD (not explicit CpHMD) {{{
-  if ((icnstph == 1 .or. (icnste == 1 .and. cpein_specified)) .and. on_cpstep .and. &
-      .not. on_cestep) then
-    call cnstphendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solvph, solve)
-    if (master) call cnstphwrite(rem,remd_types,replica_indexes)
-  end if
-
-  ! Constant Redox potential transition evaluation for GB CEMD (not explicit CEMD)
-  if (icnste == 1 .and. .not. cpein_specified .and. on_cestep) then
-    call cnsteendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solve)
-    if (master) call cnstewrite(rem,remd_types,replica_indexes)
-  end if
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -1530,14 +1441,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* LES */
 !------------------------------------------------------------------------------
 
-      if ((icnstph .ne. 0 .or. (icnste .ne. 0 .and. cpein_specified)) .and. &
-          ((rem .ne. 0 .and. mdloop > 0) .or. rem == 0)) then
-        call cnstphwriterestart(chrgdat)
-      end if
-      if (icnste .ne. 0 .and. .not. cpein_specified .and. &
-          ((rem .ne. 0 .and. mdloop > 0) .or. rem == 0)) then
-        call cnstewriterestart(chrgdat_e)
-      end if
     end if
     ! End decision process for restart file writing (ixdump flag) }}}
 
@@ -2165,12 +2068,6 @@ subroutine initialize_runmd(x,ix,v)
 #endif /* MPI */
      end if ! ifbox==0: non-periodic
   end if ! nscm is enabled
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Constant pH and constant Redox potential setup: {{{
-  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
-  if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
   ! }}}
 
   !   General initialization:  {{{

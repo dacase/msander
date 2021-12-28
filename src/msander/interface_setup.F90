@@ -52,7 +52,6 @@
    use emap,only: temap,pemap,qemap
 
    use file_io_dat
-   use constantph, only : cnstph_finalize
    use barostats, only : mcbar_setup
    use random, only: amrset
 
@@ -218,8 +217,7 @@
       ! Allocate the parm arrays
       call allocate_parms()
 
-      if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) &
-                    .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) &
+      if (igb /= 0 .and. igb /= 10 .and. ipb == 0) &
          call allocate_gb( natom, ncopy )
 
       ! --- finish reading the prmtop file and other user input:
@@ -544,9 +542,7 @@ ERROR1 continue
    call memory_free
    call clean_parms
    call deallocate_molecule
-   if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) &
-                 .or. hybridgb>0 .or. icnstph>1 .or. icnste>1) &
-      call deallocate_gb
+   if (igb /= 0 .and. igb /= 10 .and. ipb == 0) call deallocate_gb
 #ifdef USE_PRMTOP_FILE
    close(8)
 #endif

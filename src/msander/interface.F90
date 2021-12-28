@@ -320,8 +320,6 @@ subroutine api_mdread1(input_options, ierr)
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use constantph, only : mccycles
-   use constante, only : mccycles_e
    use md_scheme, only: ithermostat, therm_par
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
@@ -447,7 +445,7 @@ subroutine api_mdread1(input_options, ierr)
          temp0les,restraintmask,restraint_wt,bellymask, &
          noshakemask,crgmask, &
          mask_from_ref, &
-         rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
+         rdt,ntrelax,mccycles,mccycles_e, &
          ifqnt,ievb, profile_mpi, &
          ipb, inp, &
          gbneckscale, &
@@ -831,16 +829,7 @@ subroutine api_mdread1(input_options, ierr)
    noshakemask=''
    crgmask=''
 
-   icnstph = 0
-   solvph = SEVEN
-   ntcnstph = 10
    ntrelax = 500 ! how long to let waters relax
-   icnste = 0
-   solve = -0.22d0
-   ntcnste = 10
-   ntrelaxe = 500 ! how long to let waters relax
-   mccycles = 1  ! How many cycles of Monte Carlo steps to run (constant pH)
-   mccycles_e = 1  ! How many cycles of Monte Carlo steps to run (constant Redox potential)
    skmin = 50 !used by neb calculation
    skmax = 100 !used by neb calculation
    vv = 0 !velocity verlet -- off if vv/=1
@@ -1451,8 +1440,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use md_scheme, only: therm_par
-   use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
-   use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1806,7 +1793,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    end if
 
    if (( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
-                                  .or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+                                  ) then
       write(6,'(5x,3(a,f10.5))') 'saltcon =',saltcon, &
             ', offset  =',offset,', gbalpha= ',gbalpha
       write(6,'(5x,3(a,f10.5))') 'gbbeta  =',gbbeta, &
@@ -1977,51 +1964,8 @@ subroutine api_mdread2(x, ix, ih, ierr)
             ', tgtmdfrc=',tgtmdfrc
    end if
 
-   if( icnstph /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant pH options:'
-      write(6, '(5x,a,i8)') 'icnstph =', icnstph
-      write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-      write(6, '(5x,a,f10.5)') 'solvph =', solvph
-      if ( icnstph .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', mccycles
-   end if
-   if( icnstph /= 2) then
-      ntrelax = 0 ! needed for proper behavior of timing
-   end if
-
-   if( icnste /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant Redox potential options:'
-      write(6, '(5x,a,i8)') 'icnste =', icnste
-      write(6, '(5x,a,i8)') 'ntcnste =', ntcnste
-      write(6, '(5x,a,f10.5)') 'solve =', solve
-      if ( icnste .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelaxe =', ntrelaxe, ' mccycles_e =', mccycles_e
-   end if
-   if( icnste /= 2) then
-      ntrelaxe = 0 ! needed for proper behavior of timing
-   end if
-
-   if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-     write(6, '(/a)') 'Constant pH and Redox Potential options:'
-     write(6, '(5x,a,i8)') 'icnstph =', icnstph
-     write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-     write(6, '(5x,a,f10.5)') 'solvph =', solvph
-     write(6, '(5x,a,i8)') 'icnste =', icnste
-     write(6, '(5x,a,f10.5)') 'solve =', solve
-     if (icnstph .eq. 2 .or. icnste .eq. 2) then
-       write(6, '(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', 1
-       write(6, '(a)') '| Note: when the cpein file is provided the flags'
-       write(6, '(a)') '|       ntcnste and ntrelaxe are not considered,'
-       write(6, '(a)') '|       only ntcnstph and ntrelax, which works for'
-       write(6, '(a)') '|       both protonation or redox state changes.'
-     else
-       write(6, '(a)') '| Note: when the cpein file is provided the flag'
-       write(6, '(a)') '|       ntcnste is not considered, only ntcnstph,'
-       write(6, '(a)') '|       which works for both protonation or redox'
-       write(6, '(a)') '|       state changes.'
-     end if
-   end if
-
+   ntrelax = 0 ! needed for proper behavior of timing
+   ntrelaxe = 0 ! needed for proper behavior of timing
 
    if( ntb > 0 ) then
       write(6,'(/a)') 'Ewald parameters:'
@@ -2249,7 +2193,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(0,*) 'GBSA=3 only works for pmemd, not sander'
       FATAL_ERROR
    end if
-   if (( igb /= 0 .and. igb /= 10 .and. ipb == 0 ).or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+   if ( igb /= 0 .and. igb /= 10 .and. ipb == 0 ) then
 #if defined (LES) && !defined (API)
       write(6,*) 'igb=1,5,7 are working with LES, no SA term included'
 #endif
@@ -2891,109 +2835,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    end if ! ( ilrt /= 0 )
 
-   !------------------------------------------------------------------------
-   ! If user has requested Poisson-Boltzmann electrostatics, set up variables
-   !------------------------------------------------------------------------
-
-   if (icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) then
-      !  Initialize all constant pH data to 0 and read it in
-      call cnstph_zero()
-      call cnstphread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CpH, fill gbv* arrays
-      if ( (icnstph .gt. 1 .or. (icnste .gt. 1 .and. cpein_specified)) .and. cph_igb == 2 &
-           .or. cph_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-   if (icnste /= 0 .and. .not. cpein_specified) then
-      !  Initialize all constant Redox potential data to 0 and read it in
-      call cnste_zero()
-      call cnsteread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CE, fill gbv* arrays
-      if ( icnste .gt. 1 .and. ce_igb == 2 .or. ce_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-  ! Check if the CPIN file is valid for Explicit Solvent constant pH simulations
-  if (icnstph .eq. 2 .and. .not. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPIN file is valid for Implicit Solvent constant pH simulations
-  if (icnstph .eq. 1 .and. .not. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Explicit Solvent constant redox potential simulations
-  if (icnste .eq. 2 .and. .not. cpein_specified) then
-    if (ce_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Implicit Solvent constant redox potential simulations
-  if (icnste .eq. 1 .and. .not. cpein_specified) then
-    if (ce_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Explicit Solvent constant pH simulations
-  if ((icnstph .eq. 2 .or. icnste .eq. 2) .and. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Implicit Solvent constant pH simulations
-  if ((icnstph .eq. 1 .or. icnste .eq. 1) .and. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-    ! Check if the igb values for constant pH and constant redox potential are the same in Explicit Solvent
-    if (icnstph .eq. 2 .and. icnste .eq. 2 .and. .not. cpein_specified) then
-      if (cph_igb .ne. ce_igb) then
-        write(6, '(a,/)') ' Error: the GB models on your CPIN and CEIN files need to be the same'
-        call mexit(6, 1)
-      end if
-    end if
-
-   if( iyammp /= 0 ) write( 6, '(a)' ) '  Using yammp non-bonded potential'
-
    ! -------------------------------------------------------------------
    !
    ! -- add check to see if the space in nmr.h is likely to be
@@ -3546,73 +3387,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write (6,'(a)') 'Linear Response Theory activated, but lrtmask is not set'
       DELAYED_ERROR
    end if
-
-   if (icnstph /= 0) then
-
-      if ( icnstph < 0 ) then
-         write(6, '(/,a)') 'icnstph must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnstph == 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnstph .gt. 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant pH and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnstph <= 0) then
-         write(6, '(/,a)') 'ntcnstph must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnstph > 1 .and. mccycles <= 0) then
-         write(6, '(/,a)') 'mccycles must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnstph
-   if (icnste /= 0) then
-
-      if ( icnste < 0 ) then
-         write(6, '(/,a)') 'icnste must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnste == 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnste .gt. 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant Redox potential and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnste <= 0) then
-         write(6, '(/,a)') 'ntcnste must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnste > 1 .and. mccycles_e <= 0) then
-         write(6, '(/,a)') 'mccycles_e must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnste
 
    !-----------------------------------------------------
    !     ----sanity checks for Ewald

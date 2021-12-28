@@ -167,52 +167,6 @@ charmm.API.o:   charmm.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ charmm.F90
 
-constante.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    random.o\
-                    dyne.h\
-                    constants.o\
-                    file_io_dat.o\
-                    memory_module.o\
-                    extra.h\
-                    ../include/md.h\
-                    parallel.h\
-                    amd.o\
-                    constantph.o\
-                    ips.o\
-                    state.o\
-                    box.h\
-                    nmr.h
-
-
-constante.o:   constante.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ constante.F90
-
-constantph.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    random.o\
-                    mdfil.o\
-                    file_io_dat.o\
-                    dynph.h\
-                    constants.o\
-                    memory_module.o\
-                    extra.h\
-                    ../include/md.h\
-                    parallel.h\
-                    amd.o\
-                    ips.o\
-                    state.o\
-                    box.h\
-                    nmr.h
-
-
-constantph.o:   constantph.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ constantph.F90
-
 constants.o: \
                     ../include/dprec.fh
 
@@ -1286,8 +1240,6 @@ interface.o: \
                     state.o\
                     interface_setup.F90\
                     lmod.o\
-                    constantph.o\
-                    constante.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1348,8 +1300,6 @@ interface.LESAPI.o: \
                     state.o\
                     interface_setup.F90\
                     lmod.o\
-                    constantph.o\
-                    constante.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1429,7 +1379,6 @@ interface_setup.F90: \
                     crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
-                    constantph.o\
                     barostats.o\
                     random.o\
                     amd.o\
@@ -1652,8 +1601,6 @@ mdread.o: \
                     lmod.o\
                     qmmm_module.o\
                     constants.o\
-                    constantph.o\
-                    constante.o\
                     md_scheme.o\
                     les.o\
                     stack.o\
@@ -1708,8 +1655,6 @@ mdread.LES.o: \
                     lmod.LES.o\
                     qmmm_module.o\
                     constants.o\
-                    constantph.o\
-                    constante.o\
                     md_scheme.LES.o\
                     les.o\
                     stack.o\
@@ -1936,8 +1881,6 @@ new_time.o: \
                     extra.h\
                     parallel.h\
                     qmmm_module.o\
-                    constantph.o\
-                    constante.o\
                     ../include/md.h
 
 
@@ -1953,8 +1896,6 @@ new_time.API.o: \
                     extra.h\
                     parallel.h\
                     qmmm_module.o\
-                    constantph.o\
-                    constante.o\
                     ../include/md.h
 
 new_time.API.o:   new_time.F90
@@ -2841,8 +2782,6 @@ parallel.o: \
                     amd.o\
                     scaledMD.o\
                     emap.o\
-                    constantph.o\
-                    constante.o\
                     mdfil.o\
                     crg_reloc.o\
                     parallel.h\
@@ -2885,8 +2824,6 @@ parallel.LES.o: \
                     amd.o\
                     scaledMD.o\
                     emap.o\
-                    constantph.o\
-                    constante.o\
                     mdfil.LES.o\
                     crg_reloc.o\
                     parallel.h\
@@ -3535,9 +3472,7 @@ remd.o: \
                     state.o\
                     ../include/memory.h\
                     box.h\
-                    nonbond_list.o\
-                    constantph.o\
-                    constante.o
+                    nonbond_list.o
 
 
 remd.o:   remd.F90
@@ -3561,22 +3496,11 @@ remd.LES.o: \
                     state.o\
                     ../include/memory.h\
                     box.h\
-                    nonbond_list.LES.o\
-                    constantph.o\
-                    constante.o
+                    nonbond_list.LES.o
 
 remd.LES.o:   remd.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ remd.F90
-
-resamplekin.o: \
-                    ../include/assert.fh\
-                    random.o
-
-
-resamplekin.o:   resamplekin.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ resamplekin.F90
 
 rfree.o: \
                     ../include/dprec.fh\
@@ -3631,8 +3555,6 @@ runmd.o: \
                     remd.o\
                     softcore.o\
                     mbar.o\
-                    constantph.o\
-                    constante.o\
                     emap.o\
                     barostats.o\
                     memory_module.o\
@@ -3654,9 +3576,9 @@ runmd.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
+                    Plumed_force.inc\
                     degcnt.inc\
-                    Plumed_init.inc\
-                    Plumed_force.inc
+                    Plumed_init.inc
 
 
 runmd.o:   runmd.F90
@@ -3685,8 +3607,6 @@ runmd.LES.o: \
                     remd.LES.o\
                     softcore.o\
                     mbar.o\
-                    constantph.o\
-                    constante.o\
                     emap.o\
                     barostats.o\
                     memory_module.o\
@@ -3708,9 +3628,9 @@ runmd.LES.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
+                    Plumed_force.inc\
                     degcnt.inc\
-                    Plumed_init.inc\
-                    Plumed_force.inc
+                    Plumed_init.inc
 
 runmd.LES.o:   runmd.F90
 	@echo '[MSANDER_LES]  FC $<'
@@ -3721,6 +3641,7 @@ sander.o: \
                     ../include/assert.fh\
                     nfe-config.h\
                     state.o\
+                    runmd.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
                     lmod.o\
@@ -3756,8 +3677,6 @@ sander.o: \
                     crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
-                    constantph.o\
-                    constante.o\
                     barostats.o\
                     random.o\
                     amd.o\
@@ -3789,6 +3708,7 @@ sander.LES.o: \
                     ../include/assert.fh\
                     nfe-config.h\
                     state.o\
+                    runmd.LES.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
                     lmod.LES.o\
@@ -3824,8 +3744,6 @@ sander.LES.o: \
                     crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
-                    constantph.o\
-                    constante.o\
                     barostats.o\
                     random.o\
                     amd.o\
