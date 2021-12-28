@@ -31,6 +31,9 @@ parallel:
 cuda:
 	@cd msander && $(MAKE) msander.cuda
 
+mpicuda:
+	@cd msander && $(MAKE) msander.cuda$(SFX)
+
 clean:
 	-(cd blas && $(MAKE) clean )
 	-(cd lapack && $(MAKE) clean )

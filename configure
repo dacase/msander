@@ -47,6 +47,7 @@ fftw_flags=""
 mkl="no"
 installtype="serial"
 
+cuda="no"
 cudaflags=''
 
 lapack="skip"
@@ -83,6 +84,7 @@ for var in "$@"; do
             flibs_fftw="-lfftw3_omp -lfftw3"
             openmp="yes";;
         --cuda)
+            cuda="yes"
             installtype="cuda"
             fpic=""
             cudaflags="-DCUDA";;
@@ -172,6 +174,9 @@ fi
 if [ "$mpi" == "yes" ]; then
   fc="$mpif90"
   cc="$mpicc"
+fi
+if [ "$mpi" == "yes" -a "$cuda" == "yes" ]; then
+  installtype="mpicuda"
 fi
 
 #------------------------------------------------------------------------------
