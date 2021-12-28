@@ -8,9 +8,7 @@ subroutine locmem()
    !     locmem:  partitions core array into storage for all
    !        the major arrays of the program.
    use nblist, only: cutoffnb,skinnb
-#ifdef RISMSANDER
    use sander_rism_interface, only: rismprm
-#endif
    use linear_response, only: ilrt
    implicit none
    
@@ -227,7 +225,7 @@ subroutine locmem()
       call adj_mem_ptr( r_ptr, l95, 2*ntbond )
    end if
 !!
-   if( igb /= 0 .or. ipb /= 0 .or. hybridgb>0 .or. icnstph>1 .or. icnste>1 ) then
+   if( igb /= 0 .or. ipb /= 0 ) then
       call adj_mem_ptr( r_ptr, l96, natom )
       call adj_mem_ptr( r_ptr, l97, natom )
       ! memory for new GB array
@@ -308,11 +306,7 @@ subroutine locmem()
    end if
    call adj_mem_ptr( r_ptr, l150, 0)
 
-   if ( icnstph /= 0 .or. icnste /= 0 ) then
-      call adj_mem_ptr( r_ptr, l190, natom)
-   else
-      call adj_mem_ptr( r_ptr, l190, 0)
-   end if
+   call adj_mem_ptr( r_ptr, l190, 0)
 
    lastr = r_ptr
    
@@ -429,7 +423,7 @@ subroutine locmem()
       call adj_mem_ptr( i_ptr, i82, 0 )
    end if
    
-   if(igb /= 0 .or. ipb /= 0 .or.hybridgb>0 .or. icnstph>1 .or. icnste>1) then
+   if(igb /= 0 .or. ipb /= 0 ) then
       call adj_mem_ptr( i_ptr, i86, natom )
    else
       call adj_mem_ptr( i_ptr, i86, 0 )
@@ -466,11 +460,7 @@ subroutine locmem()
          call mexit(6,1)
       end if
 # ifdef MPI
-#  ifdef RISMSANDER
       if(periodic == 1 .and. rismprm%rism == 0) then
-#  else
-      if(periodic == 1) then
-#endif
          if( numtasks <= 8 ) maxpr = maxpr/numtasks
          !  allow for some load imbalance in list at high processor number:
          if( numtasks >  8 ) maxpr = 4*maxpr/(3*numtasks)

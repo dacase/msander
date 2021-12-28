@@ -42,10 +42,6 @@ subroutine startup(xx,ix,ih)
    use scaledMD_mod, only : scaledMD,scaledMD_lambda
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
-! constant pH
-   use constantph, only : cnstph_bcast
-! constant Redox potential
-   use constante, only : cnste_bcast
 ! bcast variables from mdfil.F90
    use commandline_module, only : commandline_bcast, cpein_specified
 ! crg_reloc
@@ -281,12 +277,6 @@ subroutine startup(xx,ix,ih)
 
 ! broadcast commandline info
    call commandline_bcast(ierr)
-
-! constant pH
-   if (icnstph .gt. 0 .or. (icnste .gt. 0 .and. cpein_specified)) call cnstph_bcast(ierr)
-
-! constant Redox potential
-   if (icnste .gt. 0 .and. .not. cpein_specified) call cnste_bcast(ierr)
 
    ! Charmm force field support - will simply return if charmm is not in use.
    call mpi_bcast_charmm_params(master)

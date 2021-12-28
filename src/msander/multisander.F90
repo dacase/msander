@@ -77,9 +77,7 @@ program multisander
 #endif /* MPI */
   use commandline_module, only : mdfil
   use file_io_dat
-#ifdef BINTRAJ
   use AmberNetcdf_mod, only: NC_setupAmberNetcdf
-#endif /* BINTRAJ */
 
 #if !defined(DISABLE_NFE)
   use nfe_sander_hooks, only: nfe_on_multisander_exit => on_multisander_exit
@@ -353,10 +351,8 @@ program multisander
   end if
 #endif /* MPI */
 
-#  ifdef BINTRAJ
   ! Activate NetCDF interface.
   call NC_setupAmberNetcdf(6, "sander", VERSION_STRING)
-#  endif
   call sander()
 
   ! Clean up and exit

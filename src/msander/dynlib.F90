@@ -187,15 +187,6 @@ subroutine open_dump_files
     else
       call open_binary_files
     end if  ! (ioutfm <= 0)
-    if (icnstph /= 0 .and. .not. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpout, owrite, 'F', 'W')
-    end if
-    if (icnste /= 0 .and. .not. cpein_specified) then
-      call amopen(CEOUT_UNIT, ceout, owrite, 'F', 'W')
-    end if
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpeout, owrite, 'F', 'W')
-    end if
     if (ntwe > 0) then
       call amopen(MDEN_UNIT, mden, owrite, 'F', 'W')
     end if
@@ -231,9 +222,6 @@ subroutine close_dump_files
     if (ntwe > 0) close(MDEN_UNIT)
     if (imin == 5) close(INPTRAJ_UNIT)
     if (ntpr > 0) close(7)
-    if (icnstph /= 0.and. .not. cpein_specified) close (CPOUT_UNIT)
-    if (icnste /= 0.and. .not. cpein_specified) close (CEOUT_UNIT)
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) close (CPOUT_UNIT)
   end if
 
   return
@@ -263,11 +251,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #ifdef LES
   use les_data, only : temp0les
 #endif
-#ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_thermo_print
-#endif
 
   use qmmm_module, only: qmmm_nml,qmmm_struct
   use xray_interface_module, only: xray_write_md_state
@@ -300,10 +286,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #ifndef LES
   _REAL_ :: rms_pbs
 #endif
-#ifdef RISMSANDER
   _REAL_ :: erism
   _REAL_ :: pot_array(potential_energy_rec_len)
-#endif /* RISMSANDER */
   _REAL_ :: ect
   _REAL_ :: amd_boost
 #ifdef MPI
@@ -403,9 +387,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   edisp   = ener%pot%disp
   enemap   = ener%pot%emap
   amd_boost = ener%pot%amd_boost
-#ifdef RISMSANDER
   erism   = ener%pot%rism
-#endif /*RISMSANDER*/
   ect     = ener%pot%ct
 
   write(6, 9018) nstep,time,temp,press
@@ -416,18 +398,12 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
   write(6, 9048) enb14, eel14, enonb
 
-#ifdef RISMSANDER
   if (igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-  if (igb == 0 .and. ipb == 0) then
-#endif /* RISMSANDER */
     write(6, 9058) eel, ehbond, econst
   else if (igb == 10 .or. ipb /= 0) then
     write(6, 9060) eel, epb, econst
-#ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(6, 9061) eel, erism, econst
-#endif /* RISMSANDER */
   else
     write(6, 9059) eel, egb, econst
   end if
@@ -486,10 +462,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(6, 9900) escf
-#endif /* PUPIL_SUPPORT */
   if (gbsa > 0) then
     write(6, 9077) esurf
   end if
@@ -590,18 +562,12 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
 
   write(7, 9048) enb14, eel14, enonb
-#ifdef RISMSANDER
   if (igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-  if (igb == 0 .and. ipb == 0) then
-#endif
     write(7, 9058) eel, ehbond, econst
   else if ( igb == 10 .or. ipb /= 0) then
     write(7, 9060) eel, epb, econst
-#ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(7, 9061) eel, erism, econst
-#endif
   else
     write(7, 9059) eel, egb, econst
   end if
@@ -682,10 +648,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(7, 9900) escf
-#endif /* PUPIL_SUPPORT */
    if (gbsa > 0) then
      write(7, 9077) esurf
    end if
@@ -739,13 +701,11 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   endif
   call nmrptx(7)
 
-#ifdef RISMSANDER
   if (rismprm%rism == 1 .and. rismprm%write_thermo == 1) then
     if (rism_calc_type(nstep) == RISM_FULL) then
       call rism_thermo_print(.false., transfer(ener%pot, pot_array))
     end if
   end if
-#endif /* RISMSANDER */
 
 #ifndef NO_DETAILED_TIMINGS
   !Print Timing estimates to mdinfo.
@@ -785,10 +745,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
          'RESTRAINT  = ',f14.4)
   9060 format (1x,'EELEC  = ',f14.4,2x,'EPB     = ',f14.4,2x, &
          'RESTRAINT  = ',f14.4)
-#ifdef RISMSANDER
   9061 format (1x,'EELEC  = ',f14.4,2x,'ERISM   = ',f14.4,2x, &
          'RESTRAINT  = ',f14.4)
-#endif
   9062 format (1x,'EMAP   = ',f14.4)
   9180 format (1x, 'EAMD_BOOST  = ', f14.4)
 #ifdef MPI
@@ -855,10 +813,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   9188 format (1x,'Ewald error estimate: ', e12.4)
   1005 format(" SGLF = ",F8.4,X,F8.2,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
   1006 format(" SGHF = ",F8.4,X,F8.4,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  9900 format (1x,'PUPESCF= ',f14.4)
-#endif /* PUPIL_SUPPORT  */
 
   return
 end subroutine prntmd

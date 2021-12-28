@@ -5,7 +5,7 @@
 #  define DISABLE_NFE yes
 #endif
 
-#if defined(MPI) && defined(BINTRAJ) && !defined(DISABLE_NFE)
+#if defined(MPI)
 #  define NFE_ENABLE_BBMD sure,whynot
 #endif
 
@@ -28,9 +28,5 @@
 
 !   /* EVB uses 75th (see files.h) */
 #define SANDER_LAST_UNIT 77
-
-#ifndef BINTRAJ
-#  define NFE_NO_NETCDF entirely
-#endif /* BINTRAJ */
 
 #endif /* NFE_CONFIG_H */

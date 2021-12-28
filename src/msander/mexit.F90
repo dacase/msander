@@ -10,9 +10,6 @@
 !   status:        exit status (returned)
 !------------------------------------------------------------------------------
 subroutine mexit(output_unit, status)
-#ifdef PUPIL_SUPPORT
-  use pupildata
-#endif
 
   implicit none
   integer output_unit
@@ -33,17 +30,6 @@ subroutine mexit(output_unit, status)
     call mpi_abort(MPI_COMM_WORLD, status, ierr)
   else
     call mpi_finalize(ierr)
-  endif
-#endif
-
-#ifdef PUPIL_SUPPORT
-  ! Terminate the PUPIL CORBA interface, only if such an interface exists.
-  if (pupactive) then
-    puperror = 0
-    call killcorbaintfc(puperror)
-    if (puperror /= 0) then
-      write(6,*) 'Error ending PUPIL CORBA interface.'
-    endif
   endif
 #endif
 

@@ -33,7 +33,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     amopen.o sander_lib.o random.o debug.API.o \
     mexit.o new_time.API.o extra_pts.LESAPI.o thermo_int.o matinv.o assert.o \
     erfcfun.o md_scheme.LES.o \
-    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o \
+    ips.o sglds.o iwrap2.o emap.o \
     amber_rism_interface.API.o \
     parms.o softcore.o mbar.o \
     linear_response.o molecule.o dssp.o \
@@ -83,7 +83,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     pcshift.o align.o csa.o rfree.o rgroup.o amopen.o \
     debug.API.o mexit.o new_time.API.o extra_pts.API.o thermo_int.o les.o \
     matinv.o assert.o erfcfun.o md_scheme.o \
-    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o\
+    ips.o sglds.o iwrap2.o emap.o\
     amber_rism_interface.API.o \
     AmberNetcdf.o bintraj.o binrestart.o \
     parms.o softcore.o mbar.o linear_response.o \
@@ -104,8 +104,8 @@ QMAPIOBJ = \
 
 MMOBJ = \
     align.o AmberNetcdf.o amd.o amopen.o assert.o \
-    barostats.o binrestart.o bintraj.o charmm.o constante.o \
-    constantph.o constants.o crg_reloc.o csa.o cshf.o \
+    barostats.o binrestart.o bintraj.o charmm.o \
+    constants.o crg_reloc.o csa.o cshf.o \
     debug.o decnvh.o degcnt.o dssp.o \
     dynlib.o egb.o emap.o ene.o erfcfun.o \
     ew_box.o ew_bspline.o ew_fft.o \
@@ -128,7 +128,7 @@ MMOBJ = \
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o \
     assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
-    constante.o constantph.o constants.o crg_reloc.o csa.o \
+    constants.o crg_reloc.o csa.o \
     cshf.o debug.o decnvh.o degcnt.LES.o \
     dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
     erfcfun.o ew_box.LES.o ew_bspline.o \
@@ -173,7 +173,7 @@ libsanderles_skip::
 
 amber_rism_interface.API.o: ../rism/amber_rism_interface.F90
 	@echo "[MSANDER]  FC $<"
-	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ $< 
+	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ $< 
 
 dummy:
 

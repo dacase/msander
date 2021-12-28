@@ -740,14 +740,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
            crfac = r1*lfac*intdieli
            g = cgi*cgj*crfac
         end if
-        if (((icnstph == 1 .or. (icnste == 1 .and. cpein_specified)) &
-              .and. mod(irespa,ntcnstph) == 0) &
-              .or. icnstph == 2 .or. (icnste == 2 .and. cpein_specified) .or. &
-            (icnste == 1 .and. mod(irespa,ntcnste) == 0 .and. .not. cpein_specified) &
-              .or. (icnste == 2 .and. .not. cpein_specified)) then
-           dvdl = dvdl + scee0*(dcharge(ii)* &
-                 dcharge(jj)*r1*lfac*intdieli-g)
-        end if
         sphi(jn) = g*scee0
         if ( ifcr /= 0 .and. cropt /= 0 ) then
            call cr_add_dcdr_factor( ii, cgj*crfac*scee0 )

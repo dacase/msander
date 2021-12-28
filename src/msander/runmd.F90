@@ -44,8 +44,8 @@
 !   qsetup:    Flag to activate setup of multiple components, .false. on
 !              first call
 !------------------------------------------------------------------------------
-subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
-                 conp, skip, nsp, tma, erstop, qsetup)
+
+module runmd_module
 
 !------------------------------------------------------------------------------
 ! modules used:  {{{
@@ -59,11 +59,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   use commandline_module, only: cpein_specified
   use md_scheme, only: thermostat_step, ithermostat
-#ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
-#endif /* RISMSANDER */
 
   use qmmm_module, only: qmmm_nml,qmmm_struct, qmmm_mpi, qm2_struct
 
@@ -107,12 +105,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                    bar_collect_cont, do_mbar
 #endif /* MPI */
 
-  use constantph, only: cnstphinit, cnstphwrite, cnstphupdatepairs, &
-                        cnstphbeginstep, cnstphendstep, chrgdat, &
-                        cnstph_explicitmd, cnstphwriterestart, cphfirst_sol
-  use constante, only: cnsteinit, cnstewrite, &
-                       cnstebeginstep, cnsteendstep, chrgdat_e, &
-                       cnste_explicitmd, cnstewriterestart, cefirst_sol
   use emap, only:temap,emap_move
   use barostats, only : mcbar_trial, mcbar_summary
 
@@ -144,13 +136,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   !  nrp         : number of atoms, adjusted for LES copies
 
 !------------------------------------------------------------------------------
-! local variables:
+! module variables:
 
-  implicit none
   character(kind=1,len=5) :: routine="runmd"
-  integer   ipairs(*), ix(*)
-  _REAL_ xx(*)
-  character(len=4) ih(*)
 #ifdef MPI
 #  include "parallel.h"
   include 'mpif.h'
@@ -209,9 +197,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ etot_save,ekpbs
 
   logical do_list_update
-  logical skip(*), belly, lout, loutfm, erstop, vlim, onstep
+  logical belly, lout, loutfm, erstop, vlim, onstep
   ! Fortran does not guarantee short circuit logical expressions:
-  _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), xr(*), xc(*), conp(*)
   type(state_rec) :: ener   ! energy values per time step
   type(state_rec) :: enert  ! energy values tallied over the time steps
   type(state_rec) :: enert2 ! energy values squared tallied over the time steps
@@ -225,7 +212,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: clfac, tmpvir(3,3)
 #endif
   _REAL_ rmu(3), fac(3), onefac(3), etot_start
-  _REAL_ tma(*)
   _REAL_ tspan, atempdrop, fln, scaltp
   _REAL_ vel, vel2, vcmx, vcmy, vcmz, vmax
   _REAL_ winf, aamass, rterm, ekmh, ekph, wfac, rsd
@@ -247,20 +233,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_  :: gamma_ten_int
   _REAL_  :: press_tan_ave
 
-  integer nsp(*)
   integer idumar(4)
   integer l_temp
   integer i, j, im, i3, nitp, nits, iskip_start, iskip_end
   integer nstep, nrep, nrek, iend, istart3, iend3
   integer nrx, nr, nr3, ntcmt, izero, istart
   logical ixdump, ivdump, itdump, ifdump
-  logical qsetup
-#ifdef RISMSANDER
   logical irismdump
-#  ifdef RISM_DEBUG
-  _REAL_ r(3),cm(3),angvel(3),erot,moi,proj(3),rxv(3)
-#  endif
-#endif
 
   integer nvalid, nvalidi
   _REAL_ eke
@@ -304,229 +283,32 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ :: plumed_chargeUnits
   ! }}}
 
+private
+public :: runmd
+
+contains
+
+subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
+                 conp, nsp, tma, ntbond, erstop, qsetup)
+
+  implicit none
+  integer, intent(in) ::   ipairs(*), ix(*), nsp(*), ntbond
+  _REAL_, intent(inout) ::  xx(*)
+  character(len=4), intent(in) :: ih(*)
+  _REAL_, intent(inout) ::  x(*), winv(*), amass(*), f(*), v(*), vold(*), &
+                            xr(*), xc(*), conp(*), tma(*)
+  logical, intent(inout) ::  erstop, qsetup
+
+  logical skip(2*ntbond)   ! avoid overlapping memory usage for L95
+
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
 
-  ! Initialize some variables {{{
-#ifdef MPI
-  if (master) then
-    ! In Replica Exchange Molecular Dynamics (REMD), runmd will be called many
-    ! times, so we dont want to open files every time.  For normal md, mdloop
-    ! will just be 0.
-    if (mdloop .eq. 0) then
-      call amopen(7, mdinfo, 'U', 'F', facc)
-    end if
-  end if
+  call initialize_runmd(x,ix,v)
 
-  adqmmm_first_energy = 0.d0
-#else
-  call amopen(7, mdinfo, 'U', 'F', 'W')
-#endif
-
-  vlim = (vlimit > small)
-  ntcmt = 0
-  izero = 0
-  belly = (ibelly > 0)
-  lout = .true.
-  loutfm = (ioutfm <= 0)
-  nr = nrp
-  nr3 = 3*nr
-  ekmh = 0.d0
-
-  aqmmm_flag = 0
-  etot_save = 0.d0
-  pres0x = 0.d0
-  pres0y = 0.d0
-  pres0z = 0.d0
-  gamma_ten_int = 0.d0
-  dtcp = 0.d0
-  dttp = 0.d0
-  ekph = 0.d0
-  ekpbs = 0.d0
-  eke = 0.d0
-
-#ifdef LES
-  ekmhles = 0.d0
-#endif
-  do_list_update = .false.
-#ifdef MPI
-  if (mpi_orig) then
-    istart = 1
-    iend = natom
-  else
-    istart = iparpt(mytaskid) + 1
-    iend = iparpt(mytaskid+1)
-  end if
-#else
-  istart = 1
-  iend = nr
-#endif
-  istart3 = 3*istart -2
-  iend3 = 3*iend
-  if( mytaskid == numtasks -1 )  iend3 = iend3 + iscale
-
-  if( ntc>1 ) allocate (xold(3*natom+iscale))
-#ifdef MPI
-  if (icfe /= 0) then
-    allocate(frcti(nr3 + 3*extra_atoms), stat=ierr)
-    REQUIRE(ierr == 0)
-  end if
-#endif
-
-  ! If ntwprt.NE.0, only print the atoms up to this value
-  nrx = nr3
-  if (ntwprt > 0) nrx = ntwprt*3
-
-  ! Cleanup the velocity if belly run
-  if (belly) call bellyf(nr,ix(ibellygp),v)
-
-!------------------------------------------------------------------------------
-  ! Determine system degrees of freedom (for T scaling, reporting)
-#   include "degcnt.inc"
-!   }}}
-
-!------------------------------------------------------------------------------
-!    Pressure/temp units  {{{
-  ! Begin unit conversion.  pconv eventually becomes a factor to convert
-  ! pressure in kcal/mole-A^3 to bar.
-  boltz2 = 8.31441d-3 * 0.5d0
-  pconv = 1.6604345d+04
-  boltz2 = boltz2/4.184d0
-  dtx = dt*20.455d+00
-  dtxinv = 1.0d0 / dtx
-  dt5 = dtx * 0.5d0
-  pconv = pconv*4.184d0
-
-  ! fac() are #deg freedom * kboltz / 2.  Multiply by T to get the expected
-  ! kinetic energy.  fac(1) is for the entire system.
-  fac(1) = boltz2*rndf
-  fac(2) = boltz2*rndfp
-  if (rndfp < 0.1d0) fac(2) = 1.d-6
-
-#ifdef LES
-  ! Replaced solvent variables with LES ones
-  ! since separate solvent coupling no longer used
-  ! ASSUME SAME COUPLING CONSTANT FOR BOTH BATHS, just different target T
-
-  ! will also have to accumulate LES and non-LES kinetic energies separately
-  if (temp0les < 0.d0) then
-    fac(3) = boltz2*rndfs
-    if (rndfs < 0.1d0) fac(3) = 1.d-6
-  else
-    fac(3) = boltz2*rndfles
-    if (rndfles < 0.1d0) fac(3) = 1.d-6
-  end if
-#else
-  fac(3) = boltz2*rndfs
-  if (rndfs < 0.1d0) fac(3) = 1.d-6
-#endif
-  onefac(1) = 1.0d0 / fac(1)
-  onefac(2) = 1.0d0 / fac(2)
-  onefac(3) = 1.0d0 / fac(3)
-  factt = rndf/(rndf+ndfmin)
-
-  ! These are "desired" kinetic energies based on the number of
-  ! degrees of freedom and target temperature.  They will be used
-  ! for calculating the velocity scaling factor
-  ekinp0 = fac(2)*temp0
-#ifdef LES
-
-  ! Modified for LES temperature
-  ekins0=0.d0
-  ekinles0=0.d0
-  if (temp0les < 0.d0) then
-    ekins0 = fac(3) * temp0
-    ekin0  = fac(1) * temp0
-    if (master) &
-      write (6,*) "Single temperature bath for LES and non-LES"
-  else
-    ekinles0 = fac(3)*temp0les
-    ekin0  = ekinp0 + ekinles0
-    if (master) then
-      write (6,*) "LES particles coupled to separate bath"
-      write (6,'(a,f8.2)')"    LES target temperature:    ",temp0les
-      write (6,'(a,f8.2)')"    LES target kinetic energy: ",ekinles0
-      write (6,'(a,f8.2)')"non-LES target temperature:    ",temp0
-      write (6,'(a,f8.2)')"non-LES target kinetic energy: ",ekinp0
-    end if
-  end if
-#else
-  ekins0 = fac(3)*temp0
-  ekin0  = fac(1)*temp0
-#endif
-  ! }}}
-
-!------------------------------------------------------------------------------
-  !    Langevin dynamics setup  {{{
-  if (nscm > 0) then
-     if (ifbox == 0) then
-        call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
-#ifdef MPI
-        ! Soft core position mixing
-        if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
-#endif /* MPI */
-     end if ! ifbox==0: non-periodic
-  end if ! nscm is enabled
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Constant pH and constant Redox potential setup: {{{
-  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. mdloop .eq. 0) call cnstphinit(x, ig)
-  if (icnste /= 0 .and. .not. cpein_specified .and. mdloop .eq. 0) call cnsteinit(x, ig)
-  ! }}}
-
-  !   General initialization:  {{{
-  nrek = 4
-  nrep = 15
-
-  nvalid = 0
-  nvalidi = 0
-  nstep = 0
-  total_nstep = 0
-#ifdef MPI
-  ! For REMD, total_nstep is the number of steps * the number of exchanges
-  ! we've already attempted
-  if (rem .ne. 0) total_nstep = (mdloop - 1) * nstlim
-#endif /* MPI */
-  fit = 0.d0
-  fiti = 0.d0
-  fit2 = 0.d0
-
-!------------------------------------------------------------------------------
-  ! Zero all elements of these sequence types
-  ener       = null_state_rec
-  enert      = null_state_rec
-  enert2     = null_state_rec
-  enert_old  = null_state_rec
-  enert2_old = null_state_rec
-  edvdl      = null_state_rec
-  edvdl_r    = null_state_rec
-
-!------------------------------------------------------------------------------
-
-  ener%kin%pres_scale_solt = 1.d0
-  ener%kin%pres_scale_solv = 1.d0
-  ener%box(1:3) = box(1:3)
-  ener%cmt(1:4) = 0.d0
-  nitp = 0
-  nits = 0
-  ekhf = 0.0d0
-  ekhf2 = 0.0d0
-
-!------------------------------------------------------------------------------
-#ifdef PLUMED
-  ! PLUMED initialization.  PLUMED is an open-source plugin that
-  ! confers the functionality of a number of enhanced sampling methods.
-  if (plumed == 1) then
-#   include "Plumed_init.inc"
-  endif
-#endif
-  ! }}}
-
-!------------------------------------------------------------------------------
+  if (init == 3 .or. nstlim == 0) then
   ! Make a first dynamics step. {{{
   ! init = 3: general startup if not continuing a previous run
-  if (init == 3 .or. nstlim == 0) then
 
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
@@ -536,21 +318,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !----------------------------------------------------------------------------
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-    ! Write information concerning constant PH molecular dynamics
-    if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. master .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-      call cnstphwrite(rem,remd_types,replica_indexes)
-    end if
-
-!------------------------------------------------------------------------------
-    ! Write information concerning constant Redox potential molecular dynamics
-    if (icnste /= 0 .and. .not. cpein_specified .and. master .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-      call cnstewrite(rem,remd_types,replica_indexes)
-    end if
 
 !------------------------------------------------------------------------------
 
@@ -751,9 +518,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ener%tot = ener%kin%tot + ener%pot%tot
 #endif /* LES */
 
-  end if
   ! This ends a HUGE conditional branch in which init == 3, general startup
   ! when not continuing a previous dynamics run.  }}}
+  end if
 
 !------------------------------------------------------------------------------
   ! Continue init=3 or start init=4: {{{
@@ -769,6 +536,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekmhles = 0.0d0
 #endif /* LES */
 
+  ! kinetic energy calculation:
   i3 = 0
   do j = 1, nrp
     aamass = amass(j)
@@ -813,11 +581,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
-  ! If init .ne. 4, or only one step, or ABF QM/MM {{{
   if (init .ne. 4 .or. nstlim == 0) then
+  ! More setup {{{
 
     ! Print the initial energies and temperatures
-#ifdef RISMSANDER
 
     if (rismprm%rism == 1 .and. rismprm%write_thermo==1 .and. &
         nstep <= 0 .and. facc .ne. 'A') then
@@ -829,7 +596,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         end if
       end if
     end if
-#endif /* RISMSANDER */
+
     if (nstep <= 0 .and. master .and. facc .ne. 'A') then
       if (isgld > 0) call sgenergy(ener)
       rewind(7)
@@ -866,8 +633,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       return
     end if
     init = 4
-  end if
   ! End of contingencies primarily related to init not equal to 4 }}}
+  end if
 
 !------------------------------------------------------------------------------
 
@@ -885,61 +652,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   260 continue
   onstep = mod(irespa,nrespa) == 0
 
-  ! Constant pH/redox setup  {{{
-  ! Deciding if in the current step we are gonna perform a constant pH titration
-  ! attempt and/or a constant Redox potential titration attempt
-  if (icnstph .gt. 0 .or. (icnste .gt. 0 .and. cpein_specified)) then
-    on_cpstep = mod(irespa + nstlim*mdloop, ntcnstph) == 0
-  end if
-  if (icnste .gt. 0 .and. .not. cpein_specified) then
-    on_cestep = mod(irespa + nstlim*mdloop, ntcnste) == 0
-  end if
-
-  if ((icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-    if (ntnb == 1) then ! rebuild pairlist
-      call cnstphupdatepairs(x)
-    end if
-    if (on_cpstep) then
-      if (icnstph .eq. 1 .or. (icnste .eq. 1 .and. cpein_specified)) then
-        call cnstphbeginstep(xx(l190))
-      else
-        call cnstph_explicitmd(xx, ix, ih, ipairs, x, winv, amass, f, v, &
-                               vold, xr, xc, conp, skip, nsp, tma, erstop, &
-                               qsetup, do_list_update,rem,remd_types,replica_indexes)
-      end if
-    end if
-  end if
-
-  ! If constant pH and constant Redox potential titration attempts 
-  ! are performed in the same step for implicit solvent, then we 
-  ! need to compute gb_pot_ene here and finish constant pH
-  if (on_cpstep .and. icnstph == 1 .and. &
-      on_cestep .and. icnste == 1 .and. .not. cpein_specified) then
-    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-               xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-    call cnstphendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solvph, solve)
-    if (master) call cnstphwrite(rem,remd_types,replica_indexes)
-  end if
-
-  ! Constant Redox potential setup 
-  if (icnste /= 0 .and. .not. cpein_specified .and. &
-      ((rem /= 0 .and. mdloop > 0) .or. rem == 0)) then
-    if (on_cestep) then
-      if (icnste .eq. 1) then
-        call cnstebeginstep(xx(l190))
-      else
-        call cnste_explicitmd(xx, ix, ih, ipairs, x, winv, amass, f, v, &
-                              vold, xr, xc, conp, skip, nsp, tma, erstop, &
-                              qsetup, do_list_update,rem,remd_types,replica_indexes)
-      end if
-    end if
-  end if
-  ! }}}
-
 !------------------------------------------------------------------------------
-  ! Step 1a: do some setup for pressure calculations: {{{
+  ! Step 1a: initial trial move for MC barostat: {{{
 
   ! If we're using the MC barostat, do the trial move now
   if (ntp > 0 .and. barostat == 2 .and. mod(total_nstep+1, mcbarint) == 0) &
@@ -968,25 +682,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
              xx(l98), xx(l99), qsetup, do_list_update, nstep)
 
 !------------------------------------------------------------------------------
-
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Constant pH transition evaluation for GB CpHMD (not explicit CpHMD) {{{
-  if ((icnstph == 1 .or. (icnste == 1 .and. cpein_specified)) .and. on_cpstep .and. &
-      .not. on_cestep) then
-    call cnstphendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solvph, solve)
-    if (master) call cnstphwrite(rem,remd_types,replica_indexes)
-  end if
-
-  ! Constant Redox potential transition evaluation for GB CEMD (not explicit CEMD)
-  if (icnste == 1 .and. .not. cpein_specified .and. on_cestep) then
-    call cnsteendstep(xx(l190), xx(l15), ener%pot%dvdl, temp0, solve)
-    if (master) call cnstewrite(rem,remd_types,replica_indexes)
-  end if
-  ! }}}
-
-!------------------------------------------------------------------------------
 #ifdef PLUMED
   ! PLUMED force added
   if (plumed == 1) then
@@ -994,6 +689,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif
 
+  ! }}}
+
+!------------------------------------------------------------------------------
 #ifdef MPI
 !------------------------------------------------------------------------------
   ! If softcore potentials are used, collect their dvdl contributions: {{{
@@ -1024,9 +722,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Multi-state Bennet Acceptance Ratio upkeep
   if (ifmbar .ne. 0 .and. do_mbar) call bar_collect_cont()
 
-!------------------------------------------------------------------------------
-  ! Free energies using thermodynamic integration: {{{
   if (icfe .ne. 0) then
+  ! Free energies using thermodynamic integration: {{{
 
     ! First, partners exchange forces, energies, and the virial:
     if (master) then
@@ -1088,8 +785,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
                      commsander, ierr)
     end if
-  end if
   ! End contingency for free energies by Thermodynamic Integration }}}
+  end if
 #endif /* MPI */
 
 !------------------------------------------------------------------------------
@@ -1133,8 +830,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! End contingency for constant pressure conditions }}}
 
 !------------------------------------------------------------------------------
-  ! Replica Exchange Molecular Dynamics {{{
 #ifdef MPI
+  ! Replica Exchange Molecular Dynamics {{{
   ! if rem /= 0 and mdloop == 0, this is
   ! the first sander call and we don't want to actually do any MD or change the
   ! initial coordinates.  Exit here since we only wanted to get the potential
@@ -1161,8 +858,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                        ih, ipairs, qsetup, do_list_update, corrected_energy, &
                        aqmmm_flag)
   endif
-#endif /* MPI */
   ! }}}
+#endif /* MPI */
 
 !------------------------------------------------------------------------------
   ! Step 2: Do the velocity update: {{{
@@ -1188,7 +885,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
      ! for constrained MD
      if (ntc /= 1) then
-       ! @TODO what if tsgld?
        qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
@@ -1199,13 +895,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
      end if
 
   end if
-  !  }}}
 
-!------------------------------------------------------------------------------
-  ! Update EMAP rigid domains
-  if (temap) call emap_move()
-
-  ! Consider vlimit {{{
+  ! Consider vlimit
   if (vlim) then
     vmax = 0.0d0
     do i = istart3, iend3
@@ -1221,7 +912,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
               '; vmax = ', vmax
     end if
   end if
-  ! }}}
 
   !  Simple Newtonian dynamics on the "extra" variables  (why?)
   if( mytaskid == numtasks - 1 ) then
@@ -1229,6 +919,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
      end do
   endif
+  ! }}}
+
+!------------------------------------------------------------------------------
+  ! Update EMAP rigid domains
+  if (temap) call emap_move()
 
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
@@ -1272,7 +967,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Including constraint forces in self-guiding force calculation
     if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
 
-    ! Need to synchronize coordinates for linearly scaled atoms after shake
+    ! Need to synchronize coordinates after shake for TI
 #ifdef MPI
     if (icfe .ne. 0) then
       call timer_barrier( commsander )
@@ -1292,10 +987,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call timer_stop_start(TIME_DISTCRD, TIME_SHAKE)
     end if
 #endif  /* MPI */
-    ! }}}
 
 !------------------------------------------------------------------------------
-    ! Step 4b: Now fix the velocities and calculate KE. {{{
+    ! Step 4b: Now fix the velocities and calculate KE.
     ! Re-estimate the velocities from differences in positions.
     v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
@@ -1309,13 +1003,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
 
     call timer_stop(TIME_SHAKE)
+  ! }}}
   end if
   call timer_start(TIME_VERLET)
-  ! }}}
 
 !------------------------------------------------------------------------------
-  ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
   if (onstep) then
+  ! Step 4c: get the KE, averaging:  {{{
     eke = 0.d0
     ekph = 0.d0
     ekpbs = 0.d0
@@ -1352,9 +1046,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
         end do
       end do
-    !}}}
 
-    ! Sum up the partial kinetic energies: {{{
+    ! Sum up the partial kinetic energies:
 #ifdef MPI
 #  ifdef LES
     if (.not. mpi_orig .and. numtasks > 1) then
@@ -1390,6 +1083,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ekpbs = mpitmp(3)
     end if
 #  endif
+    ! }}}
 
     ! Calculate Ekin of the softcore part of the system
     if (ifsc .ne. 0) then
@@ -1412,9 +1106,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekphles = ekphles * 0.5d0
 #endif /* LES */
   ! End contingency for onstep; end of step 4c
-  !    (also: end of big section devoted to estimating the kinetic energy) }}}
-  end if
   ! }}}
+  end if
 
 !------------------------------------------------------------------------------
   ! Step 5: several tasks related to dumping of trajectory information  {{{
@@ -1482,7 +1175,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif
 
-#ifdef RISMSANDER
   ! Write RISM files this step?
   irismdump = .false.
   if (rismprm%rism == 1) then
@@ -1491,7 +1183,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       if (nstep + 1 >= nstlim) irismdump = .true.
     end if
   end if
-#endif
 
 #ifdef MPI
 !------------------------------------------------------------------------------
@@ -1688,7 +1379,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Step 9: output from this step if required: {{{
   !    RISM dumping: {{{
-#ifdef RISMSANDER
   ! Some 3D-RISM files require all processes to participate in output
   ! due to the distributed memory.  RISM archive:
   if (rismprm%rism == 1) then
@@ -1698,7 +1388,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         rismprm%write_thermo == 1 .and. lout)) &
       call rism_solvdist_thermo_calc(irismdump, nstep)
   end if
-#endif
    ! }}}
   !    some non-standard dumps: {{{
   if (itdump) then
@@ -1745,14 +1434,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* LES */
 !------------------------------------------------------------------------------
 
-      if ((icnstph .ne. 0 .or. (icnste .ne. 0 .and. cpein_specified)) .and. &
-          ((rem .ne. 0 .and. mdloop > 0) .or. rem == 0)) then
-        call cnstphwriterestart(chrgdat)
-      end if
-      if (icnste .ne. 0 .and. .not. cpein_specified .and. &
-          ((rem .ne. 0 .and. mdloop > 0) .or. rem == 0)) then
-        call cnstewriterestart(chrgdat_e)
-      end if
     end if
     ! End decision process for restart file writing (ixdump flag) }}}
 
@@ -1905,15 +1586,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (ntave > 0) then
       if (mod(total_nstep,ntave) == 0 .and. onstep) then
         write(6, 542)
-#ifdef RISMSANDER
         if (rismprm%rism == 1) then
           tspan = ntave / mylcm(nrespa, rismprm%rismnrespa)
         else
           tspan = ntave / nrespa
         end if
-#else
-        tspan = ntave / nrespa
-#endif /* RISMSANDER */
 
         ! Update all elements of these sequence types
         enert_tmp  = enert - enert_old
@@ -1940,15 +1617,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
           end do
         end if
 #endif
-#ifdef RISMSANDER
         if (rismprm%rism == 1) then
           write(6, 540) ntave / mylcm(nrespa, rismprm%rismnrespa)
         else
           write(6, 540) ntave/nrespa
         end if
-#else
-        write(6, 540) ntave/nrespa
-#endif /* RISMSANDER */
         call prntmd(total_nstep, t, enert_tmp, onefac, 0, .false.)
 #ifdef MPI
         if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_tmp)
@@ -1959,15 +1632,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         if (ifsc .ne. 0) call sc_print_energies(6, sc_ener_tmp2)
 #endif /* MPI */
         if (icfe > 0) then
-#ifdef RISMSANDER
           if (rismprm%rism == 1) then
             write (6, 541) ntave / mylcm(nrespa, rismprm%rismnrespa)
           else
             write (6, 541) ntave/nrespa
           end if
-#else
-          write(6,541) ntave/nrespa
-#endif /* RISMSANDER */
           edvdl_r = edvdl_r/tspan
           edvdl_r%pot%dvdl = enert_tmp%pot%dvdl  ! fix for DV/DL output
           edvdl_r%virvsene = 0.d0 ! virvsene should not but included here
@@ -2014,8 +1683,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   ! }}}
 !------------------------------------------------------------------------------
-  ! Miscellaneous stuff at the end of each step: {{{
   call timer_stop(TIME_VERLET)
+  ! Miscellaneous stuff at the end of each step: {{{
 #if !defined(DISABLE_NFE) && defined(NFE_ENABLE_BBMD)
   if (infe == 1) then
     call xdist(x, xx(lfrctmp), nr3+iscale)
@@ -2226,3 +1895,222 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
   return
 end subroutine runmd
+
+subroutine initialize_runmd(x,ix,v)
+
+  implicit none
+  integer, intent(in) :: ix(*)
+  _REAL_, intent(in) :: x(*), v(*)
+
+  ! Initialize some variables {{{
+#ifdef MPI
+  if (master) then
+    ! In Replica Exchange Molecular Dynamics (REMD), runmd will be called many
+    ! times, so we dont want to open files every time.  For normal md, mdloop
+    ! will just be 0.
+    if (mdloop .eq. 0) then
+      call amopen(7, mdinfo, 'U', 'F', facc)
+    end if
+  end if
+
+  adqmmm_first_energy = 0.d0
+#else
+  call amopen(7, mdinfo, 'U', 'F', 'W')
+#endif
+
+  vlim = (vlimit > small)
+  ntcmt = 0
+  izero = 0
+  belly = (ibelly > 0)
+  lout = .true.
+  loutfm = (ioutfm <= 0)
+  nr = nrp
+  nr3 = 3*nr
+  ekmh = 0.d0
+
+  aqmmm_flag = 0
+  etot_save = 0.d0
+  pres0x = 0.d0
+  pres0y = 0.d0
+  pres0z = 0.d0
+  gamma_ten_int = 0.d0
+  dtcp = 0.d0
+  dttp = 0.d0
+  ekph = 0.d0
+  ekpbs = 0.d0
+  eke = 0.d0
+
+#ifdef LES
+  ekmhles = 0.d0
+#endif
+  do_list_update = .false.
+#ifdef MPI
+  if (mpi_orig) then
+    istart = 1
+    iend = natom
+  else
+    istart = iparpt(mytaskid) + 1
+    iend = iparpt(mytaskid+1)
+  end if
+#else
+  istart = 1
+  iend = nr
+#endif
+  istart3 = 3*istart -2
+  iend3 = 3*iend
+  if( mytaskid == numtasks -1 )  iend3 = iend3 + iscale
+
+  if( ntc>1 ) allocate (xold(3*natom+iscale))
+#ifdef MPI
+  if (icfe /= 0) then
+    allocate(frcti(nr3 + 3*extra_atoms), stat=ierr)
+    REQUIRE(ierr == 0)
+  end if
+#endif
+
+  ! If ntwprt.NE.0, only print the atoms up to this value
+  nrx = nr3
+  if (ntwprt > 0) nrx = ntwprt*3
+
+  ! Cleanup the velocity if belly run
+  if (belly) call bellyf(nr,ix(ibellygp),v)
+  ! Determine system degrees of freedom (for T scaling, reporting)
+#   include "degcnt.inc"
+
+!   }}}
+
+!------------------------------------------------------------------------------
+!    Pressure/temp units  {{{
+  ! Begin unit conversion.  pconv eventually becomes a factor to convert
+  ! pressure in kcal/mole-A^3 to bar.
+  boltz2 = 8.31441d-3 * 0.5d0
+  pconv = 1.6604345d+04
+  boltz2 = boltz2/4.184d0
+  dtx = dt*20.455d+00
+  dtxinv = 1.0d0 / dtx
+  dt5 = dtx * 0.5d0
+  pconv = pconv*4.184d0
+
+  ! fac() are #deg freedom * kboltz / 2.  Multiply by T to get the expected
+  ! kinetic energy.  fac(1) is for the entire system.
+  fac(1) = boltz2*rndf
+  fac(2) = boltz2*rndfp
+  if (rndfp < 0.1d0) fac(2) = 1.d-6
+
+#ifdef LES
+  ! Replaced solvent variables with LES ones
+  ! since separate solvent coupling no longer used
+  ! ASSUME SAME COUPLING CONSTANT FOR BOTH BATHS, just different target T
+
+  ! will also have to accumulate LES and non-LES kinetic energies separately
+  if (temp0les < 0.d0) then
+    fac(3) = boltz2*rndfs
+    if (rndfs < 0.1d0) fac(3) = 1.d-6
+  else
+    fac(3) = boltz2*rndfles
+    if (rndfles < 0.1d0) fac(3) = 1.d-6
+  end if
+#else
+  fac(3) = boltz2*rndfs
+  if (rndfs < 0.1d0) fac(3) = 1.d-6
+#endif
+  onefac(1) = 1.0d0 / fac(1)
+  onefac(2) = 1.0d0 / fac(2)
+  onefac(3) = 1.0d0 / fac(3)
+  factt = rndf/(rndf+ndfmin)
+
+  ! These are "desired" kinetic energies based on the number of
+  ! degrees of freedom and target temperature.  They will be used
+  ! for calculating the velocity scaling factor
+  ekinp0 = fac(2)*temp0
+#ifdef LES
+
+  ! Modified for LES temperature
+  ekins0=0.d0
+  ekinles0=0.d0
+  if (temp0les < 0.d0) then
+    ekins0 = fac(3) * temp0
+    ekin0  = fac(1) * temp0
+    if (master) &
+      write (6,*) "Single temperature bath for LES and non-LES"
+  else
+    ekinles0 = fac(3)*temp0les
+    ekin0  = ekinp0 + ekinles0
+    if (master) then
+      write (6,*) "LES particles coupled to separate bath"
+      write (6,'(a,f8.2)')"    LES target temperature:    ",temp0les
+      write (6,'(a,f8.2)')"    LES target kinetic energy: ",ekinles0
+      write (6,'(a,f8.2)')"non-LES target temperature:    ",temp0
+      write (6,'(a,f8.2)')"non-LES target kinetic energy: ",ekinp0
+    end if
+  end if
+#else
+  ekins0 = fac(3)*temp0
+  ekin0  = fac(1)*temp0
+#endif
+  ! }}}
+
+!------------------------------------------------------------------------------
+  !    Langevin dynamics setup  {{{
+  if (nscm > 0) then
+     if (ifbox == 0) then
+        call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
+#ifdef MPI
+        ! Soft core position mixing
+        if (ifsc == 1) call sc_mix_position(sysx, sysy, sysz, clambda)
+#endif /* MPI */
+     end if ! ifbox==0: non-periodic
+  end if ! nscm is enabled
+  ! }}}
+
+  !   General initialization:  {{{
+  nrek = 4
+  nrep = 15
+
+  nvalid = 0
+  nvalidi = 0
+  nstep = 0
+  total_nstep = 0
+#ifdef MPI
+  ! For REMD, total_nstep is the number of steps * the number of exchanges
+  ! we've already attempted
+  if (rem .ne. 0) total_nstep = (mdloop - 1) * nstlim
+#endif /* MPI */
+  fit = 0.d0
+  fiti = 0.d0
+  fit2 = 0.d0
+
+!------------------------------------------------------------------------------
+  ! Zero all elements of these sequence types
+  ener       = null_state_rec
+  enert      = null_state_rec
+  enert2     = null_state_rec
+  enert_old  = null_state_rec
+  enert2_old = null_state_rec
+  edvdl      = null_state_rec
+  edvdl_r    = null_state_rec
+
+!------------------------------------------------------------------------------
+
+  ener%kin%pres_scale_solt = 1.d0
+  ener%kin%pres_scale_solv = 1.d0
+  ener%box(1:3) = box(1:3)
+  ener%cmt(1:4) = 0.d0
+  nitp = 0
+  nits = 0
+  ekhf = 0.0d0
+  ekhf2 = 0.0d0
+
+!------------------------------------------------------------------------------
+#ifdef PLUMED
+  ! PLUMED initialization.  PLUMED is an open-source plugin that
+  ! confers the functionality of a number of enhanced sampling methods.
+  if (plumed == 1) then
+#   include "Plumed_init.inc"
+  endif
+#endif
+  ! }}}
+
+end subroutine initialize_runmd
+
+end module runmd_module

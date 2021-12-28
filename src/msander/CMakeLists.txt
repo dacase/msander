@@ -214,9 +214,6 @@ set(AMBMASK_SOURCE ambmask.F90 findmask.F90 amopen.F90 parms.F90 memory_module.F
 set(PLUMED_SOURCE Plumed.c)
 
 if(USE_FFT)
-	#tell sander to enable rism interop
-	add_definitions(-DRISMSANDER)
-	
 	set(RISM_SANDER_IFACE $<TARGET_OBJECTS:sander_rism_interface>)
 	set(RISM_SANDER_IFACE_MPI $<TARGET_OBJECTS:sander_rism_interface_mpi>)
 else()

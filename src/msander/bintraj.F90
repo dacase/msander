@@ -38,7 +38,6 @@ end subroutine check_atom_mismatch
 !+ Open the coordinate, velocity file(s)
 subroutine open_binary_files
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use file_io_dat
 #  ifdef MPI
       use remd, only: rem
@@ -170,10 +169,6 @@ subroutine open_binary_files
       frc_ncid = crd_ncid
       frc_frame = crd_frame
    end if
-#else
-   call NC_NoNetcdfError(6)
-   call mexit(6,1)
-#endif
 end subroutine open_binary_files
 !----------------------------------------------------------------------
 
@@ -188,7 +183,6 @@ subroutine setup_remd_indices
    use file_io_dat, only: ioutfm
 #endif
    implicit none
-#ifdef BINTRAJ
 #  ifdef MPI
    if ( ioutfm.ne.0 ) then
       if ( NC_defineRemdIndices(crd_ncid, remd_dimension, remd_indices_var_id, &
@@ -200,10 +194,6 @@ subroutine setup_remd_indices
          call mexit(6,1)
    endif
 #  endif
-#else
-   call NC_NoNetcdfError(6)
-   call mexit(6,1)
-#endif
    return
 end subroutine setup_remd_indices
 
@@ -211,7 +201,6 @@ end subroutine setup_remd_indices
 !+ Close the binary coordinate, velocity file(s).
 subroutine close_binary_files
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use file_io_dat
 
    implicit none
@@ -220,17 +209,11 @@ subroutine close_binary_files
    if (ntwv > 0) call NC_close(vel_ncid)
    if (ntwf > 0) call NC_close(frc_ncid)
 
-#else
-   call NC_NoNetcdfError(6)
-   call mexit(6,1)
-#endif
-
 end subroutine close_binary_files
 !----------------------------------------------------------------------
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Emit coordinates or velocities, r(istart:n), to  netcdf.
-#ifdef BINTRAJ
 subroutine write_binary_traj(r,istart,n,unit) ! FIXME: Split into crd,vel,box
    use file_io_dat
    use netcdf
@@ -340,23 +323,12 @@ subroutine write_binary_traj(r,istart,n,unit) ! FIXME: Split into crd,vel,box
 
 end subroutine write_binary_traj
 
-#else
-subroutine write_binary_traj(r,istart,n,unit)
-   use AmberNetcdf_mod
-   integer, intent(in) :: istart,n,unit
-   _REAL_, intent(in) ::  r(n)
-   call NC_NoNetcdfError(6)
-   call mexit(6,1)
-end subroutine write_binary_traj
-#endif
-
 !-----------------------------------------------------------------------
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Write scalar data and increment frame counter
 subroutine end_binary_frame(unit)
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use file_io_dat
    use netcdf
    implicit none
@@ -389,12 +361,6 @@ subroutine end_binary_frame(unit)
       case default
          write (6,*) 'Error: unhandled unit ',unit,' selected for end frame in bintraj'
    end select
-
-#else
-   integer, intent(in) :: unit
-   call NC_NoNetcdfError(6)
-   call mexit(6,1)
-#endif
 
 end subroutine end_binary_frame
 

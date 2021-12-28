@@ -31,12 +31,21 @@ are expected to be in structure refinements using NMR, cryoEM or
 Xray diffraction information.  This version has a fair amount of OpenMP
 support, especially for Xray and 3D-RISM calculations.
 
+* This project is also the source for the phenix_amber project, which explains
+why non-sander things like tleap, antechamber, etc. are here.
+
+* Since this code is based on sander, tons of people have been involved in its
+creation over the years.  See https://ambermd.org/contributors.html for more
+information, although even that gets out of date.
+
+# Key differences in functionality versus sander
+
 * Some pieces are missing from the sander program in AmberTools:
 
   * Things that should be easy to re-introduce later: emil, sebomd, pbsa, APBS
 
   * Things are are problably gone for good, but which don't represent the best
-current program practice: Path-integral methods, thermostats that don't follow
+current practice: Path-integral methods, thermostats that don't follow
 the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
@@ -64,7 +73,8 @@ simulations
 ```
    conda build [ --python x.x ] recipe 
       (note: you should have conda-forge at the top of your channel
-       list in ~/.condarc)
+      list in ~/.condarc.  This build creates the conda package used
+      in the phenix_amber project, but the package could also have other uses.)
 ```
 
 *Non-conda build  (MacOSX, Linux, probably WSL):
