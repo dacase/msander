@@ -3504,6 +3504,7 @@ end subroutine hremd_exchange
 !+ Performs pH exchanges
 subroutine ph_remd_exchange(rem_dim, solvph)
 
+   use constants, only : LN_TO_LOG, TWO
    implicit none
 
 #  include "parallel.h"
