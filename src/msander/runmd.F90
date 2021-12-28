@@ -306,10 +306,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   call initialize_runmd(x,ix,v)
 
-!------------------------------------------------------------------------------
+  if (init == 3 .or. nstlim == 0) then
   ! Make a first dynamics step. {{{
   ! init = 3: general startup if not continuing a previous run
-  if (init == 3 .or. nstlim == 0) then
 
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
@@ -519,9 +518,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ener%tot = ener%kin%tot + ener%pot%tot
 #endif /* LES */
 
-  end if
   ! This ends a HUGE conditional branch in which init == 3, general startup
   ! when not continuing a previous dynamics run.  }}}
+  end if
 
 !------------------------------------------------------------------------------
   ! Continue init=3 or start init=4: {{{
@@ -582,8 +581,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 
 !------------------------------------------------------------------------------
-  ! If init .ne. 4, or only one step {{{
   if (init .ne. 4 .or. nstlim == 0) then
+  ! More setup {{{
 
     ! Print the initial energies and temperatures
 
@@ -634,8 +633,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       return
     end if
     init = 4
-  end if
   ! End of contingencies primarily related to init not equal to 4 }}}
+  end if
 
 !------------------------------------------------------------------------------
 
@@ -654,7 +653,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   onstep = mod(irespa,nrespa) == 0
 
 !------------------------------------------------------------------------------
-  ! Step 1a: do some setup for pressure calculations: {{{
+  ! Step 1a: initial trial move for MC barostat: {{{
 
   ! If we're using the MC barostat, do the trial move now
   if (ntp > 0 .and. barostat == 2 .and. mod(total_nstep+1, mcbarint) == 0) &
@@ -683,10 +682,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
              xx(l98), xx(l99), qsetup, do_list_update, nstep)
 
 !------------------------------------------------------------------------------
-
-  ! }}}
-
-!------------------------------------------------------------------------------
 #ifdef PLUMED
   ! PLUMED force added
   if (plumed == 1) then
@@ -694,6 +689,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   end if
 #endif
 
+  ! }}}
+
+!------------------------------------------------------------------------------
 #ifdef MPI
 !------------------------------------------------------------------------------
   ! If softcore potentials are used, collect their dvdl contributions: {{{
@@ -724,9 +722,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Multi-state Bennet Acceptance Ratio upkeep
   if (ifmbar .ne. 0 .and. do_mbar) call bar_collect_cont()
 
-!------------------------------------------------------------------------------
-  ! Free energies using thermodynamic integration: {{{
   if (icfe .ne. 0) then
+  ! Free energies using thermodynamic integration: {{{
 
     ! First, partners exchange forces, energies, and the virial:
     if (master) then
@@ -788,8 +785,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
                      commsander, ierr)
     end if
-  end if
   ! End contingency for free energies by Thermodynamic Integration }}}
+  end if
 #endif /* MPI */
 
 !------------------------------------------------------------------------------
@@ -833,8 +830,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! End contingency for constant pressure conditions }}}
 
 !------------------------------------------------------------------------------
-  ! Replica Exchange Molecular Dynamics {{{
 #ifdef MPI
+  ! Replica Exchange Molecular Dynamics {{{
   ! if rem /= 0 and mdloop == 0, this is
   ! the first sander call and we don't want to actually do any MD or change the
   ! initial coordinates.  Exit here since we only wanted to get the potential
@@ -861,8 +858,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
                        ih, ipairs, qsetup, do_list_update, corrected_energy, &
                        aqmmm_flag)
   endif
-#endif /* MPI */
   ! }}}
+#endif /* MPI */
 
 !------------------------------------------------------------------------------
   ! Step 2: Do the velocity update: {{{
@@ -888,7 +885,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
      ! for constrained MD
      if (ntc /= 1) then
-       ! @TODO what if tsgld?
        qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
@@ -899,13 +895,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
      end if
 
   end if
-  !  }}}
 
-!------------------------------------------------------------------------------
-  ! Update EMAP rigid domains
-  if (temap) call emap_move()
-
-  ! Consider vlimit {{{
+  ! Consider vlimit
   if (vlim) then
     vmax = 0.0d0
     do i = istart3, iend3
@@ -921,7 +912,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
               '; vmax = ', vmax
     end if
   end if
-  ! }}}
 
   !  Simple Newtonian dynamics on the "extra" variables  (why?)
   if( mytaskid == numtasks - 1 ) then
@@ -929,6 +919,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
         v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
      end do
   endif
+  ! }}}
+
+!------------------------------------------------------------------------------
+  ! Update EMAP rigid domains
+  if (temap) call emap_move()
 
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
@@ -972,7 +967,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! Including constraint forces in self-guiding force calculation
     if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
 
-    ! Need to synchronize coordinates for linearly scaled atoms after shake
+    ! Need to synchronize coordinates after shake for TI
 #ifdef MPI
     if (icfe .ne. 0) then
       call timer_barrier( commsander )
@@ -992,10 +987,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       call timer_stop_start(TIME_DISTCRD, TIME_SHAKE)
     end if
 #endif  /* MPI */
-    ! }}}
 
 !------------------------------------------------------------------------------
-    ! Step 4b: Now fix the velocities and calculate KE. {{{
+    ! Step 4b: Now fix the velocities and calculate KE.
     ! Re-estimate the velocities from differences in positions.
     v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
@@ -1009,13 +1003,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
 
     call timer_stop(TIME_SHAKE)
+  ! }}}
   end if
   call timer_start(TIME_VERLET)
-  ! }}}
 
 !------------------------------------------------------------------------------
-  ! Step 4c: get the KE, either for averaging or for Berendsen:  {{{
   if (onstep) then
+  ! Step 4c: get the KE, averaging:  {{{
     eke = 0.d0
     ekph = 0.d0
     ekpbs = 0.d0
@@ -1052,9 +1046,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
         end do
       end do
-    !}}}
 
-    ! Sum up the partial kinetic energies: {{{
+    ! Sum up the partial kinetic energies:
 #ifdef MPI
 #  ifdef LES
     if (.not. mpi_orig .and. numtasks > 1) then
@@ -1090,6 +1083,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ekpbs = mpitmp(3)
     end if
 #  endif
+    ! }}}
 
     ! Calculate Ekin of the softcore part of the system
     if (ifsc .ne. 0) then
@@ -1112,9 +1106,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ekphles = ekphles * 0.5d0
 #endif /* LES */
   ! End contingency for onstep; end of step 4c
-  !    (also: end of big section devoted to estimating the kinetic energy) }}}
-  end if
   ! }}}
+  end if
 
 !------------------------------------------------------------------------------
   ! Step 5: several tasks related to dumping of trajectory information  {{{
@@ -1690,8 +1683,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   ! }}}
 !------------------------------------------------------------------------------
-  ! Miscellaneous stuff at the end of each step: {{{
   call timer_stop(TIME_VERLET)
+  ! Miscellaneous stuff at the end of each step: {{{
 #if !defined(DISABLE_NFE) && defined(NFE_ENABLE_BBMD)
   if (infe == 1) then
     call xdist(x, xx(lfrctmp), nr3+iscale)
