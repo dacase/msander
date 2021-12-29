@@ -691,103 +691,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
   ! }}}
 
-!------------------------------------------------------------------------------
 #ifdef MPI
-!------------------------------------------------------------------------------
-  ! If softcore potentials are used, collect their dvdl contributions: {{{
-  if (ifsc .ne. 0) then
-    call mpi_reduce(sc_dvdl, sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, MPI_SUM, &
-                    0, commsander, ierr)
-    sc_dvdl=0.0d0 ! zero for next step
-    call mpi_reduce(sc_dvdl_ee, sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, &
-                    MPI_SUM, 0, commsander, ierr)
-    sc_dvdl_ee = 0.0d0 ! zero for next step
-    call mpi_reduce(sc_ener, sc_ener_tmp, ti_ene_cnt, MPI_DOUBLE_PRECISION, &
-                    MPI_SUM, 0, commsander, ierr)
-    sc_ener(1:ti_ene_cnt) = sc_ener_tmp(1:ti_ene_cnt)
-  end if
-  if (ifsc == 2) then
-
-    ! If this is a perturb to nothing run, scale forces and calculate dvdl
-    call sc_nomix_frc(f,nr3,ener)
-    if (numtasks > 1) then
-      call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-      call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
-                     commsander, ierr)
-    end if
-  end if
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Multi-state Bennet Acceptance Ratio upkeep
-  if (ifmbar .ne. 0 .and. do_mbar) call bar_collect_cont()
-
-  if (icfe .ne. 0) then
-  ! Free energies using thermodynamic integration: {{{
-
-    ! First, partners exchange forces, energies, and the virial:
-    if (master) then
-      partner = ieor(masterrank, 1)
-      call mpi_sendrecv(f, nr3, MPI_DOUBLE_PRECISION, partner, 5, frcti, &
-                        nr3 + 3*extra_atoms, MPI_DOUBLE_PRECISION, partner, &
-                        5, commmaster, ist, ierr )
-      call mpi_sendrecv(ener, state_rec_len, MPI_DOUBLE_PRECISION, partner, &
-                        5, ecopy, state_rec_len, MPI_DOUBLE_PRECISION, &
-                        partner, 5, commmaster, ist, ierr)
-
-      ! Exchange sc-dvdl contributions between masters:
-      call mpi_sendrecv(sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, partner, 5, &
-                        sc_tot_dvdl_partner, 1, MPI_DOUBLE_PRECISION, &
-                        partner, 5, commmaster, ist, ierr)
-      call mpi_sendrecv(sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, partner, 5, &
-                        sc_tot_dvdl_partner_ee, 1, MPI_DOUBLE_PRECISION, &
-                        partner, 5, commmaster, ist, ierr )
-
-      ! Collect statistics for free energy calculations
-      if (onstep) then
-        if (masterrank == 0) then
-          if (klambda == 1) then
-            edvdl = edvdl - ener + ecopy
-            edvdl_r = edvdl_r - ener + ecopy
-          else
-            clfac = klambda*(1.d0 - clambda)**(klambda-1)
-            edvdl = edvdl - (ener - ecopy)*clfac
-            edvdl_r = edvdl_r - (ener - ecopy)*clfac
-          end if
-        else
-          if (klambda == 1) then
-            edvdl = edvdl + ener - ecopy
-            edvdl_r = edvdl_r + ener - ecopy
-          else
-            clfac = klambda*(1.d0 - clambda)**(klambda-1)
-            edvdl = edvdl + (ener - ecopy)*clfac
-            edvdl_r = edvdl_r + (ener - ecopy)*clfac
-          end if
-        end if
-
-        ! This includes the sc-dvdl contribution into the vdw-part
-        ! and potential energy parts of the dvdl-statistics
-        if (ifsc == 1) call adj_dvdl_stat(edvdl, edvdl_r)
-      end if
-
-      ! Do energy collection for MBAR FEP runs
-      if (ifmbar .ne. 0 .and. do_mbar) &
-        call calc_mbar_energies(ener%pot%tot, ecopy%pot%tot)
-      if (masterrank == 0) then
-        call mix_frcti(frcti, ecopy, f, ener, nr3, clambda, klambda)
-      else
-        call mix_frcti(f, ener, frcti, ecopy, nr3, clambda, klambda)
-      endif
-    endif
-
-    if (numtasks > 1) then
-      call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-      call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
-                     commsander, ierr)
-    end if
-  ! End contingency for free energies by Thermodynamic Integration }}}
-  end if
-#endif /* MPI */
+   call thermodynamic_integration(f)
+#endif
 
 !------------------------------------------------------------------------------
   ! Reset quantities depending on TEMP0 and TAUTP  {{{
@@ -2112,5 +2018,108 @@ subroutine initialize_runmd(x,ix,v)
   ! }}}
 
 end subroutine initialize_runmd
+
+subroutine thermodynamic_integration(f)
+
+   implicit none
+   _REAL_, intent(inout) :: f(nr3)
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+  ! If softcore potentials are used, collect their dvdl contributions: {{{
+  if (ifsc .ne. 0) then
+    call mpi_reduce(sc_dvdl, sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, MPI_SUM, &
+                    0, commsander, ierr)
+    sc_dvdl=0.0d0 ! zero for next step
+    call mpi_reduce(sc_dvdl_ee, sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, &
+                    MPI_SUM, 0, commsander, ierr)
+    sc_dvdl_ee = 0.0d0 ! zero for next step
+    call mpi_reduce(sc_ener, sc_ener_tmp, ti_ene_cnt, MPI_DOUBLE_PRECISION, &
+                    MPI_SUM, 0, commsander, ierr)
+    sc_ener(1:ti_ene_cnt) = sc_ener_tmp(1:ti_ene_cnt)
+  end if
+  if (ifsc == 2) then
+
+    ! If this is a perturb to nothing run, scale forces and calculate dvdl
+    call sc_nomix_frc(f,nr3,ener)
+    if (numtasks > 1) then
+      call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
+      call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
+                     commsander, ierr)
+    end if
+  end if
+  ! }}}
+
+!------------------------------------------------------------------------------
+  ! Multi-state Bennet Acceptance Ratio upkeep
+  if (ifmbar .ne. 0 .and. do_mbar) call bar_collect_cont()
+
+  if (icfe .ne. 0) then
+  ! Free energies using thermodynamic integration: {{{
+
+    ! First, partners exchange forces, energies, and the virial:
+    if (master) then
+      partner = ieor(masterrank, 1)
+      call mpi_sendrecv(f, nr3, MPI_DOUBLE_PRECISION, partner, 5, frcti, &
+                        nr3 + 3*extra_atoms, MPI_DOUBLE_PRECISION, partner, &
+                        5, commmaster, ist, ierr )
+      call mpi_sendrecv(ener, state_rec_len, MPI_DOUBLE_PRECISION, partner, &
+                        5, ecopy, state_rec_len, MPI_DOUBLE_PRECISION, &
+                        partner, 5, commmaster, ist, ierr)
+
+      ! Exchange sc-dvdl contributions between masters:
+      call mpi_sendrecv(sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, partner, 5, &
+                        sc_tot_dvdl_partner, 1, MPI_DOUBLE_PRECISION, &
+                        partner, 5, commmaster, ist, ierr)
+      call mpi_sendrecv(sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, partner, 5, &
+                        sc_tot_dvdl_partner_ee, 1, MPI_DOUBLE_PRECISION, &
+                        partner, 5, commmaster, ist, ierr )
+
+      ! Collect statistics for free energy calculations
+      if (onstep) then
+        if (masterrank == 0) then
+          if (klambda == 1) then
+            edvdl = edvdl - ener + ecopy
+            edvdl_r = edvdl_r - ener + ecopy
+          else
+            clfac = klambda*(1.d0 - clambda)**(klambda-1)
+            edvdl = edvdl - (ener - ecopy)*clfac
+            edvdl_r = edvdl_r - (ener - ecopy)*clfac
+          end if
+        else
+          if (klambda == 1) then
+            edvdl = edvdl + ener - ecopy
+            edvdl_r = edvdl_r + ener - ecopy
+          else
+            clfac = klambda*(1.d0 - clambda)**(klambda-1)
+            edvdl = edvdl + (ener - ecopy)*clfac
+            edvdl_r = edvdl_r + (ener - ecopy)*clfac
+          end if
+        end if
+
+        ! This includes the sc-dvdl contribution into the vdw-part
+        ! and potential energy parts of the dvdl-statistics
+        if (ifsc == 1) call adj_dvdl_stat(edvdl, edvdl_r)
+      end if
+
+      ! Do energy collection for MBAR FEP runs
+      if (ifmbar .ne. 0 .and. do_mbar) &
+        call calc_mbar_energies(ener%pot%tot, ecopy%pot%tot)
+      if (masterrank == 0) then
+        call mix_frcti(frcti, ecopy, f, ener, nr3, clambda, klambda)
+      else
+        call mix_frcti(f, ener, frcti, ecopy, nr3, clambda, klambda)
+      endif
+    endif
+
+    if (numtasks > 1) then
+      call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
+      call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
+                     commsander, ierr)
+    end if
+  ! End contingency for free energies by Thermodynamic Integration }}}
+  end if
+
+end subroutine thermodynamic_integration
 
 end module runmd_module
