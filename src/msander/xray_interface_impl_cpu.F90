@@ -136,7 +136,6 @@ contains
       ! local
       character(len=32) :: fmt
       integer :: ierr
-      logical :: master=.true.
 
       ! if (pdb_outfile /= '') then
          num_atoms = natom
@@ -189,7 +188,7 @@ contains
       read(prmtop_lun,fmt) scatter_coefficients
       call nxtsec(prmtop_lun,out_lun,1,'*','XRAY_SYMMETRY_TYPE',fmt,ierr)
       if (ierr==-2) then
-         if( master ) write(STDOUT,*) &
+         write(STDOUT,*) &
                'XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1'
          num_symmops = 1
          spacegroup_number = 1
@@ -215,7 +214,6 @@ contains
       character(len=80) :: line
       integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss
       real(real_kind), parameter :: MISSING = -999.0_rk_
-      logical :: master
       ! begin
       atom_occupancy(:)=MISSING
       call amopen(allocate_lun(unit),filename,'O','F','R')
@@ -239,7 +237,7 @@ contains
             if (atom_occupancy(i) >= 0) then
                ndup=ndup+1
                if (ndup<10) then
-                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Duplicate ATOM:', &
+                  write(stdout,'(3(A,1X),A,I4,A)') 'PDB: Duplicate ATOM:', &
                         name,resName,chainID(1:1),resSeq,iCode(1:1)
                end if
             end if
@@ -250,7 +248,7 @@ contains
       end do
       nmiss = count(atom_occupancy==MISSING)
       if (nmiss>0) then
-         if( master ) write(stdout,'(A,I4,A)') 'PDB: missing data for ',nmiss,' atoms.'
+         write(stdout,'(A,I4,A)') 'PDB: missing data for ',nmiss,' atoms.'
          j=0
          do i=1,num_atoms
             if (atom_occupancy(i)==MISSING) then
@@ -258,7 +256,7 @@ contains
                ires = residue_number(i)
                j=j+1
                if (j<=10) then
-                  if( master ) write(stdout,'(3(A,1X),A,I4,A)') &
+                  write(stdout,'(3(A,1X),A,I4,A)') &
                      'PDB: Missing ATOM:', &
                       atom_name(i),residue_label(i),residue_chainID(ires)(1:1),&
                       ires,residue_iCode(ires)(1:1)
@@ -267,7 +265,7 @@ contains
          end do
       end if
       if (nmiss==0 .and. ndup==0) then
-         if( master ) write(stdout,'(A)') 'PDB: All atoms read successfully.'
+         write(stdout,'(A)') 'PDB: All atoms read successfully.'
       end if
       close(unit)
       return
@@ -306,7 +304,7 @@ contains
    end function find_atom
 
    subroutine xray_write_pdb(filename)
-      use xray_common_module, only: owrite, title, title1
+      use xray_common_module, only: title, title1
       use memory_module, only: &
            residue_pointer,residue_label,atom_name,coordinate
       implicit none
@@ -332,11 +330,11 @@ contains
       ! GMS: Fix for pgf90 compiler
       character(len=4) :: this_residue_chainid
 
-      call amopen(allocate_lun(unit),filename,owrite,'F','R')
+      call amopen(allocate_lun(unit),filename,'U','F','R')
       call date_and_time(date,time)
       if (title/='') write(unit,'(2A)') 'REMARK  ', title
       if (title1/='') write(unit,'(2A)') 'REMARK  ', title1
-      write(unit,'(12A)') 'REMARK  Written by Amber 20, SANDER, ', &
+      write(unit,'(12A)') 'REMARK  Written by MSANDER, ', &
             date(1:4),'.',date(5:6),'.',date(7:8),'  ', &
             time(1:2),':',time(3:4),':',time(5:6)
 
@@ -405,7 +403,6 @@ contains
       real(real_kind) :: phi,a,b,c,alpha,beta,gamma
       integer :: has_f_solvent ! Keep it for compatibility with legacy input file format
 
-      logical :: master=.true.
       ! following is local: copied into f_mask in this routine, after
       !     f_mask itself is allocated.  (could be simplified)
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
@@ -414,16 +411,14 @@ contains
 
       ! get the values for ucell:
       if ( NC_checkRestart(inpcrd) ) then
-        if( master ) &
-          write(6,'(a,a)') ' getting box info from netcdf file ',trim(inpcrd)
+        write(6,'(a,a)') ' getting box info from netcdf file ',trim(inpcrd)
         call read_nc_restart_box(inpcrd,a,b,c,alpha,beta,gamma)
       else
-        if( master ) &
-          write(6,'(a,a)') ' getting box info from bottom of ',trim(inpcrd)
+        write(6,'(a,a)') ' getting box info from bottom of ',trim(inpcrd)
         call peek_ewald_inpcrd(inpcrd,a,b,c,alpha,beta,gamma)
       endif
 
-      if( master ) write(stdout,'(A,3F9.3,3F7.2)') &
+      write(stdout,'(A,3F9.3,3F7.2)') &
             'XRAY: UNIT CELL= ',a, b, c, alpha, beta, gamma
       call unit_cell%init(a, b, c, alpha, beta, gamma)
 
@@ -460,14 +455,14 @@ contains
                lbres=ih(m02),crd=x(lcrd), &
                maskstr=atom_selection_mask,mask=atom_selection)
          NAT_for_mask1 = sum(atom_selection)
-         if( master ) write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
+         write(6,'(a,i6,a,a)') 'Found ',NAT_for_mask1, &
               ' atoms in ', atom_selection_mask
          !  also ignore any atoms with zero occupancy:
          do i=1,natom
             if( atom_occupancy(i) == 0._rk_) atom_selection(i) = 0
          end do
          NAT_for_mask = sum(atom_selection)
-         if( master .and. NAT_for_mask1 /= NAT_for_mask ) &
+         if( NAT_for_mask1 /= NAT_for_mask ) &
             write(6,'(a,i4,a)') 'Removing ',NAT_for_mask1 - NAT_for_mask, &
               ' additional atoms with zero occupancy'
       end if
@@ -534,19 +529,17 @@ contains
       ! local
       integer :: i
       real(real_kind) :: phi
-      logical :: master = .true.
 
       if (.not.xray_active) return
-      
 
-      if (master .and. pdb_outfile /= '') then
+      if (pdb_outfile /= '') then
          call xray_write_pdb(trim(pdb_outfile))
       end if
-      if (master .and. fave_outfile /= '') then
+      if (fave_outfile /= '') then
          ! TODO: call xray_interface2::write_fave()
       endif
 
-      if (master .and. fmtz_outfile /= '') then
+      if (fmtz_outfile /= '') then
          ! TODO: call xray_interface2::write_mtz_file()
       endif
 

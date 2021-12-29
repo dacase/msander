@@ -57,7 +57,8 @@ subroutine sander()
 
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
            xray_read_mdin, xray_fini=>finalize ,xray_write_options
-  use xray_globals_module, only: xray_active
+  use xray_globals_module, only: xray_active,pdb_read_coordinates
+  use memory_module, only: coordinate
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -641,7 +642,7 @@ subroutine sander()
     call startup_groups(ier)
     call startup(x, ix, ih)
 
-    ! call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
+    call mpi_bcast(xray_active , 1, MPI_LOGICAL, 0, commworld, ier)
     call mpi_bcast (mdin, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
     call mpi_bcast (parm, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
     call mpi_bcast (inpcrd, MAX_FN_LEN, MPI_CHARACTER, 0, commworld, ier)
@@ -669,9 +670,7 @@ subroutine sander()
 
       ! Make sure all common atoms have the same v (that of V0) in TI runs
       if (ifsc .ne. 2) then
-        if (master) then
-          call sc_sync_x(x(lvel), nr3)
-        end if
+        if (master) call sc_sync_x(x(lvel), nr3)
         if (numtasks > 1) then
           call mpi_bcast(nr3, 1, MPI_INTEGER, 0, commsander, ier)
           call mpi_bcast(x(lvel), nr3, MPI_DOUBLE_PRECISION, &
@@ -775,6 +774,9 @@ subroutine sander()
       call xray_write_options()
       call xray_init()
     end if
+    if( xray_active ) &
+      call mpi_bcast(coordinate(1,1), 3*natom, MPI_DOUBLE_PRECISION, &
+            0, commsander, ier)
    ! }}}
 
     ! Use old parallelism for energy minimization
@@ -1241,7 +1243,7 @@ subroutine sander()
 #endif
 
   ! Finalize X-ray refinement work
-  call xray_fini()
+  if( master ) call xray_fini()
   call flush(6)
 
   if (master) then
