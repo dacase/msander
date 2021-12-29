@@ -62,31 +62,18 @@ module runmd_module
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
-
   use qmmm_module, only: qmmm_nml,qmmm_struct, qmmm_mpi, qm2_struct
-
 #ifdef MPI
   use qmmm_module, only: qmmm_vsolv
 #endif /* MPI */
-
   use file_io_dat
   use constants, only: third, ten_to_minus3
   use stack
-
   use fastwt
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
-
-  use sgld, only: isgld, sgenergy, sgfshake, sgldw, sgmdw
-
-#ifdef LES
-  ! Self-Guided molecular/Langevin Dynamics (SGLD)
-  use les_data, only: cnum, temp0les, tempsules, scaltles, ekeles, &
-                      ekinles0, ekmhles, ekphles, rndfles
-#else
-  use sgld, only: isgsta,isgend,sg_fix_degree_count
-#endif
-
+  use sgld, only: isgld, sgenergy, sgfshake, sgldw, sgmdw,  &
+                  isgsta,isgend,sg_fix_degree_count
 #ifdef MPI
   use remd, only: rem, mdloop, remd_ekmh, repnum, stagid, my_remd_data, &
                   hybrid_remd_ene, next_rem_method, remd_types, replica_indexes, &
@@ -171,10 +158,7 @@ module runmd_module
 #include "def_time.h"
 #include "extra_pts.h"
 
-#ifdef LES
-#else
   _REAL_ sgsta_rndfp, sgend_rndfp, ignore_solvent
-#endif
   _REAL_ sysx, sysy, sysz, sysrange(3,2)
   logical mv_flag
 
@@ -214,7 +198,7 @@ module runmd_module
   _REAL_ rmu(3), fac(3), onefac(3), etot_start
   _REAL_ tspan, atempdrop, fln, scaltp
   _REAL_ vel, vel2, vcmx, vcmy, vcmz, vmax
-  _REAL_ winf, aamass, rterm, ekmh, ekph, wfac, rsd
+  _REAL_ winf, aamass, ekmh, ekph, wfac, rsd
   _REAL_ fit, fiti, fit2
 
   ! Variables to control a Langevin dynamics simulation
@@ -317,7 +301,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     iprint = 1
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
-    call modwt_reset()  ! since TEMP0 might have been updated
 
     ! This force call does not count as a "step". CALL NMRDCP to decrement
     ! local NMR step counter and MTMDUNSTEP to decrease the local MTMD step
@@ -357,9 +340,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ntnb = 0
     i3 = 0
     tempsu = 0.0d0
-#ifdef LES
-    tempsules = 0.0d0 ! (actual LES sum of m*v**2 )
-#endif
 
 !----------------------------------------------------------------------------
     ! update the velocities; only real atoms are handled in this loop:
@@ -370,20 +350,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       aamass = amass(j)
       do m = 1,3
         i3 = i3+1
-        rterm = v(i3)*v(i3) * aamass
-#ifdef LES
-        if (temp0les < 0.d0) then
-          tempsu = tempsu + rterm
-        else
-          if (cnum(j) == 0) then
-            tempsu = tempsu + rterm
-          else
-            tempsules = tempsules + rterm
-          end if
-        end if
-#else
-        tempsu = tempsu + rterm
-#endif
+        tempsu = tempsu + v(i3)*v(i3) * aamass
         v(i3) = v(i3) - f(i3) * winf
         if (vlim) v(i3) = sign(min(abs(v(i3)), vlimit), v(i3))
       end do
@@ -416,21 +383,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
        ! use SETTLE to deal with water model
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
     end if  
-
-#ifdef LES
-    ! Added for LES temperature using old solvent variable for ener(4)
-    if (temp0les < 0.d0) then
-      ener%kin%solv = 0.d0
-      ener%kin%tot = ener%kin%solt
-      ener%tot = ener%kin%tot + ener%pot%tot
-    else
-      ener%kin%solv = tempsules * 0.5d0
-      ener%kin%tot = ener%kin%solt + ener%kin%solv
-    end if
-#else
     ener%kin%tot = ener%kin%solt
     ener%tot = ener%kin%tot + ener%pot%tot
-#endif /* LES */
 
   ! This ends a HUGE conditional branch in which init == 3, general startup
   ! when not continuing a previous dynamics run.  }}}
@@ -446,9 +400,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! "t", then the restrt file has velocities at time t + 0.5dt and
   ! coordinates at time t + dt.
   ekmh = 0.0d0
-#ifdef LES
-  ekmhles = 0.0d0
-#endif /* LES */
 
   ! kinetic energy calculation:
   i3 = 0
@@ -456,22 +407,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     aamass = amass(j)
     do m = 1, 3
       i3 = i3+1
-      rterm = v(i3) * v(i3) * aamass
-#  ifdef LES
-      ! use copy number, not solute/solvent
-      if (temp0les < 0.d0) then
-        ! 1 bath
-        ekmh = ekmh + rterm
-      else
-        if (cnum(j) == 0) then
-          ekmh = ekmh + rterm
-        else
-          ekmhles = ekmhles + rterm
-        end if
-      end if
-#  else
-      ekmh = ekmh + rterm
-#  endif /* LES */
+      ekmh = ekmh + v(i3) * v(i3) * aamass
     end do
   end do
 
@@ -486,11 +422,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ekmh = ekmh + scalm*v(nr3+im)*v(nr3+im)
    end do
    ekmh = ekmh * 0.5d0
-#ifdef LES
-   ekmhles = ekmhles * 0.5d0
-#endif /* LES */
-
-  vold(1:nr3+iscale) = v(1:nr3+iscale)
+   vold(1:nr3+iscale) = v(1:nr3+iscale)
 
   ! }}}
 
@@ -514,10 +446,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     if (nstep <= 0 .and. master .and. facc .ne. 'A') then
       if (isgld > 0) call sgenergy(ener)
       rewind(7)
-
-#ifdef LES
-      ener%tot = ener%kin%tot+ener%pot%tot
-#endif /* LES */
 
       call prntmd(nstep, t, ener, onefac, 7, .false.)
 #ifdef MPI /* SOFT CORE */
@@ -597,28 +525,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #ifdef MPI
    call thermodynamic_integration(f)
 #endif
-
-!------------------------------------------------------------------------------
-  ! Reset quantities depending on TEMP0 and TAUTP  {{{
-  ! (which may have been changed by MODWT during FORCE call).
-  ekinp0 = fac(2)*temp0
-
-#ifdef LES
-  ! TEMP0LES may have changed too
-  ekinles0=0.d0
-  ekins0=0.d0
-  if (temp0les >= 0.d0) then
-    ekinles0 = fac(3)*temp0les
-    ekin0 = ekinp0 + ekinles0
-  else
-    ekins0 = fac(3)*temp0
-    ekin0 = fac(1)*temp0
-  end if
-#else
-  ekins0 = fac(3)*temp0
-  ekin0 = fac(1)*temp0
-#endif /* LES */
-  ! }}}
+   call modwt_reset()
 
   ! Constant pressure conditions: {{{
   if (ntp > 0) then
@@ -670,217 +577,62 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! }}}
 #endif /* MPI */
 
-!------------------------------------------------------------------------------
-  ! Step 2: Do the velocity update: {{{
-  ! Step 2a: apply quenched MD if needed.  This is useful in NEB>0
   call timer_start(TIME_VERLET)
-
-  if (vv == 1) call quench(f, v)
-
-  if (isgld > 0) then
-    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
-               x, f, v)
-  else
-  ! leap-frog middle scheme
-  ! the 1st step for updating p
-     i3 = 3*(istart - 1)
-     do j = istart, iend
-       wfac = winv(j) * dtx
-       v(i3+1) = v(i3+1) + f(i3+1)*wfac
-       v(i3+2) = v(i3+2) + f(i3+2)*wfac
-       v(i3+3) = v(i3+3) + f(i3+3)*wfac
-       i3 = i3+3
-     end do
-
-     ! for constrained MD
-     if (ntc /= 1) then
-       qspatial = .false.
-       ! RATTLE-V, correct velocities
-       call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
-
-       ! use SETTLE to deal with water model
-       call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
-     end if
-
-  end if
-
-  ! Consider vlimit
-  if (vlim) then
-    vmax = 0.0d0
-    do i = istart3, iend3
-      vmax = max(vmax, abs(v(i)))
-      v(i) = sign(min(abs(v(i)), vlimit), v(i))
-    end do
-
-    ! Only violations on the master node are actually reported
-    ! to avoid both MPI communication and non-master writes.
-    if (vmax > vlimit) then
-      if (master) &
-        write(6,'(a,i6,a,f10.4)') 'vlimit exceeded for step ', nstep, &
-              '; vmax = ', vmax
-    end if
-  end if
-
-  !  Simple Newtonian dynamics on the "extra" variables  (why?)
-  if( mytaskid == numtasks - 1 ) then
-     do im = 1, iscale
-        v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
-     end do
-  endif
-  ! }}}
+!------------------------------------------------------------------------------
+  ! Step 2: Do the velocity update:
+  call velocity_update(x,f,v,ix,amass,winv,conp,skip)
 
 !------------------------------------------------------------------------------
   ! Update EMAP rigid domains
   if (temap) call emap_move()
 
 !------------------------------------------------------------------------------
-  ! Step 3: update the positions, and apply the thermostat,  {{{
+  ! Step 3: update the positions, and apply the thermostat,
     ! the step for updating x-T-x
-    do i3 = istart3, iend3
-       f(i3) = x(i3)
-       x(i3) = x(i3) + v(i3)*dt5
-    end do
-    ! for random number, controled by ig
-    if (no_ntt3_sync == 1) then
-      iskip_start = 0
-      iskip_end = 0
-    else
-      iskip_start = 3*(istart-1)
-      iskip_end = 3*(nr-iend)
-    endif
-    call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
-    do i3 = istart3, iend3
-       x(i3) = x(i3) + v(i3)*dt5
-    end do
-
-  call timer_stop(TIME_VERLET)
-  ! }}}
+  do i3 = istart3, iend3
+     f(i3) = x(i3)
+     x(i3) = x(i3) + v(i3)*dt5
+  end do
+  ! for random number, controled by ig
+  if (no_ntt3_sync == 1) then
+    iskip_start = 0
+    iskip_end = 0
+  else
+    iskip_start = 3*(istart-1)
+    iskip_end = 3*(nr-iend)
+  endif
+  call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
+  do i3 = istart3, iend3
+     x(i3) = x(i3) + v(i3)*dt5
+  end do
 
 !------------------------------------------------------------------------------
-  if (ntc .ne. 1) then
-  ! Step 4a: if shake is being used, update the positions {{{
-    call timer_start(TIME_SHAKE)
-    xold(istart3:iend3) = x(istart3:iend3)
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
-    qspatial = .false.
-    call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
-               winv, conp, skip, f, x, nitp, belly, ix(iifstwt), &
-               ix(noshake), qspatial)
-    call quick3(f, x, ix(iifstwr), natom, nres, ix(i02))
-    if (nitp == 0) then
-      erstop = .true.
-      goto 480
-    end if
-
-    ! Including constraint forces in self-guiding force calculation
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
-
-    ! Need to synchronize coordinates after shake for TI
-#ifdef MPI
-    if (icfe .ne. 0) then
-      call timer_barrier( commsander )
-      call timer_stop_start(TIME_SHAKE,TIME_DISTCRD)
-      if (.not. mpi_orig .and. numtasks > 1) &
-        call xdist(x, xx(lfrctmp), nr3+iscale)
-
-      ! In dual-topology this is done within softcore.f
-      if (ifsc .ne. 1) then
-        if (master) call mpi_bcast(x, nr3, MPI_DOUBLE_PRECISION, &
-                         0, commmaster, ierr)
-      else
-        if (master) call sc_sync_x(x, nr3)
-      end if
-      if (numtasks > 1) &
-        call mpi_bcast(x, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-      call timer_stop_start(TIME_DISTCRD, TIME_SHAKE)
-    end if
-#endif  /* MPI */
-
-!------------------------------------------------------------------------------
-    ! Step 4b: Now fix the velocities and calculate KE.
-    ! Re-estimate the velocities from differences in positions.
-    v(istart3:iend3) = v(istart3:iend3) &
-        + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
-
-    qspatial = .false.
-    ! RATTLE-V, correct velocities
-    call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
-
-    ! use SETTLE to deal with water model
-    call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
-
-    call timer_stop(TIME_SHAKE)
-  ! }}}
-  end if
-  call timer_start(TIME_VERLET)
+  ! Shake/rattle/settle, etc:
+  if (ntc .ne. 1) call handle_constraints(x,f,v,xx,ix,amass,conp,skip,winv)
 
 !------------------------------------------------------------------------------
   if (onstep) then
-  ! Step 4c: get the KE, averaging:  {{{
+  ! Step 4c: get the KE, do some averaging:  {{{
     eke = 0.d0
     ekph = 0.d0
     ekpbs = 0.d0
-#ifdef LES
-    ekeles = 0.d0
-    ekphles = 0.d0
-#endif
 
-    ! LF-Middle: use velocity v(t) for KE calculation {{{
+    ! LF-Middle: use velocity v(t) for KE calculation
       i3 = 3*(istart-1)
       do j = istart, iend
         aamass = amass(j)
         do m = 1, 3
           i3 = i3 + 1
-#ifdef LES
-          if (temp0les < 0.d0) then
-            eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
-            ekph = ekph + aamass*v(i3)**2
-          else
-            if (cnum(j) == 0) then
-              eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
-              ekph = ekph + aamass*v(i3)**2
-            else
-              ekeles = ekeles + aamass*0.25d0*(v(i3) + vold(i3))**2
-              ekphles = ekphles + aamass*v(i3)**2
-            end if
-          end if
-#else
           eke = eke + aamass*0.25d0*(v(i3) + vold(i3))**2
           ! Try pseudo KE from Eq. 4.7b of Pastor, Brooks & Szabo,
           ! Mol. Phys. 65, 1409-1419 (1988):
           ekpbs = ekpbs + aamass*v(i3)*vold(i3)
           ekph = ekph + aamass*v(i3)**2
-#endif
         end do
       end do
 
     ! Sum up the partial kinetic energies:
 #ifdef MPI
-#  ifdef LES
-    if (.not. mpi_orig .and. numtasks > 1) then
-      if (temp0les < 0) then
-        mpitmp(1) = eke
-        mpitmp(2) = ekph
-        call mpi_allreduce(MPI_IN_PLACE, mpitmp, 2, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commsander, ierr)
-        eke = mpitmp(1)
-        ekph = mpitmp(2)
-      else
-        mpitmp(1) = eke
-        mpitmp(2) = ekph
-        mpitmp(3) = ekeles
-        mpitmp(4) = ekphles
-        call mpi_allreduce(MPI_IN_PLACE, mpitmp, 4, MPI_DOUBLE_PRECISION, &
-                           mpi_sum, commsander, ierr)
-        eke = mpitmp(1)
-        ekph = mpitmp(2)
-        ekeles = mpitmp(3)
-        ekphles = mpitmp(4)
-      endif
-    end if
-#  else
     if (.not. mpi_orig .and. numtasks > 1) then
       mpitmp(1) = eke
       mpitmp(2) = ekph
@@ -891,9 +643,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ekph = mpitmp(2)
       ekpbs = mpitmp(3)
     end if
-#  endif
-    ! }}}
-
     ! Calculate Ekin of the softcore part of the system
     if (ifsc .ne. 0) then
       call calc_softcore_ekin(amass, v, vold, istart, iend)
@@ -910,10 +659,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     eke = eke * 0.5d0
     ekph = ekph * 0.5d0
     ekpbs = ekpbs * 0.5d0
-#ifdef LES
-    ekeles = ekeles * 0.5d0
-    ekphles = ekphles * 0.5d0
-#endif /* LES */
   ! End contingency for onstep; end of step 4c
   ! }}}
   end if
@@ -1107,13 +852,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Step 7: miscellaneous, get total energy {{{
 
-#ifdef LES
-  ener%kin%solt = eke
-  ener%kin%solv = ekeles
-  ener%kin%tot  = ener%kin%solt + ener%kin%solv
-
-#else
-
   ! Pastor, Brooks, Szabo conserved quantity
   ! for harmonic oscillator: Eq. 4.7b of Mol.
   ! Phys. 65:1409-1419, 1988
@@ -1124,7 +862,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
      ener%kin%solt = eke   ! original sander, shows energy conservation
   endif
   ener%kin%tot  = ener%kin%solt
-#endif /* LES */
 
   ! If velocities were reset, the KE is not accurate; fudge it
   ! here to keep the same total energy as on the previous step.
@@ -1236,11 +973,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 !------------------------------------------------------------------------------
       nr = nrp
-#ifdef LES
-      call mdwrit(nstep,nr,ntxo,ntb,x,v,t,temp0les,solvph,solve)
-#else
       call mdwrit(nstep, nr, ntxo, ntb, x, v, t, temp0,solvph,solve)
-#endif /* LES */
 !------------------------------------------------------------------------------
 
     end if
@@ -1547,14 +1280,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
            my_remd_data%myeptot, " myTargetTemp= ", &
            my_remd_data%mytargettemp, " mytemp= ", my_remd_data%mytemp
 #  endif /* VERBOSE_REMD */
-#  ifdef LES
-   else if(next_rem_method == 2 ) then
-    my_remd_data%mytemp       = ener%kin%solv * onefac(3)
-    my_remd_data%myeptot      = ener%eptot
-    my_remd_data%mytargettemp = temp0les
-    my_pressure = pres0
-    my_volume = ener%volume
-#  endif /* LES */
   else if (next_rem_method == 3) then
     remd_ekmh = ekmh
     if (mdloop > 0) then
@@ -1749,9 +1474,6 @@ subroutine initialize_runmd(x,ix,v)
   ekpbs = 0.d0
   eke = 0.d0
 
-#ifdef LES
-  ekmhles = 0.d0
-#endif
   do_list_update = .false.
 #ifdef MPI
   if (mpi_orig) then
@@ -1806,23 +1528,8 @@ subroutine initialize_runmd(x,ix,v)
   fac(2) = boltz2*rndfp
   if (rndfp < 0.1d0) fac(2) = 1.d-6
 
-#ifdef LES
-  ! Replaced solvent variables with LES ones
-  ! since separate solvent coupling no longer used
-  ! ASSUME SAME COUPLING CONSTANT FOR BOTH BATHS, just different target T
-
-  ! will also have to accumulate LES and non-LES kinetic energies separately
-  if (temp0les < 0.d0) then
-    fac(3) = boltz2*rndfs
-    if (rndfs < 0.1d0) fac(3) = 1.d-6
-  else
-    fac(3) = boltz2*rndfles
-    if (rndfles < 0.1d0) fac(3) = 1.d-6
-  end if
-#else
   fac(3) = boltz2*rndfs
   if (rndfs < 0.1d0) fac(3) = 1.d-6
-#endif
   onefac(1) = 1.0d0 / fac(1)
   onefac(2) = 1.0d0 / fac(2)
   onefac(3) = 1.0d0 / fac(3)
@@ -1832,31 +1539,8 @@ subroutine initialize_runmd(x,ix,v)
   ! degrees of freedom and target temperature.  They will be used
   ! for calculating the velocity scaling factor
   ekinp0 = fac(2)*temp0
-#ifdef LES
-
-  ! Modified for LES temperature
-  ekins0=0.d0
-  ekinles0=0.d0
-  if (temp0les < 0.d0) then
-    ekins0 = fac(3) * temp0
-    ekin0  = fac(1) * temp0
-    if (master) &
-      write (6,*) "Single temperature bath for LES and non-LES"
-  else
-    ekinles0 = fac(3)*temp0les
-    ekin0  = ekinp0 + ekinles0
-    if (master) then
-      write (6,*) "LES particles coupled to separate bath"
-      write (6,'(a,f8.2)')"    LES target temperature:    ",temp0les
-      write (6,'(a,f8.2)')"    LES target kinetic energy: ",ekinles0
-      write (6,'(a,f8.2)')"non-LES target temperature:    ",temp0
-      write (6,'(a,f8.2)')"non-LES target kinetic energy: ",ekinp0
-    end if
-  end if
-#else
   ekins0 = fac(3)*temp0
   ekin0  = fac(1)*temp0
-#endif
   ! }}}
 
 !------------------------------------------------------------------------------
@@ -1928,7 +1612,6 @@ subroutine thermodynamic_integration(f)
    implicit none
    _REAL_, intent(inout) :: f(nr3)
 
-!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
   ! If softcore potentials are used, collect their dvdl contributions:
   if (ifsc .ne. 0) then
@@ -2033,23 +1716,132 @@ subroutine modwt_reset()
   ! Reset quantities depending on TEMP0, which may have been changed
   ! by  MODWT during FORCE call.
   ekinp0 = fac(2)*temp0
-
-#ifdef LES
-  ! TEMP0LES may have changed too
-  ekinles0=0.d0
-  ekins0=0.d0
-  if (temp0les >= 0.d0) then
-    ekinles0 = fac(3)*temp0les
-    ekin0 = ekinp0 + ekinles0
-  else
-    ekins0 = fac(3)*temp0
-    ekin0 = fac(1)*temp0
-  end if
-#else
   ekins0 = fac(3)*temp0
   ekin0 = fac(1)*temp0
-#endif /* LES */
 
 end subroutine modwt_reset
+
+subroutine handle_constraints(x,f,v,xx,ix,amass,conp,skip,winv)
+
+   implicit none
+   _REAL_, intent(inout) :: x(*),f(*),v(*)
+   integer, intent(in) :: ix(*)
+   _REAL_, intent(in) :: xx(*),amass(*),conp(*),winv(*)
+   logical, intent(in) :: skip(*)
+
+  ! Step 4a: if shake is being used, update the positions
+    call timer_stop(TIME_VERLET)
+    call timer_start(TIME_SHAKE)
+    xold(istart3:iend3) = x(istart3:iend3)
+    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
+    qspatial = .false.
+    call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
+               winv, conp, skip, f, x, nitp, belly, ix(iifstwt), &
+               ix(noshake), qspatial)
+    call quick3(f, x, ix(iifstwr), natom, nres, ix(i02))
+
+    ! Including constraint forces in self-guiding force calculation
+    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
+
+    ! Need to synchronize coordinates after shake for TI
+#ifdef MPI
+    if (icfe .ne. 0) then
+      call timer_barrier( commsander )
+      call timer_stop_start(TIME_SHAKE,TIME_DISTCRD)
+      if (.not. mpi_orig .and. numtasks > 1) &
+        call xdist(x, xx(lfrctmp), nr3+iscale)
+
+      ! In dual-topology this is done within softcore.f
+      if (ifsc .ne. 1) then
+        if (master) call mpi_bcast(x, nr3, MPI_DOUBLE_PRECISION, &
+                         0, commmaster, ierr)
+      else
+        if (master) call sc_sync_x(x, nr3)
+      end if
+      if (numtasks > 1) &
+        call mpi_bcast(x, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
+      call timer_stop_start(TIME_DISTCRD, TIME_SHAKE)
+    end if
+#endif  /* MPI */
+
+!------------------------------------------------------------------------------
+    ! Re-estimate the velocities from differences in positions.
+    v(istart3:iend3) = v(istart3:iend3) &
+        + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
+
+    qspatial = .false.
+    ! RATTLE-V, correct velocities
+    call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
+      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+
+    ! use SETTLE to deal with water model
+    call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
+
+    call timer_stop(TIME_SHAKE)
+    call timer_start(TIME_VERLET)
+
+end subroutine handle_constraints
+
+subroutine velocity_update(x,f,v,ix,amass,winv,conp,skip)
+
+  implicit none
+  _REAL_, intent(inout) :: x(*),f(*),v(*) 
+  integer, intent(in) :: ix(*)
+  _REAL_, intent(in) :: amass(*),winv(*),conp(*)
+  logical, intent(in) :: skip(*)
+
+  if (isgld > 0) then
+    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
+               x, f, v)
+  else
+  ! leap-frog middle scheme
+  ! the 1st step for updating p
+     i3 = 3*(istart - 1)
+     do j = istart, iend
+       wfac = winv(j) * dtx
+       v(i3+1) = v(i3+1) + f(i3+1)*wfac
+       v(i3+2) = v(i3+2) + f(i3+2)*wfac
+       v(i3+3) = v(i3+3) + f(i3+3)*wfac
+       i3 = i3+3
+     end do
+
+     ! for constrained MD
+     if (ntc /= 1) then
+       qspatial = .false.
+       ! RATTLE-V, correct velocities
+       call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
+       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+
+       ! use SETTLE to deal with water model
+       call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
+     end if
+
+  end if
+
+  ! Consider vlimit
+  if (vlim) then
+    vmax = 0.0d0
+    do i = istart3, iend3
+      vmax = max(vmax, abs(v(i)))
+      v(i) = sign(min(abs(v(i)), vlimit), v(i))
+    end do
+
+    ! Only violations on the master node are actually reported
+    ! to avoid both MPI communication and non-master writes.
+    if (vmax > vlimit) then
+      if (master) &
+        write(6,'(a,i6,a,f10.4)') 'vlimit exceeded for step ', nstep, &
+              '; vmax = ', vmax
+    end if
+  end if
+
+  !  Simple Newtonian dynamics on the "extra" variables  (why?)
+  if( mytaskid == numtasks - 1 ) then
+     do im = 1, iscale
+        v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
+     end do
+  endif
+
+end subroutine velocity_update
 
 end module runmd_module
