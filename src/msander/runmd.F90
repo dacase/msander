@@ -310,16 +310,14 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Make a first dynamics step. {{{
   ! init = 3: general startup if not continuing a previous run
 
+!----------------------------------------------------------------------------
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
     irespa = 0
     iprint = 1
-
-!----------------------------------------------------------------------------
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
                xx(l98), xx(l99), qsetup, do_list_update, nstep)
-
-!------------------------------------------------------------------------------
+    call modwt_reset()  ! since TEMP0 might have been updated
 
     ! This force call does not count as a "step". CALL NMRDCP to decrement
     ! local NMR step counter and MTMDUNSTEP to decrease the local MTMD step
@@ -335,95 +333,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 #endif
 
-#ifdef MPI /* SOFT CORE */
-!------------------------------------------------------------------------------
-    ! If softcore potentials are used, collect their dvdl contributions:
-    if (ifsc /= 0) then
-      call mpi_reduce(sc_dvdl, sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, &
-                      MPI_SUM, 0, commsander, ierr)
-
-      ! Zero dV/dLambda for the next stetp
-      sc_dvdl=0.0d0
-      call mpi_reduce(sc_dvdl_ee, sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, &
-                      MPI_SUM, 0, commsander, ierr)
-
-      ! Zero for the next step
-      sc_dvdl_ee=0.0d0
-      call mpi_reduce(sc_ener, sc_ener_tmp, ti_ene_cnt, MPI_DOUBLE_PRECISION, &
-                      MPI_SUM, 0, commsander, ierr)
-      sc_ener(1:ti_ene_cnt) = sc_ener_tmp(1:ti_ene_cnt)
-    end if
-    if (ifsc == 2) then
-
-      ! If this is a perturb to nothing run, scale forces and calculate dvdl
-      call sc_nomix_frc(f, nr3, ener)
-      if (numtasks > 1) then
-        call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-        call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
-                       commsander, ierr)
-      end if
-    end if
-
-    if (icfe /= 0) then
-!------------------------------------------------------------------------------
-      ! Free energies using thermodynamic integration (icfe /= 0)
-      if (master) then
-
-        ! First, partner threads exchange forces and energies
-        partner = ieor(masterrank, 1)
-        call mpi_sendrecv(f, nr3, MPI_DOUBLE_PRECISION, partner, 5, &
-                          frcti, nr3+3*extra_atoms, MPI_DOUBLE_PRECISION, &
-                          partner, 5, commmaster, ist, ierr )
-        call mpi_sendrecv(ener, state_rec_len, MPI_DOUBLE_PRECISION, partner, &
-                          5, ecopy, state_rec_len, MPI_DOUBLE_PRECISION, &
-                          partner, 5, commmaster, ist, ierr)
-
-        ! Exchange sc-dvdl contributions between masters
-        call mpi_sendrecv(sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, partner, 5, &
-                          sc_tot_dvdl_partner, 1, MPI_DOUBLE_PRECISION, &
-                          partner, 5, commmaster, ist, ierr)
-        call mpi_sendrecv(sc_tot_dvdl_ee, 1, MPI_DOUBLE_PRECISION, partner, &
-                          5, sc_tot_dvdl_partner_ee, 1, MPI_DOUBLE_PRECISION, &
-                          partner, 5, commmaster, ist, ierr )
-        if (masterrank == 0) then
-          call mix_frcti(frcti, ecopy, f, ener, nr3, clambda, klambda)
-        else
-          call mix_frcti(f, ener, frcti, ecopy, nr3, clambda, klambda)
-        end if
-      end if
-
-      if (numtasks > 1) then
-        call mpi_bcast(f, nr3, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
-        call mpi_bcast(ener, state_rec_len, MPI_DOUBLE_PRECISION, 0, &
-                       commsander, ierr)
-      end if
-    end if
-#endif /* MPI SOFT CORE */
-    irespa = 1
-
-!------------------------------------------------------------------------------
-    ! Reset quantities depending on temp0 and tautp (which may have been
-    ! changed by modwt during the call to force()).  Recalculate target
-    ! kinetic energies.
-    ekinp0 = fac(2) * temp0
-
-#ifdef LES
-
-    ! Modified for LES temperature, not solvent
-    ekins0 = 0.d0
-    ekinles0 = 0.d0
-    if (temp0les < 0.d0) then
-      ekins0 = fac(3) * temp0
-      ekin0 = fac(1) * temp0
-    else
-      ekinles0 = fac(3) * temp0les
-      ekin0 = ekinp0 + ekinles0
-    end if
-#else
-    ekins0 = fac(3) * temp0
-    ekin0 = fac(1) * temp0
+#ifdef MPI
+    onstep = .false.
+    call thermodynamic_integration(f)
 #endif
-
+    call modwt_reset()  ! since TEMP0 might have been updated
+    irespa = 1
     if (ntp > 0) then
       ener%volume = volume
       ener%density = tmass / (0.602204d0*volume)
@@ -442,12 +357,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ntnb = 0
     i3 = 0
     tempsu = 0.0d0
-
 #ifdef LES
-    ! Added LES tempsu (actual LES sum of m*v**2 )
-    tempsules = 0.0d0
+    tempsules = 0.0d0 ! (actual LES sum of m*v**2 )
 #endif
 
+!----------------------------------------------------------------------------
     ! update the velocities; only real atoms are handled in this loop:
     !  TODO:  fdist has been called, but I think each MPI process only
     !         knows the forces assigned to its atoms(?)
@@ -475,11 +389,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       end do
     end do
 
-    ! Now do velocity updates for the 
-    !       only it has the correct forces for these extra variables
+!----------------------------------------------------------------------------
+    ! Now do velocity updates for the extra variables
+    !       only final node has the correct forces for these extra variables
     do im = 1, iscale
-      tempsu = tempsu + scalm * v(nr3+im)*v(nr3+im)
-      if( mytaskid == numtasks -1 )  &
+       tempsu = tempsu + scalm * v(nr3+im)*v(nr3+im)
+       if( mytaskid == numtasks -1 )  &
           v(nr3+im) = v(nr3+im) - f(nr3+im) * dt5 / scalm
     end do
     ener%kin%solt = tempsu * 0.5d0
@@ -491,13 +406,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     end if
 #endif
 
-    ! middle scheme for constrain MD
+!----------------------------------------------------------------------------
+    ! middle scheme for constrained MD
     if (ntc /= 1) then
        qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
        winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
- 
        ! use SETTLE to deal with water model
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
     end if  
@@ -513,7 +428,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
       ener%kin%tot = ener%kin%solt + ener%kin%solv
     end if
 #else
-    ! For better output for parallel PIMD/NMPIM/CMD/RPMD
     ener%kin%tot = ener%kin%solt
     ener%tot = ener%kin%tot + ener%pot%tot
 #endif /* LES */
@@ -606,19 +520,19 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif /* LES */
 
       call prntmd(nstep, t, ener, onefac, 7, .false.)
-
 #ifdef MPI /* SOFT CORE */
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener)
       if (ifsc .ne. 0) call sc_print_energies(7, sc_ener)
 #endif
-
       if (ifcr > 0 .and. crprintcharges > 0) &
         call cr_print_charge(xx(l15), nstep)
-
       if (nmropt > 0) call nmrptx(6)
       if (infe == 1) call nfe_prt(6)
       call flush(7)
     end if
+
+!----------------------------------------------------------------------------
+    ! Clean exit for a zero-step run:
     if (nstlim == 0) then
 #ifdef MPI
       call xdist(x, xx(lfrctmp), 3*natom+iscale)
@@ -651,23 +565,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! stored in the array vold.
   260 continue
   onstep = mod(irespa,nrespa) == 0
-
-!------------------------------------------------------------------------------
-  ! Step 1a: initial trial move for MC barostat: {{{
-
-  ! If we're using the MC barostat, do the trial move now
-  if (ntp > 0 .and. barostat == 2 .and. mod(total_nstep+1, mcbarint) == 0) &
-    call mcbar_trial(xx, ix, ih, ipairs, x, xc, f, ener%vir, xx(l96), &
-                     xx(l97), xx(l98), xx(l99), qsetup, do_list_update, &
-                     nstep, nsp, amass)
-  ! }}}
-
-!------------------------------------------------------------------------------
-  ! Step 1b: get the forces for the system's current coordinates {{{
   iprint = 0
   if (nstep == 0 .or. nstep+1 == nstlim) iprint = 1
   if (rem .eq. 0 .or. mdloop .gt. 0) nfe_real_mdstep = .True.
-
 #ifdef MPI
   ! Set do_mbar for the force contributions
   if (ifmbar /= 0) then
@@ -677,19 +577,22 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 #endif
 
 !------------------------------------------------------------------------------
-  ! This(!) is where the force() routine mainly gets called:
-  call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-             xx(l98), xx(l99), qsetup, do_list_update, nstep)
+  ! Step 1a: initial trial move for MC barostat:
+  if (ntp > 0 .and. barostat == 2 .and. mod(total_nstep+1, mcbarint) == 0) &
+    call mcbar_trial(xx, ix, ih, ipairs, x, xc, f, ener%vir, xx(l96), &
+                     xx(l97), xx(l98), xx(l99), qsetup, do_list_update, &
+                     nstep, nsp, amass)
 
 !------------------------------------------------------------------------------
+  ! Step 1b: get the forces for the system's current coordinates
+  !     [This is where the force() routine mainly gets called:]
+  call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
+             xx(l98), xx(l99), qsetup, do_list_update, nstep)
 #ifdef PLUMED
-  ! PLUMED force added
   if (plumed == 1) then
 #     include "Plumed_force.inc"
   end if
 #endif
-
-  ! }}}
 
 #ifdef MPI
    call thermodynamic_integration(f)
@@ -2019,6 +1922,7 @@ subroutine initialize_runmd(x,ix,v)
 
 end subroutine initialize_runmd
 
+#ifdef MPI
 subroutine thermodynamic_integration(f)
 
    implicit none
@@ -2026,7 +1930,7 @@ subroutine thermodynamic_integration(f)
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-  ! If softcore potentials are used, collect their dvdl contributions: {{{
+  ! If softcore potentials are used, collect their dvdl contributions:
   if (ifsc .ne. 0) then
     call mpi_reduce(sc_dvdl, sc_tot_dvdl, 1, MPI_DOUBLE_PRECISION, MPI_SUM, &
                     0, commsander, ierr)
@@ -2048,16 +1952,16 @@ subroutine thermodynamic_integration(f)
                      commsander, ierr)
     end if
   end if
-  ! }}}
 
 !------------------------------------------------------------------------------
   ! Multi-state Bennet Acceptance Ratio upkeep
   if (ifmbar .ne. 0 .and. do_mbar) call bar_collect_cont()
 
+!------------------------------------------------------------------------------
   if (icfe .ne. 0) then
-  ! Free energies using thermodynamic integration: {{{
+  ! Free energies using thermodynamic integration:
 
-    ! First, partners exchange forces, energies, and the virial:
+    ! First, partners exchange forces and energies:
     if (master) then
       partner = ieor(masterrank, 1)
       call mpi_sendrecv(f, nr3, MPI_DOUBLE_PRECISION, partner, 5, frcti, &
@@ -2121,5 +2025,31 @@ subroutine thermodynamic_integration(f)
   end if
 
 end subroutine thermodynamic_integration
+#endif
+
+subroutine modwt_reset()
+
+   implicit none
+  ! Reset quantities depending on TEMP0, which may have been changed
+  ! by  MODWT during FORCE call.
+  ekinp0 = fac(2)*temp0
+
+#ifdef LES
+  ! TEMP0LES may have changed too
+  ekinles0=0.d0
+  ekins0=0.d0
+  if (temp0les >= 0.d0) then
+    ekinles0 = fac(3)*temp0les
+    ekin0 = ekinp0 + ekinles0
+  else
+    ekins0 = fac(3)*temp0
+    ekin0 = fac(1)*temp0
+  end if
+#else
+  ekins0 = fac(3)*temp0
+  ekin0 = fac(1)*temp0
+#endif /* LES */
+
+end subroutine modwt_reset
 
 end module runmd_module
