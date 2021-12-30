@@ -327,54 +327,6 @@ subroutine debug_frc(xx,ix,ih,ipairs,x,f, &
       if ( master ) &
             write(6,*)'--------------------------------------------'
    end if
-   ! now check the virials. First the molvir, type = 1
-   if ( chkvir /= 0)then
-      type = 1
-      call check_virial(xx,ix,ih,ipairs,x,f, &
-            ene,del,dudv,type, qsetup)
-      apmvir = 3*volume*dudv
-      call check_vtens(xx,ix,ih,ipairs,x,f, &
-            ene,del,mduda,molvir,mapduda,type, qsetup)
-      ! Next the atvir, type = 2
-      type = 2
-      call check_virial(xx,ix,ih,ipairs,x,f, &
-            ene,del,dudv,type, qsetup)
-      apavir = 3*volume*dudv
-      call check_vtens(xx,ix,ih,ipairs,x,f, &
-            ene,del,duda,atvir,apduda,type, qsetup)
-      if ( master )then
-         write(6,*)'Checking analytic virial trace versus'
-         write(6,*)'Numerical calculation of 3V dU/dV'
-         write(6,*)'--------------------------------------------'
-         call compare(exmvir,apmvir,'Molecular virial:      ')
-         call compare(exavir,apavir,'Atomic virial:         ')
-         write(6,*)'--------------------------------------------'
-         write(6,*)'Checking numerical calculation of DU/da_ij'
-         write(6,*)'where a is the unit cell matrix, against'
-         write(6,*)'VTa^-1, where T is molecular or atomic virial tensor'
-         write(6,*)'See eqn. 2.6-2.8 in Essmann et al. JCP 103,8577'
-         write(6,*)'--------------------------------------------'
-         call compare(mduda(1,1),mapduda(1,1),'Molec.   dUda_(1,1)    ')
-         call compare(mduda(1,2),mapduda(1,2),'Molec.   dUda_(1,2)    ')
-         call compare(mduda(1,3),mapduda(1,3),'Molec.   dUda_(1,3)    ')
-         call compare(mduda(2,1),mapduda(2,1),'Molec.   dUda_(2,1)    ')
-         call compare(mduda(2,2),mapduda(2,2),'Molec.   dUda_(2,2)    ')
-         call compare(mduda(2,3),mapduda(2,3),'Molec.   dUda_(2,3)    ')
-         call compare(mduda(3,1),mapduda(3,1),'Molec.   dUda_(3,1)    ')
-         call compare(mduda(3,2),mapduda(3,2),'Molec.   dUda_(3,2)    ')
-         call compare(mduda(3,3),mapduda(3,3),'Molec.   dUda_(3,3)    ')
-         call compare(duda(1,1),apduda(1,1),'Atomic   dUda_(1,1)    ')
-         call compare(duda(1,2),apduda(1,2),'Atomic   dUda_(1,2)    ')
-         call compare(duda(1,3),apduda(1,3),'Atomic   dUda_(1,3)    ')
-         call compare(duda(2,1),apduda(2,1),'Atomic   dUda_(2,1)    ')
-         call compare(duda(2,2),apduda(2,2),'Atomic   dUda_(2,2)    ')
-         call compare(duda(2,3),apduda(2,3),'Atomic   dUda_(2,3)    ')
-         call compare(duda(3,1),apduda(3,1),'Atomic   dUda_(3,1)    ')
-         call compare(duda(3,2),apduda(3,2),'Atomic   dUda_(3,2)    ')
-         call compare(duda(3,3),apduda(3,3),'Atomic   dUda_(3,3)    ')
-         write(6,*)'--------------------------------------------'
-      end if  ! ( master )
-   end if  ! ( chkvir /= 0)
    if ( master )then
       call mexit(6,0)
    else
