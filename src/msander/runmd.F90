@@ -95,7 +95,7 @@ module runmd_module
   use emap, only:temap,emap_move
   use barostats, only : mcbar_trial, mcbar_summary
 
-  use memory_module, only: mass
+  use memory_module, only: mass, screen, radii, reff, onereff
   use random
 
 #ifdef MPI
@@ -279,7 +279,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   integer, intent(in) ::   ipairs(*), ix(*), nsp(*), ntbond
   _REAL_, intent(inout) ::  xx(*)
   character(len=4), intent(in) :: ih(*)
-  _REAL_, intent(inout) ::  x(*), winv(*), amass(*), f(*), v(*), vold(*), &
+  _REAL_, intent(inout) ::  x(*), winv(:), amass(:), f(*), v(*), vold(*), &
                             xr(*), xc(*), conp(*), tma(*)
   logical, intent(inout) ::  erstop, qsetup
 
@@ -299,8 +299,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     ! energies calculated on step "0":
     irespa = 0
     iprint = 1
-    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-               xx(l98), xx(l99), qsetup, do_list_update, nstep)
+    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, screen, radii, &
+               reff, onereff, qsetup, do_list_update, nstep)
 
     ! This force call does not count as a "step". CALL NMRDCP to decrement
     ! local NMR step counter and MTMDUNSTEP to decrease the local MTMD step
@@ -514,8 +514,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 !------------------------------------------------------------------------------
   ! Step 1b: get the forces for the system's current coordinates
   !     [This is where the force() routine mainly gets called:]
-  call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-             xx(l98), xx(l99), qsetup, do_list_update, nstep)
+  call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, screen, radii, &
+             reff, onereff, qsetup, do_list_update, nstep)
 #ifdef PLUMED
   if (plumed == 1) then
 #     include "Plumed_force.inc"
