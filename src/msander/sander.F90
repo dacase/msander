@@ -56,7 +56,7 @@ subroutine sander()
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
 
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
-           xray_read_mdin, xray_fini=>finalize ,xray_write_options
+           xray_read_mdin, xray_write_options
   use xray_globals_module, only: xray_active,pdb_read_coordinates
   use memory_module, only: coordinate, massinv, mass
 
@@ -1241,10 +1241,6 @@ subroutine sander()
     call mpi_bcast(notdone, 1, mpi_integer, 0, commsander, ier)
   end if
 #endif
-
-  ! Finalize X-ray refinement work
-  if( master ) call xray_fini()
-  call flush(6)
 
   if (master) then
 #ifdef MPI

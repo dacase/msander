@@ -11,6 +11,7 @@
 !------------------------------------------------------------------------------
 subroutine mexit(output_unit, status)
 
+  use xray_interface_impl_cpu_module, only: xray_fini=>finalize
   implicit none
   integer output_unit
   integer status
@@ -36,6 +37,8 @@ subroutine mexit(output_unit, status)
   if (output_unit > 0 .and. status/=0) then
     close(unit = output_unit)
   endif
+
+  call xray_fini()
 
   call exit(status)
 end subroutine mexit 
