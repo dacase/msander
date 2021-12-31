@@ -1,0 +1,33 @@
+#!/bin/bash
+
+EXE=/home/case/msander/bin/msander.cuda
+#EXE="/home/case/sizmailov/bin/pmemd.cuda -AllowSmallBox"
+export OMP_NUM_THREADS=1
+
+cat <<EOF > mdin
+Test of MD with Xray restraints
+ &cntrl
+  ntx = 5, irest = 1, ntpr = 10,
+  ntc = 2, ntf = 2, tol = 0.000001,
+  cut = 8.0, tempi=0.0, 
+  nstlim = 2000, dt = 0.001,
+  ithermostat = 0,
+ /
+ &xray
+   pdb_infile = '4lzt_uc.pdb',
+   pdb_read_coordinates=.true.,
+   reflection_infile = '4lzt-sf.dat',
+   atom_selection_mask = ':*',
+   xray_weight_initial = 1., 
+   xray_weight_final = 1.,
+   target = 'ml',
+   bulk_solvent_model = 'afonine-2013',
+   mask_update_period = 10000,
+   scale_update_period = 10000,
+   ml_update_period = 10000,
+ /
+EOF
+
+$EXE -O -p 4lzt_uc.parm7 -c md1.x -o msander.cuda_nve3.23dec21.o
+
+/bin/rm -f mdin mdinfo restrt

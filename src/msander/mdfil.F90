@@ -110,7 +110,7 @@ subroutine mdfil(VERSION, version_requested)
    rstdip = 'rstdip'
    inpdip = 'inpdip'
    mddip  = 'mddip'
-!   radii  = 'radii'
+   radii  = 'radii'
    cpin   = 'cpin'
    cpout  = 'cpout'
    cprestrt = 'cprestrt'
@@ -223,9 +223,9 @@ subroutine mdfil(VERSION, version_requested)
       else if (arg == '-vecs') then
          iarg = iarg + 1
          call getarg_wrap(iarg,vecs)
-!     else if (arg == '-radii') then
-!        iarg = iarg + 1
-!        call getarg_wrap(iarg,radii)
+      else if (arg == '-radii') then
+         iarg = iarg + 1
+         call getarg_wrap(iarg,radii)
       else if (arg == '-f') then
          iarg = iarg + 1
          call getarg_wrap(iarg,freqe)
@@ -600,7 +600,7 @@ subroutine mdfil(VERSION, version_requested)
          '-clusterinfo cluster.info ', &
          '-reservoir reserv/frame -hybridtraj hybrid.strip.crd', /19x, &
 #endif
-         '-inf mdinfo -y inptraj -amd amd.log -scaledMD scaledMD.log] -cph-data -ce-data <file>' &
+         '-inf mdinfo -radii radii -y inptraj -amd amd.log -scaledMD scaledMD.log] -cph-data -ce-data <file>' &
          , /, 'Consult the manual for additional options.')
 end subroutine mdfil
 

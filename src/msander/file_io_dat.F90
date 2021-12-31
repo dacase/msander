@@ -26,7 +26,7 @@ character(len=MAX_FN_LEN), save :: mdcrd     ! MD trajectory file (output)
 character(len=MAX_FN_LEN), save :: mdinfo    ! MD info file (output)
 character(len=MAX_FN_LEN), save :: mtmd      ! Multiple targetted MD file
 character(len=MAX_FN_LEN), save :: vecs      ! Eigenvector file? ??
-! character(len=MAX_FN_LEN), save :: radii     ! PB Radii file? ??
+character(len=MAX_FN_LEN), save :: radii     ! PB Radii file? ??
 character(len=MAX_FN_LEN), save :: freqe     ! ??
 character(len=MAX_FN_LEN), save :: redir(9)  ! NMR redirection file
 character(len=MAX_FN_LEN), save :: rstdip    ! Dipole restart file (output)
@@ -171,7 +171,7 @@ subroutine initialize_fnames
    mdinfo = 'mdinfo'
    mtmd = 'mtmd'
    vecs = 'vecs'
-!    radii = 'radii'
+   radii = 'radii'
    freqe = 'dummy'
    redir(:) = ' '
    rstdip = 'rstdip'

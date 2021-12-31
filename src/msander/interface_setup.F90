@@ -32,7 +32,7 @@
    use stack
    use sander_rism_interface, only: rism_setparam, rism_init
    use xray_globals_module, only: xray_active
-   use xray_interface_module, only: xray_init, xray_read_parm, xray_init_globals
+   use xray_interface_module, only: xray_init=>init
    ! for LIE calculations
    use linear_response, only: ilrt, setup_linear_response, &
                               cleanup_linear_response

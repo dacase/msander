@@ -346,7 +346,7 @@ subroutine cpparm2(x,ix,ih,parmdata,ierr)
       return
    end if
 
-   if (( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
+   if ( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
       x(l97:l97+natom-1) = parmdata%radii(1:natom)
       x(l96:l96+natom-1) = parmdata%screen(1:natom)
    end if

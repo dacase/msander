@@ -445,7 +445,7 @@ subroutine api_mdread1(input_options, ierr)
          temp0les,restraintmask,restraint_wt,bellymask, &
          noshakemask,crgmask, &
          mask_from_ref, &
-         rdt,ntrelax,mccycles,mccycles_e, &
+         rdt,ntrelax, &
          ifqnt,ievb, profile_mpi, &
          ipb, inp, &
          gbneckscale, &

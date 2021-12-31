@@ -12,10 +12,12 @@ test.general:
 	-(cd tip4p && ./Run.tip4p_mcbar)
 	-(cd middle-scheme/MD_Constr_Langevin_water && ./Run.LGV_LF)
 	-(cd middle-scheme/MD_Unconstr_Langevin_water && ./Run.LGV_LF)
-	-(cd middle-scheme/QMMM_Constr_ALA_Methol && Run.qmmm)
+#	-(cd middle-scheme/QMMM_Constr_ALA_Methol && Run.qmmm)
 	-(cd softcore && ./Run_sc)
 	-(cd qmmm_DFTB/lysine_DFTB && ./Run.lysine_md)
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin_md)
+	-(cd qmmm2/lysine_AM1 && ./Run.lysine)
+	-(cd qmmm2/lysine_AM1 && ./Run.lysine_md)
 
 test.rism:
 	-(cd rism3d/4lzt && ./Run.4lzt.pme)
@@ -23,12 +25,13 @@ test.rism:
 	-(cd xray/480d && ./Run.480d_pse2)
 
 test.xray:
-	-(cd xray/2wcu && ./Run.2wcu)
-	-(cd xray/3onk && ./Run.3onk_ml)
-	-(cd xray/3onk && ./Run.3onk_mlopt)
-	-(cd xray/480d && ./Run.480d_xray)
+#	-(cd xray/2wcu && ./Run.2wcu)
+#	-(cd xray/3onk && ./Run.3onk_ml)
+#	-(cd xray/3onk && ./Run.3onk_mlopt)
+#	-(cd xray/480d && ./Run.480d_xray)
 #	-(cd xray/6o2h && ./Run.6o2h_min)
-	-(cd cryoem/3j9d && ./Run.3j9d)
+	-(cd xray/4lzt && ./Run.4lzt)
+#	-(cd cryoem/3j9d && ./Run.3j9d)
 	-(cd cryoem/emap && ./Run.emap)
 
 test.tleap:

@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 12/28/2020 at 08:11:11
+| Run on 12/31/2021 at 16:10:33
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/cryoem/emap
+| Working directory: /home/case/msander/test/cryoem/emap
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -53,7 +53,7 @@ Map Constraint Self-Guided Langevin dynamics
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
-|Largest sphere to fit in unit cell has radius =       NaN
+| Largest sphere to fit in unit cell has radius =   131.557
  NATOM  =     855 NTYPES =      13 NBONH =     419 MBONA  =     442
  NTHETH =     951 MTHETA =     600 NPHIH =    1914 MPHIA  =    1460
  NHPARM =       0 NPARM  =       0 NNB   =    4698 NRES   =      56
@@ -124,7 +124,8 @@ SHAKE:
  begin time read from input coords =     0.010 ps
 
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
+| Running OpenMP with   1 threads
+| Running OpenMP with   1 threads
   _________________ SGLD parameters _________________
   Parameters for self-guided Langevin dynamics (SGLD) simulation
 
@@ -195,9 +196,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       159.7274  ANGLE   =       412.1703  DIHED      =       589.9095
  1-4 NB =       203.5664  1-4 EEL =      3041.8514  VDWAALS    =      -321.8182
  EELEC  =     -5010.2468  EGB     =      -480.0403  RESTRAINT  =     -1135.8440
- EAMBER (non-restraint)  =     -1404.8803
  SGLF =   0.5000   300.00   21.2034   21.2030  0.9999     -2540.7243     0.0000
  SGHF =   0.0000   0.0377  278.7966  278.7970  0.9999         0.0000     0.0000
+ EAMBER (non-restraint)  =     -1404.8803
  EMAP   =     -1135.8440
  ------------------------------------------------------------------------------
 
@@ -207,9 +208,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       158.4914  ANGLE   =       415.6887  DIHED      =       589.5912
  1-4 NB =       203.6554  1-4 EEL =      3040.7140  VDWAALS    =      -323.6517
  EELEC  =     -4935.2768  EGB     =      -553.2457  RESTRAINT  =     -1135.7861
- EAMBER (non-restraint)  =     -1404.0336
  SGLF =   0.5000   299.99   21.1938   21.1913  0.9998     -2540.7198    -0.0001
  SGHF =   0.0000   0.0384  278.8062  278.8087  0.9998         0.9001     0.0000
+ EAMBER (non-restraint)  =     -1404.0336
  EMAP   =     -1135.7861
  ------------------------------------------------------------------------------
 
@@ -219,9 +220,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       156.1061  ANGLE   =       419.2874  DIHED      =       589.3362
  1-4 NB =       203.8361  1-4 EEL =      3040.1059  VDWAALS    =      -325.7095
  EELEC  =     -4967.3105  EGB     =      -521.8684  RESTRAINT  =     -1135.5708
- EAMBER (non-restraint)  =     -1406.2167
  SGLF =   0.5000   299.99   21.1842   21.1778  0.9998     -2540.7251     0.0002
  SGHF =   0.0000   0.0377  278.8158  278.8222  0.9997        -1.0624     0.0000
+ EAMBER (non-restraint)  =     -1406.2167
  EMAP   =     -1135.5708
  ------------------------------------------------------------------------------
 
@@ -231,9 +232,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       152.8860  ANGLE   =       420.7629  DIHED      =       588.9953
  1-4 NB =       203.9520  1-4 EEL =      3040.1317  VDWAALS    =      -327.9423
  EELEC  =     -4978.8870  EGB     =      -511.1576  RESTRAINT  =     -1135.2142
- EAMBER (non-restraint)  =     -1411.2589
  SGLF =   0.5000   299.98   21.1747   21.1621  0.9997     -2540.7538     0.0009
  SGHF =   0.0000   0.0356  278.8253  278.8379  0.9997        -5.7192     0.0000
+ EAMBER (non-restraint)  =     -1411.2589
  EMAP   =     -1135.2142
  ------------------------------------------------------------------------------
 
@@ -243,9 +244,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       149.5668  ANGLE   =       420.6475  DIHED      =       588.7627
  1-4 NB =       203.9135  1-4 EEL =      3041.0500  VDWAALS    =      -330.1803
  EELEC  =     -4948.9690  EGB     =      -542.2244  RESTRAINT  =     -1134.7308
- EAMBER (non-restraint)  =     -1417.4331
  SGLF =   0.5000   299.98   21.1654   21.1442  0.9996     -2540.8109     0.0017
  SGHF =   0.0000   0.0326  278.8346  278.8558  0.9996       -11.3529     0.0000
+ EAMBER (non-restraint)  =     -1417.4331
  EMAP   =     -1134.7308
  ------------------------------------------------------------------------------
 
@@ -255,9 +256,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       146.8891  ANGLE   =       419.9296  DIHED      =       588.4144
  1-4 NB =       203.8519  1-4 EEL =      3042.7964  VDWAALS    =      -332.0832
  EELEC  =     -4884.0158  EGB     =      -608.5509  RESTRAINT  =     -1134.1494
- EAMBER (non-restraint)  =     -1422.7686
  SGLF =   0.5000   299.98   21.1561   21.1243  0.9996     -2540.8914     0.0024
  SGHF =   0.0000   0.0291  278.8439  278.8757  0.9995       -16.0265     0.0000
+ EAMBER (non-restraint)  =     -1422.7686
  EMAP   =     -1134.1494
  ------------------------------------------------------------------------------
 
@@ -267,9 +268,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       145.2591  ANGLE   =       418.3317  DIHED      =       588.0820
  1-4 NB =       203.6948  1-4 EEL =      3045.0504  VDWAALS    =      -333.6956
  EELEC  =     -4906.2446  EGB     =      -589.0784  RESTRAINT  =     -1133.5061
- EAMBER (non-restraint)  =     -1428.6005
  SGLF =   0.5000   299.98   21.1469   21.1026  0.9995     -2540.9975     0.0032
  SGHF =   0.0000   0.0254  278.8531  278.8974  0.9995       -21.1091     0.0000
+ EAMBER (non-restraint)  =     -1428.6005
  EMAP   =     -1133.5061
  ------------------------------------------------------------------------------
 
@@ -279,9 +280,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       144.9930  ANGLE   =       416.1256  DIHED      =       587.6141
  1-4 NB =       203.4771  1-4 EEL =      3047.6862  VDWAALS    =      -334.9590
  EELEC  =     -4939.1839  EGB     =      -558.9623  RESTRAINT  =     -1132.8138
- EAMBER (non-restraint)  =     -1433.2092
  SGLF =   0.5000   299.98   21.1377   21.0793  0.9995     -2541.1226     0.0038
  SGHF =   0.0000   0.0219  278.8623  278.9207  0.9994       -24.9004     0.0000
+ EAMBER (non-restraint)  =     -1433.2092
  EMAP   =     -1132.8138
  ------------------------------------------------------------------------------
 
@@ -291,9 +292,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       145.5210  ANGLE   =       413.5127  DIHED      =       586.8741
  1-4 NB =       203.3175  1-4 EEL =      3050.1887  VDWAALS    =      -335.8627
  EELEC  =     -4990.6418  EGB     =      -510.0424  RESTRAINT  =     -1132.0792
- EAMBER (non-restraint)  =     -1437.1330
  SGLF =   0.5000   299.98   21.1286   21.0548  0.9994     -2541.2631     0.0043
  SGHF =   0.0000   0.0187  278.8714  278.9452  0.9994       -27.9492     0.0000
+ EAMBER (non-restraint)  =     -1437.1330
  EMAP   =     -1132.0792
  ------------------------------------------------------------------------------
 
@@ -303,9 +304,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       145.8001  ANGLE   =       410.4053  DIHED      =       585.7552
  1-4 NB =       203.3178  1-4 EEL =      3052.7400  VDWAALS    =      -336.4903
  EELEC  =     -5048.3575  EGB     =      -454.6659  RESTRAINT  =     -1131.3425
- EAMBER (non-restraint)  =     -1441.4953
  SGLF =   0.5000   299.98   21.1195   21.0292  0.9994     -2541.4209     0.0049
  SGHF =   0.0000   0.0160  278.8805  278.9708  0.9994       -31.4169     0.0000
+ EAMBER (non-restraint)  =     -1441.4953
  EMAP   =     -1131.3425
  ------------------------------------------------------------------------------
 
@@ -318,9 +319,9 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =       150.5240  ANGLE   =       416.6862  DIHED      =       588.3335
  1-4 NB =       203.6582  1-4 EEL =      3044.2315  VDWAALS    =      -330.2393
  EELEC  =     -4960.9134  EGB     =      -532.9836  RESTRAINT  =     -1134.1037
- EAMBER (non-restraint)  =     -1420.7029
  SGLF =   0.5000   299.98   21.1610   21.1269  0.9996     -2540.9429     0.0021
  SGHF =   0.0000   0.0293  278.8390  278.8731  0.9996       -13.8637     0.0000
+ EAMBER (non-restraint)  =     -1420.7029
  EMAP   =     -1134.1037
  ------------------------------------------------------------------------------
 
@@ -333,10 +334,10 @@ Rigid    2 has    855 constrained atoms with mask: :*;
  BOND   =         5.5200  ANGLE   =         3.5147  DIHED      =         1.2271
  1-4 NB =         0.2225  1-4 EEL =         4.2958  VDWAALS    =         4.9843
  EELEC  =        46.3703  EGB     =        44.8227  RESTRAINT  =         1.5292
- EAMBER (non-restraint)  =        10.2397
 |E(PBS) =         3.2626
  SGLF =   0.0000     0.01    0.0268    0.0563  0.0002         0.2382     0.0018
  SGHF =   0.0000   0.0080    0.0268    0.0563  0.0002        11.5420     0.0000
+ EAMBER (non-restraint)  =        10.2397
  EMAP   =         1.5292
  ------------------------------------------------------------------------------
 
@@ -370,18 +371,18 @@ Rigid    2 has    855 constrained atoms with mask: :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.05 (29.26% of Gen B)
-|                Calc gb diag               0.10 (55.32% of Gen B)
-|                Calc gb off-diag           0.03 (15.43% of Gen B)
-|             Gen Born time              0.19 (100.0% of Nonbo)
-|          Nonbond force              0.19 (92.16% of Force)
-|          Bond/Angle/Dihedral        0.01 ( 2.94% of Force)
-|          Other                      0.01 ( 4.90% of Force)
-|       Force time                 0.20 (96.68% of Runmd)
-|       Verlet update time         0.01 ( 3.32% of Runmd)
-|    Runmd Time                 0.21 (89.41% of Total)
-|    Other                      0.02 ( 9.75% of Total)
-| Total time                 0.24 (100.0% of ALL  )
+|                Calc gb radii              0.07 (28.82% of Gen B)
+|                Calc gb diag               0.12 (53.28% of Gen B)
+|                Calc gb off-diag           0.04 (17.90% of Gen B)
+|             Gen Born time              0.23 (100.0% of Nonbo)
+|          Nonbond force              0.23 (90.16% of Force)
+|          Bond/Angle/Dihedral        0.01 ( 5.12% of Force)
+|          Other                      0.01 ( 4.72% of Force)
+|       Force time                 0.25 (97.32% of Runmd)
+|       Verlet update time         0.01 ( 2.30% of Runmd)
+|    Runmd Time                 0.26 (90.62% of Total)
+|    Other                      0.03 ( 8.68% of Total)
+| Total time                 0.29 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -391,11 +392,11 @@ Rigid    2 has    855 constrained atoms with mask: :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.22 Per Step(ms) =      22.00
-|         ns/day =       3.93   seconds/ns =   22000.00
+|     Elapsed(s) =       0.27 Per Step(ms) =      26.70
+|         ns/day =       3.24   seconds/ns =   26700.00
 | -----------------------------------------------------
 
-|           Job began  at 08:11:11.312  on 12/28/2020
-|           Setup done at 08:11:11.330  on 12/28/2020
-|           Run   done at 08:11:11.549  on 12/28/2020
+|           Job began  at 16:10:33.502  on 12/31/2021
+|           Setup done at 16:10:33.522  on 12/31/2021
+|           Run   done at 16:10:33.789  on 12/31/2021
 |     wallclock() was called     263 times

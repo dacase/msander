@@ -172,8 +172,13 @@ contains
       nmr_work => x(lnmr01:lnmr01+irlreq-1)
       nmr_iwork => ix(inmr02:inmr02+intreq-1)
 
+#ifdef LES
       reff => x(l98:l98+natom*ncopy-1)
       onereff => x(l99:l99+natom*ncopy-1)
+#else
+      reff => x(l98:l98+natom-1)
+      onereff => x(l99:l99+natom-1)
+#endif
 
       gb_vdw_radii => x(l165:l165+natom-1)
       gb_p1 => x(l170:l170+natom-1)

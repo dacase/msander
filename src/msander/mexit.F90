@@ -21,6 +21,9 @@ subroutine mexit(output_unit, status)
   integer ierr
 #  include "parallel.h"
    
+  ! We always need to call xray_fini() in order to properly shut down the GPU
+  if( mytaskid .eq. 0 ) call xray_fini()
+
   ! Status .gt. 0 implies an error condition, therefore
   ! kill all the nodes.  mpi_abort on the world communicator
   ! should do this, but it does not on some implementations.
@@ -37,8 +40,6 @@ subroutine mexit(output_unit, status)
   if (output_unit > 0 .and. status/=0) then
     close(unit = output_unit)
   endif
-
-  call xray_fini()
 
   call exit(status)
 end subroutine mexit 

@@ -4,48 +4,6 @@
   ! simulations and simulations with separate solute/solvent scaling -- dap
   ! "IDUMAR" is dummy array. Used since this routine was also used w/ GIBBS.
   
-#ifdef LES
-  ! Return LES and non-LES degrees of freedom, since separate solvent coupling
-  ! is no longer used.  Large changes to degcnt were made: cnum is now passed
-  ! (LES copy number of each atom)
-  call degcnt(ibelly, nr, ix(ibellygp), nsolut, nbonh, nbona, 0, ix(iibh), &
-              ix(ijbh), ix(iiba), ix(ijba), idumar, idumar, ntc, idumar, 0, &
-              0, 0, idumar, rndfp, rndfles, cnum, temp0les)
-   
-  ! RNDFP = # degrees of freedom for solute
-  ! RNDFS = # degrees of freedom for solvent
-  ! RNDF = total number of degrees of freedom.
-  ! RNDFLES = # degrees of freedom for LES groups
-  
-  ! temp0les was init to negative number to signify not to use a LES bath
-  ! just do standard code (meaning use solute/solvent baths)
-  ! any positive (or zero) means to use LES bath with that target
-  
-  ! degcnt returns rndfs or rndfles in the rndfles variable
-  ! depending on whether a LES bath was specified
-  ! do this instead of duplicating call with rndfs or rndfles
-   
-  if (temp0les < 0.d0) then
-    rndfs=rndfles
-    rndfles=0.d0
-  else
-    rndfs=0.d0
-  end if
-
-  if (master) then
-    write (6,'(a,f8.0)') "# degrees of freedom in non-LES region: ", rndfp
-    write (6,'(a,f8.0)') "# degrees of freedom in     LES region: ", rndfles
-  end if
-   
-  ! Modify RNDFP to reflect NDFMIN (set in mdread)
-  rndfp = rndfp - ndfmin
-  if (temp0les < 0.d0) then
-    rndf = rndfp+rndfs
-  else
-    rndf = rndfp+rndfles
-  end if
-   
-#else 
   call degcnt(ibelly, nr, ix(ibellygp), nsolut, nbonh, nbona, 0, ix(iibh), &
               ix(ijbh), ix(iiba), ix(ijba), idumar, idumar, ntc, idumar, 0, &
               0, 0, idumar, rndfp, rndfs)
@@ -83,11 +41,10 @@
       "     NUM_NOSHAKE = ", num_noshake, "     CORRECTED RNDFP = ", rndfp
     write (6,'(a,f8.0)') "|  TOTAL # of degrees of freedom (RNDF) = ", rndf
   end if
-#endif /* LES */
   ! Correct the degree of freedom count for extra points.  Note
   ! that rndfp, rndfs are uncorrected in an extra points context!
   call fix_degree_count(rndf)  
-#ifndef LES
+
   if (isgld > 0) then
 
     ! Number of degrees of freedom in the SGLD part
@@ -112,7 +69,6 @@
     ! also, ndfmin is not always being handled.
     call sg_fix_degree_count(sgsta_rndfp, sgend_rndfp, ndfmin, rndf)
   end if
-#endif /* LES */
 
 #ifdef MPI
   ! Soft-core TI: count additional degrees of freedom.

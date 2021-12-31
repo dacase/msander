@@ -101,8 +101,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   _REAL_ xx(*)
   integer   ix(*)
   character(len=4) ih(*)
-  _REAL_ fs(:), rborn(:), reff(:), dvdl, xray_e
-  _REAL_, intent(out) :: onereff(:)
+  _REAL_ fs(*), rborn(*), reff(*), dvdl, xray_e
+  _REAL_, intent(out) :: onereff(*)
 #include "def_time.h"
 #include "ew_frc.h"
 #include "ew_cntrl.h"

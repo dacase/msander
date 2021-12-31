@@ -165,7 +165,7 @@ do
     sed -e '\@^|@d' \
         -e '\@VERSION@d' \
         -e '\@^          Amber .. SANDER@d' \
-        -e '\@^          Amber .. PMEMD@d' \
+        -e '\@^          MSANDER@d' \
         -e '\@^Welcome to acdoctor[. 0-9]*: @d' \
         -e '\@^Welcome to antechamber[. 0-9]*: @d' \
         -e '\@Database of HETATM@d' \

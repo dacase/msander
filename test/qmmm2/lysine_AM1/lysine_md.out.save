@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 11/13/2019 at 10:16:58
+| Run on 12/31/2021 at 15:44:56
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/qmmm2/lysine_AM1
+| Working directory: /home/case/msander/test/qmmm2/lysine_AM1
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -48,6 +48,8 @@ Lysine: 5 cycles MD, one methylene group QM, has link atoms
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
+|  *** cutoff > system size, list only builds once
+| Largest sphere to fit in unit cell has radius =    98.288
  NATOM  =      22 NTYPES =       8 NBONH =      13 MBONA  =       8
  NTHETH =      30 MTHETA =       8 NPHIH =      44 MPHIA  =       7
  NHPARM =       0 NPARM  =       0 NNB   =     112 NRES   =       1
@@ -88,8 +90,8 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       5
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       0, igb     =       6, nsnb    =      25
@@ -128,10 +130,8 @@ LYS
  begin time read from input coords =     0.400 ps
 
  Number of triangulated 3-point waters found:        0
-
-| QMMM(OpenMP): SMP Multithreading is in use for matrix diagonalization routines.
-| QMMM(OpenMP):    1 threads will be spawned by the master MPI thread as needed.
-
+| Running OpenMP with   1 threads
+| Running OpenMP with   1 threads
 |  # of SOLUTE  degrees of freedom (RNDFP):      66.
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  QMSHAKE_NOSHAKEMASK_OVERLAP =      0
@@ -179,17 +179,19 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:                              norbs =        8
 | QMMM:    diag iterations used for timing =       20
 | QMMM:
-| QMMM:              Internal diag routine = 0.000091 seconds
-| QMMM:                 Dspev diag routine = 0.000242 seconds
-| QMMM:                Dspevd diag routine = 0.000142 seconds
-| QMMM:                Dspevx diag routine = 0.000478 seconds
-| QMMM:                 Dsyev diag routine = 0.000096 seconds
-| QMMM:                Dsyevd diag routine = 0.000094 seconds
-| QMMM:                Dsyevr diag routine = 0.000174 seconds
+| QMMM:              Internal diag routine = 0.000000 seconds
+| QMMM:                 Dspev diag routine = 0.005000 seconds
+| QMMM:                Dspevd diag routine = 0.000000 seconds
+| QMMM:                Dspevx diag routine = 0.002000 seconds
+| QMMM:                 Dsyev diag routine = 0.000000 seconds
+| QMMM:                Dsyevd diag routine = 0.000000 seconds
+| QMMM:                Dsyevr diag routine = 0.001000 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.000039 seconds
+| QMMM:                Pseudo diag routine = 0.001000 seconds
+| QMMM: Pseudo diagonalization appears to be slower than regular
+| QMMM: diagonalization. Setting pseudo_diag=0 for optimum performance.
 | QMMM:
-| QMMM: Using internal diagonalization routine (diag_routine=1).
+| QMMM: Using dsyevd routine (diag_routine=6).
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
@@ -215,8 +217,8 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:       _REAL_ parameter storage :        17056 bytes
 | QMMM:      integer parameter storage :          124 bytes
 | QMMM:         QM-MM RIJ Eqns storage :         7480 bytes
-| QMMM:          _REAL_ Scratch arrays :         2240 bytes
-| QMMM:         Integer Scratch arrays :          392 bytes
+| QMMM:          _REAL_ Scratch arrays :         2184 bytes
+| QMMM:         Integer Scratch arrays :          436 bytes
 | QMMM: ---------------------------------------------------
 | QMMM:        Total Dynamic Memory Usage:      0.033 Mb
 
@@ -262,8 +264,8 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 
 
  NSTEP =        5   TIME(PS) =       0.405  TEMP(K) =   302.48  PRESS =     0.0
- Etot   =        98.2124  EKtot   =        18.0328  EPtot      =        80.1796
- BOND   =         8.0829  ANGLE   =        10.6289  DIHED      =         1.2876
+ Etot   =        98.2124  EKtot   =        18.0328  EPtot      =        80.1795
+ BOND   =         8.0829  ANGLE   =        10.6288  DIHED      =         1.2876
  1-4 NB =         2.4673  1-4 EEL =        59.3155  VDWAALS    =        -0.5400
  EELEC  =         1.1097  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -2.1724
@@ -299,37 +301,18 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 3.71% of Total)
-|    Fast Water setup           0.00 ( 0.07% of Total)
-|          Nonbond force              0.00 ( 1.42% of Force)
-|             QMMM setup                 0.00 (67.55% of QMMM )
-|             QMMM list build            0.00 ( 0.28% of QMMM )
-|             QMMM prep coords           0.00 ( 0.53% of QMMM )
-|             QMMM RIJ Eqns Calc         0.00 ( 0.84% of QMMM )
-|                QMMM hcore calc            0.00 (10.61% of QMMM )
-|                   QMMM fock build            0.00 (72.62% of QMMM )
-|                   QMMM elec-energy cal       0.00 ( 0.91% of QMMM )
-|                   QMMM full matrix dia       0.00 (11.79% of QMMM )
-|                   QMMM pseudo matrix d       0.00 ( 9.48% of QMMM )
-|                   QMMM density build         0.00 ( 1.59% of QMMM )
-|                   Other                      0.00 ( 3.61% of QMMM )
-|                QMMM scf                   0.00 (88.69% of QMMM )
-|                QMMM GB energy             0.00 ( 0.56% of QMMM )
-|                Other                      0.00 ( 0.15% of QMMM )
-|             QMMM energy                0.00 (25.59% of QMMM )
-|             QMMM QM-QM force           0.00 ( 2.30% of QMMM )
-|             QMMM QM-MM force           0.00 ( 0.91% of QMMM )
-|             QMMM Collate Forces        0.00 ( 0.17% of QMMM )
-|             Other                      0.00 ( 1.84% of QMMM )
-|          QMMM                       0.00 (96.33% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 2.14% of Force)
-|          Other                      0.00 ( 0.10% of Force)
-|       Force time                 0.00 (61.27% of Runmd)
-|       Verlet update time         0.00 (35.65% of Runmd)
-|       Other                      0.00 ( 3.08% of Runmd)
-|    Runmd Time                 0.00 (68.27% of Total)
-|    Other                      0.00 (27.96% of Total)
-| Total time                 0.01 (98.89% of ALL  )
+|             QMMM setup                 0.01 (90.91% of QMMM )
+|                   QMMM fock build            0.00 (100.0% of QMMM )
+|                QMMM scf                   0.00 (100.0% of QMMM )
+|             QMMM energy                0.00 ( 9.09% of QMMM )
+|          QMMM                       0.01 (91.67% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 8.33% of Force)
+|       Force time                 0.01 (80.00% of Runmd)
+|       Verlet update time         0.00 (13.33% of Runmd)
+|       Other                      0.00 ( 6.67% of Runmd)
+|    Runmd Time                 0.01 (78.95% of Total)
+|    Other                      0.00 (21.05% of Total)
+| Total time                 0.02 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -339,11 +322,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.00 Per Step(ms) =       0.99
-|         ns/day =      86.99   seconds/ns =     993.20
+|     Elapsed(s) =       0.01 Per Step(ms) =       3.00
+|         ns/day =      28.80   seconds/ns =    3000.00
 | -----------------------------------------------------
 
-|           Job began  at 10:16:58.793  on 11/13/2019
-|           Setup done at 10:16:58.796  on 11/13/2019
-|           Run   done at 10:16:58.800  on 11/13/2019
-|     wallclock() was called    1167 times
+|           Job began  at 15:44:56.205  on 12/31/2021
+|           Setup done at 15:44:56.210  on 12/31/2021
+|           Run   done at 15:44:56.225  on 12/31/2021
+|     wallclock() was called    1107 times

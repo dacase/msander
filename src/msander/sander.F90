@@ -58,7 +58,7 @@ subroutine sander()
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
            xray_read_mdin, xray_write_options
   use xray_globals_module, only: xray_active,pdb_read_coordinates
-  use memory_module, only: coordinate, massinv, mass
+  use memory_module, only: coordinate
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -1106,7 +1106,7 @@ subroutine sander()
 #endif /* DISABLE_NFE */
 
           ntbond = nbonh  + nbona + nbper
-          call runmd(x, ix, ih, ipairs, x(lcrd), massinv, mass, &
+          call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
                        x(lforce), x(lvel), x(lvel2), x(l45), x(lcrdr), &
                        x(l50), ix(i70), x(l75), ntbond, erstop, qsetup)
 
