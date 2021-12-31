@@ -24,6 +24,4 @@ namespace xray {
   };
 }
 
-#define CUDA_PRECISION Single
-
 #endif //AMBER_XRAY_COMMON_H

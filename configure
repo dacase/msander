@@ -79,11 +79,16 @@ for var in "$@"; do
             ompflag='-fopenmp -DOPENMP';
             flibs_fftw="-lfftw3_omp -lfftw3"
             openmp="yes";;
-        --cuda)
+        --cuda-single)
             cuda="yes"
             installtype="cuda"
             fpic=""
-            cudaflags="-DCUDA";;
+            cudaflags="-DCUDA -DCUDA_PRECISION=Single";;
+        --cuda-double)
+            cuda="yes"
+            installtype="cuda"
+            fpic=""
+            cudaflags="-DCUDA -DCUDA_PRECISION=Double";;
         --no-netcdf)
             netcdflibf=""
             bintraj="";;
@@ -144,8 +149,10 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --conda        set up for a conda build, with conda-forge\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
-	printf " --mkl          use MKL routines from $MKLROOT\n"
-	printf " --openblas     use BLAS routines from $GOTO\n"
+	printf " --cuda-single  prepare for cuda-single precision build\n"
+	printf " --cuda-double  prepare for cuda-double precision build\n"
+	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
+	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
 	printf " --static       use static linking\n"
     exit 0
 fi

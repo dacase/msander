@@ -11,7 +11,7 @@ NVCC=/usr/local/cuda/bin/nvcc \
    -gencode arch=compute_60,code=sm_75 \
    -gencode arch=compute_80,code=sm_80 \
    -Wno-deprecated-declarations -use_fast_math -O3 \
-   -I/usr/local/cuda/include -IB40C -DCUDA --std c++14
+   -I/usr/local/cuda/include -IB40C $(CUDAFLAGS) --std c++14
 
 CPPOBJS = BulkMask.o BulkMaskCPU.o DPartial.o DPartialCPU.o NonBulk.o \
           NonBulkCPU.o xray_bulk_mask.o xray_dpartial.o xray_non_bulk.o \
