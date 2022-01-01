@@ -2,6 +2,12 @@
 
 export OMP_NUM_THREADS=10
 
+sander="../../../bin/msander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
 cat <<EOF > mdin
 Test of MD with Xray restraints
  &cntrl
@@ -24,7 +30,7 @@ Test of MD with Xray restraints
  /
 EOF
 
-../../../bin/msander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
+$DO_PARALLEL $sander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
     -o 4lzt_md.out < /dev/null
 
 ../../dacdif 4lzt_md.out.save 4lzt_md.out
