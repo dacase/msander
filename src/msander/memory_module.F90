@@ -154,7 +154,7 @@ contains
       tgt_fit_group => ix(itgtfitgp:itgtfitgp+natom-1)
       tgt_rms_group => ix(itgtrmsgp:itgtrmsgp+natom-1)
       belly_group => ix(ibellygp:ibellygp+natom-1)
-      atom_noshake => ix(noshake:noshake+natom-1)
+      atom_noshake => ix(noshake:noshake+nbona+nbonh-1)
 
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
       call set_rank2_pointer(ref_coordinate,x(lcrdr),3,natom)
