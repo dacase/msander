@@ -18,6 +18,7 @@ test.general:
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin_md)
 	-(cd qmmm2/lysine_AM1 && ./Run.lysine)
 	-(cd qmmm2/lysine_AM1 && ./Run.lysine_md)
+#	-(cd LES && ./Run.PME_LES)
 
 test.rism:
 	-(cd rism3d/4lzt && ./Run.4lzt.pme)

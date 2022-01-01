@@ -1,7 +1,9 @@
 include ../../config.h
 
 pysander:
-	MSANDERHOME=$(BASEDIR) $(PYTHON) setup.py install $(PYTHON_INSTALL)
+	@echo "[PYSANDER] setup.py install"
+	$(VB)MSANDERHOME=$(BASEDIR) $(PYTHON) setup.py install $(PYTHON_INSTALL) \
+           > setup.py.log
 
 clean:
 	/bin/rm -fr build/

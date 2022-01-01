@@ -1,45 +1,40 @@
-#!/bin/csh -f
-#TEST-PROGRAM sander.LES
-#TEST-DESCRIP TO_BE_DEtermined
-#TEST-PURPOSE regression, basic
-#TEST-STATE   undocumented
+#!/bin/sh
 
-if( ! $?TESTsanderLES ) set TESTsanderLES = "${AMBERHOME}/bin/sander.LES"
+sander="../../bin/msander.LES"
 
-if( ! $?DO_PARALLEL ) then
-        setenv DO_PARALLEL " "
-endif
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
 
-echo " "
-echo "  ADDLES and SANDER.LES test: "
-echo " "
+#echo "addles:"
+#../../bin/addles < input_addles \
+#    | grep -v 'There were' | grep -v ick | grep -v Making | grep -v orig> output_addles \
+#    || goto error
 
-echo "addles:"
-../../bin/addles < input_addles \
-    | grep -v 'There were' | grep -v ick | grep -v Making | grep -v orig> output_addles \
-    || goto error
+#../dacdif -r 1.e-6 output_addles.save output_addles
+#../dacdif LES.crd.save LES.crd
+#../dacdif -r 1.e-5  LES.prmtop.save LES.prmtop
 
-../dacdif -r 1.e-6 output_addles.save output_addles
-../dacdif LES.crd.save LES.crd
-../dacdif -r 1.e-5  LES.prmtop.save LES.prmtop
+cat > md.in <<EOF
+md on peptide single copy
+ &cntrl
+  ntx=7, irest=1,
+  ntf=2, ntc=2, ntpr=1, 
+  nstlim=20, dt=0.001,
+  ntb=1, ntp=0, temp0=300,
+  nscm=0,
+  ntpr=20, dt=0.002, ithermostat=0,
+ /
+EOF
 
-echo "sander.LES:"
-$DO_PARALLEL $TESTsanderLES  -O \
-		  -i md.in \
-		  -o md.LES.out \
-		  -p LES.prmtop.save \
-      	  -c md.LES.x \
-		  -r md.LES.rst 		|| goto error
+$DO_PARALLEL $sander  -O -i md.in -o md.LES.out \
+    -p LES.prmtop.save -c md.LES.x \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../dacdif md.LES.out.save  md.LES.out
-/bin/rm -f md.LES.rst mdinfo mdcrd
-exit(0)
 
-error:
-echo "  ${0}:  Program error"
-exit(1)
-
-
+/bin/rm -f mdinfo md.in restrt
+exit 0 
 
 
 

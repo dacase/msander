@@ -56,7 +56,7 @@ libsanderles="libsanderles"
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
-netcdflibf=$netcdflibf_static
+netcdflibf=$netcdflibf_shared
 
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
@@ -151,9 +151,10 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --openmp       prepare for OMP build\n"
 	printf " --cuda-single  prepare for cuda-single precision build\n"
 	printf " --cuda-double  prepare for cuda-double precision build\n"
+    printf "                N.B.: cuda options are still experimental\n"
 	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
 	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
-	printf " --static       use static linking\n"
+	printf " --static       use static linking (experiental)\n"
     exit 0
 fi
 
