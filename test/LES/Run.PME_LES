@@ -6,14 +6,48 @@ if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
 fi
 
-#echo "addles:"
-#../../bin/addles < input_addles \
-#    | grep -v 'There were' | grep -v ick | grep -v Making | grep -v orig> output_addles \
-#    || goto error
+echo "addles:"
 
-#../dacdif -r 1.e-6 output_addles.save output_addles
-#../dacdif LES.crd.save LES.crd
-#../dacdif -r 1.e-5  LES.prmtop.save LES.prmtop
+cat > input_addles <<EOF
+~
+~ all file names are specified at the beginning, before "action"
+~
+~ file to read prmtop
+file rprm name=(prmtop) read
+~
+~ file to read coordinates, velocities and box (this is a restart file)
+file rcvb name=(md.solv.crd) read
+~ 
+~ file to write prmtop
+file wprm name=(LES.prmtop) wovr
+~
+~ file to write coordinates (and velocities and box since they were read in)
+file wcrd name=(LES.crd) wovr
+~
+~ now the action command reads the files and tells addles to process commands
+~
+action
+~
+~ do not scale masses of copied particles
+omas
+~
+~ divide the peptide into 2 regions.
+~ make 2 copies of first half and 3 of second half
+~ "spac" defines a LES subspace (or region)
+~
+spac numc=2 pick #mon 1 3 
+spac numc=3 pick #mon 5 7
+~
+~ the following line is required at the end
+*EOD
+EOF
+../../bin/addles < input_addles \
+    | grep -v 'There were' | grep -v ick | grep -v Modifying | grep -v orig > output_addles \
+    || { echo "  $0:  Program error"; exit 1; }
+
+../dacdif -r 1.e-6 output_addles.save output_addles
+../dacdif LES.crd.save LES.crd
+../dacdif -r 1.e-5  LES.prmtop.save LES.prmtop
 
 cat > md.in <<EOF
 md on peptide single copy
@@ -23,22 +57,15 @@ md on peptide single copy
   nstlim=20, dt=0.001,
   ntb=1, ntp=0, temp0=300,
   nscm=0,
-  ntpr=20, dt=0.002, ithermostat=0,
+  ntpr=5, dt=0.002, ithermostat=0,
  /
 EOF
 
 $DO_PARALLEL $sander  -O -i md.in -o md.LES.out \
-    -p LES.prmtop.save -c md.LES.x \
+    -p LES.prmtop.save -c LES.crd.save \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../dacdif md.LES.out.save  md.LES.out
 
-/bin/rm -f mdinfo md.in restrt
+/bin/rm -f mdinfo md.in restrt input_addles
 exit 0 
-
-
-
-
-
-
-

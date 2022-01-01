@@ -6,9 +6,6 @@
 subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
       ibh,jbh,iba,jba,ibp,jbp,ntc,natrst,nbrst, &
       narst,nprst,itorty,rndfp,rndfs &
-#ifdef LES
-      ,cnum,temp0les &
-#endif
       )
 
    ! Subroutine DEGgree CouNT
@@ -20,17 +17,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
    
    ! It then determines the number of degrees of freedom in the solute and in
    ! the solvent which are lost to SHAKE and TORCON constraints.
-   
-#ifdef LES
-   ! *************************************************
-   ! modified for LES temperature coupling
-   ! if temp0les is > 0, need separate LES temp coupling bath
-   ! all checks previously based on NSOLUT will
-   ! check CNUM instead (copy number, =0 for non-LES
-   ! any reference to SOLVENT really is LES region
-   ! any reference to SOLUTE is non-LES atoms
-   ! *************************************************
-#endif
    
    ! Returned are three values:
    
@@ -67,14 +53,10 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
 
 
    use qmmm_module, only : qmmm_nml
-#ifndef LES
    use qmmm_module, only : qmmm_struct 
-#endif /* LES */
 #ifdef MPI /* SOFT CORE */
    use softcore, only : sc_dof_shaked, ifsc
-#  ifndef LES
    use softcore, only : nsc, tishake
-#  endif /* LES */
 #endif /* MPI */
    implicit none
 
@@ -83,10 +65,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
    integer :: ibh(*), jbh(*), iba(*), jba(*), ibp(*), jbp(*)
    integer :: ntc, natrst(4,*), nbrst, narst, nprst, itorty(*)
    _REAL_ :: rndfp, rndfs
-#ifdef LES
-   integer :: cnum(*)
-   _REAL_ :: temp0les
-#endif
 
 !Local
    integer :: i, ibelsl, ibelsv, ib, jb, inum, j, im, m
@@ -106,25 +84,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
    if (ibelly > 0) then
       do i = 1,nat
          if(igrp(i) > 0) then
-#ifdef LES
-            if (temp0les >= 0.d0) then
-               ! 2 baths
-               if (cnum(i) == 0) then
-                  ! non-LES
-                  ibelsl = ibelsl + 1
-               else
-                  ! LES
-                  ibelsv = ibelsv + 1
-               end if
-            else
-               ! 1 bath
-               if (i <= nsolut) then
-                  ibelsl = ibelsl + 1
-               else
-                  ibelsv = ibelsv + 1
-               end if
-            end if
-#else
             if (i <= nsolut) then
                ibelsl = ibelsl + 1
             else
@@ -138,7 +97,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                  ibelsl_mm = ibelsl_mm + 1
               end if
             end if
-#endif
          end if
       end do
    end if
@@ -163,27 +121,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
          ib = ibh(i)/3 + 1
          jb = jbh(i)/3 + 1
          if (ibelly <= 0) then
-#ifdef LES
-            if (temp0les > 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -214,29 +151,7 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                end if
             end if
 # endif
-#endif
          else if (igrp(ib) > 0 .or. igrp(jb) > 0) then
-#ifdef LES
-            if (temp0les >= 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -245,7 +160,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                rstssl = rstssl + 0.5d0
                rstssv = rstssv + 0.5d0
             end if
-#endif
          end if  ! (ibelly <= 0)
       end do
    end if  !  20 i = 1,nbonh
@@ -261,27 +175,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
          ib = iba(i)/3 + 1
          jb = jba(i)/3 + 1
          if (ibelly <= 0) then
-#ifdef LES
-            if (temp0les > 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -302,29 +195,7 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                end if
             end if
 # endif
-#endif
          else if (igrp(ib) > 0 .or. igrp(jb) > 0) then
-#ifdef LES
-            if (temp0les > 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -333,7 +204,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                rstssl = rstssl + 0.5d0
                rstssv = rstssv + 0.5d0
             end if
-#endif
          end if  ! (ibelly <= 0)
       end do
 
@@ -343,27 +213,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
          ib = ibp(i)/3 + 1
          jb = jbp(i)/3 + 1
          if (ibelly <= 0) then
-#ifdef LES
-            if (temp0les > 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -382,29 +231,7 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                  rstssmm = rstssmm + 1
               end if
             end if
-#endif
          else if (igrp(ib) > 0 .or. igrp(jb) > 0) then
-#ifdef LES
-            if (temp0les > 0.d0) then
-               if (cnum(ib) == 0.and.cnum(jb) == 0) then
-                  rstssl = rstssl + 1.0d0
-               else if (cnum(ib) > 0.and.cnum(jb) > 0) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            else
-               if (ib <= nsolut .and. jb <= nsolut) then
-                  rstssl = rstssl + 1.0d0
-               else if (ib > nsolut .and. jb > nsolut) then
-                  rstssv = rstssv + 1.0d0
-               else
-                  rstssl = rstssl + 0.5d0
-                  rstssv = rstssv + 0.5d0
-               end if
-            end if
-#else
             if (ib <= nsolut .and. jb <= nsolut) then
                rstssl = rstssl + 1.0d0
             else if (ib > nsolut .and. jb > nsolut) then
@@ -423,7 +250,6 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
                  rstssmm = rstssmm + 1
               end if
             end if
-#endif
          end if  ! (ibelly <= 0)
       end do ! i = 1,nbper
    end if
@@ -468,34 +294,8 @@ subroutine degcnt(ibelly,nat,igrp,nsolut,nbonh,nbona,nbper, &
    !               RNDFS (net number of degrees of freedom for solvent).
    
    if (ibelly <= 0) then
-#ifdef LES
-      
-      ! carlos : modified for LES temperatures
-      ! we need to count number of LES and non-LES atoms
-      ! use belly variables to hold values even though no belly
-      
-      if (temp0les > 0.d0) then
-         ibelsl = 0
-         ibelsv = 0
-         do i=1,nat
-            if (cnum(i) == 0) then
-               ! non-LES
-               ibelsl = ibelsl + 1
-            else
-               ! LES
-               ibelsv = ibelsv + 1
-            end if
-         end do
-         rndfp = 3*ibelsl - rstssl
-         rndfs = 3*ibelsv - rstssv
-      else
-         rndfp = 3*nsolut - rstssl
-         rndfs = 3*(nat-nsolut) - rstssv
-      end if
-#else
       rndfp = 3*nsolut - rstssl
       rndfs = 3*(nat-nsolut) - rstssv
-#endif
    else
       rndfp = 3*ibelsl - rstssl
       rndfs = 3*ibelsv - rstssv
