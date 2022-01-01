@@ -17,11 +17,7 @@ questionable_count=`grep "FAILURE:" ${logfile} | wc -l`
 error_count=`grep "Program error" ${logfile} | grep -v "echo" | wc -l`
 
 echo "${passed_count} file comparisons passed" | tee -a ${logfile}
-if [ ${questionable_count} -eq 0 ]; then
-    echo "${questionable_count} file comparisons failed" | tee -a ${logfile}
-else
-    echo "${questionable_count} file comparisons failed" | tee -a ${logfile}
-fi
+echo "${questionable_count} file comparisons failed" | tee -a ${logfile}
 echo "${error_count} tests experienced errors" | tee -a ${logfile}
 
 echo "Test log file saved as ${logfile}" | tee -a ${logfile}
