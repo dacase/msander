@@ -1108,7 +1108,7 @@ subroutine sander()
           ntbond = nbonh  + nbona + nbper
           call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
                        x(lforce), x(lvel), x(lvel2), x(l45), x(lcrdr), &
-                       x(l50), ix(i70), x(l75), ntbond, erstop, qsetup)
+                       x(l50), x(l95), ix(i70), x(l75), erstop, qsetup)
 
 #if !defined(DISABLE_NFE)
           if (infe == 1) call nfe_on_sander_exit()

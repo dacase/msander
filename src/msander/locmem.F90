@@ -209,17 +209,7 @@ subroutine locmem()
    call adj_mem_ptr( r_ptr, lnmr01, irlreq )
    
    call adj_mem_ptr( r_ptr, l75, natom )
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, l95, max(3*natom, 2*ntbond) )
-   else if (nmropt > 0 ) then
-      call adj_mem_ptr( r_ptr, l95, max(natom, 2*ntbond) )
-   else
-      call adj_mem_ptr( r_ptr, l95, 2*ntbond )
-   end if
-! Modified by WJM
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, l95, max(3*natom, 2*ntbond) )
-   else if (nmropt > 0 ) then
+   if (nmropt > 0 ) then
       call adj_mem_ptr( r_ptr, l95, max(natom, 2*ntbond) )
    else
       call adj_mem_ptr( r_ptr, l95, 2*ntbond )

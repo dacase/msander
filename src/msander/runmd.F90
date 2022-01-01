@@ -289,17 +289,18 @@ public :: runmd
 contains
 
 subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
-                 conp, nsp, tma, ntbond, erstop, qsetup)
+                 conp, skip, nsp, tma, erstop, qsetup)
 
   implicit none
-  integer, intent(in) ::   ipairs(*), ix(*), nsp(*), ntbond
+  integer, intent(in) ::   ipairs(*), ix(*), nsp(*)
   _REAL_, intent(inout) ::  xx(*)
   character(len=4), intent(in) :: ih(*)
   _REAL_, intent(inout) ::  x(*), winv(*), amass(*), f(*), v(*), vold(*), &
                             xr(*), xc(*), conp(*), tma(*)
   logical, intent(inout) ::  erstop, qsetup
-
-  logical skip(2*ntbond)   ! avoid overlapping memory usage for L95
+  _REAL_, intent(in) ::  skip(*)   ! N.B.: skip is really a logical variable,
+                                   ! but we are just really passing an opaque
+                                   ! pointer here
 
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
