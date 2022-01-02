@@ -287,7 +287,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   _REAL_, intent(inout) ::  x(:), winv(:), amass(:), f(:), v(:), vold(:), &
                             xc(:), conp(:)
   logical, intent(inout) ::  erstop, qsetup
-  _REAL_, intent(in) ::  skip(*)   ! N.B.: skip is really a logical variable,
+  _REAL_, intent(in) ::  skip(:)   ! N.B.: skip is really a logical variable,
                                    ! but we are just really passing an opaque
                                    ! pointer here
 

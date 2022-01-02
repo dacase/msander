@@ -56,8 +56,8 @@ module memory_module
       belly_group, atom_noshake, num_bonds, nmr_iwork
 
    _REAL_, dimension(:), pointer :: charge, massinv, mass, &
-      bond_bcoef, hbcut, box_dimensions, radii, screen, &
-      polarizability, nmr_work, reff, onereff, conp, tma, group_weight, &
+      bond_bcoef, hbcut, box_dimensions, radii, screen, skip, &
+      polarizability, nmr_work, reff, onereff, conp, group_weight, &
       gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, coord3, force3, vel3, vel3_old, &
       rest_coord3, rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor
 
@@ -184,8 +184,8 @@ contains
       rborn_fluct => x(l189:l189+natom-1)
 
       conp => x(l50:l50+nbona+nbonh-1)
+      skip => x(l95:l95+nbona+nbonh-1)
       !p_nmr_scratch => x(l95:l95+???)
-      tma => x(l75:l75+natom-1)
 
       if (nmropt >= 2) then
          nmr_imet => ix(i65:i65+mxsub*isubi-1)
@@ -299,10 +299,6 @@ contains
       nullify(rborn_min)
       nullify(rborn_ave)
       nullify(rborn_fluct)
-
-      !p_conp => x(l50:l50+ntbond-1)
-      !p_nmr_scratch => x(l95:l95+???)
-      !p_tma => x(l75:l75+natom-1)
 
       if (nmropt >= 2) then
          nullify(nmr_imet)

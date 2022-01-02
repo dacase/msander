@@ -3713,7 +3713,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
          if (ifsc == 0) then
             call mpi_bcast(x(lmass),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
             call mpi_bcast(x(lwinv),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
-            call mpi_bcast(x(l75),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
          end if
          tmass = sum(x(lmass:lmass+natom-1))
          tmassinv = 1.d0/tmass
@@ -3768,7 +3767,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
          ix(i40),ix(i42),ix(i44),ix(i46),ix(i48), &
          ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
          ih(m06),ix,x,ix(i08),ix(i10), &
-         nspm,ix(i70),x(l75),tmass,tmassinv,x(lmass),x(lwinv),req)
+         nspm,ix(i70),tmass,tmassinv,x(lmass),x(lwinv),req)
 
    !  DEBUG input; force checking
 #ifdef API

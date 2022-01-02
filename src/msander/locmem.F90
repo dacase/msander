@@ -44,8 +44,7 @@ subroutine locmem()
    !     WEIT    ...  L60   ! WEIGHT FOR POSITION CONSTRAINT
    !                  L65   ! polarization
    !                  Lmass ! masses
-   !     TMA     ...  L75   ! SUB-MOLECULAR WEIGHT ARRAY IN RUNMD
-   !                  L95   ! 3*Natom Real Scratch (for pol.) or Natom (for nmr)
+   !                  L95   ! Scratch -- Natom (for nmr)
    !                        ! also used for SKIP array in shake (2*ntbond)
    !                  L96   ! GB "fs" array
    !                  L97   ! GB "rborn" array
@@ -151,19 +150,13 @@ subroutine locmem()
    call adj_mem_ptr( r_ptr, l15, natom )
    call adj_mem_ptr( r_ptr, lwinv, natom )
    call adj_mem_ptr( r_ptr, lpol, 0 )
-! Modified by WJM, YD, RL
    call adj_mem_ptr( r_ptr, ldf, 0 )
    call adj_mem_ptr( r_ptr, lpol2, 0 )
    call adj_mem_ptr( r_ptr, lpolbnd, 0 )
    call adj_mem_ptr( r_ptr, lcrd, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, lforce, 3*natom + mxvar + 40 )
-   if (imin == 0) then
-      call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
-      call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
-   else
-      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + mxvar) )
-      call adj_mem_ptr( r_ptr, lvel2, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
+   call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, l50, ntbond )
    
    ! positional restraints or carlos added targeted MD
@@ -187,7 +180,6 @@ subroutine locmem()
    call adj_mem_ptr( r_ptr, lmass, natom )
    call adj_mem_ptr( r_ptr, lnmr01, irlreq )
    
-   call adj_mem_ptr( r_ptr, l75, natom )
    if (nmropt > 0 ) then
       call adj_mem_ptr( r_ptr, l95, max(natom, 2*ntbond) )
    else

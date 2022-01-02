@@ -965,31 +965,25 @@ subroutine rdparm2(x,ix,ih,nf)
    
    tmass = 0.0d0
    !     -- index over molecules
-   j = l75-1
    jj = i70-1
    !     -- index over mass->invmass
    k = lwinv-1
    !     -- index over saved mass
    l = lmass-1
    do n = 1,nspm
-      j = j + 1
       jj = jj + 1
-      x(j) = 0.0d0
       natsm = ix(jj)
       do nn = 1,natsm
          k = k+1
          l = l+1
          
-         ! -- sum molecule
-         x(j) = x(j) + x(k)
-         
          ! -- save mass in "new" Lmass area
          x(l) = x(k)
+         tmass = tmass + x(l)
          
          ! -- make inverse in "old" Lwinv area
          if( x(k) /= 0.d0 ) x(k) = 1.0d0 / x(k)
       end do
-      tmass = tmass + x(j)
    end do
    tmassinv = 1.0d0 / tmass
 
