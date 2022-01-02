@@ -7,7 +7,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+
 subroutine ewald_force(crd,numatoms,iac,ico,charge, &
-      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, xr,virvsene,pol,pol2,qm_pot_only, &
+      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, virvsene,pol,pol2,qm_pot_only, &
       cn3,cn4,cn5)
    use ew_recip
    use stack
@@ -57,7 +57,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 
    integer numatoms,iac(*),ico(*)
    _REAL_ crd(3,*),charge(*),cn1(*),cn2(*),cn6(*), &
-          eelt,epol,frc(3,*),xr(3,*),virvsene
+          eelt,epol,frc(3,*),virvsene
    _REAL_ pol(*), pol2(*)
    _REAL_ cn3(*), cn4(*), cn5(*)
 !!

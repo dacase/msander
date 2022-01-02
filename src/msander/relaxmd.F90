@@ -23,7 +23,6 @@
 !   f:         force array, used to hold old coordinates temporarily, too
 !   v:         velocity array
 !   vold:      old velocity array, from the previous step
-!   xr:        coordinates with respect to COM of molecule
 !   xc:        array of reals, matching the size of x itself, used for scratch
 !              space in various subroutine calls
 !   conp:      bond parameters for SHAKE
@@ -40,7 +39,7 @@
 !   relax_nstlim:     number of relaxation dynamics steps to run
 !   increment_nmropt: flag to signal whether the nmropt counter will increment
 !------------------------------------------------------------------------------
-subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
+subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
                    conp, skip, nsp, tma, erstop, qsetup, relax_nstlim, &
                    mobile_atoms, increment_nmropt)
 
@@ -106,7 +105,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   logical do_list_update
   logical skip(*), lout, loutfm, erstop, vlim, onstep
   _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), &
-         xr(*), xc(*), conp(*)
+         xc(*), conp(*)
   type(state_rec) :: ener
   _REAL_ rmu(3), fac(3), onefac(3)
   _REAL_ tma(*)
@@ -302,20 +301,8 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Step 1a: do some setup for pressure calculations
   if (ntp > 0) then
     ener%cmt(1:3) = 0.d0
-    xr(1:nr3) = x(1:nr3)
-      
-    ! Calculate, for each molecule, the center of mass, kinetic energy
-    ! of the center of mass, and the coordinates of the molecule
-    ! relative to that center of mass.
-    call timer_start(TIME_EKCMR)
-    call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, istart, iend)
-#ifdef MPI
-    call mpi_allreduce(MPI_IN_PLACE, ener%cmt, 3, MPI_DOUBLE_PRECISION, &
-                       mpi_sum, commsander, ierr)
-#endif
-    call timer_stop(TIME_EKCMR)
   end if
-
+      
   ! If we're using the MC barostat, go ahead and do the trial move now
   if (ntp > 0 .and. barostat == 2 .and. mod(nstep+1, mcbarint) == 0) then
     call mcbar_trial(xx, ix, ih, ipairs, x, xc, f, ener%vir, xx(l96), &

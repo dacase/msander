@@ -398,8 +398,6 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
    integer ltmp
    call mpi_barrier(commsander,ierr)
 #endif
-   call fix_xr(x,natom,nspm,ix(i70),xx(l75), &
-         ekcmt,xx(l45),xx(lvel),xx(lmass))
    call force(xx,ix,ih,ipairs,x,f,ene,vir, &
          xx(l96), xx(l97), xx(l98), xx(l99), qsetup, do_list_update, 0)
 #ifdef MPI
@@ -415,28 +413,6 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
 #endif
    return
 end subroutine get_analfrc 
-!----------------------------------------------------
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ [Enter a one-line description of subroutine fix_xr here]
-subroutine fix_xr(x,natom,nspm,nsp,tma,ekcmt,xr,v,amass)
-   implicit none
-   _REAL_ x(3,*),tma(*),ekcmt(*), &
-         xr(3,*),v(*),amass(*)
-   integer natom,nspm,nsp(*),i
-
-   do i = 1,natom
-      xr(1,i) = x(1,i)
-      xr(2,i) = x(2,i)
-      xr(3,i) = x(3,i)
-   end do
-!#ifdef MPI
-   call ekcmr(nspm,nsp,tma,ekcmt,xr,v,amass,1,natom)
-!#else
-!   call ekcmr(nspm,nsp,tma,ekcmt,xr,v,amass)
-!#endif
-   return
-end subroutine fix_xr 
 !----------------------------------------------------
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -39,7 +39,6 @@ subroutine locmem()
    !     F       ...  Lforce! FORCE
    !     V       ...  Lvel  ! VELOCITY for MD, work space for min
    !     VOLD    ...  Lvel2 ! OLD VELOCITY for MD
-   !     XR      ...  L45   ! Coords rel. to COM of each molecule
    !     CONP    ...  L50   ! BOND PARAMETER FOR SHAKE
    !     XC      ...  LCRDR ! POSITION COORDINATE FOR CONSTRAINT
    !     WEIT    ...  L60   ! WEIGHT FOR POSITION CONSTRAINT
@@ -175,7 +174,6 @@ subroutine locmem()
       call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + mxvar) )
       call adj_mem_ptr( r_ptr, lvel2, 0 )
    end if
-   call adj_mem_ptr( r_ptr, l45, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, l50, ntbond )
    
    ! positional restraints or carlos added targeted MD

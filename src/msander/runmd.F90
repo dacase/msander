@@ -33,13 +33,11 @@
 !   f:         force array, used to hold old coordinates temporarily, too
 !   v:         velocity array
 !   vold:      old velocity array, from the previous step
-!   xr:        coordinates with respect to COM of molecule
 !   xc:        array of reals, matching the size of x itself, used for scratch
 !              space in various subroutine calls
 !   conp:      bond parameters for SHAKE
 !   skip:      logical skip array for SHAKE (and QM/MM too, I think)
 !   nsp:       submolecule index array (?)
-!   tma:       submolecular weight array (?)
 !   erstop:    should we stop in error (?)
 !   qsetup:    Flag to activate setup of multiple components, .false. on
 !              first call
@@ -102,7 +100,7 @@ module runmd_module
   use emap, only:temap,emap_move
   use barostats, only : mcbar_trial, mcbar_summary
 
-  use memory_module, only: mass
+  ! use memory_module, only: mass
   use random
 
 #ifdef MPI
@@ -279,15 +277,15 @@ public :: runmd
 
 contains
 
-subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
-                 conp, skip, nsp, tma, erstop, qsetup)
+subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
+                 conp, skip, nsp, erstop, qsetup)
 
   implicit none
   integer, intent(in) ::   ipairs(*), ix(*), nsp(*)
   _REAL_, intent(inout) ::  xx(*)
   character(len=4), intent(in) :: ih(*)
-  _REAL_, intent(inout) ::  x(*), winv(*), amass(*), f(*), v(*), vold(*), &
-                            xr(*), xc(*), conp(*), tma(*)
+  _REAL_, intent(inout) ::  x(:), winv(:), amass(:), f(:), v(:), vold(:), &
+                            xc(*), conp(:)
   logical, intent(inout) ::  erstop, qsetup
   _REAL_, intent(in) ::  skip(*)   ! N.B.: skip is really a logical variable,
                                    ! but we are just really passing an opaque

@@ -57,11 +57,10 @@ module memory_module
 
    _REAL_, dimension(:), pointer :: charge, massinv, mass, &
       bond_bcoef, hbcut, box_dimensions, radii, screen, &
-      polarizability, nmr_work, reff, onereff, group_weight, &
-      gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, &
-!      rborn_max, rborn_min, rborn_ave, rborn_fluct
-! Modified by WJM, YD, RL
+      polarizability, nmr_work, reff, onereff, conp, tma, group_weight, &
+      gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, coord3, force3, vel3, vel3_old, &
       rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor, pol2
+
    _REAL_, dimension(:,:), pointer :: polbnd
 !!
 
@@ -156,6 +155,10 @@ contains
       belly_group => ix(ibellygp:ibellygp+natom-1)
       atom_noshake => ix(noshake:noshake+nbona+nbonh-1)
 
+      coord3 => x(lcrd:lcrd+3*natom+mxvar-1)
+      force3 => x(lforce:lforce+3*natom+mxvar-1)
+      vel3 => x(lvel:lvel+3*natom+mxvar-1)
+      vel3_old => x(lvel2:lvel2+3*natom+mxvar-1)
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
       call set_rank2_pointer(ref_coordinate,x(lcrdr),3,natom)
       call set_rank2_pointer(velocity,x(lvel),3,natom) ! 6* when imin/=0 ???
@@ -164,7 +167,6 @@ contains
 ! by RL
       call set_rank2_pointer(polbnd,x(lpolbnd),3,natom)
 
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       group_weight => x(l60:l60+natom-1)
 
       ! l65: polarization  DEAD??
@@ -190,9 +192,9 @@ contains
       rborn_ave => x(l188:l188+natom-1)
       rborn_fluct => x(l189:l189+natom-1)
 
-      !p_conp => x(l50:l50+ntbond-1)
+      conp => x(l50:l50+nbona+nbonh-1)
       !p_nmr_scratch => x(l95:l95+???)
-      !p_tma => x(l75:l75+natom-1)
+      tma => x(l75:l75+natom-1)
 
       if (nmropt >= 2) then
          nmr_imet => ix(i65:i65+mxsub*isubi-1)
@@ -296,7 +298,6 @@ contains
 ! by RL
       nullify(polbnd)
 
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       nullify(group_weight)
 
       ! l65: polarization  DEAD??

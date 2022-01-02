@@ -24,7 +24,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     egb.LES.o remd.LES.o findmask.o relax_mat.o nmr.LES.o multitmd.o \
     cshf.o nmrcal.o mtmdcall.o pearsn.o cpparm.LES.o \
     printe.o nonbond_list.LESAPI.o force.LES.o rdparm.LESAPI.o \
-    mdread.LES.o locmem.LES.o runmd.LES.o relaxmd.o quench.o degcnt.LES.o decnvh.o \
+    mdread.LES.o locmem.LES.o runmd.LES.o quench.o degcnt.LES.o decnvh.o \
     fastwt.API.o parallel.LES.o shake.o rattle.o ene.LES.o \
     dynlib.LESAPI.o nmlsrc.o \
     ew_force.LES.o ew_setup.LESAPI.o ew_bspline.o\
@@ -75,7 +75,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     lmodC.o xminC.o decomp.o icosasurf.o egb.o remd.o findmask.o \
     relax_mat.o nmr.o multitmd.o trajene.o cshf.o nmrcal.o mtmdcall.o pearsn.o \
     printe.o rdparm.API.o cpparm.o sander_lib.o \
-    mdread.o locmem.o runmd.o relaxmd.o quench.o getcor.o degcnt.o decnvh.o \
+    mdread.o locmem.o runmd.o quench.o getcor.o degcnt.o decnvh.o \
     fastwt.API.o parallel.o shake.o rattle.o ene.o mdwrit.o minrit.o \
     set.API.o dynlib.API.o mdfil.o nmlsrc.o \
     ew_force.o ew_setup.API.o ew_box.API.o ew_bspline.o\
@@ -118,7 +118,7 @@ MMOBJ = \
     multitmd.o music_module.o new_time.o nmlsrc.o nmrcal.o \
     nmr.o nonbond_list.o parallel.o parms.o pcshift.o \
     pearsn.o printe.o qm_mm.o quench.o rand2.o \
-    random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
+    random.o rattle.o rdparm.o relax_mat.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
     sander_lib.o sander.o scaledMD.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
@@ -142,7 +142,7 @@ LESOBJ= \
     nmlsrc.o nmrcal.o nmr.LES.o nonbond_list.LES.o parallel.LES.o \
     parms.o pcshift.o pearsn.o printe.o \
     qm_mm.LES.o quench.o rand2.o random.o \
-    rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
+    rattle.o rdparm.LES.o relax_mat.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o \
