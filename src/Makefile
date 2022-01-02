@@ -25,14 +25,14 @@ serial:
 #	@cd gmml && $(MAKE) gmml
 
 parallel:
-	@cd msander && $(MAKE) msander
+	@cd msander && $(MAKE) msander.MPI
 #	@cd msander && $(MAKE) msander.LES
 
 cuda:
 	@cd msander && $(MAKE) msander.cuda
 
 mpicuda:
-	@cd msander && $(MAKE) msander.cuda$(SFX)
+	@cd msander && $(MAKE) msander.cuda.MPI
 
 clean:
 	-(cd blas && $(MAKE) clean )
