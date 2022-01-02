@@ -415,8 +415,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
             ew_coeff,eedtbdns,x(leed_cub),x(leed_lin), &
             maxnblst,eed,evdw,ehb,dir_vir,eedvir, &
             nbfilter,ee_type,eedmeth,dxdr, &
-            pol, pol2, cn3, cn4, cn5, &
-            epold,x(linddip),x(lfield),mpoltype)
+            cn3, cn4, cn5, epold,x(linddip),x(lfield))
 
 #ifdef MPI
        numtasks = commsander_numtasks

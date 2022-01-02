@@ -150,21 +150,11 @@ subroutine locmem()
    r_ptr = 1
    call adj_mem_ptr( r_ptr, l15, natom )
    call adj_mem_ptr( r_ptr, lwinv, natom )
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, lpol, natom )
-   else
-      call adj_mem_ptr( r_ptr, lpol, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, lpol, 0 )
 ! Modified by WJM, YD, RL
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, ldf, natom )
-      call adj_mem_ptr( r_ptr, lpol2, natom )
-      if ( ipol == 5) call adj_mem_ptr( r_ptr, lpolbnd, 3*natom )
-   else
-      call adj_mem_ptr( r_ptr, ldf, 0 )
-      call adj_mem_ptr( r_ptr, lpol2, 0 )
-      call adj_mem_ptr( r_ptr, lpolbnd, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, ldf, 0 )
+   call adj_mem_ptr( r_ptr, lpol2, 0 )
+   call adj_mem_ptr( r_ptr, lpolbnd, 0 )
    call adj_mem_ptr( r_ptr, lcrd, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, lforce, 3*natom + mxvar + 40 )
    if (imin == 0) then
@@ -190,17 +180,8 @@ subroutine locmem()
    else
       call adj_mem_ptr( r_ptr, lmtmd01, 0)
    end if
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, l65, 3*natom )
-   else
-      call adj_mem_ptr( r_ptr, l65, 0 )
-   end if
-! Modified by WJM
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, l65, natom )
-   else
-      call adj_mem_ptr( r_ptr, l65, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, l65, 0 )
+
    !     --- real array NMR restraints/weight changes:
    
    call adj_mem_ptr( r_ptr, lmass, natom )
@@ -307,15 +288,6 @@ subroutine locmem()
    call adj_mem_ptr( h_ptr, m04, natom )
    call adj_mem_ptr( h_ptr, m06, natom )
    call adj_mem_ptr( h_ptr, m08, natom )
-   
-   ! Removed expansion of h_ptr to include m12, m14 and m16,
-   ! since these appear to no longer be used.
-   ! BPR 15/7/2009
-   !call adj_mem_ptr( h_ptr, m12, natom )
-   !if (ipol > 0) then
-   !   call adj_mem_ptr( h_ptr, m14, 15*natom )
-   !end if
-   !call adj_mem_ptr( h_ptr, m16, 2*natom )
    
    lasth = h_ptr
    

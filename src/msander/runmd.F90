@@ -281,11 +281,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
                  conp, skip, nsp, erstop, qsetup)
 
   implicit none
-  integer, intent(in) ::   ipairs(*), ix(*), nsp(*)
+  integer, intent(in) ::   ipairs(:), ix(*), nsp(*)
   _REAL_, intent(inout) ::  xx(*)
   character(len=4), intent(in) :: ih(*)
   _REAL_, intent(inout) ::  x(:), winv(:), amass(:), f(:), v(:), vold(:), &
-                            xc(*), conp(:)
+                            xc(:), conp(:)
   logical, intent(inout) ::  erstop, qsetup
   _REAL_, intent(in) ::  skip(*)   ! N.B.: skip is really a logical variable,
                                    ! but we are just really passing an opaque

@@ -14,8 +14,8 @@
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                          numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
                          eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
-                         filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
-                         cn4, cn5, epol, dipole, field, mpoltype)
+                         filter_cut, ee_type, eedmeth, dxdr, cn3, &
+                         cn4, cn5, epol, dipole, field)
 
   use nblist, only : imagcrds, bckptr, nlogrid, nhigrid, numvdw, numhbnd, &
                      myindexlo, myindexhi, numimg
@@ -36,14 +36,13 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 #include "def_time.h"
    
   integer l_real_df, l_real_x, l_real_y, l_real_z, l_real_r2, l_int
-  integer numatoms, maxnblst, mpoltype
+  integer numatoms, maxnblst
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
   _REAL_ ewaldcof, eedtbdns, dxdr, eed_cub(4,*), eed_lin(2,*), dir_vir(3,3)
   integer ipairs(maxnblst)
   _REAL_ force(3,numatoms), eelt, epol, evdw, ehb
-  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*), pol(*)
-  _REAL_ pol2(*)
+  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*)
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
@@ -692,8 +691,8 @@ end subroutine short_ene
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                          numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
                          eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
-                         filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
-                         cn4, cn5, epol, dipole, field, mpoltype)
+                         filter_cut, ee_type, eedmeth, dxdr, cn3, &
+                         cn4, cn5, epol, dipole, field)
 
   use nblist, only : imagcrds, bckptr, nlogrid, nhigrid, numvdw, numhbnd, &
                      myindexlo, myindexhi, numimg, tranvec, nucgrd
@@ -711,14 +710,13 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 #include "flocntrl.h"
 #include "def_time.h"
    
-  integer numatoms, maxnblst, mpoltype
+  integer numatoms, maxnblst
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
   _REAL_ ewaldcof, eedtbdns, dxdr, eed_cub(*), eed_lin(2,*), dir_vir(3,3)
   integer ipairs(maxnblst)
   _REAL_ force(3,numatoms), eelt, epol, evdw, ehb
-  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*), pol(*)
-  _REAL_ pol2(*)
+  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*)
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd

@@ -59,10 +59,7 @@ module memory_module
       bond_bcoef, hbcut, box_dimensions, radii, screen, &
       polarizability, nmr_work, reff, onereff, conp, tma, group_weight, &
       gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, coord3, force3, vel3, vel3_old, &
-      rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor, pol2
-
-   _REAL_, dimension(:,:), pointer :: polbnd
-!!
+      rest_coord3, rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor
 
    _REAL_, dimension(:,:), pointer :: ref_coordinate, coordinate, &
       velocity, velocity_old, frc
@@ -144,10 +141,6 @@ contains
       radii => x(l97:l97+natom-1)
       screen => x(l96:l96+natom-1)
       polarizability => x(lpol:lpol+natom-1)
-! by WJM, YD
-      pol2 => x(lpol2:lpol2+natom-1)
-      dampfactor => x(ldf:ldf+natom-1)
-!!
 
       restraint_group => ix(icnstrgp:icnstrgp+ndper-1)
       tgt_fit_group => ix(itgtfitgp:itgtfitgp+natom-1)
@@ -159,17 +152,15 @@ contains
       force3 => x(lforce:lforce+3*natom+mxvar-1)
       vel3 => x(lvel:lvel+3*natom+mxvar-1)
       vel3_old => x(lvel2:lvel2+3*natom+mxvar-1)
+      rest_coord3 => x(lcrdr:lcrdr+3*natom+mxvar-1)
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
       call set_rank2_pointer(ref_coordinate,x(lcrdr),3,natom)
       call set_rank2_pointer(velocity,x(lvel),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(velocity_old,x(lvel2),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(frc,x(lforce),3,natom)
 ! by RL
-      call set_rank2_pointer(polbnd,x(lpolbnd),3,natom)
 
       group_weight => x(l60:l60+natom-1)
-
-      ! l65: polarization  DEAD??
 
       nmr_work => x(lnmr01:lnmr01+irlreq-1)
       nmr_iwork => ix(inmr02:inmr02+intreq-1)
@@ -278,11 +269,6 @@ contains
       nullify(mass)
       nullify(radii)
       nullify(screen)
-      nullify(polarizability)
-! by WJM, YD
-      nullify(pol2)
-      nullify(dampfactor)
-!!
 
       nullify(restraint_group)
       nullify(tgt_fit_group)
@@ -295,12 +281,8 @@ contains
       nullify(velocity)
       nullify(velocity_old)
       nullify(frc)
-! by RL
-      nullify(polbnd)
 
       nullify(group_weight)
-
-      ! l65: polarization  DEAD??
 
       nullify(nmr_work)
       nullify(nmr_iwork)
