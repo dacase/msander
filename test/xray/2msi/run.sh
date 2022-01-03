@@ -2,8 +2,8 @@
 
 set -e
 
-BUILD_DIR="../../../../../../cmake-build-debug"
-PMEMD="${BUILD_DIR}/src/pmemd/src/pmemd.cuda_SPFP"
+export CUDA_VISIBLE_DEVICES=0
+PMEMD="/home/case/sizmailov/bin/pmemd.cuda_SPFP"
 
 echo "Using pmemd=\"$(readlink -m ${PMEMD})\""
 
