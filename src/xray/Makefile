@@ -39,7 +39,7 @@ $(BINDIR)/add_pdb$(SFX): add_pdb.o $(LIBS)
 xray: $(BINDIR)/add_xray$(SFX) $(BINDIR)/add_pdb$(SFX) libxray
 
 clean:
-	/bin/rm -f $(OBJ) $(LIBOBJ) *.mod
+	/bin/rm -f *.o *.mod
 
 depend::
 	./makedepend > depend
