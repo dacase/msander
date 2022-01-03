@@ -35,6 +35,8 @@ subroutine mexit(output_unit, status)
   else
     call mpi_finalize(ierr)
   endif
+#else
+  call xray_fini()
 #endif
 
   if (output_unit > 0 .and. status/=0) then
