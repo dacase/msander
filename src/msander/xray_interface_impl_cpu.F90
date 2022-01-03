@@ -20,6 +20,7 @@ module xray_interface_impl_cpu_module
    public :: xray_write_md_state
    public :: xray_write_min_state
    public :: xray_write_options
+   public :: xray_write_pdb
 
    namelist /xray/ &
          pdb_infile, pdb_outfile, &
@@ -531,17 +532,6 @@ contains
       real(real_kind) :: phi
 
       if (.not.xray_active) return
-
-      if (pdb_outfile /= '') then
-         call xray_write_pdb(trim(pdb_outfile))
-      end if
-      if (fave_outfile /= '') then
-         ! TODO: call xray_interface2::write_fave()
-      endif
-
-      if (fmtz_outfile /= '') then
-         ! TODO: call xray_interface2::write_mtz_file()
-      endif
 
       call finalize2()
       

@@ -56,8 +56,8 @@ subroutine sander()
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
 
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
-           xray_read_mdin, xray_write_options
-  use xray_globals_module, only: xray_active,pdb_read_coordinates
+           xray_read_mdin, xray_write_options,xray_write_pdb
+  use xray_globals_module, only: xray_active,pdb_read_coordinates,pdb_outfile
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -1313,6 +1313,20 @@ subroutine sander()
   end if
 
    call rism_finalize()
+
+   if( xray_active ) then
+      if (pdb_outfile /= '') then
+         call xray_write_pdb(trim(pdb_outfile))
+      end if
+
+      !if (fave_outfile /= '') then
+         ! TODO: call xray_interface2::write_fave()
+      !endif
+
+      !if (fmtz_outfile /= '') then
+         ! TODO: call xray_interface2::write_mtz_file()
+      !endif
+   end if
 
   if (ifcr .ne. 0) then
     call cr_cleanup()
