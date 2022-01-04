@@ -20,6 +20,9 @@ $(BINDIR)/addles$(SFX) : $(LESOBJ)
 
 #  default rules for Fortran compilation:
 
+.SUFFIXES:
+.SUFFIXES: .F .F90 .o
+
 .F.o:   $<
 	@echo "[ADDLES]  FC $<"
 	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
@@ -37,10 +40,6 @@ uninstall:
 	-rm -f $(BINDIR)/addles$(SFX)
 
 $(LESOBJ) : $(COMMON_FILES)
-
-mexit.o:  ../msander/mexit.F90
-	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $<
 
 nxtsec.o:  ../lib/nxtsec.F
 	@echo "[ADDLES]  FC $<"
