@@ -47,6 +47,14 @@ findmask.o:   findmask.F90
 	@echo '[SQM]  FC $<'
 	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ findmask.F90
 
+mexit.o: \
+                    parallel.h
+
+
+mexit.o:   mexit.F90
+	@echo '[SQM]  FC $<'
+	$(VB)$(FC) $(FWARNFLAGS) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ mexit.F90
+
 MNDOChargeSeparation.o: \
                     ../include/dprec.fh\
                     constants.o\
