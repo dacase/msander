@@ -113,7 +113,7 @@ for var in "$@"; do
             longlines=""
             mpicc="mpiicc"
             mpif90="mpiifort"
-            optflags="-g -O3 -fast"
+            optflags="-g -O3"
             parmed="skip"
             # pysander="skip"
             # libsander="libsander_skip"
