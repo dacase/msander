@@ -261,9 +261,10 @@ contains
       s(:) = unit_cell%get_s(hkl(:, i))
       
       hkl_indexing_bs_mask(i) = h_as_ih( hkl(1,i), hkl(2,i), hkl(3,i), na, nb, nc)
-      if (hkl_indexing_bs_mask(i) == -1) then
-        stop 'Miller indices indexing failed'
-      end if
+      ! dac: no need to exit here: we handle -1 values later
+      ! if (hkl_indexing_bs_mask(i) == -1) then
+      !   stop 'Miller indices indexing failed'
+      ! end if
       
     end do
 
@@ -491,6 +492,7 @@ contains
   subroutine update_f_bulk(frac)
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    integer :: i
     
     call check_precondition(size(frac, 1) == 3)
     call check_precondition(size(frac, 2) == size(atom_types))
@@ -500,9 +502,17 @@ contains
     call shrink_bulk_solvent()
     call fft_bs_mask()
 
-    f_mask = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask + 1)) * &
-        unit_cell%get_volume() / grid_size
-  
+    ! since hi-res elements of f_mask should be small anyway, it should
+    !    be fine to set them to zero
+    do i=1,size(f_mask)
+       if( hkl_indexing_bs_mask(i) .ne. -1 ) then
+          f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                      * unit_cell%get_volume() / grid_size
+       else
+          f_mask(i) = 0.d0
+       endif
+    end do
+    return
   end subroutine update_f_bulk
 
   
