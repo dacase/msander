@@ -123,9 +123,9 @@ for var in "$@"; do
         --clang)
             compiler="clang"
             clangf="-DCLANG"
-            cc="clang-10"
-            cxx="clang++-10"
-            fc="flang"
+            cc="clang"
+            cxx="clang++"
+            fc="gfortran"
             optflags="-g -O3";;
         --mpi)
             mpi="yes"
