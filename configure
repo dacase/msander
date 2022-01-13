@@ -217,7 +217,6 @@ if [ "$OS" = "Darwin" ]; then
    is_mac='yes'
    shared_suffix=.dylib
    make_shared=-dynamiclib
-   libgfortran=`$msanderhome/src/libgfortran.sh`
    lm=
    if [ "$compiler" = 'intel' ] ; then
       optflags="-g -O3"
