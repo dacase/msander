@@ -879,7 +879,6 @@ subroutine setnoshake_sc(ix,ntc,num_noshake,master)
 end subroutine setnoshake_sc
 #endif
 
-#ifdef OPENMP
 subroutine set_omp_num_threads()
   use constants, only: omp_num_threads
   implicit none
@@ -894,4 +893,3 @@ subroutine set_omp_num_threads()
      write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
 #endif
 end subroutine set_omp_num_threads
-#endif
