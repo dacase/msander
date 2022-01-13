@@ -4,6 +4,10 @@ export XRAY_NUM_THREADS=10
 
 sander="../../../bin/msander"
 
+if [ ! -z "$USE_CUDA" ]; then
+   sander=$sander.cuda
+fi
+
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
 fi
@@ -33,6 +37,6 @@ EOF
 $DO_PARALLEL $sander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
     -o 4lzt_md.out < /dev/null
 
-../../dacdif 4lzt_md.out.save 4lzt_md.out
+../../dacdif -r 2e-4 4lzt_md.out.save 4lzt_md.out
 
 /bin/rm -f mdin mdinfo restrt
