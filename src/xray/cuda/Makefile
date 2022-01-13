@@ -2,14 +2,14 @@ include ../../../config.h
 
 .SUFFIXES: .cpp .cu .o
 
-#CUDA Specific build flags
-NVCC=/usr/local/cuda/bin/nvcc \
+#CUDA Specific build flags  -- use nvcc in the PATH for now; 
+#                              may want to set with configure later
+NVCC=nvcc \
    -gencode arch=compute_52,code=sm_52 \
    -gencode arch=compute_53,code=sm_53 \
    -gencode arch=compute_60,code=sm_60 \
    -gencode arch=compute_60,code=sm_70 \
    -gencode arch=compute_60,code=sm_75 \
-   -gencode arch=compute_80,code=sm_80 \
    -Wno-deprecated-declarations -use_fast_math -O3 \
    -I/usr/local/cuda/include -IB40C $(CUDAFLAGS) --std c++14
 
