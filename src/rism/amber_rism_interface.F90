@@ -1806,7 +1806,7 @@ end module sander_rism_interface
     call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
     if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
 #ifndef API
-    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+    write(6,'(a,i3,a)') '| Running RISM OpenMP with ',omp_num_threads,' threads'
 #endif
   end subroutine set_omp_num_threads_rism
 #endif

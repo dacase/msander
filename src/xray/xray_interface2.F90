@@ -29,7 +29,7 @@ contains
       &   k_sol, b_sol)
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
-    use constants_xray, only : set_omp_num_threads_xray
+    use constants_xray, only : set_xray_num_threads
     
     implicit none
 
@@ -67,7 +67,7 @@ contains
     call check_precondition(minval(atom_scatter_type) >= 1)
     call check_precondition(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
     
-    call set_omp_num_threads_xray()
+    call set_xray_num_threads()
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
         &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk)

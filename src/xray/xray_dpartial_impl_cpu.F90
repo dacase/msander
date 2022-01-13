@@ -3,7 +3,7 @@ module xray_dpartial_impl_cpu_module
   use xray_contracts_module
   use xray_dpartial_data_module
   use xray_pure_utils, only : real_kind
-  use constants_xray, only : omp_num_threads
+  use constants_xray, only : xray_num_threads
   
   implicit none
   private
@@ -39,7 +39,7 @@ contains
     
     d_target_d_frac = 0
     
-!$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(omp_num_threads)
+!$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
         
