@@ -7,7 +7,11 @@
 #include <iomanip>
 
 namespace {
-  std::unique_ptr<xray::DPartial> dpartial;
+
+std::unique_ptr<xray::DPartial>& dpartial_instance(){
+  static std::unique_ptr<xray::DPartial> dpartial;
+  return dpartial;
+}
 
 }
 
@@ -24,9 +28,9 @@ void pmemd_xray_dpartial_init_gpu(
   int n_scatter_types,
   const double* atomic_scatter_factor
 ) {
-  assert(!dpartial);
-  dpartial = std::unique_ptr<xray::DPartial>(
-    new xray::DPartialGPU<xray::KernelPrecision::CUDA_PRECISION>(
+  assert(!dpartial_instance());
+  dpartial_instance().reset(
+    new xray::DPartialGPU<xray::KernelPrecision::Single>(
       n_hkl,
       hkl,
       mss4,
@@ -49,9 +53,9 @@ void pmemd_xray_dpartial_calc_d_target_d_frac(
   const double* d_target_d_abs_f_calc,
   double* d_target_d_frac /* result variable */
 ) {
-  assert(dpartial);
+  assert(dpartial_instance());
   auto t1 = std::chrono::high_resolution_clock::now();
-  dpartial->calc_d_target_d_frac(
+  dpartial_instance()->calc_d_target_d_frac(
     n_atom, frac, n_hkl, f_scale, d_target_d_abs_f_calc, d_target_d_frac
   );
   auto t2 = std::chrono::high_resolution_clock::now();
@@ -65,6 +69,6 @@ void pmemd_xray_dpartial_calc_d_target_d_frac(
 
 extern "C"
 void pmemd_xray_dpartial_finalize_gpu() {
-  assert(dpartial);
-  dpartial = {};
+  assert(dpartial_instance());
+  dpartial_instance().reset();
 }

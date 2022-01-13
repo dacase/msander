@@ -199,7 +199,13 @@ void xray::BulkMaskGPU::calc_f_bulk() {
 
   double factor = m_unit_cell.get_volume() / grid_size;
   for (int i = 0; i < m_hkl_grid_index.size(); ++i) {
-    reinterpret_cast<std::complex<double> &>(m_f_mask[i]) =
-      std::conj(reinterpret_cast<std::complex<double> &>(m_fft_out[m_hkl_grid_index[i]])) * factor;
+    auto& f_mask_i = reinterpret_cast<std::complex<double> &>(m_f_mask[i]);
+    if (m_hkl_grid_index[i] != -1){
+      // High resolution reflexes are weighted with zero bulk scaling factor `k_bulk`
+      // therefore it should be fine to set them to zero
+      f_mask_i = std::conj(reinterpret_cast<std::complex<double> &>(m_fft_out[m_hkl_grid_index[i]])) * factor;
+    } else {
+      f_mask_i = 0;
+    }
   }
 }

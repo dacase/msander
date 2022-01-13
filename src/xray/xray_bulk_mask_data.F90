@@ -44,6 +44,5 @@ module xray_bulk_mask_data_module
   ! grid_neighbors_size:    Number of grid neighbors that are within the
   !                         shrunken mask cutoff
   integer grid_neighbors_size
-  integer*8 plan_forward(1)
 
 end module xray_bulk_mask_data_module

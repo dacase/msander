@@ -1,4 +1,3 @@
-#include "BulkMaskCPU.h"
 #include "BulkMaskGPU.h"
 #include "xray_non_bulk.h"
 #include <cassert>
@@ -9,7 +8,10 @@
 
 namespace {
 
-  std::unique_ptr<xray::BulkMask> mask;
+std::unique_ptr<xray::BulkMask>& bulk_mask_instance(){
+  static std::unique_ptr<xray::BulkMask> mask;
+  return mask;
+}
 
 } // namespace
 
@@ -24,18 +26,18 @@ pmemd_xray_bulk_mask_init_gpu(
 ) {
   assert(n_grid_points == grid_dim[0] * grid_dim[1] * grid_dim[2]);
   auto cell = xray::UnitCell(a, b, c, alpha_deg, beta_deg, gamma_deg);
-  mask = std::unique_ptr<xray::BulkMask>(new xray::BulkMaskGPU{});
-  mask->init(cell, n_atom, grid_dim, reciprocal_norms, mask_cutoffs,
+  bulk_mask_instance().reset(new xray::BulkMaskGPU{});
+  bulk_mask_instance()->init(cell, n_atom, grid_dim, reciprocal_norms, mask_cutoffs,
              mask_bs_grid, shrink_r, n_hkl, f_mask, hkl);
 }
 
 extern "C" void pmemd_xray_bulk_mask_update_f_bulk(int n_atom, const double* frac) {
-  assert(mask);
+  assert(bulk_mask_instance());
 
   auto t1 = std::chrono::high_resolution_clock::now();
-  mask->update_grid(n_atom, frac);
+  bulk_mask_instance()->update_grid(n_atom, frac);
   auto t2 = std::chrono::high_resolution_clock::now();
-  mask->calc_f_bulk();
+  bulk_mask_instance()->calc_f_bulk();
   auto t3 = std::chrono::high_resolution_clock::now();
   #ifndef NDEBUG
   {
@@ -50,6 +52,6 @@ extern "C" void pmemd_xray_bulk_mask_update_f_bulk(int n_atom, const double* fra
 }
 
 extern "C" void pmemd_xray_bulk_mask_finalize_gpu() {
-  mask = {};
+  bulk_mask_instance().reset();
 }
 
