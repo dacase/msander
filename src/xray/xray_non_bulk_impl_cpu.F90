@@ -75,7 +75,7 @@ contains
   
   subroutine calc_f_non_bulk(frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
-    use constants_xray, only: omp_num_threads
+    use constants_xray, only: xray_num_threads
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     ! locals
@@ -92,7 +92,7 @@ contains
     call check_precondition(size(frac, 2) == size(scatter_type_index))
     call check_precondition(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,f,angle)  num_threads(omp_num_threads)
+    !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),

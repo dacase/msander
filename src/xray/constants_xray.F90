@@ -251,7 +251,7 @@ module constants_xray
   integer, parameter :: NO_INPUT_VALUE = 12344321
   _REAL_, parameter  :: NO_INPUT_VALUE_FLOAT = 12344321.d0
 
-  integer, save :: omp_num_threads = 1, mkl_num_threads = 1
+  integer, save :: xray_num_threads = 1
 
 contains
 
@@ -283,25 +283,15 @@ contains
     bioCoeff = one * bc(m, n)
   end function BinomialCoefficient
 
-  subroutine set_mkl_num_threads()
+  subroutine set_xray_num_threads()
     implicit none
-    character(len=5) :: mkl_threads
+    character(len=5) :: xray_threads
     integer :: ier
 
-    call get_environment_variable('MKL_NUM_THREADS', mkl_threads, status=ier)
-    if( ier .ne. 1 ) read( mkl_threads, * ) mkl_num_threads
-    write(6,'(a,i3,a)') '| Running MKL    with ',mkl_num_threads,' threads'
-  end subroutine set_mkl_num_threads
-
-  subroutine set_omp_num_threads_xray()
-    implicit none
-    character(len=5) :: omp_threads
-    integer :: ier
-
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
-    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
-    ! write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
-  end subroutine set_omp_num_threads_xray
+    call get_environment_variable('XRAY_NUM_THREADS', xray_threads, status=ier)
+    if( ier .ne. 1 ) read( xray_threads, * ) xray_num_threads
+    write(6,'(a,i3,a)') '| Running Xray OpenMP with ',xray_num_threads,' threads'
+  end subroutine set_xray_num_threads
 
 end module constants_xray
 
