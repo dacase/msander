@@ -89,9 +89,6 @@ for var in "$@"; do
             installtype="cuda"
             fpic=""
             cudaflags="-DCUDA -DCUDA_PRECISION=Double";;
-        --no-netcdf)
-            netcdflibf=""
-            bintraj="";;
         --gcc10)
             gcc10f="-Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
             gcc10c="-fcommon";;

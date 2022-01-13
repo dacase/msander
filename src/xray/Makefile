@@ -31,18 +31,22 @@ $(LIBDIR)/libxray.a: $(LIBOBJ)
 	$(VB)$(AR) $@ $(LIBOBJ) > /dev/null
 	$(VB)$(RANLIB) $@
 
-$(BINDIR)/add_xray$(SFX): add_xray.o 
+$(BINDIR)/add_xray$(SFX): add_xray.o nxtsec.o
 	@echo "[XRAY]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) $< $(LIBDIR)/libsys.a
+	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) add_xray.o nxtsec.o
 
-$(BINDIR)/add_pdb$(SFX): add_pdb.o $(LIBS)
+$(BINDIR)/add_pdb$(SFX): add_pdb.o nxtsec.o
 	@echo "[XRAY]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) $< $(LIBDIR)/libsys.a
+	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) add_pdb.o nxtsec.o
 
 xray: $(BINDIR)/add_xray$(SFX) $(BINDIR)/add_pdb$(SFX) libxray
 
 clean:
 	/bin/rm -f *.o *.mod
+
+nxtsec.o:  ../msander/nxtsec.F90
+	@echo "[XRAY]  FC $<"
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
 
 depend::
 	./makedepend > depend
