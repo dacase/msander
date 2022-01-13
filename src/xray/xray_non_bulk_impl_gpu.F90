@@ -93,8 +93,6 @@ contains
 
     call check_precondition(allocated(atomic_scatter_factor))
     
-    print *, "atomic size", size(atomic_scatter_factor, 1), size(atomic_scatter_factor, 2)
-    
     call pmemd_xray_non_bulk_init_gpu( &
         & size(hkl, 2), hkl, f_non_bulk, mSS4, size(b_factor), &
         & b_factor, &
