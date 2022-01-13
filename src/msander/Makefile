@@ -7,17 +7,6 @@ VPATH=
 # Add search paths for .mod files
 LOCALFLAGS = $(CUDAFLAGS) -I../sqm -I../rism -I../xray 
 
-QMAPIOBJ = \
-    abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
-    qm2_extern_util_module.o qm2_extern_module.o \
-    qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
-    ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
-    qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
-    qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o tcpb_module.o \
-    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
-    qmmm_adaptive_module.o prn_qmmm_dipole.o
-
 LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     constants.o state.o wallclock.o veclib.o \
     rmsgrd.o rand2.o lmodC.o xminC.o decomp.o icosasurf.o \
@@ -99,7 +88,8 @@ QMAPIOBJ = \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
     qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
+    qm2_extern_genmpi_module.o tcpb_module.o \
+    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 MMOBJ = \

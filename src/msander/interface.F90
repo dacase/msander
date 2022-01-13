@@ -315,6 +315,7 @@ subroutine api_mdread1(input_options, ierr)
 #  define FATAL_ERROR call mexit(6, 1)
 #endif /* API */
 
+!$ use omp_lib
    use file_io_dat
    use lmod_driver, only : read_lmod_namelist
    use qmmm_module, only : qmmm_nml, qm_gb

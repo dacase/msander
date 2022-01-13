@@ -448,7 +448,7 @@
    ! Individual calls to MKL from routines that know what they are doing - e.g.
    ! QMMM calls to diagonalizers etc can increase this limit as long as they
    ! put it back afterwards.
-   call omp_set_num_threads(1)
+!$ call omp_set_num_threads(1)
 
    ! If we are using openmp for matrix diagonalization print some information.
 !$ if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
