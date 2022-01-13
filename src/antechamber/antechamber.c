@@ -17,7 +17,6 @@ char *amberhome;
 # include "ac.c"
 # include "charmm.c"
 # include "mol2.c"
-//  # include "mmcif.c"
 # include "mopcrt.c"
 # include "divcrt.c"
 # include "sqmcrt.c"

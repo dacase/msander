@@ -81,9 +81,6 @@ uninstall:
 
 #############################################################################
 
-$(LIBDIR)/libcifparse.a:
-	cd ../cifparse && $(MAKE) install
-
 .c.o:
 	@echo "[ANTECHAMBER]  CC $<"
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
@@ -460,8 +457,6 @@ match_atomname.o: prep.c
 match_atomname.o: mol2.c
 mdl.o: eprintf.h
 mem.o: eprintf.h
-mmcif.o: ../cifparse/cifparse.h
-mmcif.o: eprintf.h
 mol2.o: eprintf.h
 mopint.o: eprintf.h
 mopout.o: eprintf.h

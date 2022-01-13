@@ -10,7 +10,6 @@ char *amberhome;
 # include "ac.c"
 # include "charmm.c"
 # include "mol2.c"
-//    # include "mmcif.c"
 # include "mopcrt.c"
 # include "divcrt.c"
 # include "mopint.c"
@@ -304,28 +303,6 @@ int main(int argc, char *argv[])
         checkbyatomtype = 1;
         checkbybondtype = 1;
     }
-
-#if 0
-    if (strcmp("ccif", cinfo.intype) == 0 || strcmp("27", cinfo.intype) == 0) {
-
-        overflow_flag =
-            rmmcif(ifilename, blockId, &atomnum, atom, &bondnum, bond, &cinfo, &minfo, 0);
-        if (overflow_flag) {
-            cinfo.maxatom = atomnum + 10;
-            cinfo.maxbond = bondnum + 10;
-            memory(7, cinfo.maxatom, cinfo.maxbond, cinfo.maxring);
-            overflow_flag =
-                rmmcif(ifilename, blockId, &atomnum, atom, &bondnum, bond, &cinfo, &minfo,
-                       0);
-        }
-        default_flag = 1;
-        atomicnum_flag = 1;
-        adjustatomname_flag = 1;
-        atomtype_flag = 1;
-        bondtype_flag = 2;
-        connect_flag = 1;
-    }
-#endif
 
     if (strcmp("mopint", cinfo.intype) == 0 || strcmp("9", cinfo.intype) == 0) {
 
