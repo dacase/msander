@@ -554,15 +554,14 @@ subroutine sander()
         end if
 #endif
       call flush(6)
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
 
     end if masterwork
     ! End of master process setup
 
-!$  call set_omp_num_threads()
-
     ! rism initialization
     call rism_init(commsander)
-!$  call set_omp_num_threads_rism()
 
 #ifdef MPI
     call mpi_barrier(commsander,ier)
@@ -1314,7 +1313,7 @@ subroutine sander()
 
    call rism_finalize()
 
-   if( xray_active ) then
+   if( xray_active .and. master ) then
       if (pdb_outfile /= '') then
          call xray_write_pdb(trim(pdb_outfile))
       end if
