@@ -18,11 +18,7 @@ serial:
 	@cd antechamber && $(MAKE) ac
 	@cd ambpdb && $(MAKE) ambpdb
 	@cd sqm && $(MAKE) sqm
-#	@cd moft && $(MAKE) $(MOFT)
-#	@cd sff && $(MAKE) libsff
-#	@cd nabc && $(MAKE) libnabc
 #	@cp pdb4amber/pdb4amber $(BINDIR)
-#	@cd gmml && $(MAKE) gmml
 
 parallel:
 	@cd msander && $(MAKE) msander.MPI
@@ -49,10 +45,6 @@ clean:
 	-(cd ambpdb && $(MAKE) clean )
 	-(cd antechamber && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
-#	-(cd moft && $(MAKE) clean )
-	-(cd sff && $(MAKE) clean )
-	-(cd nabc && $(MAKE) clean )
-#	-(cd gmml && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
