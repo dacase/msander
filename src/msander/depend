@@ -371,8 +371,6 @@ dynlib.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
-                    constants.o\
-                    box.h\
                     file_io_dat.o\
                     mdfil.o\
                     ../include/md.h\
@@ -395,6 +393,8 @@ dynlib.o: \
                     tgtmd.h\
                     random.o\
                     ../include/memory.h\
+                    constants.o\
+                    box.h\
                     parallel.h
 
 
@@ -406,8 +406,6 @@ dynlib.LES.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.LES.o\
-                    constants.o\
-                    box.h\
                     file_io_dat.o\
                     mdfil.LES.o\
                     ../include/md.h\
@@ -430,6 +428,8 @@ dynlib.LES.o: \
                     tgtmd.h\
                     random.o\
                     ../include/memory.h\
+                    constants.o\
+                    box.h\
                     parallel.h
 
 dynlib.LES.o:   dynlib.F90
@@ -440,8 +440,6 @@ dynlib.API.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
-                    constants.o\
-                    box.h\
                     file_io_dat.o\
                     mdfil.o\
                     ../include/md.h\
@@ -464,6 +462,8 @@ dynlib.API.o: \
                     tgtmd.h\
                     random.o\
                     ../include/memory.h\
+                    constants.o\
+                    box.h\
                     parallel.h
 
 dynlib.API.o:   dynlib.F90
@@ -474,8 +474,6 @@ dynlib.LESAPI.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
                     bintraj.o\
-                    constants.o\
-                    box.h\
                     file_io_dat.o\
                     mdfil.o\
                     ../include/md.h\
@@ -498,6 +496,8 @@ dynlib.LESAPI.o: \
                     tgtmd.h\
                     random.o\
                     ../include/memory.h\
+                    constants.o\
+                    box.h\
                     parallel.h
 
 dynlib.LESAPI.o:   dynlib.F90
@@ -1744,6 +1744,7 @@ memory_module.o:   memory_module.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ memory_module.F90
 
 mexit.o: \
+                    xray_interface_impl_cpu.o\
                     parallel.h
 
 
@@ -2766,6 +2767,11 @@ nonbond_list.LESAPI.o:   nonbond_list.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DAPI -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ nonbond_list.F90
 
+
+nxtsec.o:   nxtsec.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ nxtsec.F90
+
 parallel.o: \
                     ../include/dprec.fh\
                     parms.o\
@@ -3551,13 +3557,11 @@ runmd.o: \
                     bintraj.o\
                     nonbond_list.o\
                     sglds.o\
-                    les.o\
                     remd.o\
                     softcore.o\
                     mbar.o\
                     emap.o\
                     barostats.o\
-                    memory_module.o\
                     random.o\
                     qmmm_adaptive_module.o\
                     crg_reloc.o\
@@ -3603,13 +3607,11 @@ runmd.LES.o: \
                     bintraj.LES.o\
                     nonbond_list.LES.o\
                     sglds.o\
-                    les.o\
                     remd.LES.o\
                     softcore.o\
                     mbar.o\
                     emap.o\
                     barostats.o\
-                    memory_module.o\
                     random.o\
                     qmmm_adaptive_module.o\
                     crg_reloc.o\

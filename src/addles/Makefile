@@ -41,10 +41,10 @@ uninstall:
 
 $(LESOBJ) : $(COMMON_FILES)
 
-nxtsec.o:  ../lib/nxtsec.F
+nxtsec.o:  ../msander/nxtsec.F90
 	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $<
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
 
 random.o: random.F90 random.h
 	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ random.F90
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ random.F90

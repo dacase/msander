@@ -30,7 +30,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o \
     mdwrit.LES.o lmod.LES.o trajene.o ew_box.LESAPI.o minrit.LES.o \
     set.LESAPI.o qm_mm.LESAPI.o amd.o scaledMD.o interface.LESAPI.o \
-    music_module.o dsarpack.o
+    music_module.o dsarpack.o nxtsec.o
 
 NFE_OBJECTS = \
     nfe-abmd-hooks.o nfe-bbmd-ctxt.o nfe-bbmd-hooks.o  \
@@ -79,7 +79,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     molecule.o dssp.o \
     charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
     random.o qm_mm.API.o \
-    prmtop_type.o music_module.o wallclock.o veclib.o dsarpack.o
+    prmtop_type.o music_module.o wallclock.o veclib.o dsarpack.o nxtsec.o
 
 QMAPIOBJ = \
     qm_ewald.o qmmm_vsolv.o \
@@ -113,7 +113,7 @@ MMOBJ = \
     sander_lib.o sander.o scaledMD.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
     stack.o state.o thermo_int.o trajene.o \
-    wallclock.o xminC.o veclib.o dsarpack.o 
+    wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
 
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o \
@@ -137,7 +137,7 @@ LESOBJ= \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
-    xminC.o veclib.o dsarpack.o 
+    xminC.o veclib.o dsarpack.o nxtsec.o
 
 XRAY_OBJS = \
    xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
@@ -232,7 +232,6 @@ libs:
 	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
 	$(VB)cd ../arpack && $(MAKE) $(ARPACK)
 	$(VB)cd ../sqm && $(MAKE) libsqm
-	$(VB)cd ../lib && $(MAKE) libsys
 	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
 	$(VB)cd ../rism && $(MAKE) $(RISM)
 	$(VB)cd ../xray && $(MAKE) libxray
