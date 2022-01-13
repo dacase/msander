@@ -1,7 +1,8 @@
 package:
   name: amber_phenix
 #  version 1.4.1 adds --openmp to configure
-  version: 1.4.1
+#  version 1.5   uses the new Jan 2022 code from Sergei
+  version: 1.5
 
 source:
   path: ../
