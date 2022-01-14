@@ -49,7 +49,8 @@ current practice: Path-integral methods, thermostats that don't follow
 the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
-potentials, some parts of adaptive QM/MM, nudged elastic band
+potentials, some parts of adaptive QM/MM, nudged elastic band, constant pH
+and constant redox potential simulations.
 
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
@@ -64,7 +65,7 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
   * Thermodynamic integration and non-equilibrium sampling methods
 
-  * Replica exchange capabilities, and constant pH and redox potential
+  * Replica exchange capabilities, except for constant pH and redox potential
 simulations
 
 # Building the code
