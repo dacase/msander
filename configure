@@ -36,6 +36,8 @@ mpif90="mpif90"
 gccsys=""
 optflags="-g -Ofast -mtune=native"
 
+yacc="bison -y"
+
 openmp='no'
 ompflag=""
 ldflags=""
@@ -226,6 +228,88 @@ else
    lm=-lm
 fi
 
+if [ "$conda" == "no" ]; then
+
+#--------------------------------------------------------------------------
+#  Test if the C compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.c
+#include <stdio.h>
+int main()
+{
+   printf( "testing a C program\n" );
+}
+EOF
+
+printf "Testing $cc ..."
+$cc -o testp testp.c
+./testp | grep "testing a C program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a C program using gcc\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+    printf "OK\n"
+fi
+/bin/rm -f testp.c testp.o testp
+
+#--------------------------------------------------------------------------
+#  Test if the Fortran compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.f
+      program testf
+      write(6,*) 'testing a Fortran program'
+      end program testf
+EOF
+
+printf "Testing $fc ..."
+$fc -o testp testp.f
+./testp | grep "testing a Fortran program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a Fortran program using gfortran\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+	printf "OK\n"
+fi
+
+#--------------------------------------------------------------------------
+#  Test if bison is available and works
+#--------------------------------------------------------------------------
+
+  printf "Testing bison: "
+  cat <<EOF >testp.y
+%{
+static int curItemNo, curValueNo, itemIndex;
+%}
+%token NUMBER
+%%
+term: NUMBER  { curItemNo = 1; }
+
+%%
+EOF
+
+bison -y testp.y
+status=$?
+
+if [ $status -gt 0 ]; then
+    echo ""
+    echo "Error: Unable to run bison."
+    echo "       Please check your PATH, or install the program."
+    echo ""
+    exit 1
+else
+    printf "OK\n\n"
+fi
+
+/bin/rm -f testp.y y.tab.c testp.f testp.o testp
+
 #--------------------------------------------------------------------------
 #  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
 #--------------------------------------------------------------------------
@@ -343,6 +427,8 @@ else
     flibs_la='-mkl'
   fi
 fi
+
+fi   # end of if conda block
 
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
@@ -496,6 +582,7 @@ CC=$cc
 CXX=$cxx
 FC=$fc
 LDFLAGS=$ldflags
+YACC=$yacc
 
 EOF
 
@@ -585,59 +672,7 @@ LIBSANDERLES=$libsanderles
 
 EOF
 
-if [ "$conda" == "no" ]; then
 
-#--------------------------------------------------------------------------
-#  Test if the C compiler works:
-#--------------------------------------------------------------------------
-
-cat <<EOF >testp.c
-#include <stdio.h>
-int main()
-{
-   printf( "testing a C program\n" );
-}
-EOF
-
-printf "Testing $cc ..."
-$cc -o testp testp.c
-./testp | grep "testing a C program" > /dev/null
-status=$?
-
-if [ $status -gt 0 ]; then
-    printf "\nError: Unable to compile a C program using gcc\n"
-    printf "       Please check your compiler settings.\n"
-    exit 1
-else
-    printf "OK\n"
-fi
-/bin/rm -f testp.c testp.o testp
-
-#--------------------------------------------------------------------------
-#  Test if the Fortran compiler works:
-#--------------------------------------------------------------------------
-
-cat <<EOF >testp.f
-      program testf
-      write(6,*) 'testing a Fortran program'
-      end program testf
-EOF
-
-printf "Testing $fc ..."
-$fc -o testp testp.f
-./testp | grep "testing a Fortran program" > /dev/null
-status=$?
-
-if [ $status -gt 0 ]; then
-    printf "\nError: Unable to compile a Fortran program using gfortran\n"
-    printf "       Please check your compiler settings.\n"
-    exit 1
-else
-	printf "OK\n"
-fi
-/bin/rm -f testp.f testp.o testp
 printf "\nThe next step is to type 'make clean && make install'\n\n"
-
-fi
 
 exit 0
