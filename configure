@@ -141,19 +141,25 @@ for var in "$@"; do
 done
 
 if [ "$requested_help" = "yes" ] ; then
-	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --intel        use Intel compilers; default is gnu\n"
-	printf " --clang        use clang/flang as compilers (not tested)\n"
+	printf " --clang        use clang/gfortran as compilers\n"
 	printf " --gcc10        add flags for gcc10 and above\n"
-	printf " --conda        set up for a conda build, with conda-forge\n"
+    printf "\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
 	printf " --cuda-single  prepare for cuda-single precision build\n"
 	printf " --cuda-double  prepare for cuda-double precision build\n"
-    printf "                N.B.: cuda options are still experimental\n"
+    printf "                N.B.: nvcc must be compatible with gcc/icc:\n"
+    printf "                https://docs.nvidia.com/cuda/cuda-installation-guide-linux\n"
+    printf "\n"
 	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
 	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
+	printf " --conda        set up for a conda build, with conda-forge\n"
+	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --static       use static linking (experiental)\n"
+    printf "\n"
+    printf "Notes: For GNU compilers, use versions 6 or greater\n"
+    printf "       Test suite requires a C-shell (csh/tcsh)\n"
     exit 0
 fi
 
