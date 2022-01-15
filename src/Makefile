@@ -14,10 +14,10 @@ serial:
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
-	@cd leap && $(MAKE) tleap
-	@cd antechamber && $(MAKE) ac
-	@cd ambpdb && $(MAKE) ambpdb
-	@cd sqm && $(MAKE) sqm
+#	@cd leap && $(MAKE) tleap
+#	@cd antechamber && $(MAKE) ac
+#	@cd ambpdb && $(MAKE) ambpdb
+#	@cd sqm && $(MAKE) sqm
 #	@cp pdb4amber/pdb4amber $(BINDIR)
 
 parallel:
@@ -41,10 +41,10 @@ clean:
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
-	-(cd leap && $(MAKE) clean )
-	-(cd ambpdb && $(MAKE) clean )
-	-(cd antechamber && $(MAKE) clean )
-	-(cd sqm && $(MAKE) clean )
+#	-(cd leap && $(MAKE) clean )
+#	-(cd ambpdb && $(MAKE) clean )
+#	-(cd antechamber && $(MAKE) clean )
+#	-(cd sqm && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
