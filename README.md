@@ -1,12 +1,8 @@
 # Overview
 
 This directory tree contains "msander", a "modern" version of parts of
-sander, plus other pieces of AmberTools needed for basic building and
-simulations of biomolecules.  Tools inlcuded are:
-```
-   addles  antechamber  tleap  msander  parmed  sqm
-```
-Also included are the API's to msander, and various X-ray-related utilities
+sander.  Also included are the API's to msander, and various X-ray-related 
+utilities.
 
 # Warning
 
@@ -30,9 +26,6 @@ modern Fortran coding techniques can be used.  Key application areas
 are expected to be in structure refinements using NMR, cryoEM or 
 Xray diffraction information.  This version has a fair amount of OpenMP
 support, especially for Xray and 3D-RISM calculations.
-
-* This project is also the source for the phenix_amber project, which explains
-why non-sander things like tleap, antechamber, etc. are here.
 
 * Since this code is based on sander, tons of people have been involved in its
 creation over the years.  See https://ambermd.org/contributors.html for more
@@ -74,8 +67,10 @@ simulations
 ```
    conda build [ --python x.x ] recipe 
       (note: you should have conda-forge at the top of your channel
-      list in ~/.condarc.  This build creates the conda package used
-      in the phenix_amber project, but the package could also have other uses.)
+      list in ~/.condarc.  Users should probably also execute "conda install
+      conda-forge-pinning" in the conda environment.
+
+      Note the that conda build is only rarely tested.
 ```
 
 *Non-conda build  (MacOSX, Linux, probably WSL):
