@@ -4,7 +4,7 @@ export MSANDERHOME=`pwd`
 ./configure --conda --openmp
 
 cd src
-make -f Makefile.ap install
+make install
 cd ..
 
-rsync -av bin dat lib $PREFIX
+rsync -av bin lib $PREFIX

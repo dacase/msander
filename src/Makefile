@@ -14,10 +14,7 @@ serial:
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
-#	@cd leap && $(MAKE) tleap
-#	@cd antechamber && $(MAKE) ac
 #	@cd ambpdb && $(MAKE) ambpdb
-#	@cd sqm && $(MAKE) sqm
 #	@cp pdb4amber/pdb4amber $(BINDIR)
 
 parallel:
@@ -37,18 +34,15 @@ clean:
 	-(cd sqm && $(MAKE) clean )
 	-(cd rism && $(MAKE) clean )
 	-(cd msander && $(MAKE) clean )
-	-(cd lib && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
-#	-(cd leap && $(MAKE) clean )
 #	-(cd ambpdb && $(MAKE) clean )
-#	-(cd antechamber && $(MAKE) clean )
 #	-(cd sqm && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
-        add_pdb add_xray teLeap tleap addles pdb4amber)
+        add_pdb add_xray addles pdb4amber)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
         libarpack.a libsqm.a librism.a /libsys.a \
         libsander.so libsanderles.so)
