@@ -10,11 +10,11 @@ serial:
 	@cd msander && $(MAKE) $(LIBSANDER)
 	@cd msander && $(MAKE) $(LIBSANDERLES)
 	@cd pysander && $(MAKE) $(PYSANDER)
-	@cd parmed && $(MAKE) $(PARMED)
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
 #	@cd ambpdb && $(MAKE) ambpdb
+#	@cd parmed && $(MAKE) $(PARMED)
 #	@cp pdb4amber/pdb4amber $(BINDIR)
 
 parallel:
