@@ -16,10 +16,12 @@ module xray_bulk_model_module
   integer, parameter :: none_id = 0
   integer, parameter :: afonine_2013_id = 1
   integer, parameter :: simple_id = 2
+  integer, parameter :: user_id = 3
   
   character(len = *), parameter :: none_name = "none"
   character(len = *), parameter :: afonine_2013_name = "afonine-2013" ! Named after https://doi.org/10.1107/S0907444913000462
   character(len = *), parameter :: simple_name = "simple"
+  character(len = *), parameter :: user_name = "user"
 
 contains
   
@@ -27,6 +29,7 @@ contains
     use xray_bulk_model_afonine_2013_module, only : init_afonine => init
     use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
+    ! use xray_bulk_model_user_module, only : init_user => init
     implicit none
     integer, intent(in) :: mask_update_period
     integer, intent(in) :: scale_update_period
@@ -47,6 +50,9 @@ contains
       call init_afonine(mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
     case (simple_id)
       call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
+    case (user_id)
+      write(0,*) 'specifying a user solvent constribution is in progress'
+      call mexit(6,1)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -56,6 +62,7 @@ contains
     use xray_bulk_model_afonine_2013_module, only : finalize_afonine => finalize
     use xray_bulk_model_none_module, only : finalize_none => finalize
     use xray_bulk_model_simple_module, only : finalize_simple => finalize
+    use xray_bulk_model_user_module, only : finalize_user => finalize
     implicit none
     
     select case (model_id)
@@ -65,6 +72,8 @@ contains
       call finalize_afonine()
     case (simple_id)
       call finalize_simple()
+    case (user_id)
+      call finalize_user()
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -74,6 +83,7 @@ contains
     use xray_bulk_model_afonine_2013_module, only : afonine_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_none_module, only : none_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_simple_module, only : simple_f => add_bulk_contribution_and_rescale
+    use xray_bulk_model_user_module, only : user_f => add_bulk_contribution_and_rescale
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     integer, intent(in) :: current_step
@@ -95,6 +105,8 @@ contains
       call afonine_f(frac, current_step, absFobs, Fcalc, mSS4, hkl)
     case (simple_id)
       call simple_f(frac, current_step, absFobs, Fcalc, mSS4)
+    case (user_id)
+      ! call user_f(frac, current_step, absFobs, Fcalc, mSS4)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -104,6 +116,7 @@ contains
     use xray_bulk_model_afonine_2013_module, only : afonine_f => get_f_scale
     use xray_bulk_model_none_module, only : none_f => get_f_scale
     use xray_bulk_model_simple_module, only : simple_f => get_f_scale
+    use xray_bulk_model_user_module, only : user_f => get_f_scale
     implicit none
     integer, intent(in) :: n_hkl
     real(real_kind) :: result(n_hkl)
@@ -115,6 +128,8 @@ contains
       result = afonine_f(n_hkl)
     case (simple_id)
       result = simple_f(n_hkl)
+    case (user_id)
+      ! result = user_f(n_hkl)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -132,6 +147,8 @@ contains
       result = afonine_2013_id
     case (simple_name)
       result = simple_id
+    case (user_name)
+      result = user_id
     case default
       result = -1 ! to suppress warning
       call check_requirement(.FALSE., "Unknown bulk solvent model name: '" // trim(name) // "'")
