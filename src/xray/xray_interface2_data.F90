@@ -17,7 +17,8 @@ module xray_interface2_data_module
   integer, save :: n_hkl
   integer, save :: n_work
   integer, allocatable, save :: hkl(:, :)           ! size = (3, n_hkl)
-  integer, allocatable, save :: hkl_io_order(:)     ! Initial input order of reflexes ; size = (n_hkl)
+  integer, allocatable, save :: hkl_io_order(:)  ! Initial input order of reflexes ; size = (n_hkl)
+  integer, allocatable, save :: new_order(:)     ! Sorted  order of reflexes ; size = (n_hkl)
   complex(real_kind), allocatable, save :: Fobs(:)  ! size = (n_hkl)
   complex(real_kind), allocatable, save :: Fcalc(:) ! size = (n_hkl)
   real(real_kind), allocatable, save :: sigma_Fobs(:)  ! size = (n_hkl)
@@ -54,7 +55,6 @@ contains
     
     ! locals
     real(real_kind), allocatable :: resolution(:)
-    integer, allocatable :: new_order(:)
     integer :: j
     
     

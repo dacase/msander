@@ -32,13 +32,14 @@ contains
   
   subroutine add_bulk_contribution_and_rescale(current_step, absFobs, Fcalc, Fuser)
     use xray_pure_utils, only : calc_k_overall
+    use xray_interface2_data_module, only : new_order
     implicit none
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     complex(real_kind), intent(in) :: Fuser(size(absFobs))
     
-    Fcalc = Fcalc + Fuser
+    Fcalc = Fcalc + Fuser(new_order)
 
     if(mod(current_step, scale_update_period) == 0) then
       k_overall = calc_k_overall(absFobs, abs(Fcalc))
