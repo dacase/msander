@@ -92,6 +92,8 @@ contains
     call index_sort(resolution, new_order(:n_work))
     call index_sort(resolution, new_order(n_work + 1:))
 
+    ! (note: following lines invoke an automatic allocation of the new arrays;
+    !   cf. Section 6.7 of Metcalf, Modern Fortran Explained)
     hkl = input_hkl(:, new_order)
     Fobs = input_Fobs(new_order)
     sigma_Fobs = input_sigma_Fobs(new_order)

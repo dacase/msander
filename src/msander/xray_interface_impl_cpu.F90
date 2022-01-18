@@ -469,6 +469,7 @@ contains
       end if
 
       ! FIXME: account for phase in Fobs
+      ! (note: following line invokes an automatic allocation of Fobs)
       Fobs = abs_Fobs
       
       call init_interface2( &
