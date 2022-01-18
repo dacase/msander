@@ -25,8 +25,8 @@ contains
   
   subroutine init(target, bulk_model, hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
       &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
-      &   atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period,&
-      &   k_sol, b_sol)
+      &   atom_atomic_number, mask_update_period, scale_update_period, &
+      &   target_meta_update_period, k_sol, b_sol)
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
     use constants_xray, only : set_xray_num_threads
@@ -70,13 +70,16 @@ contains
     call set_xray_num_threads()
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-        &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk)
+        &   atom_b_factor, atom_occupancy, atom_scatter_type, &
+        &   atom_is_not_bulk )
   
-    call init_submodules(target, bulk_model, atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period, k_sol, b_sol)
+    call init_submodules(target, bulk_model, atom_atomic_number, &
+        mask_update_period, scale_update_period, target_meta_update_period, &
+        k_sol, b_sol)
 
   end subroutine init
   
-  subroutine calc_force(xyz, current_step, xray_weight, force, energy)
+  subroutine calc_force(xyz, current_step, xray_weight, force, energy, Fuser)
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
@@ -88,6 +91,8 @@ contains
     real(real_kind), intent(in) :: xray_weight
     real(real_kind), intent(out) :: force(:, :)
     real(real_kind), intent(out) :: energy
+    complex(real_kind), intent(in) :: Fuser(:)
+
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)
     real(real_kind), allocatable :: grad_xyz(:, :)
@@ -114,7 +119,7 @@ contains
         frac, &
         current_step, &
         abs_Fobs, Fcalc, &
-        mSS4, hkl &
+        mSS4, hkl, Fuser &
     )
 
     abs_Fcalc(:) = abs(Fcalc(:))
@@ -163,7 +168,9 @@ contains
   
   ! Private procedures
   
-  subroutine init_submodules(target, bulk_model, atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period, k_sol, b_sol)
+  subroutine init_submodules(target, bulk_model, atom_atomic_number, &
+        mask_update_period, scale_update_period, target_meta_update_period, &
+        k_sol, b_sol)
     use xray_interface2_data_module
     
     use xray_atomic_scatter_factor_module, only: init_atomic_scatter_factor => init
@@ -194,7 +201,9 @@ contains
     allocate(abs_Fcalc(n_hkl))
     
     call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, target_meta_update_period)
-    call init_bulk(bulk_model, mask_update_period, scale_update_period, minval(resolution), hkl, unit_cell, atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol)
+    call init_bulk(bulk_model, mask_update_period, scale_update_period, &
+       minval(resolution), hkl, unit_cell, &
+       atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol)
     call init_scaling(resolution, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
     call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))

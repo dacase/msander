@@ -396,13 +396,15 @@ contains
       use xray_interface_pre_init_data, only: scatter_coefficients
       use xray_interface2_module, only: init_interface2 => init
       use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
+      use constants, only : DEG_TO_RAD
       implicit none
       ! local
       integer :: hkl_lun, i, j, k, nstlim = 1, NAT_for_mask1
-      double precision :: resolution, fabs_solvent, phi_solvent
+      real(real_kind) :: resolution, fabs_solvent, phi_solvent
       complex(real_kind), allocatable, dimension(:) :: Fobs
       real(real_kind) :: phi,a,b,c,alpha,beta,gamma
-      integer :: has_f_solvent ! Keep it for compatibility with legacy input file format
+      real(real_kind), allocatable, dimension(:) :: abs_Fuser, phase_Fuser
+      integer :: has_Fuser
 
       ! following is local: copied into f_mask in this routine, after
       !     f_mask itself is allocated.  (could be simplified)
@@ -426,15 +428,10 @@ contains
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
-      read(hkl_lun,*,end=1,err=1) num_hkl, has_f_solvent
+      read(hkl_lun,*,end=1,err=1) num_hkl, has_Fuser
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             & test_flag(num_hkl))
-
-      if (has_f_solvent > 0 ) then
-         write(stdout,'(A)') 'f_solvent support is discontinued'
-         call mexit(stdout, 1)
-      endif
 
       if (fave_outfile /= '') then
          write(stdout,'(A)') 'fave_outfile is not yet implemented'
@@ -445,10 +442,23 @@ contains
       !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
-      do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) &
-            hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
-      end do
+      if (has_Fuser > 0 ) then
+         allocate( abs_Fuser(num_hkl), phase_Fuser(num_hkl) )
+         allocate( Fuser(num_hkl) )
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=1) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
+               abs_Fuser(i), phase_Fuser(i)
+         end do
+         Fuser(:) = abs_Fuser(:)*cmplx( cos( DEG_TO_RAD*phase_Fuser(:)) , &
+                                        sin( DEG_TO_RAD*phase_Fuser(:)) )
+         deallocate( abs_Fuser, phase_Fuser )
+      else
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=1) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
+         end do
+      end if
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
@@ -574,7 +584,7 @@ contains
       call timer_start(TIME_XRAY)
       xray_weight = get_xray_weight(current_step, total_steps)
 
-      call calc_force2(xyz, current_step, xray_weight, force, xray_e)
+      call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
       xray_energy = xray_e
       call get_r_factors(r_work, r_free)
       call timer_stop(TIME_XRAY)

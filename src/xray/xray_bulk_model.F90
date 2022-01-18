@@ -29,7 +29,7 @@ contains
     use xray_bulk_model_afonine_2013_module, only : init_afonine => init
     use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
-    ! use xray_bulk_model_user_module, only : init_user => init
+    use xray_bulk_model_user_module, only : init_user => init
     implicit none
     integer, intent(in) :: mask_update_period
     integer, intent(in) :: scale_update_period
@@ -51,8 +51,7 @@ contains
     case (simple_id)
       call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
     case (user_id)
-      write(0,*) 'specifying a user solvent constribution is in progress'
-      call mexit(6,1)
+      call init_user(mask_update_period)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -79,7 +78,8 @@ contains
     end select
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4, hkl)
+  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, &
+        Fcalc, mSS4, hkl, Fuser)
     use xray_bulk_model_afonine_2013_module, only : afonine_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_none_module, only : none_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_simple_module, only : simple_f => add_bulk_contribution_and_rescale
@@ -91,6 +91,8 @@ contains
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     real(real_kind), intent(in) :: mSS4(:)
     integer, intent(in) :: hkl(:, :)
+    complex(real_kind), intent(in) :: Fuser(:)
+
     logical, save :: first_call = .TRUE.
 
     call check_requirement(.not. first_call .or. current_step == 0, &
@@ -106,7 +108,7 @@ contains
     case (simple_id)
       call simple_f(frac, current_step, absFobs, Fcalc, mSS4)
     case (user_id)
-      ! call user_f(frac, current_step, absFobs, Fcalc, mSS4)
+      call user_f(current_step, absFobs, Fcalc, Fuser)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
