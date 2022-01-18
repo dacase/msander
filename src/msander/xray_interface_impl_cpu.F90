@@ -479,9 +479,7 @@ contains
       end if
 
       ! FIXME: account for phase in Fobs
-      write(0,*) 'before: ', allocated(Fobs), size(abs_Fobs)
       Fobs = abs_Fobs
-      write(0,*) 'after: ', allocated(Fobs), size(Fobs)
       
       call init_interface2( &
          & target, bulk_solvent_model, &
