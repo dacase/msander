@@ -429,7 +429,7 @@ contains
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
-      read(hkl_lun,*,end=1,err=1) num_hkl, has_Fuser
+      read(hkl_lun,*,end=1,err=2) num_hkl, has_Fuser
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             & test_flag(num_hkl))
@@ -481,8 +481,8 @@ contains
 
       ! set up complex Fobs(:), if vector target is requested
       allocate(Fobs(num_hkl),stat=alloc_status)
+      REQUIRE(alloc_status==0)
       if( target(1:3) == 'vls' ) then
-         REQUIRE(alloc_status==0)
          do i = 1,num_hkl
             !  sigFobs() here is assumed to be really phi(), in degrees
             phi = sigFobs(i) * DEG_TO_RAD
