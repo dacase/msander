@@ -31,15 +31,15 @@ $(LIBDIR)/libxray.a: $(LIBOBJ)
 	$(VB)$(AR) $@ $(LIBOBJ) > /dev/null
 	$(VB)$(RANLIB) $@
 
-$(BINDIR)/add_xray$(SFX): add_xray.o nxtsec.o
+$(BINDIR)/add_xray: add_xray.o nxtsec.o
 	@echo "[XRAY]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) add_xray.o nxtsec.o
 
-$(BINDIR)/add_pdb$(SFX): add_pdb.o nxtsec.o
+$(BINDIR)/add_pdb: add_pdb.o nxtsec.o
 	@echo "[XRAY]  FC $@"
 	$(VB)$(FC) $(FFLAGS) -o $@ $(LDFLAGS) add_pdb.o nxtsec.o
 
-xray: $(BINDIR)/add_xray$(SFX) $(BINDIR)/add_pdb$(SFX) libxray
+xray: $(BINDIR)/add_xray $(BINDIR)/add_pdb libxray
 
 clean:
 	/bin/rm -f *.o *.mod
@@ -52,7 +52,7 @@ depend::
 	./makedepend > depend
 
 uninstall: clean
-	-rm -f $(BINDIR)/add_xray$(SFX)
-	-rm -f $(BINDIR)/add_pdb$(SFX)
+	-rm -f $(BINDIR)/add_xray
+	-rm -f $(BINDIR)/add_pdb
 
 include depend
