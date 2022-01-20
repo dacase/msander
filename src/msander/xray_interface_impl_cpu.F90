@@ -1,3 +1,4 @@
+#include "../include/assert.fh"
 ! This is a module to encapsulate all of the AMBER common blocks and
 ! other global junk into a module namespace.
 module xray_common_module
@@ -403,8 +404,8 @@ contains
       real(real_kind) :: resolution, fabs_solvent, phi_solvent
       complex(real_kind), allocatable, dimension(:) :: Fobs
       real(real_kind) :: phi,a,b,c,alpha,beta,gamma
-      real(real_kind), allocatable, dimension(:) :: abs_Fuser, phase_Fuser
-      integer :: has_Fuser
+      real(real_kind) :: abs_Fuser, phase_Fuser
+      integer :: has_Fuser, alloc_status
 
       ! following is local: copied into f_mask in this routine, after
       !     f_mask itself is allocated.  (could be simplified)
@@ -443,20 +444,20 @@ contains
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
       if (has_Fuser > 0 ) then
-         allocate( abs_Fuser(num_hkl), phase_Fuser(num_hkl) )
          allocate( Fuser(num_hkl) )
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
-               abs_Fuser(i), phase_Fuser(i)
+               abs_Fuser, phase_Fuser
+            Fuser(i) = abs_Fuser*cmplx( cos( DEG_TO_RAD*phase_Fuser) , &
+                                        sin( DEG_TO_RAD*phase_Fuser), rk_ )
+            test_flag(i) = min(test_flag(i),1)
          end do
-         Fuser(:) = abs_Fuser(:)*cmplx( cos( DEG_TO_RAD*phase_Fuser(:)) , &
-                                        sin( DEG_TO_RAD*phase_Fuser(:)) )
-         deallocate( abs_Fuser, phase_Fuser )
       else
          do i = 1,num_hkl
-            read(hkl_lun,*,end=1,err=1) &
+            read(hkl_lun,*,end=1,err=2) &
                hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
+            test_flag(i) = min(test_flag(i),1)
          end do
       end if
 
@@ -478,8 +479,18 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      ! FIXME: account for phase in Fobs
-      Fobs = abs_Fobs
+      ! set up complex Fobs(:), if vector target is requested
+      allocate(Fobs(num_hkl),stat=alloc_status)
+      if( target(1:3) == 'vls' ) then
+         REQUIRE(alloc_status==0)
+         do i = 1,num_hkl
+            !  sigFobs() here is assumed to be really phi(), in degrees
+            phi = sigFobs(i) * DEG_TO_RAD
+            Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
+         end do
+      else
+         Fobs = abs_Fobs
+      endif
       
       call init_interface2( &
          & target, bulk_solvent_model, &
@@ -502,6 +513,9 @@ contains
 
       return
       1 continue
+      write(stdout,'(A)') 'End-of-file reading HKL file.'
+      call mexit(stdout,1)
+      2 continue
       write(stdout,'(A)') 'Error reading HKL file.'
       call mexit(stdout,1)
    end subroutine init
