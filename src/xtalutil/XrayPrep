@@ -84,7 +84,7 @@ phenix.mtz.dump -c -f s tmp-P1.mtz  | tr ',' '\t' > $id-P1.fmtz \
 
 #  make the -sf.dat file needed by xray3:
 awk '{printf("%d\t%d\t%d\t%s\t%s\t%d\n", \
-      $1,$2,$3,$4,$5, $6>1 ? 1 : $6)}'  $id-P1.fmtz | tail +2 > tmp.dat \
+      $1,$2,$3,$4,$5, $6>1 ? 1 : $6)}'  $id-P1.fmtz | tail -n +2 > tmp.dat \
      || { echo "  awk:  Program error"; exit 1; }
 
 nrefl=`wc -l tmp.dat | awk '{print $1}'`
@@ -111,7 +111,7 @@ phenix.mtz.dump -c -f s tmp.mtz  | tr ',' '\t' > $id.fmtz \
 
 #  make the -sf.dat file needed by xray3:
 awk '{printf("%d\t%d\t%d\t%s\t%s\t%d\n", \
-      $1,$2,$3,$4,$5, $6>1 ? 1 : $6)}'  $id.fmtz | tail +2 > tmp.dat \
+      $1,$2,$3,$4,$5, $6>1 ? 1 : $6)}'  $id.fmtz | tail -n +2 > tmp.dat \
      || { echo "  awk:  Program error"; exit 1; }
 
 nrefl=`wc -l tmp.dat | awk '{print $1}'`
