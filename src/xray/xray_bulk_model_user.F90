@@ -13,24 +13,28 @@ module xray_bulk_model_user_module
   public :: init
   
   integer, save :: scale_update_period = 50 ! in steps
-  real(real_kind) :: k_overall
+  real(real_kind) :: k_overall, k_sol, b_sol
 
 contains
   
-  subroutine init(scale_update_period_)
+  subroutine init(scale_update_period_, k_sol_, b_sol_)
     use xray_bulk_mask_module, only : init_mask => init
     implicit none
     integer, intent(in) :: scale_update_period_
+    real(real_kind), intent(in) :: k_sol_, b_sol_
     
     call check_precondition(scale_update_period_ > 0)
     scale_update_period = scale_update_period_
+    k_sol = k_sol_
+    b_sol = b_sol_
   end subroutine init
   
   subroutine finalize()
     implicit none
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(current_step, absFobs, Fcalc, Fuser)
+  subroutine add_bulk_contribution_and_rescale(current_step, absFobs, Fcalc, &
+         Fuser, mSS4)
     use xray_pure_utils, only : calc_k_overall
     use xray_interface2_data_module, only : new_order
     implicit none
@@ -38,8 +42,9 @@ contains
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     complex(real_kind), intent(in) :: Fuser(size(absFobs))
-    
-    Fcalc = Fcalc + Fuser(new_order)
+    real(real_kind), intent(in) :: mSS4(:)
+
+    Fcalc = Fcalc + Fuser(new_order) * k_sol * exp(b_sol * mSS4)
 
     if(mod(current_step, scale_update_period) == 0) then
       k_overall = calc_k_overall(absFobs, abs(Fcalc))

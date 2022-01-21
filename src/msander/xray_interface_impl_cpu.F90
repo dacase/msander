@@ -570,7 +570,6 @@ contains
 
    ! gets xray_energy and derivatives
    subroutine xray_get_derivative(xyz, force, current_step, xray_e)
-      ! use mdin_ctrl_dat_mod, only: total_steps=> nstlim
       use xray_interface2_module, only: calc_force2 => calc_force, get_r_factors
       implicit none
 #include "../include/md.h"
@@ -582,7 +581,7 @@ contains
       ! local
       real(real_kind) :: xray_weight
       integer :: total_steps
-      total_steps = nstlim
+      total_steps = 99999  ! FIXME: make this an input variable?
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))

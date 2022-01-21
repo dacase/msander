@@ -21,12 +21,12 @@ module xray_bulk_model_simple_module
 
 contains
   
-  subroutine init(k_sol, b_sol, mask_update_period_, scale_update_period_, resolution_high, hkl, unit_cell, atm_atomicnumber)
+  subroutine init(k_sol_, b_sol_, mask_update_period_, scale_update_period_, resolution_high, hkl, unit_cell, atm_atomicnumber)
     use xray_bulk_mask_module, only : init_mask => init
     implicit none
     
-    real(real_kind), intent(in) :: k_sol
-    real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: k_sol_
+    real(real_kind), intent(in) :: b_sol_
     integer, intent(in) :: mask_update_period_
     integer, intent(in) :: scale_update_period_
     double precision, intent(in) :: resolution_high
@@ -40,6 +40,8 @@ contains
     
     mask_update_period = mask_update_period_
     scale_update_period = scale_update_period_
+    k_sol = k_sol_
+    b_sol = b_sol_
     
     call init_mask(resolution_high, hkl, unit_cell, atm_atomicnumber)
   

@@ -51,7 +51,7 @@ contains
     case (simple_id)
       call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
     case (user_id)
-      call init_user(mask_update_period)
+      call init_user(mask_update_period, k_sol, b_sol)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -108,7 +108,7 @@ contains
     case (simple_id)
       call simple_f(frac, current_step, absFobs, Fcalc, mSS4)
     case (user_id)
-      call user_f(current_step, absFobs, Fcalc, Fuser)
+      call user_f(current_step, absFobs, Fcalc, Fuser, mSS4)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
@@ -131,7 +131,7 @@ contains
     case (simple_id)
       result = simple_f(n_hkl)
     case (user_id)
-      ! result = user_f(n_hkl)
+      result = user_f(n_hkl)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select
