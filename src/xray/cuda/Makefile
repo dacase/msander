@@ -28,7 +28,8 @@ CUOBJS = BulkMaskGPU.o	DPartialGPU.o	NonBulkGPU.o
 	$(VB)$(NVCC) -c $(CFLAGS) -o $@ $<
 
 xray_cuda.o: $(CUOBJS) $(CPPOBJS)
-	nvcc -dlink -o $@ $(CUOBJS) $(CPPOBJS)
+	@echo "[XRAY] nvcc -dlink $@"
+	$(VB)nvcc -dlink -o $@ $(CUOBJS) $(CPPOBJS)
 
 libxray_cuda: $(LIBDIR)/libxray_cuda.a
 
