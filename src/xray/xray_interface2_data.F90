@@ -75,6 +75,9 @@ contains
     n_atom = size(input_atom_occupancy)
     n_work = count(input_work_flag)
     
+    call check_requirement(n_work > 0, "Number of 'work' reflections must be >=1")
+    call check_requirement(n_hkl - n_work > 0, "Number of 'free' reflections must be >=1")
+    
     unit_cell = input_unit_cell
   
     resolution = 1 / sqrt(unit_cell%get_s2(input_hkl))

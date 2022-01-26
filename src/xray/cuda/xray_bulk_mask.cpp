@@ -33,22 +33,8 @@ pmemd_xray_bulk_mask_init_gpu(
 
 extern "C" void pmemd_xray_bulk_mask_update_f_bulk(int n_atom, const double* frac) {
   assert(bulk_mask_instance());
-
-  auto t1 = std::chrono::high_resolution_clock::now();
   bulk_mask_instance()->update_grid(n_atom, frac);
-  auto t2 = std::chrono::high_resolution_clock::now();
   bulk_mask_instance()->calc_f_bulk();
-  auto t3 = std::chrono::high_resolution_clock::now();
-  #ifndef NDEBUG
-  {
-    long dt_us = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cerr << std::setw(32) << "update_grid: " << std::setw(5) << dt_us << " us" << std::endl;
-  }
-  {
-    long dt_us = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-    std::cerr << std::setw(32) << "calc_f_bulk: " << std::setw(5) << dt_us << " us" << std::endl;
-  }
-  #endif
 }
 
 extern "C" void pmemd_xray_bulk_mask_finalize_gpu() {

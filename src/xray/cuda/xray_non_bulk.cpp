@@ -37,17 +37,7 @@ extern "C" void pmemd_xray_non_bulk_calc_f_non_bulk_gpu(
   const double* frac_xyz
 ) {
   assert(non_bulk_instance());
-
-  auto t1 = std::chrono::high_resolution_clock::now();
   non_bulk_instance()->calc_f_non_bulk(n_atoms, frac_xyz);
-
-  auto t2 = std::chrono::high_resolution_clock::now();
-  #ifndef NDEBUG
-  {
-    long dt_us = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cerr << std::setw(32) << "calc_f_non_bulk: " << std::setw(5) << dt_us << " us" << std::endl;
-  }
-  #endif
 }
 
 

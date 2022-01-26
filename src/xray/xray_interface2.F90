@@ -66,6 +66,18 @@ contains
     call check_precondition(all(atom_occupancy >= 0.0))
     call check_precondition(minval(atom_scatter_type) >= 1)
     call check_precondition(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
+
+    call check_requirement(size(hkl, 1) > 0, &
+        & "No reflections provided. &
+        & Check content of `reflection_infile` &
+        & from &xray namelist." &
+    &)
+    
+    call check_requirement(size(atom_b_factor) > 0, &
+        & "Empty atoms seclection for &xray module. &
+        & Check occupancies in `pdb_infile` and &
+        & `atom_selection_mask` in &xray namelist." &
+    &)
     
     call set_xray_num_threads()
 

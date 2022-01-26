@@ -54,17 +54,9 @@ void pmemd_xray_dpartial_calc_d_target_d_frac(
   double* d_target_d_frac /* result variable */
 ) {
   assert(dpartial_instance());
-  auto t1 = std::chrono::high_resolution_clock::now();
   dpartial_instance()->calc_d_target_d_frac(
     n_atom, frac, n_hkl, f_scale, d_target_d_abs_f_calc, d_target_d_frac
   );
-  auto t2 = std::chrono::high_resolution_clock::now();
-#ifndef NDEBUG
-  {
-    long dt_us = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cerr << std::setw(32) << "calc_d_target_d_frac: " << std::setw(5) << dt_us << " us" << std::endl;
-  }
-#endif
 }
 
 extern "C"

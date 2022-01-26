@@ -244,24 +244,6 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
   thrust::copy(frac_xyz, frac_xyz + n_atom * 3, m_dev_frac_xyz.begin());
   thrust::fill(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), 0.0);
 
-  cudaEvent_t start, stop;
-  float elapsed_ms = 0;
-
-  auto start_kernel_timer = [&] {
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start);
-  };
-
-  auto stop_kernel_timer = [&] {
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&elapsed_ms, start, stop);
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-  };
-
-  start_kernel_timer();
   switch (KERNEL_VERSION) {
     case (NonBulkKernelVersion::ManualCaching): {
 
@@ -306,11 +288,7 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
       break;
     }
   }
-  stop_kernel_timer();
   thrust::copy(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), m_f_non_bulk);
-
-
-  // fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
 }
 
 template class xray::NonBulkGPU<xray::NonBulkKernelVersion::ManualCaching, xray::KernelPrecision::Single>;
