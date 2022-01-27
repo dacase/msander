@@ -248,10 +248,10 @@ contains
     use rism3d_solute_c
     use rism3d_solvent_c
     use safemem
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rism3d), intent(inout) :: this
     type(rism3d_solute), intent(in), target :: solute
     type(rism3d_solvent), intent(in), target :: solvent
@@ -598,10 +598,10 @@ contains
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
           tolerance, ng3, verbose)
     use constants_rism, only : pi
+#ifdef MPI
+    use mpi
+#endif
     implicit none
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
@@ -897,9 +897,11 @@ contains
   subroutine resizeBox(this,ng3)
     use constants_rism, only : PI
     use rism_util, only : isprime, lcm, isFactorable, largestPrimeFactor
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #if defined(MPI)
-    include 'mpif.h'
     integer :: ierr
 #endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
@@ -1179,11 +1181,11 @@ contains
   subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance)
     use mdiis_c
     use rism3d_restart
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance
@@ -1306,11 +1308,11 @@ contains
 
     use rism3d_fft_c
     use constants_rism, only : PI, FOURPI, omp_num_threads
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     logical, intent(inout) :: converged
     _REAL_, intent(inout) :: residual

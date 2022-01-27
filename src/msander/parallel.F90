@@ -47,13 +47,13 @@ subroutine startup(xx,ix,ih)
 ! crg_reloc
    use crg_reloc, only : ifcr
 
+   use mpi
    implicit none
 #  include "parallel.h"
 #  include "ew_parallel.h"
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #  include "extra.h"
 #  include "../include/md.h"
@@ -307,13 +307,13 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
 
    use qmmm_module, only : qmmm_nml
    use state
+   use mpi
    implicit none
 #  include "../include/memory.h"
 #  include "parallel.h"
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #  include "../include/md.h"
 #  include "extra.h"
@@ -397,6 +397,7 @@ subroutine fsum(f,tmp)
    !       to f, and the appropriate part of the result winds up on each
    !       processor
 
+   use mpi
    implicit none
    _REAL_ f(*),tmp(*)
 
@@ -406,7 +407,6 @@ subroutine fsum(f,tmp)
 #ifdef MPI_DOUBLE_PRECISION
 #  undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 
    !Used for Binary Tree
@@ -473,6 +473,7 @@ end subroutine fsum
 !+ Distribute the coordinates to all processors.
 subroutine xdist(x, tmp, size)
 
+   use mpi
    implicit none
 
    integer, intent(in) :: size   ! will be 3*natom + iscale
@@ -482,7 +483,6 @@ subroutine xdist(x, tmp, size)
 #    ifdef MPI_DOUBLE_PRECISION
 #      undef MPI_DOUBLE_PRECISION
 #    endif
-   include 'mpif.h'
    integer ierr
 
    !Used for Binary Tree

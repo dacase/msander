@@ -111,6 +111,9 @@ subroutine mtmdcall(emtmd,mtmd_reals,mtmd_ints,x,f,name,irsnam,ipres,&
    !         NSTEP: Local accumulator which keeps track of the number of
    !         calls to MTMDENERGY. On each call, NSTEP is incremented by 1.
    
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    
    
@@ -155,7 +158,6 @@ subroutine mtmdcall(emtmd,mtmd_reals,mtmd_ints,x,f,name,irsnam,ipres,&
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
 #include "multitmd.h"

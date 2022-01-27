@@ -8,6 +8,10 @@ module sgld
 ! ================== SELF-GUIDED MOLECULAR/LANGEVIN DYNAMICS ====================
 ! Xiongwu Wu, 2011
 
+#ifdef MPI
+   use mpi
+#endif
+
 implicit none
 
 !     Head file for the self-guided Langevin Dynamics simulation  
@@ -371,7 +375,6 @@ contains
       use random, only: GAUSS
       implicit none
 #ifdef MPI
-   include 'mpif.h'
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
@@ -654,7 +657,6 @@ contains
       use random, only: GAUSS
       implicit none
 #ifdef MPI
-   include 'mpif.h'
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
@@ -972,7 +974,6 @@ contains
 subroutine sgld_exchg(irep)
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer, intent(in) :: irep
@@ -991,7 +992,6 @@ subroutine sgld_exchg(irep)
 subroutine rxsgld_scale(stagid,nr,myscaling,amass,v)
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer, intent(in) :: stagid,nr

@@ -451,6 +451,7 @@ end subroutine setgms
 !+ Distribute atoms to processors using molecule boundaries
 subroutine setpar(nspm, nsp, ntp, ipres, amass)
    
+   use mpi
    implicit none
    integer nspm, nsp(*), ntp, ipres(*)
    _REAL_ amass(*)
@@ -460,7 +461,6 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #  include "extra.h"
 #  include "nmr.h"
    integer target,i,iat,imol,ipmol(nspm),node,j,ires,portion

@@ -113,6 +113,9 @@ subroutine sander()
 
   use commandline_module, only: cpein_specified
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
 
   logical belly, erstop
@@ -133,7 +136,6 @@ subroutine sander()
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-  include 'mpif.h'
 !  REMD: loop is the current exchange. runmd is called numexchg times.
   integer loop
 

@@ -58,7 +58,7 @@ contains
 #endif /*MPI*/
 
     integer :: id
-    _REAL_ :: minValue, maxValue, meanValue, rmsd!, totalValue
+    _REAL_ :: minValue, maxValue, meanValue, rmsd
     logical, parameter :: bigEndian = ichar(transfer(1,'a')) == 0
     ! Up to 80-character long label describing file origin.
     character(len=*), parameter :: amberLabel = 'Amber 3D-RISM CCP4 map volumetric data.'

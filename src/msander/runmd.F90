@@ -95,6 +95,7 @@ module runmd_module
                       ti_ene_cnt, sc_compare
   use mbar, only : ifmbar, bar_intervall, calc_mbar_energies, &
                    bar_collect_cont, do_mbar
+  use mpi
 #endif /* MPI */
 
   use emap, only:temap,emap_move
@@ -133,7 +134,6 @@ module runmd_module
   character(kind=1,len=5) :: routine="runmd"
 #ifdef MPI
 #  include "parallel.h"
-  include 'mpif.h'
   _REAL_ mpitmp(8) !Use for temporary packing of mpi messages.
   integer ist(MPI_STATUS_SIZE), partner
 #else

@@ -734,6 +734,9 @@ subroutine ew_startup(natom_local,iblo,inb,x,ix)
    use nblist, only:cutoffnb,nvdwcls,mxlstmsk,fill_xtran,fill_tranvec
    use stack
    use qmmm_module, only : qmmm_nml, qmmm_struct
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    character(kind=1,len=10) :: routine="ew_startup"
 #  include "ew_cntrl.h"
@@ -750,7 +753,6 @@ subroutine ew_startup(natom_local,iblo,inb,x,ix)
 #ifdef MPI
 #  include "parallel.h"
 #  include "ew_parallel.h"
-   include 'mpif.h'
    integer ierr
 #endif /* MPI */
 
@@ -1895,6 +1897,7 @@ end subroutine array_copy
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine startup_groups here]
 subroutine startup_groups(err)
+   use mpi
    implicit none
    integer i,err
 #  include "parallel.h"
@@ -1903,7 +1906,6 @@ subroutine startup_groups(err)
 #  include "ew_parallel.h"
    integer ranks(MPI_MAX_PROCESSORS)
 
-   include 'mpif.h'
    integer ierr
 
    err = 0

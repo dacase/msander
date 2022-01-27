@@ -14,6 +14,9 @@
 !    Chinese Science Bulletin 63(33), 3467-3483 (2018)
 !
 module md_scheme
+#ifdef MPI
+   use mpi
+#endif
   implicit none
   ! the scheme for integration algorithm
   integer,parameter :: &
@@ -35,7 +38,6 @@ module md_scheme
 #include "../include/md.h"
 #ifdef MPI
 #  include "parallel.h"
-   include"mpif.h"
 #endif
 
 contains

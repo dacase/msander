@@ -51,6 +51,9 @@ subroutine qm_ewald_setup(totkq,kappa, kmaxqx,kmaxqy,kmaxqz,ksqmaxq, natom,nquan
 
       use qmmm_module, only : qmewald, qmmm_nml, qmmm_mpi
       use nblist, only : volume
+#ifdef MPI
+      use mpi
+#endif
 
       implicit none
 
@@ -66,7 +69,6 @@ subroutine qm_ewald_setup(totkq,kappa, kmaxqx,kmaxqy,kmaxqz,ksqmaxq, natom,nquan
       integer :: mpi_division
       integer :: ier
 #ifdef MPI
-   include 'mpif.h'
       integer :: i, istartend(2)
       !PART OF WORKAROUND FOR BUGGY INTEL COMPILER
       integer, allocatable, dimension(:) :: gather_array

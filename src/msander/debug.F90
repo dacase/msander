@@ -371,6 +371,9 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
       vir,ene,qsetup)
    use stack
    use state
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 #  include "../include/memory.h"
 #  include "../include/md.h"
@@ -381,7 +384,6 @@ subroutine get_analfrc(xx,ix,ih,ipairs,x,f, &
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
    integer ierr
 #  include "parallel.h"
 #endif /* MPI */
@@ -1167,11 +1169,11 @@ end subroutine force_dump
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine merge_forces here]
 subroutine merge_forces(nat3,f)
+   use mpi
    implicit none
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-  include 'mpif.h'
    integer ierr
 #  include "parallel.h"
    ! needed in mpi case to put forces together

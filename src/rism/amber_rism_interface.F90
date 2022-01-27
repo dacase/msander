@@ -66,10 +66,10 @@ contains
   !! @param[in] o_mpicomm  MPI communicator (optional).
   !! @sideeffects Allocates memory and sets value to huge.
   subroutine rismthermo_new(this, nsite, o_mpicomm)
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rismthermo_t), intent(inout) :: this
     integer, intent(in) :: nsite
     integer, optional, intent(in) :: o_mpicomm
@@ -126,10 +126,10 @@ contains
 !!! calculation, MPI is used to do this.  For serial runs this does
 !!! nothing.
   subroutine rismthermo_mpireduce(this)
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rismthermo_t), intent(inout) :: this
 #ifdef MPI
     _REAL_ :: buffer_copy(ubound(this%mpi_buffer, 1))
@@ -439,10 +439,10 @@ contains
 #else
     use constants_rism, only : KB
 #endif
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer, intent(in) :: numAtoms, numTypes, atomTypeIndex(numTypes**2), nonbondedParmIndex(numAtoms)
     _REAL_, intent(in) :: charge(numAtoms), mass(numAtoms), ljA(numTypes*(numTypes + 1)/2), &
          ljB(numTypes*(numTypes + 1)/2)
@@ -580,10 +580,10 @@ contains
   subroutine rism_init(comm)
     use amber_rism_interface
     use safemem
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer, intent(in) :: comm
 
     integer :: err
@@ -687,12 +687,12 @@ contains
     use constants_rism, only : KB
     use rism3d_c, only : rism3d_calculateSolution
     use rism_util, only: corr_drift
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
 
-#ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
 
     integer, intent(in) :: irespa
     _REAL_, intent(in) :: atomPositions_md(3, rism_3d%solute%numAtoms)
@@ -812,10 +812,10 @@ contains
   subroutine rism_solvdist_thermo_calc(writedist, step)
     use amber_rism_interface
     use constants_rism, only : kb, COULOMB_CONST_E
-    implicit none
 #ifdef MPI
-    include "mpif.h"
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     logical*4, intent(in) :: writedist
     integer, intent(in) :: step
     integer :: err
@@ -1064,10 +1064,10 @@ contains
   subroutine rism_max_memory()
     use amber_rism_interface
     use safemem
-    implicit none
 #ifdef MPI
-    include "mpif.h"
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer*8 :: memstats(10), tmemstats(10)
     integer :: err, irank
     outunit = rism_report_getMUnit()
@@ -1124,12 +1124,11 @@ contains
     use rism3d_xyzv
     use safemem
     use rism_util, only : checksum
+#ifdef MPI
+    use mpi
+#endif
     implicit none
     
-    
-#if defined(MPI)
-    include 'mpif.h'
-#endif
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: step
 
@@ -1376,8 +1375,8 @@ contains
   !!              to all processes
   subroutine rism_mpi_bcast(mrank, msize, mcomm)
     use amber_rism_interface
+    use mpi
     implicit none
-    include 'mpif.h'
     ! add the 'm' to avoid clashing with intrinsics, like size()
     integer, intent(in) :: mrank !< MPI process rank.
     integer, intent(in) :: msize !< Number of MPI processes.

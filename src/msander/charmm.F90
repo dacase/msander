@@ -1917,9 +1917,8 @@ end subroutine charmm_dump_gold
 subroutine mpi_bcast_charmm_params(master)
 
   use parms, only : nttyp
-
+  use mpi
   implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
 !Passed in
@@ -3193,8 +3192,8 @@ end subroutine deallocate_cmap_arrays
 !------------------------------------------------------------
 subroutine mpi_bcast_cmap_params(master)
 
+  use mpi
   implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
 !Passed in

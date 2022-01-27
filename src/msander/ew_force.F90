@@ -27,6 +27,9 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use parms, only : one_scee, one_scnb
 #endif /* LES */
    use nbips, only : aipspbc,ips,teaips,tvaips,virexips
+#ifdef MPI
+   use mpi
+#endif
 
    implicit none
 #  include "extra.h"
@@ -51,7 +54,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #endif
 
@@ -573,6 +575,9 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
       field,prefac1,prefac2,prefac3,fftable,qm_pot_only)
    use ew_recip
    use nblist, only: recip, volume
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 #  include "../include/memory.h"
 
@@ -586,7 +591,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
 #  include "ew_pme_recip.h"
 
 #ifdef MPI
-   include 'mpif.h'
 #  include "parallel.h"
 #endif
    ! OUTPUT
@@ -644,7 +648,9 @@ subroutine nb_adjust(charge,eea,crd, &
 #ifdef LES
    use les_data, only : lfac, lestyp, lesfac, cnum, nlesty
    use nblist, only : cutoffnb
-#else
+#endif
+#ifdef MPI
+   use mpi
 #endif
    implicit none
 
@@ -661,7 +667,6 @@ subroutine nb_adjust(charge,eea,crd, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
    integer numlo,numhi
@@ -933,6 +938,9 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
       adj_vir,ee_type,eedmeth, &
       dipole,field,epola)
    use constants, only : third, half
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 
    _REAL_ charge(*),eea,crd(3,*)
@@ -948,7 +956,6 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
    integer numlo,numhi
@@ -1299,6 +1306,9 @@ subroutine nb_adjust_les(charge,ene,crd, &
 
    use les_data, only : eeles, lfac, lesfac, lestyp, nlesty, nlesadj, ileslst, &
                         jleslst
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    _REAL_ charge(*),ene,crd(3,*)
    integer numatoms,use_pme
@@ -1313,7 +1323,6 @@ subroutine nb_adjust_les(charge,ene,crd, &
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
    integer numleft,numdel
 #endif /* MPI */
    !-------------------------------------------------------------------

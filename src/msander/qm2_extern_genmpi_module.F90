@@ -239,8 +239,8 @@ contains
     
     use ElementOrbitalIndex, only : elementSymbol
     
+    use mpi
     implicit none
-    include 'mpif.h'
 
     character(len=*), intent(in)  :: tplfile
     integer, intent(in) :: nqmatoms
@@ -428,8 +428,8 @@ contains
   ! ---------------------------------------------------
   subroutine connect( self, id )
 
+    use mpi
     implicit none
-    include 'mpif.h'
 
     type(genmpi_nml_type), intent(in) :: self
     character(len=3)     , intent(in) :: id
@@ -455,7 +455,7 @@ contains
       call flush(6)
     end if
 
-    timer = MPI_WTIME(ierr)
+    timer = MPI_WTIME()
 
     do while ( done .eqv. .false. )
 
@@ -469,7 +469,7 @@ contains
         done=.true.
       end if
 
-      if ( (MPI_WTIME(ierr)-timer) > 60 ) then ! Time out after 60 seconds
+      if ( (MPI_WTIME()-timer) > 60 ) then ! Time out after 60 seconds
         call sander_bomb('connect() ('//module_name//')', &
              '"'//trim(server_name)//'" not found. Timed out after 60 seconds.', &
              'Will quit now')
@@ -496,8 +496,8 @@ contains
   ! ----------------------------
   subroutine send_job_info( tplfile, self, do_grad )
 
+    use mpi
     implicit none
-    include 'mpif.h'
 
     character(len=*)     , intent(in) :: tplfile
     type(genmpi_nml_type), intent(in) :: self
@@ -564,8 +564,8 @@ contains
   ! (this is sent in place of qmcharge)
   subroutine genmpi_finalize()
 
+    use mpi
     implicit none
-    include 'mpif.h'
 
     integer :: ierr, empty
 

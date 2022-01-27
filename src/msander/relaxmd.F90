@@ -65,6 +65,9 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Common memory variables
   !  nrp         : number of atoms, adjusted for LES copies
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
   integer   ipairs(*), ix(*), relax_nstlim
   integer, intent(in) :: mobile_atoms(*)
@@ -74,7 +77,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
 #ifdef MPI
 #  include "parallel.h"
-  include 'mpif.h'
   _REAL_ mpitmp(8) !Use for temporary packing of mpi messages.
   integer ierr
 #else

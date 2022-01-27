@@ -159,10 +159,10 @@ contains
   subroutine rism3d_potential_calc(this)
     use rism_util, only : checksum
     use rism3d_opendx, only : rism3d_opendx_write
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
+    use mpi
 #endif
+    implicit none
     type(rism3d_potential), intent(inout) :: this !< potential object.
 
     integer :: id
@@ -332,10 +332,10 @@ contains
   !! @param[in,out] ulj grid to add potential to
   subroutine uvLJrEwaldMinImage(this, ulj)
     use constants_rism, only : omp_num_threads
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
+    use mpi
 #endif
+    implicit none
     type(rism3d_potential), intent(in) :: this
     _REAL_, intent(inout) :: ulj(:,:,:,:)
     ! Grid, solute, slovent, and dimension indices.
@@ -399,10 +399,10 @@ contains
     use FFTW3
     use rism3d_opendx, only : rism3d_opendx_write
     use rism_util, only: r2c_pointer
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
+    use mpi
 #endif
+    implicit none
     type(rism3d_potential), intent(inout) :: this
     _REAL_, intent(inout) :: ucu(:,:,:,:)
 

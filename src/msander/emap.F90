@@ -184,8 +184,11 @@ contains
       use constants, only: KB
       use findmask,only:atommask
 #ifdef MPI
+      use mpi
+#endif
+      implicit none
+#ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #endif
 #  include "../include/memory.h"
 #  include "../include/md.h"
@@ -342,8 +345,11 @@ contains
 !                    By Xiongwu Wu, wuxw@nhlbi.nih.gov
 !_________________________________________________________________
 #ifdef MPI
+      use mpi
+#endif
+      implicit none
+#ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #endif
 #  include "../include/memory.h"
 
@@ -2128,10 +2134,13 @@ subroutine emapforce(natom,enemap,amass,x,f)
 !_________________________________________________________________
 !
       use ew_bspline,only:fill_bspline_1
+#ifdef MPI
+      use mpi
+#endif
+      implicit none
 !
 #ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #endif
       INTEGER NATOM
       REAL*8 ENRIG,SCRIG,AMASS(*),X(*)
@@ -2272,10 +2281,13 @@ subroutine emapforce(natom,enemap,amass,x,f)
 !_________________________________________________________________
 !
       use ew_bspline,only:fill_bspline_1
+#ifdef MPI
+      use mpi
+#endif
+      implicit none
 !
 #ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #endif
       INTEGER NATOM
       REAL*8 ENRIG,SCRIG,AMASS(*),X(*),F(*)

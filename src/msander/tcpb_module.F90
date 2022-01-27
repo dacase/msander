@@ -9,11 +9,10 @@ module tcpb_module
   use UtilitiesModule, only: Upcase
   use qmmm_module, only: qmmm_nml, qmmm_mpi
 
-  implicit none
-
 #ifdef MPI
-  include 'mpif.h'
+   use mpi
 #endif
+  implicit none
 
   private
 

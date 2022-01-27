@@ -1465,6 +1465,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
 ! REMD
    use remd, only : rem, rremd
    use sgld, only : isgld ! for RXSGLD
+   use mpi
 #endif /* MPI */
    use linear_response, only: ilrt, lrtmask
    use nfe_sander_proxy, only: infe
@@ -1497,7 +1498,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #  include "parallel.h"
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c

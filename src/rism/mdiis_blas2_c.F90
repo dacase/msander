@@ -227,10 +227,10 @@ contains
 !!!   tolerance :: tolerance for this calculation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine  mdiis_blas2_advance (this, rms1,conver,tolerance_o)
-    implicit none 
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none 
 #include "def_time.h" 
     
     type(mdiis_blas2), intent(inout) :: this

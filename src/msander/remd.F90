@@ -50,6 +50,7 @@ use file_io_dat, only : MAX_FN_LEN, REMLOG_UNIT, REMTYPE_UNIT, &
                         inpcrd, numgroup, owrite, target_ph, target_e
 use commandline_module, only : cpein_specified
 use random
+use mpi
 
 implicit none
 
@@ -334,7 +335,6 @@ subroutine remd1d_setup(numexchg, hybridgb, numwatkeep, temp0, &
 
 implicit none
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    integer, intent(in) :: numexchg
@@ -693,7 +693,6 @@ subroutine multid_remd_setup(numexchg, numwatkeep, temp0, &
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Formal arguments:
@@ -1200,7 +1199,6 @@ subroutine remd_cleanup()
    use AmberNetcdf_mod, only: NC_close
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer  :: ierror
@@ -1276,7 +1274,6 @@ subroutine remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -1351,7 +1348,6 @@ subroutine subrem(rem_dim)
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -1888,7 +1884,6 @@ subroutine set_partners(rem_dim, num_replicas)
 
    implicit none
 
-   include 'mpif.h'
 
    ! Passed Variables
 
@@ -1979,7 +1974,6 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
    use netcdf
    use AmberNetcdf_mod, only: NC_error
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    _REAL_, dimension(*), intent(inout) :: x, v
@@ -2647,7 +2641,6 @@ subroutine load_reservoir_files()
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
    integer numatoms, iseed, ierror, i, nodeid, holder
 ! i1-4 for reading dihedral atom nums
@@ -2918,7 +2911,6 @@ function pv_correction(ourtemp, nbrtemp, neighbor, comm_rep_master)
   use constants, only : KB
   ! ARGUMENTS
   implicit none
-  include 'mpif.h'
   _REAL_ pv_correction
   _REAL_, intent(in)  :: ourtemp, nbrtemp
   integer, intent(in) :: neighbor
@@ -2957,7 +2949,6 @@ subroutine remd_bcast_cell(box0, box1, commsander)
   use nblist, only : fill_tranvec
   ! ARGUMENTS
   implicit none
-  include 'mpif.h'
   _REAL_, intent(in), dimension(:) :: box0       ! Original box
   _REAL_, intent(in), dimension(:) :: box1       ! New box
   integer, intent(in)              :: commsander ! COMM for broadcast
@@ -2987,7 +2978,6 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
 #  include "box.h"
 #  include "parallel.h"
 #  include "../include/memory.h"
-   include 'mpif.h'
 
    ! sander.F90
    _REAL_  x(*)
@@ -3508,7 +3498,6 @@ subroutine ph_remd_exchange(rem_dim, solvph)
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed Variables
    integer, intent(in)   :: rem_dim ! dimension we are exchanging in
@@ -3715,7 +3704,6 @@ subroutine e_remd_exchange(rem_dim, temp0, solve)
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed Variables
    integer, intent(in)   :: rem_dim ! dimension we are exchanging in
@@ -3927,7 +3915,6 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -4414,7 +4401,6 @@ subroutine reservoir_remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -4511,7 +4497,6 @@ subroutine multid_remd_exchange(x, ix, ih, ipairs, qsetup, &
    use sander_lib, only : strip
 
    implicit none
-   include 'mpif.h'
 #  include "../include/memory.h"
 #  include "parallel.h"
 

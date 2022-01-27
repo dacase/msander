@@ -11,13 +11,15 @@
 !------------------------------------------------------------------------------
 subroutine mexit(output_unit, status)
 
+#ifdef MPI
+   use mpi
+#endif
   use xray_interface_impl_cpu_module, only: xray_fini=>finalize
   implicit none
   integer output_unit
   integer status
 
 #ifdef MPI
-  include 'mpif.h'
   integer ierr
 #  include "parallel.h"
    

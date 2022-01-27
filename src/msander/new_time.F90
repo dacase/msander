@@ -306,10 +306,10 @@ end subroutine add_timer
 !+ Synchronize processors to ensure timer accuracy.
 subroutine timer_barrier( communicator )
 
+   use mpi
    implicit none
    integer communicator
 
-   include 'mpif.h'
    logical barrier_active
    integer ierr
 
@@ -744,7 +744,10 @@ subroutine profile_time(all,num_calls_nblist,profile_mpi)
 #else
 subroutine profile_time(all,num_calls_nblist)
 #endif
-  use stack, only: ihighest_stk,highest_stk
+   use stack, only: ihighest_stk,highest_stk
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    _REAL_ all
    integer, intent(in) :: num_calls_nblist
@@ -752,7 +755,6 @@ subroutine profile_time(all,num_calls_nblist)
 #  include "extra.h"
 
 #ifdef MPI
-   include 'mpif.h'
 #  include "parallel.h"
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
