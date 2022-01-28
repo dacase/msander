@@ -25,8 +25,9 @@ module xray_bulk_model_module
 
 contains
   
-  subroutine init(model_name, mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber, k_sol, b_sol)
-    use xray_bulk_model_afonine_2013_module, only : init_afonine => init
+  subroutine init(model_name, mask_update_period, scale_update_period, &
+      & resolution_high, hkl, unit_cell, atm_atomicnumber, k_sol, b_sol, &
+      & solvent_mask_adjustment, solvent_mask_probe_radius )
     use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
     use xray_bulk_model_user_module, only : init_user => init
@@ -40,6 +41,8 @@ contains
     integer, intent(in) :: atm_atomicnumber(:)
     real(real_kind), intent(in) :: k_sol
     real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
     model_id = model_name_to_id(model_name)
     
@@ -47,9 +50,13 @@ contains
     case (none_id)
       call init_none(scale_update_period)
     case (afonine_2013_id)
-      call init_afonine(mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
+      call init_afonine(mask_update_period, scale_update_period, &
+            resolution_high, hkl, unit_cell, atm_atomicnumber, &
+            solvent_mask_adjustment, solvent_mask_probe_radius)
     case (simple_id)
-      call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, resolution_high, hkl, unit_cell, atm_atomicnumber)
+      call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, &
+            resolution_high, hkl, unit_cell, atm_atomicnumber, &
+            solvent_mask_adjustment, solvent_mask_probe_radius)
     case (user_id)
       call init_user(mask_update_period, k_sol, b_sol)
     case default

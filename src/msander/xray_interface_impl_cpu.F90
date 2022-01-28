@@ -35,7 +35,7 @@ module xray_interface_impl_cpu_module
          xray_weight_final, &
          target, &
          solvent_mask_probe_radius, &
-         solvent_mask_expand, &
+         solvent_mask_adjustment, &
          ntwsf, &
          sf_outfile, &
          atom_selection_mask, &
@@ -499,7 +499,8 @@ contains
          & atom_bfactor, atom_occupancy, atom_scatter_type, &
          & atom_selection==1, ix(i100+1:i100+natom), &
          & mask_update_period, scale_update_period, &
-         & ml_update_period, k_sol, b_sol &
+         & ml_update_period, k_sol, b_sol, &
+         & solvent_mask_adjustment, solvent_mask_probe_radius &
       )
       
 !      ! Dump xray init parameters to test/debug ! FIXME: remove it in release
@@ -534,8 +535,8 @@ contains
       reflection_infile = ''
       xray_weight_initial = sentinel_xray_weight
       xray_weight_final = sentinel_xray_weight
-      solvent_mask_probe_radius = 1.0
-      solvent_mask_expand = 0.8
+      solvent_mask_probe_radius = 0.9
+      solvent_mask_adjustment = 1.11
       solvent_mask_reflection_outfile = ''
       solvent_mask_outfile = ''
       atom_selection_mask = '!@H='

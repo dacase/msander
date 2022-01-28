@@ -66,16 +66,20 @@ module xray_bulk_mask_impl_gpu_module
 
 contains
   
-  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber)
+  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber, &
+      & solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_bulk_mask_impl_cpu_module, only : cpu_init => init
     implicit none
     double precision, intent(in) :: resolution_high
     class(unit_cell_t), intent(in) :: unit_cell_
     integer, intent(in) :: hkl(:, :)
     integer, intent(in) :: atm_atomicnumber(:)
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
-    call cpu_init(resolution_high, hkl, unit_cell_, atm_atomicnumber)
-    call gpu_init(hkl)
+    call cpu_init(resolution_high, hkl, unit_cell_, atm_atomicnumber, &
+        & solvent_mask_adjustment, solvent_mask_probe_radius)
+    call gpu_init(hkl, solvent_mask_probe_radius)
   end subroutine init
   
   subroutine finalize()
@@ -94,10 +98,11 @@ contains
     
   end subroutine update_f_bulk
   
-  subroutine gpu_init(hkl)
+  subroutine gpu_init(hkl, solvent_mask_probe_radius)
     use xray_bulk_mask_data_module
     implicit none
     integer, intent(in) :: hkl(:, :)
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
     call pmemd_xray_bulk_mask_init_gpu(&
         grid_dim, &
@@ -105,7 +110,7 @@ contains
         size(mask_cutoffs), mask_cutoffs, &
         size(mask_bs_grid), mask_bs_grid, &
         & unit_cell%a(), unit_cell%b(), unit_cell%c(), unit_cell%alpha_deg(), unit_cell%beta_deg(), unit_cell%gamma_deg(), &
-        mask_r_shrink, size(f_mask), f_mask, hkl &
+        solvent_mask_probe_radius, size(f_mask), f_mask, hkl &
     )
   end subroutine gpu_init
   

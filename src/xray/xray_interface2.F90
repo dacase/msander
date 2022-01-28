@@ -26,7 +26,8 @@ contains
   subroutine init(target, bulk_model, hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
       &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
       &   atom_atomic_number, mask_update_period, scale_update_period, &
-      &   target_meta_update_period, k_sol, b_sol)
+      &   target_meta_update_period, k_sol, b_sol, &
+      &   solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
     use constants_xray, only : set_xray_num_threads
@@ -52,6 +53,8 @@ contains
     integer, intent(in) :: target_meta_update_period
     real(real_kind), intent(in) :: k_sol
     real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
 
     call check_precondition(size(hkl, 1) == 3)
     call check_precondition(size(hkl, 2) == size(Fobs))
@@ -87,7 +90,7 @@ contains
   
     call init_submodules(target, bulk_model, atom_atomic_number, &
         mask_update_period, scale_update_period, target_meta_update_period, &
-        k_sol, b_sol)
+        k_sol, b_sol, solvent_mask_adjustment, solvent_mask_probe_radius)
 
   end subroutine init
   
@@ -182,7 +185,7 @@ contains
   
   subroutine init_submodules(target, bulk_model, atom_atomic_number, &
         mask_update_period, scale_update_period, target_meta_update_period, &
-        k_sol, b_sol)
+        k_sol, b_sol, solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_interface2_data_module
     
     use xray_atomic_scatter_factor_module, only: init_atomic_scatter_factor => init

@@ -98,7 +98,9 @@ contains
 
   end function mod_grid
 
-  subroutine calc_grid_neighbors()
+  subroutine calc_grid_neighbors(mask_r_shrink)
+    implicit none
+    real(real_kind), intent(in) :: mask_r_shrink
 
     ! Create list of neighboring grid points
     integer :: low(3), high(3), i, n0, n1, n2, p0, m0, p1, m1, p2, m2, alloc_
@@ -155,13 +157,16 @@ contains
   !--------------------------------------------------------------------------------------------
   ! init: intialize the mask to one, 'solvent present here.'
   !--------------------------------------------------------------------------------------------
-  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber)
+  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber, &
+      & solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_pure_utils, only: cross => cross_product
     implicit none
     double precision, intent(in) :: resolution_high
     class(unit_cell_t), intent(in) :: unit_cell_
     integer, intent(in) :: hkl(:, :)
     integer, intent(in) :: atm_atomicnumber(:)
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
 
     integer :: num_atoms
     integer :: i, atomic_number, na, nb, nc
@@ -182,25 +187,25 @@ contains
       atomic_number = atm_atomicnumber(i)
       if( atomic_number == 6 ) then
           atom_types(i) = 2
-          mask_cutoffs(i) = 1.775 + mask_r_probe
+          mask_cutoffs(i) = 1.775 + solvent_mask_adjustment
       elseif( atomic_number == 17 ) then
           atom_types(i) = 0
-          mask_cutoffs(i) = 1.75 + mask_r_probe
+          mask_cutoffs(i) = 1.75 + solvent_mask_adjustment
       elseif ( atomic_number == 7 ) then
           atom_types(i) = 3
-          mask_cutoffs(i) = 1.5 + mask_r_probe
+          mask_cutoffs(i) = 1.5 + solvent_mask_adjustment
       elseif( atomic_number == 11 ) then
           atom_types(i) = 0
-          mask_cutoffs(i) = 2.27 + mask_r_probe
+          mask_cutoffs(i) = 2.27 + solvent_mask_adjustment
       elseif ( atomic_number == 8 ) then
         atom_types(i) = 4
-        mask_cutoffs(i) = 1.45 + mask_r_probe
+        mask_cutoffs(i) = 1.45 + solvent_mask_adjustment
       elseif ( atomic_number == 16 ) then
         atom_types(i) = 5
-        mask_cutoffs(i) = 1.8 + mask_r_probe
+        mask_cutoffs(i) = 1.8 + solvent_mask_adjustment
       else
         atom_types(i) = 1
-        mask_cutoffs(i) = 1.2 + mask_r_probe
+        mask_cutoffs(i) = 1.2 + solvent_mask_adjustment
       endif
     end do
 
@@ -261,10 +266,9 @@ contains
       s(:) = unit_cell%get_s(hkl(:, i))
       
       hkl_indexing_bs_mask(i) = h_as_ih( hkl(1,i), hkl(2,i), hkl(3,i), na, nb, nc)
-      
     end do
 
-    call calc_grid_neighbors()
+    call calc_grid_neighbors(solvent_mask_probe_radius)
     return
 
   end subroutine init

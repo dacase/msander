@@ -51,8 +51,13 @@ module xray_globals_module
    real(real_kind), save :: xray_weight_initial
    real(real_kind), save :: xray_weight_final
 
-   ! Solvent mask generation parameters
-   real(real_kind), save :: solvent_mask_probe_radius, solvent_mask_expand
+   !> Increment to be added to atomic radii of the atoms selected
+   !  by atom_selection_mask as a part of the algorithm to build bulk mask
+   real(real_kind), save :: solvent_mask_adjustment
+
+   !> The radius of solvent probe to apply as a part of the algorithm
+   !  to build bulk solvent mask (shrinks non-bulk volume)
+   real(real_kind), save :: solvent_mask_probe_radius
 
    ! Output file for bulk-solvent reflections (Fbulk) and mask
    character(len=MAX_FN_LEN), save :: solvent_mask_reflection_outfile

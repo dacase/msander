@@ -17,7 +17,9 @@ module xray_bulk_model_afonine_2013_module
 
 contains
   
-  subroutine init(mask_update_period_, scale_update_period_, resolution_high, hkl, unit_cell, atm_atomicnumber)
+  subroutine init(mask_update_period_, scale_update_period_, &
+        resolution_high, hkl, unit_cell, atm_atomicnumber, &
+        solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_bulk_mask_module, only : init_mask => init
     implicit none
     
@@ -27,6 +29,8 @@ contains
     class(unit_cell_t), intent(in) :: unit_cell
     integer, intent(in) :: hkl(:, :)
     integer, intent(in) :: atm_atomicnumber(:)
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
     call check_precondition(mask_update_period_ > 0)
     call check_precondition(scale_update_period_ > 0)
@@ -35,7 +39,8 @@ contains
     mask_update_period = mask_update_period_
     scale_update_period = scale_update_period_
     
-    call init_mask(resolution_high, hkl, unit_cell, atm_atomicnumber)
+    call init_mask(resolution_high, hkl, unit_cell, atm_atomicnumber, &
+          solvent_mask_adjustment, solvent_mask_probe_radius)
   
   end subroutine init
   
