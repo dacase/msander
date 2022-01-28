@@ -28,6 +28,7 @@ contains
   subroutine init(model_name, mask_update_period, scale_update_period, &
       & resolution_high, hkl, unit_cell, atm_atomicnumber, k_sol, b_sol, &
       & solvent_mask_adjustment, solvent_mask_probe_radius )
+    use xray_bulk_model_afonine_2013_module, only : init_afonine => init
     use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
     use xray_bulk_model_user_module, only : init_user => init

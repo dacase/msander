@@ -205,6 +205,8 @@ contains
     integer, intent(in) :: target_meta_update_period
     real(real_kind), intent(in) :: k_sol
     real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
     real(real_kind), allocatable :: s2(:)
     
@@ -218,7 +220,8 @@ contains
     call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, target_meta_update_period)
     call init_bulk(bulk_model, mask_update_period, scale_update_period, &
        minval(resolution), hkl, unit_cell, &
-       atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol)
+       atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol, &
+       solvent_mask_adjustment, solvent_mask_probe_radius)
     call init_scaling(resolution, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
     call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
