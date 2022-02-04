@@ -112,7 +112,7 @@ shrink_kernel(int* not_shrank, int* mask_grid, int nx, int ny, int nz, xray::Gri
 }
 
 xray::BulkMaskGPU::~BulkMaskGPU() {
-  if (m_dev_metric_tensor) {
+  if (m_dev_metric_tensor.get()) {
     thrust::device_delete(m_dev_metric_tensor);
   }
   cufftDestroy(m_plan);
