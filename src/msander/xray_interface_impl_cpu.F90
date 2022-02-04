@@ -582,7 +582,7 @@ contains
       ! local
       real(real_kind) :: xray_weight
       integer :: total_steps
-      total_steps = 99999  ! FIXME: make this an input variable?
+      total_steps = 9999999  ! FIXME: make this an input variable?
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
