@@ -30,7 +30,7 @@ void pmemd_xray_dpartial_init_gpu(
 ) {
   assert(!dpartial_instance());
   dpartial_instance().reset(
-    new xray::DPartialGPU<xray::KernelPrecision::Single>(
+    new xray::DPartialGPU<xray::KernelPrecision::CUDA_PRECISION>(
       n_hkl,
       hkl,
       mss4,
