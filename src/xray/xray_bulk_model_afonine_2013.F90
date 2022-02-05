@@ -51,7 +51,6 @@ contains
   end subroutine finalize
   
   subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4, hkl)
-    use xray_pure_utils, only : calc_k_overall
     use xray_scaling_module, only : rescale, combine, optimize_scale_factors
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
