@@ -116,7 +116,7 @@ contains
     case (simple_id)
       call simple_f(frac, current_step, absFobs, Fcalc, mSS4)
     case (user_id)
-      call user_f(current_step, absFobs, Fcalc, Fuser, mSS4)
+      call user_f(current_step, absFobs, Fcalc, Fuser, mSS4, hkl)
     case default
       call check_requirement(.FALSE., "Bad model id")
     end select

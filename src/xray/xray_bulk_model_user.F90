@@ -34,16 +34,21 @@ contains
   end subroutine finalize
   
   subroutine add_bulk_contribution_and_rescale(current_step, absFobs, Fcalc, &
-         Fuser, mSS4)
+         Fuser, mSS4, hkl)
     use xray_pure_utils, only : calc_k_overall
     use xray_interface2_data_module, only : new_order
+    use xray_scaling_module, only : rescale, combine, optimize_scale_factors
     implicit none
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     complex(real_kind), intent(in) :: Fuser(size(absFobs))
     real(real_kind), intent(in) :: mSS4(:)
+    integer, intent(in) :: hkl(:,:)
 
+    complex(real_kind) :: Fuser_new(size(absFobs))
+
+#if 0
     Fcalc = Fcalc + Fuser(new_order) * k_sol * exp(b_sol * mSS4)
 
     if(mod(current_step, scale_update_period) == 0) then
@@ -51,6 +56,15 @@ contains
     end if
 
     Fcalc = k_overall * Fcalc
+#else
+    Fuser_new = Fuser(new_order)
+    if(mod(current_step, scale_update_period) == 0) then
+      call optimize_scale_factors(absFobs, Fcalc, Fuser_new, mSS4, hkl)
+    end if
+
+    Fcalc = combine(Fcalc, Fuser_new)
+    Fcalc = rescale(Fcalc)
+#endif
 
   end subroutine add_bulk_contribution_and_rescale
   
