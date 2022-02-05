@@ -1,8 +1,9 @@
 #!/bin/bash
 
-EXE=/home/case/msander/bin/msander.cuda
-export OMP_NUM_THREADS=0
-export CUDA_VISIBLE_DEVICES=0
+EXE=/home/case/msander/bin/msander
+export OMP_NUM_THREADS=1
+export XRAY_NUM_THREADS=20
+#export CUDA_VISIBLE_DEVICES=0
 
 cat <<EOF > mdin
 Test of MD with Xray restraints
@@ -19,13 +20,13 @@ Test of MD with Xray restraints
    pdb_read_coordinates=.true.,
    reflection_infile = '4lzt-sf.dat',
    atom_selection_mask = ':*',
-   xray_weight_initial = 1., 
-   xray_weight_final = 1.,
-   target = 'ml',
+   xray_weight_initial = 100000., 
+   xray_weight_final = 100000.,
+   target = 'ls',
    bulk_solvent_model = 'afonine-2013',
  /
  &debugf
-  do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,11
+  do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,41,43,
   chkvir=0, dumpfrc=0, rmsfrc=0, zerochg=0,
   zerovdw=0, do_dir=0, do_rec=0, do_adj=0, do_self=0,
   do_bond=0, do_angle=0, do_ephi=0, do_cap=0, doxconst=0,
@@ -33,6 +34,6 @@ Test of MD with Xray restraints
  /
 EOF
 
-$EXE -O -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 -o cudadebug.double.29dec21.o
+$EXE -O -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 -o debug.occ.05feb22
 
 /bin/rm -f mdin mdinfo restrt
