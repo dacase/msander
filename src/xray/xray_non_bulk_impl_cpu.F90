@@ -114,11 +114,8 @@ contains
       ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
       !    j = 1,num_selected_atoms
       
-      f(:) = exp(mSS4(ihkl) * b_factor(:)) &
+      f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
-      if (allocated(occupancy)) then
-        f(:) = f(:) * occupancy(:)
-      endif
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
       
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
