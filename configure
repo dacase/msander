@@ -77,7 +77,7 @@ for var in "$@"; do
             conda="yes";;
         --openmp)
             ompflag='-fopenmp -DOPENMP';
-            flibs_fftw="-lfftw3_omp -lfftw3"
+            flibs_fftw="-lfftw3_omp $flibs_fftw"
             openmp="yes";;
         --cuda-single)
             cuda="yes"
@@ -128,7 +128,7 @@ for var in "$@"; do
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
             mpiflag="-DMPI"
-            flibs_fftw="-lfftw3_mpi -lfftw3 -lmpi"
+            flibs_fftw="-lfftw3_mpi $flibs_fftw -lmpi"
             short_ene=short_ene.o
             installtype="parallel"
             sfx=".MPI";;
