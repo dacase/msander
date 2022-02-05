@@ -148,8 +148,8 @@ contains
     energy = xray_weight * energy
     call timer_start(TIME_DHKL)
     grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
-        & calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), d_target_d_absFcalc) &
-        &)
+          calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
+          atom_occupancy, d_target_d_absFcalc) )
     call check_assertion(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz

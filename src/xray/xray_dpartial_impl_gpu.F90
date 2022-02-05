@@ -68,10 +68,12 @@ module xray_dpartial_impl_gpu_module
 
 contains
   
-  function calc_partial_d_target_d_frac(frac, f_scale, d_target_d_abs_Fcalc) result(d_target_d_frac)
+  function calc_partial_d_target_d_frac(frac, f_scale, occupancy, &
+         d_target_d_abs_Fcalc) result(d_target_d_frac)
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
+    real(real_kind), intent(in) :: occupancy(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     
