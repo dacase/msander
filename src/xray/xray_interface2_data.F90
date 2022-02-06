@@ -26,8 +26,8 @@ module xray_interface2_data_module
   !! Atomic data
   integer, save :: n_atom
   type(unit_cell_t), save :: unit_cell
-  logical, allocatable, save :: atom_is_not_bulk(:)
-  integer, allocatable, save :: non_bulk_atom_indices(:)
+  logical, allocatable, save :: atom_selection(:)
+  integer, allocatable, save :: atom_selection_indices(:)
   real(real_kind), allocatable, save :: atom_b_factor(:)
   integer, allocatable, save :: atom_scatter_type(:)
   real(real_kind), allocatable, save :: atom_occupancy(:)
@@ -35,9 +35,10 @@ module xray_interface2_data_module
 
 contains
   
-  subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, input_unit_cell, input_scatter_coefficients, &
-      &   input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, input_atom_is_not_bulk &
-      &)
+  subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &
+          input_unit_cell, input_scatter_coefficients, &
+          input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, &
+          input_atom_selection )
     use xray_pure_utils, only: index_partition, index_sort, calc_resolution, pack_index
     
     implicit none
@@ -51,7 +52,7 @@ contains
     real(real_kind), intent(in) :: input_atom_b_factor(:)
     real(real_kind), intent(in) :: input_atom_occupancy(:)
     integer, intent(in) :: input_atom_scatter_type(:)
-    logical, intent(in) :: input_atom_is_not_bulk(:)
+    logical, intent(in) :: input_atom_selection(:)
     
     ! locals
     real(real_kind), allocatable :: resolution(:)
@@ -65,7 +66,7 @@ contains
     call check_precondition(size(input_atom_b_factor) == size(input_atom_occupancy))
     call check_precondition(size(input_atom_b_factor) == size(input_atom_scatter_type))
     call check_precondition(size(input_scatter_coefficients, 1) == 2)
-    call check_precondition(minval(input_atom_b_factor, input_atom_is_not_bulk) >= 0)
+    call check_precondition(minval(input_atom_b_factor, input_atom_selection) >= 0)
     call check_precondition(all(input_atom_occupancy <= 1.0))
     call check_precondition(all(input_atom_occupancy >= 0.0))
     call check_precondition(minval(input_atom_scatter_type) >= 1)
@@ -105,8 +106,8 @@ contains
     
     allocate(Fcalc(n_hkl))
 
-    atom_is_not_bulk = input_atom_is_not_bulk
-    non_bulk_atom_indices = pack_index(input_atom_is_not_bulk)
+    atom_selection = input_atom_selection
+    atom_selection_indices = pack_index(input_atom_selection)
     
     atom_b_factor = input_atom_b_factor
     atom_scatter_type = input_atom_scatter_type
@@ -116,7 +117,7 @@ contains
     call check_postcondition(size(atom_b_factor) == n_atom)
     call check_postcondition(size(atom_occupancy) == n_atom)
     call check_postcondition(size(atom_scatter_type) == n_atom)
-    call check_postcondition(size(atom_is_not_bulk) == n_atom)
+    call check_postcondition(size(atom_selection) == n_atom)
 
     call check_postcondition(size(hkl, 1) == 3)
     call check_postcondition(size(hkl, 2) == n_hkl)
@@ -133,8 +134,8 @@ contains
     if(allocated(Fobs)) deallocate(Fobs)
     if(allocated(Fcalc)) deallocate(Fcalc)
     
-    if(allocated(non_bulk_atom_indices)) deallocate(non_bulk_atom_indices)
-    if(allocated(atom_is_not_bulk)) deallocate(atom_is_not_bulk)
+    if(allocated(atom_selection_indices)) deallocate(atom_selection_indices)
+    if(allocated(atom_selection)) deallocate(atom_selection)
     if(allocated(atom_scatter_type)) deallocate(atom_scatter_type)
     if(allocated(atom_occupancy)) deallocate(atom_occupancy)
     if(allocated(atom_b_factor)) deallocate(atom_b_factor)

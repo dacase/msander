@@ -72,7 +72,7 @@ $modulefile{"SANDER_API_MOD"} = "interface";
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
 $ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}
-    =$ignore{"mpi"}=$ignore{"mpi_f08"}=$ignore{"omp_lib} = 1;
+    =$ignore{"mpi"}=$ignore{"mpi_f08"}=$ignore{"omp_lib"} = 1;
 # Also assume that the API in amber_rism_interface will be up-to-date
 $ignore{"amber_rism_interface"} = 1;
 

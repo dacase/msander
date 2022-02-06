@@ -167,7 +167,8 @@ xray_bulk_model_user.o: \
                     xray_unit_cell.o\
                     xray_pure_utils.o\
                     xray_bulk_mask.o\
-                    xray_interface2_data.o
+                    xray_interface2_data.o\
+                    xray_scaling.o
 
 
 xray_bulk_model_user.o:   xray_bulk_model_user.F90

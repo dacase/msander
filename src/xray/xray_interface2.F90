@@ -24,7 +24,7 @@ module xray_interface2_module
 contains
   
   subroutine init(target, bulk_model, hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-      &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
+      &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_selection, &
       &   atom_atomic_number, mask_update_period, scale_update_period, &
       &   target_meta_update_period, k_sol, b_sol, &
       &   solvent_mask_adjustment, solvent_mask_probe_radius)
@@ -46,7 +46,7 @@ contains
     real(real_kind), intent(in) :: atom_b_factor(:)
     real(real_kind), intent(in) :: atom_occupancy(:)
     integer, intent(in) :: atom_scatter_type(:)
-    logical, intent(in) :: atom_is_not_bulk(:)
+    logical, intent(in) :: atom_selection(:)
     integer, intent(in) :: atom_atomic_number(:)
     integer, intent(in) :: mask_update_period
     integer, intent(in) :: scale_update_period
@@ -63,8 +63,8 @@ contains
     call check_precondition(size(atom_b_factor) == size(atom_occupancy))
     call check_precondition(size(atom_b_factor) == size(atom_scatter_type))
     call check_precondition(size(atom_b_factor) == size(atom_atomic_number))
-    call check_precondition(size(atom_b_factor) == size(atom_is_not_bulk))
-    call check_precondition(minval(atom_b_factor, atom_is_not_bulk) >= 0)
+    call check_precondition(size(atom_b_factor) == size(atom_selection))
+    call check_precondition(minval(atom_b_factor, atom_selection) >= 0)
     call check_precondition(all(atom_occupancy <= 1.0))
     call check_precondition(all(atom_occupancy >= 0.0))
     call check_precondition(minval(atom_scatter_type) >= 1)
@@ -86,7 +86,7 @@ contains
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
         &   atom_b_factor, atom_occupancy, atom_scatter_type, &
-        &   atom_is_not_bulk )
+        &   atom_selection )
   
     call init_submodules(target, bulk_model, atom_atomic_number, &
         mask_update_period, scale_update_period, target_meta_update_period, &
@@ -118,9 +118,9 @@ contains
     call check_precondition(size(force, 1) == 3)
     call check_precondition(size(force, 2) == n_atom)
     
-    allocate(grad_xyz(3, size(non_bulk_atom_indices)))
+    allocate(grad_xyz(3, size(atom_selection_indices)))
     
-    frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
+    frac = modulo(unit_cell%to_frac(xyz(:, atom_selection_indices)), 1.0_real_kind)
     
     call check_assertion(all(frac <= 1))
     call check_assertion(all(frac >= 0))
@@ -150,9 +150,9 @@ contains
     grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           atom_occupancy, d_target_d_absFcalc) )
-    call check_assertion(size(grad_xyz, 2) == size(non_bulk_atom_indices))
+    call check_assertion(size(grad_xyz, 2) == size(atom_selection_indices))
 
-    force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
+    force(:,atom_selection_indices) = force(:,atom_selection_indices) - grad_xyz
     call timer_stop(TIME_DHKL)
 
   end subroutine calc_force
@@ -217,15 +217,22 @@ contains
     abs_Fobs = abs(Fobs)
     allocate(abs_Fcalc(n_hkl))
     
-    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, target_meta_update_period)
+    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, &
+            target_meta_update_period)
+    ! FIXME: the atom selection for the mask creation logically should
+    !        be different than the atom selectrion for Fcalc stuff
     call init_bulk(bulk_model, mask_update_period, scale_update_period, &
-       minval(resolution), hkl, unit_cell, &
-       atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol, &
-       solvent_mask_adjustment, solvent_mask_probe_radius)
+            minval(resolution), hkl, unit_cell, &
+            atom_atomic_number(atom_selection_indices), k_sol, b_sol, &
+            solvent_mask_adjustment, solvent_mask_probe_radius)
     call init_scaling(resolution, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
-    call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
-    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices))
+    call init_non_bulk(hkl, mSS4, atom_b_factor(atom_selection_indices), &
+            atom_scatter_type(atom_selection_indices), &
+            atom_occupancy(atom_selection_indices))
+    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc,  &
+            atom_b_factor(atom_selection_indices), &
+            atom_scatter_type(atom_selection_indices))
 
   end subroutine init_submodules
   

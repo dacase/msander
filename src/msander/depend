@@ -1820,7 +1820,6 @@ multisander.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
-                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -1840,7 +1839,6 @@ multisander.LES.o: \
                     AmberNetcdf.o\
                     nfe-sander-hooks.o\
                     nfe-sander-proxy.o\
-                    omp_lib.o\
                     parallel.h\
                     ew_parallel.h\
                     ../include/md.h
@@ -4067,6 +4065,7 @@ xray_interface.o:   xray_interface.F90
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ xray_interface.F90
 
 xray_interface_impl_cpu.o: \
+                    ../include/assert.fh\
                     file_io_dat.o\
                     xray_globals.o\
                     ../xray/xray_contracts.o\
@@ -4080,6 +4079,7 @@ xray_interface_impl_cpu.o: \
                     findmask.o\
                     ../xray/xray_interface2.o\
                     ../xray/xray_debug_dump.o\
+                    constants.o\
                     ../include/md.h\
                     def_time.h
 
