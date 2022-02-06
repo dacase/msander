@@ -21,6 +21,7 @@ namespace xray {
                const double* mSS4,
                int n_atom,
                const double* b_factor,
+               const double* occupancy,
                int n_scatter_types,
                const int* scatter_type_index,
                const double* atomic_scatter_factor);
@@ -35,6 +36,7 @@ namespace xray {
   private:
     thrust::device_vector<FloatType> m_dev_frac_xyz;
     thrust::device_vector<FloatType> m_dev_b_factor;
+    thrust::device_vector<FloatType> m_dev_occupancy;
     thrust::device_vector<int> m_dev_hkl;
     thrust::device_vector<FloatType> m_dev_mSS4;
     thrust::device_vector<FloatType> m_dev_atomic_scatter_factor;

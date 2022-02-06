@@ -21,6 +21,7 @@ module xray_dpartial_impl_gpu_module
         & abs_f_calc, &
         & n_atom, &
         & atom_b_factor, &
+        & atom_occupancy, &
         & atom_scatter_type, &
         & n_scatter_types, &
         & atomic_scatter_factor &
@@ -35,6 +36,7 @@ module xray_dpartial_impl_gpu_module
       real(c_double), target, intent(in) :: abs_f_calc(n_hkl)
       integer(c_int), value :: n_atom
       real(c_double), target, intent(in) :: atom_b_factor(n_atom)
+      real(c_double), target, intent(in) :: atom_occupancy(n_atom)
       integer(c_int), target, intent(in) :: atom_scatter_type(n_atom)
       integer(c_int), value :: n_scatter_types
       real(c_double), target, intent(in) :: atomic_scatter_factor(n_hkl, n_scatter_types)
@@ -98,7 +100,8 @@ contains
   end function calc_partial_d_target_d_frac
   
   
-  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_, atom_scatter_type_)
+  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_,  &
+        atom_occupancy_, atom_scatter_type_)
     use xray_dpartial_impl_cpu_module, only : cpu_init => init
     implicit none
     integer, target, intent(in) :: hkl_(:, :)
@@ -106,9 +109,11 @@ contains
     complex(real_kind), target, intent(in) :: Fcalc_(:)
     real(real_kind), target, intent(in) :: abs_Fcalc_(:)
     real(real_kind), intent(in) :: atom_b_factor_(:)
+    real(real_kind), intent(in) :: atom_occupancy_(:)
     integer, intent(in) :: atom_scatter_type_(:)
     
-    call cpu_init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_, atom_scatter_type_)
+    call cpu_init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_, &
+         atom_occupancy_, atom_scatter_type_)
     call gpu_init()
   
   end subroutine init
@@ -136,6 +141,7 @@ contains
         & abs_Fcalc, &
         & size(atom_b_factor), &
         & atom_b_factor, &
+        & atom_occupancy, &
         & atom_scatter_type, &
         & size(atomic_scatter_factor, 2), &
         & atomic_scatter_factor &

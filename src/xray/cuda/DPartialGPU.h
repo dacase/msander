@@ -19,6 +19,7 @@ namespace xray {
       const double* abs_f_calc,
       int n_atom,
       const double* atom_b_factor,
+      const double* atom_occupancy,
       const int* atom_scatter_type,
       int n_scatter_types,
       const double* atomic_scatter_factor
@@ -45,6 +46,7 @@ namespace xray {
     thrust::device_vector<int> m_dev_hkl;
     thrust::device_vector<FloatType> m_dev_mss4;
     thrust::device_vector<FloatType> m_dev_atom_b_factor;
+    thrust::device_vector<FloatType> m_dev_atom_occupancy;
     thrust::device_vector<int> m_dev_atom_scatter_type;
     thrust::device_vector<FloatType> m_dev_d_target_d_frac;
     thrust::device_vector<FloatType> m_dev_f_scale;

@@ -23,23 +23,19 @@ contains
     real(real_kind), intent(in), target :: mSS4_(:)
     real(real_kind), intent(in) :: b_factor_(:)
     integer, intent(in) :: scatter_type_index_(:)
-    real(real_kind), intent(in), optional :: occupancy_(:)
+    real(real_kind), intent(in) :: occupancy_(:)
     
     call check_precondition(size(hkl_, 1) == 3)
     call check_precondition(size(hkl_, 2) == size(mSS4_))
     call check_precondition(size(b_factor_) == size(scatter_type_index_))
-    if (present(occupancy_)) then
-      call check_precondition(size(b_factor_) == size(occupancy_))
-    end if
+    call check_precondition(size(b_factor_) == size(occupancy_))
     
     hkl => hkl_
     mSS4 => mSS4_
     b_factor = b_factor_
     scatter_type_index = scatter_type_index_
     
-    if (present(occupancy_)) then
-      occupancy = occupancy_
-    end if
+    occupancy = occupancy_
     
     allocate(F_non_bulk(size(mSS4_)))
     allocate(f(size(b_factor_)))

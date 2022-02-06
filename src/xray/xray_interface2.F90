@@ -149,7 +149,7 @@ contains
     call timer_start(TIME_DHKL)
     grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
-          atom_occupancy, d_target_d_absFcalc) )
+          d_target_d_absFcalc) )
     call check_assertion(size(grad_xyz, 2) == size(atom_selection_indices))
 
     force(:,atom_selection_indices) = force(:,atom_selection_indices) - grad_xyz
@@ -232,6 +232,7 @@ contains
             atom_occupancy(atom_selection_indices))
     call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc,  &
             atom_b_factor(atom_selection_indices), &
+            atom_occupancy(atom_selection_indices), &
             atom_scatter_type(atom_selection_indices))
 
   end subroutine init_submodules

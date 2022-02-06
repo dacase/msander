@@ -11,7 +11,8 @@ void pmemd_xray_non_bulk_init_gpu(
   complex_double* Fcalc,
   const double* mSS4,
   int n_atoms,
-  const double* tempFactor,
+  const double* b_factor,
+  const double* occupancy,
   int n_scatter_types,
   const int* scatter_type_index,
   const double* atomic_scatter_factor);

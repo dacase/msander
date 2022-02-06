@@ -13,6 +13,7 @@ namespace {
     int n_atom,
     const FloatType* frac_by_2_pi,
     const FloatType* b_factor,
+    const FloatType* occupancy,
     int n_hkl,
     const int* hkl,
     const FloatType* mSS4,
@@ -37,6 +38,7 @@ namespace {
 
       const int offset = (scatter_type_index[i] - 1) * n_hkl;
       const FloatType atom_b_factor = b_factor[i];
+      const FloatType atom_occupancy = occupancy[i];
 
       for (int i_hkl = tid; i_hkl < n_hkl; i_hkl += blockDimX) {
         if (abs_f_calc[i_hkl] < 1e-3) {
@@ -52,7 +54,8 @@ namespace {
         FloatType scatter_factor = atomic_scatter_factor[offset + i_hkl];
 
         FloatType f = scatter_factor * exp(mSS4[i_hkl] * atom_b_factor);
-        FloatType tmp = f * f_scale[i_hkl] * d_target_d_abs_f_calc_by_2_pi[i_hkl] * sin(phase + f_calc_phase[i_hkl]);
+        FloatType tmp = f * f_scale[i_hkl] * d_target_d_abs_f_calc_by_2_pi[i_hkl]
+            * sin(phase + f_calc_phase[i_hkl]) * atom_occupancy;
 
         term_x[tid] += hkl[i_hkl * 3 + 0] * tmp;
         term_y[tid] += hkl[i_hkl * 3 + 1] * tmp;
@@ -87,9 +90,9 @@ namespace {
 
 template<typename xray::KernelPrecision PRECISION>
 xray::DPartialGPU<PRECISION>::DPartialGPU(int n_hkl, const int* hkl, const double* mss4, std::complex<double>* f_calc,
-                               const double* abs_f_calc, int n_atom, const double* atom_b_factor,
+                               const double* abs_f_calc, int n_atom, const double* atom_b_factor, const double* atom_occupancy,
                                const int* atom_scatter_type, int n_scatter_types, const double* atomic_scatter_factor)
-  : xray::DPartial(n_hkl, hkl, mss4, f_calc, abs_f_calc, n_atom, atom_b_factor, atom_scatter_type,
+  : xray::DPartial(n_hkl, hkl, mss4, f_calc, abs_f_calc, n_atom, atom_b_factor, atom_occupancy, atom_scatter_type,
                    n_scatter_types, atomic_scatter_factor) {
 
   m_dev_frac_by_2_pi = thrust::device_vector<FloatType>(n_atom * 3);
@@ -102,6 +105,7 @@ xray::DPartialGPU<PRECISION>::DPartialGPU(int n_hkl, const int* hkl, const doubl
   m_dev_hkl = thrust::device_vector<int>(m_hkl, m_hkl + n_hkl * 3);
   m_dev_mss4 = thrust::device_vector<FloatType>(m_mss4, m_mss4 + n_hkl);
   m_dev_atom_b_factor = thrust::device_vector<FloatType>(m_atom_b_factor, m_atom_b_factor + n_atom);
+  m_dev_atom_occupancy = thrust::device_vector<FloatType>(m_atom_occupancy, m_atom_occupancy + n_atom);
   m_dev_atom_scatter_type = thrust::device_vector<int>(m_atom_scatter_type, m_atom_scatter_type + n_atom);
   m_dev_d_target_d_frac = thrust::device_vector<FloatType>(n_atom * 3);
   m_f_calc_phase = std::vector<FloatType>(n_hkl);
@@ -141,6 +145,7 @@ void xray::DPartialGPU<PRECISION>::calc_d_target_d_frac(
     n_atom,
     m_dev_frac_by_2_pi.data().get(),
     m_dev_atom_b_factor.data().get(),
+    m_dev_atom_occupancy.data().get(),
     m_n_hkl,
     m_dev_hkl.data().get(),
     m_dev_mss4.data().get(),

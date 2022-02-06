@@ -14,14 +14,13 @@ module xray_dpartial_impl_cpu_module
 
 contains
   
-  function calc_partial_d_target_d_frac(frac, f_scale, occupancy, &
+  function calc_partial_d_target_d_frac(frac, f_scale, &
         d_target_d_abs_Fcalc) result(d_target_d_frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
-    real(real_kind), intent(in) :: occupancy(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
@@ -65,7 +64,7 @@ contains
         ! iatom's term of F^protein_calc (S1)
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-              + occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
+              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
                 aimag(f * Fcalc(ihkl)) * &
                 d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
       end do
@@ -75,13 +74,15 @@ contains
   end function calc_partial_d_target_d_frac
   
   
-  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_, atom_scatter_type_)
+  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_,  &
+        atom_occupancy_, atom_scatter_type_)
     implicit none
     integer, target, intent(in) :: hkl_(:, :)
     real(real_kind), target, intent(in) :: mSS4_(:)
     complex(real_kind), target, intent(in) :: Fcalc_(:)
     real(real_kind), target, intent(in) :: abs_Fcalc_(:)
     real(real_kind), intent(in) :: atom_b_factor_(:)
+    real(real_kind), intent(in) :: atom_occupancy_(:)
     integer, intent(in) :: atom_scatter_type_(:)
     
     call check_precondition(size(hkl_, 1) == 3)
@@ -96,6 +97,7 @@ contains
     Fcalc => Fcalc_
     abs_Fcalc => abs_Fcalc_
     atom_b_factor = atom_b_factor_
+    atom_occupancy = atom_occupancy_
     atom_scatter_type = atom_scatter_type_
   
   end subroutine init

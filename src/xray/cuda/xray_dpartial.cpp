@@ -24,6 +24,7 @@ void pmemd_xray_dpartial_init_gpu(
   const double* abs_f_calc,
   int n_atom,
   const double* atom_b_factor,
+  const double* atom_occupancy,
   const int* atom_scatter_type,
   int n_scatter_types,
   const double* atomic_scatter_factor
@@ -38,6 +39,7 @@ void pmemd_xray_dpartial_init_gpu(
       abs_f_calc,
       n_atom,
       atom_b_factor,
+      atom_occupancy,
       atom_scatter_type,
       n_scatter_types,
       atomic_scatter_factor

@@ -17,7 +17,7 @@ void xray::NonBulkCPU::calc_f_non_bulk(int n_atom, const double* frac_xyz) {
         frac_xyz[j_atom * 3 + 2] * m_hkl[i_hkl * 3 + 2]
       );
 
-      term += complex_double{f * std::cos(angle), f * std::sin(angle)};
+      term += complex_double{f * std::cos(angle), f * std::sin(angle)} * m_occupancy[j_atom];
     }
     m_f_non_bulk[i_hkl] = term;
   }
