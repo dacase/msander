@@ -106,7 +106,7 @@ contains
     real(real_kind), intent(in) :: xray_weight
     real(real_kind), intent(out) :: force(:, :)
     real(real_kind), intent(out) :: energy
-    complex(real_kind), intent(in) :: Fuser(:)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
 
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)

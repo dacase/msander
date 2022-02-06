@@ -58,7 +58,8 @@ contains
     call finalize_mask()
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4)
+  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, &
+        Fcalc, mSS4, Fuser)
     use xray_pure_utils, only : calc_k_overall
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
@@ -68,11 +69,12 @@ contains
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     real(real_kind), intent(in) :: mSS4(:)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
     
     call check_precondition(size(frac, 1) == 3)
     
     if (mod(current_step, mask_update_period) == 0) then
-      call update_f_bulk(frac)
+      call update_f_bulk(frac, Fuser)
     end if
     
     Fcalc = Fcalc + f_mask * k_sol * exp(b_sol * mSS4)

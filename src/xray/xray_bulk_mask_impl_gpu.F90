@@ -1,5 +1,6 @@
 module xray_bulk_mask_impl_gpu_module
   
+  use xray_bulk_mask_data_module, only : f_mask
   use xray_contracts_module
   use xray_pure_utils, only : real_kind
   use xray_unit_cell_module, only : unit_cell_t
@@ -89,12 +90,18 @@ contains
     call cpu_finalize()
   end subroutine finalize
   
-  subroutine update_f_bulk(frac)
+  subroutine update_f_bulk(frac, Fuser)
+    use xray_interface2_data_module, only : new_order
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
     
-    call check_precondition(size(frac, 1) == 3)
-    call pmemd_xray_bulk_mask_update_f_bulk(size(frac, 2), frac)
+    if( allocated( Fuser ) ) then
+       f_mask = Fuser( new_order )
+    else
+       call check_precondition(size(frac, 1) == 3)
+       call pmemd_xray_bulk_mask_update_f_bulk(size(frac, 2), frac)
+    end if
     
   end subroutine update_f_bulk
   

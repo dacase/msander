@@ -468,28 +468,35 @@ contains
   end function h_as_ih
   
   
-  subroutine update_f_bulk(frac)
+  subroutine update_f_bulk(frac, Fuser)
+    
+    use xray_interface2_data_module, only : new_order
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
     integer :: i
     call check_precondition(size(frac, 1) == 3)
     call check_precondition(size(frac, 2) == size(atom_types))
     call check_precondition(size(frac, 2) == size(mask_cutoffs))
   
-    call grid_bulk_solvent(frac)
-    call shrink_bulk_solvent()
-    call fft_bs_mask()
+    if( allocated(Fuser) ) then
+       f_mask = Fuser( new_order )
+    else
+       call grid_bulk_solvent(frac)
+       call shrink_bulk_solvent()
+       call fft_bs_mask()
 
-    do i = 1, size(f_mask)
-      ! High resolution reflexes are weighted with zero bulk scaling factor `k_bulk`
-      ! therefore it should be fine to set them to zero
-      if (hkl_indexing_bs_mask(i) /= -1) then
-        f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
-                    * unit_cell%get_volume() / grid_size
-      else
-        f_mask(i) = 0
-      end if
-    end do
+       do i = 1, size(f_mask)
+         ! High resolution reflexes are weighted with zero bulk scaling factor `k_bulk`
+         ! therefore it should be fine to set them to zero
+         if (hkl_indexing_bs_mask(i) /= -1) then
+           f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                       * unit_cell%get_volume() / grid_size
+         else
+           f_mask(i) = 0
+         end if
+       end do
+    end if
   
   end subroutine update_f_bulk
 
