@@ -1317,16 +1317,11 @@ subroutine sander()
 
    if( xray_active .and. master ) then
       if (pdb_outfile /= '') then
-         call xray_write_pdb(trim(pdb_outfile))
+         call xray_write_pdb(pdb_outfile)
       end if
-
-      !if (fave_outfile /= '') then
-         ! TODO: call xray_interface2::write_fave()
-      !endif
-
-      !if (fmtz_outfile /= '') then
-         ! TODO: call xray_interface2::write_mtz_file()
-      !endif
+      if (fmtz_outfile /= '') then
+         call xray_write_fmtz(fmtz_outfile)
+      endif
    end if
 
   if (ifcr .ne. 0) then
