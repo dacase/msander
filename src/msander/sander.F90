@@ -314,6 +314,15 @@ subroutine sander()
 #endif
       endif
 
+      if( xray_active ) then
+        call xray_read_mdin(mdin_lun=5)
+        call amopen(8,parm,'O','F','R')
+        call xray_read_parm(8,6)
+        close(8)
+        call xray_write_options()
+        call xray_init()
+      end if
+
       call mdread2(x, ix, ih)
       call read_music_nml()
       call print_music_settings()
@@ -764,22 +773,6 @@ subroutine sander()
       end if
     end if
 
-   ! xray initialization {{{
-    if( xray_active .and. master ) then
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      call xray_write_options()
-      call xray_init()
-    end if
-    if( xray_active ) &
-      call mpi_bcast(coordinate(1,1), 3*natom, MPI_DOUBLE_PRECISION, &
-            0, commsander, ier)
-   ! }}}
-
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
       mpi_orig = .true.
@@ -893,19 +886,6 @@ subroutine sander()
     end if
     call amrset(ig+1)
     call stack_setup()
-
-    ! xray initialization (non-parallel case) {{{
-    if( xray_active ) then
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      call xray_write_options()
-      call xray_init()
-    end if
-   ! }}}
 
 #endif /* MPI */
 
