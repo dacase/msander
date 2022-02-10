@@ -208,7 +208,7 @@ module runmd_module
 
   ! Variables to control a Langevin dynamics simulation
   _REAL_ ekins0
-  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dtcp, dttp
+  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dttp
   _REAL_ rndf, rndfs, rndfp, boltz2, pconv, tempsu
   _REAL_ xcm(3), acm(3), ocm(3), vcm(3), ekcm, ekrot
   _REAL_ emtmd
@@ -1600,7 +1600,6 @@ subroutine initialize_runmd(x,ix,v)
   pres0y = 0.d0
   pres0z = 0.d0
   gamma_ten_int = 0.d0
-  dtcp = 0.d0
   dttp = 0.d0
   ekph = 0.d0
   ekpbs = 0.d0

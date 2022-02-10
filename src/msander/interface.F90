@@ -413,7 +413,7 @@ subroutine api_mdread1(input_options, ierr)
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
          ntb,ntt,temp0,tautp, &
-         ntp,pres0,comp,taup,barostat,mcbarint, &
+         ntp,pres0,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
          cut,dielc, &
@@ -623,8 +623,6 @@ subroutine api_mdread1(input_options, ierr)
    barostat = 1
    mcbarint = 100
    pres0 = ONE
-   comp = 44.6d0
-   taup = ONE
    npscal = 1
    nscm = 1000
    nstlim = 1
@@ -1580,7 +1578,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
    if (tautp <= ZERO ) tautp = 0.2d0
-   if (taup <= ZERO ) taup = 0.2d0
 
    !     ----- RESET THE CAP IF NEEDED -----
 
@@ -1870,11 +1867,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,3(a,f10.5))') 'pres0   =',pres0, &
-               ', comp    =',comp,', taup    =',taup
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
+         else
+            write(6,'(a)') 'Error: only barostat=2 is supported in msander'
+            call mexit(6,1)
          end if
       end if
 
@@ -3059,10 +3058,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
-      DELAYED_ERROR
-   end if
-   if (ntp > 0 .and. taup < dt .and. barostat == 1) then
-      write(6, '(/2x,a,f6.2,a)') 'TAUP (',taup,') < DT (step size)'
       DELAYED_ERROR
    end if
    if (npscal < 0 .or. npscal > 1) then

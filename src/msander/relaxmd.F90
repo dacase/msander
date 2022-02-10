@@ -118,7 +118,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   _REAL_ fit, fiti, fit2
   logical is_langevin  ! Is this a Langevin dynamics simulation
   _REAL_ gammai, c_implic, c_explic, c_ave, sdfac, ekins0
-  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dtcp, dttp
+  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dttp
   _REAL_ rndf, rndfs, rndfp, boltz2, pconv
 
   ! Variables and parameters for constant surface tension:
@@ -163,7 +163,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   pres0y = 0.d0
   pres0z = 0.d0
   gamma_ten_int = 0.d0
-  dtcp = 0.d0
   dttp = 0.d0
 
   do_list_update=.false.
@@ -253,9 +252,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   end if
   if (ntt == 1) then
     dttp = dt / tautp
-  end if
-  if (ntp > 0) then
-    dtcp = comp * 1.0d-06 * dt / taup
   end if
 
   nrek = 4
