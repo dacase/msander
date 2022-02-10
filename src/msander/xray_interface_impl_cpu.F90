@@ -388,55 +388,32 @@ contains
 
    subroutine xray_write_fmtz(filename)
 
+   use xray_globals_module
+   use xray_interface2_data_module, only:  Fcalc
+   use xray_bulk_mask_data_module, only:  f_mask
    implicit none
    character(len=*), intent(in) :: filename
 
-   open(20,file=trim(fmtz_outfile),action='write')
-   if( target(1:3) == 'vls' ) then
-      ! rdb header:
-      write(20,'(15a)') 'h', achar(9), 'k', achar(9), 'l', achar(9), &
-         'd', achar(9), 'Fobsr', achar(9), 'Fcalcr', achar(9), &
-         'Fobsi', achar(9), 'Fcalci' 
-      write(20,'(15a)') '4N', achar(9), '4N', achar(9), '4N', achar(9), &
-         '15N', achar(9), '15N', achar(9), '15N', achar(9), &
-         '15N', achar(9), '15N' 
-      do i=1,num_hkl
-#if 1
-         write(20, &
-         '(i4,a,i4,a,i4,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
-          hkl_index(1,i), &
-          achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-          1./sqrt(d_star_sq(i)), achar(9), &
-          real(Fobs(i)), achar(9), real(Fcalc(i)), achar(9),  &
-          aimag(Fobs(i)), achar(9), aimag(Fcalc(i))
+   real(real_kind) :: phicalc
+   integer :: i
 
-#else
-         phi = atan2( Fcalc(i)%im, Fcalc(i)%re ) * 57.2957795d0
-         write(20,'(i4,a,i4,a,i4,a,f12.3,a,f12.3)') hkl_index(1,i), &
-          achar(9),hkl_index(2,i),achar(9),hkl_index(3,i),achar(9), &
-          abs_Fcalc(i), achar(9), phi
-#endif
-      end do
-   else
-      write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
-         'd',achar(9),'fobs',achar(9),'sigfobs',achar(9), &
-         'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag', achar(9), &
-         'k_scale'
-      write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-         '15N',achar(9),'15N',achar(9), '15N',achar(9),'15N',&
-         achar(9),'15N',achar(9),'3N',achar(9),'15N'
-      do i=1,num_hkl
-         phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
-         phimask = atan2( aimag(f_mask(i)), real(f_mask(i)) ) * 57.2957795d0
-         write(20,&
-   '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3)') &
-          hkl_index(1,i), &
-          achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
-          1./sqrt(d_star_sq(i)), achar(9),abs_Fobs(i), achar(9), &
-          sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
-          achar(9), test_flag(i), achar(9), k_scale(i) 
-      end do
-   endif
+   open(20,file=trim(fmtz_outfile),action='write')
+   write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+      'fobs',achar(9),'sigfobs',achar(9), &
+      'fcalc',achar(9),'phicalc', achar(9), 'rfree-flag'
+   write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+      '15N',achar(9), '15N',achar(9),'15N',&
+      achar(9),'15N',achar(9),'3N'
+   do i=1,num_hkl
+      phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+      write(20,&
+       '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3)') &
+       hkl_index(1,i), &
+       achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
+       abs_Fobs(i), achar(9), &
+       sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
+       achar(9), test_flag(i)
+   end do
    close(20)
    end subroutine xray_write_fmtz
   
