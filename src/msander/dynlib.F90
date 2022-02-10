@@ -176,6 +176,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use nbips, only: ips
   use emap,only: temap
   use amd_mod, only: iamd
+  use md_scheme, only: ntt
 
   implicit none
 
@@ -233,21 +234,13 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! LES KE now, not solvent KE, so it should be reported
   ! along with temperature for LES region.
   if (temp0les < 0.d0) then
-    if (ntt == 5) then
-      eksolv = ener%kin%solv*onefac(3)
-    else
-      eksolv = 0.0d0
-    end if
+    eksolv = 0.0d0
   else
     eksolv = ener%kin%solv*onefac(3)
   end if
 
 #else
-  if(ntt == 5) then
-     eksolv = ener%kin%solv*onefac(3)
-  else
-     rms_pbs = ener%kin%solv
-  end if
+  rms_pbs = ener%kin%solv
 #endif
 
   boxx    = ener%box(1)

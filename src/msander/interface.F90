@@ -321,7 +321,7 @@ subroutine api_mdread1(input_options, ierr)
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
@@ -430,7 +430,7 @@ subroutine api_mdread1(input_options, ierr)
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
@@ -603,8 +603,8 @@ subroutine api_mdread1(input_options, ierr)
    ntt = 0
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
+   ntt = 3
+   gamma_ln = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
@@ -1035,13 +1035,13 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    ! middle scheme is requested {
-      if (ithermostat < 0 .or. ithermostat > 2) then
+      if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne. 3) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 0-2'
+            'Middle scheme: ntt is only available for 0,2,3'
          FATAL_ERROR
       end if
-      if (therm_par < 0d0) then
-         write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+      if (gamma_ln < 0d0) then
+         write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
          FATAL_ERROR
       end if
    ! }

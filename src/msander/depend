@@ -552,6 +552,7 @@ emap.o: \
                     ../include/dprec.fh\
                     constants.o\
                     findmask.o\
+                    md_scheme.o\
                     parallel.h\
                     ../include/memory.h\
                     ../include/md.h\
@@ -3442,6 +3443,7 @@ relaxmd.o: \
                     random.o\
                     stack.o\
                     state.o\
+                    md_scheme.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3871,6 +3873,7 @@ set.LESAPI.o:   set.F90
 sglds.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\
+                    md_scheme.o\
                     ../include/md.h\
                     parallel.h\
                     state.o\
@@ -4072,6 +4075,7 @@ xray_interface_impl_cpu.o: \
                     ../xray/xray_bulk_mask_data.o\
                     xray_interface_pre_init_data.o\
                     memory_module.o\
+                    ../xray/xray_interface2_data.o\
                     AmberNetcdf.o\
                     binrestart.o\
                     ../xray/xray_pure_utils.o\

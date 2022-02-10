@@ -55,6 +55,7 @@ $modulefile{"qmmm_read_and_alloc"} = "qm2_read_nm_and_alloc";
 $modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface";
 $modulefile{"xray_unit_cell_module"} = "../xray/xray_unit_cell";
 $modulefile{"xray_contracts_module"} = "../xray/xray_contracts";
+$modulefile{"xray_interface2_data_module"} = "../xray/xray_interface2_data";
 $modulefile{"xray_pure_utils"} = "../xray/xray_pure_utils";
 $modulefile{"xray_bulk_mask_data_module"} = "../xray/xray_bulk_mask_data";
 $modulefile{"xray_interface2_module"} = "../xray/xray_interface2";

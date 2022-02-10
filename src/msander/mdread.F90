@@ -16,7 +16,7 @@ subroutine mdread1()
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
@@ -120,7 +120,7 @@ subroutine mdread1()
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
@@ -270,8 +270,8 @@ subroutine mdread1()
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
+   ntt = 3    ! was ithermostat=1
+   gamma_ln = 5.d0  ! was therm_par = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
@@ -678,14 +678,13 @@ subroutine mdread1()
    end if
 
    ! middle scheme is now the only scheme {
-   gamma_ln = therm_par  !  gamma_ln is the old variable in ../include/md.h
-   if (ithermostat < 0 .or. ithermostat > 2) then
+   if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne.  3) then
       write(6,'(1x,a,/)') &
-         'Middle scheme: ithermostat is only available for 0-2'
+         'Middle scheme: ntt is only available for 0,2,3'
       FATAL_ERROR
    end if
-   if (therm_par < 0d0) then
-      write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+   if (gamma_ln < 0d0) then
+      write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
       FATAL_ERROR
    end if
    ! }
@@ -1085,11 +1084,10 @@ subroutine mdread2(x,ix,ih)
    use constants, only : ZERO, ONE, TWO
    use parms, only: req
    use nbips, only: ips
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: ithermostat
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1210,7 +1208,7 @@ subroutine mdread2(x,ix,ih)
       ndfmin = 0
    end if
    if(nscm <= 0) nscm = 0
-   if (ithermostat == 1) ndfmin = 0 ! No COM motion removal for Langevin
+   if (ntt == 3) ndfmin = 0 ! No COM motion removal for Langevin
 
    init = 3
    if (irest > 0) init = 4
@@ -1503,16 +1501,16 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
 
-      if( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
+      if( ntt == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ithermostat == 1) then
+      else if( ntt == 3) then
          write(6,'(/a)') 'Langevin dynamics temperature regulation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', therm_par=', therm_par
-      else if( ithermostat == 2 ) then
+               ', tempi   =',tempi,', gamma_ln=', gamma_ln
+      else if( ntt == 2 ) then
          write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
          write(6,'(5x,2(a,i8))') 'ig      =',ig, ', vrand   =',vrand
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
@@ -1521,7 +1519,7 @@ subroutine mdread2(x,ix,ih)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,2(a,f10.5))') 'pres0   =',pres0, ', comp    =',comp
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint

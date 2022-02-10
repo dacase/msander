@@ -23,7 +23,7 @@ subroutine startup(xx,ix,ih)
    use nblist, only : ucell,bc_ewucr,bc_ewuci,nbflag, &
                      BC_DIRPARS,numnptrs
    use file_io_dat
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &
                        sceeorder, tishake
@@ -122,8 +122,8 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
 
-   call mpi_bcast(ithermostat, 1, MPI_INTEGER, 0, commsander, ierr)
-   call mpi_bcast(therm_par, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
+   call mpi_bcast(ntt, 1, MPI_INTEGER, 0, commsander, ierr)
+   call mpi_bcast(gamma_ln, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
 
    ! carlos: targeted MD
 

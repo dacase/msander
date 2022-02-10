@@ -56,7 +56,7 @@ module runmd_module
   use nfe_sander_proxy, only : infe, nfe_real_mdstep, nfe_prt
 
   use commandline_module, only: cpein_specified
-  use md_scheme, only: thermostat_step, ithermostat
+  use md_scheme, only: thermostat_step, ntt
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
@@ -944,7 +944,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       if (mod(nstep,nsnb) == 0) ntnb = 1
     end if
     if (ifbox == 0) then
-      if (ithermostat > 0) then
+      if (ntt > 0) then
 
         ! Get current center of the system
         call get_position(nr, x, vcmx, vcmy, vcmz, sysrange, 0)
@@ -988,7 +988,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! for harmonic oscillator: Eq. 4.7b of Mol.
   ! Phys. 65:1409-1419, 1988
   ener%kin%solv = ekpbs + ener%pot%tot
-  if( ithermostat == 1 ) then
+  if( ntt == 3 ) then
      ener%kin%solt = ekph  ! seems to be what Jian Li really wants for LD
   else
      ener%kin%solt = eke   ! original sander, shows energy conservation

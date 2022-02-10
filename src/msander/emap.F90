@@ -183,6 +183,7 @@ contains
 !_________________________________________________________________
       use constants, only: KB
       use findmask,only:atommask
+      use md_scheme, only: gamma_ln
 #ifdef MPI
       use mpi
 #endif

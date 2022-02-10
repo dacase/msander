@@ -101,6 +101,7 @@ contains
 !     This routine performs initiation for the Self-Guided        
 !       Langevin Dynamcs (SGLD) simulaiton                 
 !
+      use md_scheme, only: gamma_ln
       implicit none
 #include "../include/md.h"
 #ifdef MPI
