@@ -632,8 +632,8 @@ subroutine mdread1()
 
    call nmlsrc('xray',5,ifind)
    xray_active = (ifind /= 0)
-
    rewind 5
+
    if ( mdin_cntrl ) then
       read(5,nml=cntrl,err=999)
    else
@@ -2859,14 +2859,6 @@ subroutine mdread2(x,ix,ih)
          DELAYED_ERROR
       end if
    end if
-   ! skip this test until fallback to rgroup() is supported
-   !if (itgtmd == 1 .and. ntr == 0) then
-   !   if (len_trim(tgtfitmask) == 0 .and. len_trim(tgtrmsmask) == 0) then
-   !      write(6,'(/2x,a)')  &
-   !        'ITGTMD: both tgtfitmask and tgtrmsmask should be specified if NTR=0'
-   !      DELAYED_ERROR
-   !   end if
-   !end if
 
    !     -- consistency checking
 
