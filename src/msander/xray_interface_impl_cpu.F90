@@ -634,7 +634,8 @@ contains
       end if
 
       call timer_start(TIME_XRAY)
-      xray_weight = get_xray_weight(current_step, total_steps)
+      ! xray_weight = get_xray_weight(current_step, total_steps)
+      xray_weight = get_xray_weight()
 
       call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
       xray_energy = xray_e
@@ -686,7 +687,12 @@ contains
       call mexit(stdout,2)
    end function allocate_lun
    
-   function get_xray_weight(current_step, total_steps) result(result)
+   ! function get_xray_weight(current_step, total_steps) result(result)
+   function get_xray_weight() result(result)
+      implicit none
+      real(real_kind) :: result
+
+#if 0  /* original St. Petersburg code */
       integer, intent(in) :: current_step
       integer, intent(in) :: total_steps
       real(real_kind) :: result
@@ -702,6 +708,12 @@ contains
       end if
       
       result = xray_weight_initial + weight_increment * current_step
+#else
+#  include "nmr.h"
+      write(0,*) 'setting xray_weight to ', wnoesy
+      result = wnoesy
+#endif
+
    end function get_xray_weight
 
 end module xray_interface_impl_cpu_module

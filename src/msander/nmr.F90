@@ -1834,7 +1834,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    !  WEIGHT(9) : The current weight of the "improper" torsions
    !  WEIGHT(10) : The current weight of the "short-range" NMR restraints
    !  WEIGHT(11) : The current weight of the non-"short-range" NMR restraints
-   !  WEIGHT(12) : The current weight of the NOESY restraints
+   !  WEIGHT(12) : The current weight of the NOESY or Xray restraints
    !  WEIGHT(13) : The current weight of the chemical shift restraints
    !  WEIGHT(14) : Temperature scaling parameter on the first call
    !  WEIGHT(15): The "soft-repulsion" force constant as specified in the input
@@ -2199,7 +2199,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    
    ! TYPE = NOESY
    
-   if ((itype == 21.or.ireset(12) == 1).and.ichold(12) /= 2) then
+   if ((itype == 21 .or. itype == 31 .or. ireset(12) == 1).and.ichold(12) /= 2) then
       weight(12) = wt
       ichang(12) = 1
       if (abs(wt) < small .or. fixed) ichold(12) = 2
@@ -2293,7 +2293,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
       end if
    end do
    
-   wnoesy = weight(12)
+   wnoesy = weight(12)   ! also used for xray_weight changes
    wshift = weight(13)
    if (ichang(14) /= 1) tautp = weight(14)
    if (ichang(15) /= 1) rwell = weight(15)
@@ -4258,9 +4258,9 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
    
    integer iflag
 #ifdef LES
-   parameter (iflag = 32)
+   parameter (iflag = 33)
 #else
-   parameter (iflag = 31)
+   parameter (iflag = 32)
 #endif
    ! ... ZERNER is a value near zero used for weights set to 0.
    _REAL_ zerner
@@ -4434,7 +4434,7 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
 #ifdef LES
          'TEMP0LES' , &
 #endif
-         'END     '/
+         'XRAY    ' , 'END     '/
 
    data redirc/'LISTIN    ' , 'LISTOUT   ' , 'DISANG    ', &
          'NOESY     ' , 'SHIFTS    ' , 'DUMPAVE   ', &
