@@ -34,7 +34,7 @@ contains
     
     call check_precondition(mask_update_period_ > 0)
     call check_precondition(scale_update_period_ > 0)
-    call check_precondition(mod(scale_update_period_, mask_update_period_) == 0)
+    ! call check_precondition(mod(scale_update_period_, mask_update_period_) == 0)
     
     mask_update_period = mask_update_period_
     scale_update_period = scale_update_period_
