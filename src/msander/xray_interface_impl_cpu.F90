@@ -433,7 +433,7 @@ contains
       use constants, only : DEG_TO_RAD
       implicit none
       ! local
-      integer :: hkl_lun, i, j, k, nstlim = 1, NAT_for_mask1
+      integer :: hkl_lun, i, j, k, NAT_for_mask1
       real(real_kind) :: resolution, fabs_solvent, phi_solvent
       complex(real_kind), allocatable, dimension(:) :: Fobs
       real(real_kind) :: phi,a,b,c,alpha,beta,gamma
@@ -615,7 +615,12 @@ contains
       ! local
       real(real_kind) :: xray_weight
       integer :: total_steps
-      total_steps = 9999999  ! FIXME: make this an input variable?
+
+      if( imin > 0 ) then
+         total_steps = maxcyc  ! FIXME: make this an input variable?
+      else
+         total_steps = nstlim  ! FIXME: make this an input variable?
+      endif
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
