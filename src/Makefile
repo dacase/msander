@@ -6,13 +6,13 @@ install: $(INSTALLTYPE)
 
 serial:
 	@cd msander && $(MAKE) msander
-	@cd msander && $(MAKE) msander.LES
-	@cd msander && $(MAKE) $(LIBSANDER)
-	@cd msander && $(MAKE) $(LIBSANDERLES)
-	@cd pysander && $(MAKE) $(PYSANDER)
+#	@cd msander && $(MAKE) msander.LES
+#	@cd msander && $(MAKE) $(LIBSANDER)
+#	@cd msander && $(MAKE) $(LIBSANDERLES)
+#	@cd pysander && $(MAKE) $(PYSANDER)
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
-	@cd addles && $(MAKE) addles
+#	@cd addles && $(MAKE) addles
 #	@cd ambpdb && $(MAKE) ambpdb
 #	@cd parmed && $(MAKE) $(PARMED)
 #	@cp pdb4amber/pdb4amber $(BINDIR)
