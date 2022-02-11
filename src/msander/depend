@@ -388,6 +388,7 @@ dynlib.o: \
                     ips.o\
                     emap.o\
                     amd.o\
+                    md_scheme.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -423,6 +424,7 @@ dynlib.LES.o: \
                     ips.o\
                     emap.o\
                     amd.o\
+                    md_scheme.LES.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -457,6 +459,7 @@ dynlib.API.o: \
                     ips.o\
                     emap.o\
                     amd.o\
+                    md_scheme.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -491,6 +494,7 @@ dynlib.LESAPI.o: \
                     ips.o\
                     emap.o\
                     amd.o\
+                    md_scheme.o\
                     ew_mpole.h\
                     ew_cntrl.h\
                     tgtmd.h\
@@ -2642,6 +2646,7 @@ nmr.o: \
                     nmr.h\
                     ../include/memory.h\
                     parms.o\
+                    xray_globals.o\
                     remd.o\
                     file_io_dat.o\
                     extra.h\
@@ -2662,6 +2667,7 @@ nmr.LES.o: \
                     nmr.h\
                     ../include/memory.h\
                     parms.o\
+                    xray_globals.o\
                     remd.LES.o\
                     file_io_dat.o\
                     extra.h\
@@ -3580,6 +3586,7 @@ runmd.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
+                    xray_globals.o\
                     Plumed_force.inc\
                     degcnt.inc\
                     Plumed_init.inc
@@ -3630,6 +3637,7 @@ runmd.LES.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
+                    xray_globals.o\
                     Plumed_force.inc\
                     degcnt.inc\
                     Plumed_init.inc
@@ -4085,7 +4093,8 @@ xray_interface_impl_cpu.o: \
                     ../xray/xray_debug_dump.o\
                     constants.o\
                     ../include/md.h\
-                    def_time.h
+                    def_time.h\
+                    nmr.h
 
 
 xray_interface_impl_cpu.o:   xray_interface_impl_cpu.F90

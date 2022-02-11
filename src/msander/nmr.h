@@ -130,8 +130,8 @@ integer ntot,ntota,ipmix(mtot),ntotb
 _REAL_ calc(mtot),exper(mtot),calca(mtot),expera(mtot),calcb(mtot),experb(mtot)
 common/correl/ntot,ntota,calc,exper,calca,expera,calcb,experb,ipmix,ntotb
 
-_REAL_        wnoesy,wshift,enoe,eshf,epcshf,ealign,ecsa
-common/wremar/wnoesy,wshift,enoe,eshf,epcshf,ealign,ecsa
+_REAL_        wnoesy,wshift,enoe,eshf,epcshf,ealign,ecsa,wxray
+common/wremar/wnoesy,wshift,enoe,eshf,epcshf,ealign,ecsa,wxray
 
 !-------------END      nmr.h  ------------------------------------------------
 

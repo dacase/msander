@@ -449,7 +449,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (temap ) then
     write (6, 9062) enemap
   endif
-  write(6, 8088)
+  ! write(6, 8088)
 
   ! Flush i/o buffer
   call flush(6)

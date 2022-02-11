@@ -634,8 +634,7 @@ contains
       end if
 
       call timer_start(TIME_XRAY)
-      ! xray_weight = get_xray_weight(current_step, total_steps)
-      xray_weight = get_xray_weight()
+      xray_weight = get_xray_weight(current_step, total_steps)
 
       call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
       xray_energy = xray_e
@@ -688,31 +687,29 @@ contains
    end function allocate_lun
    
    ! function get_xray_weight(current_step, total_steps) result(result)
-   function get_xray_weight() result(result)
+   function get_xray_weight(current_step, total_steps) result(result)
       implicit none
-      real(real_kind) :: result
-
-#if 0  /* original St. Petersburg code */
       integer, intent(in) :: current_step
       integer, intent(in) :: total_steps
       real(real_kind) :: result
-      
+
       real(real_kind) :: weight_increment
+#include "nmr.h"
       
-      call check_precondition(current_step <= total_steps)
+      if( nmropt .eq. 0 ) then   ! original St. Petersburg code
       
-      if (total_steps > 1) then
-         weight_increment = (xray_weight_final - xray_weight_initial) / (total_steps - 1)
-      else
-         weight_increment = 0
-      end if
+         call check_precondition(current_step <= total_steps)
+         if (total_steps > 1) then
+            weight_increment = (xray_weight_final - xray_weight_initial) &
+                / (total_steps - 1)
+         else
+            weight_increment = 0
+         end if
       
-      result = xray_weight_initial + weight_increment * current_step
-#else
-#  include "nmr.h"
-      write(0,*) 'setting xray_weight to ', wnoesy
-      result = wnoesy
-#endif
+         result = xray_weight_initial + weight_increment * current_step
+      else  ! use weight change cards to vary xray_weight
+         result = wxray
+      endif
 
    end function get_xray_weight
 

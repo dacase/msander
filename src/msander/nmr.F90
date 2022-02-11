@@ -2199,7 +2199,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    
    ! TYPE = NOESY
    
-   if ((itype == 21 .or. itype == 31 .or. ireset(12) == 1).and.ichold(12) /= 2) then
+   if ((itype == 21 .or. ireset(12) == 1).and.ichold(12) /= 2) then
       weight(12) = wt
       ichang(12) = 1
       if (abs(wt) < small .or. fixed) ichold(12) = 2
@@ -2215,8 +2215,8 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    
    ! TYPE = SOFTR
    
-   if (itype == 16) then
-      rwell = wt
+   if (itype == 16 .or. itype == 31) then
+      wxray = wt
       ichang(15) = 1
    end if
    
@@ -2293,7 +2293,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
       end if
    end do
    
-   wnoesy = weight(12)   ! also used for xray_weight changes
+   wnoesy = weight(12)
    wshift = weight(13)
    if (ichang(14) /= 1) tautp = weight(14)
    if (ichang(15) /= 1) rwell = weight(15)
@@ -3880,6 +3880,7 @@ subroutine nmrprt(eenmr,nstep,iout)
    ! EENMR(1,I) are the values on the last call to NMRNRG.
    ! EENMR(2,I) are the accumulated totals over the entire run.
    
+   use xray_globals_module, only: xray_active
    implicit none
    integer:: iout, j, nstep
    _REAL_ :: eenmr, rstepu
@@ -3906,7 +3907,8 @@ subroutine nmrprt(eenmr,nstep,iout)
    if (.not. printthirdline) printthirdline = printthirdline .or. (eenmr(1,6) > 0.0d0)
    
    rstepu = max(nstep,1)
-   write(iout,20) (eenmr(1,j),j=1,3)
+   if( any( eenmr(1,1:3) .gt. 0.d0 ) ) write(iout,20) (eenmr(1,j),j=1,3)
+   if( xray_active ) write(iout,'(a,f9.4)') ' xray_weight = ', wxray
    if (printsecondline) write(iout,21) (eenmr(1,j),j=4,5)
    if (printthirdline) write(iout,22) eenmr(1,6)       ! This will expand when we make gen. ang. 
                                                        ! and gen. tor. restraints.
