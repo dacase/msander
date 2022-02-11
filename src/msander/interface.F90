@@ -412,7 +412,7 @@ subroutine api_mdread1(input_options, ierr)
 
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
-         ntb,ntt,temp0,tautp, &
+         ntb,temp0,tautp, &
          ntp,pres0,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
@@ -600,7 +600,6 @@ subroutine api_mdread1(input_options, ierr)
    ig = 71277
    tempi = ZERO
    ntb = NO_INPUT_VALUE
-   ntt = 0
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
    ntt = 3
@@ -1438,7 +1437,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: therm_par
+   use md_scheme, only: ntt, gamma_ln
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1571,7 +1570,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
       end if
    end if
    if(nscm <= 0) nscm = 0
-   if (therm_par > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
+   if (gamma_ln > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
    if(gamma_ln > 0.0d0)ndfmin=0  ! No COM motion removal for LD simulation
    if(ntt == 4)ndfmin=0  ! No COM motion removal for Nose'-Hoover simulation
    init = 3

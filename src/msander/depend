@@ -2646,10 +2646,10 @@ nmr.o: \
                     nmr.h\
                     ../include/memory.h\
                     parms.o\
-                    xray_globals.o\
                     remd.o\
                     file_io_dat.o\
                     extra.h\
+                    xray_globals.o\
                     ../include/md.h\
                     les.o\
                     box.h
@@ -2667,10 +2667,10 @@ nmr.LES.o: \
                     nmr.h\
                     ../include/memory.h\
                     parms.o\
-                    xray_globals.o\
                     remd.LES.o\
                     file_io_dat.o\
                     extra.h\
+                    xray_globals.o\
                     ../include/md.h\
                     les.o\
                     box.h
@@ -3586,7 +3586,6 @@ runmd.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
-                    xray_globals.o\
                     Plumed_force.inc\
                     degcnt.inc\
                     Plumed_init.inc
@@ -3637,7 +3636,6 @@ runmd.LES.o: \
                     ew_mpole.h\
                     def_time.h\
                     extra_pts.h\
-                    xray_globals.o\
                     Plumed_force.inc\
                     degcnt.inc\
                     Plumed_init.inc
