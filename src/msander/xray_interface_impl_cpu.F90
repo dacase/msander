@@ -617,7 +617,7 @@ contains
       integer :: total_steps
 
       if( imin > 0 ) then
-         total_steps = maxcyc  ! FIXME: make this an input variable?
+         total_steps = 10*maxcyc  ! FIXME: make this an input variable?
       else
          total_steps = nstlim  ! FIXME: make this an input variable?
       endif
