@@ -18,17 +18,17 @@
 
 #  Input variables: edit these to match your problem:
 
-pdbprefix="PDBdata/2oiu_sol"     # pdbfiles will be called
+pdbprefix="../PDBdata/alt15_007"     # pdbfiles will be called
                                       # $pdbprefix.$frame.pdb
-dprefix="2oiu_sol"                  # basename for final output files
-cell="CRYST1   45.290  100.018   71.930  90.00 104.42  90.00 P 1           1\n"
+dprefix="alt15_007"                  # basename for final output files
+cell="CRYST1   82.272   64.268   69.026  88.66 108.46 111.88 P 1           1\n"
                                 # should take this from the first pdb file
-title="Diffuse/Bragg for 2oiu_sol"  # for mtz and map files
+title="Diffuse/Bragg for 6o2h bulk water"  # for mtz and map files
 vf000=""                              # cell volume and number of electrons
 grid=""                               # grid dimensions for final map
                                       # (see step 7 for vf000 and grid)
-resolution=2.5
-resolutionm=2.45
+resolution=1.12
+resolutionm=1.05
 
 #=============================================================================
 #  1.  Run cpptraj to prepare PDB files
@@ -38,13 +38,12 @@ if false; then
 cpptraj <<EOF
 #  sample cpptraj script to create pdb snapshots for diffuse scattering analysis
 # 
-parm prmtop
-reference md-1.x
-trajin md_res_2.nc
-trajin md_res_3.nc
-strip :1-284
+parm ../alt15_uc.parm7
+trajin ../alt15_007.md2.nc
+trajin ../alt15_007.md3.nc
+strip @1-27084
 image byatom
-trajout PDBdata/2oiu_sol.pdb pdb multi pdbv3 keepext sg "P 1"
+trajout $pdbprefix.pdb pdb multi pdbv3 keepext sg "P 1"
 go
 EOF
 
@@ -206,7 +205,7 @@ gcc -std=gnu99  -o mtz2fcphic mtz2fcphic.c
 
 #  Loop over input files:
 
-for frame in {1..750}; do
+for frame in {201..600}; do
 
 #  set all b-factors to 15:
 ./modify_pdb < ${pdbprefix}.$frame.pdb > $frame.pdb
@@ -355,9 +354,9 @@ int main( int argc, char** argv )
 }
 EOF
 
-gcc -std=gnu99  -O3 -o diffuse1 diffuse1.c
+gcc -std=gnu99  -O3 -o diffuse1 diffuse1.c -lm
 
-./diffuse1 1 750 1 frame1.mtz  > $dprefix.1.ihklb
+./diffuse1 1 600 1 frame1.mtz  > $dprefix.1.ihklb
 
 /bin/rm -f diffuse1 diffuse1.c
 
@@ -366,7 +365,7 @@ fi
 #=============================================================================
 #  5.  combine (if needed) several intermediate .ihkl files into a total:
 
-if true; then
+if false; then
 
 cat <<EOF > diffuse2.c
 #include <stdlib.h>
@@ -502,7 +501,7 @@ int main( int argc, char** argv )
 
 }
 EOF
-gcc -std=gnu99  -O -o diffuse2 diffuse2.c
+gcc -std=gnu99  -O -o diffuse2 diffuse2.c -lm
 
 ./diffuse2 frame1.hkl $dprefix.1.ihklb > $dprefix.1.dhkl
 
