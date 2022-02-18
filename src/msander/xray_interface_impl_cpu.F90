@@ -50,6 +50,7 @@ contains
    subroutine xray_read_mdin(mdin_lun)
       implicit none
       integer, intent(in) :: mdin_lun
+#include "nmr.h"
 
       character(len=512) :: line
       integer :: stat
@@ -59,15 +60,6 @@ contains
         return
       end if
 
-#if 0
-      ! Trap to catch users trying to run &xray in parallel
-#ifdef MPI
-      write(stdout, '(A)') 'Running simulations with an &xray namelist requires a serial &
-                           &installation.'
-      write(stdout, '(A)') 'Use the GPU extensions for best performance.'
-      call mexit(stdout,1)
-#endif
-#endif
       rewind(mdin_lun)
       read(unit=mdin_lun,nml=xray,iostat=stat)
 
@@ -93,6 +85,10 @@ contains
       if (xray_weight_final == sentinel_xray_weight) then
          xray_weight_final = xray_weight_initial
       end if
+
+      ! initialize the weight-change value, in case other weight changes
+      ! might be used:
+      wxray = xray_weight_initial
       
       !write(unit=6,nml=xray)
    end subroutine xray_read_mdin
