@@ -320,7 +320,6 @@ subroutine sander()
         call xray_read_parm(8,6)
         close(8)
         call xray_write_options()
-        call xray_init()
       end if
 
       call mdread2(x, ix, ih)
@@ -440,6 +439,10 @@ subroutine sander()
         if (iredir(9) > 0) then
           call csaread
         end if
+
+      ! need to delay xray_init call until here, so that xray_read_pdb
+      ! can over-write the coordinates that came from getcor() call above:
+      if( xray_active) call xray_init()
 
       ! Call the fastwat subroutine to tag those bonds which are part
       ! of 3-point water molecules. Constraints will be performed for
