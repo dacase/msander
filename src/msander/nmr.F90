@@ -3908,7 +3908,7 @@ subroutine nmrprt(eenmr,nstep,iout)
    
    rstepu = max(nstep,1)
    if( any( eenmr(1,1:3) .gt. 0.d0 ) ) write(iout,20) (eenmr(1,j),j=1,3)
-   if( xray_active ) write(iout,'(a,f9.4)') ' xray_weight = ', wxray
+   if( xray_active ) write(iout,'(a,f9.2)') ' xray_weight = ', wxray
    if (printsecondline) write(iout,21) (eenmr(1,j),j=4,5)
    if (printthirdline) write(iout,22) eenmr(1,6)       ! This will expand when we make gen. ang. 
                                                        ! and gen. tor. restraints.
