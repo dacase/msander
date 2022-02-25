@@ -23,9 +23,8 @@ SHELL = /bin/sh
 .pic.pdf: $<
 	groff -p $< | ps2pdf - $@
 
-Amber21.pdf: Amber.lyx amber.bib
-	-$(LYX) --export pdf2 Amber.lyx
-	/bin/mv Amber.pdf Amber21.pdf
+msander.pdf: msander.lyx amber.bib
+	-$(LYX) --export pdf2 msander.lyx
 
 clean::
-	/bin/rm -f Amber21.pdf
+	/bin/rm -f msander.pdf
