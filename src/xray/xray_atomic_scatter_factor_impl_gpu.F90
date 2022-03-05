@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_atomic_scatter_factor_impl_gpu_module
 
     use xray_contracts_module
@@ -24,7 +26,7 @@ contains
         integer :: ihkl, i
         integer :: n_hkl, n_scatter_types
         
-        call check_precondition(size(scatter_coefficients, 1) == 2)
+        ASSERT(size(scatter_coefficients, 1) == 2)
 
         call cpu_init(mSS4, scatter_coefficients)
         call gpu_init()

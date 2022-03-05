@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_scaling_impl_cpu_module
   
   use xray_pure_utils, only : real_kind, is_sorted
@@ -82,19 +84,19 @@ contains
     logical :: updated
     integer :: i
     
-    call check_precondition(size(Fprot) == size(absFobs))
-    call check_precondition(size(Fbulk) == size(absFobs))
-    call check_precondition(size(neg_s_norm2_div4) == size(absFobs))
-    call check_precondition(size(hkl, 2) == size(absFobs))
-    call check_precondition(size(k_iso) == size(absFobs))
-    call check_precondition(size(k_iso_exp) == size(absFobs))
-    call check_precondition(size(k_aniso) == size(absFobs))
-    call check_precondition(size(k_bulk) == size(absFobs))
-    call check_precondition(all(k_iso >= 0))
-    call check_precondition(all(k_iso_exp >= 0))
-    call check_precondition(all(k_aniso >= 0))
-    call check_precondition(all(k_bulk >= 0))
-    call check_postcondition(all(k_bulk <= 1))
+    ASSERT(size(Fprot) == size(absFobs))
+    ASSERT(size(Fbulk) == size(absFobs))
+    ASSERT(size(neg_s_norm2_div4) == size(absFobs))
+    ASSERT(size(hkl, 2) == size(absFobs))
+    ASSERT(size(k_iso) == size(absFobs))
+    ASSERT(size(k_iso_exp) == size(absFobs))
+    ASSERT(size(k_aniso) == size(absFobs))
+    ASSERT(size(k_bulk) == size(absFobs))
+    ASSERT(all(k_iso >= 0))
+    ASSERT(all(k_iso_exp >= 0))
+    ASSERT(all(k_aniso >= 0))
+    ASSERT(all(k_bulk >= 0))
+    ASSERT(all(k_bulk <= 1))
     
     r_work = calc_r_factor(absFobs(:n_work), abs(k_iso(:n_work) * k_iso_exp(:n_work) * k_aniso(:n_work) * (Fprot(:n_work) + k_bulk(:n_work) * Fbulk(:n_work))))
 
@@ -118,11 +120,11 @@ contains
       prev_r_work = r_work
     end do
     
-    call check_postcondition(all(k_iso >= 0))
-    call check_postcondition(all(k_iso_exp >= 0))
-    call check_postcondition(all(k_aniso >= 0))
-    call check_postcondition(all(k_bulk >= 0))
-    call check_postcondition(all(k_bulk <= 1))
+    ASSERT(all(k_iso >= 0))
+    ASSERT(all(k_iso_exp >= 0))
+    ASSERT(all(k_aniso >= 0))
+    ASSERT(all(k_bulk >= 0))
+    ASSERT(all(k_bulk <= 1))
     
   end subroutine optimize_scale_factors
   
@@ -161,7 +163,7 @@ contains
   ! Private functions/subroutines !
   ! - - - - - - - - - - - - - - - !
   
-  pure function calc_k_aniso(Uaniso, h, k, l) result(result)
+  function calc_k_aniso(Uaniso, h, k, l) result(result)
     integer, intent(in) :: h(:), k(:), l(:)  !< Miller indices
     real(real_kind), intent(in) :: Uaniso(6)
     real(real_kind) :: result(size(h))
@@ -172,7 +174,7 @@ contains
 
   end function calc_k_aniso
   
-  pure function calc_k_iso_bin(absFobs, absFcalc) result(result)
+  function calc_k_iso_bin(absFobs, absFcalc) result(result)
     use xray_pure_utils, only: calc_k_overall
     implicit none
     real(real_kind), intent(in) :: absFobs(:)
@@ -200,7 +202,7 @@ contains
     result = factor * exp(neg_s_norm2_div4 * decay)
   end function
   
-  pure function calc_Uaniso(absFobs, absFcalc, h, k, l) result(Uaniso)
+  function calc_Uaniso(absFobs, absFcalc, h, k, l) result(Uaniso)
     implicit none
     real(real_kind), intent(in) :: absFobs(:)
     real(real_kind), intent(in) :: absFcalc(size(absFobs))
@@ -209,10 +211,10 @@ contains
     real(real_kind) :: b(6)
     real(real_kind) :: b_vector_base(size(absFobs))
     
-    call check_precondition(size(h) == size(k))
-    call check_precondition(size(h) == size(l))
-    call check_precondition(size(h) == size(absFobs))
-    call check_precondition(size(h) == size(absFcalc))
+    ASSERT(size(h) == size(k))
+    ASSERT(size(h) == size(l))
+    ASSERT(size(h) == size(absFobs))
+    ASSERT(size(h) == size(absFcalc))
     
     b_vector_base = log(absFobs / absFcalc) / (size(absFobs) ** 2)
     
@@ -229,7 +231,7 @@ contains
   
   end function calc_Uaniso
   
-  pure function count_high_resolution_reflexes(resolution) result(result)
+  function count_high_resolution_reflexes(resolution) result(result)
     
     implicit none
     
@@ -239,8 +241,8 @@ contains
     integer :: i
 
     ! Preconditions:
-    call check_precondition(size(resolution) > 1)
-    call check_precondition(is_sorted(resolution))
+    ASSERT(size(resolution) > 1)
+    ASSERT(is_sorted(resolution))
     
     result = 0
     max_resolution = min(4.0_real_kind, resolution(1) + 1.0_real_kind) ! Best of 4A and highest resolution + 1A
@@ -322,11 +324,11 @@ contains
     integer :: bin_size(max_resolution_bins)
 
     ! Preconditions
-    call check_precondition(is_sorted(resolution(:num_work_flags)))
-    call check_precondition(is_sorted(resolution(num_work_flags+1:)))
-    call check_precondition(size(hkl, 2) == size(resolution))
-    call check_precondition(n_reflections_in_worst_resolution_bin > 0)
-!    call check_precondition(min_bin_size >= n_reflections_in_worst_resolution_bin)
+    ASSERT(is_sorted(resolution(:num_work_flags)))
+    ASSERT(is_sorted(resolution(num_work_flags+1:)))
+    ASSERT(size(hkl, 2) == size(resolution))
+    ASSERT(n_reflections_in_worst_resolution_bin > 0)
+!    ASSERT(min_bin_size >= n_reflections_in_worst_resolution_bin)
     
     n_work = num_work_flags
     sorted_resolution = sorted(resolution)
@@ -412,8 +414,8 @@ contains
     real(real_kind) :: Ucryst(6, 6)
 
     ! Preconditions
-    call check_precondition(size(h) == size(k))
-    call check_precondition(size(h) == size(l))
+    ASSERT(size(h) == size(k))
+    ASSERT(size(h) == size(l))
   
     Ucryst(1, 1) = sum(1.0_real_kind * h**2 * h**2)
     Ucryst(1, 2) = sum(1.0_real_kind * k**2 * h**2)
@@ -480,10 +482,10 @@ contains
     real(real_kind) :: r_linear, r_const
     
     ! Preconditions
-    call check_precondition(size(absFobs) == size(Fprot))
-    call check_precondition(size(absFobs) == size(Fprot))
-    call check_precondition(size(absFobs) == size(neg_s_norm2_div4))
-    call check_precondition(size(absFobs) == size(test_k_bulk))
+    ASSERT(size(absFobs) == size(Fprot))
+    ASSERT(size(absFobs) == size(Fprot))
+    ASSERT(size(absFobs) == size(neg_s_norm2_div4))
+    ASSERT(size(absFobs) == size(test_k_bulk))
     
     do i = n_resolution_bins, 2, -1
       s = work_scale_resolution_bin_start(i)
@@ -492,7 +494,7 @@ contains
       s2_max = abs(neg_s_norm2_div4(s))
       s2_min = abs(neg_s_norm2_div4(e))
       
-      call check_assertion(s2_max > s2_min)
+      ASSERT(s2_max > s2_min)
       
       call linear_interpolation(s2_max, s2_min, k_bulk_bin(i - 1), k_bulk_bin(i), k, b)
       test_k_bulk(s:e) = max(k * abs(neg_s_norm2_div4(s:e)) + b, 0.0_real_kind)
@@ -526,7 +528,7 @@ contains
     e = s + free_scale_resolution_bin_size(1) - 1
     test_k_bulk(s:e) = k_bulk_bin(1)
     
-    call check_postcondition(all(test_k_bulk >=0))
+    ASSERT(all(test_k_bulk >=0))
   
   end subroutine populate_k_bulk_linear_interpolation
   
@@ -554,7 +556,7 @@ contains
       updated = .TRUE.
     end if
     
-    call check_postcondition(all(k_aniso >= 0))
+    ASSERT(all(k_aniso >= 0))
     
   end function update_k_aniso
   
@@ -631,8 +633,8 @@ contains
       updated = .TRUE.
     end if
 
-    call check_postcondition(all(k_bulk >= 0))
-    call check_postcondition(all(k_iso >= 0))
+    ASSERT(all(k_bulk >= 0))
+    ASSERT(all(k_iso >= 0))
     
   end function update_k_bulk_k_iso
   
@@ -669,7 +671,8 @@ contains
     
     updated = .FALSE.
     
-    call check_precondition(mod(grid_size, 2) == 1, "Grid size must be odd in order to include `shift` exactly")
+    ! Grid size must be odd in order to include `shift` exactly
+    ASSERT(mod(grid_size, 2) == 1) 
     
     ! Estimate scale in "high resolution bin"
     scale_k1 = calc_k_overall( &
@@ -734,8 +737,8 @@ contains
       ! END TODO
     end if
 
-    call check_postcondition(all(k_bulk >= 0))
-    call check_postcondition(all(k_iso >= 0))
+    ASSERT(all(k_bulk >= 0))
+    ASSERT(all(k_iso >= 0))
     
   end function update_k_bulk_k_iso_via_cubic_eq
   
@@ -768,7 +771,7 @@ contains
       end if
     end if
 
-    call check_postcondition(all(k_iso_exp >= 0))
+    ASSERT(all(k_iso_exp >= 0))
   
   end function update_k_iso_exp
   
@@ -777,9 +780,9 @@ contains
     integer, intent(in) :: n_hkl
     real(real_kind) :: result(n_hkl)
     
-    call check_precondition(size(k_iso) == n_hkl)
-    call check_precondition(size(k_iso_exp) == n_hkl)
-    call check_precondition(size(k_aniso) == n_hkl)
+    ASSERT(size(k_iso) == n_hkl)
+    ASSERT(size(k_iso_exp) == n_hkl)
+    ASSERT(size(k_aniso) == n_hkl)
     
     result = k_iso * k_iso_exp * k_aniso
   end function get_f_scale

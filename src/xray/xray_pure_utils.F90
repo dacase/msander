@@ -1,6 +1,7 @@
 ! This module contains functions/subrotines without sideffects
 ! to facilitate unit testing
 
+#include "../include/assert.fh"
 module xray_pure_utils
   ! MUST NOT depend on any other module
   
@@ -437,7 +438,7 @@ contains
   
   end subroutine calc_bin_alpha_beta
   
-  pure subroutine create_equisized_bins(n_elements, n_bins, bin_start, bin_count)
+  subroutine create_equisized_bins(n_elements, n_bins, bin_start, bin_count)
     
     implicit none
     integer, intent(in) :: n_elements
@@ -460,7 +461,7 @@ contains
   end subroutine create_equisized_bins
   
 
-  pure subroutine create_logspace_resolution_bins(resolution, &
+  subroutine create_logspace_resolution_bins(resolution, &
                                              n_reflections_in_worst_resolution_bin, &
                                              min_bin_size, &
                                              bin_start, bin_size, &
@@ -482,10 +483,10 @@ contains
     integer, intent(out) :: n_bins
 
     ! Preconditions:
-    call check_precondition(is_sorted(resolution))
-    call check_precondition(all(resolution > 0))
-    call check_precondition(size(bin_start) > 0)
-    call check_precondition(min_bin_size > 0)
+    ASSERT(is_sorted(resolution))
+    ASSERT(all(resolution > 0))
+    ASSERT(size(bin_start) > 0)
+    ASSERT(min_bin_size > 0)
     
     if (size(resolution) <= n_reflections_in_worst_resolution_bin * 2 &
         .or. size(bin_start) == 1 &
@@ -514,7 +515,7 @@ contains
   end subroutine create_logspace_resolution_bins
   
   
-  pure subroutine create_equiwide_bins(values, min_bin_size, min_step, bin_start, bin_size, n_bins)
+  subroutine create_equiwide_bins(values, min_bin_size, min_step, bin_start, bin_size, n_bins)
     ! Partition `values` into bins of equal width
     
     implicit none
@@ -531,12 +532,12 @@ contains
     integer :: i, bin_end
 
     ! Preconditions:
-    call check_precondition(is_sorted(values))
-    call check_precondition(size(values) > 0)
-    call check_precondition(size(bin_start) > 0)
-    call check_precondition(size(bin_start) == size(bin_size))
-    call check_precondition(min_bin_size > 0)
-    call check_precondition(min_step >= 0)
+    ASSERT(is_sorted(values))
+    ASSERT(size(values) > 0)
+    ASSERT(size(bin_start) > 0)
+    ASSERT(size(bin_start) == size(bin_size))
+    ASSERT(min_bin_size > 0)
+    ASSERT(min_step >= 0)
     
     step = max((values(size(values)) - values(1)) / size(bin_start), min_step)
     i = size(values)
@@ -580,7 +581,7 @@ contains
   end subroutine create_equiwide_bins
   
   
-  pure subroutine assign_resolution_bin_indices(resolution, max_bin_resolution, resolution_bin_index)
+  subroutine assign_resolution_bin_indices(resolution, max_bin_resolution, resolution_bin_index)
     real(real_kind), intent(in) :: resolution(:)
     real(real_kind), intent(in) :: max_bin_resolution(:)
     integer, intent(out) :: resolution_bin_index(size(resolution))
@@ -588,8 +589,8 @@ contains
     integer :: i, j
     
     ! Preconditions:
-    call check_precondition(is_sorted(resolution))
-    call check_precondition(is_sorted(max_bin_resolution))
+    ASSERT(is_sorted(resolution))
+    ASSERT(is_sorted(max_bin_resolution))
     
     i = 1 ! bin index
     do j = 1, size(resolution)
@@ -602,7 +603,7 @@ contains
   end subroutine assign_resolution_bin_indices
   
   
-  pure subroutine exponential_fit_1d_analytical(y, z, x, a, b)
+  subroutine exponential_fit_1d_analytical(y, z, x, a, b)
     ! Fit
     !     y = a * z * exp(-b * x)
     ! via (a, b)
@@ -619,8 +620,8 @@ contains
     integer :: i, n
 
     ! Preconditions:
-    call check_precondition(count(y > 0) > 0)
-    call check_precondition(count(z > 0) > 0)
+    ASSERT(count(y > 0) > 0)
+    ASSERT(count(z > 0) > 0)
     
     p = 0
     q = 0
@@ -663,7 +664,7 @@ contains
   !
   ! Ref: eq. (5) from https://doi.org/10.1107/S0907444913000462
   !---------------------------------------------------------------------------------------
-  pure function calc_k_overall(abs_Fobs, abs_Fcalc) result(result)
+  function calc_k_overall(abs_Fobs, abs_Fcalc) result(result)
     implicit none
     real(real_kind), intent(in) :: abs_Fobs(:) !< Magnitude of experimnal structure factors
     real(real_kind), intent(in) :: abs_Fcalc(size(abs_Fobs)) !< Magnitude of model structure factors
@@ -671,9 +672,9 @@ contains
     real(real_kind):: denom
     
     ! Precondition
-    call check_precondition(size(abs_Fobs) == size(abs_Fcalc))
-    call check_precondition(all(abs_Fobs >= 0))
-    call check_precondition(all(abs_Fcalc >= 0))
+    ASSERT(size(abs_Fobs) == size(abs_Fcalc))
+    ASSERT(all(abs_Fobs >= 0))
+    ASSERT(all(abs_Fcalc >= 0))
     
     denom = sum(abs_Fcalc ** 2)
     if (denom > 0) then
@@ -685,7 +686,7 @@ contains
   end function calc_k_overall
   
   
-  pure function calc_unscaled_r_factor(abs_Fobs, abs_Fcalc) result (result)
+  function calc_unscaled_r_factor(abs_Fobs, abs_Fcalc) result (result)
     real(real_kind), intent(in) :: abs_Fobs(:)            !< Magnitude of expreimental structure factors
     real(real_kind), intent(in) :: abs_Fcalc(size(abs_Fobs)) !< Magnitude of model structure factors
     real(real_kind) :: result
@@ -693,9 +694,9 @@ contains
     real(real_kind) :: denum
 
     ! Precondition
-    call check_precondition(size(abs_Fobs) == size(abs_Fcalc))
-    call check_precondition(all(abs_Fobs >= 0))
-    call check_precondition(all(abs_Fcalc >= 0))
+    ASSERT(size(abs_Fobs) == size(abs_Fcalc))
+    ASSERT(all(abs_Fobs >= 0))
+    ASSERT(all(abs_Fcalc >= 0))
     
     denum = sum(abs_Fobs)
     
@@ -707,23 +708,23 @@ contains
   end function calc_unscaled_r_factor
   
   
-  pure function calc_r_factor(abs_Fobs, abs_Fcalc) result (result)
+  function calc_r_factor(abs_Fobs, abs_Fcalc) result (result)
     real(real_kind), intent(in) :: abs_Fobs(:)            !< Magnitude of expreimental structure factors
     real(real_kind), intent(in) :: abs_Fcalc(size(abs_Fobs)) !< Magnitude of model structure factors
     real(real_kind) :: result
     real(real_kind) :: scale
 
     ! Precondition
-    call check_precondition(size(abs_Fobs) == size(abs_Fcalc))
-    call check_precondition(all(abs_Fobs >= 0))
-    call check_precondition(all(abs_Fcalc >= 0))
+    ASSERT(size(abs_Fobs) == size(abs_Fcalc))
+    ASSERT(all(abs_Fobs >= 0))
+    ASSERT(all(abs_Fcalc >= 0))
     
     scale = calc_k_overall(abs_Fobs, abs_Fcalc)
     result = calc_unscaled_r_factor(abs_Fobs, abs_Fcalc * scale)
   end function calc_r_factor
   
   
-  pure function linspace(start, stop, num, endpoint) result(result)
+  function linspace(start, stop, num, endpoint) result(result)
     implicit none
     
     real(real_kind), intent(in) :: start, stop
@@ -736,7 +737,7 @@ contains
     integer ::i
 
     ! Precondition
-    call check_precondition(num > 0)
+    ASSERT(num > 0)
     
     use_endpoint = .FALSE.
     
@@ -757,7 +758,7 @@ contains
   end function linspace
   
   
-  pure function calc_k_bulk_cubic(absFobs, Fprot, Fbulk) result(result)
+  function calc_k_bulk_cubic(absFobs, Fprot, Fbulk) result(result)
     ! Returns -1.0 in place of imaginary roots
     implicit none
     
@@ -771,8 +772,8 @@ contains
     real(real_kind) :: a, b, c
     
     ! Precondition
-    call check_precondition(size(absFobs) == size(Fprot))
-    call check_precondition(size(absFobs) == size(Fbulk))
+    ASSERT(size(absFobs) == size(Fprot))
+    ASSERT(size(absFobs) == size(Fbulk))
     
     a2 = 0.0d0
     b2 = 0.0d0
@@ -929,7 +930,7 @@ contains
   ! Returns:
   !   c:       (n x n) inverse of matrix A
   !--------------------------------------------------------------------------------------------
-  pure function inverse(z) result(c)
+  function inverse(z) result(c)
     
     implicit none
     real(real_kind), intent(in) :: z(:, :)
@@ -1271,7 +1272,7 @@ contains
   
   end function cross_product_real_8
   
-  pure subroutine set_start_size_from_bin_index(bin_index, n_bins, bin_start, bin_size)
+  subroutine set_start_size_from_bin_index(bin_index, n_bins, bin_start, bin_size)
     implicit none
     integer, intent(in) :: bin_index(:)
     integer, intent(in) :: n_bins
@@ -1280,10 +1281,10 @@ contains
     integer :: last, i
     
     ! Preconditions:
-    call check_precondition(size(bin_index) > 0)
-    call check_precondition(is_sorted(bin_index))
-    call check_precondition(bin_index(1) == 1)
-    call check_precondition(bin_index(size(bin_index)) <= n_bins)
+    ASSERT(size(bin_index) > 0)
+    ASSERT(is_sorted(bin_index))
+    ASSERT(bin_index(1) == 1)
+    ASSERT(bin_index(size(bin_index)) <= n_bins)
     
     last = 0
     do i = 1, size(bin_index)

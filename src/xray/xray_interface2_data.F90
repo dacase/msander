@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_interface2_data_module
   
   use xray_contracts_module
@@ -59,25 +61,25 @@ contains
     integer :: j
     
     
-    call check_precondition(size(input_hkl, 1) == 3)
-    call check_precondition(size(input_hkl, 2) == size(input_Fobs))
-    call check_precondition(size(input_hkl, 2) == size(input_sigma_Fobs))
-    call check_precondition(size(input_hkl, 2) == size(input_work_flag))
-    call check_precondition(size(input_atom_b_factor) == size(input_atom_occupancy))
-    call check_precondition(size(input_atom_b_factor) == size(input_atom_scatter_type))
-    call check_precondition(size(input_scatter_coefficients, 1) == 2)
-    call check_precondition(minval(input_atom_b_factor, input_atom_selection) >= 0)
-    call check_precondition(all(input_atom_occupancy <= 1.0))
-    call check_precondition(all(input_atom_occupancy >= 0.0))
-    call check_precondition(minval(input_atom_scatter_type) >= 1)
-    call check_precondition(maxval(input_atom_scatter_type) <= size(input_scatter_coefficients, 3))
+    ASSERT(size(input_hkl, 1) == 3)
+    ASSERT(size(input_hkl, 2) == size(input_Fobs))
+    ASSERT(size(input_hkl, 2) == size(input_sigma_Fobs))
+    ASSERT(size(input_hkl, 2) == size(input_work_flag))
+    ASSERT(size(input_atom_b_factor) == size(input_atom_occupancy))
+    ASSERT(size(input_atom_b_factor) == size(input_atom_scatter_type))
+    ASSERT(size(input_scatter_coefficients, 1) == 2)
+    ASSERT(minval(input_atom_b_factor, input_atom_selection) >= 0)
+    ASSERT(all(input_atom_occupancy <= 1.0))
+    ASSERT(all(input_atom_occupancy >= 0.0))
+    ASSERT(minval(input_atom_scatter_type) >= 1)
+    ASSERT(maxval(input_atom_scatter_type) <= size(input_scatter_coefficients, 3))
     
     n_hkl = size(input_hkl, 2)
     n_atom = size(input_atom_occupancy)
     n_work = count(input_work_flag)
     
-    call check_requirement(n_work > 0, "Number of 'work' reflections must be >=1")
-    call check_requirement(n_hkl - n_work > 0, "Number of 'free' reflections must be >=1")
+    ASSERT(n_work > 0) ! Number of 'work' reflections must be >=1
+    ASSERT(n_hkl - n_work > 0) ! Number of 'free' reflections must be >=1
     
     unit_cell = input_unit_cell
   
@@ -114,16 +116,16 @@ contains
     atom_occupancy = input_atom_occupancy
     scatter_coefficients = input_scatter_coefficients
 
-    call check_postcondition(size(atom_b_factor) == n_atom)
-    call check_postcondition(size(atom_occupancy) == n_atom)
-    call check_postcondition(size(atom_scatter_type) == n_atom)
-    call check_postcondition(size(atom_selection) == n_atom)
+    ASSERT(size(atom_b_factor) == n_atom)
+    ASSERT(size(atom_occupancy) == n_atom)
+    ASSERT(size(atom_scatter_type) == n_atom)
+    ASSERT(size(atom_selection) == n_atom)
 
-    call check_postcondition(size(hkl, 1) == 3)
-    call check_postcondition(size(hkl, 2) == n_hkl)
-    call check_postcondition(size(Fobs) == n_hkl)
-    call check_postcondition(size(sigma_Fobs) == n_hkl)
-    call check_postcondition(size(hkl_io_order) == n_hkl)
+    ASSERT(size(hkl, 1) == 3)
+    ASSERT(size(hkl, 2) == n_hkl)
+    ASSERT(size(Fobs) == n_hkl)
+    ASSERT(size(sigma_Fobs) == n_hkl)
+    ASSERT(size(hkl_io_order) == n_hkl)
     
   end subroutine init
   

@@ -1,3 +1,4 @@
+#include "../include/assert.fh"
 module xray_bulk_model_module
   
   use xray_pure_utils, only : real_kind
@@ -61,7 +62,8 @@ contains
     ! case (user_id)
     !   call init_user(mask_update_period, k_sol, b_sol)
     case default
-      call check_requirement(.FALSE., "Bad model id")
+      write(6,'(a)') "bad model id"
+      call mexit(6,1)
     end select
   end subroutine init
   
@@ -82,7 +84,8 @@ contains
     ! case (user_id)
     !   call finalize_user()
     case default
-      call check_requirement(.FALSE., "Bad model id")
+      write(6,'(a)') "bad model id"
+      call mexit(6,1)
     end select
   end subroutine finalize
   
@@ -103,9 +106,9 @@ contains
 
     logical, save :: first_call = .TRUE.
 
-    call check_requirement(.not. first_call .or. current_step == 0, &
-        & "First call of `xray_bulk_model_module::add_bulk_contribution_and_rescale(...)` &
-        & must be made with current_step=0")
+    ! First call of add_bulk_contribution_and_rescale(...)
+    !  must be made with current_step=0")
+    ASSERT(.not. first_call .or. current_step == 0) 
     first_call = .FALSE.
 
     select case (model_id)
@@ -118,7 +121,8 @@ contains
     ! case (user_id)
     !   call user_f(current_step, absFobs, Fcalc, Fuser, mSS4, hkl)
     case default
-      call check_requirement(.FALSE., "Bad model id")
+      write(6,'(a)') "bad model id"
+      call mexit(6,1)
     end select
   end subroutine add_bulk_contribution_and_rescale
   
@@ -141,7 +145,8 @@ contains
     ! case (user_id)
     !   result = user_f(n_hkl)
     case default
-      call check_requirement(.FALSE., "Bad model id")
+      write(6,'(a)') "bad model id"
+      call mexit(6,1)
     end select
   end function get_f_scale
   
@@ -161,7 +166,8 @@ contains
     !   result = user_id
     case default
       result = -1 ! to suppress warning
-      call check_requirement(.FALSE., "Unknown bulk solvent model name: '" // trim(name) // "'")
+      write(6,'(a)' ) "Unknown bulk solvent model name: '" // trim(name) // "'"
+      call mexit(6,1)
     end select
   end function model_name_to_id
 

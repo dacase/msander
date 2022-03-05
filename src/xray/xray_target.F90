@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_target_module
 
     use xray_contracts_module
@@ -75,9 +77,9 @@ contains
 
         logical, save :: first_call = .TRUE.
 
-        call check_requirement(.not. first_call .or. current_step == 0, &
-            & "First call of `xray_target_module::calc_partial_d_target_d_absFcalc(...)` &
-            & must be made with current_step=0")
+        ! First call of `calc_partial_d_target_d_absFcalc(...)`
+        ! must be made with current_step=0")
+        ASSERT(.not. first_call .or. current_step == 0)
         first_call = .FALSE.
 
         select case(target_function_id)
@@ -102,7 +104,7 @@ contains
         case (max_likehood_name)
             f_id = max_likehood_id
         case default
-            call check_requirement(.FALSE., "Unknown target function name: '" // trim(target) // "'")
+            write(6,'(a)') "Unknown target function name: '" // trim(target) // "'"
         end select
     end function target_function_name_to_id
 

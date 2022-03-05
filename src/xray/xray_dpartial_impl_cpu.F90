@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_dpartial_impl_cpu_module
   
   use xray_contracts_module
@@ -29,14 +31,14 @@ contains
     integer :: i
     integer :: ihkl
     
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(atom_b_factor))
-    call check_precondition(size(frac, 2) == size(atom_scatter_type))
-    call check_precondition(size(f_scale) == size(hkl, 2))
-    call check_precondition(size(d_target_d_abs_Fcalc) == size(hkl, 2))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(atom_b_factor))
+    ASSERT(size(frac, 2) == size(atom_scatter_type))
+    ASSERT(size(f_scale) == size(hkl, 2))
+    ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
     
-    call check_precondition(all(abs_Fcalc >= 0))
-    call check_precondition(all(mSS4 <= 0))
+    ASSERT(all(abs_Fcalc >= 0))
+    ASSERT(all(mSS4 <= 0))
     
     d_target_d_frac = 0
     
@@ -85,12 +87,12 @@ contains
     real(real_kind), intent(in) :: atom_occupancy_(:)
     integer, intent(in) :: atom_scatter_type_(:)
     
-    call check_precondition(size(hkl_, 1) == 3)
-    call check_precondition(size(mSS4_) == size(hkl_, 2))
-    call check_precondition(size(abs_Fcalc_) == size(hkl_, 2))
-    call check_precondition(size(Fcalc_) == size(hkl_, 2))
+    ASSERT(size(hkl_, 1) == 3)
+    ASSERT(size(mSS4_) == size(hkl_, 2))
+    ASSERT(size(abs_Fcalc_) == size(hkl_, 2))
+    ASSERT(size(Fcalc_) == size(hkl_, 2))
     
-    call check_precondition(size(atom_scatter_type_) == size(atom_b_factor_))
+    ASSERT(size(atom_scatter_type_) == size(atom_b_factor_))
     
     hkl => hkl_
     mSS4 => mss4_

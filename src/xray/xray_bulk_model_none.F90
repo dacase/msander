@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_bulk_model_none_module
 
   use xray_contracts_module
@@ -20,7 +22,7 @@ contains
   subroutine init(scale_update_period_)
     implicit none
     integer, intent(in) :: scale_update_period_
-    call check_precondition(scale_update_period_ > 0)
+    ASSERT(scale_update_period_ > 0)
 
     scale_update_period = scale_update_period_
   end subroutine init

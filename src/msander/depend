@@ -4080,6 +4080,7 @@ xray_interface_impl_cpu.o: \
                     ../xray/xray_contracts.o\
                     ../xray/xray_bulk_mask_data.o\
                     xray_interface_pre_init_data.o\
+                    nmr.h\
                     memory_module.o\
                     ../xray/xray_interface2_data.o\
                     AmberNetcdf.o\
@@ -4088,11 +4089,9 @@ xray_interface_impl_cpu.o: \
                     ../xray/xray_unit_cell.o\
                     findmask.o\
                     ../xray/xray_interface2.o\
-                    ../xray/xray_debug_dump.o\
                     constants.o\
                     ../include/md.h\
-                    def_time.h\
-                    nmr.h
+                    def_time.h
 
 
 xray_interface_impl_cpu.o:   xray_interface_impl_cpu.F90

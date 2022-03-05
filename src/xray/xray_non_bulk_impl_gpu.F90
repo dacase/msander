@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_non_bulk_impl_gpu_module
   
   use xray_contracts_module
@@ -59,10 +61,10 @@ contains
     integer, intent(in) :: scatter_type_index_(:)
     real(real_kind), intent(in) :: occupancy_(:)
     
-    call check_precondition(size(hkl_, 1) == 3)
-    call check_precondition(size(hkl_, 2) == size(mSS4_))
-    call check_precondition(size(b_factor_) == size(scatter_type_index_))
-    call check_precondition(size(b_factor_) == size(occupancy_))
+    ASSERT(size(hkl_, 1) == 3)
+    ASSERT(size(hkl_, 2) == size(mSS4_))
+    ASSERT(size(b_factor_) == size(scatter_type_index_))
+    ASSERT(size(b_factor_) == size(occupancy_))
     
     call cpu_init(hkl_, mSS4_, b_factor_, scatter_type_index_, occupancy_)
     call gpu_init()
@@ -81,7 +83,7 @@ contains
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     
-    call check_precondition(size(frac, 1) == 3)
+    ASSERT(size(frac, 1) == 3)
     call pmemd_xray_non_bulk_calc_f_non_bulk_gpu(size(frac, 2), frac)
   end subroutine calc_f_non_bulk
   
@@ -91,7 +93,7 @@ contains
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     implicit none
 
-    call check_precondition(allocated(atomic_scatter_factor))
+    ASSERT(allocated(atomic_scatter_factor))
     
     call pmemd_xray_non_bulk_init_gpu( &
         & size(hkl, 2), hkl, f_non_bulk, mSS4, size(b_factor), &

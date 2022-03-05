@@ -1,5 +1,6 @@
 module xray_interface2_module
   
+#include "../include/assert.fh"
   use xray_contracts_module
   use xray_unit_cell_module
   use xray_pure_utils, only : real_kind
@@ -56,32 +57,22 @@ contains
     real(real_kind), intent(in) :: solvent_mask_adjustment
     real(real_kind), intent(in) :: solvent_mask_probe_radius
 
-    call check_precondition(size(hkl, 1) == 3)
-    call check_precondition(size(hkl, 2) == size(Fobs))
-    call check_precondition(size(hkl, 2) == size(sigma_Fobs))
-    call check_precondition(size(hkl, 2) == size(work_flag))
-    call check_precondition(size(atom_b_factor) == size(atom_occupancy))
-    call check_precondition(size(atom_b_factor) == size(atom_scatter_type))
-    call check_precondition(size(atom_b_factor) == size(atom_atomic_number))
-    call check_precondition(size(atom_b_factor) == size(atom_selection))
-    call check_precondition(minval(atom_b_factor, atom_selection) >= 0)
-    call check_precondition(all(atom_occupancy <= 1.0))
-    call check_precondition(all(atom_occupancy >= 0.0))
-    call check_precondition(minval(atom_scatter_type) >= 1)
-    call check_precondition(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
+    ASSERT(size(hkl, 1) == 3)
+    ASSERT(size(hkl, 2) == size(Fobs))
+    ASSERT(size(hkl, 2) == size(sigma_Fobs))
+    ASSERT(size(hkl, 2) == size(work_flag))
+    ASSERT(size(atom_b_factor) == size(atom_occupancy))
+    ASSERT(size(atom_b_factor) == size(atom_scatter_type))
+    ASSERT(size(atom_b_factor) == size(atom_atomic_number))
+    ASSERT(size(atom_b_factor) == size(atom_selection))
+    ASSERT(minval(atom_b_factor, atom_selection) >= 0)
+    ASSERT(all(atom_occupancy <= 1.0))
+    ASSERT(all(atom_occupancy >= 0.0))
+    ASSERT(minval(atom_scatter_type) >= 1)
+    ASSERT(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
+    ASSERT(size(hkl, 1)>0)
+    ASSERT(size(atom_b_factor) > 0)
 
-    call check_requirement(size(hkl, 1) > 0, &
-        & "No reflections provided. &
-        & Check content of `reflection_infile` &
-        & from &xray namelist." &
-    &)
-    
-    call check_requirement(size(atom_b_factor) > 0, &
-        & "Empty atoms seclection for &xray module. &
-        & Check occupancies in `pdb_infile` and &
-        & `atom_selection_mask` in &xray namelist." &
-    &)
-    
     call set_xray_num_threads()
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
@@ -113,17 +104,17 @@ contains
     real(real_kind), allocatable :: grad_xyz(:, :)
 #include "../msander/def_time.h"
 
-    call check_precondition(size(xyz, 1) == 3)
-    call check_precondition(size(xyz, 2) == n_atom)
-    call check_precondition(size(force, 1) == 3)
-    call check_precondition(size(force, 2) == n_atom)
+    ASSERT(size(xyz, 1) == 3)
+    ASSERT(size(xyz, 2) == n_atom)
+    ASSERT(size(force, 1) == 3)
+    ASSERT(size(force, 2) == n_atom)
     
     allocate(grad_xyz(3, size(atom_selection_indices)))
     
     frac = modulo(unit_cell%to_frac(xyz(:, atom_selection_indices)), 1.0_real_kind)
     
-    call check_assertion(all(frac <= 1))
-    call check_assertion(all(frac >= 0))
+    ASSERT(all(frac <= 1))
+    ASSERT(all(frac >= 0))
 
     call timer_start(TIME_IHKL)
     call calc_f_non_bulk(frac)
@@ -150,7 +141,7 @@ contains
     grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
-    call check_assertion(size(grad_xyz, 2) == size(atom_selection_indices))
+    ASSERT(size(grad_xyz, 2) == size(atom_selection_indices))
 
     force(:,atom_selection_indices) = force(:,atom_selection_indices) - grad_xyz
     call timer_stop(TIME_DHKL)

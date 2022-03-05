@@ -425,7 +425,7 @@ contains
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd,i100
       use xray_interface_pre_init_data, only: scatter_coefficients
       use xray_interface2_module, only: init_interface2 => init
-      use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
+      ! use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
       use constants, only : DEG_TO_RAD
       implicit none
       ! local
@@ -613,7 +613,7 @@ contains
       integer :: total_steps
 
       if( imin > 0 ) then
-         total_steps = 10*maxcyc  ! FIXME: make this an input variable?
+         total_steps = 100*maxcyc  ! FIXME: make this an input variable?
       else
          total_steps = nstlim  ! FIXME: make this an input variable?
       endif

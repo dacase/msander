@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_non_bulk_impl_cpu_module
   
   use xray_pure_utils, only : real_kind
@@ -25,10 +27,10 @@ contains
     integer, intent(in) :: scatter_type_index_(:)
     real(real_kind), intent(in) :: occupancy_(:)
     
-    call check_precondition(size(hkl_, 1) == 3)
-    call check_precondition(size(hkl_, 2) == size(mSS4_))
-    call check_precondition(size(b_factor_) == size(scatter_type_index_))
-    call check_precondition(size(b_factor_) == size(occupancy_))
+    ASSERT(size(hkl_, 1) == 3)
+    ASSERT(size(hkl_, 2) == size(mSS4_))
+    ASSERT(size(b_factor_) == size(scatter_type_index_))
+    ASSERT(size(b_factor_) == size(occupancy_))
     
     hkl => hkl_
     mSS4 => mSS4_
@@ -77,16 +79,16 @@ contains
     ! locals
     integer :: ihkl
     
-    call check_precondition(associated(hkl))
-    call check_precondition(associated(mSS4))
-    call check_precondition(allocated(atomic_scatter_factor))
-    call check_precondition(allocated(b_factor))
-    call check_precondition(allocated(scatter_type_index))
+    ASSERT(associated(hkl))
+    ASSERT(associated(mSS4))
+    ASSERT(allocated(atomic_scatter_factor))
+    ASSERT(allocated(b_factor))
+    ASSERT(allocated(scatter_type_index))
     
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(b_factor))
-    call check_precondition(size(frac, 2) == size(scatter_type_index))
-    call check_precondition(size(hkl, 2) == size(atomic_scatter_factor, 1))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(b_factor))
+    ASSERT(size(frac, 2) == size(scatter_type_index))
+    ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)

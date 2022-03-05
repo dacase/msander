@@ -1,4 +1,5 @@
 ! <compile=optimized>
+#include "../include/assert.fh"
 module xray_bulk_mask_impl_cpu_module
 
   use xray_pure_utils, only: real_kind
@@ -336,8 +337,8 @@ contains
     integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index, mdi, mdj, mdk
     real(real_kind) :: frac_crd(3)
 
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(mask_cutoffs))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(mask_cutoffs))
 
     mask_bs_grid = 1
     
@@ -475,9 +476,9 @@ contains
     real(real_kind), intent(in) :: frac(:, :)
     complex(real_kind), allocatable, intent(in) :: Fuser(:)
     integer :: i
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(atom_types))
-    call check_precondition(size(frac, 2) == size(mask_cutoffs))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(atom_types))
+    ASSERT(size(frac, 2) == size(mask_cutoffs))
   
     if( allocated(Fuser) ) then
        f_mask = Fuser( new_order )

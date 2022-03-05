@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_bulk_model_simple_module
   
   use xray_contracts_module
@@ -38,9 +40,9 @@ contains
     real(real_kind), intent(in) :: solvent_mask_adjustment
     real(real_kind), intent(in) :: solvent_mask_probe_radius
     
-    call check_precondition(mask_update_period_ > 0)
-    call check_precondition(scale_update_period_ > 0)
-    call check_precondition(mod(scale_update_period_, mask_update_period_) == 0)
+    ASSERT(mask_update_period_ > 0)
+    ASSERT(scale_update_period_ > 0)
+    ASSERT(mod(scale_update_period_, mask_update_period_) == 0)
     
     mask_update_period = mask_update_period_
     scale_update_period = scale_update_period_
@@ -71,7 +73,7 @@ contains
     real(real_kind), intent(in) :: mSS4(:)
     complex(real_kind), allocatable, intent(in) :: Fuser(:)
     
-    call check_precondition(size(frac, 1) == 3)
+    ASSERT(size(frac, 1) == 3)
     
     if (mod(current_step, mask_update_period) == 0) then
       call update_f_bulk(frac, Fuser)

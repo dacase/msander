@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_dpartial_impl_gpu_module
   
   use xray_contracts_module
@@ -78,14 +80,14 @@ contains
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(atom_b_factor))
-    call check_precondition(size(frac, 2) == size(atom_scatter_type))
-    call check_precondition(size(f_scale) == size(hkl, 2))
-    call check_precondition(size(d_target_d_abs_Fcalc) == size(hkl, 2))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(atom_b_factor))
+    ASSERT(size(frac, 2) == size(atom_scatter_type))
+    ASSERT(size(f_scale) == size(hkl, 2))
+    ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
     
-    call check_precondition(all(abs_Fcalc >= 0))
-    call check_precondition(all(mSS4 <= 0))
+    ASSERT(all(abs_Fcalc >= 0))
+    ASSERT(all(mSS4 <= 0))
     
     call pmemd_xray_dpartial_calc_d_target_d_frac(&
         & size(frac, 2), &
@@ -130,7 +132,7 @@ contains
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     implicit none
     
-    call check_precondition(size(atomic_scatter_factor, 1) == size(hkl, 2))
+    ASSERT(size(atomic_scatter_factor, 1) == size(hkl, 2))
     
     call pmemd_xray_dpartial_init_gpu(&
         & size(hkl, 2), &
