@@ -440,7 +440,7 @@ subroutine api_mdread1(input_options, ierr)
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
@@ -746,7 +746,6 @@ subroutine api_mdread1(input_options, ierr)
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO

@@ -130,7 +130,7 @@ subroutine mdread1()
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
@@ -269,14 +269,10 @@ subroutine mdread1()
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
-! MIDDLE SCHEME{ 
    ntt = 3    ! was ithermostat=1
    gamma_ln = 5.d0  ! was therm_par = 5.0d0
-! } 
-! PLUMED
    plumed = 0
    plumedfile = 'plumed.dat'
-! END PLUMED
 #ifdef LES
    ! alternate temp for LES copies, if negative then use single bath
    ! single bath not the same as 2 baths with same target T
@@ -411,7 +407,6 @@ subroutine mdread1()
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO
