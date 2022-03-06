@@ -331,6 +331,8 @@ subroutine sander()
       end if
 #endif
 
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
@@ -569,8 +571,6 @@ subroutine sander()
         end if
 #endif
       call flush(6)
-!$    call set_omp_num_threads()
-!$    call set_omp_num_threads_rism()
 
     end if masterwork
     ! End of master process setup
