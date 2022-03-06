@@ -37,14 +37,12 @@ phenix.python ./parmed -n <<EOF >> $id-prep.log \
 parm 4amber_$id.prmtop
 lmod
 HMassRepartition
+addPDB ${id}_uc.pdb elem
 parmout foo.parm7
 go
 EOF
 
-$MSANDERHOME/bin/add_pdb -i foo.parm7 -o foo2.parm7 >> $id-prep.log \
-     || { echo "  add_pdb: Program error"; exit 1; }
-
-$MSANDERHOME/bin/add_xray -i foo2.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
+$MSANDERHOME/bin/add_xray -i foo.parm7 -o ${id}_uc.parm7 >> $id-prep.log \
      || { echo "  add_xray: Program error"; exit 1; }
 
 /bin/mv 4amber_$id.rst7 ${id}_uc.rst7
@@ -52,7 +50,7 @@ fi
 
 /bin/rm -f foo.parm7 foo2.parm7  parmed
 
-if true; then
+if false; then
 #============================================================================
 echo "Making input mtz file"
 phenix.cif_as_mtz $id-sf.cif  >> $id-prep.log \
