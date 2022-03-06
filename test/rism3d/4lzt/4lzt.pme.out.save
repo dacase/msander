@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 10/06/2021 at 15:00:02
+| Run on 03/04/2022 at 16:17:03
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_gnu/test/rism3d/4lzt
+| Working directory: /home/case/msander_intel/test/rism3d/4lzt
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -28,9 +28,9 @@ File Assignments:
 |INPTRA: inptraj                                                               
 
 |   Xvv: ../xvv/spc-nacl.kh.xvv
-
+ 
  Here is the input file:
-
+ 
 4lzt crystal unit cell                                                         
  &cntrl                                                                        
     ntx=1, ntpr=1, ntwx=0, ntwr=0,                                             
@@ -58,7 +58,7 @@ File Assignments:
 
 | Flags:                                                                        
  getting box info from netcdf restart file
-|Largest sphere to fit in unit cell has radius =    11.920
+| Largest sphere to fit in unit cell has radius =    11.920
  NATOM  =    1984 NTYPES =      14 NBONH =     959 MBONA  =    1043
  NTHETH =    2158 MTHETA =    1407 NPHIH =    4557 MPHIA  =    4520
  NHPARM =       0 NPARM  =       0 NNB   =   10775 NRES   =     135
@@ -69,19 +69,17 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              433188
+|     Real              371248
 |     Hollerith           6089
 |     Integer           499404
 |     Max Pairs         880234
 |     nblistReal         23808
 |     nblist Int        111818
-|       Total             9420 kbytes
+|       Total             8936 kbytes
 
 | Note: 1-4 EEL scale factors are being read from the topology file.
 
 | Note: 1-4 VDW scale factors are being read from the topology file.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
 
      BOX TYPE: RECTILINEAR
 
@@ -116,7 +114,7 @@ Molecular dynamics:
 
 Langevin dynamics temperature regulation:
      ig      =  314159
-     temp0   = 300.00000, tempi   =   0.00000, therm_par=   5.00000
+     temp0   = 300.00000, tempi   =   0.00000, gamma_ln=   0.00000
 
 Ewald parameters:
      verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
@@ -128,7 +126,6 @@ Ewald parameters:
      Ewald Coefficient =  0.30768
      Interpolation order =    4
      Setting ifbox to 3 for non-orthogonal unit cell
-| Running OpenMP with   8 threads
 | calling fftw_plan_with_nthreads( 1)
 3D-RISM:
      closure   =  KH      
@@ -156,7 +153,8 @@ Cpptraj Generated Restart
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
-| Running OpenMP with   8 threads
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
      Sum of charges from parm topology file =       2.0000
      Assuming uniform neutralizing plasma
@@ -192,46 +190,49 @@ Cpptraj Generated Restart
  BOND   =       158.8940  ANGLE   =       467.0651  DIHED      =      2091.0440
  1-4 NB =       612.0326  1-4 EEL =      4158.7430  VDWAALS    =     -1141.0324
  EELEC  =     -9412.0575  ERISM   =      1923.6167  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (63.16% of List )
-|                Other                      0.01 (36.84% of List )
-|                   Short_ene time             0.01 (100.0% of Direc)
-|                Direct Ewald time          0.01 (60.00% of Ewald)
-|                   Fill Bspline coeffs        0.00 (25.00% of Recip)
-|                   Scalar sum                 0.00 (25.00% of Recip)
-|                   Grad sum                   0.00 (25.00% of Recip)
-|                   FFT time                   0.00 (25.00% of Recip)
-|                Recip Ewald time           0.00 (40.00% of Ewald)
-|                LJ Grid time               3.43 (26.57% of 3D-RI)
-|                      HUVK time                  2.30 (24.46% of R1RIS)
-|                      RESID time                 0.40 ( 4.20% of R1RIS)
-|                      CLOSURE time               3.32 (35.25% of R1RIS)
-|                      FFT time                   3.04 (32.24% of R1RIS)
-|                         LAPACK time                0.19 (65.73% of MDIIS)
-|                         DATA time                  0.10 (33.92% of MDIIS)
-|                      MDIIS time                 0.29 ( 3.04% of R1RIS)
-|                   R1RISM time                9.41 (100.0% of RXRIS)
-|                RXRISM time                9.42 (72.85% of 3D-RI)
-|             3D-RISM time              12.92 (99.78% of Nonbo)
-|          Nonbond force             12.95 (100.0% of Force)
-|       Force time                12.95 (100.0% of Runmd)
-|    Runmd Time                12.95 (97.33% of Total)
-|    Other                      0.36 ( 2.67% of Total)
-| Total time                13.31 (100.0% of ALL  )
+|                Build the list             0.01 (66.46% of List )
+|                Other                      0.01 (33.54% of List )
+|                   Short_ene time             0.01 (98.36% of Direc)
+|                   Other                      0.00 ( 1.64% of Direc)
+|                Direct Ewald time          0.01 (64.21% of Ewald)
+|                Adjust Ewald time          0.00 ( 3.16% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 6.67% of Recip)
+|                   Fill charge grid           0.00 (10.00% of Recip)
+|                   Scalar sum                 0.00 (20.00% of Recip)
+|                   Grad sum                   0.00 (10.00% of Recip)
+|                   FFT time                   0.00 (53.33% of Recip)
+|                Recip Ewald time           0.00 (31.58% of Ewald)
+|                Other                      0.00 ( 1.05% of Ewald)
+|                LJ Grid time               5.80 (30.80% of 3D-RI)
+|                      FFTB time                  0.17 ( 1.28% of R1RIS)
+|                      HUVK time                  3.75 (28.94% of R1RIS)
+|                      RESID time                 0.79 ( 6.07% of R1RIS)
+|                      CLOSURE time               3.01 (23.25% of R1RIS)
+|                      FFT time                   4.98 (38.49% of R1RIS)
+|                         LAPACK time                0.14 (53.43% of MDIIS)
+|                         DATA time                  0.12 (46.22% of MDIIS)
+|                      MDIIS time                 0.25 ( 1.96% of R1RIS)
+|                   R1RISM time               12.95 (100.0% of RXRIS)
+|                RXRISM time               12.95 (68.74% of 3D-RI)
+|             3D-RISM time              18.84 (99.86% of Nonbo)
+|          Nonbond force             18.86 (100.0% of Force)
+|       Force time                18.86 (100.0% of Runmd)
+|    Runmd Time                18.87 (98.32% of Total)
+|    Other                      0.32 ( 1.68% of Total)
+| Total time                19.19 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:     135646
 | Highest istack allocated:       1984
-|           Job began  at 15:00:02.369  on 10/06/2021
-|           Setup done at 15:00:02.725  on 10/06/2021
-|           Run   done at 15:00:15.679  on 10/06/2021
+|           Job began  at 16:17:03.411  on 03/04/2022
+|           Setup done at 16:17:03.734  on 03/04/2022
+|           Run   done at 16:17:22.600  on 03/04/2022
 |     wallclock() was called   13713 times
 
 |3D-RISM memory allocation summary
