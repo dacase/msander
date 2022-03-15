@@ -15,10 +15,21 @@ else
     exit 2
 fi
 
+# assume that the python in the PATH is the correct version:
+pythonv=`python --version 2>&1 | cut -c 8-10`
+
 export MSANDERHOME=$(cd "$(dirname "$this_script")"; pwd)
 export PATH="$MSANDERHOME/bin:$PATH"
 
-# Add msander lib folder to LD_LIBRARY_PATH 
+if [ -z "$PYTHONPATH" ]; then
+    export PYTHONPATH="$MSANDERHOME/lib/python${pythonv}/site-packages"
+else
+    export PYTHONPATH="$MSANDERHOME/lib/python${pythonv}/site-packages:$PYTHONPATH"
+fi
+
+# Add msander lib folder to LD_LIBRARY_PATH (if your platform supports it)
+# Note that LD_LIBRARY_PATH is only necessary to help Python programs find 
+# their dynamic libraries.
 
 if [ -z "$LD_LIBRARY_PATH" ]; then
     export LD_LIBRARY_PATH="$MSANDERHOME/lib"
