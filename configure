@@ -18,6 +18,7 @@ sfx=""
 gcc10f=""
 gcc10c=""
 longlines="-ffree-line-length-none"
+pythonv=`python --version 2>&1 | cut -c 8-10`
 debug="-DNDEBUG"
 fpic="-fPIC"
 
@@ -630,6 +631,16 @@ CUDAFLAGS=$cudaflags
 PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
+
+#Python interpreter we are using and install options
+#   assumes python in the path is the version we want
+PYTHON=python
+PYTHON_INSTALL=--prefix=\$(BASEDIR)
+PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
+PARMED=$parmed
+PYSANDER=$pysander
+LIBSANDER=$libsander
+LIBSANDERLES=$libsanderles
 
 EOF
 
