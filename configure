@@ -132,6 +132,8 @@ for var in "$@"; do
             short_ene=short_ene.o
             installtype="parallel"
             sfx=".MPI";;
+        --full)
+            installtype="full";;
         *)
             echo "Option $var not recognized"
             exit 1
@@ -155,6 +157,7 @@ if [ "$requested_help" = "yes" ] ; then
 	printf " --conda        set up for a conda build, with conda-forge\n"
 	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --static       use static linking (experiental)\n"
+    printf " --full         install everything with a serial install\n"
     printf "\n"
     printf "Notes: For GNU compilers, use versions 6 or greater\n"
     printf "       Test suite requires a C-shell (csh/tcsh)\n"

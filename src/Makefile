@@ -4,7 +4,7 @@ include ../config.h
 
 install: $(INSTALLTYPE)
 
-serial:
+full:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
 	@cd msander && $(MAKE) $(LIBSANDER)
@@ -16,6 +16,11 @@ serial:
 	@cd ambpdb && $(MAKE) ambpdb
 	@cd parmed && $(MAKE) $(PARMED)
 	@cp pdb4amber/pdb4amber $(BINDIR)
+
+serial:
+	@cd msander && $(MAKE) msander
+	@cd xray && $(MAKE) xray
+	@cd xtalutil && $(MAKE) xtalutil
 
 parallel:
 	@cd msander && $(MAKE) msander.MPI
