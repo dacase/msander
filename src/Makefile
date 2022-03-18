@@ -6,20 +6,20 @@ install: $(INSTALLTYPE)
 
 serial:
 	@cd msander && $(MAKE) msander
-#	@cd msander && $(MAKE) msander.LES
-#	@cd msander && $(MAKE) $(LIBSANDER)
-#	@cd msander && $(MAKE) $(LIBSANDERLES)
-#	@cd pysander && $(MAKE) $(PYSANDER)
+	@cd msander && $(MAKE) msander.LES
+	@cd msander && $(MAKE) $(LIBSANDER)
+	@cd msander && $(MAKE) $(LIBSANDERLES)
+	@cd pysander && $(MAKE) $(PYSANDER)
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
-#	@cd addles && $(MAKE) addles
-#	@cd ambpdb && $(MAKE) ambpdb
-#	@cd parmed && $(MAKE) $(PARMED)
-#	@cp pdb4amber/pdb4amber $(BINDIR)
+	@cd addles && $(MAKE) addles
+	@cd ambpdb && $(MAKE) ambpdb
+	@cd parmed && $(MAKE) $(PARMED)
+	@cp pdb4amber/pdb4amber $(BINDIR)
 
 parallel:
 	@cd msander && $(MAKE) msander.MPI
-#	@cd msander && $(MAKE) msander.LES
+	@cd msander && $(MAKE) msander.LES
 
 cuda:
 	@cd msander && $(MAKE) msander.cuda
@@ -37,8 +37,8 @@ clean:
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
-#	-(cd ambpdb && $(MAKE) clean )
-#	-(cd sqm && $(MAKE) clean )
+	-(cd ambpdb && $(MAKE) clean )
+	-(cd sqm && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
@@ -53,6 +53,6 @@ distclean: clean
 	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) logs config.h)
 	-(/bin/rm -f netcdf*.log )
 	-(cd netcdf-c-4.7.2 && make uninstall)
-	-(cd netcdf-f-4.5.2 && make uninstall)
+	-(cd netcdf-fortran-4.5.2 && make uninstall)
 	-(cd fftw-3.3 && make uninstall)
 
