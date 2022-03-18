@@ -41,43 +41,11 @@ lesdefinitions = [('LES', None)]
 depends = ['sander/src/pysandermoduletypes.c']
 lesdepends = ['sanderles/src/pysandermoduletypes.c']
 
-# Two scenarios:
-if amberhome is None:
-
-    # AMBERHOME not supplied.  Use command line args.
-    # E.g.:  setup.py -I../foo -I/baz/bar -L/foobar -DSTUFF build install
-
-    #set the second incdir to the main AmberTools include directory
-
-    incdir = []
-    libdir = []
-
-    args_to_pass_on = []
-
-    for arg in sys.argv:
-        if arg.startswith('-I'):
-            incdir.append(arg.replace('-I',''))
-        elif arg.startswith('-L'):
-            libdir.append(arg.replace('-L',''))
-        elif arg.startswith('-D'):
-            definitions.append((arg.replace('-D',''), None))
-            lesdefinitions.append((arg.replace('-D',''), None))
-        else:
-            args_to_pass_on.append(arg)
-
-    sys.argv = args_to_pass_on
-
-    # if we've been given the AmberTools include dir, include it
-    if len(incdir) > 0:
-        depends.append(join(incdir[0], 'CompatibilityMacros.h'))
-        lesdepends.append(join(incdir[0], 'CompatibilityMacros.h'))
-
-else:
-    # MSANDERHOME supplied.  Define new directory tree rooted at MSANDERHOME.
-    incdir = [join(amberhome, 'include')]
-    libdir = [join(amberhome, 'lib')]
-    depends.append(join(incdir[0], 'CompatibilityMacros.h'))
-    lesdepends.append(join(incdir[0], 'CompatibilityMacros.h'))
+# MSANDERHOME supplied.  Define new directory tree rooted at MSANDERHOME.
+incdir = [join(amberhome, 'include')]
+libdir = [join(amberhome, 'lib')]
+depends.append(join(incdir[0], 'CompatibilityMacros.h'))
+lesdepends.append(join(incdir[0], 'CompatibilityMacros.h'))
 
 
 packages = ['sander', 'sanderles']
