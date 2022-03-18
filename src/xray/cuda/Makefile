@@ -8,8 +8,8 @@ NVCC=nvcc \
    -gencode arch=compute_52,code=sm_52 \
    -gencode arch=compute_53,code=sm_53 \
    -gencode arch=compute_60,code=sm_60 \
-   -gencode arch=compute_60,code=sm_70 \
-   -gencode arch=compute_60,code=sm_75 \
+   -gencode arch=compute_70,code=sm_70 \
+   -gencode arch=compute_75,code=sm_75 \
    -Wno-deprecated-declarations -use_fast_math -O3 \
    -I/usr/local/cuda/include -IB40C $(CUDAFLAGS) --std c++14
 
@@ -25,7 +25,7 @@ CUOBJS = BulkMaskGPU.o	DPartialGPU.o	NonBulkGPU.o
 
 .cu.o:
 	@echo "[XRAY] nvcc $<"
-	$(VB)$(NVCC) -c $(CFLAGS) -o $@ $<
+	$(VB)$(NVCC) -c -o $@ $<
 
 xray_cuda.o: $(CUOBJS) $(CPPOBJS)
 	@echo "[XRAY] nvcc -dlink $@"
