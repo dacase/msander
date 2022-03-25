@@ -21,8 +21,8 @@ subroutine mdread1()
    use stack, only: lastist,lastrst
    use nmr, only: echoin
    use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
-   use sgld, only : isgld, isgsta,isgend,fixcom, &
-                    tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp
+   use sgld, only : isgld, isgsta,isgend,nsgsize, &
+                    tsgavg,sgft,sgff,sgfg,tsgavp
    use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use scaledMD_mod, only: scaledMD,scaledMD_lambda
@@ -123,7 +123,7 @@ subroutine mdread1()
          ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
-         isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
+         isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
          jar, &
          numexchg, repcrd, numwatkeep, hybridgb, reservoir_exchange_step, &
          ntwprt,tausw, &
@@ -533,13 +533,13 @@ subroutine mdread1()
    isgld = 0   ! no self-guiding
    isgsta=1    ! Begining index of SGLD range
    isgend=0    ! Ending index of SGLD range
-   fixcom=-1    ! fix center of mass in SGLD simulation
+   nsgsize=1       !   1--self atom only,
+                   !   2--bond and angle atoms,
+                   !   3--bond, angle, and dihedral atoms
    tsgavg=0.2d0    !  Local averaging time of SGLD simulation
-   sgft=-1.0d3      !  Guiding factor of SGLD simulation
-   sgff=-1.0d3      !  Guiding factor of SGLD simulation
-   sgfd=-1.0d3      !  Guiding factor of SGLD simulation
-   tempsg=0.0d0    !  Guiding temperature of SGLD simulation
-   treflf=0.0d0    !  Reference low frequency temperature of SGLD simulation
+   sgft=0.0d0      !  Guiding factor of SGLD simulation
+   sgff=0.0d0      !  Guiding factor of SGLD simulation
+   sgfg=0.0d0      !  Guiding factor of SGLD simulation
    tsgavp=2.0d0    !  Convergency time of SGLD simulation
 
    !     Check to see if "cntrl" namelist has been defined.

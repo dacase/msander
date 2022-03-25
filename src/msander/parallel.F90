@@ -31,8 +31,8 @@ subroutine startup(xx,ix,ih)
    use mbar, only : ifmbar, bar_intervall, bar_l_min, bar_l_max, bar_l_incr
    use linear_response, only : ilrt, lrt_interval, lrtmask
 ! SGLD
-   use sgld, only : isgld, isgsta,isgend,fixcom, &
-                    sgft,sgff,sgfd,tempsg,tsgavg,tsgavp,treflf
+   use sgld, only : isgld, isgsta,isgend,nsgsize, &
+                    sgft,sgff,sgfg,tsgavg,tsgavp
 ! IPS parameters
    use nbips, only : ips,mipsx,mipsy,mipsz,mipso,raips,gridips,dvbips
 ! AMD parameters
@@ -199,14 +199,12 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(isgld,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(isgsta,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(isgend,1,MPI_INTEGER,0,commsander,ier)
-   call mpi_bcast(fixcom,1,MPI_INTEGER,0,commsander,ier)
+   call mpi_bcast(nsgsize,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(tsgavg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(tsgavp,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(sgft,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(sgff,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(sgfd,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(tempsg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(treflf,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
+   call mpi_bcast(sgfg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
 
    !     IX,XX,IH
 

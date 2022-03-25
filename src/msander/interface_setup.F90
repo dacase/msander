@@ -503,7 +503,7 @@
    end if
 
   ! Prepare for SGLD simulation
-   if (isgld > 0) call psgld(natom,x(lmass),x(lvel), 0)
+   if (isgld > 0) call psgld(natom,ix(i08), ix(i10), x(lmass),x(lcrd),x(lvel), 0)
 
   ! Prepare for EMAP constraints
    if (temap) call pemap(dt,temp0,x,ix,ih)

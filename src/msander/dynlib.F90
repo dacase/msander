@@ -171,7 +171,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use state
   use charmm_mod, only: charmm_active
   use crg_reloc, only: ifcr
-  use sgld, only: isgld,sgft,tempsg
+  use sgld, only: isgld,sglabel,sgfti,sgffi
   use ff11_mod, only: cmap_active
   use nbips, only: ips
   use emap,only: temap
@@ -413,12 +413,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   ! Printout SGLD guiding information
   if (isgld > 0) then
-    write(6, 1005) ener%sgld%sgft, ener%sgld%tempsg, ener%sgld%templf, &
-                   ener%sgld%treflf, ener%sgld%frclf, ener%sgld%epotlf, &
+    write(6, 1005) sglabel,ener%sgld%sgscale, ener%sgld%templf, ener%sgld%temphf, &
+                   ener%sgld%epotlf, ener%sgld%epothf, ener%sgld%epotllf, &
                    ener%sgld%sgwt
-    write(6, 1006) ener%sgld%sgff, ener%sgld%sgscal, ener%sgld%temphf, &
-                   ener%sgld%trefhf, ener%sgld%frchf, ener%sgld%epothf, &
-                   ener%sgld%virsg
   endif
   if (xray_active) call xray_write_md_state(6)
 
@@ -431,7 +428,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! (Not for average/rms)
   if (rem /= 0 .and. rem /= 4 .and. rem /= 5 .and. rem /= -1 .and. iout7 > 0) then
     if (isgld > 0) then
-      write (6, 9064) temp0, sgft, tempsg, stagid, repnum, mdloop
+      write (6, 9064) temp0, sgfti, sgffi, stagid, repnum, mdloop
     else
       write (6, 9065) temp0, repnum, mdloop
     endif
@@ -485,7 +482,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! (Not for average/rms)
   if (rem /= 0 .and. rem /= 4 .and. rem /= 5 .and. rem /= -1 .and. iout7 > 0) then
     if (isgld > 0) then
-      write(7, 9064) temp0, sgft, tempsg, stagid, repnum, mdloop
+      write(7, 9064) temp0, sgfti, sgffi, stagid, repnum, mdloop
     else
       write(7, 9065) temp0, repnum, mdloop
     endif
@@ -595,12 +592,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   ! Printout SGLD guiding information
   if (isgld > 0) then
-    write(7, 1005) ener%sgld%sgft, ener%sgld%tempsg, ener%sgld%templf, &
-                   ener%sgld%treflf, ener%sgld%frclf, ener%sgld%epotlf, &
+    write(7, 1005) sglabel,ener%sgld%sgscale, ener%sgld%templf, ener%sgld%temphf, &
+                   ener%sgld%epotlf, ener%sgld%epothf, ener%sgld%epotllf, &
                    ener%sgld%sgwt
-    write(7, 1006) ener%sgld%sgff, ener%sgld%sgscal, ener%sgld%temphf, &
-                   ener%sgld%trefhf, ener%sgld%frchf, ener%sgld%epothf, &
-                   ener%sgld%virsg
   endif
   call nmrptx(7)
 
@@ -661,8 +655,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
    999 format( 1x, A, (4(2x,f14.4)) )
   ! DAN ROE: Added Temp, Rep, Exchange
   ! Xiongwu: add sgft, tempsg for RXSGLD
-  9064 format (1x,'TEMP0= ',f6.1,1x,'SGFT= ',f4.2,1x,'TEMPSG= ',f6.1,1x,&
-         'STAGE= ',i3,1x,'REPNUM= ',i3,1x,'EXCHANGE=',i6)
+   9064 format (1x,'TEMP= ',f6.1,1x,'SGFT= ',f7.4, 1X,'SGFF= ',f7.4, 1X, &
+   'STAGE= ',i4,1x,'REPNUM= ',i4,1x,'EXCH= ',i6)
   9065 format (1x,'TEMP0  = ',f14.4,2x,'REPNUM  = ',i14,2x, &
          'EXCHANGE#  = ',i14)
   9066 format (1x,'SOLVPH = ',f14.4,2x,'REPNUM  = ',i14,2x, &
