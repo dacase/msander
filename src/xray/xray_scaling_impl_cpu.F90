@@ -124,7 +124,7 @@ contains
     ASSERT(all(k_iso_exp >= 0))
     ASSERT(all(k_aniso >= 0))
     ASSERT(all(k_bulk >= 0))
-    ASSERT(all(k_bulk <= 1))
+    ! ASSERT(all(k_bulk <= 1))
     
   end subroutine optimize_scale_factors
   
