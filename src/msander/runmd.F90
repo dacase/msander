@@ -75,7 +75,7 @@ module runmd_module
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
 
-  use sgld, only: isgld, sgenergy, sgfshake, sgldw, sgmdw
+  use sgld, only: isgld, sgenergy, sgldw, sgmdw
 
   use sgld, only: isgsta,isgend,sg_fix_degree_count
 
