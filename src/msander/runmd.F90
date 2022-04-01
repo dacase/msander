@@ -602,7 +602,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   if (vv == 1) call quench(f, v)
 
   if (isgld > 0) then
-    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
+    call sgldw(natom, istart, iend, dtx, temp0, ener, amass, winv, &
                x, f, v)
   else
   ! leap-frog middle scheme
@@ -686,7 +686,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Step 4a: if shake is being used, update the positions {{{
     call timer_start(TIME_SHAKE)
     xold(istart3:iend3) = x(istart3:iend3)
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
     qspatial = .false.
     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
                winv, conp, skip, f, x, nitp, belly, ix(iifstwt), &
@@ -696,9 +695,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       erstop = .true.
       goto 480
     end if
-
-    ! Including constraint forces in self-guiding force calculation
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
 
     ! Need to synchronize coordinates after shake for TI
 #ifdef MPI
