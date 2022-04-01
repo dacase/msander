@@ -3,12 +3,11 @@
           Amber 21 SANDER                              2021
           -------------------------------------------------------
 
-| Run on 03/17/2022 at 15:31:23
+| Run on 03/30/2022 at 12:41:04
 
-|   Executable path: /u/wxw/ambers/install_debug///bin/sander
-| Working directory: /u/wxw/ambers/install_debug/test/gact_ips
-|          Hostname: m2.lobos.nih.gov
-
+|   Executable path: /home/xiongwu/Ambers/install_dev///bin/sander
+| Working directory: /home/xiongwu/Ambers/install_dev/test/gact_ips
+|          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
@@ -230,7 +229,7 @@ Ewald parameters:
 
 
  NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =   295.00  PRESS =    10.7
- Etot   =    -67859.9947  EKtot   =     14273.4455  EPtot      =    -82133.4402
+ Etot   =    -67859.9948  EKtot   =     14273.4455  EPtot      =    -82133.4402
  BOND   =       247.7332  ANGLE   =       540.0707  DIHED      =       537.3277
  1-4 NB =       267.2545  1-4 EEL =     -3300.2313  VDWAALS    =     10335.8013
  EELEC  =    -90761.3964  EHBOND  =         0.0000  RESTRAINT  =         0.0000
@@ -263,7 +262,7 @@ Ewald parameters:
 
 
  NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =   293.92  PRESS =    54.1
- Etot   =    -67852.5198  EKtot   =     14221.5862  EPtot      =    -82074.1061
+ Etot   =    -67852.5199  EKtot   =     14221.5863  EPtot      =    -82074.1062
  BOND   =       238.5362  ANGLE   =       495.5466  DIHED      =       531.7659
  1-4 NB =       263.0663  1-4 EEL =     -3298.8453  VDWAALS    =     10364.6968
  EELEC  =    -90668.8726  EHBOND  =         0.0000  RESTRAINT  =         0.0000
@@ -274,7 +273,7 @@ Ewald parameters:
 
 
  NSTEP =        9   TIME(PS) =       0.009  TEMP(K) =   293.99  PRESS =    52.2
- Etot   =    -67853.5715  EKtot   =     14224.8786  EPtot      =    -82078.4501
+ Etot   =    -67853.5716  EKtot   =     14224.8786  EPtot      =    -82078.4502
  BOND   =       235.8027  ANGLE   =       486.6031  DIHED      =       530.3756
  1-4 NB =       261.1033  1-4 EEL =     -3296.3416  VDWAALS    =     10373.2300
  EELEC  =    -90669.2232  EHBOND  =         0.0000  RESTRAINT  =         0.0000
@@ -286,11 +285,11 @@ Ewald parameters:
 wrapping first mol.:      -45.32304       32.04823       55.50916
 
  NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   294.26  PRESS =    43.2
- Etot   =    -67850.1196  EKtot   =     14238.0292  EPtot      =    -82088.1489
- BOND   =       234.1773  ANGLE   =       484.7316  DIHED      =       529.3712
+ Etot   =    -67850.1197  EKtot   =     14238.0294  EPtot      =    -82088.1491
+ BOND   =       234.1772  ANGLE   =       484.7315  DIHED      =       529.3711
  1-4 NB =       259.1779  1-4 EEL =     -3292.7610  VDWAALS    =     10381.1168
  EELEC  =    -90683.9627  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- EKCMT  =      6899.2388  VIRIAL  =      6673.7409  VOLUME     =    241884.9308
+ EKCMT  =      6899.2388  VIRIAL  =      6673.7410  VOLUME     =    241884.9308
                                                     Density    =         1.0205
  SGLD:   -0.1809   21.11  292.26    -82470.49      382.34   -82484.82    7.8050
  ------------------------------------------------------------------------------
@@ -300,8 +299,8 @@ wrapping first mol.:      -45.32304       32.04823       55.50916
 
 
  NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =   296.10  PRESS =    -7.3
- Etot   =    -67860.7556  EKtot   =     14326.5980  EPtot      =    -82187.3536
- BOND   =       241.7623  ANGLE   =       519.9856  DIHED      =       536.2049
+ Etot   =    -67860.7557  EKtot   =     14326.5980  EPtot      =    -82187.3536
+ BOND   =       241.7623  ANGLE   =       519.9855  DIHED      =       536.2049
  1-4 NB =       264.7304  1-4 EEL =     -3296.9039  VDWAALS    =     10339.2163
  EELEC  =    -90792.3492  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =      6928.8948  VIRIAL  =      6966.8064  VOLUME     =    241884.7458
@@ -315,7 +314,7 @@ wrapping first mol.:      -45.32304       32.04823       55.50916
 
  NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =     2.68  PRESS =    65.6
  Etot   =         8.2872  EKtot   =       129.6848  EPtot      =       136.9977
- BOND   =         5.0596  ANGLE   =        23.1905  DIHED      =         4.6144
+ BOND   =         5.0596  ANGLE   =        23.1906  DIHED      =         4.6144
  1-4 NB =         2.6641  1-4 EEL =         3.3626  VDWAALS    =        28.5261
  EELEC  =       131.4034  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =        20.8246  VIRIAL  =       362.4481  VOLUME     =         0.2054
@@ -328,30 +327,30 @@ wrapping first mol.:      -45.32304       32.04823       55.50916
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.08 ( 2.21% of Total)
+|    Read coords time           0.02 ( 1.36% of Total)
 |    Fast Water setup           0.00 ( 0.01% of Total)
-|                Build the list             0.52 (99.00% of List )
-|                Other                      0.01 ( 1.00% of List )
-|             List time                  0.52 (18.36% of Nonbo)
-|                   Short_ene time             2.29 (99.05% of Direc)
-|                   Other                      0.02 ( 0.95% of Direc)
-|                Direct Ewald time          2.31 (99.89% of Ewald)
+|                Build the list             0.22 (99.24% of List )
+|                Other                      0.00 ( 0.76% of List )
+|             List time                  0.22 (17.26% of Nonbo)
+|                   Short_ene time             1.06 (99.30% of Direc)
+|                   Other                      0.01 ( 0.70% of Direc)
+|                Direct Ewald time          1.06 (99.89% of Ewald)
 |                Force Adjust               0.00 ( 0.01% of Ewald)
-|                Virial junk                0.00 ( 0.05% of Ewald)
-|                Other                      0.00 ( 0.04% of Ewald)
-|             Ewald time                 2.31 (81.24% of Nonbo)
-|             IPS excludes               0.01 ( 0.40% of Nonbo)
-|          Nonbond force              2.84 (99.63% of Force)
-|          Bond/Angle/Dihedral        0.01 ( 0.36% of Force)
-|          Other                      0.00 ( 0.01% of Force)
-|       Force time                 2.85 (94.93% of Runmd)
-|       Shake time                 0.01 ( 0.46% of Runmd)
-|       Verlet update time         0.13 ( 4.47% of Runmd)
+|                Virial junk                0.00 ( 0.07% of Ewald)
+|                Other                      0.00 ( 0.03% of Ewald)
+|             Ewald time                 1.06 (81.99% of Nonbo)
+|             IPS excludes               0.01 ( 0.75% of Nonbo)
+|          Nonbond force              1.30 (99.68% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 0.28% of Force)
+|          Other                      0.00 ( 0.04% of Force)
+|       Force time                 1.30 (95.53% of Runmd)
+|       Shake time                 0.01 ( 0.44% of Runmd)
+|       Verlet update time         0.05 ( 3.83% of Runmd)
 |       Ekcmr time                 0.00 ( 0.05% of Runmd)
-|       Other                      0.00 ( 0.10% of Runmd)
-|    Runmd Time                 3.01 (85.25% of Total)
-|    Other                      0.44 (12.53% of Total)
-| Total time                 3.53 (100.0% of ALL  )
+|       Other                      0.00 ( 0.14% of Runmd)
+|    Runmd Time                 1.36 (92.64% of Total)
+|    Other                      0.09 ( 5.99% of Total)
+| Total time                 1.47 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -361,13 +360,13 @@ wrapping first mol.:      -45.32304       32.04823       55.50916
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       3.01 Per Step(ms) =     300.86
-|         ns/day =       0.29   seconds/ns =  300857.59
+|     Elapsed(s) =       1.36 Per Step(ms) =     136.48
+|         ns/day =       0.63   seconds/ns =  136476.60
 | -----------------------------------------------------
 
-|           Job began  at 15:31:23.562  on 03/17/2022
-|           Setup done at 15:31:24.082  on 03/17/2022
-|           Run   done at 15:31:27.090  on 03/17/2022
+|           Job began  at 12:41:04.139  on 03/30/2022
+|           Setup done at 12:41:04.247  on 03/30/2022
+|           Run   done at 12:41:05.611  on 03/30/2022
 |     wallclock() was called     335 times
 
 |3D-RISM memory allocation summary
