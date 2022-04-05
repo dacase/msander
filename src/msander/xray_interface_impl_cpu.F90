@@ -385,8 +385,7 @@ contains
    subroutine xray_write_fmtz(filename)
 
    use xray_globals_module
-   use xray_interface2_data_module, only:  Fcalc
-   use xray_bulk_mask_data_module, only:  f_mask
+   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl
    implicit none
    character(len=*), intent(in) :: filename
 
@@ -406,7 +405,7 @@ contains
        '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i1,a,f12.3)') &
        hkl_index(1,i), &
        achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
-       abs_Fobs(i), achar(9), &
+       abs(Fobs(i)), achar(9), &
        sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
        achar(9), test_flag(i)
    end do
