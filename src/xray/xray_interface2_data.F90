@@ -24,6 +24,7 @@ module xray_interface2_data_module
   complex(real_kind), allocatable, save :: Fobs(:)  ! size = (n_hkl)
   complex(real_kind), allocatable, save :: Fcalc(:) ! size = (n_hkl)
   real(real_kind), allocatable, save :: sigma_Fobs(:)  ! size = (n_hkl)
+  real(real_kind), allocatable, save :: resolution(:)
 
   !! Atomic data
   integer, save :: n_atom
@@ -57,7 +58,6 @@ contains
     logical, intent(in) :: input_atom_selection(:)
     
     ! locals
-    real(real_kind), allocatable :: resolution(:)
     integer :: j
     
     
