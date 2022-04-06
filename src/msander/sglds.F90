@@ -487,8 +487,10 @@ contains
               fi3=frc(m,i)+fln+fsgi3+sgfgi*gammas*avgpi3+fsgldg*avgri3
               !fi3=frc(m,i)+fln
               frc(m,i)=fi3
-             ! estimate velocity at t+dt/2
-              vi3t=vel(m,i)+0.5d0*dtx/amassi*fi3
+              ! estimate velocity at t+dt/2
+              !vi3t=vel(m,i)+0.5d0*dtx/amassi*fi3
+              ! Using volocities at t avoid SHAKE complication
+              vi3t=vel(m,i)
               ! sum(g*v)
               sumgv=sumgv+fsgi3*vi3t
               ! sum(p*v)
@@ -635,8 +637,10 @@ contains
             fsgi3=fsgpi+fsgfi
             fi3=frc(m,i)+fsgi3
             frc(m,i)=fi3
-           ! estimate velocity at t+dt/2
-            vi3t=vel(m,i)+fi3*wfac
+            ! estimate velocity at t+dt/2
+            ! vi3t=vel(m,i)+fi3*wfac
+            ! Using volocities at t avoid SHAKE complication
+            vi3t=vel(m,i)
             ! sum(g*v)
             sumgv=sumgv+fsgi3*vi3t
             ! sum(p*v)

@@ -28,7 +28,7 @@ cat > gbin <<EOF
     ntt=3,  gamma_ln=1.0,nscm=100,
     irest=1,
     ips=1,
-    isgld=1, isgsta=1,isgend=0,tsgavg=0.2,sgft=1.0,sgff=0.3,
+    isgld=1, isgsta=1,isgend=0,tsgavg=0.2,sgft=0.5,sgff=-0.3,
     ig=71277,
  /
 EOF
