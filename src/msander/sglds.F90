@@ -483,12 +483,10 @@ contains
               ! guiding forces
               fsgpi=(sgfti*sggammai)*avgpi3
               fsgfi=sgffi*avgdfi3
-              fsgi3=fsgpi+fsgfi
-              fi3=frc(m,i)+fln+fsgi3+sgfgi*gammas*avgpi3+fsgldg*avgri3
-              !fi3=frc(m,i)+fln
+              fsgi3=sgfgi*gammas*avgpi3+fsgldg*avgri3+fsgpi+fsgfi
+              fi3=frc(m,i)+fln+fsgi3
               frc(m,i)=fi3
               ! estimate velocity at t+dt/2
-              !vi3t=vel(m,i)+0.5d0*dtx/amassi*fi3
               ! Using volocities at t avoid SHAKE complication
               vi3t=vel(m,i)
               ! sum(g*v)
