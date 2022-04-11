@@ -529,15 +529,6 @@ contains
          & solvent_mask_adjustment, solvent_mask_probe_radius &
       )
       
-!      ! Dump xray init parameters to test/debug ! FIXME: remove it in release
-!      call xray_dump( &
-!          & "dump.txt", &
-!          & hkl_index, Fobs, sigFobs, test_flag==1, &
-!          & unit_cell_, scatter_coefficients, &
-!          & atom_bfactor, atom_occupancy, atom_scatter_type, &
-!          & atom_selection==1, atm_atomicnumber &
-!      )
-
       return
       1 continue
       write(stdout,'(A)') 'End-of-file reading HKL file.'
