@@ -52,14 +52,17 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
   * Periodic and non-periodic simulations, with all of Amber's GB models
 
+  * 3D-RISM in periodic boundary conditions
+
   * QM/MM, including hooks to external codes
 
-  * NMR, cryoEM and Xray restraints (including quite a bit of new code)
+  * NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
+    restraints include NVIDIA GPU-enabled capabilities)
 
   * Thermodynamic integration and non-equilibrium sampling methods
 
   * Replica exchange capabilities, except for constant pH and redox potential
-simulations
+    simulations
 
 # Building the code
 
