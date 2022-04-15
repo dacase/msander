@@ -1,7 +1,0 @@
-*.pyc
-*.pyo
-.*.sw[op]
-*~
-build
-a.out
-.coverage
