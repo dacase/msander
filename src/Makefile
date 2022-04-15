@@ -10,7 +10,6 @@ full:
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
-	@cd parmed && $(MAKE) $(PARMED)
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -45,7 +44,7 @@ uninstall: clean
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
         libarpack.a libsqm.a librism.a /libsys.a )
 	/bin/rm -f $(INCDIR)/* ../config.h
-	/bin/rm -rf $(BINDIR)/x $(LIBDIR)/python3.*
+	/bin/rm $(LIBDIR)/python3.*
 
 distclean: clean
 	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) logs config.h)

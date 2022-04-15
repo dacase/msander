@@ -66,17 +66,7 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
 # Building the code
 
-*Conda build (serial mode only, no MPI):
-```
-   conda build [ --python x.x ] recipe 
-      (note: you should have conda-forge at the top of your channel
-      list in ~/.condarc.  Users should probably also execute "conda install
-      conda-forge-pinning" in the conda environment.
-
-      Note the that conda build is only rarely tested.
-```
-
-*Non-conda build  (MacOSX, Linux, probably WSL):
+* MacOSX, Linux, probably WSL:
 ```
    ./configure --help   #  then choose the options you want
    make install
@@ -84,7 +74,8 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 ```
 
 # License
-This project is generally licensed under the GNU (Lesser) General Public 
-License, version 3 (GPL/LGPL v3).  Some components use different, but 
-compatible, open source licenses.  See the LICENSE file for more information.
+This project is licensed under the GNU General Public License, 
+version 2, or (at your option) any later version.   Some components use 
+different, but compatible, open source licenses.  See the LICENSE file 
+for more information.
 
