@@ -7,14 +7,10 @@ install: $(INSTALLTYPE)
 full:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
-	@cd msander && $(MAKE) $(LIBSANDER)
-	@cd msander && $(MAKE) $(LIBSANDERLES)
-	@cd pysander && $(MAKE) $(PYSANDER)
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
 	@cd parmed && $(MAKE) $(PARMED)
-	@cp pdb4amber/pdb4amber $(BINDIR)
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -45,12 +41,11 @@ clean:
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
-        add_pdb add_xray addles pdb4amber)
+        add_pdb add_xray addles)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
-        libarpack.a libsqm.a librism.a /libsys.a \
-        libsander.so libsanderles.so)
+        libarpack.a libsqm.a librism.a /libsys.a )
 	/bin/rm -f $(INCDIR)/* ../config.h
-	/bin/rm -rf $(BINDIR)/x $(LIBDIR)/python2.7
+	/bin/rm -rf $(BINDIR)/x $(LIBDIR)/python3.*
 
 distclean: clean
 	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) logs config.h)
