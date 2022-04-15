@@ -13,7 +13,6 @@ full:
 	@cd xray && $(MAKE) xray
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
-	@cd ambpdb && $(MAKE) ambpdb
 	@cd parmed && $(MAKE) $(PARMED)
 	@cp pdb4amber/pdb4amber $(BINDIR)
 
@@ -42,7 +41,6 @@ clean:
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
-	-(cd ambpdb && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
 
 uninstall: clean
