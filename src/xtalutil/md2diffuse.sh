@@ -18,12 +18,12 @@
 
 #  Input variables: edit these to match your problem:
 
-pdbprefix="../PDBdata/alt15_007"     # pdbfiles will be called
+pdbprefix="../PDBdata/lys_ortho"     # pdbfiles will be called
                                       # $pdbprefix.$frame.pdb
-dprefix="alt15_007"                  # basename for final output files
-cell="CRYST1   82.272   64.268   69.026  88.66 108.46 111.88 P 1           1\n"
+dprefix="lys_ortho"                  # basename for final output files
+cell="CRYST1   30.490   56.385   73.824  90.00  90.00  90.00 P 21 21 21    4\n"
                                 # should take this from the first pdb file
-title="Diffuse/Bragg for 6o2h bulk water"  # for mtz and map files
+title="Diffuse/Bragg for lys_ortho"  # for mtz and map files
 vf000=""                              # cell volume and number of electrons
 grid=""                               # grid dimensions for final map
                                       # (see step 7 for vf000 and grid)
@@ -38,10 +38,18 @@ if false; then
 cpptraj <<EOF
 #  sample cpptraj script to create pdb snapshots for diffuse scattering analysis
 # 
-parm ../alt15_uc.parm7
-trajin ../alt15_007.md2.nc
-trajin ../alt15_007.md3.nc
-strip @1-27084
+parm ../lys_ortho_1uc.parm7
+reference ../md-1.x
+trajin ../md9.nc
+trajin ../md10.nc
+trajin ../md11.nc
+trajin ../md12.nc
+trajin ../md13.nc
+trajin ../md14.nc
+trajin ../md15.nc
+trajin ../md16.nc
+trajin ../md17.nc
+rms reference bb '@C,CA,N' norotate out fit.dat time 0.4
 image byatom
 trajout $pdbprefix.pdb pdb multi pdbv3 keepext sg "P 1"
 go
@@ -205,7 +213,7 @@ gcc -std=gnu99  -o mtz2fcphic mtz2fcphic.c
 
 #  Loop over input files:
 
-for frame in {201..600}; do
+for frame in {1..2500}; do
 
 #  set all b-factors to 15:
 ./modify_pdb < ${pdbprefix}.$frame.pdb > $frame.pdb
@@ -356,7 +364,7 @@ EOF
 
 gcc -std=gnu99  -O3 -o diffuse1 diffuse1.c -lm
 
-./diffuse1 1 600 1 frame1.mtz  > $dprefix.1.ihklb
+./diffuse1 1 2500 1 frame1.mtz  > $dprefix.1.ihklb
 
 /bin/rm -f diffuse1 diffuse1.c
 
@@ -365,7 +373,7 @@ fi
 #=============================================================================
 #  5.  combine (if needed) several intermediate .ihkl files into a total:
 
-if false; then
+if true; then
 
 cat <<EOF > diffuse2.c
 #include <stdlib.h>
