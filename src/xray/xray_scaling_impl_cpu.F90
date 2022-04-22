@@ -95,8 +95,8 @@ contains
     ASSERT(all(k_iso >= 0))
     ASSERT(all(k_iso_exp >= 0))
     ASSERT(all(k_aniso >= 0))
-    ASSERT(all(k_bulk >= 0))
-    ASSERT(all(k_bulk <= 1))
+    !ASSERT(all(k_bulk >= 0))
+    !ASSERT(all(k_bulk <= 1))
     
     r_work = calc_r_factor(absFobs(:n_work), abs(k_iso(:n_work) * k_iso_exp(:n_work) * k_aniso(:n_work) * (Fprot(:n_work) + k_bulk(:n_work) * Fbulk(:n_work))))
 
@@ -123,7 +123,7 @@ contains
     ASSERT(all(k_iso >= 0))
     ASSERT(all(k_iso_exp >= 0))
     ASSERT(all(k_aniso >= 0))
-    ASSERT(all(k_bulk >= 0))
+    ! ASSERT(all(k_bulk >= 0))
     ! ASSERT(all(k_bulk <= 1))
     
   end subroutine optimize_scale_factors

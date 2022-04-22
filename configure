@@ -56,7 +56,7 @@ libsanderles="libsanderles"
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
-netcdflibf=$netcdflibf_shared
+netcdflibf=$netcdflibf_static
 
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
@@ -115,7 +115,6 @@ for var in "$@"; do
             # pysander="skip"
             # libsander="libsander_skip"
             # libsanderles="libsanderles_skip"
-            netcdflibf=$netcdflibf_shared
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
@@ -400,7 +399,7 @@ else
 
   else
     # ----- Use simple flag for Intel compilers on Linux ------------
-    flibs_la='-mkl'
+    flibs_la='-qmkl'
   fi
 fi
 
@@ -415,7 +414,7 @@ if [ ! -s "lib/libnetcdf.a" ]; then
    make clean > /dev/null 2>&1
    ./configure CC="$cc" CFLAGS="-fPIC" LDFLAGS="" \
       --prefix=$msanderhome --disable-netcdf-4 --disable-dap \
-      --enable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
+      --disable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
        echo "Error: NetCDF configure failed!  Check netcdf_c.config.log"
@@ -443,7 +442,7 @@ if [ ! -s "lib/libnetcdf.a" ]; then
                   LDFLAGS="-L$msanderhome/lib $ldflags" \
                   CPPFLAGS="-I$msanderhome/include" \
                   FC="$fc" FCFLAGS="" \
-                  F77="$fc" FFLAGS="-fPIC" --enable-shared  --disable-doxygen \
+                  F77="$fc" FFLAGS="-fPIC" --disable-shared  --disable-doxygen \
                   --prefix=$msanderhome >> ../netcdf_f.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then

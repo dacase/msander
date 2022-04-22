@@ -1,6 +1,6 @@
-This is fftw3.info, produced by makeinfo version 6.5 from fftw3.texi.
+This is fftw3.info, produced by makeinfo version 6.7 from fftw3.texi.
 
-This manual is for FFTW (version 3.3.9, 10 December 2020).
+This manual is for FFTW (version 3.3.10, 10 December 2020).
 
    Copyright (C) 2003 Matteo Frigo.
 
@@ -32,7 +32,7 @@ FFTW User Manual
 
 Welcome to FFTW, the Fastest Fourier Transform in the West.  FFTW is a
 collection of fast C routines to compute the discrete Fourier transform.
-This manual documents FFTW version 3.3.9.
+This manual documents FFTW version 3.3.10.
 
 * Menu:
 
@@ -57,7 +57,7 @@ File: fftw3.info,  Node: Introduction,  Next: Tutorial,  Prev: Top,  Up: Top
 1 Introduction
 **************
 
-This manual documents version 3.3.9 of FFTW, the _Fastest Fourier
+This manual documents version 3.3.10 of FFTW, the _Fastest Fourier
 Transform in the West_.  FFTW is a comprehensive collection of fast C
 routines for computing the discrete Fourier transform (DFT) and various
 special cases thereof.
@@ -1426,7 +1426,7 @@ Recall that the FFTW API is divided into three parts(1): the "basic
 interface" computes a single transform of contiguous data, the "advanced
 interface" computes transforms of multiple or strided arrays, and the
 "guru interface" supports the most general data layouts, multiplicities,
-and strides.  This section describes the the basic interface, which we
+and strides.  This section describes the basic interface, which we
 expect to satisfy the needs of most users.
 
 * Menu:
@@ -1618,8 +1618,8 @@ Limiting planning time
 (approximately) in the planner.  If 'seconds == FFTW_NO_TIMELIMIT' (the
 default value, which is negative), then planning time is unbounded.
 Otherwise, FFTW plans with a progressively wider range of algorithms
-until the the given time limit is reached or the given range of
-algorithms is explored, returning the best available plan.
+until the given time limit is reached or the given range of algorithms
+is explored, returning the best available plan.
 
    For example, specifying 'FFTW_PATIENT' first plans in 'FFTW_ESTIMATE'
 mode, then in 'FFTW_MEASURE' mode, then finally (time permitting) in

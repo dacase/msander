@@ -95,13 +95,16 @@ contains
     real(real_kind), intent(in) :: xyz(:, :)
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: xray_weight
-    real(real_kind), intent(out) :: force(:, :)
+    real(real_kind), intent(inout) :: force(:, :)
     real(real_kind), intent(out) :: energy
     complex(real_kind), allocatable, intent(in) :: Fuser(:)
 
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)
     real(real_kind), allocatable :: grad_xyz(:, :)
+
+    real(real_kind) gradnorm_amber, gradnorm_xray
+
 #include "../msander/def_time.h"
 
     ASSERT(size(xyz, 1) == 3)
@@ -142,6 +145,17 @@ contains
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
     ASSERT(size(grad_xyz, 2) == size(atom_selection_indices))
+
+#ifndef MPI
+    ! compute norm of gradient from Amber, and from xray: this
+    !   information could be used to estimate xray_weight:
+    if ( current_step == 0 ) then
+       gradnorm_amber = norm2(force(:,atom_selection_indices))
+       gradnorm_xray  = norm2(grad_xyz(:,:))
+       write(6,'(a,3e12.5)') '| gradient norms, amber/xray: ', &
+          gradnorm_amber, gradnorm_xray, gradnorm_amber/gradnorm_xray
+    endif
+#endif
 
     force(:,atom_selection_indices) = force(:,atom_selection_indices) - grad_xyz
     call timer_stop(TIME_DHKL)

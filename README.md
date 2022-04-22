@@ -52,28 +52,21 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
   * Periodic and non-periodic simulations, with all of Amber's GB models
 
+  * 3D-RISM in periodic boundary conditions
+
   * QM/MM, including hooks to external codes
 
-  * NMR, cryoEM and Xray restraints (including quite a bit of new code)
+  * NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
+    restraints include NVIDIA GPU-enabled capabilities)
 
   * Thermodynamic integration and non-equilibrium sampling methods
 
   * Replica exchange capabilities, except for constant pH and redox potential
-simulations
+    simulations
 
 # Building the code
 
-*Conda build (serial mode only, no MPI):
-```
-   conda build [ --python x.x ] recipe 
-      (note: you should have conda-forge at the top of your channel
-      list in ~/.condarc.  Users should probably also execute "conda install
-      conda-forge-pinning" in the conda environment.
-
-      Note the that conda build is only rarely tested.
-```
-
-*Non-conda build  (MacOSX, Linux, probably WSL):
+* MacOSX, Linux, probably WSL:
 ```
    ./configure --help   #  then choose the options you want
    make install
@@ -81,7 +74,8 @@ simulations
 ```
 
 # License
-This project is generally licensed under the GNU (Lesser) General Public 
-License, version 3 (GPL/LGPL v3).  Some components use different, but 
-compatible, open source licenses.  See the LICENSE file for more information.
+This project is licensed under the GNU General Public License, 
+version 2, or (at your option) any later version.   Some components use 
+different, but compatible, open source licenses.  See the LICENSE file 
+for more information.
 
