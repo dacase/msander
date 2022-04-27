@@ -1,6 +1,0 @@
-source leaprc.ff14SB
-loadAmberParams frcmod.ionsjc_spce
-x = loadpdb ions.pdb
-set x box 20.0
-saveAmberParm x prmtop inpcrd
-quit
