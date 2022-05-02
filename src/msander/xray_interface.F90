@@ -806,8 +806,8 @@ contains
 
       if( target(1:3) == 'vls' ) then
          call dTargetV_dF(xyz, deriv=dF, residual=r_work, xray_energy=xray_energy)
-         write(6, '(a,f15.5)') '| xray_energy: ', &
-              xray_weight * xray_energy - xray_offset
+         ! write(6, '(a,f15.5)') '| xray_energy: ', &
+         !      xray_weight * xray_energy - xray_offset
       else if( target(1:2) == 'ls' .or. target(1:3) == 'wls' ) then
          call dTargetLS_dF(xyz, selected=test_flag, deriv=dF, &
                            xray_energy=xray_energy)
