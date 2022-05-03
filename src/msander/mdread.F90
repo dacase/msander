@@ -3122,7 +3122,7 @@ subroutine mdread2(x,ix,ih)
          box(3) < 1.d0 ) ) then
       write(6,'(/,a,3f10.3)') ' BOX is too small: ',box(1),box(2),box(3)
       DELAYED_ERROR
-   else if (ntb /= 0 .and. &
+   else if (ntb /= 0 .and. igb == 0 .and. &
          (sqrt(cut) >= box(1)*0.5d0 .or. &
          sqrt(cut) >= box(2)*0.5d0 .or. &
          sqrt(cut) >= box(3)*0.5d0) ) then
