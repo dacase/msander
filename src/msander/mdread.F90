@@ -265,7 +265,7 @@ subroutine mdread1()
    iesp = 0
    ntx = 1
    ntxo = NO_INPUT_VALUE
-   ig = 71277
+   ig = -1
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
