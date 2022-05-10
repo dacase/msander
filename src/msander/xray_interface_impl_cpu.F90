@@ -680,7 +680,13 @@ contains
       real(real_kind) :: weight_increment
 #include "nmr.h"
       
-      if( nmropt .eq. 0 ) then   ! original St. Petersburg code
+      if( nmropt .gt. 0 ) then
+         result = wxray
+
+      else if( xray_weight_initial == xray_weight_final ) then
+         result = xray_weight_initial
+
+      else ! original St. Petersburg code
       
          call check_precondition(current_step <= total_steps)
          if (total_steps > 1) then
@@ -691,8 +697,6 @@ contains
          end if
       
          result = xray_weight_initial + weight_increment * current_step
-      else  ! use weight change cards to vary xray_weight
-         result = wxray
       endif
 
    end function get_xray_weight
