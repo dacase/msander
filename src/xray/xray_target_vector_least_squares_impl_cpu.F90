@@ -41,7 +41,7 @@ contains
     ! This routine computes the force gradient on Fcalc as a harmonic
     ! restraint on the vector (complex) difference between Fcalc and
     ! Fobs
-    subroutine calc_partial_d_target_d_absFcalc(Fcalc, deriv, xray_energy)
+    subroutine calc_partial_d_target_d_Fcalc(Fcalc, deriv, xray_energy)
         implicit none
         complex(real_kind), intent(in) :: Fcalc(:)
         complex(real_kind), intent(out) :: deriv(:)
@@ -56,6 +56,6 @@ contains
         xray_energy = norm_scale * sum(vecdif(:) * conjg(vecdif(:)))
         deriv(:) = - norm_scale * 2 * Fcalc_scale * vecdif(:)
 
-    end subroutine calc_partial_d_target_d_absFcalc
+    end subroutine calc_partial_d_target_d_Fcalc
 
 end module xray_target_vector_least_squares_impl_cpu_module
