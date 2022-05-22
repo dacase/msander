@@ -10,38 +10,31 @@ module xray_target_vector_least_squares_impl_cpu_module
 
     ! Public module interface
     public :: init
-    public :: calc_partial_d_target_d_absFcalc
+    public :: calc_partial_d_target_d_Fcalc
     public :: finalize
 
 contains
 
-    subroutine init(abs_Fobs, sig_Fobs)
-        use xray_interface2_data_module, only:  Fobs
+    subroutine init(abs_Fobs)
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
-        real(real_kind), intent(in) :: sig_Fobs(:)
-
-        integer :: i, num_hkl
-        real(real_kind) :: phi
-        num_hkl = size(abs_Fobs)
-        allocate(Fobs(num_hkl))
-        do i = 1, num_hkl
-            !  sigFobs() here is assumed to be really phi()
-            phi = sig_Fobs(i) * 0.0174532925d0
-            Fobs(i) = cmplx(abs_Fobs(i) * cos(phi), abs_Fobs(i) * sin(phi), real_kind)
-        end do
 
         norm_scale = 1 / sum(abs_Fobs ** 2)
 
     end subroutine init
 
     subroutine finalize()
-        deallocate(Fobs)
     end subroutine finalize
 
     ! This routine computes the force gradient on Fcalc as a harmonic
     ! restraint on the vector (complex) difference between Fcalc and
     ! Fobs
+
+    ! deriv is treated as a complex variable, but this is not really
+    ! complex analysis!  Rather, deriv%re is the derivative of the target
+    ! with respect to Fcalc%re, and deriv%im is the derivative of the 
+    ! target with respect to Fcalc%im.
+
     subroutine calc_partial_d_target_d_Fcalc(Fcalc, deriv, xray_energy)
         implicit none
         complex(real_kind), intent(in) :: Fcalc(:)
