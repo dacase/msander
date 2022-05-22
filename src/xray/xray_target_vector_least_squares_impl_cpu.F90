@@ -16,6 +16,7 @@ module xray_target_vector_least_squares_impl_cpu_module
 contains
 
     subroutine init(abs_Fobs, sig_Fobs)
+        use xray_interface2_data_module, only:  Fobs
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
         real(real_kind), intent(in) :: sig_Fobs(:)

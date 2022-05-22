@@ -6,7 +6,7 @@ module xray_target_vector_least_squares_data_module
 
     public
 
-    complex(real_kind), allocatable, save :: Fobs(:)
+    !  complex(real_kind), allocatable, save :: Fobs(:)
     real(real_kind), save :: norm_scale
 
 end module xray_target_vector_least_squares_data_module
