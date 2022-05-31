@@ -2,6 +2,7 @@ module xray_target_vector_least_squares_impl_cpu_module
 
     use xray_contracts_module
     use xray_pure_utils, only : real_kind
+    use xray_interface2_data_module, only : n_hkl, Fobs
     use xray_target_vector_least_squares_data_module
 
     implicit none
@@ -19,6 +20,7 @@ contains
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
 
+        allocate(derivc(n_hkl))
         norm_scale = 1 / sum(abs_Fobs ** 2)
 
     end subroutine init

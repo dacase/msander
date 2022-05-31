@@ -44,7 +44,7 @@ contains
         case (least_squares_id)
             call ls_init(absFobs(:num_work_flags))
         case(vector_least_squares_id)
-            call vls_init(absFobs, sigFobs)
+            call vls_init(absFobs)
         case (max_likehood_id)
             call ml_init(resolution, absFobs(num_work_flags + 1:), meta_update_period)
         end select
@@ -68,6 +68,9 @@ contains
     subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
         use xray_target_least_squares_module, only : ls_partial => calc_partial_d_target_d_absFcalc
         use xray_target_max_likelihood_module, only : ml_partial => calc_partial_d_target_d_absFcalc
+        use xray_target_vector_least_squares_module, only : vls_partial => calc_partial_d_target_d_Fcalc
+        use xray_target_vector_least_squares_data_module, only : derivc
+        use xray_interface2_data_module, only : Fcalc
         implicit none
         integer, intent(in) :: current_step
         real(real_kind), intent(in) :: absFobs(:)
@@ -86,7 +89,7 @@ contains
         case (least_squares_id)
             call ls_partial(absFobs, absFcalc, deriv=deriv, xray_energy=xray_energy)
         case (vector_least_squares_id)
-            ! FIXME
+            call vls_partial(Fcalc, derivc, xray_energy)
         case (max_likehood_id)
             call ml_partial(current_step, absFobs, absFcalc, deriv, xray_energy)
         end select
