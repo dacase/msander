@@ -86,8 +86,7 @@ contains
     real(real_kind), intent(in) :: f_scale(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
-    real(real_kind) :: phase
-    complex(real_kind) :: f
+    real(real_kind) :: f, phase
     integer :: i
     integer :: ihkl
     
@@ -119,15 +118,11 @@ contains
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
         ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i))
+            * exp(mSS4(ihkl) * atom_b_factor(i)) &
+            * ( sin(phase) * derivc(ihkl)%re - cos(phase) * derivc(ihkl)%im )
         
-        f = f * cmplx(cos(phase), sin(phase), real_kind)
-        ! iatom's term of F^protein_calc (S1)
-        
-        ! d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-        !       + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
-        !         aimag(f * Fcalc(ihkl)) * &
-        !         d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+            + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * f
       end do
     end do
 !$omp end parallel do

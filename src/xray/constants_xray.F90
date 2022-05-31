@@ -289,7 +289,11 @@ contains
     integer :: ier
 
     call get_environment_variable('XRAY_NUM_THREADS', xray_threads, status=ier)
-    if( ier .ne. 1 ) read( xray_threads, * ) xray_num_threads
+    if( ier .ne. 1 ) then
+       read( xray_threads, * ) xray_num_threads
+    else
+       write(0,*) 'problem in accessing XRAY_NUM_THREADS'
+    end if
     write(6,'(a,i3,a)') '| Running Xray OpenMP with ',xray_num_threads,' threads'
   end subroutine set_xray_num_threads
 
