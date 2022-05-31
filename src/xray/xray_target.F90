@@ -11,12 +11,13 @@ module xray_target_module
     public :: init
     public :: finalize
     public :: calc_partial_d_target_d_absFcalc
+    public :: target_function_id
 
     ! Enumeration
     !   0 -- Least Squares
     !   1 -- Vector Least Squares
     !   2 -- Max Likelihood
-    integer :: target_function_id
+    integer, save :: target_function_id
     integer, parameter :: least_squares_id = 0
     integer, parameter :: vector_least_squares_id = 1
     integer, parameter :: max_likehood_id = 2
