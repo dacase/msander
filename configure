@@ -48,10 +48,6 @@ cudaflags=''
 
 lapack="skip"
 blas="skip"
-parmed="parmed"
-pysander="pysander"
-libsander="libsander"
-libsanderles="libsanderles"
 
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
@@ -111,10 +107,6 @@ for var in "$@"; do
             mpicc="mpiicc"
             mpif90="mpiifort"
             optflags="-g -O3"
-            parmed="skip"
-            # pysander="skip"
-            # libsander="libsander_skip"
-            # libsanderles="libsanderles_skip"
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
@@ -633,16 +625,6 @@ CUDAFLAGS=$cudaflags
 PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
-
-#Python interpreter we are using and install options
-#   assumes python in the path is the version we want
-PYTHON=python
-PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
-PARMED=$parmed
-PYSANDER=$pysander
-LIBSANDER=$libsander
-LIBSANDERLES=$libsanderles
 
 EOF
 
