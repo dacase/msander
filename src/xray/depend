@@ -43,6 +43,7 @@ xray_atomic_scatter_factor.o:   xray_atomic_scatter_factor.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_atomic_scatter_factor.F90
 
 xray_atomic_scatter_factor_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_pure_utils.o
 
@@ -53,6 +54,7 @@ xray_atomic_scatter_factor_impl_cpu.o:   xray_atomic_scatter_factor_impl_cpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_atomic_scatter_factor_impl_cpu.F90
 
 xray_atomic_scatter_factor_impl_gpu.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_pure_utils.o\
                     xray_atomic_scatter_factor_impl_cpu.o
@@ -84,6 +86,7 @@ xray_bulk_mask_data.o:   xray_bulk_mask_data.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask_data.F90
 
 xray_bulk_mask_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_bulk_mask_data.o\
                     xray_contracts.o\
@@ -112,6 +115,7 @@ xray_bulk_mask_impl_gpu.o:   xray_bulk_mask_impl_gpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_mask_impl_gpu.F90
 
 xray_bulk_model.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_unit_cell.o\
@@ -126,6 +130,7 @@ xray_bulk_model.o:   xray_bulk_model.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model.F90
 
 xray_bulk_model_afonine_2013.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o\
@@ -140,6 +145,7 @@ xray_bulk_model_afonine_2013.o:   xray_bulk_model_afonine_2013.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model_afonine_2013.F90
 
 xray_bulk_model_none.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o
@@ -151,6 +157,7 @@ xray_bulk_model_none.o:   xray_bulk_model_none.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_bulk_model_none.F90
 
 xray_bulk_model_simple.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o\
@@ -170,6 +177,7 @@ xray_contracts.o:   xray_contracts.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_contracts.F90
 
 xray_debug_dump.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o
@@ -200,11 +208,13 @@ xray_dpartial_data.o:   xray_dpartial_data.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial_data.F90
 
 xray_dpartial_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_dpartial_data.o\
                     xray_pure_utils.o\
                     constants_xray.o\
-                    xray_atomic_scatter_factor.o
+                    xray_atomic_scatter_factor.o\
+                    xray_target_vector_least_squares_data.o
 
 
 xray_dpartial_impl_cpu.o:   xray_dpartial_impl_cpu.F90
@@ -213,6 +223,7 @@ xray_dpartial_impl_cpu.o:   xray_dpartial_impl_cpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_dpartial_impl_cpu.F90
 
 xray_dpartial_impl_gpu.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_dpartial_data.o\
                     xray_pure_utils.o\
@@ -255,6 +266,7 @@ xray_fft_interface_impl_none.o:   xray_fft_interface_impl_none.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_fft_interface_impl_none.F90
 
 xray_interface2.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o\
@@ -275,6 +287,7 @@ xray_interface2.o:   xray_interface2.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_interface2.F90
 
 xray_interface2_data.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o
@@ -305,6 +318,7 @@ xray_non_bulk_data.o:   xray_non_bulk_data.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_data.F90
 
 xray_non_bulk_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_non_bulk_data.o\
@@ -318,6 +332,7 @@ xray_non_bulk_impl_cpu.o:   xray_non_bulk_impl_cpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_impl_cpu.F90
 
 xray_non_bulk_impl_gpu.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_pure_utils.o\
                     xray_non_bulk_impl_cpu.o\
@@ -331,6 +346,7 @@ xray_non_bulk_impl_gpu.o:   xray_non_bulk_impl_gpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_non_bulk_impl_gpu.F90
 
 xray_pure_utils.o: \
+                    ../include/assert.fh\
                     xray_contracts.o
 
 
@@ -359,6 +375,7 @@ xray_scaling_data.o:   xray_scaling_data.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling_data.F90
 
 xray_scaling_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_scaling_data.o
@@ -380,11 +397,14 @@ xray_scaling_impl_gpu.o:   xray_scaling_impl_gpu.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_scaling_impl_gpu.F90
 
 xray_target.o: \
+                    ../include/assert.fh\
                     xray_contracts.o\
                     xray_pure_utils.o\
                     xray_target_least_squares.o\
                     xray_target_vector_least_squares.o\
-                    xray_target_max_likelihood.o
+                    xray_target_max_likelihood.o\
+                    xray_target_vector_least_squares_data.o\
+                    xray_interface2_data.o
 
 
 xray_target.o:   xray_target.F90
@@ -394,7 +414,8 @@ xray_target.o:   xray_target.F90
 
 xray_target_least_squares.o: \
                     xray_contracts.o\
-                    xray_pure_utils.o
+                    xray_pure_utils.o\
+                    xray_interface2_data.o
 
 
 xray_target_least_squares.o:   xray_target_least_squares.F90
@@ -421,6 +442,7 @@ xray_target_max_likelihood_data.o:   xray_target_max_likelihood_data.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_max_likelihood_data.F90
 
 xray_target_max_likelihood_impl_cpu.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_target_max_likelihood_data.o
@@ -453,6 +475,7 @@ xray_target_vector_least_squares_data.o:   xray_target_vector_least_squares_data
 xray_target_vector_least_squares_impl_cpu.o: \
                     xray_contracts.o\
                     xray_pure_utils.o\
+                    xray_interface2_data.o\
                     xray_target_vector_least_squares_data.o
 
 
@@ -474,6 +497,7 @@ xray_target_vector_least_squares_impl_gpu.o:   xray_target_vector_least_squares_
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ xray_target_vector_least_squares_impl_gpu.F90
 
 xray_unit_cell.o: \
+                    ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o
 
