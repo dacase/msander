@@ -162,7 +162,9 @@ xray_bulk_model_simple.o: \
                     xray_unit_cell.o\
                     xray_pure_utils.o\
                     xray_bulk_mask.o\
-                    xray_bulk_mask_data.o
+                    xray_bulk_mask_data.o\
+                    xray_target.o\
+                    xray_interface2_data.o
 
 
 xray_bulk_model_simple.o:   xray_bulk_model_simple.F90
