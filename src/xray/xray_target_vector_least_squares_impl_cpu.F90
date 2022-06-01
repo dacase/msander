@@ -2,7 +2,7 @@ module xray_target_vector_least_squares_impl_cpu_module
 
     use xray_contracts_module
     use xray_pure_utils, only : real_kind
-    use xray_interface2_data_module, only : n_hkl, Fobs
+    use xray_interface2_data_module, only : n_hkl, Fobs, n_work
     use xray_target_vector_least_squares_data_module
 
     implicit none
@@ -46,11 +46,12 @@ contains
 
         real(real_kind) :: Fcalc_scale
 
-        Fcalc_scale = sum(real(Fobs * conjg(Fcalc))) / sum(abs(Fcalc)**2)
-
         vecdif(:) = Fobs(:) - Fcalc(:)
-        xray_energy = norm_scale * sum(vecdif(:) * conjg(vecdif(:)))
-        deriv(:) = - norm_scale * 2 * Fcalc_scale * vecdif(:)
+        xray_energy = norm_scale * sum(vecdif(:n_work) * conjg(vecdif(:n_work)))
+
+        deriv(:n_work) = - norm_scale * 2 * Fcalc_scale * vecdif(:n_work)
+        deriv(n_work + 1:) = 0 ! no force for things unselected here
+
 
     end subroutine calc_partial_d_target_d_Fcalc
 
