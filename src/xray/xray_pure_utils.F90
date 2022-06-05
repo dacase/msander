@@ -706,6 +706,7 @@ contains
     else
       result = 1
     end if
+    write(6,*) 'k_overallc: ', denom, result 
   
   end function calc_k_overallc
   

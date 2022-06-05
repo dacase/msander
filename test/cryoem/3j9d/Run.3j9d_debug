@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export OMP_NUM_THREADS=16
+export XRAY_NUM_THREADS=4
 
 sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
@@ -13,22 +13,25 @@ md for 3j9d
   imin=0, maxcyc=25,
   ntpr=1, ntwx=0, ntwr=0, ioutfm=1, ntxo=1,
   ntx=1, irest=0, tempi=0., temp0=1.,
-  ithermostat=1, therm_par=5.,
+  ntt=0, 
   ntb=1, ntp=0, ntc=2, ntf=2,  tol=0.0000001, 
-  nstlim=5, dt=.001, ig=314159, 
+  nstlim=0, dt=.001, ig=314159, 
   igb=8, cut=20.0, rgbmax=15.0,
  /
  &xray
    spacegroup_name='P1',
    pdb_infile = '4phenix_3j9d_box2.pdb',
-   reflection_infile = '3j9d_noH-sf.directi.dat',
+   fmtz_outfile = 'foo.fmtz', 
+   ! reflection_infile = '3j9d_noH-sf.directi.dat',
+   reflection_infile = 'test.dat',
    atom_selection_mask = '!@H=',
-   xray_weight = 10000.,
-   fft_method = 0,
-   target = 'vls',
-   scale_update_frequency = 10000,
+   xray_weight_initial = 10000.,
+   xray_weight_final = 10000.,
+   target = 'vls', bulk_solvent_model='simple', 
+   scale_update_period = 10000,
+   mask_update_period = 10000,
  /
- &debugf
+ &dxxxxx
   do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,7,
   chkvir=0, dumpfrc=0, rmsfrc=0, zerochg=0,
   zerovdw=0, do_dir=0, do_rec=0, do_adj=0, do_self=0,

@@ -19,9 +19,14 @@ contains
     subroutine init(abs_Fobs)
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
+        integer i
 
         allocate(derivc(n_hkl))
-        norm_scale = 1 / sum(abs_Fobs ** 2)
+        do i=1,n_work
+           write(6,*) i, Fobs(i)
+        end do
+        norm_scale = 1 / sum(abs(Fobs(:n_work)) ** 2)
+        write(6,'(a,e14.7)') 'vls: setting norm_scale = ', norm_scale
 
     end subroutine init
 
@@ -44,12 +49,12 @@ contains
         real(real_kind), intent(out) :: xray_energy
         complex(real_kind) :: vecdif(size(Fcalc))
 
-        real(real_kind) :: Fcalc_scale
+        integer :: i
 
         vecdif(:) = Fobs(:) - Fcalc(:)
         xray_energy = norm_scale * sum(vecdif(:n_work) * conjg(vecdif(:n_work)))
 
-        deriv(:n_work) = - norm_scale * 2 * Fcalc_scale * vecdif(:n_work)
+        deriv(:n_work) = - norm_scale * 2 * vecdif(:n_work)
         deriv(n_work + 1:) = 0 ! no force for things unselected here
 
 

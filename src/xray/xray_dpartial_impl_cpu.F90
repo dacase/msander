@@ -42,7 +42,13 @@ contains
     ASSERT(all(mSS4 <= 0))
     
     d_target_d_frac = 0
+
+    write(6,*) 'f_scale: ',
+    do ihkl = 1, size(hkl, 2)
+       write(6,*) i, f_scale(ihkl)
+    end do
     
+
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
