@@ -403,8 +403,7 @@ contains
       do i=1,num_hkl
          write(20,&
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
-          hkl_index(1,i), &
-          achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), Fobs(i)%re, achar(9), &
           Fobs(i)%im, achar(9), Fcalc(i)%re, achar(9), Fcalc(i)%im
       end do
@@ -418,8 +417,7 @@ contains
          phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
          write(20,&
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
-          hkl_index(1,i), &
-          achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
           sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
       end do

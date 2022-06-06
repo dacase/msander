@@ -43,12 +43,6 @@ contains
     
     d_target_d_frac = 0
 
-    write(6,*) 'f_scale: ',
-    do ihkl = 1, size(hkl, 2)
-       write(6,*) i, f_scale(ihkl)
-    end do
-    
-
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
@@ -87,14 +81,14 @@ contains
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_target_vector_least_squares_data_module, only: derivc
     use xray_pure_utils, only : PI
+    use xray_interface2_data_module, only : n_work
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     real(real_kind) :: hkl_v(3)
     real(real_kind) :: f, phase
-    integer :: i
-    integer :: ihkl
+    integer :: ihkl, i
     
     ASSERT(size(frac, 1) == 3)
     ASSERT(size(frac, 2) == size(atom_b_factor))
@@ -105,11 +99,11 @@ contains
     ASSERT(all(mSS4 <= 0))
     
     d_target_d_frac = 0
-    
+
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
-      do ihkl = 1, size(hkl, 2)
-        
+      do ihkl = 1, n_work
+
         if (abs_Fcalc(ihkl) < 1e-3) then
           ! Note: when Fcalc is approximately zero the phase is undefined,
           ! so no force can be determined even if the energy is high. (Similar
@@ -121,14 +115,13 @@ contains
         hkl_v = hkl(:, ihkl) * 2 * PI
         
         phase = -sum(hkl_v * frac(:, i))
-        ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
-        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
             * exp(mSS4(ihkl) * atom_b_factor(i)) &
-            * ( sin(phase) * derivc(ihkl)%re - cos(phase) * derivc(ihkl)%im )
+            * ( sin(phase) * derivc(ihkl)%re + cos(phase) * derivc(ihkl)%im )
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
             + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * f
+
       end do
     end do
 !$omp end parallel do

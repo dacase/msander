@@ -66,7 +66,7 @@ contains
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
     use xray_target_module, only : target_function_id
-    use xray_interface2_data_module, only : Fobs
+    use xray_interface2_data_module, only : Fobs, n_work
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     integer, intent(in) :: current_step
@@ -85,7 +85,7 @@ contains
 
     if(mod(current_step, scale_update_period) == 0) then
       if( target_function_id == 1 ) then
-         k_overall = calc_k_overallc(Fobs, Fcalc)
+         k_overall = calc_k_overallc(Fobs, Fcalc, n_work)
       else
          k_overall = calc_k_overall(absFobs, abs(Fcalc))
       endif

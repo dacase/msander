@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export XRAY_NUM_THREADS=4
+export XRAY_NUM_THREADS=20
 
 sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
@@ -13,17 +13,16 @@ md for 3j9d
   imin=0, maxcyc=25,
   ntpr=1, ntwx=0, ntwr=0, ioutfm=1, ntxo=1,
   ntx=1, irest=0, tempi=0., temp0=1.,
-  ntt=0, 
   ntb=1, ntp=0, ntc=2, ntf=2,  tol=0.0000001, 
   nstlim=0, dt=.001, ig=314159, 
-  igb=8, cut=20.0, rgbmax=15.0,
+  igb=0, cut=8.0, rgbmax=15.0,
  /
+ &ewald  vdwmeth=0, /
  &xray
    spacegroup_name='P1',
    pdb_infile = '4phenix_3j9d_box2.pdb',
-   fmtz_outfile = 'foo.fmtz', 
-   ! reflection_infile = '3j9d_noH-sf.directi.dat',
-   reflection_infile = 'test.dat',
+   reflection_infile = '3j9d_noH-sf.directi.dat',
+   !  reflection_infile = 'test.dat',
    atom_selection_mask = '!@H=',
    xray_weight_initial = 10000.,
    xray_weight_final = 10000.,
@@ -31,7 +30,7 @@ md for 3j9d
    scale_update_period = 10000,
    mask_update_period = 10000,
  /
- &dxxxxx
+ &debugf
   do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,7,
   chkvir=0, dumpfrc=0, rmsfrc=0, zerochg=0,
   zerovdw=0, do_dir=0, do_rec=0, do_adj=0, do_self=0,
@@ -41,13 +40,12 @@ md for 3j9d
 eof
 
 output=3j9d_debug.out
+source /home/case/msander/msander.sh
 
 $DO_PARALLEL $sander  -O -i mdin -p 3j9d_box.parm7 \
     -c min1.x -o $output \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 /bin/rm -f mdin mdinfo restrt
-
-# ../../dacdif -r 1.e-6 $output.save $output
 
 exit 0

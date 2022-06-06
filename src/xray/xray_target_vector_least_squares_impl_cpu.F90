@@ -22,11 +22,8 @@ contains
         integer i
 
         allocate(derivc(n_hkl))
-        do i=1,n_work
-           write(6,*) i, Fobs(i)
-        end do
         norm_scale = 1 / sum(abs(Fobs(:n_work)) ** 2)
-        write(6,'(a,e14.7)') 'vls: setting norm_scale = ', norm_scale
+        write(6,'(a,e14.7)') '| vls: setting norm_scale = ', norm_scale
 
     end subroutine init
 

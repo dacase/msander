@@ -1,9 +1,9 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 11/21/2020 at 12:01:10
+| Run on 06/06/2022 at 16:12:36
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/cryoem/3j9d
@@ -35,20 +35,22 @@ md for 3j9d
   imin=0, maxcyc=25,                                                           
   ntpr=1, ntwx=0, ntwr=0, ioutfm=1, ntxo=1,                                    
   ntx=1, irest=0, tempi=0., temp0=1.,                                          
-  ithermostat=1, therm_par=5.,                                                 
   ntb=1, ntp=0, ntc=2, ntf=2,  tol=0.0000001,                                  
-  nstlim=5, dt=.001, ig=314159,                                                
-  igb=8, cut=20.0, rgbmax=15.0,                                                
+  nstlim=0, dt=.001, ig=314159,                                                
+  igb=0, cut=8.0, rgbmax=15.0,                                                 
  /                                                                             
+ &ewald  vdwmeth=0, /                                                          
  &xray                                                                         
    spacegroup_name='P1',                                                       
    pdb_infile = '4phenix_3j9d_box2.pdb',                                       
    reflection_infile = '3j9d_noH-sf.directi.dat',                              
+   !  reflection_infile = 'test.dat',                                          
    atom_selection_mask = '!@H=',                                               
-   xray_weight = 10000.,                                                       
-   fft_method = 0,                                                             
-   target = 'vls',                                                             
-   scale_update_frequency = 10000,                                             
+   xray_weight_initial = 10000.,                                               
+   xray_weight_final = 10000.,                                                 
+   target = 'vls', bulk_solvent_model='simple',                                
+   scale_update_period = 10000,                                                
+   mask_update_period = 10000,                                                 
  /                                                                             
  &debugf                                                                       
   do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,7,                           
@@ -64,8 +66,7 @@ md for 3j9d
 
 | Flags:                                                                        
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
-|Largest sphere to fit in unit cell has radius =    66.660
+| Largest sphere to fit in unit cell has radius =    66.660
  NATOM  =   12180 NTYPES =      15 NBONH =    6091 MBONA  =    6224
  NTHETH =   13827 MTHETA =    8426 NPHIH =   27915 MPHIA  =   26777
  NHPARM =       0 NPARM  =       0 NNB   =   67278 NRES   =     747
@@ -74,24 +75,34 @@ md for 3j9d
  IFBOX  =       1 NMXRS  =      24 IFCAP =       0 NEXTRA =       0
  NCOPY  =       0
 
- Implicit solvent radii are ArgH and AspGluO modified Bondi2 radii (mbondi3)                                
- Replacing prmtop screening parameters with GBn2 (igb=8) values
 
 |     Memory Use     Allocated
-|     Real              945216
+|     Real              822723
 |     Hollerith          37289
-|     Integer           702127
-|     Max Pairs              1
-|     nblistReal             0
-|     nblist Int             0
-|       Total            10272 kbytes
+|     Integer          2927971
+|     Max Pairs        4060000
+|     nblistReal        146160
+|     nblist Int       8307048
+|       Total            67461 kbytes
 
 | Note: 1-4 EEL scale factors are being read from the topology file.
 
 | Note: 1-4 VDW scale factors are being read from the topology file.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
  XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
+
+X-ray Refinement Parameters:
+     PDB InFile: 4phenix_3j9d_box2.pdb
+     PDB Read Coordinates: F
+     PDB Use SegID: F
+     PDB Wrap Names: F
+     Spacegroup: P 1
+     Reflection InFile: 3j9d_noH-sf.directi.dat
+     X-ray weights:  0.100E+05 ...  0.100E+05
+     Use target: vls 
+     Scale update Interval: 10000
+     Solvent Mask Update Interval: 10000
+     Solvent scale:   0.350, B-factor:  46.000
+     Atom Selection Mask: !@H=
 
      BOX TYPE: RECTILINEAR
 
@@ -108,38 +119,25 @@ Nature and format of input:
      ntx     =       1, irest   =       0, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =       5
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntxo    =       1, ntpr    =       1, ntrx    =       1, ntwr    =       1
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
-     ntf     =       2, ntb     =       1, igb     =       8, nsnb    =      25
+     ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
      ipol    =       0, gbsa    =       0, iesp    =       0
-     dielc   =   1.00000, cut     =  20.00000, intdiel =   1.00000
-     saltcon =   0.00000, offset  =   0.19514, surften =   0.00500
-     rdt     =   0.00000, rgbmax  =  15.00000  extdiel =  78.50000
-     alpb  =        0
-     gbalphaH  =   0.78844, gbbetaH   =   0.79870,  gbgammaH  =    0.43733
-     gbalphaC  =   0.73376, gbbetaC   =   0.50638,  gbgammaC  =    0.20584
-     gbalphaN  =   0.50336, gbbetaN   =   0.31683,  gbgammaN  =    0.19292
-     gbalphaOS =   0.86781, gbbetaOS  =   0.87664,  gbgammaOS =    0.38788
-     gbalphaP  =   1.00000, gbbetaP   =   0.80000,  gbgammaP  =    4.85000
-     gb_alpha_hnu  =   0.53705, gb_beta_hnu   =   0.36286,  gb_gamma_hnu  =    0.11670
-     gb_alpha_cnu  =   0.33167, gb_beta_cnu   =   0.19684,  gb_gamma_cnu  =    0.09342
-     gb_alpha_nnu  =   0.68631, gb_beta_nnu   =   0.46319,  gb_gamma_nnu  =    0.13872
-     gb_alpha_onu  =   0.60634, gb_beta_onu   =   0.46301,  gb_gamma_onu  =    0.14226
-     gb_alpha_pnu  =   0.41836, gb_beta_pnu   =   0.29005,  gb_gamma_pnu  =    0.10642
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
 
 Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
 Molecular dynamics:
-     nstlim  =         5, nscm    =      1000, nrespa  =         1
+     nstlim  =         0, nscm    =      1000, nrespa  =         1
      t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
 
 Langevin dynamics temperature regulation:
      ig      =  314159
-     temp0   =   1.00000, tempi   =   0.00000, therm_par=   5.00000
+     temp0   =   1.00000, tempi   =   0.00000, gamma_ln=   5.00000
 
 SHAKE:
      ntc     =       2, jfastw  =       0
@@ -147,30 +145,15 @@ SHAKE:
 
 Ewald parameters:
      verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
-     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     vdwmeth =       0, eedmeth =       1, netfrc  =       1
      Box X =  133.320   Box Y =  161.600   Box Z =  147.460
      Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
      NFFT1 =  144       NFFT2 =  162       NFFT3 =  150
-     Cutoff=   20.000   Tol   = 0.100E-04
-     Ewald Coefficient =  0.13149
+     Cutoff=    8.000   Tol   = 0.100E-04
+     Ewald Coefficient =  0.34864
      Interpolation order =    4
-
-X-ray Refinement Parameters:
-     PDB InFile: 4phenix_3j9d_box2.pdb
-     PDB Read Coordinates: F
-     PDB Use SegID: F
-     PDB Wrap Names: F
-     Spacegroup: P 1
-     Reflection InFile: 3j9d_noH-sf.directi.dat
-     Resolution Range:   50.000,   0.000
-     X-ray weight:  0.100E+05
-     Use target: vls 
-     Scale update Interval: 10000
-     Solvent Mask Update Interval:   100
-     Solvent scale:   0.350, B-factor:  46.000
-     FFT method:  0
-     Atom Selection Mask:   !@H=
-     Solute Selection Mask: :*
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -180,49 +163,57 @@ defa
  begin time read from input coords =     0.000 ps
 
 PDB: All atoms read successfully.
+ getting box info from bottom of min1.x
 XRAY: UNIT CELL=   133.320  161.600  147.460  90.00  90.00  90.00
-Found   6089 atoms in !@H=;
-Found  12180 atoms in :*;
-| number of reflections:   155124       0  155124
-| highest resolution:   3.500
+Found   6089 atoms in !@H=;                                                                                                                                                                                                                                                           
+| Running Xray OpenMP with  20 threads
+| vls: setting norm_scale =  0.2918073E-10
  Number of triangulated 3-point waters found:        0
-| Running OPENMP code, with OMP_NUM_THREADS = 16
+
+     Sum of charges from parm topology file =      -2.0000
+     Assuming uniform neutralizing plasma
  DEBUG FORCE!; calling force routine
-| updating isotropic scaling:      2.64855
-| gradient norms, amber/xray:  0.74950E+03 0.17644E+02 0.42479E+02
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2211E-08   at   0.000080
+| CHECK d/dx switch(x): max rel err =   0.3900E-04   at   0.000020
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =    1846602
+| TOTAL SIZE OF NONBOND LIST =    1846602
+| gradient norms, amber/xray:  0.00000E+00 0.32432E+02 0.00000E+00
  DEBUG FORCE!; back from force routine
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =    -65765.2491  EKtot   =         0.0000  EPtot      =    -65765.2491
+ Etot   =      8522.9298  EKtot   =         0.0000  EPtot      =      8522.9298
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
- 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =     -5508.9134
- EELEC  =    -49354.8911  EGB     =    -11062.7650  RESTRAINT  =       161.3203
- EAMBER (non-restraint)  =    -65926.5695
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =      8522.9298
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =   3176953.7395
                                                     Density    =         0.0452
- Exray  =       161.3203  Rwork   =         0.1750  Rfree      =         0.0000
- ------------------------------------------------------------------------------
-
+ Exray  =      8522.9298  Rwork   =         0.3320  Rfree      =         0.0410
+ EAMBER (non-restraint)  =         0.0000
  Checking numerical force for user chosen atoms
  ----------------------------------------------
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         1
-      1   -0.23990695    -0.23990789     0.00000094
-      2   -1.68635437    -1.68636518     0.00001081
-      3    4.40350253     4.40350342    -0.00000089
- RMS force error =  0.231E-05
+      1    0.02544354     0.02544357    -0.00000003
+      2    0.04202165     0.04202134     0.00000030
+      3    0.54632472     0.54632469     0.00000002
+ RMS force error =  0.558E-06
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         5
-      1   -0.76089687    -0.76090763     0.00001075
-      2    0.09747004     0.09745787     0.00001217
-      3   -1.07011620    -1.07013124     0.00001505
- RMS force error =  0.168E-04
+      1    0.25116035     0.25116040    -0.00000005
+      2    0.31168921     0.31168916     0.00000005
+      3    0.14039842     0.14039848    -0.00000006
+ RMS force error =  0.221E-06
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         6
-      1    0.10151183     0.10152101    -0.00000918
-      2   -0.81411505    -0.81409955    -0.00001550
-      3    2.58610919     2.58610831     0.00000087
- RMS force error =  0.665E-05
+      1    0.00000000     0.00000000     0.00000000
+      2    0.00000000     0.00000000     0.00000000
+      3    0.00000000     0.00000000     0.00000000
+ RMS force error =  0.000E+00
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         7
-      1   -0.21834167    -0.21831989    -0.00002178
-      2   -1.57923867    -1.57924456     0.00000589
-      3   -0.40136925    -0.40135515    -0.00001410
- RMS force error =  0.162E-04
+      1   -0.19491712    -0.19491703    -0.00000009
+      2   -0.60578098    -0.60578116     0.00000018
+      3   -0.37768106    -0.37768136     0.00000030
+ RMS force error =  0.483E-06
  --------------------------------------------

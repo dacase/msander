@@ -690,23 +690,23 @@ contains
   ! Calculate k_overall that minimizes least square residual between k*Fcalc and Fobs
   !
   !---------------------------------------------------------------------------------------
-  function calc_k_overallc(Fobs, Fcalc) result(result)
+  function calc_k_overallc(Fobs, Fcalc, n_work) result(result)
     implicit none
     complex(real_kind), intent(in) :: Fobs(:) !< experimnal structure factors
     complex(real_kind), intent(in) :: Fcalc(:) !< model structure factors
+    integer, intent(in) :: n_work
     real(real_kind):: result
     real(real_kind):: denom
     
     ! Precondition
     ASSERT(size(Fobs) == size(Fcalc))
     
-    denom = sum(Fcalc(:) * conjg(Fcalc(:)))
+    denom = sum(Fcalc(:n_work) * conjg(Fcalc(:n_work)))
     if (denom > 0) then
-       result= sum( real(Fobs(:)*conjg(Fcalc(:))) ) / denom
+       result= sum( real(Fobs(:n_work)*conjg(Fcalc(:n_work))) ) / denom
     else
       result = 1
     end if
-    write(6,*) 'k_overallc: ', denom, result 
   
   end function calc_k_overallc
   

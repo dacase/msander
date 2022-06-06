@@ -13,8 +13,8 @@ cat > mdin <<EOF
 Production stage (NPT)
  &cntrl
   irest = 0, ntx = 1,
-  ithermostat = 0,
-  tempi = 0.0,
+  ntt = 0,
+  tempi = 0.0, ig=12345, 
   cut = 8.0,
   ntc = 2, ntf = 2,
   nstlim = 5, dt = 0.002,
