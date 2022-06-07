@@ -62,9 +62,11 @@ contains
   
   subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, &
         Fcalc, mSS4, Fuser)
-    use xray_pure_utils, only : calc_k_overall
+    use xray_pure_utils, only : calc_k_overall, calc_k_overallc
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
+    use xray_target_module, only : target_function_id
+    use xray_interface2_data_module, only : Fobs, n_work
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     integer, intent(in) :: current_step
@@ -82,7 +84,11 @@ contains
     Fcalc = Fcalc + f_mask * k_sol * exp(b_sol * mSS4)
 
     if(mod(current_step, scale_update_period) == 0) then
-      k_overall = calc_k_overall(absFobs, abs(Fcalc))
+      if( target_function_id == 1 ) then
+         k_overall = calc_k_overallc(Fobs, Fcalc, n_work)
+      else
+         k_overall = calc_k_overall(absFobs, abs(Fcalc))
+      endif
     end if
 
     Fcalc = k_overall * Fcalc

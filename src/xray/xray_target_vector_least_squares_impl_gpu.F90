@@ -10,7 +10,7 @@ module xray_target_vector_least_squares_impl_gpu_module
 
     ! Public module interface
     public :: init
-    public :: calc_partial_d_target_d_absFcalc
+    public :: calc_partial_d_target_d_Fcalc
     public :: finalize
 
 contains
@@ -20,7 +20,7 @@ contains
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
         real(real_kind), intent(in) :: sig_Fobs(:)
-        call cpu_init(abs_Fobs, sig_Fobs)
+        call cpu_init(abs_Fobs)
         call gpu_init()
     end subroutine init
 
@@ -30,19 +30,19 @@ contains
         call cpu_finalize()
     end subroutine finalize
 
-    subroutine calc_partial_d_target_d_absFcalc(Fcalc, deriv, xray_energy)
+    subroutine calc_partial_d_target_d_Fcalc(Fcalc, deriv, xray_energy)
         implicit none
         complex(real_kind), intent(in) :: Fcalc(:)
         complex(real_kind), intent(out) :: deriv(:)
         real(real_kind), intent(out) :: xray_energy
-    end subroutine calc_partial_d_target_d_absFcalc
+    end subroutine calc_partial_d_target_d_Fcalc
 
     subroutine gpu_init()
         implicit none
 
-        real(real_kind), allocatable :: r_Fobs(:), i_Fobs(:)
-        r_Fobs(:) = real(Fobs(:))
-        i_Fobs(:) = aimag(Fobs(:))
+        ! real(real_kind), allocatable :: r_Fobs(:), i_Fobs(:)
+        ! r_Fobs(:) = real(Fobs(:))
+        ! i_Fobs(:) = aimag(Fobs(:))
         ! TODO: copy r_Fobs(:), i_Fobs(:) to gpu
     end subroutine gpu_init
 

@@ -11,6 +11,7 @@ module xray_dpartial_impl_cpu_module
   private
   
   public :: calc_partial_d_target_d_frac
+  public :: calc_partial_d_vls_d_frac
   public :: finalize
   public :: init
 
@@ -41,7 +42,7 @@ contains
     ASSERT(all(mSS4 <= 0))
     
     d_target_d_frac = 0
-    
+
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
@@ -74,6 +75,58 @@ contains
 !$omp end parallel do
   
   end function calc_partial_d_target_d_frac
+  
+  function calc_partial_d_vls_d_frac(frac, f_scale) &
+         result(d_target_d_frac)
+    use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
+    use xray_target_vector_least_squares_data_module, only: derivc
+    use xray_pure_utils, only : PI
+    use xray_interface2_data_module, only : n_work
+    implicit none
+    real(real_kind), intent(in) :: frac(:, :)
+    real(real_kind), intent(in) :: f_scale(:)
+    real(real_kind) :: d_target_d_frac(3, size(frac, 2))
+    real(real_kind) :: hkl_v(3)
+    real(real_kind) :: f, phase
+    integer :: ihkl, i
+    
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(atom_b_factor))
+    ASSERT(size(frac, 2) == size(atom_scatter_type))
+    ASSERT(size(f_scale) == size(hkl, 2))
+    
+    ASSERT(all(abs_Fcalc >= 0))
+    ASSERT(all(mSS4 <= 0))
+    
+    d_target_d_frac = 0
+
+!$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
+    do i = 1, size(frac, 2)
+      do ihkl = 1, n_work
+
+        if (abs_Fcalc(ihkl) < 1e-3) then
+          ! Note: when Fcalc is approximately zero the phase is undefined,
+          ! so no force can be determined even if the energy is high. (Similar
+          ! to a linear bond angle.)
+          cycle
+        end if
+        
+        ! hkl-vector by 2pi
+        hkl_v = hkl(:, ihkl) * 2 * PI
+        
+        phase = -sum(hkl_v * frac(:, i))
+        f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
+            * exp(mSS4(ihkl) * atom_b_factor(i)) &
+            * ( sin(phase) * derivc(ihkl)%re + cos(phase) * derivc(ihkl)%im )
+        
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+            + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * f
+
+      end do
+    end do
+!$omp end parallel do
+  
+  end function calc_partial_d_vls_d_frac
   
   
   subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_,  &
