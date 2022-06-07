@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 12/31/2021 at 15:44:56
+| Run on 06/07/2022 at 10:14:01
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/qmmm2/lysine_AM1
+| Working directory: /home/case/msander_intel/test/qmmm2/lysine_AM1
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,15 +27,15 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Lysine: 5 cycles MD, one methylene group QM, has link atoms                    
  &cntrl                                                                        
         imin =0, nstlim = 5, drms=0.005,                                       
         ntpr=1, ntb=0, cut=99.,                                                
         ifqnt=1,                                                               
-        ithermostat=0,                                                         
+        ntt=0,                                                                 
         nscm=50, ntx=5, irest=1,igb=6                                          
  /                                                                             
  &qmmm                                                                         
@@ -60,21 +60,20 @@ Lysine: 5 cycles MD, one methylene group QM, has link atoms
 
 
 |     Memory Use     Allocated
-|     Real              251362
+|     Real              201232
 |     Hollerith             69
 |     Integer            21027
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2046 kbytes
+|       Total             1654 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
+| Note: ig = -1. Setting random seed to   649537 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -121,6 +120,8 @@ QMMM options:
        pseudo_diag = True pseudo_diag_criteria =   0.0500
       diag_routine =        0
           qm_ewald =        0 qm_pme = False 
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -130,8 +131,6 @@ LYS
  begin time read from input coords =     0.400 ps
 
  Number of triangulated 3-point waters found:        0
-| Running OpenMP with   1 threads
-| Running OpenMP with   1 threads
 |  # of SOLUTE  degrees of freedom (RNDFP):      66.
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  QMSHAKE_NOSHAKEMASK_OVERLAP =      0
@@ -170,7 +169,7 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM: *** Parameter sets in use ***
 | QMMM: C : M.J.S.DEWAR et al. JACS, 107, 3902, (1985)
 | QMMM: H : M.J.S.DEWAR et al. JACS, 107, 3902, (1985)
-
+ 
 | QMMM: *** Diagonalization Routine Information ***
 | QMMM: Pseudo diagonalizations are allowed.
 | QMMM: Auto diagonalization routine selection is in use.
@@ -179,26 +178,24 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:                              norbs =        8
 | QMMM:    diag iterations used for timing =       20
 | QMMM:
-| QMMM:              Internal diag routine = 0.000000 seconds
-| QMMM:                 Dspev diag routine = 0.005000 seconds
-| QMMM:                Dspevd diag routine = 0.000000 seconds
-| QMMM:                Dspevx diag routine = 0.002000 seconds
-| QMMM:                 Dsyev diag routine = 0.000000 seconds
-| QMMM:                Dsyevd diag routine = 0.000000 seconds
-| QMMM:                Dsyevr diag routine = 0.001000 seconds
+| QMMM:              Internal diag routine = 0.000200 seconds
+| QMMM:                 Dspev diag routine = 0.059600 seconds
+| QMMM:                Dspevd diag routine = 0.000700 seconds
+| QMMM:                Dspevx diag routine = 0.001800 seconds
+| QMMM:                 Dsyev diag routine = 0.000400 seconds
+| QMMM:                Dsyevd diag routine = 0.000400 seconds
+| QMMM:                Dsyevr diag routine = 0.000700 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.001000 seconds
-| QMMM: Pseudo diagonalization appears to be slower than regular
-| QMMM: diagonalization. Setting pseudo_diag=0 for optimum performance.
+| QMMM:                Pseudo diag routine = 0.000100 seconds
 | QMMM:
-| QMMM: Using dsyevd routine (diag_routine=6).
+| QMMM: Using internal diagonalization routine (diag_routine=1).
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
 | QMMM:              QM Atom Type Info :          728 bytes
 | QMMM:         QM RESP Charge Storage :           24 bytes
 | QMMM:            QM Atom Number List :           20 bytes
-| QMMM:                Link Atom Pairs :           40 bytes
+| QMMM:                Link Atom Pairs :           32 bytes
 | QMMM:          QM Atomic Number List :           20 bytes
 | QMMM:                QM-MM Pair List :           80 bytes
 | QMMM:                   QM Atom Mask :           44 bytes
@@ -217,8 +214,8 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:       _REAL_ parameter storage :        17056 bytes
 | QMMM:      integer parameter storage :          124 bytes
 | QMMM:         QM-MM RIJ Eqns storage :         7480 bytes
-| QMMM:          _REAL_ Scratch arrays :         2184 bytes
-| QMMM:         Integer Scratch arrays :          436 bytes
+| QMMM:          _REAL_ Scratch arrays :         2240 bytes
+| QMMM:         Integer Scratch arrays :          392 bytes
 | QMMM: ---------------------------------------------------
 | QMMM:        Total Dynamic Memory Usage:      0.033 Mb
 
@@ -233,8 +230,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  1-4 NB =         2.8222  1-4 EEL =        60.3955  VDWAALS    =        -0.6701
  EELEC  =         0.9734  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -3.5789
- ------------------------------------------------------------------------------
-
 
  NSTEP =        2   TIME(PS) =       0.402  TEMP(K) =   395.88  PRESS =     0.0
  Etot   =        97.6880  EKtot   =        23.6006  EPtot      =        74.0874
@@ -242,8 +237,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  1-4 NB =         2.8047  1-4 EEL =        60.2394  VDWAALS    =        -0.6533
  EELEC  =         1.0182  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -6.3452
- ------------------------------------------------------------------------------
-
 
  NSTEP =        3   TIME(PS) =       0.403  TEMP(K) =   387.25  PRESS =     0.0
  Etot   =        97.7485  EKtot   =        23.0861  EPtot      =        74.6624
@@ -251,8 +244,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  1-4 NB =         2.7154  1-4 EEL =        59.9608  VDWAALS    =        -0.6250
  EELEC  =         1.0337  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -6.6680
- ------------------------------------------------------------------------------
-
 
  NSTEP =        4   TIME(PS) =       0.404  TEMP(K) =   334.26  PRESS =     0.0
  Etot   =        98.0471  EKtot   =        19.9272  EPtot      =        78.1199
@@ -260,17 +251,13 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  1-4 NB =         2.5923  1-4 EEL =        59.6245  VDWAALS    =        -0.5863
  EELEC  =         1.0535  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -4.3619
- ------------------------------------------------------------------------------
-
 
  NSTEP =        5   TIME(PS) =       0.405  TEMP(K) =   302.48  PRESS =     0.0
- Etot   =        98.2124  EKtot   =        18.0328  EPtot      =        80.1795
- BOND   =         8.0829  ANGLE   =        10.6288  DIHED      =         1.2876
+ Etot   =        98.2124  EKtot   =        18.0328  EPtot      =        80.1796
+ BOND   =         8.0829  ANGLE   =        10.6289  DIHED      =         1.2876
  1-4 NB =         2.4673  1-4 EEL =        59.3155  VDWAALS    =        -0.5400
  EELEC  =         1.1097  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -2.1724
- ------------------------------------------------------------------------------
-
 
       A V E R A G E S   O V E R       5 S T E P S
 
@@ -281,8 +268,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  1-4 NB =         2.6804  1-4 EEL =        59.9072  VDWAALS    =        -0.6150
  EELEC  =         1.0377  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=        -4.6253
- ------------------------------------------------------------------------------
-
 
       R M S  F L U C T U A T I O N S
 
@@ -294,25 +279,26 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  EELEC  =         0.0446  EGB     =         0.0000  RESTRAINT  =         0.0000
  AM1ESCF=         1.6918
 |E(PBS) =         0.0434
- ------------------------------------------------------------------------------
-
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|             QMMM setup                 0.01 (90.91% of QMMM )
-|                   QMMM fock build            0.00 (100.0% of QMMM )
+|                Calc gb off-diag           0.00 (100.0% of Gen B)
+|             Gen Born time              0.00 (100.0% of Nonbo)
+|             QMMM setup                 0.07 (97.31% of QMMM )
+|                   QMMM fock build            0.00 (50.00% of QMMM )
+|                   QMMM full matrix dia       0.00 (25.00% of QMMM )
+|                   QMMM pseudo matrix d       0.00 ( 8.33% of QMMM )
+|                   Other                      0.00 (16.67% of QMMM )
 |                QMMM scf                   0.00 (100.0% of QMMM )
-|             QMMM energy                0.00 ( 9.09% of QMMM )
-|          QMMM                       0.01 (91.67% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 8.33% of Force)
-|       Force time                 0.01 (80.00% of Runmd)
-|       Verlet update time         0.00 (13.33% of Runmd)
-|       Other                      0.00 ( 6.67% of Runmd)
-|    Runmd Time                 0.01 (78.95% of Total)
-|    Other                      0.00 (21.05% of Total)
-| Total time                 0.02 (100.0% of ALL  )
+|             QMMM energy                0.00 ( 1.79% of QMMM )
+|          QMMM                       0.07 (99.55% of Force)
+|       Force time                 0.07 (98.25% of Runmd)
+|       Verlet update time         0.00 ( 1.75% of Runmd)
+|    Runmd Time                 0.07 (94.09% of Total)
+|    Other                      0.00 ( 5.78% of Total)
+| Total time                 0.07 (99.86% of ALL  )
 
 | Number of list builds   :          0
 
@@ -322,11 +308,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.01 Per Step(ms) =       3.00
-|         ns/day =      28.80   seconds/ns =    3000.00
+|     Elapsed(s) =       0.07 Per Step(ms) =      13.72
+|         ns/day =       6.30   seconds/ns =   13720.00
 | -----------------------------------------------------
 
-|           Job began  at 15:44:56.205  on 12/31/2021
-|           Setup done at 15:44:56.210  on 12/31/2021
-|           Run   done at 15:44:56.225  on 12/31/2021
-|     wallclock() was called    1107 times
+|           Job began  at 10:14:01.533  on 06/07/2022
+|           Setup done at 10:14:01.538  on 06/07/2022
+|           Run   done at 10:14:01.606  on 06/07/2022
+|     wallclock() was called    1168 times

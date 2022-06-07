@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 12/31/2020 at 13:21:09
+| Run on 06/07/2022 at 10:40:18
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/qmmm2/crambin_PM6
+| Working directory: /home/case/msander_intel/test/qmmm2/crambin_PM6
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,15 +27,15 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Crambin: 10 cycles md using qm calculation                                     
  &cntrl                                                                        
         imin =0, nstlim=5,                                                     
         ntpr=1, ntb=0, cut=8.1,                                                
         ifqnt=1,ntwx=5,ntwv=5,igb=6, ioutfm=0, ntxo=1,                         
-        ithermostat=0,                                                         
+        ntt=0,                                                                 
  /                                                                             
  &qmmm                                                                         
      iqmatoms= 80,81,82,83,84,85,86,87,88,89,90,                               
@@ -57,7 +57,7 @@ Crambin: 10 cycles md using qm calculation
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
-|Largest sphere to fit in unit cell has radius =       NaN
+| Largest sphere to fit in unit cell has radius =   129.379
  NATOM  =     642 NTYPES =      12 NBONH =     315 MBONA  =     334
  NTHETH =     717 MTHETA =     460 NPHIH =    1277 MPHIA  =     844
  NHPARM =       0 NPARM  =       0 NNB   =    3545 NRES   =      46
@@ -68,21 +68,20 @@ Crambin: 10 cycles md using qm calculation
 
 
 |     Memory Use     Allocated
-|     Real              286826
+|     Real              232960
 |     Hollerith           1974
 |     Integer            52309
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2452 kbytes
+|       Total             2032 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
+| Note: ig = -1. Setting random seed to   226756 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -129,6 +128,8 @@ QMMM options:
        pseudo_diag = True pseudo_diag_criteria =   0.0500
       diag_routine =        0
           qm_ewald =        0 qm_pme = False 
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -138,10 +139,6 @@ QMMM options:
  begin time read from input coords =     0.000 ps
 
  Number of triangulated 3-point waters found:        0
-
-| QMMM(OpenMP): SMP Multithreading is in use for matrix diagonalization routines.
-| QMMM(OpenMP):    1 threads will be spawned by the master MPI thread as needed.
-
 |  # of SOLUTE  degrees of freedom (RNDFP):    1926.
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  QMSHAKE_NOSHAKEMASK_OVERLAP =      0
@@ -273,7 +270,7 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | QMMM: H : J.J.P. Stewart, J. Mol. Mod., 13, 1173, (2007)
 | QMMM: N : J.J.P. Stewart, J. Mol. Mod., 13, 1173, (2007)
 | QMMM: O : J.J.P. Stewart, J. Mol. Mod., 13, 1173, (2007)
-
+ 
 | QMMM: *** Diagonalization Routine Information ***
 | QMMM: Pseudo diagonalizations are allowed.
 | QMMM: Auto diagonalization routine selection is in use.
@@ -282,15 +279,15 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | QMMM:                              norbs =      184
 | QMMM:    diag iterations used for timing =        5
 | QMMM:
-| QMMM:              Internal diag routine = 0.041000 seconds
-| QMMM:                 Dspev diag routine = 0.015000 seconds
-| QMMM:                Dspevd diag routine = 0.010000 seconds
-| QMMM:                Dspevx diag routine = 0.078000 seconds
-| QMMM:                 Dsyev diag routine = 0.012000 seconds
-| QMMM:                Dsyevd diag routine = 0.007000 seconds
-| QMMM:                Dsyevr diag routine = 0.015000 seconds
+| QMMM:              Internal diag routine = 0.041800 seconds
+| QMMM:                 Dspev diag routine = 0.084900 seconds
+| QMMM:                Dspevd diag routine = 0.009700 seconds
+| QMMM:                Dspevx diag routine = 0.076200 seconds
+| QMMM:                 Dsyev diag routine = 0.011500 seconds
+| QMMM:                Dsyevd diag routine = 0.007400 seconds
+| QMMM:                Dsyevr diag routine = 0.014300 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.012000 seconds
+| QMMM:                Pseudo diag routine = 0.011200 seconds
 | QMMM: Pseudo diagonalization appears to be slower than regular
 | QMMM: diagonalization. Setting pseudo_diag=0 for optimum performance.
 | QMMM:
@@ -301,7 +298,7 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | QMMM:              QM Atom Type Info :         1392 bytes
 | QMMM:         QM RESP Charge Storage :          640 bytes
 | QMMM:            QM Atom Number List :          352 bytes
-| QMMM:                Link Atom Pairs :          136 bytes
+| QMMM:                Link Atom Pairs :          128 bytes
 | QMMM:          QM Atomic Number List :          352 bytes
 | QMMM:                QM-MM Pair List :         2252 bytes
 | QMMM:                   QM Atom Mask :         1284 bytes
@@ -336,8 +333,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       172.5680  1-4 EEL =      2299.3075  VDWAALS    =      -257.7374
  EELEC  =     -3265.8622  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -130.9840
- ------------------------------------------------------------------------------
-
 
  NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
  Etot   =      -908.7752  EKtot   =         0.0000  EPtot      =      -908.7752
@@ -345,17 +340,13 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       172.5680  1-4 EEL =      2299.3075  VDWAALS    =      -257.7374
  EELEC  =     -3265.8622  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -130.9840
- ------------------------------------------------------------------------------
-
 
  NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     2.06  PRESS =     0.0
- Etot   =      -912.8738  EKtot   =         3.9360  EPtot      =      -916.8098
+ Etot   =      -912.8739  EKtot   =         3.9360  EPtot      =      -916.8098
  BOND   =        23.1189  ANGLE   =        74.9139  DIHED      =       173.4761
  1-4 NB =       172.4151  1-4 EEL =      2299.1189  VDWAALS    =      -257.8447
  EELEC  =     -3269.9011  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -132.1071
- ------------------------------------------------------------------------------
-
 
  NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =     7.24  PRESS =     0.0
  Etot   =      -913.1255  EKtot   =        13.8061  EPtot      =      -926.9316
@@ -363,8 +354,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       171.9853  1-4 EEL =      2298.5505  VDWAALS    =      -258.1697
  EELEC  =     -3270.0389  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -134.8848
- ------------------------------------------------------------------------------
-
 
  NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =    13.33  PRESS =     0.0
  Etot   =      -933.2848  EKtot   =        25.4236  EPtot      =      -958.7085
@@ -372,8 +361,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       171.3556  1-4 EEL =      2297.5973  VDWAALS    =      -258.7094
  EELEC  =     -3290.1237  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -138.0295
- ------------------------------------------------------------------------------
-
 
  NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    18.61  PRESS =     0.0
  Etot   =      -956.9730  EKtot   =        35.5034  EPtot      =      -992.4764
@@ -381,8 +368,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       170.6280  1-4 EEL =      2296.2678  VDWAALS    =      -259.4868
  EELEC  =     -3313.7188  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -140.5219
- ------------------------------------------------------------------------------
-
 
       A V E R A G E S   O V E R       5 S T E P S
 
@@ -393,8 +378,6 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  1-4 NB =       171.7904  1-4 EEL =      2298.1684  VDWAALS    =      -258.3896
  EELEC  =     -3281.9289  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=      -135.3054
- ------------------------------------------------------------------------------
-
 
       R M S  F L U C T U A T I O N S
 
@@ -406,35 +389,31 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
  EELEC  =        18.0107  EGB     =         0.0000  RESTRAINT  =         0.0000
  PM6ESCF=         3.5697
 |E(PBS) =        17.8938
- ------------------------------------------------------------------------------
-
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb off-diag           0.01 (100.0% of Gen B)
+|                Calc gb off-diag           0.01 (95.89% of Gen B)
+|                Other                      0.00 ( 4.11% of Gen B)
 |             Gen Born time              0.01 (100.0% of Nonbo)
-|          Nonbond force              0.01 ( 1.06% of Force)
-|             QMMM setup                 0.20 (35.65% of QMMM )
-|             QMMM RIJ Eqns Calc         0.01 ( 1.25% of QMMM )
-|                   QMMM hcore QM-QM           0.02 (72.73% of QMMM )
-|                   QMMM hcore QM-MM           0.01 (27.27% of QMMM )
-|                QMMM hcore calc            0.02 ( 7.07% of QMMM )
-|                   QMMM fock build            0.07 (24.91% of QMMM )
-|                   QMMM full matrix dia       0.17 (60.55% of QMMM )
-|                   QMMM density build         0.04 (13.49% of QMMM )
-|                   Other                      0.00 ( 1.04% of QMMM )
-|                QMMM scf                   0.29 (92.93% of QMMM )
-|             QMMM energy                0.31 (55.44% of QMMM )
-|             QMMM QM-QM force           0.03 ( 5.17% of QMMM )
-|             QMMM QM-MM force           0.01 ( 2.32% of QMMM )
-|          QMMM                       0.56 (98.77% of Force)
-|       Force time                 0.57 (98.78% of Runmd)
-|       Verlet update time         0.01 ( 1.22% of Runmd)
-|    Runmd Time                 0.57 (98.46% of Total)
-|    Other                      0.01 ( 1.54% of Total)
-| Total time                 0.58 (100.0% of ALL  )
+|          Nonbond force              0.01 ( 1.18% of Force)
+|             QMMM setup                 0.27 (44.03% of QMMM )
+|                   QMMM hcore QM-QM           0.02 (80.86% of QMMM )
+|                   QMMM hcore QM-MM           0.00 (19.14% of QMMM )
+|                QMMM hcore calc            0.02 ( 7.12% of QMMM )
+|                   QMMM fock build            0.09 (31.45% of QMMM )
+|                   QMMM full matrix dia       0.15 (55.14% of QMMM )
+|                   QMMM density build         0.04 (13.08% of QMMM )
+|                QMMM scf                   0.27 (92.77% of QMMM )
+|             QMMM energy                0.29 (48.17% of QMMM )
+|             QMMM QM-QM force           0.03 ( 4.74% of QMMM )
+|             QMMM QM-MM force           0.01 ( 2.15% of QMMM )
+|          QMMM                       0.61 (98.64% of Force)
+|       Force time                 0.62 (99.61% of Runmd)
+|    Runmd Time                 0.62 (98.43% of Total)
+|    Other                      0.01 ( 1.51% of Total)
+| Total time                 0.63 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -444,11 +423,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 97
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.58 Per Step(ms) =     115.20
-|         ns/day =       0.75   seconds/ns =  115200.00
+|     Elapsed(s) =       0.62 Per Step(ms) =     123.92
+|         ns/day =       0.70   seconds/ns =  123920.00
 | -----------------------------------------------------
 
-|           Job began  at 13:21:09.109  on 12/31/2020
-|           Setup done at 13:21:09.119  on 12/31/2020
-|           Run   done at 13:21:09.694  on 12/31/2020
-|     wallclock() was called    1542 times
+|           Job began  at 10:40:18.749  on 06/07/2022
+|           Setup done at 10:40:18.759  on 06/07/2022
+|           Run   done at 10:40:19.378  on 06/07/2022
+|     wallclock() was called    1507 times
