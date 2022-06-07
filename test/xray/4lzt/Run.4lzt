@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# export XRAY_NUM_THREADS=1
+export XRAY_NUM_THREADS=4
 
 sander="../../../bin/msander"
 
