@@ -43,13 +43,8 @@ module xray_globals_module
    ! Filename for reflection input file.
    character(len=MAX_FN_LEN), save :: reflection_infile
 
-   ! Sentinel value to descriminate default from user input
-   real(real_kind), parameter :: sentinel_xray_weight = -99.0
-   real(real_kind), parameter :: default_xray_weight = 1.0
-
-   ! Initial and final weight term for X-ray force:
-   real(real_kind), save :: xray_weight_initial
-   real(real_kind), save :: xray_weight_final
+   ! Weight term for X-ray force:
+   real(real_kind), save :: xray_weight
 
    !> Increment to be added to atomic radii of the atoms selected
    !  by atom_selection_mask as a part of the algorithm to build bulk mask
