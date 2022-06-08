@@ -15,11 +15,10 @@ module xray_target_vector_least_squares_impl_gpu_module
 
 contains
 
-    subroutine init(abs_Fobs, sig_Fobs)
+    subroutine init(abs_Fobs)
         use xray_target_vector_least_squares_impl_cpu_module, only : cpu_init => init
         implicit none
         real(real_kind), intent(in) :: abs_Fobs(:)
-        real(real_kind), intent(in) :: sig_Fobs(:)
         call cpu_init(abs_Fobs)
         call gpu_init()
     end subroutine init

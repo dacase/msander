@@ -10,6 +10,7 @@ module xray_dpartial_impl_gpu_module
   private
   
   public :: calc_partial_d_target_d_frac
+  public :: calc_partial_d_vls_d_frac
   public :: finalize
   public :: init
   
@@ -71,6 +72,12 @@ module xray_dpartial_impl_gpu_module
 
 
 contains
+
+  ! stub for un-written GPU vls implementation:
+  function calc_partial_d_vls_d_frac() result(d_vls_d_frac)
+  implicit none
+  real(real_kind) :: d_vls_d_frac      
+  end function calc_partial_d_vls_d_frac
   
   function calc_partial_d_target_d_frac(frac, f_scale, &
          d_target_d_abs_Fcalc) result(d_target_d_frac)

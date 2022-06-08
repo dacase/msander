@@ -148,7 +148,9 @@ xray_bulk_model_none.o: \
                     ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
-                    xray_pure_utils.o
+                    xray_pure_utils.o\
+                    xray_target.o\
+                    xray_interface2_data.o
 
 
 xray_bulk_model_none.o:   xray_bulk_model_none.F90
@@ -216,7 +218,8 @@ xray_dpartial_impl_cpu.o: \
                     xray_pure_utils.o\
                     constants_xray.o\
                     xray_atomic_scatter_factor.o\
-                    xray_target_vector_least_squares_data.o
+                    xray_target_vector_least_squares_data.o\
+                    xray_interface2_data.o
 
 
 xray_dpartial_impl_cpu.o:   xray_dpartial_impl_cpu.F90
