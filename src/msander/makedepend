@@ -44,8 +44,6 @@ $LESAPI{"rdparm"} = $LESAPI{"set"} = $LESAPI{"ew_setup"} =
 #  (special cases, since source is elsewhere)
 #  (check also below  (end of this file) for "compilation" rules)
 $modulefile{"netcdf"} = "netcdf";
-$modulefile{"omp_lib"} = "omp_lib";
-$modulefile{"iso_c_binding"} = "iso_c_binding";
 $modulefile{"AmberNetcdf_mod"} = "AmberNetcdf";
 $modulefile{"ElementOrbitalIndex"} = "elementOrbitalIndex";
 $modulefile{"qmmm_module"} = "qmmm_module";
@@ -57,6 +55,7 @@ $modulefile{"qmmm_read_and_alloc"} = "qm2_read_nm_and_alloc";
 $modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface";
 $modulefile{"xray_unit_cell_module"} = "../xray/xray_unit_cell";
 $modulefile{"xray_contracts_module"} = "../xray/xray_contracts";
+$modulefile{"xray_interface2_data_module"} = "../xray/xray_interface2_data";
 $modulefile{"xray_pure_utils"} = "../xray/xray_pure_utils";
 $modulefile{"xray_bulk_mask_data_module"} = "../xray/xray_bulk_mask_data";
 $modulefile{"xray_interface2_module"} = "../xray/xray_interface2";
@@ -68,14 +67,13 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
-# $modulefile{"ml_mod"} = "xray_ml";
-# $modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 
 # ignore certain modules:
 
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
-$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
+$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}
+    =$ignore{"mpi"}=$ignore{"mpi_f08"}=$ignore{"omp_lib"} = 1;
 # Also assume that the API in amber_rism_interface will be up-to-date
 $ignore{"amber_rism_interface"} = 1;
 

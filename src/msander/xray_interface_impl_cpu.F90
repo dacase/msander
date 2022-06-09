@@ -1,3 +1,4 @@
+#include "../include/assert.fh"
 ! This is a module to encapsulate all of the AMBER common blocks and
 ! other global junk into a module namespace.
 module xray_common_module
@@ -21,6 +22,7 @@ module xray_interface_impl_cpu_module
    public :: xray_write_min_state
    public :: xray_write_options
    public :: xray_write_pdb
+   public :: xray_write_fmtz
 
    namelist /xray/ &
          pdb_infile, pdb_outfile, &
@@ -30,11 +32,10 @@ module xray_interface_impl_cpu_module
          pdb_wrap_names, &
          spacegroup_name, &
          reflection_infile, &
-         xray_weight_initial, &
-         xray_weight_final, &
+         xray_weight, &
          target, &
          solvent_mask_probe_radius, &
-         solvent_mask_expand, &
+         solvent_mask_adjustment, &
          ntwsf, &
          sf_outfile, &
          atom_selection_mask, &
@@ -48,6 +49,7 @@ contains
    subroutine xray_read_mdin(mdin_lun)
       implicit none
       integer, intent(in) :: mdin_lun
+#include "nmr.h"
 
       character(len=512) :: line
       integer :: stat
@@ -57,15 +59,6 @@ contains
         return
       end if
 
-#if 0
-      ! Trap to catch users trying to run &xray in parallel
-#ifdef MPI
-      write(stdout, '(A)') 'Running simulations with an &xray namelist requires a serial &
-                           &installation.'
-      write(stdout, '(A)') 'Use the GPU extensions for best performance.'
-      call mexit(stdout,1)
-#endif
-#endif
       rewind(mdin_lun)
       read(unit=mdin_lun,nml=xray,iostat=stat)
 
@@ -82,15 +75,9 @@ contains
         call mexit(stdout,1)
       end if
       
-      if (xray_weight_initial == sentinel_xray_weight) then
-         call check_requirement(xray_weight_final == sentinel_xray_weight, &
-             & "`xray_weight_final` requires `xray_weight_initial` to be explicitly set")
-         xray_weight_initial = default_xray_weight
-      end if
-   
-      if (xray_weight_final == sentinel_xray_weight) then
-         xray_weight_final = xray_weight_initial
-      end if
+      ! initialize the weight-change value, in case other weight changes
+      ! might be used:
+      wxray = xray_weight
       
       !write(unit=6,nml=xray)
    end subroutine xray_read_mdin
@@ -112,7 +99,7 @@ contains
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
-      write(stdout,'(5X,A,E10.3,A,E10.3)') 'X-ray weights: ', xray_weight_initial, ' ... ', xray_weight_final
+      write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
       write(stdout,'(5X,A,A4)') 'Use target: ',target
       write(stdout,'(5X,A,I5)') 'Scale update Interval: ',scale_update_period
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
@@ -384,6 +371,50 @@ contains
       return
    end subroutine xray_write_pdb
 
+   subroutine xray_write_fmtz(filename)
+
+   use xray_globals_module
+   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution
+   use xray_target_module, only : target_function_id
+   implicit none
+   character(len=*), intent(in) :: filename
+
+   real(real_kind) :: phicalc
+   integer :: i
+
+   open(20,file=trim(fmtz_outfile),action='write')
+   if( target_function_id == 1 ) then
+      write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+         'resolution', achar(9), 'fobsr',achar(9),'fobsc',achar(9), &
+         'fcalcr',achar(9),'fcalci'
+      write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
+      do i=1,num_hkl
+         write(20,&
+          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
+          resolution(i), achar(9), Fobs(i)%re, achar(9), &
+          Fobs(i)%im, achar(9), Fcalc(i)%re, achar(9), Fcalc(i)%im
+      end do
+   else
+      write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+         'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
+         'fcalc',achar(9),'phicalc'
+      write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
+      do i=1,num_hkl
+         phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+         write(20,&
+          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
+          resolution(i), achar(9), abs(Fobs(i)), achar(9), &
+          sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
+      end do
+   end if
+   close(20)
+   end subroutine xray_write_fmtz
+  
+
    subroutine init()
 
       use xray_common_module, only: inpcrd
@@ -395,14 +426,16 @@ contains
       use memory_module, only: natom,nres,ih,m02,m04,m06,ix,i02,x,lcrd,i100
       use xray_interface_pre_init_data, only: scatter_coefficients
       use xray_interface2_module, only: init_interface2 => init
-      use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
+      ! use xray_debug_dump_module, only: xray_dump => dump  ! FIXME: remove this line in release
+      use constants, only : DEG_TO_RAD
       implicit none
       ! local
-      integer :: hkl_lun, i, j, k, nstlim = 1, NAT_for_mask1
-      double precision :: resolution, fabs_solvent, phi_solvent
+      integer :: hkl_lun, i, j, k, NAT_for_mask1
+      real(real_kind) :: resolution, fabs_solvent, phi_solvent
       complex(real_kind), allocatable, dimension(:) :: Fobs
       real(real_kind) :: phi,a,b,c,alpha,beta,gamma
-      integer :: has_f_solvent ! Keep it for compatibility with legacy input file format
+      real(real_kind) :: abs_Fuser, phase_Fuser
+      integer :: has_Fuser, alloc_status
 
       ! following is local: copied into f_mask in this routine, after
       !     f_mask itself is allocated.  (could be simplified)
@@ -426,15 +459,10 @@ contains
       !--------------------------------------------------------------
       ! Read reflection data
       call amopen(allocate_lun(hkl_lun),reflection_infile,'O','F','R')
-      read(hkl_lun,*,end=1,err=1) num_hkl, has_f_solvent
+      read(hkl_lun,*,end=1,err=2) num_hkl, has_Fuser
 
       allocate(hkl_index(3,num_hkl),abs_Fobs(num_hkl),sigFobs(num_hkl), &
             & test_flag(num_hkl))
-
-      if (has_f_solvent > 0 ) then
-         write(stdout,'(A)') 'f_solvent support is discontinued'
-         call mexit(stdout, 1)
-      endif
 
       if (fave_outfile /= '') then
          write(stdout,'(A)') 'fave_outfile is not yet implemented'
@@ -445,10 +473,23 @@ contains
       !  if target == "ls" or "ml", these are Fobs, sigFobs (for diffraction)
       !  if target == "vls",  these are Fobs, phiFobs (for cryoEM)
 
-      do i = 1,num_hkl
-         read(hkl_lun,*,end=1,err=1) &
-            hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
-      end do
+      if (has_Fuser > 0 ) then
+         allocate( Fuser(num_hkl) )
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=2) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i), &
+               abs_Fuser, phase_Fuser
+            Fuser(i) = abs_Fuser*cmplx( cos( DEG_TO_RAD*phase_Fuser) , &
+                                        sin( DEG_TO_RAD*phase_Fuser), rk_ )
+            test_flag(i) = min(test_flag(i),1)
+         end do
+      else
+         do i = 1,num_hkl
+            read(hkl_lun,*,end=1,err=2) &
+               hkl_index(1:3,i),abs_Fobs(i),sigFobs(i),test_flag(i)
+            test_flag(i) = min(test_flag(i),1)
+         end do
+      end if
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
@@ -468,8 +509,18 @@ contains
               ' additional atoms with zero occupancy'
       end if
 
-      ! FIXME: account for phase in Fobs
-      Fobs = abs_Fobs
+      ! set up complex Fobs(:), if vector target is requested
+      allocate(Fobs(num_hkl),stat=alloc_status)
+      REQUIRE(alloc_status==0)
+      if( target(1:3) == 'vls' ) then
+         do i = 1,num_hkl
+            !  sigFobs() here is assumed to be really phi(), in degrees
+            phi = sigFobs(i) * DEG_TO_RAD
+            Fobs(i) = cmplx( abs_Fobs(i)*cos(phi), abs_Fobs(i)*sin(phi), rk_ )
+         end do
+      else
+         Fobs = abs_Fobs
+      endif
       
       call init_interface2( &
          & target, bulk_solvent_model, &
@@ -478,20 +529,15 @@ contains
          & atom_bfactor, atom_occupancy, atom_scatter_type, &
          & atom_selection==1, ix(i100+1:i100+natom), &
          & mask_update_period, scale_update_period, &
-         & ml_update_period, k_sol, b_sol &
+         & ml_update_period, k_sol, b_sol, &
+         & solvent_mask_adjustment, solvent_mask_probe_radius &
       )
       
-!      ! Dump xray init parameters to test/debug ! FIXME: remove it in release
-!      call xray_dump( &
-!          & "dump.txt", &
-!          & hkl_index, Fobs, sigFobs, test_flag==1, &
-!          & unit_cell_, scatter_coefficients, &
-!          & atom_bfactor, atom_occupancy, atom_scatter_type, &
-!          & atom_selection==1, atm_atomicnumber &
-!      )
-
       return
       1 continue
+      write(stdout,'(A)') 'End-of-file reading HKL file.'
+      call mexit(stdout,1)
+      2 continue
       write(stdout,'(A)') 'Error reading HKL file.'
       call mexit(stdout,1)
    end subroutine init
@@ -508,10 +554,9 @@ contains
       target = 'ls  '
       spacegroup_name = 'P 1'
       reflection_infile = ''
-      xray_weight_initial = sentinel_xray_weight
-      xray_weight_final = sentinel_xray_weight
-      solvent_mask_probe_radius = 1.0
-      solvent_mask_expand = 0.8
+      xray_weight = 1.0
+      solvent_mask_probe_radius = 0.9
+      solvent_mask_adjustment = 1.11
       solvent_mask_reflection_outfile = ''
       solvent_mask_outfile = ''
       atom_selection_mask = '!@H='
@@ -546,11 +591,11 @@ contains
 
    ! gets xray_energy and derivatives
    subroutine xray_get_derivative(xyz, force, current_step, xray_e)
-      ! use mdin_ctrl_dat_mod, only: total_steps=> nstlim
       use xray_interface2_module, only: calc_force2 => calc_force, get_r_factors
       implicit none
 #include "../include/md.h"
 #include "def_time.h"
+#include "nmr.h"
       real(real_kind), intent(in) :: xyz(:, :)
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
@@ -558,7 +603,12 @@ contains
       ! local
       real(real_kind) :: xray_weight
       integer :: total_steps
-      total_steps = nstlim
+
+      if( imin > 0 ) then
+         total_steps = 100*maxcyc  ! FIXME: make this an input variable?
+      else
+         total_steps = nstlim  ! FIXME: make this an input variable?
+      endif
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
@@ -572,9 +622,9 @@ contains
       end if
 
       call timer_start(TIME_XRAY)
-      xray_weight = get_xray_weight(current_step, total_steps)
+      if(nmropt.gt.0) xray_weight = wxray
 
-      call calc_force2(xyz, current_step, xray_weight, force, xray_e)
+      call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
       xray_energy = xray_e
       call get_r_factors(r_work, r_free)
       call timer_stop(TIME_XRAY)
@@ -624,22 +674,4 @@ contains
       call mexit(stdout,2)
    end function allocate_lun
    
-   function get_xray_weight(current_step, total_steps) result(result)
-      integer, intent(in) :: current_step
-      integer, intent(in) :: total_steps
-      real(real_kind) :: result
-      
-      real(real_kind) :: weight_increment
-      
-      call check_precondition(current_step <= total_steps)
-      
-      if (total_steps > 1) then
-         weight_increment = (xray_weight_final - xray_weight_initial) / (total_steps - 1)
-      else
-         weight_increment = 0
-      end if
-      
-      result = xray_weight_initial + weight_increment * current_step
-   end function get_xray_weight
-
 end module xray_interface_impl_cpu_module

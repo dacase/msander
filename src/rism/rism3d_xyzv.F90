@@ -31,10 +31,10 @@ contains
     use rism_util, only : freeUnit
     use rism3d_grid_c
     use rism3d_solute_c
+#ifdef MPI
+    use mpi
+#endif
     implicit none
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     character(len=*), intent(in) :: file
     type(rism3d_grid), intent(in) :: grid
     _REAL_, target, intent(in) :: data(grid%localDimsR(1), grid%localDimsR(2), grid%localDimsR(3))

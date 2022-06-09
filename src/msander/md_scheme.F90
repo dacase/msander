@@ -14,6 +14,9 @@
 !    Chinese Science Bulletin 63(33), 3467-3483 (2018)
 !
 module md_scheme
+#ifdef MPI
+   use mpi
+#endif
   implicit none
   ! the scheme for integration algorithm
   integer,parameter :: &
@@ -21,21 +24,20 @@ module md_scheme
     ENUM_LFMIDDLE_SCHEME = 1    ! leap-frog middle scheme
 
   ! thermostat options
-  integer :: ithermostat ! thermostat method
+  integer :: ntt ! thermostat method
   integer,parameter :: &
     ENUM_NO_THERM   = 0, & ! no thermostatting
-    ENUM_LGV_THERM  = 1, & ! Langevin thermostat
+    ENUM_LGV_THERM  = 3, & ! Langevin thermostat
     ENUM_ADS_THERM  = 2    ! Andersen thermostat
 
   ! thermostat parameter, unit is 1/ps
   !   = gamma (friction coefficient) for Langevin dynamics
   !   = nu    (collision frequency)  for Andersen thermostat
-  _REAL_ :: therm_par    
+  _REAL_ :: gamma_ln    
 
 #include "../include/md.h"
 #ifdef MPI
 #  include "parallel.h"
-   include"mpif.h"
 #endif
 
 contains
@@ -78,12 +80,12 @@ contains
 #endif 
 
     dt = dtx / 20.455d0
-    select case (ithermostat)
+    select case (ntt)
     case (ENUM_NO_THERM)  ! no thermostating
       ! nothing to do here
     case (ENUM_LGV_THERM) ! Langevin thermostat
-      ! therm_par in ps^-1, dt in ps
-      lgv_c1 = exp(-therm_par*dt) 
+      ! gamma_ln in ps^-1, dt in ps
+      lgv_c1 = exp(-gamma_ln*dt) 
       lgv_c2 = sqrt(1.0d0 - lgv_c1*lgv_c1)
       rtkT = sqrt(kB*temp0)
 
@@ -109,7 +111,7 @@ contains
         call gauss(0.0d0, 1.0d0, rand)
       end do
     case (ENUM_ADS_THERM) ! Andersen thermostat
-      ads_prob = 1.0d0 - exp(-therm_par*dt)
+      ads_prob = 1.0d0 - exp(-gamma_ln*dt)
       rtkT = sqrt(kB*temp0)
       call amrand(rand)
 #ifdef MPI      
@@ -148,7 +150,7 @@ contains
 #endif      
       end if
     case default
-      write(*,*) 'Error in '//routine//': unknown ithermostat'
+      write(*,*) 'Error in '//routine//': unknown ntt'
       stop
     end select
   end subroutine thermostat_step

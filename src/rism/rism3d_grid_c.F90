@@ -118,10 +118,10 @@ contains
   !! @param[in] this Grid object.
   !! @param[in] comm MPI communicator.
   subroutine rism3d_grid_setmpi(this, comm)
-    implicit none
-#if defined(MPI)
-    include 'mpif.h'
+#ifdef MPI
+    use mpi
 #endif
+    implicit none
     type(rism3d_grid), intent(inout) :: this
     integer, intent(in) :: comm
     integer :: err

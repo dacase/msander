@@ -23,9 +23,11 @@ contains
          ,rank,size,comm &
 #endif /*MPI*/
          )
+#ifdef MPI
+    use mpi
+#endif
       implicit none
 #if MPI
-      include 'mpif.h'
       integer, intent(in) :: rank,size,comm
 #endif /*MPI*/
       integer, intent(in) :: numAtoms
@@ -343,10 +345,10 @@ end subroutine polynomialInterpolation
 !! Does a MPI sum
 
 function checksum(a,n,comm)
-  implicit none
 #ifdef MPI
-  include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+  implicit none
   _REAL_, intent(in) :: a(n)
   integer, intent(in) :: n,comm
   _REAL_ :: checksum, temp

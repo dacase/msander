@@ -315,12 +315,13 @@ subroutine api_mdread1(input_options, ierr)
 #  define FATAL_ERROR call mexit(6, 1)
 #endif /* API */
 
+!$ use omp_lib
    use file_io_dat
    use lmod_driver, only : read_lmod_namelist
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
@@ -411,8 +412,8 @@ subroutine api_mdread1(input_options, ierr)
 
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
-         ntb,ntt,temp0,tautp, &
-         ntp,pres0,comp,taup,barostat,mcbarint, &
+         ntb,temp0,tautp, &
+         ntp,pres0,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
          cut,dielc, &
@@ -429,7 +430,7 @@ subroutine api_mdread1(input_options, ierr)
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
@@ -439,7 +440,7 @@ subroutine api_mdread1(input_options, ierr)
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
@@ -599,11 +600,10 @@ subroutine api_mdread1(input_options, ierr)
    ig = 71277
    tempi = ZERO
    ntb = NO_INPUT_VALUE
-   ntt = 0
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
+   ntt = 3
+   gamma_ln = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
@@ -622,8 +622,6 @@ subroutine api_mdread1(input_options, ierr)
    barostat = 1
    mcbarint = 100
    pres0 = ONE
-   comp = 44.6d0
-   taup = ONE
    npscal = 1
    nscm = 1000
    nstlim = 1
@@ -748,7 +746,6 @@ subroutine api_mdread1(input_options, ierr)
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO
@@ -1036,13 +1033,13 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    ! middle scheme is requested {
-      if (ithermostat < 0 .or. ithermostat > 2) then
+      if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne. 3) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 0-2'
+            'Middle scheme: ntt is only available for 0,2,3'
          FATAL_ERROR
       end if
-      if (therm_par < 0d0) then
-         write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+      if (gamma_ln < 0d0) then
+         write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
          FATAL_ERROR
       end if
    ! }
@@ -1439,7 +1436,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: therm_par
+   use md_scheme, only: ntt, gamma_ln
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1464,6 +1461,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
 ! REMD
    use remd, only : rem, rremd
    use sgld, only : isgld ! for RXSGLD
+   use mpi
 #endif /* MPI */
    use linear_response, only: ilrt, lrtmask
    use nfe_sander_proxy, only: infe
@@ -1496,7 +1494,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #  include "parallel.h"
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
@@ -1572,14 +1569,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
       end if
    end if
    if(nscm <= 0) nscm = 0
-   if (therm_par > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
+   if (gamma_ln > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
    if(gamma_ln > 0.0d0)ndfmin=0  ! No COM motion removal for LD simulation
    if(ntt == 4)ndfmin=0  ! No COM motion removal for Nose'-Hoover simulation
    init = 3
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
    if (tautp <= ZERO ) tautp = 0.2d0
-   if (taup <= ZERO ) taup = 0.2d0
 
    !     ----- RESET THE CAP IF NEEDED -----
 
@@ -1614,14 +1610,14 @@ subroutine api_mdread2(x, ix, ih, ierr)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
      write (6, '(a)') "      and disabling the synchronization of random &
                                &numbers between tasks"
      write (6, '(a)') "      to improve performance."
 #else
 #  ifndef API
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                 &time in microseconds."
 #  endif /* API */
 #endif
@@ -1869,11 +1865,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,3(a,f10.5))') 'pres0   =',pres0, &
-               ', comp    =',comp,', taup    =',taup
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
+         else
+            write(6,'(a)') 'Error: only barostat=2 is supported in msander'
+            call mexit(6,1)
          end if
       end if
 
@@ -3058,10 +3056,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
-      DELAYED_ERROR
-   end if
-   if (ntp > 0 .and. taup < dt .and. barostat == 1) then
-      write(6, '(/2x,a,f6.2,a)') 'TAUP (',taup,') < DT (step size)'
       DELAYED_ERROR
    end if
    if (npscal < 0 .or. npscal > 1) then

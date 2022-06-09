@@ -10,7 +10,7 @@ cat > mdin.rism <<eof
   3D-RISM calculation using the sander interface
  &cntrl
     ntx=1, nstlim=2, irism=1, ntpr=1,
-    tempi=0.0, ithermostat=0, dt=0.001, 
+    tempi=0.0, ntt=0, dt=0.001, 
  /
  &rism
     periodic='pme',

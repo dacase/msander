@@ -21,6 +21,7 @@ namespace {
   void calc_f_non_bulk_w_manual_caching_kernel(int n_atom,
                                                const FloatType* global_frac_xyz,
                                                const FloatType* global_b_factor,
+                                               const FloatType* global_occupancy,
                                                int n_hkl,
                                                const int* global_hkl,
                                                const FloatType* global_mss4,
@@ -43,6 +44,7 @@ namespace {
     __shared__ FloatType frac_y[BLOCK_SIZE];
     __shared__ FloatType frac_z[BLOCK_SIZE];
     __shared__ FloatType b_factor[BLOCK_SIZE];
+    __shared__ FloatType occupancy[BLOCK_SIZE];
     __shared__ int scatter_type_index[BLOCK_SIZE];
 
     __shared__ int h[WARP_SIZE];
@@ -101,6 +103,7 @@ namespace {
           if (global_i_atom < n_atom) {
             scatter_type_index[threadIdx.x] = global_scatter_type_index[global_i_atom] - 1;
             b_factor[threadIdx.x] = global_b_factor[global_i_atom];
+            occupancy[threadIdx.x] = global_occupancy[global_i_atom];
             frac_x[threadIdx.x] = global_frac_xyz[global_i_atom * 3 + 0];
             frac_y[threadIdx.x] = global_frac_xyz[global_i_atom * 3 + 1];
             frac_z[threadIdx.x] = global_frac_xyz[global_i_atom * 3 + 2];
@@ -126,7 +129,8 @@ namespace {
                 t_l * frac_z[atom_cache_idx]
               );
               FloatType f = exp(t_mss4 * b_factor[atom_cache_idx]) *
-                            atomic_scatter_factor[(scatter_type_index[atom_cache_idx] * WARP_SIZE) + hkl_cached_idx];
+                            atomic_scatter_factor[(scatter_type_index[atom_cache_idx] * WARP_SIZE) + hkl_cached_idx]
+                            * occupancy[atom_cache_idx];
 
               f_real += f * cos(angle);
               f_imag += f * sin(angle);
@@ -174,6 +178,7 @@ namespace {
   void calc_f_non_bulk_kernel(int n_atom,
                               const FloatType* frac_xyz,
                               const FloatType* b_factor,
+                              const FloatType* occupancy,
                               int n_hkl,
                               const int* hkl,
                               const FloatType* mss4,
@@ -201,7 +206,7 @@ namespace {
           frac_xyz[j_atom * 3 + 1] * k +
           frac_xyz[j_atom * 3 + 2] * l
         );
-        term[tid] += thrust::complex<FloatType>{f * std::cos(angle), f * std::sin(angle)};
+        term[tid] += thrust::complex<FloatType>{f * std::cos(angle), f * std::sin(angle)} * occupancy[j_atom];
       }
 
       __syncthreads();
@@ -223,12 +228,13 @@ namespace {
 template<xray::NonBulkKernelVersion KERNEL_VERSION, xray::KernelPrecision PRECISION>
 xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::NonBulkGPU(
   int n_hkl, const int* hkl, complex_double* f_non_bulk, const double* mSS4, int n_atom,
-  const double* b_factor, int n_scatter_types, const int* scatter_type_index,
+  const double* b_factor, const double* occupancy, int n_scatter_types, const int* scatter_type_index,
   const double* atomic_scatter_factor) : NonBulk(n_hkl, hkl, f_non_bulk, mSS4, n_atom,
-                                                 b_factor, n_scatter_types,
+                                                 b_factor, occupancy, n_scatter_types,
                                                  scatter_type_index, atomic_scatter_factor) {
   m_dev_frac_xyz = thrust::device_vector<FloatType>(n_atom * 3);
   m_dev_b_factor = thrust::device_vector<FloatType>(m_b_factor, m_b_factor + n_atom);
+  m_dev_occupancy = thrust::device_vector<FloatType>(m_occupancy, m_occupancy + n_atom);
   m_dev_hkl = thrust::device_vector<int>(m_hkl, m_hkl + m_n_hkl * 3);
   m_dev_mSS4 = thrust::device_vector<FloatType>(m_mSS4, m_mSS4 + m_n_hkl);
   m_dev_atomic_scatter_factor = thrust::device_vector<FloatType>(m_atomic_scatter_factor,
@@ -244,24 +250,6 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
   thrust::copy(frac_xyz, frac_xyz + n_atom * 3, m_dev_frac_xyz.begin());
   thrust::fill(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), 0.0);
 
-  cudaEvent_t start, stop;
-  float elapsed_ms = 0;
-
-  auto start_kernel_timer = [&] {
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start);
-  };
-
-  auto stop_kernel_timer = [&] {
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&elapsed_ms, start, stop);
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-  };
-
-  start_kernel_timer();
   switch (KERNEL_VERSION) {
     case (NonBulkKernelVersion::ManualCaching): {
 
@@ -274,6 +262,7 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
         n_atom,
         m_dev_frac_xyz.data().get(),
         m_dev_b_factor.data().get(),
+        m_dev_occupancy.data().get(),
         m_n_hkl,
         m_dev_hkl.data().get(),
         m_dev_mSS4.data().get(),
@@ -295,6 +284,7 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
         n_atom,
         m_dev_frac_xyz.data().get(),
         m_dev_b_factor.data().get(),
+        m_dev_occupancy.data().get(),
         m_n_hkl,
         m_dev_hkl.data().get(),
         m_dev_mSS4.data().get(),
@@ -306,11 +296,7 @@ void xray::NonBulkGPU<KERNEL_VERSION, PRECISION>::calc_f_non_bulk(int n_atom, co
       break;
     }
   }
-  stop_kernel_timer();
   thrust::copy(m_dev_f_non_bulk.begin(), m_dev_f_non_bulk.end(), m_f_non_bulk);
-
-
-  // fprintf(stderr, "   kernel_time: %7.2f ms\n", elapsed_ms);
 }
 
 template class xray::NonBulkGPU<xray::NonBulkKernelVersion::ManualCaching, xray::KernelPrecision::Single>;

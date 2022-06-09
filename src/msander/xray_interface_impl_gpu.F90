@@ -3,7 +3,7 @@ module xray_interface_impl_gpu_module
     use xray_contracts_module
     use xray_pure_utils, only: real_kind
 
-    ! Some functions are not different from CPU version
+    ! Reuse functions from CPU module
     use xray_interface_impl_cpu_module, only: &
             & xray_read_mdin, &
             & xray_read_parm, &

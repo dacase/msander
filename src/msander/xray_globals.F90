@@ -43,16 +43,16 @@ module xray_globals_module
    ! Filename for reflection input file.
    character(len=MAX_FN_LEN), save :: reflection_infile
 
-   ! Sentinel value to descriminate default from user input
-   real(real_kind), parameter :: sentinel_xray_weight = -99.0
-   real(real_kind), parameter :: default_xray_weight = 1.0
+   ! Weight term for X-ray force:
+   real(real_kind), save :: xray_weight
 
-   ! Initial and final weight term for X-ray force:
-   real(real_kind), save :: xray_weight_initial
-   real(real_kind), save :: xray_weight_final
+   !> Increment to be added to atomic radii of the atoms selected
+   !  by atom_selection_mask as a part of the algorithm to build bulk mask
+   real(real_kind), save :: solvent_mask_adjustment
 
-   ! Solvent mask generation parameters
-   real(real_kind), save :: solvent_mask_probe_radius, solvent_mask_expand
+   !> The radius of solvent probe to apply as a part of the algorithm
+   !  to build bulk solvent mask (shrinks non-bulk volume)
+   real(real_kind), save :: solvent_mask_probe_radius
 
    ! Output file for bulk-solvent reflections (Fbulk) and mask
    character(len=MAX_FN_LEN), save :: solvent_mask_reflection_outfile
@@ -83,10 +83,12 @@ module xray_globals_module
    integer, save :: num_hkl
    integer, save :: num_free_flags
    integer, save :: num_work_flags
+   integer, save :: has_f_user
    
    integer, allocatable, target, save :: hkl_index(:,:) ! (3,num_hkl)
 
    real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:)
+   complex(real_kind), allocatable, save :: Fuser(:)
    integer, allocatable, save :: test_flag(:)  ! 0 -- "free set" ; 1 -- "work set"
    integer, save :: scale_update_period, &
           ml_update_period, mask_update_period

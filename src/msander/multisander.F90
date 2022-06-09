@@ -85,6 +85,9 @@ program multisander
 #endif /* DISABLE_NFE */
 
   use omp_lib
+#ifdef MPI
+   use mpi
+#endif
   implicit none
 
   ! Update this when the version changes! (Make sure to update the len if
@@ -98,7 +101,6 @@ program multisander
 #ifdef MPI
 
 #include "ew_parallel.h"
-  include 'mpif.h'
 #include "../include/md.h"
 
 #ifdef LES

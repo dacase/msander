@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_non_bulk_impl_gpu_module
   
   use xray_contracts_module
@@ -16,6 +18,7 @@ module xray_non_bulk_impl_gpu_module
   interface
     subroutine pmemd_xray_non_bulk_init_gpu(n_hkl, hkl, f_non_bulk, mSS4, n_atom, &
         & b_factor, &
+        & occupancy, &
         & n_scatter_types, scatter_type_index, atomic_scatter_factor) bind(C)
       use iso_c_binding
       implicit none
@@ -25,6 +28,7 @@ module xray_non_bulk_impl_gpu_module
       real(c_double), intent(in) :: mSS4(n_hkl)
       integer(c_int), value :: n_atom
       real(c_double), intent(in) :: b_factor(n_atom)
+      real(c_double), intent(in) :: occupancy(n_atom)
       integer(c_int), value :: n_scatter_types
       integer(c_int), intent(in) :: scatter_type_index(n_atom)
       real(c_double), intent(in) :: atomic_scatter_factor(n_hkl, n_scatter_types)
@@ -55,14 +59,12 @@ contains
     real(real_kind), intent(in), target :: mSS4_(:)
     real(real_kind), intent(in) :: b_factor_(:)
     integer, intent(in) :: scatter_type_index_(:)
-    real(real_kind), intent(in), optional :: occupancy_(:)
+    real(real_kind), intent(in) :: occupancy_(:)
     
-    call check_precondition(size(hkl_, 1) == 3)
-    call check_precondition(size(hkl_, 2) == size(mSS4_))
-    call check_precondition(size(b_factor_) == size(scatter_type_index_))
-    if (present(occupancy_)) then
-      call check_precondition(size(b_factor_) == size(occupancy_))
-    end if
+    ASSERT(size(hkl_, 1) == 3)
+    ASSERT(size(hkl_, 2) == size(mSS4_))
+    ASSERT(size(b_factor_) == size(scatter_type_index_))
+    ASSERT(size(b_factor_) == size(occupancy_))
     
     call cpu_init(hkl_, mSS4_, b_factor_, scatter_type_index_, occupancy_)
     call gpu_init()
@@ -81,7 +83,7 @@ contains
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     
-    call check_precondition(size(frac, 1) == 3)
+    ASSERT(size(frac, 1) == 3)
     call pmemd_xray_non_bulk_calc_f_non_bulk_gpu(size(frac, 2), frac)
   end subroutine calc_f_non_bulk
   
@@ -91,13 +93,12 @@ contains
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     implicit none
 
-    call check_precondition(allocated(atomic_scatter_factor))
-    
-    print *, "atomic size", size(atomic_scatter_factor, 1), size(atomic_scatter_factor, 2)
+    ASSERT(allocated(atomic_scatter_factor))
     
     call pmemd_xray_non_bulk_init_gpu( &
         & size(hkl, 2), hkl, f_non_bulk, mSS4, size(b_factor), &
         & b_factor, &
+        & occupancy, &
         & size(atomic_scatter_factor, 2), scatter_type_index, atomic_scatter_factor &
     )
   end subroutine gpu_init

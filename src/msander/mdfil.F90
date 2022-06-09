@@ -609,9 +609,9 @@ end subroutine mdfil
 !+ Broadcasts all commandline information to each thread
 subroutine commandline_bcast(ierr)
 
+   use mpi
    implicit none
 #include "parallel.h"
- include 'mpif.h'
    integer, intent(out) :: ierr
 
    ! Broadcast everything

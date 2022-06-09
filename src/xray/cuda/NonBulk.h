@@ -12,6 +12,7 @@ namespace xray {
             const double* mSS4,
             int n_atom,
             const double* b_factor,
+            const double* occupancy,
             int n_scatter_types,
             const int* scatter_type_index,
             const double* atomic_scatter_factor);
@@ -31,6 +32,7 @@ namespace xray {
 
     int m_n_atom = 0;
     const double* m_b_factor = nullptr;
+    const double* m_occupancy = nullptr;
     int m_n_scatter_types = 0;
     const int* m_scatter_type_index = nullptr;
     const double* m_atomic_scatter_factor = nullptr;

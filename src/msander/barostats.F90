@@ -57,8 +57,8 @@ contains
 ! Make sure all threads on the same replica have the exact same random # stream
 subroutine mcbar_setup(ig)
 
+   use mpi
    implicit none
-   include 'mpif.h'
 #include "parallel.h"
 #include "extra.h"
    integer, intent(in) :: ig
@@ -302,12 +302,14 @@ subroutine scale_system_volume(rmu, natom, crd, rcrd, amass, nsp)
    use softcore, only : sc_pscale, ifsc
 #endif
 
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 
 #  include "box.h"
 #  include "../include/md.h"
 #ifdef MPI
-   include 'mpif.h'
 #  include "extra.h"
 #  include "parallel.h"
 #endif

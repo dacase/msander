@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 01/04/2022 at 11:36:30
+| Run on 01/13/2022 at 11:16:51
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/xray/2msi
+| Working directory: /home/case/msander_12jan22/test/xray/2msi
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -137,8 +137,8 @@ default_name
  begin time read from input coords =    40.000 ps
 
  Number of triangulated 3-point waters found:      817
-| Running OpenMP with  10 threads
-| Running OpenMP with  10 threads
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
      Sum of charges from parm topology file =      -0.0000
      Forcing neutrality...
@@ -159,18 +159,19 @@ X-ray Refinement Parameters:
      Atom Selection Mask: :1-264
 PDB: missing data for 2451 atoms.
 PDB: Missing ATOM: O    H        5 
-PDB: Missing ATOM: H1   CA       1 
-PDB: Missing ATOM: H2   HA       2 
-PDB: Missing ATOM: O    CB       3 
-PDB: Missing ATOM: H1   HB2      2 
-PDB: Missing ATOM: H2   HB3      3 
-PDB: Missing ATOM: O    CG       2 
+PDB: Missing ATOM: H1   CA       5 
+PDB: Missing ATOM: H2   HA       3 
+PDB: Missing ATOM: O    CB       5 
+PDB: Missing ATOM: H1   HB2      1 
+PDB: Missing ATOM: H2   HB3      2 
+PDB: Missing ATOM: O    CG       3 
 PDB: Missing ATOM: H1   HG2      2 
 PDB: Missing ATOM: H2   HG3      3 
 PDB: Missing ATOM: O    CD       2 
  getting box info from netcdf file run_cool.rst
 XRAY: UNIT CELL=    33.270   39.890   44.540  90.00  90.00  90.00
 Found   4048 atoms in :1-264;                                                                                                                                                                                                                                                         
+| Running Xray OpenMP with  10 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -281,29 +282,29 @@ Found   4048 atoms in :1-264;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.04 (82.69% of List )
-|                Other                      0.01 (17.31% of List )
-|             List time                  0.05 (34.44% of Nonbo)
-|                   Short_ene time             0.06 (100.0% of Direc)
-|                Direct Ewald time          0.06 (55.56% of Ewald)
-|                Adjust Ewald time          0.01 ( 9.09% of Ewald)
-|                   Fill Bspline coeffs        0.00 (12.50% of Recip)
-|                   Fill charge grid           0.00 (15.62% of Recip)
-|                   Scalar sum                 0.00 ( 3.12% of Recip)
-|                   Grad sum                   0.01 (21.88% of Recip)
-|                   FFT time                   0.01 (46.87% of Recip)
-|                Recip Ewald time           0.03 (32.32% of Ewald)
-|                Other                      0.00 ( 3.03% of Ewald)
-|             Ewald time                 0.10 (65.56% of Nonbo)
-|          Nonbond force              0.15 ( 1.25% of Force)
-|             Fcalc loop                 5.72 (48.19% of Xray )
-|             Deriv loop                 5.72 (48.17% of Xray )
-|             Other                      0.43 ( 3.64% of Xray )
-|          Xray restaints            11.87 (98.57% of Force)
-|       Force time                12.05 (100.0% of Runmd)
-|    Runmd Time                12.05 (98.49% of Total)
-|    Other                      0.18 ( 1.51% of Total)
-| Total time                12.24 (100.0% of ALL  )
+|                Build the list             0.04 (84.00% of List )
+|                Other                      0.01 (16.00% of List )
+|             List time                  0.05 (21.65% of Nonbo)
+|                   Short_ene time             0.14 (98.55% of Direc)
+|                   Other                      0.00 ( 1.45% of Direc)
+|                Direct Ewald time          0.14 (76.24% of Ewald)
+|                Adjust Ewald time          0.01 ( 3.31% of Ewald)
+|                   Fill Bspline coeffs        0.00 (13.51% of Recip)
+|                   Fill charge grid           0.01 (16.22% of Recip)
+|                   Scalar sum                 0.00 ( 2.70% of Recip)
+|                   Grad sum                   0.01 (16.22% of Recip)
+|                   FFT time                   0.02 (51.35% of Recip)
+|                Recip Ewald time           0.04 (20.44% of Ewald)
+|             Ewald time                 0.18 (78.35% of Nonbo)
+|          Nonbond force              0.23 ( 3.63% of Force)
+|             Fcalc loop                 2.90 (47.47% of Xray )
+|             Deriv loop                 2.76 (45.10% of Xray )
+|             Other                      0.45 ( 7.42% of Xray )
+|          Xray restaints             6.11 (96.15% of Force)
+|       Force time                 6.36 (99.89% of Runmd)
+|    Runmd Time                 6.37 (98.07% of Total)
+|    Other                      0.12 ( 1.93% of Total)
+| Total time                 6.49 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -313,11 +314,11 @@ Found   4048 atoms in :1-264;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      12.05 Per Step(ms) =    2410.00
-|         ns/day =       0.07   seconds/ns = 1205000.00
+|     Elapsed(s) =       6.37 Per Step(ms) =    1273.40
+|         ns/day =       0.14   seconds/ns =  636700.00
 | -----------------------------------------------------
 
-|           Job began  at 11:36:30.433  on 01/04/2022
-|           Setup done at 11:36:30.617  on 01/04/2022
-|           Run   done at 11:36:42.667  on 01/04/2022
+|           Job began  at 11:16:51.440  on 01/13/2022
+|           Setup done at 11:16:51.565  on 01/13/2022
+|           Run   done at 11:16:57.932  on 01/13/2022
 |     wallclock() was called     314 times

@@ -1,16 +1,16 @@
 #  just redirect things to lower-level Makefiles
 
 install::
-	cd src && make install
+	cd src && $(MAKE) install
 
 test::
-	cd test && make test
+	cd test && $(MAKE) test
 
 clean::
-	cd src && make clean
+	cd src && $(MAKE) clean
 
 uninstall::
-	cd src && make uninstall
+	cd src && $(MAKE) uninstall
 
 distclean::
-	cd src && make distclean
+	cd src && $(MAKE) distclean

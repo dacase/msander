@@ -26,7 +26,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #ifdef MPI /* SOFT CORE */
    use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
-!$  use constants, only: omp_num_threads
    implicit none
 #ifdef MPI
 #  include "parallel.h"
@@ -44,14 +43,13 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 
    !------------- local variables  ---------------------------
    integer max190
-   parameter (max190=500)
+   parameter (max190=190)
    integer nb,ist,maxlen,i3,j3,ic,jn,ii,jj
    _REAL_ xij(max190),yij(max190),zij(max190),eaw(max190), &
          rij(max190),dfw(max190)
    _REAL_ da,df,xa,ya,za,rij0,ebl
    logical skip
    integer piece,start,end
-!$ integer max_threads
 
 #ifndef MPI
    integer numtasks,mytaskid
@@ -61,8 +59,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 #endif
 
    if ( do_bond == 0 .or. nbin == 0 ) return
-
-!$ max_threads = min( 8, omp_num_threads )
 
    if(numtasks > 1)then
       piece = nbin/numtasks
@@ -89,8 +85,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
    if (skip) maxlen = nb-ist
    if (maxlen > 0) then
 
-!$omp parallel do private(jn,i3,j3,rij0,ii,jj,ic,da,df) &
-!$omp&  num_threads(max_threads)
       do jn = 1,maxlen
          i3 = ib(jn+ist)
          j3 = jb(jn+ist)
@@ -100,20 +94,28 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
          xij(jn) = x(i3+1)-x(j3+1)
          yij(jn) = x(i3+2)-x(j3+2)
          zij(jn) = x(i3+3)-x(j3+3)
+      end do
 
-         rij(jn) = sqrt(xij(jn)*xij(jn)+yij(jn)*yij(jn)+zij(jn)*zij(jn))
+      do jn = 1,maxlen
+         rij0 = xij(jn)*xij(jn)+yij(jn)*yij(jn)+zij(jn)*zij(jn)
+         rij(jn) = sqrt(rij0)
+      end do
 
       !         ----- CALCULATION OF THE ENERGY AND DER -----
+
+      do jn = 1,maxlen
+         ii = (ib(jn+ist) + 3)/3
+         jj = (jb(jn+ist) + 3)/3
 
          ic = icb(jn+ist)
          rij0 = rij(jn)
          da = rij0-req(ic)
+         !  for rms deviation from ideal bonds:
+         ebdev = ebdev + da*da
          df = rk(ic)*da
          eaw(jn) = df*da
 #ifdef MPI /* SOFT CORE */
          ! For dual-topology softcore runs, bonds involving sc atoms are modified here
-         ii = (ib(jn+ist) + 3)/3
-         jj = (jb(jn+ist) + 3)/3
          if (ifsc /= 0) then
             ! Check if a softcore atom is involved in this bond
             if ((nsc(ii) == 1 .or. nsc(jj) == 1)) then
@@ -138,7 +140,6 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
 
          dfw(jn) = (df+df)/rij0
       end do
-!$omp end parallel do
 
       !         ----- CALCULATION OF THE FORCE -----
 
@@ -155,6 +156,7 @@ subroutine bond(nbin,ib,jb,icb,x,f,eb)
          f(j3+1) = f(j3+1)+xa
          f(j3+2) = f(j3+2)+ya
          f(j3+3) = f(j3+3)+za
+
       end do
 
       do jn = 1, maxlen
@@ -192,7 +194,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #ifdef MPI /* SOFT CORE */
    use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
-!$  use constants, only: omp_num_threads
    implicit none
 
 #ifdef MPI
@@ -226,12 +227,10 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 #ifdef MPI
    integer piece,start,end,nbtmp
 #endif
-!$ integer max_threads
    data pt999 /0.9990d0/
 
    if ( do_angle == 0 .or. nbain == 0 )return
 
-!$ max_threads = min( 8, omp_num_threads )
    nba=nbain
 #ifdef MPI
    piece = nba/numtasks
@@ -260,8 +259,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
    if (skip) maxlen = nba-ist
    if (maxlen <= 0) goto 220
 
-!$omp parallel do private(jn,i3,j3,k3,rij0,ii,jj,ct0,ct1,ct2,ic,ant0,da,df) &
-!$omp&  num_threads(max_threads)
    do jn = 1,maxlen
       i3 = it(jn+ist)
       j3 = jt(jn+ist)
@@ -275,7 +272,9 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
       xkj(jn) = x(k3+1)-x(j3+1)
       ykj(jn) = x(k3+2)-x(j3+2)
       zkj(jn) = x(k3+3)-x(j3+3)
+   end do
 
+   do jn = 1,maxlen
       rij0 = xij(jn)*xij(jn)+yij(jn)*yij(jn)+zij(jn)*zij(jn)
       rkj0 = xkj(jn)*xkj(jn)+ykj(jn)*ykj(jn)+zkj(jn)*zkj(jn)
       rik0 = sqrt(rij0*rkj0)
@@ -287,12 +286,16 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
       rij(jn) = rij0
       rkj(jn) = rkj0
       rik(jn) = rik0
+   end do
 
    !         ----- CALCULATION OF THE ENERGY AND DER -----
 
+   do jn = 1,maxlen
       ic = ict(jn+ist)
       ant0 = ant(jn)
       da = ant0-teq(ic)
+      !                                 for rms deviation from ideal angles:
+      eadev = eadev + da*da
       df = tk(ic)*da
       eaw(jn) = df*da
 #ifdef MPI /* SOFT CORE */
@@ -327,7 +330,6 @@ subroutine angl(nbain,it,jt,kt,ict,x,f,eba)
 
       dfw(jn) = -(df+df)/sin(ant0)
    end do
-!$omp end parallel do
 
    !         ----- CALCULATION OF THE FORCE -----
 
@@ -410,7 +412,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
 #ifdef MPI /* SOFT CORE */
    use softcore, only: ifsc, nsc, sc_ener, oneweight
 #endif
-!$  use constants, only: omp_num_threads
    implicit none
 
 #ifdef MPI
@@ -475,14 +476,13 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
    data gmul/0.0d+00,2.0d+00,0.0d+00,4.0d+00,0.0d+00,6.0d+00, &
          0.0d+00,8.0d+00,0.0d+00,10.0d+00/
    _REAL_ tm06,tenm3
-   integer piece,start,end
-!$ integer max_threads
    data tm06,tenm3/1.0d-06,1.0d-03/
 
    !     ---- ARRAYS GAMC = PK*COS(PHASE) AND GAMS = PK*SIN(PHASE) ----
 
+   integer piece,start,end
+
    if ( do_ephi == 0 .or. nphiin == 0 )return
-!$ max_threads = min( 8, omp_num_threads )
    if(numtasks > 1)then
       piece = nphiin/numtasks
       start = mytaskid*piece+1
@@ -511,12 +511,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
    if(skip) maxlen = nphi-ist
    if(maxlen <= 0) goto 820
 
-!$omp parallel do private(jn,i3,j3,k3,l3,k3t,l3t,z10,z20,z12,ct0,ct1, &
-!$omp&     s,ap0,ap1,ic,inc,cosnp,sinnp,df0,dums,dflim,df1,z11,z22,  &
-!$omp&     dc1,dc2,dc3,dc4,dc5,dc6,dr1,dr2,dr3,dr4,dr5,dr6,drx,dry,drz,  &
-!$omp&     ic0,scnb0,scee0,ia1,ia2,ibig,isml,r1,r2,lfac,cgi,cgj,crfac, &
-!$omp&     g,dvdl,r6,r12,f1,f2,dfn,xa,ya,za)  &
-!$omp&  num_threads(max_threads)
    do jn = 1,maxlen
       i3 = ip(jn+ist)
       j3 = jp(jn+ist)
@@ -536,16 +530,20 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       xkl(jn) = x(k3+1)-x(l3+1)
       ykl(jn) = x(k3+2)-x(l3+2)
       zkl(jn) = x(k3+3)-x(l3+3)
+   end do
 
    !         ----- GET THE NORMAL VECTOR -----
 
+   do jn = 1,maxlen
       dx(jn) = yij(jn)*zkj(jn)-zij(jn)*ykj(jn)
       dy(jn) = zij(jn)*xkj(jn)-xij(jn)*zkj(jn)
       dz(jn) = xij(jn)*ykj(jn)-yij(jn)*xkj(jn)
       gx(jn) = zkj(jn)*ykl(jn)-ykj(jn)*zkl(jn)
       gy(jn) = xkj(jn)*zkl(jn)-zkj(jn)*xkl(jn)
       gz(jn) = ykj(jn)*xkl(jn)-xkj(jn)*ykl(jn)
+   end do
 
+   do jn = 1,maxlen
       fxi(jn) = sqrt(dx(jn)*dx(jn) &
             +dy(jn)*dy(jn) &
             +dz(jn)*dz(jn)+1.0d-18)
@@ -553,9 +551,11 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
             +gy(jn)*gy(jn) &
             +gz(jn)*gz(jn)+1.0d-18)
       ct(jn) = dx(jn)*gx(jn)+dy(jn)*gy(jn)+dz(jn)*gz(jn)
+   end do
 
    !         ----- BRANCH IF LINEAR DIHEDRAL -----
 
+   do jn = 1,maxlen
       z10 = one/fxi(jn)
       z20 = one/fyi(jn)
       if (tenm3 > fxi(jn)) z10 = zero
@@ -576,10 +576,12 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       ct(jn) = ap1
       cphi(jn) = cos(ap1)
       sphi(jn) = sin(ap1)
+   end do
 
    !         ----- CALCULATE THE ENERGY AND THE DERIVATIVES WITH RESPECT TO
    !               COSPHI -----
 
+   do jn = 1,maxlen
       ic = icp(jn+ist)
       inc = ipn(ic)
       ct0 = pn(ic)*ct(jn)
@@ -629,9 +631,11 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       if ( iamd == 2 .or. iamd == 3 ) then
         df(jn) = df(jn) * fwgtd
       endif
+   end do
 
    !         ----- NOW DO TORSIONAL FIRST DERIVATIVES -----
 
+   do jn = 1,maxlen
 
       !           ----- NOW, SET UP ARRAY DC = FIRST DER. OF COSPHI W/RESPECT
       !                 TO THE CARTESIAN DIFFERENCES T -----
@@ -672,6 +676,7 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       fxl(jn) = - dr4
       fyl(jn) = - dr5
       fzl(jn) = - dr6
+   end do  !  jn = 1,maxlen
 
    !         ----- END OF A STRIP OF DIHEDRALS -----
 
@@ -683,20 +688,25 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
     igbNEzero: if( igb /= 0 .or. ipb /= 0 ) then
 #endif
 
+     do jn = 1,maxlen
         i3 = ip(jn+ist)
         l3t = lp(jn+ist)
         l3 = iabs(l3t)
         xij(jn) = x(i3+1)-x(l3+1)
         yij(jn) = x(i3+2)-x(l3+2)
         zij(jn) = x(i3+3)-x(l3+3)
+     end do
 
      !             ----- NOW LOOP OVER ALL THE DIHEDRALS (CONSTANT DIEL) -----
 
+     do jn = 1,maxlen
         ct(jn) = xij(jn)*xij(jn)+yij(jn)*yij(jn)+zij(jn)*zij(jn)
+     end do
 
-        cphi(1:maxlen) = zero
-        sphi(1:maxlen) = zero
+     cphi(1:maxlen) = zero
+     sphi(1:maxlen) = zero
 
+     do jn = 1,maxlen
         !Check if we should do this 1-4 interaction or not.
         k3t = kp(jn+ist)
         l3t = lp(jn+ist)
@@ -779,22 +789,27 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
         fxl(jn) = fxl(jn)+xa
         fyl(jn) = fyl(jn)+ya
         fzl(jn) = fzl(jn)+za
-
-!$omp critical
-        enbpl = enbpl + sum(cphi(1:maxlen))
-        eelpl = eelpl + sum(sphi(1:maxlen))
-!$omp end critical
-
-#if !defined(LES)
-       endif igbNEzero
-#endif
+        e14vir(1,1)=e14vir(1,1)+xa*xij(jn)
+        e14vir(2,1)=e14vir(2,1)+ya*xij(jn)
+        e14vir(3,1)=e14vir(3,1)+za*xij(jn)
+        e14vir(1,2)=e14vir(1,2)+xa*yij(jn)
+        e14vir(2,2)=e14vir(2,2)+ya*yij(jn)
+        e14vir(3,2)=e14vir(3,2)+za*yij(jn)
+        e14vir(1,3)=e14vir(1,3)+xa*zij(jn)
+        e14vir(2,3)=e14vir(2,3)+ya*zij(jn)
+        e14vir(3,3)=e14vir(3,3)+za*zij(jn)
      end do  !  jn = 1,maxlen
-!$omp end parallel do
      !
      !------------------- End of 1-4 interactions -----------------------------
      !
+     do jn = 1,maxlen
+        enbpl = enbpl+cphi(jn)
+        eelpl = eelpl+sphi(jn)
+     end do
+#if !defined(LES)
+   endif igbNEzero
+#endif
    !         ----- SUMUP ALL THE GRADIENTS -----
-
 
    do jn = 1,maxlen
       i3 = ip(jn+ist)
@@ -816,7 +831,9 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       f(l3+3) = f(l3+3) + fzl(jn)
    end do
 
-   epl = epl + sum(epw(1:maxlen))
+   do jn = 1,maxlen
+      epl   = epl  +epw(jn)
+   end do
 
    ist = ist+maxlen
    820 if(.not.skip) goto 4200

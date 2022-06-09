@@ -1,4 +1,5 @@
 ! <compile=optimized>
+#include "../include/assert.fh"
 module xray_bulk_mask_impl_cpu_module
 
   use xray_pure_utils, only: real_kind
@@ -98,7 +99,9 @@ contains
 
   end function mod_grid
 
-  subroutine calc_grid_neighbors()
+  subroutine calc_grid_neighbors(mask_r_shrink)
+    implicit none
+    real(real_kind), intent(in) :: mask_r_shrink
 
     ! Create list of neighboring grid points
     integer :: low(3), high(3), i, n0, n1, n2, p0, m0, p1, m1, p2, m2, alloc_
@@ -155,13 +158,16 @@ contains
   !--------------------------------------------------------------------------------------------
   ! init: intialize the mask to one, 'solvent present here.'
   !--------------------------------------------------------------------------------------------
-  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber)
+  subroutine init(resolution_high, hkl, unit_cell_, atm_atomicnumber, &
+      & solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_pure_utils, only: cross => cross_product
     implicit none
     double precision, intent(in) :: resolution_high
     class(unit_cell_t), intent(in) :: unit_cell_
     integer, intent(in) :: hkl(:, :)
     integer, intent(in) :: atm_atomicnumber(:)
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
 
     integer :: num_atoms
     integer :: i, atomic_number, na, nb, nc
@@ -182,25 +188,25 @@ contains
       atomic_number = atm_atomicnumber(i)
       if( atomic_number == 6 ) then
           atom_types(i) = 2
-          mask_cutoffs(i) = 1.775 + mask_r_probe
+          mask_cutoffs(i) = 1.775 + solvent_mask_adjustment
       elseif( atomic_number == 17 ) then
           atom_types(i) = 0
-          mask_cutoffs(i) = 1.75 + mask_r_probe
+          mask_cutoffs(i) = 1.75 + solvent_mask_adjustment
       elseif ( atomic_number == 7 ) then
           atom_types(i) = 3
-          mask_cutoffs(i) = 1.5 + mask_r_probe
+          mask_cutoffs(i) = 1.5 + solvent_mask_adjustment
       elseif( atomic_number == 11 ) then
           atom_types(i) = 0
-          mask_cutoffs(i) = 2.27 + mask_r_probe
+          mask_cutoffs(i) = 2.27 + solvent_mask_adjustment
       elseif ( atomic_number == 8 ) then
         atom_types(i) = 4
-        mask_cutoffs(i) = 1.45 + mask_r_probe
+        mask_cutoffs(i) = 1.45 + solvent_mask_adjustment
       elseif ( atomic_number == 16 ) then
         atom_types(i) = 5
-        mask_cutoffs(i) = 1.8 + mask_r_probe
+        mask_cutoffs(i) = 1.8 + solvent_mask_adjustment
       else
         atom_types(i) = 1
-        mask_cutoffs(i) = 1.2 + mask_r_probe
+        mask_cutoffs(i) = 1.2 + solvent_mask_adjustment
       endif
     end do
 
@@ -248,7 +254,7 @@ contains
     grid_dim = [na, nb, nc]
     grid_size =  na * nb * nc
 #if 0
-    write(6, *) 'resolution_high', resolution_high
+    write(6, *) 'resolution', resolution
     write(6, *) 'reciprocal_norms', reciprocal_norms
     write(6, *) 'mask_grid_steps', mask_grid_steps
     write(6, *) 'grid_size', grid_dim, grid_size
@@ -261,27 +267,22 @@ contains
       s(:) = unit_cell%get_s(hkl(:, i))
       
       hkl_indexing_bs_mask(i) = h_as_ih( hkl(1,i), hkl(2,i), hkl(3,i), na, nb, nc)
-      ! dac: no need to exit here: we handle -1 values later
-      ! if (hkl_indexing_bs_mask(i) == -1) then
-      !   stop 'Miller indices indexing failed'
-      ! end if
-      
     end do
 
-    call calc_grid_neighbors()
+    call calc_grid_neighbors(solvent_mask_probe_radius)
     return
 
   end subroutine init
 
 
   subroutine finalize()
-    if(allocated(atom_types)) deallocate(atom_types)
-    if(allocated(f_mask)) deallocate(f_mask)
-    if(allocated(grid_neighbors)) deallocate(grid_neighbors)
-    if(allocated(hkl_indexing_bs_mask)) deallocate(hkl_indexing_bs_mask)
-    if(allocated(mask_bs_grid)) deallocate(mask_bs_grid)
-    if(allocated(mask_bs_grid_t_c)) deallocate(mask_bs_grid_t_c)
-    if(allocated(mask_cutoffs)) deallocate(mask_cutoffs)
+    deallocate(atom_types)
+    deallocate(f_mask)
+    deallocate(grid_neighbors)
+    deallocate(hkl_indexing_bs_mask )
+    deallocate(mask_bs_grid)
+    deallocate(mask_bs_grid_t_c)
+    deallocate(mask_cutoffs)
   end subroutine finalize
 
   pure function wrap_frac(x) result(result)
@@ -336,8 +337,8 @@ contains
     integer :: x_low, x_high, y_low, y_high, z_low, z_high, i, j, k, index, mdi, mdj, mdk
     real(real_kind) :: frac_crd(3)
 
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(mask_cutoffs))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(mask_cutoffs))
 
     mask_bs_grid = 1
     
@@ -423,30 +424,9 @@ contains
   ! fft_bs_mask: Transforms the bulk solvent (BS) mask into fourier space.
   !----------------------------------------------------------------------------
   subroutine fft_bs_mask()
-
-    !use iso_c_binding
+    use xray_fft_interface_module, only: dft_i2c_3d
     implicit none
-    include "fftw3.f"
-    double precision :: mask_bs_grid_3d(grid_dim(3), &
-                                        grid_dim(2), &
-                                        grid_dim(1))
-    double complex ::   mask_bs_grid_3d_fft(grid_dim(3)/2 + 1, &
-                                            grid_dim(2), &
-                                            grid_dim(1))
-
-    mask_bs_grid_3d = reshape(mask_bs_grid, (/grid_dim(3) , &
-                                              grid_dim(2),  &
-                                              grid_dim(1)/))
-    call dfftw_plan_dft_r2c_3d(plan_forward, grid_dim(3), &
-        grid_dim(2), grid_dim(1), mask_bs_grid_3d, &
-        mask_bs_grid_3d_fft, FFTW_ESTIMATE)
-    call dfftw_execute_dft_r2c(plan_forward, mask_bs_grid_3d, &
-        mask_bs_grid_3d_fft)
-    mask_bs_grid_t_c = reshape(mask_bs_grid_3d_fft, &
-        [(grid_dim(3) / 2 + 1) * grid_dim(2) * grid_dim(1)])
-    call dfftw_destroy_plan(plan_forward)
-    return
-
+    call dft_i2c_3d(grid_dim, mask_bs_grid, mask_bs_grid_t_c)
   end subroutine fft_bs_mask
   
   !----------------------------------------------------------------------------
@@ -489,30 +469,36 @@ contains
   end function h_as_ih
   
   
-  subroutine update_f_bulk(frac)
+  subroutine update_f_bulk(frac, Fuser)
+    
+    use xray_interface2_data_module, only : new_order
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
     integer :: i
-    
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(atom_types))
-    call check_precondition(size(frac, 2) == size(mask_cutoffs))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(atom_types))
+    ASSERT(size(frac, 2) == size(mask_cutoffs))
   
-    call grid_bulk_solvent(frac)
-    call shrink_bulk_solvent()
-    call fft_bs_mask()
+    if( allocated(Fuser) ) then
+       f_mask = Fuser( new_order )
+    else
+       call grid_bulk_solvent(frac)
+       call shrink_bulk_solvent()
+       call fft_bs_mask()
 
-    ! since hi-res elements of f_mask should be small anyway, it should
-    !    be fine to set them to zero
-    do i=1,size(f_mask)
-       if( hkl_indexing_bs_mask(i) .ne. -1 ) then
-          f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
-                      * unit_cell%get_volume() / grid_size
-       else
-          f_mask(i) = 0.d0
-       endif
-    end do
-    return
+       do i = 1, size(f_mask)
+         ! High resolution reflexes are weighted with zero bulk scaling factor `k_bulk`
+         ! therefore it should be fine to set them to zero
+         if (hkl_indexing_bs_mask(i) /= -1) then
+           f_mask(i) = conjg(mask_bs_grid_t_c(hkl_indexing_bs_mask(i)+1)) &
+                       * unit_cell%get_volume() / grid_size
+         else
+           f_mask(i) = 0
+         end if
+       end do
+    end if
+  
   end subroutine update_f_bulk
 
   

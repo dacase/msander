@@ -56,7 +56,7 @@ module runmd_module
   use nfe_sander_proxy, only : infe, nfe_real_mdstep, nfe_prt
 
   use commandline_module, only: cpein_specified
-  use md_scheme, only: thermostat_step, ithermostat
+  use md_scheme, only: thermostat_step, ntt
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
@@ -75,7 +75,7 @@ module runmd_module
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
 
-  use sgld, only: isgld, sgenergy, sgfshake, sgldw, sgmdw
+  use sgld, only: isgld, sgenergy, sgldw, sgmdw
 
   use sgld, only: isgsta,isgend,sg_fix_degree_count
 
@@ -95,6 +95,7 @@ module runmd_module
                       ti_ene_cnt, sc_compare
   use mbar, only : ifmbar, bar_intervall, calc_mbar_energies, &
                    bar_collect_cont, do_mbar
+  use mpi
 #endif /* MPI */
 
   use emap, only:temap,emap_move
@@ -133,7 +134,6 @@ module runmd_module
   character(kind=1,len=5) :: routine="runmd"
 #ifdef MPI
 #  include "parallel.h"
-  include 'mpif.h'
   _REAL_ mpitmp(8) !Use for temporary packing of mpi messages.
   integer ist(MPI_STATUS_SIZE), partner
 #else
@@ -208,7 +208,7 @@ module runmd_module
 
   ! Variables to control a Langevin dynamics simulation
   _REAL_ ekins0
-  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dtcp, dttp
+  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dttp
   _REAL_ rndf, rndfs, rndfp, boltz2, pconv, tempsu
   _REAL_ xcm(3), acm(3), ocm(3), vcm(3), ekcm, ekrot
   _REAL_ emtmd
@@ -602,7 +602,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   if (vv == 1) call quench(f, v)
 
   if (isgld > 0) then
-    call sgldw(natom, istart, iend, ntp, dtx, temp0, ener, amass, winv, &
+    call sgldw(natom, istart, iend, dtx, temp0, ener, amass, winv, &
                x, f, v)
   else
   ! leap-frog middle scheme
@@ -686,7 +686,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Step 4a: if shake is being used, update the positions {{{
     call timer_start(TIME_SHAKE)
     xold(istart3:iend3) = x(istart3:iend3)
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .false.)
     qspatial = .false.
     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
                winv, conp, skip, f, x, nitp, belly, ix(iifstwt), &
@@ -696,9 +695,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       erstop = .true.
       goto 480
     end if
-
-    ! Including constraint forces in self-guiding force calculation
-    if (isgld > 0) call sgfshake(istart, iend, dtx, amass, x, .true.)
 
     ! Need to synchronize coordinates after shake for TI
 #ifdef MPI
@@ -944,7 +940,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       if (mod(nstep,nsnb) == 0) ntnb = 1
     end if
     if (ifbox == 0) then
-      if (ithermostat > 0) then
+      if (ntt > 0) then
 
         ! Get current center of the system
         call get_position(nr, x, vcmx, vcmy, vcmz, sysrange, 0)
@@ -988,7 +984,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! for harmonic oscillator: Eq. 4.7b of Mol.
   ! Phys. 65:1409-1419, 1988
   ener%kin%solv = ekpbs + ener%pot%tot
-  if( ithermostat == 1 ) then
+  if( ntt == 3 ) then
      ener%kin%solt = ekph  ! seems to be what Jian Li really wants for LD
   else
      ener%kin%solt = eke   ! original sander, shows energy conservation
@@ -1600,7 +1596,6 @@ subroutine initialize_runmd(x,ix,v)
   pres0y = 0.d0
   pres0z = 0.d0
   gamma_ten_int = 0.d0
-  dtcp = 0.d0
   dttp = 0.d0
   ekph = 0.d0
   ekpbs = 0.d0

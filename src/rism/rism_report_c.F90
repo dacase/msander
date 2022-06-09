@@ -68,10 +68,10 @@
 !!!   comm : MPI communicator
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism_report_MPI(comm)
-      implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+      implicit none
       integer, intent(in) :: comm
       integer :: err
       mpicomm = comm

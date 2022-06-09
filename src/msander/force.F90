@@ -89,6 +89,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
   use les_data, only: temp0les
   use music_module, only : music_force
+#ifdef MPI
+   use mpi
+#endif
 
   implicit none
   
@@ -114,7 +117,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-  include 'mpif.h'
   integer gb_rad_mpistart, j3, j, i3
   _REAL_ :: temp_amd_totdih
 #endif /* MPI */

@@ -144,9 +144,9 @@ contains
 #ifdef MPI
   subroutine broadcast_music_settings()
 
+    use mpi
     implicit none
 #include "parallel.h"
-    include 'mpif.h'
 
     integer :: ier
 
@@ -186,6 +186,9 @@ contains
                        numvdw, numhbnd, myindexlo, myindexhi, numimg
     use constants, only : zero
 
+#ifdef MPI
+   use mpi
+#endif
     implicit none 
 
 #include "extra.h"
@@ -197,7 +200,6 @@ contains
 
 #ifdef MPI
 #include "parallel.h"
-    include 'mpif.h'
     integer :: ier
     _REAL_ :: tmp_mpi
     logical, save :: first = .true.

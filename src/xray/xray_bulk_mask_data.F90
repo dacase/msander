@@ -22,9 +22,7 @@ module xray_bulk_mask_data_module
   integer, dimension(:), allocatable :: hkl_indexing_bs_mask
   
   ! Convenient numerical constants
-  double precision, parameter :: pi = 3.14159265359, zero = 0.0, &
-      mask_r_shrink = 0.9, &
-      mask_r_probe = 1.11, d_tolerance = 1.e-10
+  double precision, parameter :: pi = 3.14159265359, zero = 0.0, d_tolerance = 1.e-10
   double precision :: k_sol = 0.35, b_sol = 46.0 ! FIXME: parameters are unused
   
   ! atom_types:    Type index for each atom, referring not to atom types in the
@@ -44,6 +42,5 @@ module xray_bulk_mask_data_module
   ! grid_neighbors_size:    Number of grid neighbors that are within the
   !                         shrunken mask cutoff
   integer grid_neighbors_size
-  integer*8 plan_forward(1)
 
 end module xray_bulk_mask_data_module

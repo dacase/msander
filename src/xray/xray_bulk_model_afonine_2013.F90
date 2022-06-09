@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_bulk_model_afonine_2013_module
   
   use xray_contracts_module
@@ -17,7 +19,9 @@ module xray_bulk_model_afonine_2013_module
 
 contains
   
-  subroutine init(mask_update_period_, scale_update_period_, resolution_high, hkl, unit_cell, atm_atomicnumber)
+  subroutine init(mask_update_period_, scale_update_period_, &
+        resolution_high, hkl, unit_cell, atm_atomicnumber, &
+        solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_bulk_mask_module, only : init_mask => init
     implicit none
     
@@ -27,15 +31,18 @@ contains
     class(unit_cell_t), intent(in) :: unit_cell
     integer, intent(in) :: hkl(:, :)
     integer, intent(in) :: atm_atomicnumber(:)
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
-    call check_precondition(mask_update_period_ > 0)
-    call check_precondition(scale_update_period_ > 0)
-    call check_precondition(mod(scale_update_period_, mask_update_period_) == 0)
+    ASSERT(mask_update_period_ > 0)
+    ASSERT(scale_update_period_ > 0)
+    ! ASSERT(mod(scale_update_period_, mask_update_period_) == 0)
     
     mask_update_period = mask_update_period_
     scale_update_period = scale_update_period_
     
-    call init_mask(resolution_high, hkl, unit_cell, atm_atomicnumber)
+    call init_mask(resolution_high, hkl, unit_cell, atm_atomicnumber, &
+          solvent_mask_adjustment, solvent_mask_probe_radius)
   
   end subroutine init
   
@@ -45,8 +52,8 @@ contains
     call finalize_mask()
   end subroutine finalize
   
-  subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, Fcalc, mSS4, hkl)
-    use xray_pure_utils, only : calc_k_overall
+  subroutine add_bulk_contribution_and_rescale(frac, current_step, &
+         absFobs, Fcalc, mSS4, hkl, Fuser)
     use xray_scaling_module, only : rescale, combine, optimize_scale_factors
     use xray_bulk_mask_module, only : update_f_bulk
     use xray_bulk_mask_data_module, only : f_mask
@@ -57,11 +64,12 @@ contains
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
     real(real_kind), intent(in) :: mSS4(:)
     integer, intent(in) :: hkl(:, :)
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
 
-    call check_precondition(size(frac, 1) == 3)
+    ASSERT(size(frac, 1) == 3)
 
     if (mod(current_step, mask_update_period) == 0) then
-      call update_f_bulk(frac)
+      call update_f_bulk(frac, Fuser)
     end if
     
     if(mod(current_step, scale_update_period) == 0) then

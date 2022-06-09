@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_target_max_likelihood_impl_cpu_module
   
   use xray_pure_utils, only : real_kind
@@ -178,8 +180,8 @@ contains
     integer :: i, start, count
     
     ! Precondition
-    call check_precondition(size(abs_Fobs) == size(abs_Fcalc))
-    call check_precondition(size(abs_Fobs) == sum(ml_bin_free_flag_count))
+    ASSERT(size(abs_Fobs) == size(abs_Fcalc))
+    ASSERT(size(abs_Fobs) == sum(ml_bin_free_flag_count))
     
     if (mod(current_step, ml_update_period) /= 0) then
       return

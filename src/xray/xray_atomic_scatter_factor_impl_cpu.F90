@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_atomic_scatter_factor_impl_cpu_module
 
     use xray_contracts_module
@@ -25,7 +27,7 @@ contains
         integer :: ihkl, i
         integer :: n_hkl, n_scatter_types
         
-        call check_precondition(size(scatter_coefficients, 1) == 2)
+        ASSERT(size(scatter_coefficients, 1) == 2)
         
         n_hkl = size(mSS4)
         n_scatter_types = size(scatter_coefficients, 3)
@@ -54,7 +56,7 @@ contains
         
         integer :: n_scatter_coeffs
         
-        call check_precondition(size(coeffs, 1) == 2)
+        ASSERT(size(coeffs, 1) == 2)
         
         n_scatter_coeffs = size(coeffs, 2)
 

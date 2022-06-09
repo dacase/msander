@@ -56,8 +56,9 @@ subroutine sander()
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
 
   use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
-           xray_read_mdin, xray_write_options,xray_write_pdb
-  use xray_globals_module, only: xray_active,pdb_read_coordinates,pdb_outfile
+           xray_read_mdin, xray_write_options, xray_write_pdb, xray_write_fmtz
+  use xray_globals_module, only: xray_active,pdb_read_coordinates,pdb_outfile, &
+         fmtz_outfile
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -113,6 +114,9 @@ subroutine sander()
 
   use commandline_module, only: cpein_specified
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
 
   logical belly, erstop
@@ -133,7 +137,6 @@ subroutine sander()
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-  include 'mpif.h'
 !  REMD: loop is the current exchange. runmd is called numexchg times.
   integer loop
 
@@ -311,6 +314,14 @@ subroutine sander()
 #endif
       endif
 
+      if( xray_active ) then
+        call xray_read_mdin(mdin_lun=5)
+        call amopen(8,parm,'O','F','R')
+        call xray_read_parm(8,6)
+        close(8)
+        call xray_write_options()
+      end if
+
       call mdread2(x, ix, ih)
       call read_music_nml()
       call print_music_settings()
@@ -320,6 +331,8 @@ subroutine sander()
       end if
 #endif
 
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
@@ -428,6 +441,10 @@ subroutine sander()
         if (iredir(9) > 0) then
           call csaread
         end if
+
+      ! need to delay xray_init call until here, so that xray_read_pdb
+      ! can over-write the coordinates that came from getcor() call above:
+      if( xray_active) call xray_init()
 
       ! Call the fastwat subroutine to tag those bonds which are part
       ! of 3-point water molecules. Constraints will be performed for
@@ -558,11 +575,8 @@ subroutine sander()
     end if masterwork
     ! End of master process setup
 
-!$  call set_omp_num_threads()
-
     ! rism initialization
     call rism_init(commsander)
-!$  call set_omp_num_threads_rism()
 
 #ifdef MPI
     call mpi_barrier(commsander,ier)
@@ -762,22 +776,6 @@ subroutine sander()
       end if
     end if
 
-   ! xray initialization {{{
-    if( xray_active .and. master ) then
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      call xray_write_options()
-      call xray_init()
-    end if
-    if( xray_active ) &
-      call mpi_bcast(coordinate(1,1), 3*natom, MPI_DOUBLE_PRECISION, &
-            0, commsander, ier)
-   ! }}}
-
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
       mpi_orig = .true.
@@ -892,19 +890,6 @@ subroutine sander()
     call amrset(ig+1)
     call stack_setup()
 
-    ! xray initialization (non-parallel case) {{{
-    if( xray_active ) then
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      call xray_write_options()
-      call xray_init()
-    end if
-   ! }}}
-
 #endif /* MPI */
 
     ! Allocate memory for crg relocation
@@ -980,7 +965,7 @@ subroutine sander()
 
     ! Prepare for SGLD simulation
     if (isgld > 0) then
-      call psgld(natom,x(lmass),x(lvel), rem)
+      call psgld(natom,ix(i08), ix(i10), x(lmass),x(lcrd),x(lvel), rem)
     end if
 
     ! Prepare for EMAP constraints
@@ -1314,18 +1299,13 @@ subroutine sander()
 
    call rism_finalize()
 
-   if( xray_active ) then
+   if( xray_active .and. master ) then
       if (pdb_outfile /= '') then
-         call xray_write_pdb(trim(pdb_outfile))
+         call xray_write_pdb(pdb_outfile)
       end if
-
-      !if (fave_outfile /= '') then
-         ! TODO: call xray_interface2::write_fave()
-      !endif
-
-      !if (fmtz_outfile /= '') then
-         ! TODO: call xray_interface2::write_mtz_file()
-      !endif
+      if (fmtz_outfile /= '') then
+         call xray_write_fmtz(fmtz_outfile)
+      endif
    end if
 
   if (ifcr .ne. 0) then

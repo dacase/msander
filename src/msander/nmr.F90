@@ -1834,7 +1834,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    !  WEIGHT(9) : The current weight of the "improper" torsions
    !  WEIGHT(10) : The current weight of the "short-range" NMR restraints
    !  WEIGHT(11) : The current weight of the non-"short-range" NMR restraints
-   !  WEIGHT(12) : The current weight of the NOESY restraints
+   !  WEIGHT(12) : The current weight of the NOESY or Xray restraints
    !  WEIGHT(13) : The current weight of the chemical shift restraints
    !  WEIGHT(14) : Temperature scaling parameter on the first call
    !  WEIGHT(15): The "soft-repulsion" force constant as specified in the input
@@ -2199,7 +2199,7 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    
    ! TYPE = NOESY
    
-   if ((itype == 21.or.ireset(12) == 1).and.ichold(12) /= 2) then
+   if ((itype == 21 .or. ireset(12) == 1).and.ichold(12) /= 2) then
       weight(12) = wt
       ichang(12) = 1
       if (abs(wt) < small .or. fixed) ichold(12) = 2
@@ -2215,8 +2215,8 @@ subroutine modwt(wtnrg,iwtstp,iwttyp,ichgwt,ishrtb,nstep,temp0, &
    
    ! TYPE = SOFTR
    
-   if (itype == 16) then
-      rwell = wt
+   if (itype == 16 .or. itype == 31) then
+      wxray = wt
       ichang(15) = 1
    end if
    
@@ -3880,6 +3880,7 @@ subroutine nmrprt(eenmr,nstep,iout)
    ! EENMR(1,I) are the values on the last call to NMRNRG.
    ! EENMR(2,I) are the accumulated totals over the entire run.
    
+   use xray_globals_module, only: xray_active
    implicit none
    integer:: iout, j, nstep
    _REAL_ :: eenmr, rstepu
@@ -3906,7 +3907,8 @@ subroutine nmrprt(eenmr,nstep,iout)
    if (.not. printthirdline) printthirdline = printthirdline .or. (eenmr(1,6) > 0.0d0)
    
    rstepu = max(nstep,1)
-   write(iout,20) (eenmr(1,j),j=1,3)
+   if( any( eenmr(1,1:3) .gt. 0.d0 ) ) write(iout,20) (eenmr(1,j),j=1,3)
+   if( xray_active ) write(iout,'(a,f9.2)') ' xray_weight = ', wxray
    if (printsecondline) write(iout,21) (eenmr(1,j),j=4,5)
    if (printthirdline) write(iout,22) eenmr(1,6)       ! This will expand when we make gen. ang. 
                                                        ! and gen. tor. restraints.
@@ -4258,9 +4260,9 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
    
    integer iflag
 #ifdef LES
-   parameter (iflag = 32)
+   parameter (iflag = 33)
 #else
-   parameter (iflag = 31)
+   parameter (iflag = 32)
 #endif
    ! ... ZERNER is a value near zero used for weights set to 0.
    _REAL_ zerner
@@ -4434,7 +4436,7 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
 #ifdef LES
          'TEMP0LES' , &
 #endif
-         'END     '/
+         'XRAY    ' , 'END     '/
 
    data redirc/'LISTIN    ' , 'LISTOUT   ' , 'DISANG    ', &
          'NOESY     ' , 'SHIFTS    ' , 'DUMPAVE   ', &

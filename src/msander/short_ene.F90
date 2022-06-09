@@ -2,7 +2,8 @@
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
-#if defined(LES) || defined(MPI) /* use the older, non-openMP version for now */
+#if 1  /* always use the non-OpenMP code for now */
+!  #if defined(LES) || defined(MPI) /* use the older, non-openMP version */
 
 !------------------------------------------------------------------------------
 ! get_nb_energy: the main routine for vdw, hbond, and direct space Ewald sum

@@ -1,5 +1,6 @@
 module xray_interface2_module
   
+#include "../include/assert.fh"
   use xray_contracts_module
   use xray_unit_cell_module
   use xray_pure_utils, only : real_kind
@@ -24,12 +25,13 @@ module xray_interface2_module
 contains
   
   subroutine init(target, bulk_model, hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-      &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
-      &   atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period,&
-      &   k_sol, b_sol)
+      &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_selection, &
+      &   atom_atomic_number, mask_update_period, scale_update_period, &
+      &   target_meta_update_period, k_sol, b_sol, &
+      &   solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
-    use constants_xray, only : set_omp_num_threads_xray
+    use constants_xray, only : set_xray_num_threads
     
     implicit none
 
@@ -45,65 +47,79 @@ contains
     real(real_kind), intent(in) :: atom_b_factor(:)
     real(real_kind), intent(in) :: atom_occupancy(:)
     integer, intent(in) :: atom_scatter_type(:)
-    logical, intent(in) :: atom_is_not_bulk(:)
+    logical, intent(in) :: atom_selection(:)
     integer, intent(in) :: atom_atomic_number(:)
     integer, intent(in) :: mask_update_period
     integer, intent(in) :: scale_update_period
     integer, intent(in) :: target_meta_update_period
     real(real_kind), intent(in) :: k_sol
     real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
 
-    call check_precondition(size(hkl, 1) == 3)
-    call check_precondition(size(hkl, 2) == size(Fobs))
-    call check_precondition(size(hkl, 2) == size(sigma_Fobs))
-    call check_precondition(size(hkl, 2) == size(work_flag))
-    call check_precondition(size(atom_b_factor) == size(atom_occupancy))
-    call check_precondition(size(atom_b_factor) == size(atom_scatter_type))
-    call check_precondition(size(atom_b_factor) == size(atom_atomic_number))
-    call check_precondition(size(atom_b_factor) == size(atom_is_not_bulk))
-    call check_precondition(minval(atom_b_factor, atom_is_not_bulk) >= 0)
-    call check_precondition(all(atom_occupancy <= 1.0))
-    call check_precondition(all(atom_occupancy >= 0.0))
-    call check_precondition(minval(atom_scatter_type) >= 1)
-    call check_precondition(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
-    
-    call set_omp_num_threads_xray()
+    ASSERT(size(hkl, 1) == 3)
+    ASSERT(size(hkl, 2) == size(Fobs))
+    ASSERT(size(hkl, 2) == size(sigma_Fobs))
+    ASSERT(size(hkl, 2) == size(work_flag))
+    ASSERT(size(atom_b_factor) == size(atom_occupancy))
+    ASSERT(size(atom_b_factor) == size(atom_scatter_type))
+    ASSERT(size(atom_b_factor) == size(atom_atomic_number))
+    ASSERT(size(atom_b_factor) == size(atom_selection))
+    ASSERT(minval(atom_b_factor, atom_selection) >= 0)
+    ASSERT(all(atom_occupancy <= 1.0))
+    ASSERT(all(atom_occupancy >= 0.0))
+    ASSERT(minval(atom_scatter_type) >= 1)
+    ASSERT(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
+    ASSERT(size(hkl, 1)>0)
+    ASSERT(size(atom_b_factor) > 0)
+
+    call set_xray_num_threads()
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-        &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk)
+        &   atom_b_factor, atom_occupancy, atom_scatter_type, &
+        &   atom_selection )
   
-    call init_submodules(target, bulk_model, atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period, k_sol, b_sol)
+    call init_submodules(target, bulk_model, atom_atomic_number, &
+        mask_update_period, scale_update_period, target_meta_update_period, &
+        k_sol, b_sol, solvent_mask_adjustment, solvent_mask_probe_radius)
 
   end subroutine init
   
-  subroutine calc_force(xyz, current_step, xray_weight, force, energy)
+  subroutine calc_force(xyz, current_step, xray_weight, force, energy, Fuser)
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
     use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
-    use xray_dpartial_module, only: calc_partial_d_target_d_frac
+    use xray_dpartial_module, only: calc_partial_d_target_d_frac, &
+         calc_partial_d_vls_d_frac
+    use xray_target_module, only: target_function_id
     implicit none
     real(real_kind), intent(in) :: xyz(:, :)
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: xray_weight
-    real(real_kind), intent(out) :: force(:, :)
+    real(real_kind), intent(inout) :: force(:, :)
     real(real_kind), intent(out) :: energy
+    complex(real_kind), allocatable, intent(in) :: Fuser(:)
+
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)
     real(real_kind), allocatable :: grad_xyz(:, :)
+
+    real(real_kind) gradnorm_amber, gradnorm_xray
+
 #include "../msander/def_time.h"
 
-    call check_precondition(size(xyz, 1) == 3)
-    call check_precondition(size(xyz, 2) == n_atom)
-    call check_precondition(size(force, 1) == 3)
-    call check_precondition(size(force, 2) == n_atom)
+    ASSERT(size(xyz, 1) == 3)
+    ASSERT(size(xyz, 2) == n_atom)
+    ASSERT(size(force, 1) == 3)
+    ASSERT(size(force, 2) == n_atom)
     
-    allocate(grad_xyz(3, size(non_bulk_atom_indices)))
+    allocate(grad_xyz(3, size(atom_selection_indices)))
     
-    frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
+    frac = modulo(unit_cell%to_frac(xyz(:, atom_selection_indices)), 1.0_real_kind)
     
-    call check_assertion(all(frac <= 1))
-    call check_assertion(all(frac >= 0))
+    ASSERT(all(frac <= 1))
+    ASSERT(all(frac >= 0))
 
     call timer_start(TIME_IHKL)
     call calc_f_non_bulk(frac)
@@ -114,7 +130,7 @@ contains
         frac, &
         current_step, &
         abs_Fobs, Fcalc, &
-        mSS4, hkl &
+        mSS4, hkl, Fuser &
     )
 
     abs_Fcalc(:) = abs(Fcalc(:))
@@ -127,12 +143,33 @@ contains
 
     energy = xray_weight * energy
     call timer_start(TIME_DHKL)
-    grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
-        & calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), d_target_d_absFcalc) &
-        &)
-    call check_assertion(size(grad_xyz, 2) == size(non_bulk_atom_indices))
+    if( target_function_id == 1 ) then
+#ifdef CUDA
+       write(6,*) 'VLS target not supported with cuda'
+       call mexit(6,1)
+#else
+       grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
+          calc_partial_d_vls_d_frac( frac, get_f_scale(size(abs_Fobs)) ) )
+#endif
+    else
+       grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
+          calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
+          d_target_d_absFcalc) )
+    end if
+    ASSERT(size(grad_xyz, 2) == size(atom_selection_indices))
 
-    force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
+#ifndef MPI
+    ! compute norm of gradient from Amber, and from xray: this
+    !   information could be used to estimate xray_weight:
+    if ( current_step == 0 ) then
+       gradnorm_amber = norm2(force(:,atom_selection_indices))
+       gradnorm_xray  = norm2(grad_xyz(:,:))
+       write(6,'(a,3e12.5)') '| gradient norms, amber/xray: ', &
+          gradnorm_amber, gradnorm_xray, gradnorm_amber/gradnorm_xray
+    endif
+#endif
+
+    force(:,atom_selection_indices) = force(:,atom_selection_indices) - grad_xyz
     call timer_stop(TIME_DHKL)
 
   end subroutine calc_force
@@ -163,7 +200,9 @@ contains
   
   ! Private procedures
   
-  subroutine init_submodules(target, bulk_model, atom_atomic_number, mask_update_period, scale_update_period, target_meta_update_period, k_sol, b_sol)
+  subroutine init_submodules(target, bulk_model, atom_atomic_number, &
+        mask_update_period, scale_update_period, target_meta_update_period, &
+        k_sol, b_sol, solvent_mask_adjustment, solvent_mask_probe_radius)
     use xray_interface2_data_module
     
     use xray_atomic_scatter_factor_module, only: init_atomic_scatter_factor => init
@@ -183,6 +222,8 @@ contains
     integer, intent(in) :: target_meta_update_period
     real(real_kind), intent(in) :: k_sol
     real(real_kind), intent(in) :: b_sol
+    real(real_kind), intent(in) :: solvent_mask_adjustment
+    real(real_kind), intent(in) :: solvent_mask_probe_radius
     
     real(real_kind), allocatable :: s2(:)
     
@@ -193,12 +234,23 @@ contains
     abs_Fobs = abs(Fobs)
     allocate(abs_Fcalc(n_hkl))
     
-    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, target_meta_update_period)
-    call init_bulk(bulk_model, mask_update_period, scale_update_period, minval(resolution), hkl, unit_cell, atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol)
+    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, &
+            target_meta_update_period)
+    ! FIXME: the atom selection for the mask creation logically should
+    !        be different than the atom selectrion for Fcalc stuff
+    call init_bulk(bulk_model, mask_update_period, scale_update_period, &
+            minval(resolution), hkl, unit_cell, &
+            atom_atomic_number(atom_selection_indices), k_sol, b_sol, &
+            solvent_mask_adjustment, solvent_mask_probe_radius)
     call init_scaling(resolution, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
-    call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
-    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices))
+    call init_non_bulk(hkl, mSS4, atom_b_factor(atom_selection_indices), &
+            atom_scatter_type(atom_selection_indices), &
+            atom_occupancy(atom_selection_indices))
+    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc,  &
+            atom_b_factor(atom_selection_indices), &
+            atom_occupancy(atom_selection_indices), &
+            atom_scatter_type(atom_selection_indices))
 
   end subroutine init_submodules
   

@@ -1004,10 +1004,10 @@ subroutine rdparm2(x,ix,ih,nf)
       hbcut(i) = 1.0e0/hbcut(i)
    end do
    
-   !     ----- duplicate dihedral pointers for vector ephi -----
+   !     ----- check of negative dihedral periodicities ---
    
-   call dihdup(nphih,ix(i40),ix(i42),ix(i44),ix(i46),ix(i48),pn)
-   call dihdup(nphia,ix(i50),ix(i52),ix(i54),ix(i56),ix(i58),pn)
+   call dihdup(nphih,ix(i48),pn)
+   call dihdup(nphia,ix(i58),pn)
    
    !     --- pre-calculate some parameters for vector ephi ---
    

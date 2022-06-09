@@ -61,6 +61,7 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
   use tcpb_module, only: get_tcpb_qmmm_forces
 #ifdef MPI
   use remd, only : rem
+  use mpi
 #endif
 
   implicit none
@@ -69,7 +70,6 @@ subroutine qm_mm(coords, natom, scaled_mm_charges, f, escf, periodic, &
 
 #ifdef MPI
 #   include "parallel.h"
-  include 'mpif.h'
 #endif
 
   ! Passed in

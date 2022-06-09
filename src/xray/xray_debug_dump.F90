@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_debug_dump_module
   
   use xray_contracts_module
@@ -36,19 +38,19 @@ contains
     integer :: unit_id = 19
     integer :: i, j
 
-    call check_precondition(size(hkl, 1) == 3)
-    call check_precondition(size(hkl, 2) == size(Fobs))
-    call check_precondition(size(hkl, 2) == size(sigma_Fobs))
-    call check_precondition(size(hkl, 2) == size(work_flag))
-    call check_precondition(size(atom_b_factor) == size(atom_occupancy))
-    call check_precondition(size(atom_b_factor) == size(atom_scatter_type))
-    call check_precondition(size(atom_b_factor) == size(atom_atomic_number))
-    call check_precondition(size(atom_b_factor) == size(atom_is_not_bulk))
-    call check_precondition(minval(atom_b_factor) > 0)
-    call check_precondition(all(atom_occupancy <= 1.0))
-    call check_precondition(all(atom_occupancy >= 0.0))
-    call check_precondition(minval(atom_scatter_type) >= 1)
-    call check_precondition(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
+    ASSERT(size(hkl, 1) == 3)
+    ASSERT(size(hkl, 2) == size(Fobs))
+    ASSERT(size(hkl, 2) == size(sigma_Fobs))
+    ASSERT(size(hkl, 2) == size(work_flag))
+    ASSERT(size(atom_b_factor) == size(atom_occupancy))
+    ASSERT(size(atom_b_factor) == size(atom_scatter_type))
+    ASSERT(size(atom_b_factor) == size(atom_atomic_number))
+    ASSERT(size(atom_b_factor) == size(atom_is_not_bulk))
+    ASSERT(minval(atom_b_factor) > 0)
+    ASSERT(all(atom_occupancy <= 1.0))
+    ASSERT(all(atom_occupancy >= 0.0))
+    ASSERT(minval(atom_scatter_type) >= 1)
+    ASSERT(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
     
     
     open(unit = unit_id, FILE = filename, action = 'WRITE')
@@ -104,23 +106,21 @@ contains
     
     integer :: unit_id = 19
     
-    call check_precondition(.not. allocated(hkl))
-    call check_precondition(.not. allocated(Fobs))
-    call check_precondition(.not. allocated(sigma_Fobs))
-    call check_precondition(.not. allocated(work_flag))
-    call check_precondition(.not. allocated(scatter_coefficients))
-    call check_precondition(.not. allocated(atom_b_factor))
-    call check_precondition(.not. allocated(atom_occupancy))
-    call check_precondition(.not. allocated(atom_scatter_type))
-    call check_precondition(.not. allocated(atom_is_not_bulk))
-    call check_precondition(.not. allocated(atom_atomic_number))
+    ASSERT(.not. allocated(hkl))
+    ASSERT(.not. allocated(Fobs))
+    ASSERT(.not. allocated(sigma_Fobs))
+    ASSERT(.not. allocated(work_flag))
+    ASSERT(.not. allocated(scatter_coefficients))
+    ASSERT(.not. allocated(atom_b_factor))
+    ASSERT(.not. allocated(atom_occupancy))
+    ASSERT(.not. allocated(atom_scatter_type))
+    ASSERT(.not. allocated(atom_is_not_bulk))
+    ASSERT(.not. allocated(atom_atomic_number))
     
     open(unit = unit_id, FILE = filename, action = 'READ')
     read (unit_id, "(A)") line
-!    call check_assertion(line == "! n_atom")
     read (unit_id, *) n_atom
     read (unit_id, "(A)") line
-!    call check_assertion(line ==  "! i, atom_b_factor(i), atom_occupancy(i), atom_scatter_type(i), atom_is_not_bulk(i), atom_atomic_number(i)")
     
     allocate(atom_b_factor(n_atom))
     allocate(atom_occupancy(n_atom))
@@ -130,37 +130,37 @@ contains
     
     do i = 1, n_atom
       read (unit_id, *) i_, atom_b_factor(i), atom_occupancy(i), atom_scatter_type(i), atom_is_not_bulk(i), atom_atomic_number(i)
-      call check_assertion(i_ == i)
+      ASSERT(i_ == i)
     end do
     read (unit_id, "(A)") line
-!    call check_assertion(line == "! n_scatter_coefficients, n_scatter_types")
+!    ASSERT(line == "! n_scatter_coefficients, n_scatter_types")
     read (unit_id, *) n_scatter_coefficients, n_scatter_types
     read (unit_id, "(A)") line
-!    call check_assertion(line == "! i, j, scatter_coefficients(1:2, i, j)")
+!    ASSERT(line == "! i, j, scatter_coefficients(1:2, i, j)")
     allocate(scatter_coefficients(2, n_scatter_coefficients, n_scatter_types))
     do i = 1, n_scatter_coefficients
       do j = 1, n_scatter_types
         read (unit_id, *) i_, j_, scatter_coefficients(1:2, i, j)
-        call check_assertion(i_ == i)
-        call check_assertion(j_ == j)
+        ASSERT(i_ == i)
+        ASSERT(j_ == j)
       end do
     end do
     read (unit_id, "(A)") line
-!    call check_assertion(line == "! a, b, c, alpha, beta, gamma")
+!    ASSERT(line == "! a, b, c, alpha, beta, gamma")
     read (unit_id, *) a, b, c, alpha, beta, gamma
     call unit_cell%init(a, b, c, alpha, beta, gamma)
     read (unit_id, "(A)") line
-!    call check_assertion(line == "! n_hkl")
+!    ASSERT(line == "! n_hkl")
     read (unit_id, *) n_hkl
     allocate(hkl(3, n_hkl))
     allocate(Fobs(n_hkl))
     allocate(sigma_Fobs(n_hkl))
     allocate(work_flag(n_hkl))
     read (unit_id, "(A)") line
-!    call check_assertion( line == "! i, h(i), k(i), l(i), Fobs(i), sigma_Fobs(i), is_work(i)")
+!    ASSERT( line == "! i, h(i), k(i), l(i), Fobs(i), sigma_Fobs(i), is_work(i)")
     do i = 1, n_hkl
       read (unit_id, *) i_, hkl(:, i), Fobs(i), sigma_Fobs(i), work_flag(i)
-      call check_assertion(i_ == i)
+      ASSERT(i_ == i)
     end do
     close(unit_id)
   

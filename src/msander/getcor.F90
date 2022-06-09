@@ -30,6 +30,7 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
    use sander_lib, only  : check_inpcrd_overflow, get_num_tokens
 #ifdef MPI
    use remd, only : rem
+   use sgld, only : isgld
 #endif
 
    implicit none
@@ -106,10 +107,19 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
       ! in REM, overwrite temp0, solvph and/or solve if it's present in inpcrd/restrt
       ! DAN ROE: May want to just use temps in input file, so only 
       !          do this if a restart is requested.
-      if(rem == 1 .and. lremd_values(1) /= NO_INPUT_VALUE_FLOAT .and. irest==1) then
-         write(6, '(a)') '| Overwriting temp0 from mdin with temp0 from &
+      if(rem == 1 .and. irest==1) then
+        if (isgld > 0) then
+          if (lremd_values(1) /= NO_INPUT_VALUE_FLOAT) then
+            write(6, '(a)') '| Correcting stagid using value from inpcrd file'
+            stagid = lremd_values(1)
+          else
+            stagid = 0
+          end if
+        else if (lremd_values(1) /= NO_INPUT_VALUE_FLOAT) then
+          write(6, '(a)') '| Overwriting temp0 from mdin with temp0 from &
                           &netcdf inpcrd file'
-         temp0 = lremd_values(1)
+          temp0 = lremd_values(1)
+        end if
       else if(rem == 4 .and. lremd_values(1) /= NO_INPUT_VALUE_FLOAT .and. irest==1) then
          write(6, '(a)') '| Overwriting solvph from mdin with solvph from &
                           &netcdf inpcrd file'
@@ -120,8 +130,16 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
          solve = lremd_values(1)
       ! Multi-D REMD
       else if(rem == -1 .and. irest==1 .and. isRstValid) then
-         do i = 1, remd_values_dim
-           if (lremd_types(i) == 1 .and. lremd_values(i) /= NO_INPUT_VALUE_FLOAT) then
+          do i = 1, remd_values_dim
+          if(isgld > 0) then
+             if (lremd_types(i) == 1 .and. lremd_values(i) /= NO_INPUT_VALUE_FLOAT) then
+               write(6, '(a)') '| Correcting stagid using value from inpcrd file'
+               stagid = lremd_values(1)
+             else
+               stagid = 0
+             end if
+
+          else if (lremd_types(i) == 1 .and. lremd_values(i) /= NO_INPUT_VALUE_FLOAT) then
              write(6, '(a)') '| Overwriting temp0 from mdin with temp0 from &
                               &netcdf inpcrd file'
              temp0 = lremd_values(i)
@@ -178,10 +196,19 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
       ! in REM, overwrite temp0 if it's present in inpcrd/restrt
       ! DAN ROE: May want to just use temps in input file, so only 
       !          do this if a restart is requested.
-      if(rem == 1 .and. lremd_values(1) > 0 .and. irest==1) then
-         write(6, '(a)') '| Overwriting temp0 from mdin with temp0 from &
+      if(rem == 1 .and. irest==1) then
+        if(isgld > 0) then
+          if (lremd_values(1) > 0) then
+            write(6, '(a)') '| Correcting stagid using value from inpcrd file'
+            stagid = lremd_values(1)
+          else
+            stagid = 0
+          end if
+        else if (lremd_values(1) > 0) then
+          write(6, '(a)') '| Overwriting temp0 from mdin with temp0 from &
                           &netcdf inpcrd file'
-         temp0 = lremd_values(1)
+          temp0 = lremd_values(1)
+        end if
       else if(rem == 4 .and. nwords == 3 .and. irest==1) then
          write(6, '(a)') '| Overwriting solvph from mdin with solvph from &
                           &netcdf inpcrd file'

@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_non_bulk_impl_cpu_module
   
   use xray_pure_utils, only : real_kind
@@ -23,23 +25,19 @@ contains
     real(real_kind), intent(in), target :: mSS4_(:)
     real(real_kind), intent(in) :: b_factor_(:)
     integer, intent(in) :: scatter_type_index_(:)
-    real(real_kind), intent(in), optional :: occupancy_(:)
+    real(real_kind), intent(in) :: occupancy_(:)
     
-    call check_precondition(size(hkl_, 1) == 3)
-    call check_precondition(size(hkl_, 2) == size(mSS4_))
-    call check_precondition(size(b_factor_) == size(scatter_type_index_))
-    if (present(occupancy_)) then
-      call check_precondition(size(b_factor_) == size(occupancy_))
-    end if
+    ASSERT(size(hkl_, 1) == 3)
+    ASSERT(size(hkl_, 2) == size(mSS4_))
+    ASSERT(size(b_factor_) == size(scatter_type_index_))
+    ASSERT(size(b_factor_) == size(occupancy_))
     
     hkl => hkl_
     mSS4 => mSS4_
     b_factor = b_factor_
     scatter_type_index = scatter_type_index_
     
-    if (present(occupancy_)) then
-      occupancy = occupancy_
-    end if
+    occupancy = occupancy_
     
     allocate(F_non_bulk(size(mSS4_)))
     allocate(f(size(b_factor_)))
@@ -75,24 +73,24 @@ contains
   
   subroutine calc_f_non_bulk(frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
-    use constants_xray, only: omp_num_threads
+    use constants_xray, only: xray_num_threads
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     ! locals
     integer :: ihkl
     
-    call check_precondition(associated(hkl))
-    call check_precondition(associated(mSS4))
-    call check_precondition(allocated(atomic_scatter_factor))
-    call check_precondition(allocated(b_factor))
-    call check_precondition(allocated(scatter_type_index))
+    ASSERT(associated(hkl))
+    ASSERT(associated(mSS4))
+    ASSERT(allocated(atomic_scatter_factor))
+    ASSERT(allocated(b_factor))
+    ASSERT(allocated(scatter_type_index))
     
-    call check_precondition(size(frac, 1) == 3)
-    call check_precondition(size(frac, 2) == size(b_factor))
-    call check_precondition(size(frac, 2) == size(scatter_type_index))
-    call check_precondition(size(hkl, 2) == size(atomic_scatter_factor, 1))
+    ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(b_factor))
+    ASSERT(size(frac, 2) == size(scatter_type_index))
+    ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,f,angle)  num_threads(omp_num_threads)
+    !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
@@ -114,11 +112,8 @@ contains
       ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
       !    j = 1,num_selected_atoms
       
-      f(:) = exp(mSS4(ihkl) * b_factor(:)) &
+      f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
-      if (allocated(occupancy)) then
-        f(:) = f(:) * occupancy(:)
-      endif
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
       
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &

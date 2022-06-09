@@ -16,13 +16,13 @@ subroutine mdread1()
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
    use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
-   use sgld, only : isgld, isgsta,isgend,fixcom, &
-                    tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp
+   use sgld, only : isgld, isgsta,isgend,nsgsize, &
+                    tsgavg,sgft,sgff,sgfg,tsgavp
    use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use scaledMD_mod, only: scaledMD,scaledMD_lambda
@@ -103,7 +103,7 @@ subroutine mdread1()
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
          ntb,temp0,tautp, &
-         ntp,pres0,comp,taup,barostat,mcbarint, &
+         ntp,pres0,comp,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
          cut,dielc, &
@@ -120,17 +120,17 @@ subroutine mdread1()
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
-         isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
+         isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
          jar, &
          numexchg, repcrd, numwatkeep, hybridgb, reservoir_exchange_step, &
          ntwprt,tausw, &
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
@@ -265,18 +265,14 @@ subroutine mdread1()
    iesp = 0
    ntx = 1
    ntxo = NO_INPUT_VALUE
-   ig = 71277
+   ig = -1
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
-! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
-! } 
-! PLUMED
+   ntt = 3    ! was ithermostat=1
+   gamma_ln = 5.d0  ! was therm_par = 5.0d0
    plumed = 0
    plumedfile = 'plumed.dat'
-! END PLUMED
 #ifdef LES
    ! alternate temp for LES copies, if negative then use single bath
    ! single bath not the same as 2 baths with same target T
@@ -291,7 +287,6 @@ subroutine mdread1()
    mcbarint = 100
    pres0 = ONE
    comp = 44.6d0
-   taup = ONE
    npscal = 1
    nscm = 1000
    nstlim = 1
@@ -412,7 +407,6 @@ subroutine mdread1()
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO
@@ -539,13 +533,13 @@ subroutine mdread1()
    isgld = 0   ! no self-guiding
    isgsta=1    ! Begining index of SGLD range
    isgend=0    ! Ending index of SGLD range
-   fixcom=-1    ! fix center of mass in SGLD simulation
+   nsgsize=1       !   1--self atom only,
+                   !   2--bond and angle atoms,
+                   !   3--bond, angle, and dihedral atoms
    tsgavg=0.2d0    !  Local averaging time of SGLD simulation
-   sgft=-1.0d3      !  Guiding factor of SGLD simulation
-   sgff=-1.0d3      !  Guiding factor of SGLD simulation
-   sgfd=-1.0d3      !  Guiding factor of SGLD simulation
-   tempsg=0.0d0    !  Guiding temperature of SGLD simulation
-   treflf=0.0d0    !  Reference low frequency temperature of SGLD simulation
+   sgft=0.0d0      !  Guiding factor of SGLD simulation
+   sgff=0.0d0      !  Guiding factor of SGLD simulation
+   sgfg=0.0d0      !  Guiding factor of SGLD simulation
    tsgavp=2.0d0    !  Convergency time of SGLD simulation
 
    !     Check to see if "cntrl" namelist has been defined.
@@ -633,8 +627,8 @@ subroutine mdread1()
 
    call nmlsrc('xray',5,ifind)
    xray_active = (ifind /= 0)
-
    rewind 5
+
    if ( mdin_cntrl ) then
       read(5,nml=cntrl,err=999)
    else
@@ -679,14 +673,13 @@ subroutine mdread1()
    end if
 
    ! middle scheme is now the only scheme {
-   gamma_ln = therm_par  !  gamma_ln is the old variable in ../include/md.h
-   if (ithermostat < 0 .or. ithermostat > 2) then
+   if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne.  3) then
       write(6,'(1x,a,/)') &
-         'Middle scheme: ithermostat is only available for 0-2'
+         'Middle scheme: ntt is only available for 0,2,3'
       FATAL_ERROR
    end if
-   if (therm_par < 0d0) then
-      write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+   if (gamma_ln < 0d0) then
+      write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
       FATAL_ERROR
    end if
    ! }
@@ -1086,11 +1079,10 @@ subroutine mdread2(x,ix,ih)
    use constants, only : ZERO, ONE, TWO
    use parms, only: req
    use nbips, only: ips
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: ithermostat
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1115,6 +1107,7 @@ subroutine mdread2(x,ix,ih)
 ! REMD
    use remd, only : rem, rremd
    use sgld, only : isgld ! for RXSGLD
+   use mpi
 #endif /* MPI */
    use linear_response, only: ilrt, lrtmask
    use nfe_sander_proxy, only: infe
@@ -1147,7 +1140,6 @@ subroutine mdread2(x,ix,ih)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #  include "parallel.h"
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
@@ -1211,13 +1203,12 @@ subroutine mdread2(x,ix,ih)
       ndfmin = 0
    end if
    if(nscm <= 0) nscm = 0
-   if (ithermostat == 1) ndfmin = 0 ! No COM motion removal for Langevin
+   if (ntt == 3) ndfmin = 0 ! No COM motion removal for Langevin
 
    init = 3
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
    if (tautp <= ZERO ) tautp = 0.2d0
-   if (taup <= ZERO ) taup = 0.2d0
 
    !     ----- RESET THE CAP IF NEEDED -----
 
@@ -1252,14 +1243,14 @@ subroutine mdread2(x,ix,ih)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
      write (6, '(a)') "      and disabling the synchronization of random &
                                &numbers between tasks"
      write (6, '(a)') "      to improve performance."
 #else
 #  ifndef API
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                 &time in microseconds."
 #  endif /* API */
 #endif
@@ -1505,16 +1496,16 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
 
-      if( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
+      if( ntt == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ithermostat == 1) then
+      else if( ntt == 3) then
          write(6,'(/a)') 'Langevin dynamics temperature regulation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', therm_par=', therm_par
-      else if( ithermostat == 2 ) then
+               ', tempi   =',tempi,', gamma_ln=', gamma_ln
+      else if( ntt == 2 ) then
          write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
          write(6,'(5x,2(a,i8))') 'ig      =',ig, ', vrand   =',vrand
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
@@ -1523,8 +1514,7 @@ subroutine mdread2(x,ix,ih)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,3(a,f10.5))') 'pres0   =',pres0, &
-               ', comp    =',comp,', taup    =',taup
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
@@ -2864,14 +2854,6 @@ subroutine mdread2(x,ix,ih)
          DELAYED_ERROR
       end if
    end if
-   ! skip this test until fallback to rgroup() is supported
-   !if (itgtmd == 1 .and. ntr == 0) then
-   !   if (len_trim(tgtfitmask) == 0 .and. len_trim(tgtrmsmask) == 0) then
-   !      write(6,'(/2x,a)')  &
-   !        'ITGTMD: both tgtfitmask and tgtrmsmask should be specified if NTR=0'
-   !      DELAYED_ERROR
-   !   end if
-   !end if
 
    !     -- consistency checking
 

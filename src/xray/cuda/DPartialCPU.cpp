@@ -35,7 +35,8 @@ void xray::DPartialCPU::calc_d_target_d_frac(
 
       std::complex<double> c_phase{cos(phase), sin(phase)};
       double tmp = 2 * M_PI * f * f_scale[i_hkl] *
-        std::imag(c_phase * m_f_calc[i_hkl]) * d_target_d_abs_f_calc[i_hkl] / f_abs;
+        std::imag(c_phase * m_f_calc[i_hkl]) * d_target_d_abs_f_calc[i_hkl] / f_abs
+        * m_atom_occupancy[i];
 
       d_target_d_frac[i * 3 + 0] += m_hkl[i_hkl * 3 + 0] * tmp;
       d_target_d_frac[i * 3 + 1] += m_hkl[i_hkl * 3 + 1] * tmp;

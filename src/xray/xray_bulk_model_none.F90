@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_bulk_model_none_module
 
   use xray_contracts_module
@@ -20,7 +22,7 @@ contains
   subroutine init(scale_update_period_)
     implicit none
     integer, intent(in) :: scale_update_period_
-    call check_precondition(scale_update_period_ > 0)
+    ASSERT(scale_update_period_ > 0)
 
     scale_update_period = scale_update_period_
   end subroutine init
@@ -29,14 +31,21 @@ contains
   end subroutine finalize
 
   subroutine add_bulk_contribution_and_rescale(current_step, absFobs, Fcalc)
-    use xray_pure_utils, only : calc_k_overall
+    use xray_pure_utils, only : calc_k_overall, calc_k_overallc
+    use xray_target_module, only : target_function_id
+    use xray_interface2_data_module, only : n_work, Fobs
     implicit none
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     complex(real_kind), intent(inout) :: Fcalc(size(absFobs)) !< input: Fcalc=Fprot, output Fcalc=Fcalc
 
     if(mod(current_step, scale_update_period) == 0) then
-      k_overall = calc_k_overall(absFobs, abs(Fcalc))
+      if( target_function_id == 1 ) then
+         k_overall = calc_k_overallc(Fobs, Fcalc, n_work)
+      else
+         k_overall = calc_k_overall(absFobs, abs(Fcalc))
+      endif
+      write(6,'(a, e14.7)') '| setting isotropic scaling to ', k_overall
     end if
 
     Fcalc = k_overall * Fcalc

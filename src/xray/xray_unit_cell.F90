@@ -1,3 +1,5 @@
+#include "../include/assert.fh"
+
 module xray_unit_cell_module
   
   use xray_pure_utils, only : real_kind
@@ -229,7 +231,7 @@ contains
     result = this%impl_get_s2_3i(hkl(1), hkl(2), hkl(3))
   end function impl_get_s2_i3
   
-  pure function impl_get_s2_i3n(this, hkl) result(result)
+  function impl_get_s2_i3n(this, hkl) result(result)
     implicit none
     class(unit_cell_t), intent(in) :: this
     integer, intent(in) :: hkl(:, :)
@@ -237,7 +239,7 @@ contains
     
     integer :: i
     
-    call check_precondition(size(hkl, 1) == 3)
+    ASSERT(size(hkl, 1) == 3)
     
     do i = 1, size(hkl, 2)
       result(i) = this%impl_get_s2_i3(hkl(:, i))
@@ -255,22 +257,22 @@ contains
     result = matmul(this%m_frac_to_orth, frac)
   end function impl_to_orth_3
   
-  pure function impl_to_orth_3n(this, frac) result(result)
+  function impl_to_orth_3n(this, frac) result(result)
     implicit none
     class(unit_cell_t), intent(in) :: this
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind) :: result(size(frac, 1), size(frac, 2))
-    call check_precondition(size(frac, 1) == 3)
+    ASSERT(size(frac, 1) == 3)
     
     result = matmul(this%m_frac_to_orth, frac)
   end function impl_to_orth_3n
   
-  pure function impl_to_orth_derivative_3n(this, frac_derivative) result(result)
+  function impl_to_orth_derivative_3n(this, frac_derivative) result(result)
     implicit none
     class(unit_cell_t), intent(in) :: this
     real(real_kind), intent(in) :: frac_derivative(:, :)
     real(real_kind) :: result(size(frac_derivative, 1), size(frac_derivative, 2))
-    call check_precondition(size(frac_derivative, 1) == 3)
+    ASSERT(size(frac_derivative, 1) == 3)
     
     result = matmul(transpose(this%m_orth_to_frac), frac_derivative)
   end function impl_to_orth_derivative_3n
@@ -284,12 +286,12 @@ contains
     result = matmul(this%m_orth_to_frac, orth)
   end function impl_to_frac_3
   
-  pure function impl_to_frac_3n(this, orth) result(result)
+  function impl_to_frac_3n(this, orth) result(result)
     implicit none
     class(unit_cell_t), intent(in) :: this
     real(real_kind), intent(in) :: orth(:, :)
     real(real_kind) :: result(size(orth, 1), size(orth, 2))
-    call check_precondition(size(orth, 1) == 3)
+    ASSERT(size(orth, 1) == 3)
     
     result = matmul(this%m_orth_to_frac, orth)
   end function impl_to_frac_3n

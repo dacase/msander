@@ -50,6 +50,7 @@ use file_io_dat, only : MAX_FN_LEN, REMLOG_UNIT, REMTYPE_UNIT, &
                         inpcrd, numgroup, owrite, target_ph, target_e
 use commandline_module, only : cpein_specified
 use random
+use mpi
 
 implicit none
 
@@ -291,11 +292,11 @@ _REAL_, dimension(:), allocatable, private :: xtemp, ftemp
 ! stagid       - current stage of this replica
 ! myscalsg     - scaling factor for guiding properties after exchange. (in sgld
 !                module)
-! sgfttable()  - Store sorted list of replica self-guiding factors.
-! tsgtable()   - Store sorted list of replica self-guiding temperatures.
+! sgfttable()  - Store sorted list of replica self-guiding momentum factors.
+! sgfftable()   - Store sorted list of replica self-guiding force factors.
+! psgldgtable()   - Store sorted list of replica self-guiding effective force factors.
 integer, save :: stagid
-_REAL_, allocatable, save :: sgfttable(:)
-_REAL_, allocatable, save :: tsgtable(:)
+_REAL_, allocatable, save :: sgfttable(:),sgfftable(:),psgldgtable(:)
 ! REMD RNG
 type(rand_gen_state), save :: remd_gen
 
@@ -328,13 +329,12 @@ end subroutine setup_pv_correction
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Set up REMD run - open log, set up temperature table, etc
 subroutine remd1d_setup(numexchg, hybridgb, numwatkeep, temp0, &
-                        mxvar, natom, ig, solvph, solve)
+                        mxvar, natom, ig, solvph, solve, stagid)
 
-   use sgld, only : isgld, sgft, tempsg, sorttempsg, tempsglookup
+   use sgld, only : isgld, sgfti, sgffi, psgldg, sorttempsg, tempsglookup
 
 implicit none
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    integer, intent(in) :: numexchg
@@ -423,7 +423,7 @@ implicit none
 
    ! allocate memory for self-guiding temperature table: tempsgtable
    if (isgld > 0) then
-      allocate(tsgtable(numreps), sgfttable(numreps), stat=ierror)
+      allocate(sgfttable(numreps), sgfftable(numreps), psgldgtable(numreps), stat=ierror)
       REQUIRE(ierror==0)
    end if
 
@@ -543,28 +543,38 @@ implicit none
 
          !  RXSGLD parameters
          if (isgld > 0) then
-            ! build RXSGLD guiding temperature table
-            call mpi_allgather(tempsg, 1, mpi_double_precision, &
-                               tsgtable, 1, mpi_double_precision, &
-                               remd_comm, ierror)
-
-
-            ! build RXSGLD guiding factor table
-            call mpi_allgather(sgft, 1, mpi_double_precision, &
+            ! build RXSGLD momentum guiding temperature table
+            call mpi_allgather(sgfti, 1, mpi_double_precision, &
                                sgfttable, 1, mpi_double_precision, &
                                remd_comm, ierror)
 
+
+            ! build RXSGLD force guiding factor table
+            call mpi_allgather(sgffi, 1, mpi_double_precision, &
+                               sgfftable, 1, mpi_double_precision, &
+                               remd_comm, ierror)
+
+            ! build RXSGLD effective force guiding factor table
+            call mpi_allgather(psgldg, 1, mpi_double_precision, &
+                               psgldgtable, 1, mpi_double_precision, &
+                               remd_comm, ierror)
+
            ! Sort temperatures
-           call sorttempsg(numreps, statetable, tsgtable, sgfttable)
+           call sorttempsg(numreps, statetable, psgldgtable, sgfftable)
            ! Determine this replca's ID
-           stagid = tempsglookup(numreps, temp0, tempsg, sgft, &
-                                 statetable, tsgtable, sgfttable)
+           if (stagid == 0) then
+             stagid = tempsglookup(numreps, temp0, &
+               sgfti, sgffi, statetable, sgfttable, sgfftable)
+           else
+             sgfti = sgfttable(stagid)
+             sgffi   = sgfftable(stagid)
+             psgldg   = psgldgtable(stagid)
+           end if
             ! Check to make sure the first replica has no guiding effect
-           if(tsgtable(1)>0 .and. tsgtable(1) /= statetable(1) &
-                            .and. sgfttable(1) /= 0) then
+           if(sgfttable(1) /= 0.0d0 .or. sgfftable(1) /= 0.0d0) then
                   write (6,*) "================================"
                   write (6,*) "No guiding effect on the first replica!"
-                  write (6,*) "  tempsg, sgft=: ", statetable(1), sgfttable(1)
+                  write (6,*) "  sgft, sgff=: ", statetable(1), sgfttable(1), sgfftable(1)
                   write (6,*) "================================"
                   call mexit(6,1)
            end if
@@ -647,10 +657,10 @@ implicit none
       ! Write out the column labels
       if (rem == 1 .or. rem == 2) then
          if (isgld > 0) then
-         write(REMLOG_UNIT,'(a)')"# RXSGLD setup: stagid   temp0    tempsg    sgft"
+         write(REMLOG_UNIT,'(a)')"# RXSGLD setup: stagid   temp0    sgft    sgff"
            do i=1,numreps
-              write(REMLOG_UNIT,'(a,i4,2f10.2,f10.4)')"#      replica: ", &
-                      i, statetable(i), tsgtable(i), sgfttable(i)
+            write(REMLOG_UNIT,'(a,i4,f10.2,3f10.4)')"#      replica: ", &
+                      i, statetable(i), sgfttable(i), sgfftable(i)
            enddo
             write(REMLOG_UNIT,'(a)') &
          "# Rep Stagid Vscale  SGscale Temp Templf Eptot Acceptance(i,i+1)"
@@ -693,7 +703,6 @@ subroutine multid_remd_setup(numexchg, numwatkeep, temp0, &
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Formal arguments:
@@ -1200,7 +1209,6 @@ subroutine remd_cleanup()
    use AmberNetcdf_mod, only: NC_close
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer  :: ierror
@@ -1253,8 +1261,8 @@ subroutine remd_cleanup()
    if (allocated(dihcluststep)) deallocate(dihcluststep)
 
    ! RXSGLD
-   if (allocated(tsgtable)) deallocate(tsgtable)
    if (allocated(sgfttable)) deallocate(sgfttable)
+   if (allocated(sgfftable)) deallocate(sgfftable)
 
    ! Free communicators
    if (remd_comm /= mpi_comm_null) &
@@ -1276,7 +1284,6 @@ subroutine remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -1315,7 +1322,7 @@ implicit none
    ! ---=== RXSGLD property SCALING ===---
       if (my_remd_data%newtargettemp > 0.0) &
          temp0 = my_remd_data%newtargettemp
-      call rxsgld_scale(stagid, nr, my_remd_data%myscaling, amass, v)
+      call rxsgld_scale(stagid, nr, my_remd_data%myscaling, amass, x, v)
    else
       ! ---=== REMD VELOCITY SCALING ===---
       ! REMD: If an attempt is accepted, set the target temperature to
@@ -1345,13 +1352,12 @@ subroutine subrem(rem_dim)
 
    use constants, only : TWO
 
-   use sgld, only : isgld, tsgset, sgft, tempsg, temprxlf, epotlf, avgtlf, &
-                    avgeflf, avgefhf, avgcflf, avgcfhf, myscalsg, sgld_exchg, &
+   use sgld, only : isgld, tsgset, sgfti, sgffi, psgldg, epotlf, epotllf, &
+                     templf,myscalsg, sgld_exchg, &
                     tempsglookup, stagidlookup
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -1362,10 +1368,10 @@ subroutine subrem(rem_dim)
    _REAL_ pvterm
    _REAL_ l_temp0, r_temp0, o_temp0
    _REAL_ l_eptot, r_eptot, o_eptot
-   _REAL_ o_sglf, sglf, o_sghf, sghf, o_stagid
-   _REAL_ alltlf(numreps), allelf(numreps)
-   _REAL_ allflf(numreps), allfhf(numreps)
-   _REAL_ allclf(numreps), allchf(numreps), d_scalsg(numreps)
+   _REAL_ o_stagid,o_psgldg,o_sgff,o_epotlf,o_epotllf,o_tlf
+   _REAL_ dbeta,dbetamiu,depot,depotlf,depotllf
+   _REAL_ alltlf(numreps), alleplf(numreps), allepllf(numreps)
+   _REAL_ d_scalsg(numreps)
    integer allstagid(numreps)
    _REAL_ alltempi(numreps), alltemp0(numreps), alleptot(numreps)
    ! For use in remlog output
@@ -1468,13 +1474,6 @@ subroutine subrem(rem_dim)
       if (r_index > remd_size) r_index = 1
 
       if (isgld > 0) then
-         o_repnum = stagidlookup(remd_size,1,allstagid)
-         if(my_remd_data%mytargettemp == statetable(1))then
-            temprxlf = alltlf(o_repnum) * my_remd_data%mytargettemp &
-                     / statetable(1)
-         else
-            temprxlf = 0.0d0
-         end if
          my_repnum = stagidlookup(remd_size, myindex, allstagid)
          l_repnum = stagidlookup(remd_size, l_index, allstagid)
          r_repnum = stagidlookup(remd_size, r_index, allstagid)
@@ -1550,14 +1549,26 @@ subroutine subrem(rem_dim)
          if (isgld > 0) then
             ! Replica exchange self-guided Langevin dynamics
             !  Works also for temperature-based replica exchange
-           sghf = avgefhf * avgcfhf * 503.01d0 / my_remd_data%mytargettemp
-           sglf = avgeflf * avgcflf * 503.01d0 / my_remd_data%mytargettemp - sghf
-           o_sghf = allfhf(o_repnum) * allchf(o_repnum) * 503.01d0/ o_temp0
-           o_sglf = allflf(o_repnum) * allclf(o_repnum) * &
-                    503.01d0 / o_temp0 - o_sghf
-
-           delta = (SGLF - o_sglf) * (ALLELF(o_repnum) - EPOTLF)  &
-                 + (SGHF - o_sghf) * (o_eptot - my_remd_data%myeptot)
+            ! delta = D(beta)D(Ep)+D(beta*miu)*(D(Eplf)-D(Epllf))
+            !  D(beta)=1/kT(neighbor)-1/kT
+            !  D(betamiu)=(sgff(neighbor)-psgldg(neighbor))/kT(neighbor)-(sgff-psgldg)/kT
+            !  D(Ep)=Eppt(neighbor)-Eppt
+            !  D(Eplf)=Epotlf(neighbor)-Epotlf
+            !  D(Epllf)=Epotllf(neighbor)-Epotllf
+   
+                 o_sgff=sgfftable(o_index)
+                 o_psgldg=psgldgtable(o_index)
+                 o_epotlf=alleplf(o_repnum)
+                 o_epotllf=allepllf(o_repnum)
+                 o_epotlf=alleplf(o_repnum)
+                 dbeta = 503.01d0/ o_temp0-503.01d0 / my_remd_data%mytargettemp
+                 dbetamiu=503.01d0*(o_sgff-o_psgldg)/ o_temp0-  &
+                          503.01d0*(sgffi-psgldg) / my_remd_data%mytargettemp
+                 depot=o_eptot- my_remd_data%myEptot 
+                 depotlf=o_epotlf - epotlf 
+                 depotllf=o_epotllf - epotllf 
+             
+                 delta = -dbeta * depot - dbetamiu*(depotlf-depotllf) 
          else
             ! Std REMD
             delta = (my_remd_data%myEptot - o_eptot) &
@@ -1581,7 +1592,7 @@ subroutine subrem(rem_dim)
 
             ! RXSGLD scaling factor
             if (isgld > 0) then
-               myscalsg = sqrt(alltlf(o_repnum) / avgtlf)
+               myscalsg = sqrt(alltlf(o_repnum) / templf)
                o_scalsg = 1.0d0 / myscalsg
             end if
 
@@ -1648,10 +1659,12 @@ subroutine subrem(rem_dim)
          exchange=.true.
          if (isgld > 0) then
             stagid=allstagid(o_repnum)
-            ! exchange all SGFT common data block
-            call sgld_exchg(o_repnum-1)
-            o_stagid = tempsglookup(remd_size, tsgset, tempsg, sgft, &
-                                    statetable, tsgtable, sgfttable)
+            sgfti=sgfttable(stagid)
+            sgffi=sgfftable(stagid)
+            psgldg=psgldgtable(stagid)
+            tsgset=o_temp0
+            o_stagid = tempsglookup(remd_size, tsgset, sgfti, sgffi, &
+                                    statetable, sgfttable, sgfftable)
             if(stagid /= o_stagid) &
                write(6,*) "Problem in exchange ID!", stagid, o_stagid
          end if
@@ -1722,7 +1735,7 @@ subroutine subrem(rem_dim)
                alleptot(i), & ! current potential energy
                exchfrac(allstagid(i)) ! current exchange success fraction
             else
-               write(REMLOG_UNIT, '(i2, 6f10.2, i8)') &
+               write(REMLOG_UNIT, '(i2,f12.4,f10.2,f15.2,3f10.2,i8)') &
                i, & ! Replica #
                d_scaling(i), & ! scaling factor
                alltempi(i), & ! current temperature
@@ -1824,7 +1837,7 @@ subroutine remd_scale_velo(v, temp0, nr3, rem_kind)
       if (my_remd_data%myscaling > 0.0) then
          ! All processes scale velocities.
          ! DAN ROE: This could potentially be divided up as in runmd
-         !  since when there are mutiple threads per group each thread
+         !  since when there are multiple threads per group each thread
          !  only ever knows about its own subset of velocities anyway.
 #ifdef VERBOSE_REMD
          if (master) then
@@ -1888,7 +1901,6 @@ subroutine set_partners(rem_dim, num_replicas)
 
    implicit none
 
-   include 'mpif.h'
 
    ! Passed Variables
 
@@ -1979,7 +1991,6 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
    use netcdf
    use AmberNetcdf_mod, only: NC_error
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    _REAL_, dimension(*), intent(inout) :: x, v
@@ -2647,7 +2658,6 @@ subroutine load_reservoir_files()
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
    integer numatoms, iseed, ierror, i, nodeid, holder
 ! i1-4 for reading dihedral atom nums
@@ -2918,7 +2928,6 @@ function pv_correction(ourtemp, nbrtemp, neighbor, comm_rep_master)
   use constants, only : KB
   ! ARGUMENTS
   implicit none
-  include 'mpif.h'
   _REAL_ pv_correction
   _REAL_, intent(in)  :: ourtemp, nbrtemp
   integer, intent(in) :: neighbor
@@ -2957,7 +2966,6 @@ subroutine remd_bcast_cell(box0, box1, commsander)
   use nblist, only : fill_tranvec
   ! ARGUMENTS
   implicit none
-  include 'mpif.h'
   _REAL_, intent(in), dimension(:) :: box0       ! Original box
   _REAL_, intent(in), dimension(:) :: box1       ! New box
   integer, intent(in)              :: commsander ! COMM for broadcast
@@ -2987,7 +2995,6 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
 #  include "box.h"
 #  include "parallel.h"
 #  include "../include/memory.h"
-   include 'mpif.h'
 
    ! sander.F90
    _REAL_  x(*)
@@ -3508,7 +3515,6 @@ subroutine ph_remd_exchange(rem_dim, solvph)
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed Variables
    integer, intent(in)   :: rem_dim ! dimension we are exchanging in
@@ -3715,7 +3721,6 @@ subroutine e_remd_exchange(rem_dim, temp0, solve)
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed Variables
    integer, intent(in)   :: rem_dim ! dimension we are exchanging in
@@ -3927,7 +3932,6 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
 
    implicit none
 
-   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -4414,7 +4418,6 @@ subroutine reservoir_remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -4478,7 +4481,7 @@ implicit none
    ! ---=== RXSGLD property SCALING ===---
       if (my_remd_data%newtargettemp > 0.0) &
          temp0 = my_remd_data%newtargettemp
-      call rxsgld_scale(stagid, nr, my_remd_data%myscaling, amass, v)
+      call rxsgld_scale(stagid, nr, my_remd_data%myscaling, amass, x, v)
    else
       ! ---=== REMD VELOCITY SCALING ===---
       ! REMD: If an attempt is accepted, set the target temperature to
@@ -4511,7 +4514,6 @@ subroutine multid_remd_exchange(x, ix, ih, ipairs, qsetup, &
    use sander_lib, only : strip
 
    implicit none
-   include 'mpif.h'
 #  include "../include/memory.h"
 #  include "parallel.h"
 

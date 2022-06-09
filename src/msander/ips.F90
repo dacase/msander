@@ -333,10 +333,12 @@ SUBROUTINE IPSUPDATE(NTB)
 !-----------------------------------------------------------------------
 
       use nblist, only : volume
+#ifdef MPI
+   use mpi
+#endif
       implicit none
 #ifdef MPI
 #  include "parallel.h"
-   include "mpif.h"
    integer ierr
    INTEGER NNBTMP
 #endif
@@ -551,6 +553,9 @@ subroutine aipspbc( eerw,eerq,natom,crd,charge,frcx,frc,rec_vir)
    use ew_bspline,only:get_grid_weights
    use nblist,only:recip
    
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 #  include "flocntrl.h"
       
@@ -563,7 +568,6 @@ subroutine aipspbc( eerw,eerq,natom,crd,charge,frcx,frc,rec_vir)
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-    include "mpif.h"
 #endif
 
 
@@ -1388,6 +1392,7 @@ subroutine aips_grad_sumrc( &
   use constants, only:zero,one
 #ifdef MPI
   use ew_bspline,only:kbot,ktop
+  use mpi
 #endif
   use file_io_dat
   
@@ -1402,7 +1407,6 @@ subroutine aips_grad_sumrc( &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-   include "mpif.h"
    !     _REAL_ Q(nfftdim1*2,nfftdim2,mxyslabs)
    _REAL_ q(*),w(*)
 #else

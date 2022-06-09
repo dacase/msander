@@ -448,7 +448,7 @@
    ! Individual calls to MKL from routines that know what they are doing - e.g.
    ! QMMM calls to diagonalizers etc can increase this limit as long as they
    ! put it back afterwards.
-   call omp_set_num_threads(1)
+!$ call omp_set_num_threads(1)
 
    ! If we are using openmp for matrix diagonalization print some information.
 !$ if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
@@ -503,7 +503,7 @@
    end if
 
   ! Prepare for SGLD simulation
-   if (isgld > 0) call psgld(natom,x(lmass),x(lvel), 0)
+   if (isgld > 0) call psgld(natom,ix(i08), ix(i10), x(lmass),x(lcrd),x(lvel), 0)
 
   ! Prepare for EMAP constraints
    if (temap) call pemap(dt,temp0,x,ix,ih)

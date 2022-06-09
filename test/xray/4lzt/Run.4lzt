@@ -1,8 +1,12 @@
 #!/bin/bash
 
-export OMP_NUM_THREADS=10
+export XRAY_NUM_THREADS=4
 
 sander="../../../bin/msander"
+
+if [ ! -z "$USE_CUDA" ]; then
+   sander=$sander.cuda
+fi
 
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -14,8 +18,8 @@ Test of MD with Xray restraints
   ntx = 1, irest = 0, ntpr = 1,
   ntc = 1, ntf = 1, tol = 0.000001,
   cut = 8.0,
-  nstlim = 5, dt = 0.001,
-  ithermostat = 0, tempi=0.0,
+  nstlim = 5, dt = 0.001, 
+  ntt = 0, tempi=0.0, ig=12345,
   imin=0, maxcyc=5,
  /
  &xray
@@ -33,6 +37,6 @@ EOF
 $DO_PARALLEL $sander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
     -o 4lzt_md.out < /dev/null
 
-../../dacdif 4lzt_md.out.save 4lzt_md.out
+../../dacdif -r 2e-4 4lzt_md.out.save 4lzt_md.out
 
 /bin/rm -f mdin mdinfo restrt

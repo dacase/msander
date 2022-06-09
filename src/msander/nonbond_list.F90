@@ -275,6 +275,7 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
                         ipairs, ntnb, ibelly, belly, newbalance, qsetup, &
                         do_list_update)
 #ifdef MPI
+   use mpi
 #endif
    implicit none
 
@@ -299,7 +300,6 @@ subroutine nonbond_list(crd, iac, ico, iblo, inb, ntypes, natom, x, ix, &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
    integer tmplist(0:MPI_MAX_PROCESSORS), alllist(0:MPI_MAX_PROCESSORS)
 #else   /* not parallel needs numtasks and mytaskid */
    integer numtasks, mytaskid
@@ -673,13 +673,15 @@ subroutine get_nb_list(iac, ico, ntypes, ifail, listtot, natom, ipairs, &
                        nghbptr, nghtran, tranvec, belly, ibelly, balance, &
                        gridpairs, periodic, nogrdptrs)
 
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    
 #  include "extra.h"
 #ifdef MPI
 #  include "ew_parallel.h"
 #  include "parallel.h"
-   include 'mpif.h'
 #else   /* not parallel needs numtasks and mytaskid */
    integer numtasks,mytaskid
 #endif

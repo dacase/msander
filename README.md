@@ -1,12 +1,8 @@
 # Overview
 
 This directory tree contains "msander", a "modern" version of parts of
-sander, plus other pieces of AmberTools needed for basic building and
-simulations of biomolecules.  Tools inlcuded are:
-```
-   addles  antechamber  tleap  msander  parmed  sqm
-```
-Also included are the API's to msander, and various X-ray-related utilities
+sander.  Also included are the API's to msander, and various X-ray-related 
+utilities.
 
 # Warning
 
@@ -31,9 +27,6 @@ are expected to be in structure refinements using NMR, cryoEM or
 Xray diffraction information.  This version has a fair amount of OpenMP
 support, especially for Xray and 3D-RISM calculations.
 
-* This project is also the source for the phenix_amber project, which explains
-why non-sander things like tleap, antechamber, etc. are here.
-
 * Since this code is based on sander, tons of people have been involved in its
 creation over the years.  See https://ambermd.org/contributors.html for more
 information, although even that gets out of date.
@@ -49,7 +42,8 @@ current practice: Path-integral methods, thermostats that don't follow
 the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
-potentials, some parts of adaptive QM/MM, nudged elastic band
+potentials, some parts of adaptive QM/MM, nudged elastic band, constant pH
+and constant redox potential simulations.
 
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
@@ -58,26 +52,21 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
   * Periodic and non-periodic simulations, with all of Amber's GB models
 
+  * 3D-RISM in periodic boundary conditions
+
   * QM/MM, including hooks to external codes
 
-  * NMR, cryoEM and Xray restraints (including quite a bit of new code)
+  * NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
+    restraints include NVIDIA GPU-enabled capabilities)
 
   * Thermodynamic integration and non-equilibrium sampling methods
 
-  * Replica exchange capabilities, and constant pH and redox potential
-simulations
+  * Replica exchange capabilities, except for constant pH and redox potential
+    simulations
 
 # Building the code
 
-*Conda build (serial mode only, no MPI):
-```
-   conda build [ --python x.x ] recipe 
-      (note: you should have conda-forge at the top of your channel
-      list in ~/.condarc.  This build creates the conda package used
-      in the phenix_amber project, but the package could also have other uses.)
-```
-
-*Non-conda build  (MacOSX, Linux, probably WSL):
+* MacOSX, Linux, probably WSL:
 ```
    ./configure --help   #  then choose the options you want
    make install
@@ -85,7 +74,8 @@ simulations
 ```
 
 # License
-This project is generally licensed under the GNU (Lesser) General Public 
-License, version 3 (GPL/LGPL v3).  Some components use different, but 
-compatible, open source licenses.  See the LICENSE file for more information.
+This project is licensed under the GNU General Public License, 
+version 2, or (at your option) any later version.   Some components use 
+different, but compatible, open source licenses.  See the LICENSE file 
+for more information.
 
