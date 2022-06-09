@@ -265,7 +265,7 @@ subroutine mdread1()
    iesp = 0
    ntx = 1
    ntxo = NO_INPUT_VALUE
-   ig = 71277
+   ig = -1
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
@@ -1243,14 +1243,14 @@ subroutine mdread2(x,ix,ih)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
      write (6, '(a)') "      and disabling the synchronization of random &
                                &numbers between tasks"
      write (6, '(a)') "      to improve performance."
 #else
 #  ifndef API
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                 &time in microseconds."
 #  endif /* API */
 #endif

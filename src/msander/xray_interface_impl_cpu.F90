@@ -32,8 +32,7 @@ module xray_interface_impl_cpu_module
          pdb_wrap_names, &
          spacegroup_name, &
          reflection_infile, &
-         xray_weight_initial, &
-         xray_weight_final, &
+         xray_weight, &
          target, &
          solvent_mask_probe_radius, &
          solvent_mask_adjustment, &
@@ -76,19 +75,9 @@ contains
         call mexit(stdout,1)
       end if
       
-      if (xray_weight_initial == sentinel_xray_weight) then
-         call check_requirement(xray_weight_final == sentinel_xray_weight, &
-             & "`xray_weight_final` requires `xray_weight_initial` to be explicitly set")
-         xray_weight_initial = default_xray_weight
-      end if
-   
-      if (xray_weight_final == sentinel_xray_weight) then
-         xray_weight_final = xray_weight_initial
-      end if
-
       ! initialize the weight-change value, in case other weight changes
       ! might be used:
-      wxray = xray_weight_initial
+      wxray = xray_weight
       
       !write(unit=6,nml=xray)
    end subroutine xray_read_mdin
@@ -110,7 +99,7 @@ contains
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
-      write(stdout,'(5X,A,E10.3,A,E10.3)') 'X-ray weights: ', xray_weight_initial, ' ... ', xray_weight_final
+      write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
       write(stdout,'(5X,A,A4)') 'Use target: ',target
       write(stdout,'(5X,A,I5)') 'Scale update Interval: ',scale_update_period
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
@@ -386,6 +375,7 @@ contains
 
    use xray_globals_module
    use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution
+   use xray_target_module, only : target_function_id
    implicit none
    character(len=*), intent(in) :: filename
 
@@ -393,20 +383,34 @@ contains
    integer :: i
 
    open(20,file=trim(fmtz_outfile),action='write')
-   write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
-      'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
-      'fcalc',achar(9),'phicalc'
-   write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-      '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
-   do i=1,num_hkl
-      phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
-      write(20,&
-       '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
-       hkl_index(1,i), &
-       achar(9),hkl_index(2,i), achar(9), hkl_index(3,i), achar(9), &
-       resolution(i), achar(9), abs(Fobs(i)), achar(9), &
-       sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
-   end do
+   if( target_function_id == 1 ) then
+      write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+         'resolution', achar(9), 'fobsr',achar(9),'fobsc',achar(9), &
+         'fcalcr',achar(9),'fcalci'
+      write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
+      do i=1,num_hkl
+         write(20,&
+          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
+          resolution(i), achar(9), Fobs(i)%re, achar(9), &
+          Fobs(i)%im, achar(9), Fcalc(i)%re, achar(9), Fcalc(i)%im
+      end do
+   else
+      write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+         'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
+         'fcalc',achar(9),'phicalc'
+      write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
+      do i=1,num_hkl
+         phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
+         write(20,&
+          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
+          resolution(i), achar(9), abs(Fobs(i)), achar(9), &
+          sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
+      end do
+   end if
    close(20)
    end subroutine xray_write_fmtz
   
@@ -550,8 +554,7 @@ contains
       target = 'ls  '
       spacegroup_name = 'P 1'
       reflection_infile = ''
-      xray_weight_initial = sentinel_xray_weight
-      xray_weight_final = sentinel_xray_weight
+      xray_weight = 1.0
       solvent_mask_probe_radius = 0.9
       solvent_mask_adjustment = 1.11
       solvent_mask_reflection_outfile = ''
@@ -592,6 +595,7 @@ contains
       implicit none
 #include "../include/md.h"
 #include "def_time.h"
+#include "nmr.h"
       real(real_kind), intent(in) :: xyz(:, :)
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
@@ -618,7 +622,7 @@ contains
       end if
 
       call timer_start(TIME_XRAY)
-      xray_weight = get_xray_weight(current_step, total_steps)
+      if(nmropt.gt.0) xray_weight = wxray
 
       call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
       xray_energy = xray_e
@@ -670,31 +674,4 @@ contains
       call mexit(stdout,2)
    end function allocate_lun
    
-   ! function get_xray_weight(current_step, total_steps) result(result)
-   function get_xray_weight(current_step, total_steps) result(result)
-      implicit none
-      integer, intent(in) :: current_step
-      integer, intent(in) :: total_steps
-      real(real_kind) :: result
-
-      real(real_kind) :: weight_increment
-#include "nmr.h"
-      
-      if( nmropt .eq. 0 ) then   ! original St. Petersburg code
-      
-         call check_precondition(current_step <= total_steps)
-         if (total_steps > 1) then
-            weight_increment = (xray_weight_final - xray_weight_initial) &
-                / (total_steps - 1)
-         else
-            weight_increment = 0
-         end if
-      
-         result = xray_weight_initial + weight_increment * current_step
-      else  ! use weight change cards to vary xray_weight
-         result = wxray
-      endif
-
-   end function get_xray_weight
-
 end module xray_interface_impl_cpu_module

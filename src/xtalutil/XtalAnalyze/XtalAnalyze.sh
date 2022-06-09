@@ -130,8 +130,8 @@ parm ${SC_PRMTOP}
 trajin ${SC_TRAJECTORY}
 trajout fit.nc netcdf
 reference ${SC_REFERENCE}
-rmsd reference "$SCMASK" nofit out drift.dat
-rmsd reference "$SCMASK"  norotate out drift.dat
+rmsd reference raw "$SCMASK" nofit out drift.dat
+rmsd reference no-drift "$SCMASK"  norotate out drift.dat
 go
 EOF
 echo "TRANSLATING TRAJECTORY" >> XtalAnalyze.log

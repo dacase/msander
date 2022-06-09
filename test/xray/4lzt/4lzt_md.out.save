@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 01/01/2022 at 13:12:58
+| Run on 05/31/2022 at 15:41:58
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander/test/xray/4lzt
+| Working directory: /home/case/msander_intel/test/xray/4lzt
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,16 +27,16 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   ntx = 1, irest = 0, ntpr = 1,                                                
   ntc = 1, ntf = 1, tol = 0.000001,                                            
   cut = 8.0,                                                                   
   nstlim = 5, dt = 0.001,                                                      
-  ithermostat = 0, tempi=0.0,                                                  
+  ntt = 0, tempi=0.0, ig=12345,                                                
   imin=0, maxcyc=5,                                                            
  /                                                                             
  &xray                                                                         
@@ -67,19 +67,32 @@ Test of MD with Xray restraints
 
 
 |     Memory Use     Allocated
-|     Real              428650
+|     Real              370810
 |     Hollerith           6011
 |     Integer           489824
 |     Max Pairs         653333
 |     nblistReal         23520
 |     nblist Int        122662
-|       Total             8500 kbytes
+|       Total             8048 kbytes
 
 | Note: 1-4 EEL scale factors are being read from the topology file.
 
 | Note: 1-4 VDW scale factors are being read from the topology file.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
+
+X-ray Refinement Parameters:
+     PDB InFile: 4lzt_uc.pdb
+     PDB Read Coordinates: F
+     PDB Use SegID: F
+     PDB Wrap Names: F
+     Spacegroup: P 1
+     Reflection InFile: 4lzt-sf.dat
+     X-ray weights:  0.100E+01 ...  0.100E+01
+     Use target: ml  
+     Scale update Interval:   100
+     Solvent Mask Update Interval:   100
+     Solvent scale:   0.350, B-factor:  46.000
+     Atom Selection Mask: :*
 
      BOX TYPE: RECTILINEAR
 
@@ -122,6 +135,8 @@ Ewald parameters:
      Ewald Coefficient =  0.34864
      Interpolation order =    4
      Setting ifbox to 3 for non-orthogonal unit cell
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -130,31 +145,15 @@ Ewald parameters:
                                                                                 
  begin time read from input coords =     0.000 ps
 
- Number of triangulated 3-point waters found:        0
-| Running OpenMP with  10 threads
-| Running OpenMP with  10 threads
-
-     Sum of charges from parm topology file =       8.0000
-     Assuming uniform neutralizing plasma
- XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
-
-X-ray Refinement Parameters:
-     PDB InFile: 4lzt_uc.pdb
-     PDB Read Coordinates: F
-     PDB Use SegID: F
-     PDB Wrap Names: F
-     Spacegroup: P 1
-     Reflection InFile: 4lzt-sf.dat
-     X-ray weights:  0.100E+01 ...  0.100E+01
-     Use target: ml  
-     Scale update Interval:   100
-     Solvent Mask Update Interval:   100
-     Solvent scale:   0.350, B-factor:  46.000
-     Atom Selection Mask: :*
 PDB: All atoms read successfully.
  getting box info from bottom of 4lzt_uc.rst7
 XRAY: UNIT CELL=    27.240   31.870   34.230  88.52 108.53 111.89
 Found   1960 atoms in :*;                                                                                                                                                                                                                                                             
+| Running Xray OpenMP with   1 threads
+ Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =       8.0000
+     Assuming uniform neutralizing plasma
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -173,119 +172,105 @@ Found   1960 atoms in :*;
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =     318784
 | TOTAL SIZE OF NONBOND LIST =     318784
+| gradient norms, amber/xray:  0.11836E+04 0.34338E+04 0.34470E+00
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =    163495.2412  EKtot   =         0.0000  EPtot      =    163495.2412
+ Etot   =    164064.7095  EKtot   =         0.0000  EPtot      =    164064.7095
  BOND   =       172.3871  ANGLE   =       416.5867  DIHED      =      1443.0882
  1-4 NB =       603.1539  1-4 EEL =      4239.2826  VDWAALS    =     -1086.0424
- EELEC  =     -9142.8059  EHBOND  =         0.0000  RESTRAINT  =    166849.5912
- Exray  =    166849.5912  Rwork   =         0.2040  Rfree      =         0.2058
+ EELEC  =     -9142.8059  EHBOND  =         0.0000  RESTRAINT  =    167419.0594
+ Exray  =    167419.0594  Rwork   =         0.2062  Rfree      =         0.2087
  EAMBER (non-restraint)  =     -3354.3499
- ------------------------------------------------------------------------------
-
 
  NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =    163495.2412  EKtot   =         0.0000  EPtot      =    163495.2412
+ Etot   =    164064.7095  EKtot   =         0.0000  EPtot      =    164064.7095
  BOND   =       172.3871  ANGLE   =       416.5867  DIHED      =      1443.0882
  1-4 NB =       603.1539  1-4 EEL =      4239.2826  VDWAALS    =     -1086.0424
- EELEC  =     -9142.8059  EHBOND  =         0.0000  RESTRAINT  =    166849.5912
- Exray  =    166849.5912  Rwork   =         0.2040  Rfree      =         0.2058
+ EELEC  =     -9142.8059  EHBOND  =         0.0000  RESTRAINT  =    167419.0594
+ Exray  =    167419.0594  Rwork   =         0.2062  Rfree      =         0.2087
  EAMBER (non-restraint)  =     -3354.3499
- ------------------------------------------------------------------------------
 
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =    37.20  PRESS =     0.0
+ Etot   =    164045.5249  EKtot   =       217.2160  EPtot      =    163828.3089
+ BOND   =       155.5588  ANGLE   =       403.3362  DIHED      =      1441.6158
+ 1-4 NB =       602.1452  1-4 EEL =      4233.0055  VDWAALS    =     -1110.2863
+ EELEC  =     -9141.5573  EHBOND  =         0.0000  RESTRAINT  =    167244.4911
+ Exray  =    167244.4911  Rwork   =         0.2059  Rfree      =         0.2089
+ EAMBER (non-restraint)  =     -3416.1821
 
- NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =    38.03  PRESS =     0.0
- Etot   =    163475.5094  EKtot   =       222.0814  EPtot      =    163253.4280
- BOND   =       155.5749  ANGLE   =       403.3960  DIHED      =      1441.5821
- 1-4 NB =       602.1956  1-4 EEL =      4233.0240  VDWAALS    =     -1110.2612
- EELEC  =     -9141.5828  EHBOND  =         0.0000  RESTRAINT  =    166669.4993
- Exray  =    166669.4993  Rwork   =         0.2037  Rfree      =         0.2061
- EAMBER (non-restraint)  =     -3416.0713
- ------------------------------------------------------------------------------
+ NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =   111.44  PRESS =     0.0
+ Etot   =    164024.0117  EKtot   =       650.7443  EPtot      =    163373.2674
+ BOND   =       138.7440  ANGLE   =       376.5707  DIHED      =      1438.3327
+ 1-4 NB =       600.3273  1-4 EEL =      4215.9102  VDWAALS    =     -1136.4257
+ EELEC  =     -9139.1884  EHBOND  =         0.0000  RESTRAINT  =    166878.9966
+ Exray  =    166878.9966  Rwork   =         0.2054  Rfree      =         0.2097
+ EAMBER (non-restraint)  =     -3505.7292
 
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   167.11  PRESS =     0.0
+ Etot   =    164015.8016  EKtot   =       975.8357  EPtot      =    163039.9659
+ BOND   =       170.6467  ANGLE   =       361.9443  DIHED      =      1435.6593
+ 1-4 NB =       598.6203  1-4 EEL =      4191.4774  VDWAALS    =     -1152.4902
+ EELEC  =     -9137.6120  EHBOND  =         0.0000  RESTRAINT  =    166571.7201
+ Exray  =    166571.7201  Rwork   =         0.2051  Rfree      =         0.2111
+ EAMBER (non-restraint)  =     -3531.7542
 
- NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =   113.63  PRESS =     0.0
- Etot   =    163453.2768  EKtot   =       663.5316  EPtot      =    162789.7453
- BOND   =       139.5142  ANGLE   =       376.9751  DIHED      =      1438.2397
- 1-4 NB =       600.5255  1-4 EEL =      4215.9849  VDWAALS    =     -1136.3686
- EELEC  =     -9139.2794  EHBOND  =         0.0000  RESTRAINT  =    166294.1539
- Exray  =    166294.1539  Rwork   =         0.2032  Rfree      =         0.2070
- EAMBER (non-restraint)  =     -3504.4087
- ------------------------------------------------------------------------------
-
-
- NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =   169.48  PRESS =     0.0
- Etot   =    163444.9961  EKtot   =       989.6388  EPtot      =    162455.3573
- BOND   =       173.6411  ANGLE   =       363.1829  DIHED      =      1435.5548
- 1-4 NB =       599.0451  1-4 EEL =      4191.6481  VDWAALS    =     -1152.3987
- EELEC  =     -9137.7984  EHBOND  =         0.0000  RESTRAINT  =    165982.4823
- Exray  =    165982.4823  Rwork   =         0.2028  Rfree      =         0.2086
- EAMBER (non-restraint)  =     -3527.1250
- ------------------------------------------------------------------------------
-
-
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =   183.72  PRESS =     0.0
- Etot   =    163453.6187  EKtot   =      1072.8109  EPtot      =    162380.8078
- BOND   =       250.3099  ANGLE   =       379.3947  DIHED      =      1435.4358
- 1-4 NB =       597.5800  1-4 EEL =      4164.1424  VDWAALS    =     -1163.4655
- EELEC  =     -9138.6782  EHBOND  =         0.0000  RESTRAINT  =    165856.0885
- Exray  =    165856.0885  Rwork   =         0.2029  Rfree      =         0.2105
- EAMBER (non-restraint)  =     -3475.2807
- ------------------------------------------------------------------------------
-
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =   182.46  PRESS =     0.0
+ Etot   =    164023.6283  EKtot   =      1065.4356  EPtot      =    162958.1927
+ BOND   =       244.6054  ANGLE   =       377.0454  DIHED      =      1435.4922
+ 1-4 NB =       596.8998  1-4 EEL =      4163.8357  VDWAALS    =     -1163.5551
+ EELEC  =     -9138.3983  EHBOND  =         0.0000  RESTRAINT  =    166442.2676
+ Exray  =    166442.2676  Rwork   =         0.2053  Rfree      =         0.2129
+ EAMBER (non-restraint)  =     -3484.0750
 
       A V E R A G E S   O V E R       5 S T E P S
 
 
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =   100.97  PRESS =     0.0
- Etot   =    163464.5285  EKtot   =       589.6125  EPtot      =    162874.9159
- BOND   =       178.2855  ANGLE   =       387.9071  DIHED      =      1438.7801
- 1-4 NB =       600.5000  1-4 EEL =      4208.8164  VDWAALS    =     -1129.7073
- EELEC  =     -9140.0289  EHBOND  =         0.0000  RESTRAINT  =    166330.3630
- Exray  =    165856.0885  Rwork   =         0.2029  Rfree      =         0.2105
- EAMBER (non-restraint)  =     -3455.4471
- ------------------------------------------------------------------------------
-
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    99.64  PRESS =     0.0
+ Etot   =    164034.7352  EKtot   =       581.8463  EPtot      =    163452.8889
+ BOND   =       176.3884  ANGLE   =       387.0967  DIHED      =      1438.8376
+ 1-4 NB =       600.2293  1-4 EEL =      4208.7023  VDWAALS    =     -1129.7600
+ EELEC  =     -9139.9124  EHBOND  =         0.0000  RESTRAINT  =    166911.3070
+ Exray  =    166442.2676  Rwork   =         0.2053  Rfree      =         0.2129
+ EAMBER (non-restraint)  =     -3458.4181
 
       R M S  F L U C T U A T I O N S
 
 
- NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    71.91  PRESS =     0.0
- Etot   =        18.3902  EKtot   =       419.9257  EPtot      =       437.1501
- BOND   =        38.1126  ANGLE   =        19.3167  DIHED      =         3.1077
- 1-4 NB =         2.0279  1-4 EEL =        27.7708  VDWAALS    =        28.2264
- EELEC  =         1.8702  EHBOND  =         0.0000  RESTRAINT  =       382.5911
-|E(PBS) =         1.4660
- Exray  =    165856.0885  Rwork   =         0.2029  Rfree      =         0.2105
- EAMBER (non-restraint)  =        54.5591
- ------------------------------------------------------------------------------
-
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =    71.24  PRESS =     0.0
+ Etot   =        17.9539  EKtot   =       416.0129  EPtot      =       432.8589
+ BOND   =        36.2036  ANGLE   =        19.8889  DIHED      =         3.0768
+ 1-4 NB =         2.2763  1-4 EEL =        27.8836  VDWAALS    =        28.2618
+ EELEC  =         1.9589  EHBOND  =         0.0000  RESTRAINT  =       375.5490
+|E(PBS) =         1.4703
+ Exray  =    166442.2676  Rwork   =         0.2053  Rfree      =         0.2129
+ EAMBER (non-restraint)  =        57.3099
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (52.17% of List )
-|                Other                      0.01 (47.83% of List )
-|             List time                  0.02 (33.33% of Nonbo)
-|                   Short_ene time             0.02 (95.24% of Direc)
-|                   Other                      0.00 ( 4.76% of Direc)
-|                Direct Ewald time          0.02 (45.65% of Ewald)
-|                Adjust Ewald time          0.00 ( 4.35% of Ewald)
-|                   Fill charge grid           0.00 ( 5.00% of Recip)
-|                   Scalar sum                 0.01 (30.00% of Recip)
-|                   Grad sum                   0.01 (25.00% of Recip)
-|                   FFT time                   0.01 (40.00% of Recip)
-|                Recip Ewald time           0.02 (43.48% of Ewald)
-|                Other                      0.00 ( 6.52% of Ewald)
-|             Ewald time                 0.05 (66.67% of Nonbo)
-|             Fcalc loop                 8.76 (33.72% of Xray )
-|             Deriv loop                 9.23 (35.52% of Xray )
-|             Other                      7.99 (30.75% of Xray )
-|          Xray restaints            25.97 (99.70% of Force)
-|       Force time                26.05 (100.0% of Runmd)
-|    Runmd Time                26.05 (99.04% of Total)
-| Total time                26.31 (100.0% of ALL  )
+|                Build the list             0.01 (60.61% of List )
+|                Other                      0.01 (39.39% of List )
+|             List time                  0.01 (24.81% of Nonbo)
+|                   Short_ene time             0.03 (98.05% of Direc)
+|                   Other                      0.00 ( 1.95% of Direc)
+|                Direct Ewald time          0.03 (64.00% of Ewald)
+|                Adjust Ewald time          0.00 ( 3.75% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 8.20% of Recip)
+|                   Fill charge grid           0.00 (13.11% of Recip)
+|                   Scalar sum                 0.00 (22.13% of Recip)
+|                   Grad sum                   0.00 (12.30% of Recip)
+|                   FFT time                   0.01 (44.26% of Recip)
+|                Recip Ewald time           0.01 (30.50% of Ewald)
+|                Other                      0.00 ( 1.75% of Ewald)
+|             Ewald time                 0.04 (75.19% of Nonbo)
+|             Fcalc loop                 6.55 (19.13% of Xray )
+|             Deriv loop                19.65 (57.34% of Xray )
+|             Other                      8.06 (23.53% of Xray )
+|          Xray restaints            34.26 (99.84% of Force)
+|       Force time                34.32 (100.0% of Runmd)
+|    Runmd Time                34.32 (99.68% of Total)
+| Total time                34.43 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -295,11 +280,11 @@ Found   1960 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      26.05 Per Step(ms) =    5211.00
-|         ns/day =       0.02   seconds/ns = 5211000.00
+|     Elapsed(s) =      34.32 Per Step(ms) =    6864.52
+|         ns/day =       0.01   seconds/ns = 6864520.00
 | -----------------------------------------------------
 
-|           Job began  at 13:12:58.412  on 01/01/2022
-|           Setup done at 13:12:58.665  on 01/01/2022
-|           Run   done at 13:13:24.720  on 01/01/2022
+|           Job began  at 15:41:58.229  on 05/31/2022
+|           Setup done at 15:41:58.339  on 05/31/2022
+|           Run   done at 15:42:32.661  on 05/31/2022
 |     wallclock() was called     304 times

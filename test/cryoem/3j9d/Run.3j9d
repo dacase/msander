@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export XRAY_NUM_THREADS=8
+
 sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -11,7 +13,7 @@ md for 3j9d
   imin=0, maxcyc=25,
   ntpr=1, ntwx=0, ntwr=0, ioutfm=1, ntxo=1,
   ntx=1, irest=0, tempi=0., temp0=1.,
-  ithermostat=1, therm_par=5.,
+  ntt=3, gamma_ln=5.,
   ntb=1, ntp=0, ntc=2, ntf=2,  tol=0.0000001, 
   nstlim=5, dt=.001, ig=314159, 
   igb=8, cut=20.0, rgbmax=15.0,
@@ -24,7 +26,7 @@ md for 3j9d
    xray_weight_initial = 10000.,
    xray_weight_final = 10000.,
    target = 'vls', bulk_solvent_model = 'none',
-   scale_update_period = 10,
+   scale_update_period = 100,
  /
 eof
 

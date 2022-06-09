@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 12/28/2020 at 08:10:12
+| Run on 06/07/2022 at 10:29:53
 
 |   Executable path: ../../bin/msander
-| Working directory: /Users/case/msander/test/tip4p
+| Working directory: /home/case/msander_intel/test/tip4p
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
  equilibration, polarizable solute                                             
  &cntrl                                                                        
   irest  = 1, ntx    = 7,                                                      
@@ -40,7 +40,7 @@ File Assignments:
   dt=0.001,                                                                    
   jfastw=1, watnam='TP4', barostat=2                                           
   mcbarint=2, ig=71277,                                                        
-  ithermostat=1, therm_par=5.0,                                                
+  ntt=3, gamma_ln=5.0,                                                         
  /                                                                             
  &ewald                                                                        
    skinnb=1.0, nfft1=18, nfft2=18, nfft3=18,                                   
@@ -52,8 +52,7 @@ File Assignments:
 
 | Flags:                                                                        
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
-|Largest sphere to fit in unit cell has radius =     9.214
+| Largest sphere to fit in unit cell has radius =     9.214
  NATOM  =     864 NTYPES =       2 NBONH =     648 MBONA  =     216
  NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
  NHPARM =       0 NPARM  =       0 NNB   =    1512 NRES   =     216
@@ -64,21 +63,19 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              378530
+|     Real              323346
 |     Hollerith           2810
 |     Integer            43337
 |     Max Pairs         251942
 |     nblistReal         10368
 |     nblist Int         40593
-|       Total             4361 kbytes
+|       Total             3930 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
 
      BOX TYPE: RECTILINEAR
 
@@ -113,11 +110,11 @@ Molecular dynamics:
 
 Langevin dynamics temperature regulation:
      ig      =   71277
-     temp0   = 300.00000, tempi   =   0.00000, therm_par=   5.00000
+     temp0   = 300.00000, tempi   =   0.00000, gamma_ln=   5.00000
 
 Pressure regulation:
      ntp     =       1
-     pres0   =   1.00000, comp    =  44.60000, taup    =   1.00000
+     pres0   =   1.00000
      Monte-Carlo Barostat:
      mcbarint  =       2
 
@@ -149,6 +146,8 @@ Ewald parameters:
 |      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
 |      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
 |      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -159,9 +158,8 @@ Ewald parameters:
 
  Number of triangulated 3-point waters found:      216
 
-     Sum of charges from parm topology file =     0.000000
+     Sum of charges from parm topology file =       0.0000
      Forcing neutrality...
-| Running OPENMP code, but OMP_NUM_THREADS is not defined
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -188,8 +186,6 @@ Ewald parameters:
  EELEC  =     -2511.3511  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6514.3661
                                                     Density    =         0.9920
- ------------------------------------------------------------------------------
-
 
  NSTEP =        2   TIME(PS) =      32.202  TEMP(K) =   295.87  PRESS =     0.0
  Etot   =     -1751.4982  EKtot   =       380.9932  EPtot      =     -2132.4914
@@ -198,8 +194,6 @@ Ewald parameters:
  EELEC  =     -2519.8863  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6497.0827
                                                     Density    =         0.9946
- ------------------------------------------------------------------------------
-
 
  NSTEP =        3   TIME(PS) =      32.203  TEMP(K) =   291.54  PRESS =     0.0
  Etot   =     -1755.8506  EKtot   =       375.4180  EPtot      =     -2131.2686
@@ -208,8 +202,6 @@ Ewald parameters:
  EELEC  =     -2519.5049  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6497.0827
                                                     Density    =         0.9946
- ------------------------------------------------------------------------------
-
 
  NSTEP =        4   TIME(PS) =      32.204  TEMP(K) =   290.74  PRESS =     0.0
  Etot   =     -1755.4286  EKtot   =       374.3811  EPtot      =     -2129.8098
@@ -218,8 +210,6 @@ Ewald parameters:
  EELEC  =     -2518.9373  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6497.0827
                                                     Density    =         0.9946
- ------------------------------------------------------------------------------
-
 
  NSTEP =        5   TIME(PS) =      32.205  TEMP(K) =   290.01  PRESS =     0.0
  Etot   =     -1754.9545  EKtot   =       373.4489  EPtot      =     -2128.4033
@@ -228,8 +218,6 @@ Ewald parameters:
  EELEC  =     -2518.4236  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6497.0827
                                                     Density    =         0.9946
- ------------------------------------------------------------------------------
-
 
  NSTEP =        6   TIME(PS) =      32.206  TEMP(K) =   287.35  PRESS =     0.0
  Etot   =     -1756.9875  EKtot   =       370.0170  EPtot      =     -2127.0045
@@ -238,8 +226,6 @@ Ewald parameters:
  EELEC  =     -2516.4816  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6499.8639
                                                     Density    =         0.9942
- ------------------------------------------------------------------------------
-
 
  NSTEP =        7   TIME(PS) =      32.207  TEMP(K) =   287.81  PRESS =     0.0
  Etot   =     -1755.0590  EKtot   =       370.6121  EPtot      =     -2125.6711
@@ -248,8 +234,6 @@ Ewald parameters:
  EELEC  =     -2515.8304  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6499.8639
                                                     Density    =         0.9942
- ------------------------------------------------------------------------------
-
 
  NSTEP =        8   TIME(PS) =      32.208  TEMP(K) =   286.34  PRESS =     0.0
  Etot   =     -1755.3837  EKtot   =       368.7142  EPtot      =     -2124.0979
@@ -258,8 +242,6 @@ Ewald parameters:
  EELEC  =     -2503.6325  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6523.4883
                                                     Density    =         0.9906
- ------------------------------------------------------------------------------
-
 
  NSTEP =        9   TIME(PS) =      32.209  TEMP(K) =   281.78  PRESS =     0.0
  Etot   =     -1760.0480  EKtot   =       362.8470  EPtot      =     -2122.8950
@@ -268,8 +250,6 @@ Ewald parameters:
  EELEC  =     -2503.0380  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6523.4883
                                                     Density    =         0.9906
- ------------------------------------------------------------------------------
-
 
  NSTEP =       10   TIME(PS) =      32.210  TEMP(K) =   281.66  PRESS =     0.0
  Etot   =     -1759.7244  EKtot   =       362.6893  EPtot      =     -2122.4137
@@ -278,8 +258,6 @@ Ewald parameters:
  EELEC  =     -2534.7832  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6458.2759
                                                     Density    =         1.0006
- ------------------------------------------------------------------------------
-
 
  NSTEP =       11   TIME(PS) =      32.211  TEMP(K) =   281.09  PRESS =     0.0
  Etot   =     -1760.0244  EKtot   =       361.9542  EPtot      =     -2121.9786
@@ -288,8 +266,6 @@ Ewald parameters:
  EELEC  =     -2535.0009  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6458.2759
                                                     Density    =         1.0006
- ------------------------------------------------------------------------------
-
 
  NSTEP =       12   TIME(PS) =      32.212  TEMP(K) =   284.26  PRESS =     0.0
  Etot   =     -1755.7893  EKtot   =       366.0447  EPtot      =     -2121.8340
@@ -298,8 +274,6 @@ Ewald parameters:
  EELEC  =     -2510.6985  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6509.0028
                                                     Density    =         0.9928
- ------------------------------------------------------------------------------
-
 
  NSTEP =       13   TIME(PS) =      32.213  TEMP(K) =   286.34  PRESS =     0.0
  Etot   =     -1753.8807  EKtot   =       368.7174  EPtot      =     -2122.5981
@@ -308,8 +282,6 @@ Ewald parameters:
  EELEC  =     -2512.0032  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6509.0028
                                                     Density    =         0.9928
- ------------------------------------------------------------------------------
-
 
  NSTEP =       14   TIME(PS) =      32.214  TEMP(K) =   286.59  PRESS =     0.0
  Etot   =     -1754.3287  EKtot   =       369.0414  EPtot      =     -2123.3701
@@ -318,8 +290,6 @@ Ewald parameters:
  EELEC  =     -2500.0140  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6536.9440
                                                     Density    =         0.9885
- ------------------------------------------------------------------------------
-
 
  NSTEP =       15   TIME(PS) =      32.215  TEMP(K) =   288.39  PRESS =     0.0
  Etot   =     -1753.5387  EKtot   =       371.3571  EPtot      =     -2124.8958
@@ -328,8 +298,6 @@ Ewald parameters:
  EELEC  =     -2501.9314  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6536.9440
                                                     Density    =         0.9885
- ------------------------------------------------------------------------------
-
 
  NSTEP =       16   TIME(PS) =      32.216  TEMP(K) =   288.42  PRESS =     0.0
  Etot   =     -1754.5246  EKtot   =       371.4009  EPtot      =     -2125.9255
@@ -338,8 +306,6 @@ Ewald parameters:
  EELEC  =     -2489.8600  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6566.4518
                                                     Density    =         0.9841
- ------------------------------------------------------------------------------
-
 
  NSTEP =       17   TIME(PS) =      32.217  TEMP(K) =   290.37  PRESS =     0.0
  Etot   =     -1753.9527  EKtot   =       373.9066  EPtot      =     -2127.8593
@@ -348,8 +314,6 @@ Ewald parameters:
  EELEC  =     -2492.2285  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6566.4518
                                                     Density    =         0.9841
- ------------------------------------------------------------------------------
-
 
  NSTEP =       18   TIME(PS) =      32.218  TEMP(K) =   291.18  PRESS =     0.0
  Etot   =     -1754.8996  EKtot   =       374.9525  EPtot      =     -2129.8521
@@ -358,8 +322,6 @@ Ewald parameters:
  EELEC  =     -2493.1215  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6569.6883
                                                     Density    =         0.9836
- ------------------------------------------------------------------------------
-
 
  NSTEP =       19   TIME(PS) =      32.219  TEMP(K) =   290.29  PRESS =     0.0
  Etot   =     -1757.9304  EKtot   =       373.8048  EPtot      =     -2131.7352
@@ -368,8 +330,6 @@ Ewald parameters:
  EELEC  =     -2495.4121  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6569.6883
                                                     Density    =         0.9836
- ------------------------------------------------------------------------------
-
 | MC Barostat: Increasing size of volume moves
 
  NSTEP =       20   TIME(PS) =      32.220  TEMP(K) =   291.18  PRESS =     0.0
@@ -379,8 +339,6 @@ Ewald parameters:
  EELEC  =     -2497.6312  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6569.6883
                                                     Density    =         0.9836
- ------------------------------------------------------------------------------
-
 
  NSTEP =       21   TIME(PS) =      32.221  TEMP(K) =   294.12  PRESS =     0.0
  Etot   =     -1756.5240  EKtot   =       378.7320  EPtot      =     -2135.2560
@@ -389,8 +347,6 @@ Ewald parameters:
  EELEC  =     -2499.8748  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6569.6883
                                                     Density    =         0.9836
- ------------------------------------------------------------------------------
-
 
  NSTEP =       22   TIME(PS) =      32.222  TEMP(K) =   297.09  PRESS =     0.0
  Etot   =     -1754.4017  EKtot   =       382.5624  EPtot      =     -2136.9641
@@ -399,8 +355,6 @@ Ewald parameters:
  EELEC  =     -2500.3125  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6573.5200
                                                     Density    =         0.9830
- ------------------------------------------------------------------------------
-
 
  NSTEP =       23   TIME(PS) =      32.223  TEMP(K) =   300.03  PRESS =     0.0
  Etot   =     -1752.4175  EKtot   =       386.3549  EPtot      =     -2138.7725
@@ -409,8 +363,6 @@ Ewald parameters:
  EELEC  =     -2502.6372  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6573.5200
                                                     Density    =         0.9830
- ------------------------------------------------------------------------------
-
 
  NSTEP =       24   TIME(PS) =      32.224  TEMP(K) =   302.66  PRESS =     0.0
  Etot   =     -1750.8268  EKtot   =       389.7309  EPtot      =     -2140.5578
@@ -419,8 +371,6 @@ Ewald parameters:
  EELEC  =     -2504.9841  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6573.5200
                                                     Density    =         0.9830
- ------------------------------------------------------------------------------
-
 
  NSTEP =       25   TIME(PS) =      32.225  TEMP(K) =   303.02  PRESS =     0.0
  Etot   =     -1752.0425  EKtot   =       390.1950  EPtot      =     -2142.2375
@@ -429,8 +379,6 @@ Ewald parameters:
  EELEC  =     -2507.2870  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6573.5200
                                                     Density    =         0.9830
- ------------------------------------------------------------------------------
-
 
  NSTEP =       26   TIME(PS) =      32.226  TEMP(K) =   298.89  PRESS =     0.0
  Etot   =     -1756.6287  EKtot   =       384.8869  EPtot      =     -2141.5155
@@ -439,8 +387,6 @@ Ewald parameters:
  EELEC  =     -2481.7121  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       27   TIME(PS) =      32.227  TEMP(K) =   300.03  PRESS =     0.0
  Etot   =     -1756.0012  EKtot   =       386.3515  EPtot      =     -2142.3527
@@ -449,8 +395,6 @@ Ewald parameters:
  EELEC  =     -2483.2836  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       28   TIME(PS) =      32.228  TEMP(K) =   301.47  PRESS =     0.0
  Etot   =     -1754.7276  EKtot   =       388.2051  EPtot      =     -2142.9327
@@ -459,8 +403,6 @@ Ewald parameters:
  EELEC  =     -2484.7775  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       29   TIME(PS) =      32.229  TEMP(K) =   302.05  PRESS =     0.0
  Etot   =     -1754.5135  EKtot   =       388.9493  EPtot      =     -2143.4628
@@ -469,8 +411,6 @@ Ewald parameters:
  EELEC  =     -2486.4241  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       30   TIME(PS) =      32.230  TEMP(K) =   301.27  PRESS =     0.0
  Etot   =     -1755.7035  EKtot   =       387.9498  EPtot      =     -2143.6533
@@ -479,8 +419,6 @@ Ewald parameters:
  EELEC  =     -2487.8366  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       31   TIME(PS) =      32.231  TEMP(K) =   299.69  PRESS =     0.0
  Etot   =     -1757.5039  EKtot   =       385.9074  EPtot      =     -2143.4113
@@ -489,8 +427,6 @@ Ewald parameters:
  EELEC  =     -2488.8808  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6631.2800
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       32   TIME(PS) =      32.232  TEMP(K) =   299.02  PRESS =     0.0
  Etot   =     -1758.8765  EKtot   =       385.0494  EPtot      =     -2143.9258
@@ -499,8 +435,6 @@ Ewald parameters:
  EELEC  =     -2504.4923  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6600.0743
                                                     Density    =         0.9791
- ------------------------------------------------------------------------------
-
 
  NSTEP =       33   TIME(PS) =      32.233  TEMP(K) =   298.31  PRESS =     0.0
  Etot   =     -1758.6088  EKtot   =       384.1287  EPtot      =     -2142.7374
@@ -509,8 +443,6 @@ Ewald parameters:
  EELEC  =     -2504.6477  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6600.0743
                                                     Density    =         0.9791
- ------------------------------------------------------------------------------
-
 
  NSTEP =       34   TIME(PS) =      32.234  TEMP(K) =   299.14  PRESS =     0.0
  Etot   =     -1755.8698  EKtot   =       385.2043  EPtot      =     -2141.0741
@@ -519,8 +451,6 @@ Ewald parameters:
  EELEC  =     -2499.8406  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6610.1017
                                                     Density    =         0.9776
- ------------------------------------------------------------------------------
-
 
  NSTEP =       35   TIME(PS) =      32.235  TEMP(K) =   298.64  PRESS =     0.0
  Etot   =     -1755.0397  EKtot   =       384.5577  EPtot      =     -2139.5974
@@ -529,8 +459,6 @@ Ewald parameters:
  EELEC  =     -2499.6623  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6610.1017
                                                     Density    =         0.9776
- ------------------------------------------------------------------------------
-
 
  NSTEP =       36   TIME(PS) =      32.236  TEMP(K) =   296.79  PRESS =     0.0
  Etot   =     -1756.2311  EKtot   =       382.1774  EPtot      =     -2138.4085
@@ -539,8 +467,6 @@ Ewald parameters:
  EELEC  =     -2512.8092  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6581.0724
                                                     Density    =         0.9819
- ------------------------------------------------------------------------------
-
 
  NSTEP =       37   TIME(PS) =      32.237  TEMP(K) =   295.06  PRESS =     0.0
  Etot   =     -1755.9211  EKtot   =       379.9465  EPtot      =     -2135.8675
@@ -549,8 +475,6 @@ Ewald parameters:
  EELEC  =     -2511.3792  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6581.0724
                                                     Density    =         0.9819
- ------------------------------------------------------------------------------
-
 
  NSTEP =       38   TIME(PS) =      32.238  TEMP(K) =   290.98  PRESS =     0.0
  Etot   =     -1756.8198  EKtot   =       374.6943  EPtot      =     -2131.5142
@@ -559,8 +483,6 @@ Ewald parameters:
  EELEC  =     -2485.5429  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6630.9431
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       39   TIME(PS) =      32.239  TEMP(K) =   289.10  PRESS =     0.0
  Etot   =     -1756.0586  EKtot   =       372.2736  EPtot      =     -2128.3322
@@ -569,8 +491,6 @@ Ewald parameters:
  EELEC  =     -2483.1019  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6630.9431
                                                     Density    =         0.9745
- ------------------------------------------------------------------------------
-
 
  NSTEP =       40   TIME(PS) =      32.240  TEMP(K) =   285.05  PRESS =     0.0
  Etot   =     -1758.2327  EKtot   =       367.0625  EPtot      =     -2125.2953
@@ -579,8 +499,6 @@ Ewald parameters:
  EELEC  =     -2484.9776  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6621.3930
                                                     Density    =         0.9759
- ------------------------------------------------------------------------------
-
 
  NSTEP =       41   TIME(PS) =      32.241  TEMP(K) =   280.75  PRESS =     0.0
  Etot   =     -1760.4332  EKtot   =       361.5202  EPtot      =     -2121.9534
@@ -589,8 +507,6 @@ Ewald parameters:
  EELEC  =     -2482.2648  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6621.3930
                                                     Density    =         0.9759
- ------------------------------------------------------------------------------
-
 
  NSTEP =       42   TIME(PS) =      32.242  TEMP(K) =   280.96  PRESS =     0.0
  Etot   =     -1754.8992  EKtot   =       361.7904  EPtot      =     -2116.6896
@@ -599,8 +515,6 @@ Ewald parameters:
  EELEC  =     -2450.0854  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6684.8972
                                                     Density    =         0.9667
- ------------------------------------------------------------------------------
-
 
  NSTEP =       43   TIME(PS) =      32.243  TEMP(K) =   280.40  PRESS =     0.0
  Etot   =     -1753.0546  EKtot   =       361.0710  EPtot      =     -2114.1255
@@ -609,8 +523,6 @@ Ewald parameters:
  EELEC  =     -2448.0497  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6684.8972
                                                     Density    =         0.9667
- ------------------------------------------------------------------------------
-
 
  NSTEP =       44   TIME(PS) =      32.244  TEMP(K) =   281.64  PRESS =     0.0
  Etot   =     -1750.6802  EKtot   =       362.6708  EPtot      =     -2113.3510
@@ -619,8 +531,6 @@ Ewald parameters:
  EELEC  =     -2462.3855  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6650.7755
                                                     Density    =         0.9716
- ------------------------------------------------------------------------------
-
 
  NSTEP =       45   TIME(PS) =      32.245  TEMP(K) =   282.82  PRESS =     0.0
  Etot   =     -1748.0417  EKtot   =       364.1861  EPtot      =     -2112.2279
@@ -629,8 +539,6 @@ Ewald parameters:
  EELEC  =     -2461.7314  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6650.7755
                                                     Density    =         0.9716
- ------------------------------------------------------------------------------
-
 
  NSTEP =       46   TIME(PS) =      32.246  TEMP(K) =   283.99  PRESS =     0.0
  Etot   =     -1746.3768  EKtot   =       365.6887  EPtot      =     -2112.0655
@@ -639,8 +547,6 @@ Ewald parameters:
  EELEC  =     -2461.9711  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6650.7755
                                                     Density    =         0.9716
- ------------------------------------------------------------------------------
-
 
  NSTEP =       47   TIME(PS) =      32.247  TEMP(K) =   284.07  PRESS =     0.0
  Etot   =     -1747.1281  EKtot   =       365.7930  EPtot      =     -2112.9211
@@ -649,8 +555,6 @@ Ewald parameters:
  EELEC  =     -2463.1846  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6650.7755
                                                     Density    =         0.9716
- ------------------------------------------------------------------------------
-
 
  NSTEP =       48   TIME(PS) =      32.248  TEMP(K) =   286.25  PRESS =     0.0
  Etot   =     -1747.4146  EKtot   =       368.6030  EPtot      =     -2116.0175
@@ -659,8 +563,6 @@ Ewald parameters:
  EELEC  =     -2484.4140  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6610.5663
                                                     Density    =         0.9775
- ------------------------------------------------------------------------------
-
 
  NSTEP =       49   TIME(PS) =      32.249  TEMP(K) =   288.90  PRESS =     0.0
  Etot   =     -1746.7139  EKtot   =       372.0210  EPtot      =     -2118.7349
@@ -669,8 +571,6 @@ Ewald parameters:
  EELEC  =     -2487.4086  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6610.5663
                                                     Density    =         0.9775
- ------------------------------------------------------------------------------
-
 
  NSTEP =       50   TIME(PS) =      32.250  TEMP(K) =   294.35  PRESS =     0.0
  Etot   =     -1742.9784  EKtot   =       379.0307  EPtot      =     -2122.0091
@@ -679,8 +579,6 @@ Ewald parameters:
  EELEC  =     -2490.8000  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6610.5663
                                                     Density    =         0.9775
- ------------------------------------------------------------------------------
-
 
       A V E R A G E S   O V E R      50 S T E P S
 
@@ -692,8 +590,6 @@ Ewald parameters:
  EELEC  =     -2495.9306  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =      6578.8606
                                                     Density    =         0.9823
- ------------------------------------------------------------------------------
-
 
       R M S  F L U C T U A T I O N S
 
@@ -703,11 +599,8 @@ Ewald parameters:
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =        18.1979
  EELEC  =        19.1666  EHBOND  =         0.0000  RESTRAINT  =         0.0000
-|E(PBS) =         3.0875
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =        57.8307
                                                     Density    =         0.0087
- ------------------------------------------------------------------------------
-
 | MC Barostat:         25 volume changes attempted.
 | MC Barostat:         18 changes successful ( 72.00%)
  ------------------------------------------------------------------------------
@@ -717,23 +610,23 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.02 (77.27% of List )
-|                Other                      0.00 (22.73% of List )
-|             List time                  0.02 ( 7.41% of Nonbo)
-|                   Short_ene time             0.24 (100.0% of Direc)
-|                Direct Ewald time          0.24 (86.91% of Ewald)
-|                Adjust Ewald time          0.01 ( 2.18% of Ewald)
-|                   Fill charge grid           0.01 (25.00% of Recip)
-|                   Scalar sum                 0.00 ( 3.57% of Recip)
-|                   Grad sum                   0.00 (17.86% of Recip)
-|                   FFT time                   0.02 (53.57% of Recip)
-|                Recip Ewald time           0.03 (10.18% of Ewald)
-|             Ewald time                 0.28 (92.59% of Nonbo)
-|          Nonbond force              0.30 (100.0% of Force)
-|       Force time                 0.30 (89.19% of Runmd)
-|       Verlet update time         0.03 ( 9.91% of Runmd)
-|    Runmd Time                 0.33 (97.94% of Total)
-|    Other                      0.01 ( 1.76% of Total)
+|                Build the list             0.02 (71.20% of List )
+|                Other                      0.01 (28.80% of List )
+|             List time                  0.02 ( 7.95% of Nonbo)
+|                   Short_ene time             0.24 (99.17% of Direc)
+|                Direct Ewald time          0.24 (83.29% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 8.78% of Recip)
+|                   Fill charge grid           0.01 (21.25% of Recip)
+|                   Scalar sum                 0.00 ( 5.08% of Recip)
+|                   Grad sum                   0.01 (27.02% of Recip)
+|                   FFT time                   0.02 (37.88% of Recip)
+|                Recip Ewald time           0.04 (14.95% of Ewald)
+|             Ewald time                 0.29 (92.05% of Nonbo)
+|          Nonbond force              0.31 (100.0% of Force)
+|       Force time                 0.31 (94.65% of Runmd)
+|       Verlet update time         0.02 ( 4.87% of Runmd)
+|    Runmd Time                 0.33 (96.97% of Total)
+|    Other                      0.01 ( 2.65% of Total)
 | Total time                 0.34 (100.0% of ALL  )
 
 | Number of list builds   :          5
@@ -744,11 +637,11 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.33 Per Step(ms) =       6.66
-|         ns/day =      12.97   seconds/ns =    6660.00
+|     Elapsed(s) =       0.33 Per Step(ms) =       6.65
+|         ns/day =      12.98   seconds/ns =    6654.00
 | -----------------------------------------------------
 
-|           Job began  at 08:10:12.328  on 12/28/2020
-|           Setup done at 08:10:12.336  on 12/28/2020
-|           Run   done at 08:10:12.669  on 12/28/2020
+|           Job began  at 10:29:53.179  on 06/07/2022
+|           Setup done at 10:29:53.189  on 06/07/2022
+|           Run   done at 10:29:53.522  on 06/07/2022
 |     wallclock() was called    4173 times

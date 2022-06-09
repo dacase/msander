@@ -12,7 +12,7 @@ Lysine: 5 cycles MD, one methylene group QM, has link atoms
         imin =0, nstlim = 5, drms=0.005,
         ntpr=1, ntb=0, cut=99.,
         ifqnt=1, 
-        ithermostat=0, 
+        ntt=0, 
         nscm=50, ntx=5, irest=1,igb=6
  /
  &qmmm
