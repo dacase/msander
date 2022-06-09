@@ -210,7 +210,7 @@ module state
                                  0.d0,0.d0,0.d0,0.d0,0.d0, 0.d0,0.d0,0.d0,0.d0,0.d0,&  ! 20
                                  0.d0,0.d0,0.d0,0.d0,0.d0, 0.d0)
 
-  integer, parameter :: sgld_rec_len = 14
+  integer, parameter :: sgld_rec_len = 7
 
   type sgld_rec
     sequence
@@ -218,27 +218,18 @@ module state
                                ! What is it           What it was historically
                                !=============         ========================
                                
-    _REAL_  :: sgft            ! momentum guiding factor
-    _REAL_  :: sgff            ! force guiding factor
-    _REAL_  :: tempsg          ! guiding temperature
-    _REAL_  :: sgscal          ! energy conservation factor
+    _REAL_  :: sgscale          ! energy conservation factor
     _REAL_  :: templf          ! low frequency temperature
     _REAL_  :: temphf          ! high frequency temperature
-    _REAL_  :: treflf          ! reference low frequency temperature
-    _REAL_  :: trefhf          ! reference high frequency temperature
-    _REAL_  :: frclf           ! low frequency force factor
-    _REAL_  :: frchf           ! high frequency force factor
     _REAL_  :: epotlf          ! low frequency potential energy
     _REAL_  :: epothf          ! high frequency potential energy
-    _REAL_  :: virsg           ! guiding force virial
+    _REAL_  :: epotllf           ! guiding force virial
     _REAL_  :: sgwt            ! weighting power
 
   end type sgld_rec
 
   type(sgld_rec), parameter      :: null_sgld_rec = &
-                                 sgld_rec(       &
-                                 0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0, &
-                                 0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0)
+                                 sgld_rec(0.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0)
 
   ! The main type
   integer, parameter  :: state_rec_len = 1 + &

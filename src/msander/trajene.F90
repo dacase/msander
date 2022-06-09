@@ -31,10 +31,8 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
    use memory_module, only : lcrd, natom, lforce, lvel, iibh, ijbh, l50, &
                              lwinv, ibellygp, l95
    use lmod_driver, only : run_xmin
-#ifdef BINTRAJ
    use netcdf
    use bintraj,only: check_atom_mismatch, end_binary_frame
-#endif
 
    implicit none
    ! INPUT VARIABLES
@@ -51,11 +49,9 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
    _REAL_ carrms,oldbox(3)
    logical loutfm, is_netcdf
 
-#ifdef BINTRAJ
    ! For netcdf files
    integer ncid,ncframe,ncatom,coordVID,velocityVID,cellLengthVID,cellAngleVID
    integer err
-#endif
 
 #  include "tgtmd.h"
 ! DAN ROE: Is extra.h still needed?
@@ -83,7 +79,6 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
 
    ! Open the inptraj file for coordinate reading
    if (NC_checkTraj(inptraj)) then
-#ifdef BINTRAJ
       ! Open NETCDF format trajectory file
       if (NC_openRead(inptraj, ncid)) then
          write(6,'(a,a)') "TRAJENE: Could not open netcdf file: ",inptraj
@@ -105,11 +100,6 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
          call mexit(6,1)
       endif
       is_netcdf=.true.
-#else
-      ! No NETCDF support
-      call NC_NoNetcdfError(6)
-      return
-#endif
    else 
       ! Standard Amber Trajectory Format
       call amopen(INPTRAJ_UNIT,inptraj,'O','F','R')
@@ -124,7 +114,6 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
       !       --- read next coordinate set from trajectory
       if (.not.is_netcdf) then
          read(INPTRAJ_UNIT,'(10f8.3)',end=1000,err=1010) (x(j),j=lcrd,xstop)
-#ifdef BINTRAJ
       else
          if (member>ncframe) goto 1000 
            
@@ -132,7 +121,6 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
                                    start = (/ 1, 1, member /), &
                                    count = (/ 3, (xstop-lcrd+1)/3, 1 /)),&
                       'reading netcdf coordinates')) goto 1010
-#endif
       endif
 
       ! DAN ROE:
@@ -149,13 +137,11 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
          ! 2- Read in current box coords.
          if (.not.is_netcdf) then
             read(INPTRAJ_UNIT,'(3f8.3)',end=1000,err=1020) box(1), box(2), box(3)
-#ifdef BINTRAJ
          else
             if (NC_error(nf90_get_var(ncid,cellLengthVID,box(1:3), &
                                       start = (/ 1, member /), &
                                       count = (/ 3, 1 /)),&
                          'reading netcdf box coordinates')) goto 1020 
-#endif
          endif
          !write(6,*) "DEBUG: BOX: ",box(1),box(2),box(3)
 
@@ -227,9 +213,7 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
          call corpac(x(lcrd),1,natom*3,MDCRD_UNIT,loutfm)
          if (ntwf /= 0) call corpac(x(lforce),1,natom*3,MDFRC_UNIT,loutfm)
          if (ntb > 0)  call corpac(box,1,3,MDCRD_UNIT,loutfm)
-#ifdef BINTRAJ
          if (is_netcdf) call end_binary_frame(MDCRD_UNIT)
-#endif
       !elseif (master) then
       !   write (6,*) "Not writing coordinates to mdcrd due to NTWX value"
       endif
@@ -253,9 +237,7 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
    goto 1500
 
    1500 write (6,'(a)') "TRAJENE: Trajene complete."
-#ifdef BINTRAJ
    if (is_netcdf) call NC_close(ncid)
-#endif
    return
 end subroutine trajene
 

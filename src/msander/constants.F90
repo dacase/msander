@@ -237,16 +237,6 @@ module constants
 
 contains
 
-  subroutine set_omp_num_threads()
-    implicit none
-    character(len=5) :: omp_threads
-    integer :: ier
-
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
-    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
-    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
-  end subroutine set_omp_num_threads
-
   function BinomialCoefficient(m, n) result (bioCoeff)
         
     integer, intent(in)::m,n
@@ -277,4 +267,3 @@ contains
   end function BinomialCoefficient
 
 end module constants
-

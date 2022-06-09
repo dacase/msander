@@ -136,7 +136,7 @@ if [ "$cerror" -gt 0 ]; then
     exit 1
 else
     echo "    openmpi configure succeeded."
-    echo "    (You may need to add $AMBERHOME/lib to your LD_LIBRARY_PATH)"
+    echo "    (You may need to add $MSANDERHOME/lib to your LD_LIBRARY_PATH)"
 fi
 make clean
 make -j $np install

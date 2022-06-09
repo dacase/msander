@@ -52,14 +52,10 @@ character(len=MAX_FN_LEN), save :: scaledMDlog    ! Log file for scaled MD
 character(len=MAX_FN_LEN), save :: cph_dump  ! dump of CpHMD statistics
 character(len=MAX_FN_LEN), save :: ce_dump   ! dump of CEMD statistics
 character(len=MAX_FN_LEN), save :: cphe_dump ! dump of CpHEMD statistics
-character(len=MAX_FN_LEN), save :: sechgname ! dump of atomic charges in SEBOMD
-character(len=MAX_FN_LEN), save :: seboname  ! dump of bond orders in SEBOMD
-#ifdef RISMSANDER
 character(len=MAX_FN_LEN), save :: rismcrdfil
 character(len=MAX_FN_LEN), save :: rismfrcfil
 character(len=MAX_FN_LEN), save :: rismcrdrstfil
 character(len=MAX_FN_LEN), save :: rismfrcrstfil
-#endif /* RISMSANDER */
 #ifdef MPI
 character(len=MAX_FN_LEN), save :: remlog        ! REM log file
 character(len=MAX_FN_LEN), save :: remtype       ! REM type file
@@ -102,12 +98,10 @@ integer, parameter :: SCHLEGEL_UNIT = 80 ! EVB
 integer, parameter :: PIMD_UNIT = 277
 integer, parameter :: SECHGUNIT = 31
 integer, parameter :: SEBOUNIT = 33
-#ifdef RISMSANDER
 integer, parameter :: RISMCRD_UNIT = 90
 integer, parameter :: RISMFRC_UNIT = 91
 integer, parameter :: RISMCRDRST_UNIT = 92
 integer, parameter :: RISMFRCRST_UNIT = 93
-#endif
 #ifdef MPI
 integer, parameter :: REMIN_UNIT = 32
 integer, parameter :: RESERVOIR_UNIT = 39
@@ -196,16 +190,12 @@ subroutine initialize_fnames
    cperestrt = 'cperestrt'
    evbin = 'evbin'
    evbout = 'evbout'
-   sechgname = 'sebomd.chg'
-   seboname = 'sebomd.bnd'
    inptraj = 'inptraj'
    pimdout = 'pimdout'
-#ifdef RISMSANDER
    rismcrdfil = ''
    rismfrcfil = ''
    rismcrdrstfil = ''
    rismfrcrstfil = ''
-#endif /* RISMSANDER */
 #ifdef MPI
    remlog = 'rem.log'
    remtype = 'rem.type'

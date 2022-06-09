@@ -194,10 +194,11 @@ subroutine get_ucell(a,b,c,alpha,beta,gamma, &
       ucell,recip,dirlng,reclng,sphere,volume)
    use constants, only : DEG_TO_RAD
    implicit none
+   _REAL_, intent(in) ::  a,b,c,alpha,beta,gamma
+   _REAL_, intent(out) ::  sphere,volume
+   _REAL_, intent(out) ::  ucell(3,3),recip(3,3),dirlng(3),reclng(3)
+
 #  include "extra.h"
-   _REAL_ a,b,c,alpha,beta,gamma
-   _REAL_ sphere,volume
-   _REAL_ ucell(3,3),recip(3,3),dirlng(3),reclng(3)
    _REAL_ u23(3),u31(3),u12(3)
    _REAL_ result,distance,onevolume
    integer i,j
@@ -252,9 +253,10 @@ subroutine get_ucell(a,b,c,alpha,beta,gamma, &
    end do
    sphere = 0.5d0*sphere
 #ifndef API
-   if (master) &
-   write(6, '(a,f9.3)') &
-       '|Largest sphere to fit in unit cell has radius = ', sphere
+   if (master) then
+      write(6, '(a,f9.3)') &
+       '| Largest sphere to fit in unit cell has radius = ', sphere
+   end if
 #endif
    return
 end subroutine get_ucell 

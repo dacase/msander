@@ -19,8 +19,8 @@ Test of MD with Xray restraints
    pdb_infile = 'SolvXtal.pdb',
    reflection_infile = '2wcu-sf.dat',
    atom_selection_mask = '!(@H=) & !(:WAT)',
-   xray_weight = 1000.,
-   fft_method = 0,
+   xray_weight_initial = 1000.,
+   xray_weight_final = 1000.,
  /
 EOF
 

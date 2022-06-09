@@ -52,8 +52,7 @@ constants_rism.o:   constants_rism.F90
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ constants_rism.F90
 
 erfcfun.o: \
-                    ../include/dprec.fh\
-                    constants_rism.o
+                    ../include/dprec.fh
 
 
 erfcfun.o:   erfcfun.F90

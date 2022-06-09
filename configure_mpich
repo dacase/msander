@@ -65,7 +65,7 @@ gnu)
     cplusplus=g++
     ocflags=-O3
     fc=gfortran
-    fflags="-O0 -fPIC"
+    fflags="-O0 -fPIC -fallow-argument-mismatch"
 
     ;;
 
@@ -152,7 +152,7 @@ fi
 
 cd $MPIDIR && \
 ./configure --prefix=$MSANDERHOME --enable-f77 --enable-fc --enable-cxx \
-    $static \
+    $static --with-device=ch3 \
     F77="$fc" FFLAGS="$fflags" \
     FC="$fc" FCFLAGS="$fflags" \
     CC="$cc" CFLAGS="$cflags" CXX="$cplusplus"

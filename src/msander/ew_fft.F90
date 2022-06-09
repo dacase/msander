@@ -310,12 +310,12 @@ end subroutine par_fft_setup
 !+ [Enter a one-line description of subroutine xy_zx_transpose here]
 subroutine xy_zx_transpose(targ,src,ldx,n3,tmp,tmp1)
 
+   use mpi
    implicit none
    _REAL_  targ(*), src(*), tmp(*),tmp1(*)
    integer n3, ldx, numval
    integer i,j,k,ks,k0,k00,jjtask,jtask,rtask
 #  include "parallel.h"
-   include 'mpif.h'
    integer ierr
 #  include "ew_parallel.h"
    integer ireq,isnd_stat(mpi_status_size)
@@ -365,10 +365,10 @@ end subroutine xy_zx_transpose
 !+ [Enter a one-line description of subroutine xy_zx_trans_recv here]
 subroutine xy_zx_trans_recv(targ,ldx,n3,foo,ktask)
 
+   use mpi
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
    integer ierr
 #  include "ew_parallel.h"
 
@@ -409,13 +409,13 @@ end subroutine xy_zx_trans_recv
 !+ [Enter a one-line description of subroutine zx_xy_transpose here]
 subroutine zx_xy_transpose(targ,src,ldx,n3,tmp,tmp1)
 
+   use mpi
    implicit none
    _REAL_  targ(*), src(*), tmp(*), tmp1(*)
    integer n3, ldx, numval
    integer i,j,k,ks,k0,k00,jjtask,jtask, rtask
 
 #  include "parallel.h"
-   include 'mpif.h'
    integer ierr
 #  include "ew_parallel.h"
    integer ireq,isnd_stat(mpi_status_size)
@@ -462,6 +462,7 @@ end subroutine zx_xy_transpose
 !+ [Enter a one-line description of subroutine zx_trans_recv here]
 subroutine zx_trans_recv(targ,ldx,foo,ktask)
 
+   use mpi
    implicit none
 
    _REAL_  targ(*), foo(*)
@@ -469,7 +470,6 @@ subroutine zx_trans_recv(targ,ldx,foo,ktask)
    integer i,j,ks,k0,k00
 
 #  include "parallel.h"
-   include 'mpif.h'
    integer ierr
 #  include "ew_parallel.h"
 
@@ -671,6 +671,9 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
 #endif
 
    use constants, only : one
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 
 #  include "def_time.h"
@@ -686,7 +689,6 @@ subroutine fft3d0rc(isign,n1,n2,n3, &
 
 #ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #  include "ew_parallel.h"
 #else
    integer mxyslabs,mxzslabs,ntxyslab,ntxzslab
@@ -804,6 +806,9 @@ subroutine fft3d_zxyrc(isign,n1,n2,n3,&
 #endif
 
    use constants, only : one
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    !****************************************************************
    
@@ -832,7 +837,6 @@ subroutine fft3d_zxyrc(isign,n1,n2,n3,&
 
 #ifdef MPI
 #  include "parallel.h"
-   include 'mpif.h'
 #  include "ew_parallel.h"
 #else
    integer mxyslabs,mxzslabs,ntxyslab,ntxzslab

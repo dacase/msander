@@ -1,0 +1,40 @@
+#!/bin/bash
+
+EXE=/home/case/msander/bin/msander.cuda
+export OMP_NUM_THREADS=1
+export CUDA_VISIBLE_DEVICES=0
+
+cat <<EOF > mdin
+Test of MD with Xray restraints
+ &cntrl
+  ntx = 1, irest = 0, ntpr = 1,
+  ntc = 1, ntf = 1, tol = 0.000001,
+  cut = 8.0,
+  nstlim = 1000, dt = 0.002,
+  ithermostat = 0,
+ /
+ &ewald vdwmeth=0, /
+ &xray
+   pdb_infile = 'uc.pdb',
+   pdb_read_coordinates=.false.,
+   reflection_infile = 'real.dat',
+   atom_selection_mask = ':1-264',
+   xray_weight_initial = 1., 
+   ! xray_weight_final = 1.,
+   target = 'ml', bulk_solvent_model = 'afonine-2013',
+   mask_update_period = 10000,
+   scale_update_period = 10000,
+   ml_update_period = 10000,
+ /
+ &debugf
+  do_debugf=1, neglgdel=4, nranatm=0, atomn=1,5,6,11
+  chkvir=0, dumpfrc=0, rmsfrc=0, zerochg=0,
+  zerovdw=0, do_dir=0, do_rec=0, do_adj=0, do_self=0,
+  do_bond=0, do_angle=0, do_ephi=0, do_cap=0, doxconst=0,
+  do_14=0, do_tgt=0, do_pbdir=0, do_pbnp=0, do_pbfd=0,
+ /
+EOF
+
+$EXE -O -p wbox_xray.parm7 -c run_cool.rst -o debug.cuda.03jan21
+
+/bin/rm -f mdin mdinfo restrt

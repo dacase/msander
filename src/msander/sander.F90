@@ -10,6 +10,7 @@
 subroutine sander()
 
   use state
+  use runmd_module, only : runmd
 #if !defined(DISABLE_NFE)
   use nfe_sander_hooks, only : &
       nfe_on_sander_init => on_sander_init, &
@@ -18,7 +19,7 @@ subroutine sander()
 #endif /* DISABLE_NFE */
 
   use lmod_driver
-  use constants, only : INV_AMBER_ELECTROSTATIC, set_omp_num_threads
+  use constants, only : INV_AMBER_ELECTROSTATIC
 
   ! The main qmmm_struct contains all the QMMM variables and arrays
   use qmmm_read_and_alloc, only : read_qmmm_nm_and_alloc
@@ -52,18 +53,12 @@ subroutine sander()
                     first_list_flag
   use stack
 
-#ifdef RISMSANDER
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
-#endif
 
-#ifdef PUPIL_SUPPORT
-  use pupildata
-#endif /* PUPIL */
-
-  use xray_interface_module, only: xray_init, xray_read_parm, &
-           xray_read_mdin, xray_fini,xray_write_options, xray_init_globals
-  use xray_globals_module, only: xray_active, num_hkl, bulk_solvent_model
-  use bulk_solvent_mod, only: k_mask
+  use xray_interface_impl_cpu_module, only: xray_init=>init, xray_read_parm, &
+           xray_read_mdin, xray_write_options, xray_write_pdb, xray_write_fmtz
+  use xray_globals_module, only: xray_active,pdb_read_coordinates,pdb_outfile, &
+         fmtz_outfile
 
 #ifdef MPI /* SOFT CORE */
   use softcore, only: setup_sc, cleanup_sc, ifsc, extra_atoms, sc_sync_x, &
@@ -106,8 +101,6 @@ subroutine sander()
   use emap,only: temap,pemap,qemap
 
   use file_io_dat
-  use constantph, only: cnstph_finalize
-  use constante, only: cnste_finalize
   use barostats, only: mcbar_setup
   use random, only: amrset
 
@@ -121,10 +114,13 @@ subroutine sander()
 
   use commandline_module, only: cpein_specified
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
 
   logical belly, erstop
-  integer ier,ncalls,xmin_iter
+  integer ier,ncalls,xmin_iter,ntbond
   logical ok
   logical newstyle
 #  include "nmr.h"
@@ -141,7 +137,6 @@ subroutine sander()
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-  include 'mpif.h'
 !  REMD: loop is the current exchange. runmd is called numexchg times.
   integer loop
 
@@ -191,28 +186,6 @@ subroutine sander()
   logical :: do_list_update=.false.
 #endif
   _REAL_ :: box_center(3)
-#ifdef MPI_DEBUGGER
-  integer, volatile :: release_debug
-
-  ! So only the master master thread has release_debug = 0
-  release_debug = worldrank
-
-  ! Lock us into an infinite loop while release_debug == 0 on any thread (only
-  ! the master here). This allows you to connect a debugger to any running
-  ! process without having to 'race' program execution.  A debugger MUST be
-  ! attached to the master thread (typically the thread with the lowest PID),
-  ! and have release_debug set to NOT 0 (e.g., via "set release_debug=1").
-  do
-    if (release_debug .ne. 0) then
-      exit
-    end if
-  end do
-
-  ! Prevent any other threads from progressing past this point until all
-  ! threads you want to watch with a debugger are watched and all those
-  ! threads are continued.
-  call mpi_barrier(mpi_comm_world, ier)
-#endif
 
   ! Here begin the executable statements.  Start by initializing the cpu
   ! timer. Needed for machines where returned cpu times are relative.
@@ -311,8 +284,7 @@ subroutine sander()
         ! Allocate the parm arrays
         call allocate_parms()
 
-        if ((igb .ne. 0 .and. igb .ne. 10 .and. ipb == 0) .or. &
-            hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
+        if (igb .ne. 0 .and. igb .ne. 10 .and. ipb == 0)  then
           call allocate_gb( natom, ncopy )
         end if
 
@@ -342,6 +314,14 @@ subroutine sander()
 #endif
       endif
 
+      if( xray_active ) then
+        call xray_read_mdin(mdin_lun=5)
+        call amopen(8,parm,'O','F','R')
+        call xray_read_parm(8,6)
+        close(8)
+        call xray_write_options()
+      end if
+
       call mdread2(x, ix, ih)
       call read_music_nml()
       call print_music_settings()
@@ -351,11 +331,11 @@ subroutine sander()
       end if
 #endif
 
-#if defined(RISMSANDER)
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-#endif /*RISMSANDER*/
       if (ifcr .ne. 0) then
         call cr_read_input(natom)
         call cr_check_input(ips)
@@ -366,97 +346,6 @@ subroutine sander()
       nr = nrp
       nr3 = 3*nr
       belly = (ibelly > 0)
-
-      ! The PUPIL interface was moved down here so that
-      ! write() statements work as advertised.
-#ifdef PUPIL_SUPPORT
-      ! Initialise the CORBA interface
-      puperror = 0
-
-      ! We set only one quantum domain by default
-      pupnumdomains = 1
-
-      call fixport()
-      call inicorbaintfcmd(puperror)
-      if (puperror .ne. 0) then
-        write(6,*) 'Error creating PUPIL CORBA interface.'
-        call mexit(6, 1)
-      end if
-      pupactive = .true.
-      write(6,*) 'PUPIL CORBA interface initialized.'
-
-      ! Allocation of memory and initialization
-      pupStep = 0
-      puperror = 0
-      allocate (qcell   (12         ),stat=puperror)
-      allocate (atmqmdomains(2*natom),stat=puperror)
-      allocate (pupqlist(natom      ),stat=puperror)
-      allocate (pupatm  (natom      ),stat=puperror)
-      allocate (pupchg  (natom      ),stat=puperror)
-      allocate (qfpup   (natom*3    ),stat=puperror)
-      allocate (qcdata  (natom*9    ),stat=puperror)
-      allocate (keyMM   (natom      ),stat=puperror)
-      allocate (pupres  (nres       ),stat=puperror)
-      allocate (keyres  (nres       ),stat=puperror)
-
-      if (puperror .ne. 0) then
-        write(6,*) 'Error allocating PUPIL interface memory.'
-        call mexit(6, 1)
-      end if
-
-      ! Initialise the "atomic numbers" and "quantum forces" vectors
-      pupparticles = 0
-      iresPup = 1
-      pupres(1) = 1
-      do iPup = 1, natom
-        bs1 = (iPup - 1)*3
-        call get_atomic_number_pupil(ih(iPup+m06-1), x(lmass+iPup-1), &
-                                     pupatm(iPup))
-        if (iresPup .lt. nres) then
-          if (iPup .ge. ix(iresPup+i02)) then
-            iresPup = iresPup + 1
-            pupres(iresPup) = iPup
-          end if
-        end if
-        write (strAux, "(A4,'.',A4)") trim(ih(iresPup+m02-1)), &
-                                      adjustl(ih(iPup+m04-1))
-        keyres(iresPup) = trim(ih(iresPup+m02-1))
-        keyMM(iPup) = trim(strAux)
-
-        ! Retrieve the initial charges
-        pupchg(iPup) = x(L15+iPup-1)
-        do jPup = 1, 3
-          qfpup(bs1+jPup) = 0.0d0
-        end do
-      end do
-      write(6,*) 'Got all atomic numbers.'
-
-      ! Initialise the PUPIL cell
-      do iPup = 1, 12
-        qcell(iPup) = 0.0d0
-      end do
-
-      ! Submit the KeyMM particles and their respective atomic numbers to PUPIL
-      puperror = 0
-      call putatomtypes(natom, puperror, pupatm, keyMM)
-      if (puperror .ne. 0) then
-        write(6,*) 'Error sending MM atom types to PUPIL.'
-        call mexit(6, 1)
-      end if
-
-      ! Submit the Residue Pointer vector to PUPIL
-      write(6, "(a20,1x,i6,3x,a17,1x,i6)") 'Number of residues =', nres, &
-                                           'Number of atoms =', natom
-      puperror = 0
-      call putresiduetypes(nres, puperror, pupres, keyres)
-      if (puperror .ne. 0) then
-        write(6,*) 'Error sending MM residue types to PUPIL.'
-        call mexit(6, 1)
-      end if
-      write(6,*) 'Sent system data to PUPIL.'
-      write(*,*) 'PUPIL structure initialized.'
-#endif
-      ! End of PUPIL interface
 
       ! Seed the random number generator (master node only)
 #ifdef MPI
@@ -475,11 +364,6 @@ subroutine sander()
 #else
         call amrset(ig)
 #endif /* MPI */
-        if (nbit < 32 .and. nr > 32767) then
-          write(6, *) '  Too many atoms for 16 bit pairlist -'
-          write(6, *) '    Recompile without ISTAR2'
-          call mexit(6, 1)
-        end if
         if (ntp > 0.and.iabs(ntb) /= 2) then
           write(6,*) 'Input of NTP/NTB inconsistent'
           call mexit(6, 1)
@@ -557,6 +441,10 @@ subroutine sander()
         if (iredir(9) > 0) then
           call csaread
         end if
+
+      ! need to delay xray_init call until here, so that xray_read_pdb
+      ! can over-write the coordinates that came from getcor() call above:
+      if( xray_active) call xray_init()
 
       ! Call the fastwat subroutine to tag those bonds which are part
       ! of 3-point water molecules. Constraints will be performed for
@@ -687,15 +575,8 @@ subroutine sander()
     end if masterwork
     ! End of master process setup
 
-#ifdef OPENMP
-    ! set up and print some information
-    call set_omp_num_threads()
-#endif
-
     ! rism initialization
-#  if defined(RISMSANDER)
     call rism_init(commsander)
-#  endif /* RISMSANDER */
 
 #ifdef MPI
     call mpi_barrier(commsander,ier)
@@ -802,9 +683,7 @@ subroutine sander()
 
       ! Make sure all common atoms have the same v (that of V0) in TI runs
       if (ifsc .ne. 2) then
-        if (master) then
-          call sc_sync_x(x(lvel), nr3)
-        end if
+        if (master) call sc_sync_x(x(lvel), nr3)
         if (numtasks > 1) then
           call mpi_bcast(nr3, 1, MPI_INTEGER, 0, commsander, ier)
           call mpi_bcast(x(lvel), nr3, MPI_DOUBLE_PRECISION, &
@@ -823,8 +702,7 @@ subroutine sander()
 
     ! Allocate memory for GB on the non-master nodes:
     if (.not. master) then
-      if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
-          hybridgb > 0 .or. icnstph.gt.1 .or. icnste.gt.1) then
+      if (igb /= 0 .and. igb /= 10 .and. ipb == 0) then
           call allocate_gb( natom, ncopy )
       end if
     end if
@@ -897,24 +775,6 @@ subroutine sander()
         call ti_check_neutral(x(l15),natom)
       end if
     end if
-
-   ! xray initialization {{{
-    if( xray_active ) then
-      call xray_init_globals()
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      if( master ) call xray_write_options()
-      call xray_init()
-      if( bulk_solvent_model /= 'none' )  then
-        call mpi_bcast(k_mask,num_hkl,MPI_DOUBLE_PRECISION,0,commsander,ier )
-        REQUIRE( ier==0 )
-      end if
-    end if
-   ! }}}
 
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
@@ -1030,20 +890,6 @@ subroutine sander()
     call amrset(ig+1)
     call stack_setup()
 
-    ! xray initialization (non-parallel case) {{{
-    if( xray_active ) then
-      call xray_init_globals()
-      call amopen(5,mdin,'O','F','R')
-      call xray_read_mdin(mdin_lun=5)
-      close(5)
-      call amopen(8,parm,'O','F','R')
-      call xray_read_parm(8,6)
-      close(8)
-      call xray_write_options()
-      call xray_init()
-    end if
-   ! }}}
-
 #endif /* MPI */
 
     ! Allocate memory for crg relocation
@@ -1119,7 +965,7 @@ subroutine sander()
 
     ! Prepare for SGLD simulation
     if (isgld > 0) then
-      call psgld(natom,x(lmass),x(lvel), rem)
+      call psgld(natom,ix(i08), ix(i10), x(lmass),x(lcrd),x(lvel), rem)
     end if
 
     ! Prepare for EMAP constraints
@@ -1243,9 +1089,10 @@ subroutine sander()
             call nfe_on_sander_init(ih, x(lmass), x(lcrd), rem)
 #endif /* DISABLE_NFE */
 
-          call runmd(x, ix, ih, ipairs, x(lcrd), x(lwinv), x(lmass), &
-                       x(lforce), x(lvel), x(lvel2), x(l45), x(lcrdr), &
-                       x(l50), x(l95), ix(i70), x(l75), erstop, qsetup)
+          ntbond = nbonh  + nbona + nbper
+          call runmd(x, ix, ih, ipairs, coord3, massinv, mass, &
+                       force3, vel3, vel3_old, rest_coord3, &
+                       conp, skip, atoms_per_molecule, erstop, qsetup)
 
 #if !defined(DISABLE_NFE)
           if (infe == 1) call nfe_on_sander_exit()
@@ -1379,23 +1226,6 @@ subroutine sander()
   end if
 #endif
 
-  ! PUPIL interface: block to finalize the CORBA work
-#ifdef PUPIL_SUPPORT
-  ! Finalize Corba Interface
-  puperror = 0
-  call killcorbaintfc(puperror)
-  if (puperror /= 0) then
-     write(6,*) 'Error ending PUPIL CORBA interface.'
-  end if
-  write(6,'(a)') 'PUPIL CORBA interface finalized.'
-  pupactive = .false.
-#endif
-  ! End of this PUPIL interface block
-
-  ! Finalize X-ray refinement work
-  call xray_fini()
-  call flush(6)
-
   if (master) then
 #ifdef MPI
     ! Adaptive QM/MM (qmmm_nml%vsolv=2) via multisander:
@@ -1407,16 +1237,6 @@ subroutine sander()
 #ifdef MPI
     end if
 #endif
-
-    ! Close out constant pH work
-    if (icnstph .ne. 0 .or. (icnste .ne. 0 .and. cpein_specified)) then
-      call cnstph_finalize
-    end if
-
-    ! Close out constant Redox potential work
-    if (icnste .ne. 0 .and. .not. cpein_specified) then
-      call cnste_finalize
-    end if
 
     ! Write out the final timings, taking Replica Exchange MD into account
 #ifdef MPI
@@ -1477,9 +1297,16 @@ subroutine sander()
     call cleanup_linear_response(master)
   end if
 
-#ifdef RISMSANDER
    call rism_finalize()
-#endif
+
+   if( xray_active .and. master ) then
+      if (pdb_outfile /= '') then
+         call xray_write_pdb(pdb_outfile)
+      end if
+      if (fmtz_outfile /= '') then
+         call xray_write_fmtz(fmtz_outfile)
+      endif
+   end if
 
   if (ifcr .ne. 0) then
     call cr_cleanup()
@@ -1487,8 +1314,7 @@ subroutine sander()
 
   call nblist_deallocate()
   call deallocate_stacks()
-  if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) .or. &
-      hybridgb > 0 .or. icnstph > 1 .or. icnste > 1) then
+  if (igb /= 0 .and. igb /= 10 .and. ipb == 0)  then
     call deallocate_gb()
   end if
   deallocate(ih, stat=ier)
@@ -1511,4 +1337,3 @@ subroutine sander()
   return
 
 end subroutine sander
-

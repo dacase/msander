@@ -74,13 +74,9 @@ libs:
 
 #-----------LIBS
 
-xminC.o:  ../sff/xminC.c
+xminC.o:  ../msander/xminC.c
 	@echo "[SQM]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o xminC.o ../sff/xminC.c
-
-mexit.o: ../msander/mexit.F90
-	@echo "[SQM]  FC $<"
-	$(VB)$(FC) -c $(FFLAGS) -o $@ $< 
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
 wallclock.o: ../msander/wallclock.F90
 	@echo "[SQM]  FC $<"

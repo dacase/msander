@@ -55,9 +55,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #if defined(LES) && defined(MPI)
   use remd, only: rem ! wasn't used for LES above
 #endif /* LES && MPI */
-#ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, rism_force
-#endif /* RISMSANDER */
   use stack
   use qmmm_module, only : qmmm_nml
   use constants, only: zero, one
@@ -65,11 +63,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use ew_recip
   use parms, only: cn1, cn2, cn6, asol, bsol, pk, rk, tk, numbnd, numang, &
                    nptra, nphb, nimprp, cn3, cn4, cn5 ! for another vdw model
-#ifdef PUPIL_SUPPORT
-  use nblist, only: nonbond_list, a, b, c, alpha, beta, gamma, ucell
-#else
   use nblist, only: nonbond_list, a, b, c, alpha, beta, gamma
-#endif /*PUPIL_SUPPORT*/
 #ifdef DSSP
   use dssp, only: fdssp, edssp, idssp
 #endif /* DSSP */
@@ -79,16 +73,11 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use nbips, only: ips, eexips
   use emap, only: temap, emapforce
 
-#ifdef PUPIL_SUPPORT
-  use pupildata
-#endif /*PUPIL_SUPPORT*/
-
   use linear_response, only: ilrt, ee_linear_response, energy_m0, energy_w0, &
                              energy_vdw0, cn1_lrt, cn2_lrt, crg_m0, crg_w0, &
                              do_lrt, f_scratch, lrt_solute_sasa
   use xray_interface_module, only: xray_get_derivative
-  use xray_globals_module, only: atom_bfactor, xray_energy, xray_active, &
-                                 xray_nstep
+  use xray_globals_module, only: atom_bfactor, xray_energy, xray_active
 
   ! CHARMM Force Field Support
   use charmm_mod, only: charmm_active, charmm_calc_impropers, &
@@ -100,15 +89,15 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
   use les_data, only: temp0les
   use music_module, only : music_force
+#ifdef MPI
+   use mpi
+#endif
 
   implicit none
   
   integer, intent(in) :: nstep
 
-#ifdef PUPIL_SUPPORT
-  character(kind=1,len=5) :: routine="force"
-#endif
-#if defined(PUPIL_SUPPORT) || defined(MPI)
+#ifdef MPI
   integer ierr
 #endif
   integer   ipairs(*)
@@ -128,7 +117,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-  include 'mpif.h'
   integer gb_rad_mpistart, j3, j, i3
   _REAL_ :: temp_amd_totdih
 #endif /* MPI */
@@ -151,7 +139,9 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   _REAL_  enmr(6), devdis(4), devang(4), devtor(4), devpln(4), devplpt(4), &
           devgendis(4), entr, ecap, enfe
-  _REAL_  x(*), f(*), vir(4)
+  _REAL_, target, intent(in) :: x(3*natom)
+  _REAL_, target, intent(out) :: f(3*natom)
+  _REAL_  vir(4)
   type(state_rec)  ener
 
   ! Local
@@ -159,27 +149,32 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   type(potential_energy_rec) :: pot        !Used locally ONLY
   logical, save :: first=.true.
 
+  _REAL_, pointer :: x3(:,:)     ! to pass to xray_get_derivative()
+  _REAL_, pointer :: f3(:,:)     ! to pass to xray_get_derivative()
+
 #ifndef LES
   _REAL_ escf
 #endif /* LES */
 
   integer i
   _REAL_  virvsene, eelt, epol, esurf, edisp
-#ifdef RISMSANDER
   _REAL_ erism
-#endif /*RISMSANDER*/
 
   ! Charge transfer
   _REAL_ ect
 
   _REAL_ epolar, aveper, aveind, avetot, emtot, dipiter, dipole_temp
   integer, save :: newbalance
+  integer, save :: xray_nstep = 0
    
   ! Aceelerated MD variables
   _REAL_ amd_totdih
 
   ! MuSiC
   _REAL_ :: music_vdisp, music_vang, music_vgauss, music_spohr89
+
+  x3(1:3,1:natom) => x(1:3*natom)   ! for xray_get_derivative
+  f3(1:3,1:natom) => f(1:3*natom)   ! for xray_get_derivative
 
   ect = 0.0
 
@@ -210,10 +205,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       call mpi_bcast(xx(lcrd), 3*natom, MPI_DOUBLE_PRECISION, 0, &
                      commsander, ierr)
       call mpi_bcast(ntnb, 1, mpi_integer, 0, commsander, ierr)
-      if (iabs(ntb) >= 2) then
-        call mpi_bcast(xx(l45), 3*natom, MPI_DOUBLE_PRECISION, &
-                       0, commsander, ierr)
-      end if
     end if
   end if
   istart = iparpt(mytaskid) + 1
@@ -257,7 +248,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   virvsene = 0.d0
   f(1:3*natom+iscale) = 0.d0
 
-#ifndef PUPIL_SUPPORT
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
 
     ! For GB: do all nonbondeds together below
@@ -273,7 +263,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   if (ifcr /= 0) then
     call cr_reassign_charge(x, f, pot%ct, xx(l15), natom)
   end if
-#endif
 
 #if !defined(DISABLE_NFE)
   if (infe == 1) then
@@ -359,7 +348,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       ! Ewald force will put the potential into the qm_ewald%mmpot array.
       call timer_start(TIME_EWALD)
       call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, cn6, &
-                       eelt, epolar, f, xx, ix, ipairs, xx(l45), virvsene, &
+                       eelt, epolar, f, xx, ix, ipairs, virvsene, &
                        xx(lpol), &
                        xx(lpol2), .true., cn3, cn4, cn5 )
       call timer_stop(TIME_EWALD)
@@ -376,8 +365,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     call timer_stop(TIME_QMMM)
   end if
   !END qm/mm contributions, triggered by ifqnt in the qmmm_nml namelist
-
-#include "pupil_force.inc"
 
   ! Calculate the non-bonded contributions
   call timer_start(TIME_NONBON)
@@ -405,19 +392,19 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         ! call with molecule charges set to zero
         call ewald_force(x, natom, ix(i04), ix(i06), crg_m0, cn1, cn2, &
                          cn6, energy_m0, epolar, f_scratch, xx, ix, &
-                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         ipairs, virvsene, xx(lpol), &
                          xx(lpol2), .false. , cn3, cn4, cn5)
 
         ! call with water charges set to zero
         call ewald_force(x, natom, ix(i04), ix(i06), crg_w0, cn1, cn2, &
                          cn6, energy_w0, epolar, f_scratch, xx, ix, &
-                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         ipairs, virvsene, xx(lpol), &
                          xx(lpol2), .false. , cn3, cn4, cn5)
         ! call with full charges but no vdw interaction
         ! between solute and solvent
         call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1_lrt, &
                          cn2_lrt, cn6, eelt, epolar, f_scratch, xx, ix, &
-                         ipairs, xx(l45), virvsene, xx(lpol), &
+                         ipairs, virvsene, xx(lpol), &
                          xx(lpol2), .false. , cn3, cn4, cn5)
         energy_vdw0 = evdw
         call lrt_solute_sasa(x,natom, xx(l165))
@@ -426,7 +413,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       ! call normal_ewald force this will overwrite everything 
       ! computed above except energy_m0 and energy_w0
       call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
-                       cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
+                       cn6, eelt, epolar, f, xx, ix, ipairs, &
                        virvsene, xx(lpol), &
                        xx(lpol2), .false. , cn3, cn4, cn5)
       energy_vdw0 = evdw - energy_vdw0
@@ -435,7 +422,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
       call ee_linear_response(eelt, master)
     else ! just call ewald_force normally
       call ewald_force(x, natom, ix(i04), ix(i06), xx(l15), cn1, cn2, &
-                       cn6, eelt, epolar, f, xx, ix, ipairs, xx(l45), &
+                       cn6, eelt, epolar, f, xx, ix, ipairs, &
                        virvsene, xx(lpol), &
                        xx(lpol2), .false. , cn3, cn4, cn5)
     end if ! ilrt /= 0
@@ -734,7 +721,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   end if  ! ( igb /= 0 .and. igb /= 10 .and. ipb == 0 )
   ! End handoff of nonbonded computations to subroutine egb
 
-#ifdef RISMSANDER
   ! Force and energy computations by the Reference Interaction Site Model
   if (rismprm%rism == 1) then
     call timer_start(TIME_RISM)
@@ -742,7 +728,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     pot%rism = erism
     call timer_stop(TIME_RISM)
   endif
-#endif
 
   if (master) then
     !  These parts of the NMR energies are not parallelized, so only
@@ -767,22 +752,10 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 
   ! Built-in X-ray target function and gradient
   xray_energy = 0.d0
-  if( xray_active .and. mod(nstep,xray_nstep) == 0 ) then
-     if( iscale > 0 ) then
-        if (first) then
-           ! set coordinates to current bfactors:
-           x(3*natom+1:4*natom) = atom_bfactor(1:natom)
-           first = .false.
-        else
-           ! get current bfactors from the end of the coordinate array:
-           atom_bfactor(1:natom) = x(3*natom+1:4*natom)
-        endif
-        call xray_get_derivative(x,f,xray_e,dB=f(3*natom+1))
-     else
-        call xray_get_derivative(x,f,xray_e)
-     endif
+  if( xray_active .and. master) then
+     call xray_get_derivative(x3,f3,xray_nstep,xray_e)
+     xray_nstep = xray_nstep + 1
   endif
-
 
 #ifdef MPI
   call timer_barrier( commsander )
@@ -879,30 +852,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ener%aveind = aveind
   ener%avetot = avetot
    
-#ifdef PUPIL_SUPPORT
-  ! QM/MM structural considerations are now dealt with.
-  ! Add the quantum forces from last QM calculation.
-  do iPup = 1, pupparticles
-    bs1 = (abs(pupqlist(iPup))-1)*3
-    do jPup = 1, 3
-      bs2 = bs1 + jPup
-      f(bs2) = f(bs2) + qfpup(bs2)
-    enddo
-  enddo
-
-  ! If there are more that one QM Domain add vdw interaction
-  ! among qm particles from different QM Domains
-  if (pupnumdomains .gt. 1) then
-    call add_vdwqmqm(r_stack(l_puptmp),f,ener,ntypes,ih(m04),ih(m06),ix(i04))
-  endif
-
-  ! Deallocate temporary stack
-  call free_stack(l_puptmp,routine)
-
-  ! Disconnect QM/MM interactions
-  qmmm_nml%ifqnt = .false.
-#endif
-
   ! If freezemol has been set, zero out all of the forces for
   ! the real atoms. (It is no longer necessary to set ibelly.)
   if (ifreeze > 0) then

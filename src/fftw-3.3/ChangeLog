@@ -1,3 +1,73 @@
+commit 7184fc796279cfa70e4ba62519ac2938054584e6
+Author: Matteo Frigo <athena@fftw.org>
+Date:   Tue Sep 14 10:41:20 2021 -0400
+
+    Update configure.ac for 3.3.10
+
+commit 62e605c845d3c366849f48c977dfe0e320c23ff0
+Author: Matteo Frigo <athena@fftw.org>
+Date:   Mon May 31 09:55:57 2021 -0400
+
+    Use -mavx2 instead of -march=core-avx2
+    
+    It appears that -march=core-avx2 was necessary on some old version of
+    gcc-4.8, but setting -march is problematic for users who want to set
+    -march themselves.
+    
+    It appears that whatever gcc bug caused us to use -march=core-avx2 in
+    2015 is long gone.  I have checked gcc-4.8.5 on centos-7 and
+    oraclelinux-7 (both 64-bit) and on 32-bit debian jessie and in all
+    cases -mavx2 is sufficient.
+    
+    Therefore, given that the original cause for using -march is gone and
+    that using -march causes problems, I am removing the automatic
+    selection of -march=core-avx2 and I am using -mavx2 instead.  Users
+    for whom this is a problem can still override the default via
+    
+      ./configure --enable-avx2 AVX2_CFLAGS=...
+
+commit e9c510bf92a4fa848982310d2ecc8c5701aa3f6a
+Author: Matteo Frigo <athena@fftw.org>
+Date:   Thu Feb 25 17:52:44 2021 -0500
+
+    Update NEWS.
+    
+    Bugfix 06855286 is noteworthy.
+
+commit 06855286332683aa79a541eddc07ee535cfa4f95
+Author: Matteo Frigo <athena@fftw.org>
+Date:   Thu Feb 25 10:15:04 2021 -0500
+
+    Fix aligment checks for n2*v codelets.
+    
+    n2{f,b}v codelets assume that all loads and stores are aligned.
+    Thus, not only the pointers must be aligned, but all strides must
+    be aligned as well (in the ALIGNEDA sense).
+    
+    For some reason, two-way SIMD, including double-precision sse2,
+    defined SIMD_VSTRIDE_OKA(ivs) to be true always.  However, this is
+    incorrect because the codelet only works if ivs is even.  This change
+    implements the correct condition in all places where it matters.
+    
+    Thanks Kuangdai Leng for the bug report.
+    
+    This bug is deeply puzzling.  First, I don't understand how this
+    bug survived for years despite uncountable randomized tests.  Second,
+    I am pretty sure I fixed exactly this issue years ago and I don't
+    understand how it came back.
+
+commit d738232235af6c96bc4a28b07fc867c000696245
+Author: Rui Oliveira <ruimail24@gmail.com>
+Date:   Wed Feb 24 15:58:23 2021 +0000
+
+    Fix SIMD detection for MSVC (#232)
+
+commit 17b4252e3da62490d3e206569ebfec552d09afc1
+Author: Vincent Jacques <vincent@vincent-jacques.net>
+Date:   Sun Dec 27 20:16:40 2020 +0100
+
+    Doc: remove duplicated "the" (#226)
+
 commit 34082eb5d6ed7dc9436915df69f376c06fc39762
 Author: Matteo Frigo <athena@fftw.org>
 Date:   Thu Dec 10 06:54:31 2020 -0500

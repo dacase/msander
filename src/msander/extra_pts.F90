@@ -141,7 +141,7 @@ subroutine init_extra_pts(ibh,jbh,icbh, &
       it,jt,kt,ict,iph,jph,kph,lph,icph, &
       ipa,jpa,kpa,lpa,icpa, &
       isymbl,ix,x,iblo,inb, &
-      nspm,nsp,tma,tmass,tmassinv,amass,amassinv,req)
+      nspm,nsp,tmass,tmassinv,amass,amassinv,req)
    implicit none
    integer ibh(*),jbh(*),icbh(*),ib(*),jb(*),icb(*), &
          ith(*),jth(*),kth(*),icth(*), &
@@ -153,7 +153,7 @@ subroutine init_extra_pts(ibh,jbh,icbh, &
    integer iz
    _REAL_ x(*)
    integer nspm,nsp(*)
-   _REAL_ tma(*),tmass,tmassinv,amass(*),amassinv(*),req(*)
+   _REAL_ tmass,tmassinv,amass(*),amassinv(*),req(*)
    
 #  include "extra_pts.h"
 #  include "ew_cntrl.h"
@@ -282,7 +282,7 @@ subroutine init_extra_pts(ibh,jbh,icbh, &
       !      ---zero out mass and massinv for extra points:
       
       call fix_masses(natom,epowner, &
-            nspm,nsp,tma,tmass,tmassinv,amass,amassinv)
+            nspm,nsp,tmass,tmassinv,amass,amassinv)
       
       !      ---now remove bonds etc involving extra points:
       
@@ -1559,11 +1559,10 @@ end subroutine do_14_cg
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine fix_masses here]
 subroutine fix_masses(natom,epowner, &
-      nspm,nsp,tma,tmass,tmassinv,amass,amassinv)
+      nspm,nsp,tmass,tmassinv,amass,amassinv)
    implicit none
    integer natom,epowner(*),nspm,nsp(*)
-   _REAL_ tma(*),tmass,tmassinv, &
-         amass(*),amassinv(*)
+   _REAL_ tmass,tmassinv, amass(*),amassinv(*)
    integer n,k,l
    
    !     ---zero out mass and inverse masses for extra points;
@@ -1575,19 +1574,7 @@ subroutine fix_masses(natom,epowner, &
          amassinv(n) = 0.d0
       end if
    end do
-   
-   !     ---now redo tmass and tma
-   
-   tmass = 0.d0
-   l = 0
-   do k = 1,nspm
-      tma(k) = 0.d0
-      do n = 1,nsp(k)
-         l = l + 1
-         tma(k) = tma(k) + amass(l)
-      end do
-      tmass = tmass + tma(k)
-   end do
+   tmass = sum(amass(1:natom))
    tmassinv = 1.d0/tmass
    return
 end subroutine fix_masses 

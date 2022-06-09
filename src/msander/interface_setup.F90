@@ -30,14 +30,9 @@
    use molecule, only : mol_info, allocate_molecule, deallocate_molecule
    use nblist, only: first_list_flag
    use stack
-#ifdef RISMSANDER
    use sander_rism_interface, only: rism_setparam, rism_init
-#endif /* RISMSANDER */
-#ifdef PUPIL_SUPPORT
-   use pupildata
-#endif /* PUPIL */
    use xray_globals_module, only: xray_active
-   use xray_interface_module, only: xray_init, xray_read_parm, xray_init_globals
+   use xray_interface_module, only: xray_init=>init
    ! for LIE calculations
    use linear_response, only: ilrt, setup_linear_response, &
                               cleanup_linear_response
@@ -57,7 +52,6 @@
    use emap,only: temap,pemap,qemap
 
    use file_io_dat
-   use constantph, only : cnstph_finalize
    use barostats, only : mcbar_setup
    use random, only: amrset
 
@@ -132,7 +126,6 @@
    parm = trim(prmname)
 #endif
    mtmd = 'mtmd' ! needed to prevent sander from thinking mtmd is active
-   call xray_init_globals
 
    ! ==== Flag to tell list builder to print size of list on first call =======
    first_list_flag = .true.
@@ -223,8 +216,7 @@
       ! Allocate the parm arrays
       call allocate_parms()
 
-      if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) &
-                    .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) &
+      if (igb /= 0 .and. igb /= 10 .and. ipb == 0) &
          call allocate_gb( natom, ncopy )
 
       ! --- finish reading the prmtop file and other user input:
@@ -236,8 +228,6 @@
 
       if (ierr /= 0) goto ERROR1
 
-      if( xray_active ) call xray_read_parm(8,6)
-
    if (qmmm_nml%ifqnt) then
       call read_qmmm_nm_and_alloc(igb, ih, ix, x, cut, use_pme, ntb, 0, &
                                      dummy, 0, .false., qmmm_options)
@@ -246,13 +236,16 @@
    call api_mdread2(x,ix,ih, ierr)
    if (ierr /= 0) goto ERROR2
 
-#if defined(RISMSANDER) 
       call rism_setparam(mdin,&
            commsander,&
            natom,ntypes,x(L15:L15+natom-1),&
            x(LMASS:LMASS+natom-1),cn1,cn2,&
            ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-#endif /*RISMSANDER*/
+
+      ! In the future, the msander and rism values for omp_num_threads might
+      !   be different; for now, they are the same
+!$    call set_omp_num_threads()
+!$    call set_omp_num_threads_rism()
 
       if ( ifcr /= 0 ) then
          call cr_read_input(natom)
@@ -265,89 +258,6 @@
       nr = nrp
       nr3 = 3*nr
       belly = ibelly > 0
-
-      ! ========================= PUPIL INTERFACE =========================
-#ifdef PUPIL_SUPPORT
-
-      ! I moved the PUPIL interface down here so that write() statements work
-      ! as advertised. BPR 9/7/09
-
-      ! Initialise the CORBA interface
-      puperror = 0
-      call fixport()
-      call inicorbaintfcmd(puperror)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error creating PUPIL CORBA interface.'
-         call mexit(6,1)
-      end if
-      pupactive = .true.
-
-      ! Allocation of memory and initialization
-      pupStep  = 0
-      puperror = 0
-      allocate (qcell   (12     ),stat=puperror)
-      allocate (pupmask (natom  ),stat=puperror)
-      allocate (pupqlist(natom  ),stat=puperror)
-      allocate (pupatm  (natom  ),stat=puperror)
-      allocate (pupchg  (natom  ),stat=puperror)
-      allocate (qfpup   (natom*3),stat=puperror)
-      allocate (qcdata  (natom*9),stat=puperror)
-      allocate (keyMM   (natom  ),stat=puperror)
-      allocate (pupres  (nres   ),stat=puperror)
-      allocate (keyres  (nres   ),stat=puperror)
-
-      if (puperror /= 0) then
-         write(6,*) 'Error allocating PUPIL interface memory.'
-         call mexit(6,1)
-      end if
-
-      ! Initialise the "atomic numbers" and "quantum forces" vectors        
-      pupqatoms = 0
-      iresPup   = 1
-      pupres(1) = 1
-      do iPup=1,natom
-         bs1  = (iPup-1)*3
-         call get_atomic_number_pupil(ih(iPup+m06-1),x(lmass+iPup-1),pupatm(iPup))
-         if (iresPup .lt. nres) then
-            if (iPup .ge. ix(iresPup+i02)) then
-               iresPup = iresPup + 1
-               pupres(iresPup) = iPup
-            end if
-         end if
-         write (strAux,"(A4,'.',A4)") trim(ih(iresPup+m02-1)),adjustl(ih(iPup+m04-1))
-         keyres(iresPup) = trim(ih(iresPup+m02-1))
-         keyMM(iPup)     = trim(strAux)
-
-         ! Retrieve the initial charges
-         pupchg(iPup) = x(L15+iPup-1)
-
-         do jPup=1,3
-            qfpup(bs1+jPup) = 0.0d0
-         end do
-      end do
-
-      ! Initialise the PUPIL cell
-      do iPup=1,12
-         qcell(iPup) = 0.0d0
-      end do
-
-      ! Submit the KeyMM particles and their respective atomic numbers to PUPIL
-      puperror = 0
-      call putatomtypes(natom,puperror,pupatm,keyMM)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error sending MM atom types to PUPIL.'
-         call mexit(6,1)
-      end if
-
-      puperror = 0
-      call putresiduetypes(nres,puperror,pupres,keyres)
-      if (puperror .ne. 0) then
-         write(6,*) 'Error sending MM residue types to PUPIL.'
-         call mexit(6,1)
-      end if
-
-#endif /* PUPIL_SUPPORT */
-      ! ========================= PUPIL INTERFACE =========================
 
       ! --- seed the random number generator ---
 
@@ -363,8 +273,6 @@
          call timer_start(TIME_RDCRD)
          x(lcrd:lcrd+natom*3-1) = coordinates(1:natom*3)
          x(lvel:lvel+natom*3-1) = 0.d0
-
-         if( xray_active) call xray_init()
 
       ! ----- SET THE INITIAL VELOCITIES -----
 
@@ -522,9 +430,7 @@
    ! --- end of master process setup ---
    end if masterwork ! (master)
 
-#  if defined(RISMSANDER)
    call rism_init(commsander)
-#  endif /* RISMSANDER */
 
    !   debug needs to copy charges at start and they can't change later
    !   ---------------- Check system is neutral and print warning message ------
@@ -535,8 +441,6 @@
 
    call stack_setup()
 
-#ifdef OPENMP
-
    ! If -openmp was specified to configure_amber then -DOPENMP is defined and the 
    ! threaded version of MKL will have been linked in. It is important here that
    ! we set the default number of openmp threads for MKL to be 1 to stop conflicts
@@ -544,11 +448,10 @@
    ! Individual calls to MKL from routines that know what they are doing - e.g.
    ! QMMM calls to diagonalizers etc can increase this limit as long as they
    ! put it back afterwards.
-   call omp_set_num_threads(1)
+!$ call omp_set_num_threads(1)
 
    ! If we are using openmp for matrix diagonalization print some information.
-   if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
-#endif
+!$ if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
 
    ! allocate memory for crg relocation
    if (ifcr /= 0) call cr_allocate( master, natom )
@@ -600,7 +503,7 @@
    end if
 
   ! Prepare for SGLD simulation
-   if (isgld > 0) call psgld(natom,x(lmass),x(lvel), 0)
+   if (isgld > 0) call psgld(natom,ix(i08), ix(i10), x(lmass),x(lcrd),x(lvel), 0)
 
   ! Prepare for EMAP constraints
    if (temap) call pemap(dt,temp0,x,ix,ih)
@@ -634,9 +537,7 @@ ERROR1 continue
    call memory_free
    call clean_parms
    call deallocate_molecule
-   if ((igb /= 0 .and. igb /= 10 .and. ipb == 0) &
-                 .or. hybridgb>0 .or. icnstph>1 .or. icnste>1) &
-      call deallocate_gb
+   if (igb /= 0 .and. igb /= 10 .and. ipb == 0) call deallocate_gb
 #ifdef USE_PRMTOP_FILE
    close(8)
 #endif

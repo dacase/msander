@@ -9,13 +9,13 @@
 !===============================================================================
 
 module crg_reloc
+#ifdef MPI
+   use mpi
+#endif
 
 implicit none
 
 #include "parallel.h"
-#ifdef MPI
-   include 'mpif.h'
-#endif
 
 integer, parameter :: CR_MAX_NPTS = 500
 

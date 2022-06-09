@@ -330,6 +330,9 @@ subroutine quick3(x0, xh, ifstwr, natom, nres, ipres)
    !         to impose constraints, the masses of the atoms in the water,
    !         and the total mass of the water.
    
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    integer ifstwr, natom, nres, ipres
    _REAL_  x0, xh
@@ -342,7 +345,6 @@ subroutine quick3(x0, xh, ifstwr, natom, nres, ipres)
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 #  include "../include/md.h"
    
@@ -671,6 +673,9 @@ subroutine quick3v(x1, v1, ifstwr, natom, nres, ipres)
    !         to impose constraints, the masses of the atoms in the water,
    !         and the total mass of the water.
    
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    integer ifstwr, natom, nres, ipres
    _REAL_  x1, v1
@@ -683,7 +688,6 @@ subroutine quick3v(x1, v1, ifstwr, natom, nres, ipres)
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 #  include "../include/md.h"
    

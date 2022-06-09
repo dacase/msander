@@ -6,7 +6,7 @@ dnl Define the fftw version number as M4 macros, so that we can enforce
 dnl the invariant that the minor version number in FFTW-X.Y.MINOR is the same
 dnl as the revision number in SHARED_VERSION_INFO.
 define(FFTW_MAJOR_VERSION, 3.3)dnl
-define(FFTW_MINOR_VERSION, 9)dnl
+define(FFTW_MINOR_VERSION, 10)dnl
 
 dnl Version number of the FFTW source package.
 AC_INIT(fftw, FFTW_MAJOR_VERSION.FFTW_MINOR_VERSION, fftw@fftw.org)
@@ -25,6 +25,7 @@ dnl fftw-3.3.6.1 fixes the 8:x:6 screwup
 dnl fftw-3.3.7 was 8:x:5 (No API changes)
 dnl fftw-3.3.8 was 8:x:5 (No API changes)
 dnl fftw-3.3.9 was 9:x:6 (added threads callback)
+dnl fftw-3.3.10 was 9:x:6 (No API changes)
 SHARED_VERSION_INFO="9:FFTW_MINOR_VERSION:6" # CURRENT:REVISION:AGE
 
 AM_INIT_AUTOMAKE(1.7)
@@ -359,12 +360,9 @@ case "${ax_cv_c_compiler_vendor}" in
         fi
 
         # AVX2
-        # gcc-4.8 works with -march=core-avx2, but -mavx2 is not enough.
-        # Later versions seem to happy with -mavx2, so try the arch one first.
         if test "$have_avx2" = "yes" -a "x$AVX2_CFLAGS" = x; then
-            AX_CHECK_COMPILER_FLAGS(-march=core-avx2, [AVX2_CFLAGS="-march=core-avx2"],
-                [AX_CHECK_COMPILER_FLAGS(-mavx2, [AVX2_CFLAGS="-mavx2"],
-                    [AC_MSG_ERROR([Need a version of gcc with either -march=core-avx2 or -mavx2])])])
+            AX_CHECK_COMPILER_FLAGS(-mavx2, [AVX2_CFLAGS="-mavx2"],
+                [AC_MSG_ERROR([Need a version of gcc with -mavx2])])
             AX_CHECK_COMPILER_FLAGS(-mfma, [AVX2_CFLAGS="$AVX2_CFLAGS -mfma"],
                 [AC_MSG_WARN([Need a version of gcc with -mfma (harmless for icc)])])
         fi

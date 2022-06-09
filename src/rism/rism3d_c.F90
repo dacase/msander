@@ -248,10 +248,10 @@ contains
     use rism3d_solute_c
     use rism3d_solvent_c
     use safemem
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rism3d), intent(inout) :: this
     type(rism3d_solute), intent(in), target :: solute
     type(rism3d_solvent), intent(in), target :: solvent
@@ -596,16 +596,16 @@ contains
   !! @param[in] tolerance Convergence tolerances. There should be one
   !!          tolerance per closure in the closure list.
   subroutine rism3d_calculateSolution(this, ksave, kshow, maxSteps, &
-          tolerance, ng3)
+          tolerance, ng3, verbose)
     use constants_rism, only : pi
+#ifdef MPI
+    use mpi
+#endif
     implicit none
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance(:)
-    integer, intent(in) :: ng3(3)
+    integer, intent(in) :: ng3(3), verbose
 
     _REAL_ :: com(3)
     ! iclosure :: counter for closures
@@ -627,23 +627,25 @@ contains
        call resizeBox(this,ng3)
        call timer_stop(TIME_RESIZE)
 
-       call rism_report_message("||Setting solvation box to")
-       call rism_report_message("(3(a,i10))", "|grid size: ", &
+       if(verbose >= 0 ) then
+         call rism_report_message("||Setting solvation box to")
+         call rism_report_message("(3(a,i10))", "|grid size: ", &
             this%grid%globalDimsR(1), " X ", this%grid%globalDimsR(2), &
             " X ", this%grid%globalDimsR(3))
-       call rism_report_message("(3(a,f10.3))", "|box size [A]:  ", &
+         call rism_report_message("(3(a,f10.3))", "|box size [A]:  ", &
             this%grid%boxLength(1), " X ", this%grid%boxLength(2), &
             " X ", this%grid%boxLength(3))
-       call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
+         call rism_report_message("(3(a,f10.3))", "|grid spacing [A]: ", &
             this%grid%spacing(1), " X ", this%grid%spacing(2), &
             " X ", this%grid%spacing(3))
-       call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
+         call rism_report_message("(3(a,f10.3))", "|internal angles [°]:  ", &
             this%grid%unitCellAngles(1) * 180 / pi, ", ", &
             this%grid%unitCellAngles(2) * 180 / pi, ", ", &
             this%grid%unitCellAngles(3) * 180 / pi)
-       call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ", &
+         call rism_report_message("(a,f10.3)", "|inscribed sphere radius [A]: ",&
             this%grid%inscribedSphereRadius)
-       call flush(rism_report_getmunit())
+         call flush(rism_report_getmunit())
+       end if
     end if
 
     ! 2a) Check what kind of information is in the xvv file:
@@ -895,9 +897,11 @@ contains
   subroutine resizeBox(this,ng3)
     use constants_rism, only : PI
     use rism_util, only : isprime, lcm, isFactorable, largestPrimeFactor
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #if defined(MPI)
-    include 'mpif.h'
     integer :: ierr
 #endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
@@ -1177,11 +1181,11 @@ contains
   subroutine solve3DRISM(this, ksave, kshow, maxSteps, tolerance)
     use mdiis_c
     use rism3d_restart
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: ksave, kshow, maxSteps
     _REAL_, intent(in) :: tolerance
@@ -1304,11 +1308,11 @@ contains
 
     use rism3d_fft_c
     use constants_rism, only : PI, FOURPI, omp_num_threads
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
-#if defined(MPI)
-    include 'mpif.h'
-#endif /*defined(MPI)*/
     type(rism3d), intent(inout) :: this
     logical, intent(inout) :: converged
     _REAL_, intent(inout) :: residual
@@ -1547,10 +1551,12 @@ contains
     soluteQ = sum(this%solute%charge)/this%grid%boxVolume
     if(all(this%solvent%background_correction .ne. HUGE(1d0))) then
        this%huvk0(1, :) = this%solvent%background_correction(:) * soluteQ
+#if 0
        if (first .and. this%grid%offsetK(3) == 0) then
           write(6,'(a,6f10.5)') '|  huvk0 = ', this%huvk0(1, :)
           first = .false.
        end if
+#endif
     else
        ! for pure water, kappa is zero, and there should be no
        !    background correction:

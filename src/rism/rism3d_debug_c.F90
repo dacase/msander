@@ -163,9 +163,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism3d_debug_print_r(data,label)
       use safemem
+#ifdef MPI
+    use mpi
+#endif
       implicit none
 #ifdef MPI
-      include 'mpif.h'
       integer :: ierr, status(MPI_STATUS_SIZE)
 #endif
       _REAL_, intent(in) :: data(:,:,:,:)
@@ -225,7 +227,9 @@
       use safemem
       implicit none
 #ifdef MPI
-      include 'mpif.h'
+    use mpi
+#endif
+#ifdef MPI
       integer :: ierr, status(MPI_STATUS_SIZE)
 #endif
       _REAL_, target, intent(in) :: data(:)
@@ -244,9 +248,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism3d_debug_print_r2(data,label)
       use safemem
+#ifdef MPI
+    use mpi
+#endif
       implicit none
 #ifdef MPI
-      include 'mpif.h'
       integer :: ierr, status(MPI_STATUS_SIZE)
 #endif
       _REAL_, target, contiguous, intent(in) :: data(:,:)

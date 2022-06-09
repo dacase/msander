@@ -75,7 +75,6 @@ subroutine fill_timer_array()
          TIME_EWALD,'Field Collect time')
    call add_timer(TIME_LESADJ,TIME_EWALD,'LES adjust time')
 
-#ifdef RISMSANDER
    !--3d-rism
    call add_timer(TIME_RISM,TIME_NONBON,'3D-RISM time')
    call add_timer(TIME_ULJUV,TIME_RISM,'LJ Grid time')
@@ -100,7 +99,6 @@ subroutine fill_timer_array()
    call add_timer(TIME_PARTIALMOLARVOLUME,TIME_RISM,'Partial Molar Volume time')
    call add_timer(TIME_CUVPROP,TIME_RISM,'Solution Propagation time')
    call add_timer(TIME_EDENS,TIME_RISM,'Electron density map')
-#endif
 
    !-- egb
    call add_timer(TIME_EGB,TIME_NONBON,'Gen Born time')
@@ -308,10 +306,10 @@ end subroutine add_timer
 !+ Synchronize processors to ensure timer accuracy.
 subroutine timer_barrier( communicator )
 
+   use mpi
    implicit none
    integer communicator
 
-   include 'mpif.h'
    logical barrier_active
    integer ierr
 
@@ -746,7 +744,10 @@ subroutine profile_time(all,num_calls_nblist,profile_mpi)
 #else
 subroutine profile_time(all,num_calls_nblist)
 #endif
-  use stack, only: ihighest_stk,highest_stk
+   use stack, only: ihighest_stk,highest_stk
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    _REAL_ all
    integer, intent(in) :: num_calls_nblist
@@ -754,7 +755,6 @@ subroutine profile_time(all,num_calls_nblist)
 #  include "extra.h"
 
 #ifdef MPI
-   include 'mpif.h'
 #  include "parallel.h"
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
@@ -904,8 +904,6 @@ subroutine print_ongoing_time_summary(total_steps,current_step,time_step,write_u
 use qmmm_module, only: qmmm_nml
 
 ! Make the ongoing time summary work with explicit Constant pH simulations JMS 2/2011
-use constantph, only: relaxations, tot_relax
-use constante, only: relaxations_e, tot_relax_e
 
   implicit none
 
@@ -945,13 +943,11 @@ use constante, only: relaxations_e, tot_relax_e
   ! will do from here on out based on how many have been done already, then
   ! multiplying it by the number of relaxation steps we perform: JMS 2/2011
   est_steps_remaining = steps_remaining
-  if (ntrelax > 0) est_steps_remaining = est_steps_remaining + tot_relax / current_step * steps_remaining * ntrelax
-  if (ntrelaxe > 0) est_steps_remaining = est_steps_remaining + tot_relax_e / current_step * steps_remaining * ntrelaxe
   step_interval = current_step - last_step_count
 
   ! Adjust current_step and step_interval for relaxation steps taken (JMS 2/2011)
-  full_current_step = current_step + relaxations * ntrelax + relaxations_e * ntrelaxe
-  full_step_interval = step_interval + relaxations * ntrelax + relaxations_e * ntrelaxe
+  full_current_step = current_step
+  full_step_interval = step_interval
 
   ! Elapsed time in seconds for last interval and over whole sim
   elapsed_time = current_time - previous_time
@@ -985,21 +981,6 @@ use constante, only: relaxations_e, tot_relax_e
                                ' | Remaining : ',steps_remaining
     write (write_unit,'(a)') '|'
     write (write_unit,'(a,i7,a)') '| Average timings for last ',step_interval,' steps:'
-    if (icnstph .gt. 1 .or. icnste .gt. 1) then
-       write(write_unit, '(a)') '| Solvent relaxation steps only included in per-step timings'
-       write(write_unit, '(a,i7,a)') '| Solvent relaxation timings for last ', &
-                                     step_interval, ' steps:'
-       !if (icnstph .gt. 1) then
-       !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant pH)  = ', ntrelax
-       !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant pH)     = ', relaxations
-       !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant pH) = ', ntrelax * relaxations
-       !end if
-       !if (icnste .gt. 1) then
-       !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant Redox potential)  = ', ntrelaxe
-       !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant Redox potential)     = ', relaxations_e
-       !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant Redox potential) = ', ntrelaxe * relaxations_e
-       !end if
-    end if
     write (write_unit,'(a,f10.2,a,f10.2)') &
                     '|     Elapsed(s) = ',elapsed_time,' Per Step(ms) = ',time_per_step
     if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
@@ -1011,19 +992,6 @@ use constante, only: relaxations_e, tot_relax_e
     endif
     write (write_unit,'(a)') '|'
     write (write_unit,'(a)') '| Average timings for all steps:'
-    if (icnstph .gt. 1 .or. icnste .gt. 1) then
-       write(write_unit, '(a)')    '| Total Solvent relaxation timings:'
-       !if (icnstph .gt. 1) then
-       !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant pH)  = ', ntrelax
-       !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant pH)     = ', tot_relax
-       !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant pH) = ', ntrelax * tot_relax
-       !end if
-       !if (icnste .gt. 1) then
-       !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant Redox potential)  = ', ntrelaxe
-       !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant Redox potential)     = ', tot_relax_e
-       !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant Redox potential) = ', ntrelaxe * tot_relax_e
-       !end if
-    end if
     write (write_unit,'(a,f10.2,a,f10.2)') &
                     '|     Elapsed(s) = ',total_elapsed_time,' Per Step(ms) = ',avg_time_per_step
     if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
@@ -1049,21 +1017,6 @@ use constante, only: relaxations_e, tot_relax_e
     write (write_unit,'(a)') '| -----------------------------------------------------'
     if (write_unit /= 6) then
       write (write_unit,'(a,i7,a)') '| Average timings for last ',step_interval,' steps:'
-      if (icnstph .gt. 1 .or. icnste .gt. 1) then
-         write(write_unit, '(a)') '| Solvent relaxation steps only included in per-step timings'
-         write(write_unit, '(a,i7,a)') '| Solvent relaxation timings for last ', &
-                                       step_interval, ' steps:'
-         !if (icnstph .gt. 1) then
-         !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant pH)  = ', ntrelax
-         !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant pH)     = ', relaxations
-         !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant pH) = ', ntrelax * relaxations
-         !end if
-         !if (icnste .gt. 1) then
-         !  write(write_unit, '(a,i9)') '|     Steps per relaxation (constant Redox potential)  = ', ntrelaxe
-         !  write(write_unit, '(a,i9)') '|     Relaxation cycles (constant Redox potential)     = ', relaxations_e
-         !  write(write_unit, '(a,i9)') '|     Relaxation time steps (constant Redox potential) = ', ntrelaxe * relaxations_e
-         !end if
-      end if
       write (write_unit,'(a,f10.2,a,f10.2)') &
                       '|     Elapsed(s) = ', elapsed_time,' Per Step(ms) = ',time_per_step
       if((qmmm_nml%ifqnt .and. qmmm_nml%qmtheory%EXTERN) ) then
@@ -1090,8 +1043,6 @@ use constante, only: relaxations_e, tot_relax_e
 
   last_step_count = current_step
   previous_time = current_time
-  relaxations = 0 ! JMS 2/2011 -- make timing facility work with explicit constant pH simulations
-  relaxations_e = 0
 
   return
 

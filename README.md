@@ -1,31 +1,49 @@
+# Overview
 
 This directory tree contains "msander", a "modern" version of parts of
-sander, plus other pieces of AmberTools needed for basic building and
-simulations of biomolecules.  Tools inlcuded are:
+sander.  Also included are the API's to msander, and various X-ray-related 
+utilities.
 
-   addles  antechamber  tleap  msander  parmed  sqm
+# Warning
 
-Also included are the API's to msander, and various X-ray-related utilities
+This is a work in progress, and may not always be in a stable
+state.  I may not be able to respond to requests for support.
+The documentation is here:
 
-# Design goals:
+    https://ambermd.org/doc12/Amber21.pdf
+
+This code is probably only useful to those who are already familiar with
+AmberTools, and there are some small differences that are not yet
+documented.  You can look in the test directory for examples of input files,
+or send email to dacase1@gmail.com if you want to participate in development.
+
+# Design goals
 
 * This project began as a fork of the `sander` code in `AmberTools`.  
 It tries to (greatly) simplify the code base, choosing the best and 
 most useful parts of the code, and to serve as a test bed for how 
 modern Fortran coding techniques can be used.  Key application areas 
 are expected to be in structure refinements using NMR, cryoEM or 
-Xray diffraction information.
+Xray diffraction information.  This version has a fair amount of OpenMP
+support, especially for Xray and 3D-RISM calculations.
+
+* Since this code is based on sander, tons of people have been involved in its
+creation over the years.  See https://ambermd.org/contributors.html for more
+information, although even that gets out of date.
+
+# Key differences in functionality versus sander
 
 * Some pieces are missing from the sander program in AmberTools:
 
   * Things that should be easy to re-introduce later: emil, sebomd, pbsa, APBS
 
   * Things are are problably gone for good, but which don't represent the best
-current program practice: Path-integral methods, thermostats that don't follow
+current practice: Path-integral methods, thermostats that don't follow
 the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
-potentials, some parts of adaptive QM/MM, nudged elastic band
+potentials, some parts of adaptive QM/MM, nudged elastic band, constant pH
+and constant redox potential simulations.
 
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
@@ -34,23 +52,21 @@ simplest possible RISM code, perhaps as a basis for future GPU work.
 
   * Periodic and non-periodic simulations, with all of Amber's GB models
 
+  * 3D-RISM in periodic boundary conditions
+
   * QM/MM, including hooks to external codes
 
-  * NMR, cryoEM and Xray restraints (including quite a bit of new code)
+  * NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
+    restraints include NVIDIA GPU-enabled capabilities)
 
   * Thermodynamic integration and non-equilibrium sampling methods
 
-  * Replica exchange capabilities, and constant pH and redox potential
-simulations
+  * Replica exchange capabilities, except for constant pH and redox potential
+    simulations
 
-# Building the code:
+# Building the code
 
-*Conda build:
-```
-   conda build -c conda-forge [ --python '3.8.* *_cpython' ] recipe 
-```
-
-*Non-conda build:  (MacOSX, Linux)
+* MacOSX, Linux, probably WSL:
 ```
    ./configure --help   #  then choose the options you want
    make install
@@ -58,7 +74,8 @@ simulations
 ```
 
 # License
-This project is generally licensed under the GNU (Lesser) General Public 
-License, version 3 (GPL/LGPL v3).  Some components use different, but 
-compatible, open source licenses.  See the LICENSE file for more information.
+This project is licensed under the GNU General Public License, 
+version 2, or (at your option) any later version.   Some components use 
+different, but compatible, open source licenses.  See the LICENSE file 
+for more information.
 

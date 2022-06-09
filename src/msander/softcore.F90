@@ -10,11 +10,13 @@ module softcore
 
   use findmask
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
 
 #include "parallel.h"
 #ifdef MPI
-   include 'mpif.h'
 
   integer ist(MPI_STATUS_SIZE), partner
 #endif
@@ -1192,6 +1194,7 @@ end subroutine ti_check_res
 subroutine ti_check_neutral(charge,natom)
 
    use constants, only : INV_AMBER_ELECTROSTATIC, TEN_TO_MINUS2, zero  
+   use mpi
    implicit none
    _REAL_  charge(*)
    integer natom
@@ -1211,7 +1214,6 @@ subroutine ti_check_neutral(charge,natom)
 #  include "ew_cntrl.h"
 #  include "extra.h"
 #  include "parallel.h"
-   include 'mpif.h'
 
    nsum(:) = 0
    sum_val(:) = 0.d0

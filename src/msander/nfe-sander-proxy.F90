@@ -33,7 +33,7 @@ public :: sander_imin
 public :: sander_natoms
 public :: sander_mdtime
 public :: sander_sgft
-public :: sander_tempsg
+public :: sander_sgff
 public :: sander_temp0
 public :: sander_timestep
 public :: sander_init
@@ -245,12 +245,12 @@ end function sander_sgft
 
 !-----------------------------------------------------------------------------
 
-pure NFE_REAL function sander_tempsg()
-   use sgld, only:tempsg
+pure NFE_REAL function sander_sgff()
+   use sgld, only:sgff
    implicit none
 #include "../include/md.h"
-   sander_tempsg = tempsg
-end function sander_tempsg
+   sander_sgff = sgff
+end function sander_sgff
 
 !-----------------------------------------------------------------------------
 

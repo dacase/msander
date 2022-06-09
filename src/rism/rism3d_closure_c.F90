@@ -350,10 +350,10 @@ contains
     use constants_rism, only : pi, KB, omp_num_threads
     use FFTW3
     use rism_util, only: r2c_pointer
-    implicit none
-#if defined(MPI)
-    include 'mpif.h'
+#ifdef MPI
+    use mpi
 #endif
+    implicit none
 
     type(rism3d_potential), intent(inout) :: this !< potential object.
     _REAL_, intent(inout) :: ff(3, this%solute%numAtoms) !< Force array [kT/A].

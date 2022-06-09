@@ -8,9 +8,7 @@ subroutine locmem()
    !     locmem:  partitions core array into storage for all
    !        the major arrays of the program.
    use nblist, only: cutoffnb,skinnb
-#ifdef RISMSANDER
    use sander_rism_interface, only: rismprm
-#endif
    use linear_response, only: ilrt
    implicit none
    
@@ -41,14 +39,12 @@ subroutine locmem()
    !     F       ...  Lforce! FORCE
    !     V       ...  Lvel  ! VELOCITY for MD, work space for min
    !     VOLD    ...  Lvel2 ! OLD VELOCITY for MD
-   !     XR      ...  L45   ! Coords rel. to COM of each molecule
    !     CONP    ...  L50   ! BOND PARAMETER FOR SHAKE
    !     XC      ...  LCRDR ! POSITION COORDINATE FOR CONSTRAINT
    !     WEIT    ...  L60   ! WEIGHT FOR POSITION CONSTRAINT
    !                  L65   ! polarization
    !                  Lmass ! masses
-   !     TMA     ...  L75   ! SUB-MOLECULAR WEIGHT ARRAY IN RUNMD
-   !                  L95   ! 3*Natom Real Scratch (for pol.) or Natom (for nmr)
+   !                  L95   ! Scratch -- Natom (for nmr)
    !                        ! also used for SKIP array in shake (2*ntbond)
    !                  L96   ! GB "fs" array
    !                  L97   ! GB "rborn" array
@@ -153,31 +149,14 @@ subroutine locmem()
    r_ptr = 1
    call adj_mem_ptr( r_ptr, l15, natom )
    call adj_mem_ptr( r_ptr, lwinv, natom )
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, lpol, natom )
-   else
-      call adj_mem_ptr( r_ptr, lpol, 0 )
-   end if
-! Modified by WJM, YD, RL
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, ldf, natom )
-      call adj_mem_ptr( r_ptr, lpol2, natom )
-      if ( ipol == 5) call adj_mem_ptr( r_ptr, lpolbnd, 3*natom )
-   else
-      call adj_mem_ptr( r_ptr, ldf, 0 )
-      call adj_mem_ptr( r_ptr, lpol2, 0 )
-      call adj_mem_ptr( r_ptr, lpolbnd, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, lpol, 0 )
+   call adj_mem_ptr( r_ptr, ldf, 0 )
+   call adj_mem_ptr( r_ptr, lpol2, 0 )
+   call adj_mem_ptr( r_ptr, lpolbnd, 0 )
    call adj_mem_ptr( r_ptr, lcrd, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, lforce, 3*natom + mxvar + 40 )
-   if (imin == 0) then
-      call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
-      call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
-   else
-      call adj_mem_ptr( r_ptr, lvel, 6*(3*natom + mxvar) )
-      call adj_mem_ptr( r_ptr, lvel2, 0 )
-   end if
-   call adj_mem_ptr( r_ptr, l45, 3*natom + mxvar )
+   call adj_mem_ptr( r_ptr, lvel,  3*natom + mxvar )
+   call adj_mem_ptr( r_ptr, lvel2, 3*natom + mxvar )
    call adj_mem_ptr( r_ptr, l50, ntbond )
    
    ! positional restraints or carlos added targeted MD
@@ -194,40 +173,20 @@ subroutine locmem()
    else
       call adj_mem_ptr( r_ptr, lmtmd01, 0)
    end if
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, l65, 3*natom )
-   else
-      call adj_mem_ptr( r_ptr, l65, 0 )
-   end if
-! Modified by WJM
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, l65, natom )
-   else
-      call adj_mem_ptr( r_ptr, l65, 0 )
-   end if
+   call adj_mem_ptr( r_ptr, l65, 0 )
+
    !     --- real array NMR restraints/weight changes:
    
    call adj_mem_ptr( r_ptr, lmass, natom )
    call adj_mem_ptr( r_ptr, lnmr01, irlreq )
    
-   call adj_mem_ptr( r_ptr, l75, natom )
-   if (ipol > 0) then
-      call adj_mem_ptr( r_ptr, l95, max(3*natom, 2*ntbond) )
-   else if (nmropt > 0 ) then
-      call adj_mem_ptr( r_ptr, l95, max(natom, 2*ntbond) )
-   else
-      call adj_mem_ptr( r_ptr, l95, 2*ntbond )
-   end if
-! Modified by WJM
-   if (ipol > 1) then
-      call adj_mem_ptr( r_ptr, l95, max(3*natom, 2*ntbond) )
-   else if (nmropt > 0 ) then
+   if (nmropt > 0 ) then
       call adj_mem_ptr( r_ptr, l95, max(natom, 2*ntbond) )
    else
       call adj_mem_ptr( r_ptr, l95, 2*ntbond )
    end if
 !!
-   if( igb /= 0 .or. ipb /= 0 .or. hybridgb>0 .or. icnstph>1 .or. icnste>1 ) then
+   if( igb /= 0 .or. ipb /= 0 ) then
       call adj_mem_ptr( r_ptr, l96, natom )
       call adj_mem_ptr( r_ptr, l97, natom )
       ! memory for new GB array
@@ -308,11 +267,7 @@ subroutine locmem()
    end if
    call adj_mem_ptr( r_ptr, l150, 0)
 
-   if ( icnstph /= 0 .or. icnste /= 0 ) then
-      call adj_mem_ptr( r_ptr, l190, natom)
-   else
-      call adj_mem_ptr( r_ptr, l190, 0)
-   end if
+   call adj_mem_ptr( r_ptr, l190, 0)
 
    lastr = r_ptr
    
@@ -325,15 +280,6 @@ subroutine locmem()
    call adj_mem_ptr( h_ptr, m04, natom )
    call adj_mem_ptr( h_ptr, m06, natom )
    call adj_mem_ptr( h_ptr, m08, natom )
-   
-   ! Removed expansion of h_ptr to include m12, m14 and m16,
-   ! since these appear to no longer be used.
-   ! BPR 15/7/2009
-   !call adj_mem_ptr( h_ptr, m12, natom )
-   !if (ipol > 0) then
-   !   call adj_mem_ptr( h_ptr, m14, 15*natom )
-   !end if
-   !call adj_mem_ptr( h_ptr, m16, 2*natom )
    
    lasth = h_ptr
    
@@ -429,7 +375,7 @@ subroutine locmem()
       call adj_mem_ptr( i_ptr, i82, 0 )
    end if
    
-   if(igb /= 0 .or. ipb /= 0 .or.hybridgb>0 .or. icnstph>1 .or. icnste>1) then
+   if(igb /= 0 .or. ipb /= 0 ) then
       call adj_mem_ptr( i_ptr, i86, natom )
    else
       call adj_mem_ptr( i_ptr, i86, 0 )
@@ -466,11 +412,7 @@ subroutine locmem()
          call mexit(6,1)
       end if
 # ifdef MPI
-#  ifdef RISMSANDER
       if(periodic == 1 .and. rismprm%rism == 0) then
-#  else
-      if(periodic == 1) then
-#endif
          if( numtasks <= 8 ) maxpr = maxpr/numtasks
          !  allow for some load imbalance in list at high processor number:
          if( numtasks >  8 ) maxpr = 4*maxpr/(3*numtasks)

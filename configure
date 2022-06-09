@@ -10,17 +10,17 @@ msanderhome=`pwd`
 verbose="@"
 enablempi=
 requested_help="no"
-bintraj="-DBINTRAJ"
 clangf=""
-rism="librism"
-rismsander="-DRISMSANDER"
 conda="no"
 openblas="no"
-boost="yes"
 moft="moft"
+sfx=""
 gcc10f=""
 gcc10c=""
+longlines="-ffree-line-length-none"
 pythonv=`python --version 2>&1 | cut -c 8-10`
+debug="-DNDEBUG"
+fpic="-fPIC"
 
 compiler="gnu"
 cc="gcc -Wno-unused-result"
@@ -32,7 +32,6 @@ fc="gfortran"
 flibs_arch="-lgfortran -w"
 flibs_la=""
 flibs_fftw="-lfftw3"
-flibs_rism="-lrism"
 mpif90="mpif90"
 gccsys=""
 optflags="-g -Ofast -mtune=native"
@@ -44,17 +43,16 @@ fftw_flags=""
 mkl="no"
 installtype="serial"
 
+cuda="no"
+cudaflags=''
+
 lapack="skip"
 blas="skip"
-parmed="parmed"
-pysander="pysander"
-libsander="libsander"
-libsanderles="libsanderles"
 
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
-netcdflibf=$netcdflib_shared
+netcdflibf=$netcdflibf_static
 
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
@@ -68,16 +66,25 @@ for var in "$@"; do
             requested_help="yes";;
         --verbose)
             verbose="";;
+        --debug)
+            debug="";;
         --conda)
             optflags="-g -O3"
             conda="yes";;
         --openmp)
             ompflag='-fopenmp -DOPENMP';
-            flibs_fftw="-lfftw3_omp -lfftw3"
+            flibs_fftw="-lfftw3_omp $flibs_fftw"
             openmp="yes";;
-        --no-netcdf)
-            netcdflibf=""
-            bintraj="";;
+        --cuda-single)
+            cuda="yes"
+            installtype="cuda"
+            fpic=""
+            cudaflags="-DCUDA -DCUDA_PRECISION=Single";;
+        --cuda-double)
+            cuda="yes"
+            installtype="cuda"
+            fpic=""
+            cudaflags="-DCUDA -DCUDA_PRECISION=Double";;
         --gcc10)
             gcc10f="-Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
             gcc10c="-fcommon";;
@@ -99,38 +106,28 @@ for var in "$@"; do
             cc="icc"
             cxx="icpc"
             fc="ifort"
+            longlines=""
             mpicc="mpiicc"
             mpif90="mpiifort"
-            optflags="-g -O3 -fast"
-            parmed="skip"
-            pysander="skip"
-            libsander="libsander_skip"
-            libsanderles="libsanderles_skip"
-            netcdflibf=$netcdflibf_static
+            optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
             compiler="clang"
             clangf="-DCLANG"
-            cc="clang-10"
-            cxx="clang++-10"
-            fc="flang"
+            cc="clang"
+            cxx="clang++"
+            fc="gfortran"
             optflags="-g -O3";;
-        --no-rism)
-            # flibs_fftw=""
-            flibs_rism=""
-            rismsander=""
-            rism="skip";;
-        --no-boost)
-            boost="no"
-            moft="skip";;
         --mpi)
             mpi="yes"
             fftw_flags="--enable-mpi=yes $fftw_flags"
             mpiflag="-DMPI"
-            flibs_fftw="-lfftw3_mpi -lfftw3 -lmpi"
+            flibs_fftw="-lfftw3_mpi $flibs_fftw -lmpi"
             short_ene=short_ene.o
             installtype="parallel"
             sfx=".MPI";;
+        --full)
+            installtype="full";;
         *)
             echo "Option $var not recognized"
             exit 1
@@ -138,16 +135,26 @@ for var in "$@"; do
 done
 
 if [ "$requested_help" = "yes" ] ; then
-	printf " --verbose      give build details, otherwise be more silent\n"
-	printf " --no-netcdf    disable NetCDF support\n"
-	printf " --no-rism      disable 3D-RISM support\n"
-	printf " --no-boost     disable moft support\n"
 	printf " --intel        use Intel compilers; default is gnu\n"
+	printf " --clang        use clang/gfortran as compilers\n"
+	printf " --gcc10        add flags for gcc10 and above\n"
+    printf "\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
-	printf " --mkl          use MKL routines from $MKLROOT\n"
-	printf " --openblas     use BLAS routines from $GOTO\n"
-	printf " --static       use static linking\n"
+	printf " --cuda-single  prepare for cuda-single precision build\n"
+	printf " --cuda-double  prepare for cuda-double precision build\n"
+    printf "                N.B.: nvcc must be compatible with gcc/icc:\n"
+    printf "                https://docs.nvidia.com/cuda/cuda-installation-guide-linux\n"
+    printf "\n"
+	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
+	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
+	printf " --conda        set up for a conda build, with conda-forge\n"
+	printf " --verbose      give build details, otherwise be more silent\n"
+	printf " --static       use static linking (experiental)\n"
+    printf " --full         install everything with a serial install\n"
+    printf "\n"
+    printf "Notes: For GNU compilers, use versions 6 or greater\n"
+    printf "       Test suite requires a C-shell (csh/tcsh)\n"
     exit 0
 fi
 
@@ -163,6 +170,9 @@ fi
 if [ "$mpi" == "yes" ]; then
   fc="$mpif90"
   cc="$mpicc"
+fi
+if [ "$mpi" == "yes" -a "$cuda" == "yes" ]; then
+  installtype="mpicuda"
 fi
 
 #------------------------------------------------------------------------------
@@ -207,7 +217,6 @@ if [ "$OS" = "Darwin" ]; then
    is_mac='yes'
    shared_suffix=.dylib
    make_shared=-dynamiclib
-   libgfortran=`$msanderhome/src/libgfortran.sh`
    lm=
    if [ "$compiler" = 'intel' ] ; then
       optflags="-g -O3"
@@ -218,6 +227,57 @@ else
    shared_suffix=.so
    make_shared=-shared
    lm=-lm
+fi
+
+if [ "$conda" == "no" ]; then
+
+#--------------------------------------------------------------------------
+#  Test if the C compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.c
+#include <stdio.h>
+int main()
+{
+   printf( "testing a C program\n" );
+}
+EOF
+
+printf "Testing $cc ..."
+$cc -o testp testp.c
+./testp | grep "testing a C program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a C program using gcc\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+    printf "OK\n"
+fi
+/bin/rm -f testp.c testp.o testp
+
+#--------------------------------------------------------------------------
+#  Test if the Fortran compiler works:
+#--------------------------------------------------------------------------
+
+cat <<EOF >testp.f
+      program testf
+      write(6,*) 'testing a Fortran program'
+      end program testf
+EOF
+
+printf "Testing $fc ..."
+$fc -o testp testp.f
+./testp | grep "testing a Fortran program" > /dev/null
+status=$?
+
+if [ $status -gt 0 ]; then
+    printf "\nError: Unable to compile a Fortran program using gfortran\n"
+    printf "       Please check your compiler settings.\n"
+    exit 1
+else
+	printf "OK\n"
 fi
 
 #--------------------------------------------------------------------------
@@ -334,21 +394,22 @@ else
 
   else
     # ----- Use simple flag for Intel compilers on Linux ------------
-    flibs_la='-mkl'
+    flibs_la='-qmkl'
   fi
 fi
+
+fi   # end of if conda block
 
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
 #--------------------------------------------------------------------------
-if [ "$bintraj" == "-DBINTRAJ" ] && \
-   [ ! -s "lib/libnetcdf.a" ]; then
+if [ ! -s "lib/libnetcdf.a" ]; then
    cd src/netcdf-c-4.7.2
    printf "Configuring the NetCDF C interface..."
    make clean > /dev/null 2>&1
    ./configure CC="$cc" CFLAGS="-fPIC" LDFLAGS="" \
       --prefix=$msanderhome --disable-netcdf-4 --disable-dap \
-      --enable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
+      --disable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
        echo "Error: NetCDF configure failed!  Check netcdf_c.config.log"
@@ -376,7 +437,7 @@ if [ "$bintraj" == "-DBINTRAJ" ] && \
                   LDFLAGS="-L$msanderhome/lib $ldflags" \
                   CPPFLAGS="-I$msanderhome/include" \
                   FC="$fc" FCFLAGS="" \
-                  F77="$fc" FFLAGS="-fPIC" --enable-shared  --disable-doxygen \
+                  F77="$fc" FFLAGS="-fPIC" --disable-shared  --disable-doxygen \
                   --prefix=$msanderhome >> ../netcdf_f.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
@@ -422,7 +483,7 @@ if [ "$flibs_fftw" != "" ]; then
           cd src/fftw-3.3 && \
               ./configure --disable-doc --prefix=$msanderhome \
               --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static $enable_sse MPICC="$mpicc" \
+              --enable-static --enable-threads $enable_sse MPICC="$mpicc" \
               CFLAGS="$optflags -fPIC"  \
               FFLAGS="$optflags -fPIC"  \
               FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
@@ -465,47 +526,6 @@ if [ "$flibs_fftw" != "" ]; then
       cd ../..
    else
       echo "Using the existing fftw3  libraries"
-   fi
-fi
-
-#--------------------------------------------------------------------------
-#  Configure boost
-#--------------------------------------------------------------------------
-
-if [ "$boost" == "yes" ]; then
-   if [ ! -s "lib/libboost_system.a" ]; then
-
-      printf "\nConfiguring boost (may be time-consuming)..."
-      cd src/boost
-      if [ "$compiler" = 'intel' ]; then
-          ./bootstrap.sh --prefix=$msanderhome --with-toolset=intel-linux > ../boost_config.log
-          ncerror=$?
-      else
-          ./bootstrap.sh --prefix=$msanderhome > ../boost_config.log
-          ncerror=$?
-      fi
-
-      if [ $ncerror -gt 0 ]; then
-          printf "\nError: Boost bootstrap returned $ncerror\n"
-          printf "       Check src/boost_config.log\n"
-          exit 1
-      else
-          printf "OK\n"
-          printf "Compiling boost (may be time-consuming)..."
-          ./b2 --with-program_options --with-iostreams --with-regex \
-               --with-system --with-timer --with-chrono --with-filesystem \
-               --with-graph --with-thread link=static install >> ../boost_config.log
-          if [ $? -ne 0 ]; then
-             printf "\nError: Boost compile failed.\n"
-             printf "       Check src/boost_config.log\n"
-             exit 1
-          else
-             printf "OK\n"
-          fi
-      fi
-      cd ../..
-   else
-      echo "Using the existing boost  libraries"
    fi
 fi
 
@@ -572,7 +592,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
-CFLAGS=$bintraj $clangf $inc $gcc10c $ompflag -fPIC $iccflags
+CFLAGS=$clangf $inc $gcc10c $ompflag $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -580,8 +600,8 @@ COPTFLAGS=$optflags
 
 #  (5)  Fortran compiler
 
-FFLAGS=$bintraj $clangf $inc $ompflag $mpiflag $gcc10f -fPIC
-FLIBSF= $flibs_rism -lsqm -larpack -lsys $flibs_fftw $flibs_la
+FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines
+FLIBSF=-lrism -lxray -lsqm -larpack $flibs_fftw $flibs_la
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
 SHORT_ENE=$short_ene
@@ -599,84 +619,19 @@ SFX=$sfx
 VB=$verbose
 INSTALLTYPE=$installtype
 
-# RISM:
-RISMSANDER=$rismsander
-RISM=$rism
-
-# BOOST:
-BOOST=$boost
 MOFT=$moft
+
+# CUDA:
+CUDAFLAGS=$cudaflags
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
 PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 
-#Python interpreter we are using and install options
-#   assumes python in the path is the version we want
-PYTHON=python
-PYTHON_INSTALL=--prefix=\$(BASEDIR)
-PYTHONPATH=\$(BASEDIR)/lib/python${pythonv}/site-packages
-PARMED=$parmed
-PYSANDER=$pysander
-LIBSANDER=$libsander
-LIBSANDERLES=$libsanderles
-
 EOF
 
-if [ "$conda" == "no" ]; then
 
-#--------------------------------------------------------------------------
-#  Test if the C compiler works:
-#--------------------------------------------------------------------------
-
-cat <<EOF >testp.c
-#include <stdio.h>
-int main()
-{
-   printf( "testing a C program\n" );
-}
-EOF
-
-printf "Testing $cc ..."
-$cc -o testp testp.c
-./testp | grep "testing a C program" > /dev/null
-status=$?
-
-if [ $status -gt 0 ]; then
-    printf "\nError: Unable to compile a C program using gcc\n"
-    printf "       Please check your compiler settings.\n"
-    exit 1
-else
-    printf "OK\n"
-fi
-/bin/rm -f testp.c testp.o testp
-
-#--------------------------------------------------------------------------
-#  Test if the Fortran compiler works:
-#--------------------------------------------------------------------------
-
-cat <<EOF >testp.f
-      program testf
-      write(6,*) 'testing a Fortran program'
-      end program testf
-EOF
-
-printf "Testing $fc ..."
-$fc -o testp testp.f
-./testp | grep "testing a Fortran program" > /dev/null
-status=$?
-
-if [ $status -gt 0 ]; then
-    printf "\nError: Unable to compile a Fortran program using gfortran\n"
-    printf "       Please check your compiler settings.\n"
-    exit 1
-else
-	printf "OK\n"
-fi
-/bin/rm -f testp.f testp.o testp
 printf "\nThe next step is to type 'make clean && make install'\n\n"
-
-fi
 
 exit 0

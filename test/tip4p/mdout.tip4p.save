@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 03/04/2021 at 16:05:06
+| Run on 06/07/2022 at 10:23:40
 
 |   Executable path: ../../bin/msander
-| Working directory: /Users/case/msander/test/tip4p
+| Working directory: /home/case/msander_intel/test/tip4p
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,15 +27,15 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
  equilibration, polarizable solute                                             
  &cntrl                                                                        
   irest  = 1, ntx    = 7,                                                      
   cut    = 8.0,                                                                
   ntf=2, ntc=2, tol=0.000001,                                                  
-  ithermostat=0,                                                               
+  ntt=0,                                                                       
   nstlim=10, ntpr=1,                                                           
   dt=0.001,                                                                    
   jfastw=1, watnam='TP4', ig=71277,                                            
@@ -50,8 +50,7 @@ File Assignments:
 
 | Flags:                                                                        
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
-|Largest sphere to fit in unit cell has radius =     9.214
+| Largest sphere to fit in unit cell has radius =     9.214
  NATOM  =     864 NTYPES =       2 NBONH =     648 MBONA  =     216
  NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
  NHPARM =       0 NPARM  =       0 NNB   =    1512 NRES   =     216
@@ -62,21 +61,19 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              378530
+|     Real              323346
 |     Hollerith           2810
 |     Integer            43337
 |     Max Pairs         251942
 |     nblistReal         10368
 |     nblist Int         40593
-|       Total             4361 kbytes
+|       Total             3930 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
 
      BOX TYPE: RECTILINEAR
 
@@ -137,6 +134,8 @@ Ewald parameters:
 |      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
 |      EXTRA_PTS, trim_phi:  num diheds BEFORE trim =     0     0
 |      EXTRA_PTS, trim_phi:  num diheds AFTER  trim =     0     0
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -149,7 +148,6 @@ Ewald parameters:
 
      Sum of charges from parm topology file =       0.0000
      Forcing neutrality...
-| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -174,80 +172,60 @@ Ewald parameters:
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       378.4039
  EELEC  =     -2511.3511  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        2   TIME(PS) =      32.202  TEMP(K) =   292.61  PRESS =     0.0
  Etot   =     -1756.2629  EKtot   =       375.9183  EPtot      =     -2132.1812
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       379.1882
  EELEC  =     -2511.3694  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        3   TIME(PS) =      32.203  TEMP(K) =   291.75  PRESS =     0.0
  Etot   =     -1756.2559  EKtot   =       374.8176  EPtot      =     -2131.0735
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       379.9546
  EELEC  =     -2511.0280  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        4   TIME(PS) =      32.204  TEMP(K) =   290.70  PRESS =     0.0
  Etot   =     -1756.2456  EKtot   =       373.4634  EPtot      =     -2129.7090
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       380.6911
  EELEC  =     -2510.4001  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        5   TIME(PS) =      32.205  TEMP(K) =   289.52  PRESS =     0.0
  Etot   =     -1756.2001  EKtot   =       371.9568  EPtot      =     -2128.1569
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       381.4053
  EELEC  =     -2509.5622  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        6   TIME(PS) =      32.206  TEMP(K) =   288.32  PRESS =     0.0
  Etot   =     -1756.1526  EKtot   =       370.4086  EPtot      =     -2126.5612
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       382.0977
  EELEC  =     -2508.6589  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        7   TIME(PS) =      32.207  TEMP(K) =   287.16  PRESS =     0.0
  Etot   =     -1756.1286  EKtot   =       368.9222  EPtot      =     -2125.0508
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       382.7544
  EELEC  =     -2507.8052  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        8   TIME(PS) =      32.208  TEMP(K) =   286.12  PRESS =     0.0
  Etot   =     -1756.1024  EKtot   =       367.5847  EPtot      =     -2123.6871
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       383.3715
  EELEC  =     -2507.0586  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =        9   TIME(PS) =      32.209  TEMP(K) =   285.25  PRESS =     0.0
  Etot   =     -1756.0431  EKtot   =       366.4673  EPtot      =     -2122.5104
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       383.9298
  EELEC  =     -2506.4402  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
  NSTEP =       10   TIME(PS) =      32.210  TEMP(K) =   284.60  PRESS =     0.0
  Etot   =     -1756.0723  EKtot   =       365.6249  EPtot      =     -2121.6973
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       384.4551
  EELEC  =     -2506.1523  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
       A V E R A G E S   O V E R      10 S T E P S
 
@@ -257,8 +235,6 @@ Ewald parameters:
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =       381.6251
  EELEC  =     -2508.9826  EHBOND  =         0.0000  RESTRAINT  =         0.0000
- ------------------------------------------------------------------------------
-
 
       R M S  F L U C T U A T I O N S
 
@@ -269,28 +245,31 @@ Ewald parameters:
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         1.9467
  EELEC  =         1.9366  EHBOND  =         0.0000  RESTRAINT  =         0.0000
 |E(PBS) =         0.0849
- ------------------------------------------------------------------------------
-
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 1.82% of Total)
-|                Build the list             0.00 (55.56% of List )
-|                Other                      0.00 (44.44% of List )
-|             List time                  0.01 (23.08% of Nonbo)
-|                   Short_ene time             0.03 (100.0% of Direc)
-|                Direct Ewald time          0.03 (90.00% of Ewald)
-|                   FFT time                   0.00 (100.0% of Recip)
-|                Recip Ewald time           0.00 (10.00% of Ewald)
-|             Ewald time                 0.03 (76.92% of Nonbo)
+|    Read coords time           0.00 ( 1.63% of Total)
+|                Build the list             0.00 (44.32% of List )
+|                Other                      0.00 (55.68% of List )
+|             List time                  0.01 (22.39% of Nonbo)
+|                   Short_ene time             0.02 (100.0% of Direc)
+|                Direct Ewald time          0.02 (80.66% of Ewald)
+|                Adjust Ewald time          0.00 ( 1.64% of Ewald)
+|                   Fill Bspline coeffs        0.00 (13.73% of Recip)
+|                   Fill charge grid           0.00 (15.69% of Recip)
+|                   Scalar sum                 0.00 ( 3.92% of Recip)
+|                   Grad sum                   0.00 (23.53% of Recip)
+|                   FFT time                   0.00 (43.14% of Recip)
+|                Recip Ewald time           0.01 (16.72% of Ewald)
+|             Ewald time                 0.03 (77.61% of Nonbo)
 |          Nonbond force              0.04 (100.0% of Force)
-|       Force time                 0.04 (88.64% of Runmd)
-|       Verlet update time         0.01 (11.36% of Runmd)
-|    Runmd Time                 0.04 (80.00% of Total)
-|    Other                      0.01 (18.18% of Total)
-| Total time                 0.06 (100.0% of ALL  )
+|       Force time                 0.04 (96.32% of Runmd)
+|       Verlet update time         0.00 ( 2.70% of Runmd)
+|    Runmd Time                 0.04 (82.93% of Total)
+|    Other                      0.01 (15.45% of Total)
+| Total time                 0.05 (99.80% of ALL  )
 
 | Number of list builds   :          1
 
@@ -300,11 +279,11 @@ Ewald parameters:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.04 Per Step(ms) =       4.40
-|         ns/day =      19.64   seconds/ns =    4400.00
+|     Elapsed(s) =       0.04 Per Step(ms) =       4.09
+|         ns/day =      21.12   seconds/ns =    4090.00
 | -----------------------------------------------------
 
-|           Job began  at 16:05:06.057  on 03/04/2021
-|           Setup done at 16:05:06.068  on 03/04/2021
-|           Run   done at 16:05:06.112  on 03/04/2021
+|           Job began  at 10:23:40.831  on 06/07/2022
+|           Setup done at 10:23:40.839  on 06/07/2022
+|           Run   done at 10:23:40.880  on 06/07/2022
 |     wallclock() was called     465 times

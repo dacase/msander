@@ -87,6 +87,8 @@ module sander_api
       double precision :: rdt
       double precision :: fswitch
       double precision :: restraint_wt
+      double precision :: grdspc1
+      double precision :: mdiis_del
 
       ! Integers (toggle options)
       integer :: igb
@@ -99,6 +101,8 @@ module sander_api
       integer :: ew_type
       integer :: ntb
       integer :: ifqnt
+      integer :: irism
+      integer :: rism_verbose
       integer :: jfastw
       integer :: ntf
       integer :: ntc
@@ -123,11 +127,7 @@ module sander_api
              potential_energy_rec, sander_cleanup, MAX_FN_LEN, get_box, &
              qm_sander_input, sander_natom, prmtop_struct, read_inpcrd_file, &
              get_inpcrd_natom, destroy_prmtop_struct, read_prmtop_file, &
-#ifdef NO_ALLOCATABLES_IN_TYPE
              is_setup, get_positions
-#else
-             sander_setup2, is_setup, get_positions
-#endif
 
 contains
 
@@ -174,6 +174,10 @@ subroutine gas_sander_input(inp, gb)
    inp%gbsa = 0
    inp%jfastw = 0
    inp%ifqnt = 0
+   inp%irism = 0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
    inp%rgbmax = 25.d0
@@ -235,6 +239,10 @@ subroutine pme_sander_input(inp)
    inp%ew_type = 0
    inp%gbsa = 0
    inp%ifqnt = 0
+   inp%irism = 0
+   inp%rism_verbose = -1
+   inp%grdspc1 = 0.8d0
+   inp%mdiis_del = 0.7d0
    inp%jfastw = 0
    inp%extdiel = 1.d0
    inp%intdiel = 1.d0
@@ -297,30 +305,6 @@ subroutine sander_setup(prmname, coordinates, inbox, input_options, qmmm_options
 
 end subroutine sander_setup
 
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Struct with all of the prmtop data stored in it
-! coordinates : double precision(3*natom)
-!     Starting coordinates
-! inbox : double precision(6)
-!     Box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine sander_setup2(parmdata, coordinates, inbox, input_options, qmmm_options, ierr)
-
-#include "interface_setup.F90"
-
-end subroutine sander_setup2
-#endif /* NO_ALLOCATABLES_IN_TYPE */
-
 #undef rem
 
 subroutine api_mdread1(input_options, ierr)
@@ -331,14 +315,13 @@ subroutine api_mdread1(input_options, ierr)
 #  define FATAL_ERROR call mexit(6, 1)
 #endif /* API */
 
+!$ use omp_lib
    use file_io_dat
    use lmod_driver, only : read_lmod_namelist
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use constantph, only : mccycles
-   use constante, only : mccycles_e
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
@@ -351,6 +334,7 @@ subroutine api_mdread1(input_options, ierr)
    use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
                     mipso,gridips,dvbips
    use emap,only: temap,gammamap
+   use sander_rism_interface, only: rismprm
 #ifdef DSSP
    use dssp, only: idssp
 #endif /* DSSP */
@@ -366,7 +350,6 @@ subroutine api_mdread1(input_options, ierr)
 #endif /* MPI */
    ! Parameter for LIE module
    use linear_response, only: ilrt, lrt_interval, lrtmask
-#ifdef RISMSANDER
 #  ifndef API
    use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
         uuvfile, asympfile, quvFile, chgDistFile, electronMapFile, &
@@ -377,7 +360,6 @@ subroutine api_mdread1(input_options, ierr)
         solventPotentialEnergyfile
 #  endif /* API */
    use sander_rism_interface, only: rismprm
-#endif /*RISMSANDER*/
    use nfe_sander_proxy, only: infe
    implicit none
 #  include "box.h"
@@ -420,10 +402,9 @@ subroutine api_mdread1(input_options, ierr)
    character(len=512) :: char_tmp_512
 #endif /* API */
 
-#ifdef RISMSANDER
-   integer irism
+   integer irism, rism_verbose
+   double precision grdspc1, mdiis_del
    character(len=8) periodicPotential
-#endif /*RISMSANDER*/
 
 !  N.B.: If you make changes to this namelist, you also need to make
 !        corresponding changes in ./sander.h and in
@@ -431,8 +412,8 @@ subroutine api_mdread1(input_options, ierr)
 
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
-         ntb,ntt,temp0,tautp, &
-         ntp,pres0,comp,taup,barostat,mcbarint, &
+         ntb,temp0,tautp, &
+         ntp,pres0,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
          cut,dielc, &
@@ -449,7 +430,7 @@ subroutine api_mdread1(input_options, ierr)
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
@@ -459,13 +440,13 @@ subroutine api_mdread1(input_options, ierr)
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
          noshakemask,crgmask, &
          mask_from_ref, &
-         rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
+         rdt,ntrelax, &
          ifqnt,ievb, profile_mpi, &
          ipb, inp, &
          gbneckscale, &
@@ -487,9 +468,7 @@ subroutine api_mdread1(input_options, ierr)
 #ifdef DSSP
          idssp, &
 #endif
-#ifdef RISMSANDER
          irism,&
-#endif /*RISMSANDER*/
          vdwmodel, & ! mjhsieh - the model used for van der Waals
          ! retired:
          dtemp, dxm, heat, timlim, &
@@ -547,7 +526,6 @@ subroutine api_mdread1(input_options, ierr)
                  'RESERVOIR',  trim(reservoirname), &
                  'REMDDIM',    trim(remd_dimension_file)
 #  endif
-#ifdef RISMSANDER
    if (len_trim(xvvfile) > 0) &
         write(6,9701) 'Xvv', trim(xvvfile)
    if (len_trim(guvfile) > 0) &
@@ -592,7 +570,6 @@ subroutine api_mdread1(input_options, ierr)
         write(6,9701) '-TS_UC', trim(entropyUCfile)
    if (len_trim(solventPotentialEnergyfile) > 0) &
         write(6,9701) 'PotUV', trim(solventPotentialEnergyfile)
-#endif /*RISMSANDER*/
 
    ! Echo the input file to the user:
    call echoin(5,6)
@@ -623,11 +600,10 @@ subroutine api_mdread1(input_options, ierr)
    ig = 71277
    tempi = ZERO
    ntb = NO_INPUT_VALUE
-   ntt = 0
    temp0 = 300.0d0
 ! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
+   ntt = 3
+   gamma_ln = 5.0d0
 ! } 
 ! PLUMED
    plumed = 0
@@ -646,8 +622,6 @@ subroutine api_mdread1(input_options, ierr)
    barostat = 1
    mcbarint = 100
    pres0 = ONE
-   comp = 44.6d0
-   taup = ONE
    npscal = 1
    nscm = 1000
    nstlim = 1
@@ -669,18 +643,13 @@ subroutine api_mdread1(input_options, ierr)
    ntwe = 0
    ipb = 0
    inp = 2
-
-#ifdef RISMSANDER
    irism = 0
-#endif /*RISMSANDER*/
-
+   rism_verbose = -1
+   grdspc1 = 0.8d0
+   mdiis_del = 0.7d0
    ntave = 0
-#ifdef BINTRAJ
 !RCW: Amber 16 default to netcdf if support is compiled in.
    ioutfm = 1
-#else
-   ioutfm = 0
-#endif
    ntr = 0
    ntrx = 1
    ivcap = 0
@@ -777,7 +746,6 @@ subroutine api_mdread1(input_options, ierr)
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO
@@ -858,16 +826,7 @@ subroutine api_mdread1(input_options, ierr)
    noshakemask=''
    crgmask=''
 
-   icnstph = 0
-   solvph = SEVEN
-   ntcnstph = 10
    ntrelax = 500 ! how long to let waters relax
-   icnste = 0
-   solve = -0.22d0
-   ntcnste = 10
-   ntrelaxe = 500 ! how long to let waters relax
-   mccycles = 1  ! How many cycles of Monte Carlo steps to run (constant pH)
-   mccycles_e = 1  ! How many cycles of Monte Carlo steps to run (constant Redox potential)
    skmin = 50 !used by neb calculation
    skmax = 100 !used by neb calculation
    vv = 0 !velocity verlet -- off if vv/=1
@@ -875,6 +834,10 @@ subroutine api_mdread1(input_options, ierr)
    tmode = 1 !default tangent mode for NEB calculation
 
    ifqnt = NO_INPUT_VALUE
+   rism_verbose = NO_INPUT_VALUE
+   irism = NO_INPUT_VALUE
+   grdspc1 = NO_INPUT_VALUE_FLOAT
+   mdiis_del = NO_INPUT_VALUE_FLOAT
 
    ifcr = 0 ! no charge relocation
    cropt = 0 ! 1-4 EEL is calculated with the original charges
@@ -970,6 +933,10 @@ subroutine api_mdread1(input_options, ierr)
    cut = input_options%cut
    dielc = input_options%dielc
    ifqnt = input_options%ifqnt
+   irism = input_options%irism
+   rism_verbose = input_options%rism_verbose
+   grdspc1 = input_options%grdspc1
+   mdiis_del = input_options%mdiis_del
    jfastw = input_options%jfastw
    ntf = input_options%ntf
    ntc = input_options%ntc
@@ -1052,14 +1019,27 @@ subroutine api_mdread1(input_options, ierr)
       end if
    end if
 
+   if (irism == NO_INPUT_VALUE) then
+      irism = 0 ! default value
+   end if
+   if (rism_verbose == NO_INPUT_VALUE) then
+      rism_verbose = -1 ! default value
+   end if
+   if (grdspc1 == NO_INPUT_VALUE) then
+      grdspc1 = 0.8d0 ! default value
+   end if
+   if (mdiis_del == NO_INPUT_VALUE) then
+      mdiis_del = 0.7d0 ! default value
+   end if
+
    ! middle scheme is requested {
-      if (ithermostat < 0 .or. ithermostat > 2) then
+      if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne. 3) then
          write(6,'(1x,a,/)') &
-            'Middle scheme: ithermostat is only available for 0-2'
+            'Middle scheme: ntt is only available for 0,2,3'
          FATAL_ERROR
       end if
-      if (therm_par < 0d0) then
-         write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+      if (gamma_ln < 0d0) then
+         write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
          FATAL_ERROR
       end if
    ! }
@@ -1077,23 +1057,7 @@ subroutine api_mdread1(input_options, ierr)
    end if
 
    if (ntxo == NO_INPUT_VALUE) then
-#ifdef MPI
-      if (rem < 0) then
-         ntxo = 2
-      else
-#  ifdef BINTRAJ
-         ntxo = 2
-#  else
-         ntxo = 1
-#  endif
-      end if
-#else /* NOT MPI */
-#  ifdef BINTRAJ
       ntxo = 2
-#  else
-      ntxo = 1
-#  endif
-#endif /* MPI */
    end if
 
    if (cut == NO_INPUT_VALUE_FLOAT) then
@@ -1104,22 +1068,19 @@ subroutine api_mdread1(input_options, ierr)
       end if
    end if
 
-#ifdef RISMSANDER
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
    ! electrostatics are initialized properly.
 
    rismprm%rism=irism
+   rismprm%verbose=rism_verbose
+   rismprm%grdspc(:)=grdspc1
+   rismprm%mdiis_del=mdiis_del
 
    if (irism /= 0) then
       periodicPotential = 'pme'
-
-#   ifndef API
-      write(6,'(a)') "|periodic 3D-RISM Forcing igb=0"
-#   endif
       igb = 0
    end if
-#endif /*RISMSANDER*/
 
    if (ifqnt>0) then
       qmmm_nml%ifqnt = .true.
@@ -1442,9 +1403,7 @@ subroutine api_mdread1(input_options, ierr)
          /10x,55('-')/)
    9309 format(/80('-')/'   1.  RESOURCE   USE: ',/80('-')/)
    9700 format(/,'File Assignments:',/,15('|',a6,': ',a,/))
-#  ifdef RISMSANDER
    9701 format('|',a6,': ',a)
-#  endif /* RISMSANDER */
 #  ifdef MPI
    9702 format(7('|',a10,': ',a,/))
 #  endif /* MPI */
@@ -1477,9 +1436,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: therm_par
-   use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
-   use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
+   use md_scheme, only: ntt, gamma_ln
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1504,6 +1461,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
 ! REMD
    use remd, only : rem, rremd
    use sgld, only : isgld ! for RXSGLD
+   use mpi
 #endif /* MPI */
    use linear_response, only: ilrt, lrtmask
    use nfe_sander_proxy, only: infe
@@ -1536,7 +1494,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #  include "parallel.h"
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
@@ -1612,14 +1569,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
       end if
    end if
    if(nscm <= 0) nscm = 0
-   if (therm_par > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
+   if (gamma_ln > 0.0d0) ndfmin = 0 ! No COM motion removal for middle scheme NVT simulation
    if(gamma_ln > 0.0d0)ndfmin=0  ! No COM motion removal for LD simulation
    if(ntt == 4)ndfmin=0  ! No COM motion removal for Nose'-Hoover simulation
    init = 3
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
    if (tautp <= ZERO ) tautp = 0.2d0
-   if (taup <= ZERO ) taup = 0.2d0
 
    !     ----- RESET THE CAP IF NEEDED -----
 
@@ -1654,14 +1610,14 @@ subroutine api_mdread2(x, ix, ih, ierr)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
      write (6, '(a)') "      and disabling the synchronization of random &
                                &numbers between tasks"
      write (6, '(a)') "      to improve performance."
 #else
 #  ifndef API
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                 &time in microseconds."
 #  endif /* API */
 #endif
@@ -1833,7 +1789,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    end if
 
    if (( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
-                                  .or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+                                  ) then
       write(6,'(5x,3(a,f10.5))') 'saltcon =',saltcon, &
             ', offset  =',offset,', gbalpha= ',gbalpha
       write(6,'(5x,3(a,f10.5))') 'gbbeta  =',gbbeta, &
@@ -1909,11 +1865,13 @@ subroutine api_mdread2(x, ix, ih, ierr)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,3(a,f10.5))') 'pres0   =',pres0, &
-               ', comp    =',comp,', taup    =',taup
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
+         else
+            write(6,'(a)') 'Error: only barostat=2 is supported in msander'
+            call mexit(6,1)
          end if
       end if
 
@@ -2004,51 +1962,8 @@ subroutine api_mdread2(x, ix, ih, ierr)
             ', tgtmdfrc=',tgtmdfrc
    end if
 
-   if( icnstph /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant pH options:'
-      write(6, '(5x,a,i8)') 'icnstph =', icnstph
-      write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-      write(6, '(5x,a,f10.5)') 'solvph =', solvph
-      if ( icnstph .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', mccycles
-   end if
-   if( icnstph /= 2) then
-      ntrelax = 0 ! needed for proper behavior of timing
-   end if
-
-   if( icnste /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant Redox potential options:'
-      write(6, '(5x,a,i8)') 'icnste =', icnste
-      write(6, '(5x,a,i8)') 'ntcnste =', ntcnste
-      write(6, '(5x,a,f10.5)') 'solve =', solve
-      if ( icnste .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelaxe =', ntrelaxe, ' mccycles_e =', mccycles_e
-   end if
-   if( icnste /= 2) then
-      ntrelaxe = 0 ! needed for proper behavior of timing
-   end if
-
-   if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-     write(6, '(/a)') 'Constant pH and Redox Potential options:'
-     write(6, '(5x,a,i8)') 'icnstph =', icnstph
-     write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-     write(6, '(5x,a,f10.5)') 'solvph =', solvph
-     write(6, '(5x,a,i8)') 'icnste =', icnste
-     write(6, '(5x,a,f10.5)') 'solve =', solve
-     if (icnstph .eq. 2 .or. icnste .eq. 2) then
-       write(6, '(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', 1
-       write(6, '(a)') '| Note: when the cpein file is provided the flags'
-       write(6, '(a)') '|       ntcnste and ntrelaxe are not considered,'
-       write(6, '(a)') '|       only ntcnstph and ntrelax, which works for'
-       write(6, '(a)') '|       both protonation or redox state changes.'
-     else
-       write(6, '(a)') '| Note: when the cpein file is provided the flag'
-       write(6, '(a)') '|       ntcnste is not considered, only ntcnstph,'
-       write(6, '(a)') '|       which works for both protonation or redox'
-       write(6, '(a)') '|       state changes.'
-     end if
-   end if
-
+   ntrelax = 0 ! needed for proper behavior of timing
+   ntrelaxe = 0 ! needed for proper behavior of timing
 
    if( ntb > 0 ) then
       write(6,'(/a)') 'Ewald parameters:'
@@ -2276,7 +2191,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(0,*) 'GBSA=3 only works for pmemd, not sander'
       FATAL_ERROR
    end if
-   if (( igb /= 0 .and. igb /= 10 .and. ipb == 0 ).or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+   if ( igb /= 0 .and. igb /= 10 .and. ipb == 0 ) then
 #if defined (LES) && !defined (API)
       write(6,*) 'igb=1,5,7 are working with LES, no SA term included'
 #endif
@@ -2918,109 +2833,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    end if ! ( ilrt /= 0 )
 
-   !------------------------------------------------------------------------
-   ! If user has requested Poisson-Boltzmann electrostatics, set up variables
-   !------------------------------------------------------------------------
-
-   if (icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) then
-      !  Initialize all constant pH data to 0 and read it in
-      call cnstph_zero()
-      call cnstphread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CpH, fill gbv* arrays
-      if ( (icnstph .gt. 1 .or. (icnste .gt. 1 .and. cpein_specified)) .and. cph_igb == 2 &
-           .or. cph_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-   if (icnste /= 0 .and. .not. cpein_specified) then
-      !  Initialize all constant Redox potential data to 0 and read it in
-      call cnste_zero()
-      call cnsteread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CE, fill gbv* arrays
-      if ( icnste .gt. 1 .and. ce_igb == 2 .or. ce_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-  ! Check if the CPIN file is valid for Explicit Solvent constant pH simulations
-  if (icnstph .eq. 2 .and. .not. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPIN file is valid for Implicit Solvent constant pH simulations
-  if (icnstph .eq. 1 .and. .not. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Explicit Solvent constant redox potential simulations
-  if (icnste .eq. 2 .and. .not. cpein_specified) then
-    if (ce_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Implicit Solvent constant redox potential simulations
-  if (icnste .eq. 1 .and. .not. cpein_specified) then
-    if (ce_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Explicit Solvent constant pH simulations
-  if ((icnstph .eq. 2 .or. icnste .eq. 2) .and. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Implicit Solvent constant pH simulations
-  if ((icnstph .eq. 1 .or. icnste .eq. 1) .and. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-    ! Check if the igb values for constant pH and constant redox potential are the same in Explicit Solvent
-    if (icnstph .eq. 2 .and. icnste .eq. 2 .and. .not. cpein_specified) then
-      if (cph_igb .ne. ce_igb) then
-        write(6, '(a,/)') ' Error: the GB models on your CPIN and CEIN files need to be the same'
-        call mexit(6, 1)
-      end if
-    end if
-
-   if( iyammp /= 0 ) write( 6, '(a)' ) '  Using yammp non-bonded potential'
-
    ! -------------------------------------------------------------------
    !
    ! -- add check to see if the space in nmr.h is likely to be
@@ -3063,15 +2875,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       DELAYED_ERROR
 #endif
    end if
-#ifdef PUPIL_SUPPORT
-   ! BPR: PUPIL does not work with GB (or, I suppose, PB) for the
-   ! time being. It is known to either crash or produce bogus
-   ! results.
-   if (igb > 0 .or. ipb /= 0) then
-      write(6,'(a)') 'Cannot use implicit solvation (GB or PB) with PUPIL'
-      DELAYED_ERROR
-   end if
-#endif /*PUPIL_SUPPORT*/
    if( (igb > 0 .or. ipb /= 0) .and. numextra > 0) then
       if (igb /= 6) then
          write(6,'(a)') 'Cannot use igb>0 (except igb=6) with extra-point force fields'
@@ -3187,12 +2990,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       write(6, '(/2x,a,i3,a)') 'NTXO (',ntxo,') must be 1 or 2.'
       DELAYED_ERROR
    end if
-#ifndef BINTRAJ
-   if (ntxo == 2) then
-      write(6, '(/2x,a)') 'ntxo cannot be 2 without NetCDF support'
-      DELAYED_ERROR
-   end if
-#endif
 
    if (imin == 5) then
       if (ifbox /= 0 .and. ntb == 2) then
@@ -3259,10 +3056,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
 
    if (ntp /= 0 .and. ntp /= 1 .and. ntp /= 2 .and. ntp /= 3) then
       write(6,'(/2x,a,i3,a)') 'NTP (',ntp,') must be 0, 1, 2, or 3.'
-      DELAYED_ERROR
-   end if
-   if (ntp > 0 .and. taup < dt .and. barostat == 1) then
-      write(6, '(/2x,a,f6.2,a)') 'TAUP (',taup,') < DT (step size)'
       DELAYED_ERROR
    end if
    if (npscal < 0 .or. npscal > 1) then
@@ -3589,73 +3382,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
       DELAYED_ERROR
    end if
 
-   if (icnstph /= 0) then
-
-      if ( icnstph < 0 ) then
-         write(6, '(/,a)') 'icnstph must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnstph == 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnstph .gt. 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant pH and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnstph <= 0) then
-         write(6, '(/,a)') 'ntcnstph must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnstph > 1 .and. mccycles <= 0) then
-         write(6, '(/,a)') 'mccycles must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnstph
-   if (icnste /= 0) then
-
-      if ( icnste < 0 ) then
-         write(6, '(/,a)') 'icnste must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnste == 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnste .gt. 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant Redox potential and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnste <= 0) then
-         write(6, '(/,a)') 'ntcnste must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnste > 1 .and. mccycles_e <= 0) then
-         write(6, '(/,a)') 'mccycles_e must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnste
-
    !-----------------------------------------------------
    !     ----sanity checks for Ewald
    !-----------------------------------------------------
@@ -3981,7 +3707,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
          if (ifsc == 0) then
             call mpi_bcast(x(lmass),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
             call mpi_bcast(x(lwinv),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
-            call mpi_bcast(x(l75),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
          end if
          tmass = sum(x(lmass:lmass+natom-1))
          tmassinv = 1.d0/tmass
@@ -4036,7 +3761,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
          ix(i40),ix(i42),ix(i44),ix(i46),ix(i48), &
          ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
          ih(m06),ix,x,ix(i08),ix(i10), &
-         nspm,ix(i70),x(l75),tmass,tmassinv,x(lmass),x(lwinv),req)
+         nspm,ix(i70),tmass,tmassinv,x(lmass),x(lwinv),req)
 
    !  DEBUG input; force checking
 #ifdef API
@@ -4191,7 +3916,6 @@ subroutine sander_cleanup()
    use qmmm_module, only: deallocate_qmmm, qmmm_nml, qmmm_struct, qmmm_vsolv, &
                           qm2_params, qmewald
    use stack, only: deallocate_stacks
-   use xray_interface_module, only : xray_fini
 
    implicit none
 #include "../include/md.h"
@@ -4204,7 +3928,6 @@ subroutine sander_cleanup()
    if (igb /= 0 .and. igb /= 10 .and. ipb == 0) call deallocate_gb
    call deallocate_stacks
    call nblist_deallocate
-   call xray_fini
    if (allocated(ipairs)) deallocate(ipairs)
    ! periodic does not get reset when ntb==0 inside sander, so do it here
    periodic = 0
@@ -4270,10 +3993,8 @@ end subroutine sander_natom
 ! Otherwise, it will be 0 on success
 subroutine read_inpcrd_file(filename, coordinates, box, ierr)
 
-#ifdef BINTRAJ
    use AmberNetcdf_mod
    use binrestart
-#endif
    use file_io_dat, only : INPCRD_UNIT
 
    implicit none
@@ -4299,7 +4020,6 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
    box(:) = 0.d0
    ierr = 0
 
-#ifdef BINTRAJ
    ! Make sure the NetCDF module doesn't scream at us...
    verbose_netcdf = .false.
 
@@ -4314,7 +4034,6 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
       call read_nc_restart(filename, title, 1, natom, coordinates, velocities, &
                            remd_values, 1, time)
    else
-#endif
       ! Try reading the raw file
       open(unit=INPCRD_UNIT, file=filename, status='OLD', form='FORMATTED', &
            iostat=alloc_failed)
@@ -4349,9 +4068,7 @@ subroutine read_inpcrd_file(filename, coordinates, box, ierr)
             (box(i), i=1,6)
       deallocate(velocities)
       close(INPCRD_UNIT)
-#ifdef BINTRAJ
    end if
-#endif
 
    return
 
@@ -4388,10 +4105,8 @@ end subroutine read_inpcrd_file
 ! can be used to protect against buffer overruns. natom is set to -1 upon errors
 subroutine get_inpcrd_natom(filename, natom)
 
-#ifdef BINTRAJ
    use AmberNetcdf_mod
    use binrestart
-#endif
    use file_io_dat, only : INPCRD_UNIT
 
    implicit none
@@ -4409,7 +4124,6 @@ subroutine get_inpcrd_natom(filename, natom)
    double precision  :: time
    integer           :: id1, id2, id3
 
-#ifdef BINTRAJ
    ! Make sure the NetCDF module doesn't scream at us...
    verbose_netcdf = .false.
 
@@ -4424,7 +4138,6 @@ subroutine get_inpcrd_natom(filename, natom)
       call NC_close(ncid)
       return
    else
-#endif
       ! Try reading the raw file
       open(unit=INPCRD_UNIT, file=filename, status='OLD', form='FORMATTED', &
            iostat=alloc_failed)
@@ -4436,9 +4149,7 @@ subroutine get_inpcrd_natom(filename, natom)
       read(INPCRD_UNIT, '(a80)', end=666) title
       read(INPCRD_UNIT, *, err=666, end=666) natom
       close(INPCRD_UNIT)
-#ifdef BINTRAJ
    end if
-#endif
 
    return
 
@@ -4567,68 +4278,6 @@ subroutine ext_sander_setup(prmname, coordinates, box, input_options, qmmm_optio
    return
 
 end subroutine ext_sander_setup
-
-#ifndef NO_ALLOCATABLES_IN_TYPE
-! Initializes the major data structures needed to evaluate energies and forces
-!
-! Parameters
-! ----------
-! parmdata : prmtop_struct
-!     Name of the topology file
-! coordinates : double precision(3*natom)
-!     The starting coordinates
-! box : double precision(6)
-!     The box dimensions
-! input_options : type(sander_input)
-!     struct of input options used to set up the calculation
-! qmmm_options : type(qmmm_input_options) [optional]
-!     struct of input options used to set up the QM/MM part of the calculation
-! ierr : integer
-!     Set to 0 for success or 1 if the setup failed
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : mod_func => sander_setup2, sander_input, &
-                              qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   call mod_func(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   return
-
-end subroutine ext_sander_setup2
-
-#else
-
-subroutine ext_sander_setup2(parmdata, coordinates, box, input_options, qmmm_options, ierr)
-
-   use SANDER_API_MOD, only : sander_input, qmmm_input_options, prmtop_struct
-
-   implicit none
-
-   ! Input parameters
-   type(prmtop_struct), intent(in) :: parmdata
-   double precision, dimension(6), intent(in) :: box
-   double precision, dimension(*), intent(in) :: coordinates
-   type(sander_input) :: input_options
-   type(qmmm_input_options), optional :: qmmm_options
-   integer, intent(out) :: ierr
-
-   write(0,*) 'Compiler does not support allocatables in structs. Recompile'
-   write(0,*) 'with a more modern compiler'
-
-   return
-end subroutine ext_sander_setup2
-
-#endif /* NO_ALLOCATABLES_IN_TYPE */
 
 ! Sets the atomic positions
 subroutine ext_set_positions(positions)

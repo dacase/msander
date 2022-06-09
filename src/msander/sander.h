@@ -30,7 +30,6 @@
 #define __internal_gas_sander_input ext_gas_sander_input_
 #define __internal_set_box ext_set_box_
 #define __internal_sander_setup ext_sander_setup_
-#define __internal_sander_setup2 ext_sander_setup2_
 #define __internal_sander_natom ext_sander_natom_
 #define __internal_read_inpcrd_file ext_read_inpcrd_file_
 #define __internal_get_inpcrd_natom ext_get_inpcrd_natom_
@@ -57,6 +56,8 @@ typedef struct {
     double rdt;
     double fswitch;
     double restraint_wt;
+    double grdspc1;
+    double mdiis_del;
 
     // Integer choice flags
     int igb;
@@ -69,6 +70,8 @@ typedef struct {
     int ew_type;
     int ntb;
     int ifqnt;
+    int irism;
+    int rism_verbose;
     int jfastw;
     int ntf;
     int ntc;
@@ -293,6 +296,10 @@ void pme_sander_input(sander_input*);
 /// Prepare a QM input struct with default values
 void qm_sander_input(qmmm_input_options*);
 
+/// Set up rism defaults:
+void rism_defaults_(void);
+
+
 /* I've found that you really need to fix strings to the same number of
  * characters when you want to pass them from C to Fortran or vice-versa. As a
  * result, all file names passed into here will be copied into a container of
@@ -312,8 +319,6 @@ void __internal_read_inpcrd_file(const char[__MAX_FN_LEN], double*, double*, int
 void __internal_get_inpcrd_natom(const char[__MAX_FN_LEN], int*);
 void __internal_set_box(double *a, double *b, double *c,
                         double *alpha, double *beta, double *gamma);
-void __internal_sander_setup2(prmtop_struct*, double*, double*, sander_input*,
-                              qmmm_input_options*, int*);
 void __internal_is_setup(int*);
 void __internal_gas_sander_input(sander_input*, int*);
 
@@ -331,7 +336,7 @@ static inline void gas_sander_input(sander_input *inp, const int gb) {
  * \returns 0 for success, 1 for failure
  */
 static inline int sander_setup(const char *prmname, double *coords, double *box,
-                        sander_input *input_options, qmmm_input_options *qmmm_options) {
+                  sander_input *input_options, qmmm_input_options *qmmm_options) {
     int ierr;
     char *prmtop;
     prmtop = (char*)malloc(__MAX_FN_LEN*sizeof(char));
@@ -350,19 +355,6 @@ static inline int sander_setup_mm(const char *prmname, double *coords, double *b
     __internal_sander_setup(prmtop, coords, box, input_options, &dummy, &ierr);
     free(prmtop);
     return ierr;
-}
-
-static inline int sander_setup2(prmtop_struct *parm, double *coords, double *box,
-                         sander_input *inp, qmmm_input_options *qm_inp) {
-   int ierr;
-   __internal_sander_setup2(parm, coords, box, inp, qm_inp, &ierr);
-   return ierr;
-}
-
-static inline int sander_setup2_mm(prmtop_struct *parm, double *coords, double *box,
-                            sander_input *input_options) {
-    qmmm_input_options dummy;
-    return sander_setup2(parm, coords, box, input_options, &dummy);
 }
 
 /** Sets the particle positions
@@ -398,7 +390,7 @@ get_box(double *a, double *b, double *c,
 
 /** Returns 1 if sander has been set up and 0 otherwise
  */
-static inline int is_setup() {
+static inline int is_setup(void) {
    int i;
    __internal_is_setup(&i);
    return i;

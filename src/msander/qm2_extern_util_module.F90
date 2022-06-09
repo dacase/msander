@@ -10,7 +10,7 @@ module qm2_extern_util_module
        write_chgfile, debug_enter_function, debug_exit_function, &
        is_empty_string
 !    au_to_kcal, a_to_bohr, set_zero
-  
+
   character(len=*), parameter :: module_name = "qm2_extern_util_module"
 
   contains
@@ -20,7 +20,7 @@ module qm2_extern_util_module
   ! Note that specifiying MM forces is optional
   ! -----------------------------------------------------------------------
   subroutine print_results( extern_routine, escf, nqmatoms, dxyzqm, debug, nclatoms, dxyzcl )
- 
+
     character(len=*), intent(in)  :: extern_routine  ! Name of calling module
     _REAL_          , intent(in)  :: escf            ! SCF energy
     integer         , intent(in)  :: nqmatoms        ! Number of QM atoms
@@ -37,7 +37,7 @@ module qm2_extern_util_module
       write (6,'(a,/)') 'print_results - final energy in kcal and gradient(s) in kcal/(mol*Å):'
       write (6,'(a)') extern_routine//' - final energy:'
       write(6,'(f20.8)') escf
-  
+
       write(6,'(a)') extern_routine//' - final gradient(s):'
       write(6,'(a)') 'QM region:'
       do i = 1, nqmatoms
@@ -55,9 +55,9 @@ module qm2_extern_util_module
     end if
 
     call debug_exit_function( 'print_results', module_name, debug )
- 
+
   end subroutine print_results
- 
+
   ! -----------------------------------------------------------------------
   ! Check whether the program, optionally at path, is properly installed.
   ! id is the PIMD or REMD ID number.  debug controls internal tracing.
@@ -65,9 +65,9 @@ module qm2_extern_util_module
   ! If found is present, return whether the program was found.
   ! -----------------------------------------------------------------------
   subroutine check_installation( program, id, required, debug, found, path )
- 
+
     implicit none
- 
+
     character(len=*) , intent(in)    :: program
     character(len=*) , intent(in)    :: id
     logical          , intent(in)    :: required
@@ -81,13 +81,13 @@ module qm2_extern_util_module
     integer :: iunit = 77
     integer :: stat
     integer :: system
- 
+
     call debug_enter_function( 'check_installation', module_name, debug )
 
     filename = 'extern_location'//trim(id)
 
     ! Search for executable
-    call_buffer = 'which '//trim(program)//' > '//trim(filename)
+    call_buffer = 'which '//trim(program)//' > '//trim(filename)//' 2> /dev/null'
     stat = system(trim(call_buffer))
 
     if ( stat == 0 ) then
@@ -111,7 +111,7 @@ module qm2_extern_util_module
       return
     end if
 
-    ! If we found the program, print the full path 
+    ! If we found the program, print the full path
     open (unit=iunit, file=trim(filename), form='formatted', iostat=stat)
     if ( stat /= 0 ) then
       call sander_bomb('check_installation (qm2_extern_util_module)', &
@@ -140,9 +140,9 @@ module qm2_extern_util_module
     if ( debug > 0) then
       call debug_exit_function( 'check_installation', module_name, debug )
     end if
- 
+
   end subroutine check_installation
- 
+
   ! -----------------------------------------------------------------------
   ! Write dipole data to the dipole moment property file dipfile
   ! -----------------------------------------------------------------------
@@ -193,13 +193,13 @@ module qm2_extern_util_module
   ! -------------------------
   ! Write charges to chgfile
   ! -------------------------
-  subroutine write_charges(chgfile, charges, debug)
+  subroutine write_charges(chgfile, nstep, charges, debug)
 
     implicit none
 
     character(len=*), intent(in) :: chgfile
     _REAL_, intent(in)  :: charges(:) ! charges from GAMESS
-    integer, intent(in) :: debug
+    integer, intent(in) :: nstep, debug
 
     integer        :: iunit = 351, ios, stat
     integer        :: system
@@ -210,18 +210,23 @@ module qm2_extern_util_module
     ! Remove any existing charge file on first run
     if ( first_call ) then ! This is set to false later
       stat = system('rm -f '//chgfile)
-      first_call = .false.
     end if
 
     ! write charges to charges property file
     open(iunit, file=chgfile, position='append', iostat=ios)
     if ( ios /= 0 ) then
-      call sander_bomb('write_charges(qm2_extern_gms_module)', &
+      call sander_bomb('write_charges(qm2_extern_util_module)', &
         'Error opening file '//chgfile//' for appending.', &
         'Will quit now')
     end if
 
-    write(iunit,'(10f8.4)') charges(:)
+    ! Write out information on the first call
+    if ( first_call ) then
+      first_call=.false.
+      write(iunit,'(a)') "# NStep and atomic charges for QM region"
+    end if
+    ! Write charges
+    write(iunit,'(i7,1000f10.4)') nstep, charges(:)
 
     close(iunit)
 
@@ -259,12 +264,12 @@ module qm2_extern_util_module
     end if
 
     call debug_exit_function( 'write_chgfile', module_name, debug )
-  
+
   end subroutine write_chgfile
 
   subroutine debug_enter_function( funcname, modname, debug )
 
-    implicit none    
+    implicit none
 
     character(len=*), intent(in) :: funcname, modname
     integer         , intent(in) :: debug
@@ -275,10 +280,10 @@ module qm2_extern_util_module
     end if
 
   end subroutine debug_enter_function
- 
+
   subroutine debug_exit_function( funcname, modname, debug )
 
-    implicit none    
+    implicit none
 
     character(len=*), intent(in) :: funcname, modname
     integer         , intent(in) :: debug
@@ -293,10 +298,10 @@ module qm2_extern_util_module
   function is_empty_string(string) result(is_empty)
 
     implicit none
-    
+
     character(len=*), intent(in) :: string
     logical :: is_empty
-    
+
     is_empty = (len(trim(string)) == 0)
 
   end function is_empty_string

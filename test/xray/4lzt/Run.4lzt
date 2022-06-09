@@ -1,0 +1,42 @@
+#!/bin/bash
+
+export XRAY_NUM_THREADS=4
+
+sander="../../../bin/msander"
+
+if [ ! -z "$USE_CUDA" ]; then
+   sander=$sander.cuda
+fi
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+cat <<EOF > mdin
+Test of MD with Xray restraints
+ &cntrl
+  ntx = 1, irest = 0, ntpr = 1,
+  ntc = 1, ntf = 1, tol = 0.000001,
+  cut = 8.0,
+  nstlim = 5, dt = 0.001, 
+  ntt = 0, tempi=0.0, ig=12345,
+  imin=0, maxcyc=5,
+ /
+ &xray
+   pdb_infile = '4lzt_uc.pdb',
+   ! pdb_read_coordinates=.true.,
+   reflection_infile = '4lzt-sf.dat',
+   atom_selection_mask = ':*',
+   xray_weight_initial = 1., 
+   xray_weight_final = 1.,
+   target = 'ml',
+   bulk_solvent_model = 'afonine-2013',
+ /
+EOF
+
+$DO_PARALLEL $sander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
+    -o 4lzt_md.out < /dev/null
+
+../../dacdif -r 2e-4 4lzt_md.out.save 4lzt_md.out
+
+/bin/rm -f mdin mdinfo restrt

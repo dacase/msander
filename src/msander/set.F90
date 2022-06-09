@@ -327,87 +327,28 @@ end subroutine rdrest
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ duplicates pointers to multi-term dihedrals for vectorized ephi
-subroutine dihdup(nphia,ip,jp,kp,lp,icp,pn)
+subroutine dihdup(nphia,icp,pn)
    
-   !     duplicates pointers to multi-term dihedrals for vector ephi.
-   !     H-atom diheds are duplicated at the end of the h-atom lists,
-   !     but heavy atom diheds must be inserted between the end of the
-   !     heavy-atom diheds, but before the constraint diheds if they are
-   !     present.  In order to use this code, extra space MUST be allocated
-   !     in LOCMEM
-   
-   !     (Note: this is only for ancient prmtop files: anything created by
-   !     LEaP should report no duplications)
-   
-   !     Author:  George Seibel
+   !  originally duplcated dihedrals with negative periodicities; not
+   !   just reports such a periodicity as an error, and exits
    
    implicit none
    
-   !     COMMON:
-   
 #  include "../include/md.h"
    
-   !     INPUT:
+   integer :: nphia !  ... number of dihedrals
+   integer :: icp(*) !  ... pointers to dihedral parameters
+   _REAL_ ::  pn(*) ! ... periodicity
    
-   integer :: nphia
-   !        ... number of dihedrals
-   integer ip(*), jp(*), kp(*), lp(*)
-   !        ... pointers to atoms of dihedrals
-   integer icp(*)
-   !        ... pointers to dihedral parameters
-   _REAL_ :: pn(*)
-   !        ... periodicity; negative if multi-term, read until + encountered
-   
-   !     INTERNAL:
-   
-   integer ndup
-   !        ... number of diheds duplicated
-   integer ic
-   !        ... working parameter pointer
-   integer i,ierr
-   !        ... do loop index
-   
-   ndup = 0
-   ierr = 0
+   integer :: i
    
    do i = 1, nphia
-      ic = icp(i)
-      100 continue
-      if (pn(ic) < 0) then
-         ndup = ndup + 1
-         if (ndup > maxdup) then
-            ierr = 1
-         else
-            
-            !            --- duplicate pointers of multi-term dihedrals ---
-            
-            ip(nphia+ndup)  = ip(i)
-            jp(nphia+ndup)  = jp(i)
-            kp(nphia+ndup)  = kp(i)
-            lp(nphia+ndup)  = lp(i)
-            
-            !            --- but use the NEXT parameter pointer ---
-            
-            icp(nphia+ndup) = ic + 1
-         end if
-         
-         !            --- check for a third or higher term ---
-         
-         ic = ic + 1
-         goto 100
+      if (pn(icp(i)) < 0) then
+         write(6,*) 'Error: found negative dihedral_periodicity'
+         call mexit(6,1)
       end if
    end do
    
-   if (ierr == 1) then
-      write(6,'(/,5x,a,i5,a)') 'MAXDUP =',maxdup,' exceeded'
-      write(6,'(/,5x,a,i5,a)') 'set MAXDUP =',ndup,' in locmem.F90'
-      call mexit(6, 1)
-   end if
-   
-   nphia = nphia + ndup
-#ifndef API
-   write(6,'(a,i5,a)') '| Duplicated',ndup,' dihedrals'
-#endif
    return
 end subroutine dihdup 
 
@@ -510,6 +451,7 @@ end subroutine setgms
 !+ Distribute atoms to processors using molecule boundaries
 subroutine setpar(nspm, nsp, ntp, ipres, amass)
    
+   use mpi
    implicit none
    integer nspm, nsp(*), ntp, ipres(*)
    _REAL_ amass(*)
@@ -519,7 +461,6 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #  include "extra.h"
 #  include "nmr.h"
    integer target,i,iat,imol,ipmol(nspm),node,j,ires,portion
@@ -878,3 +819,18 @@ subroutine setnoshake_sc(ix,ntc,num_noshake,master)
 
 end subroutine setnoshake_sc
 #endif
+
+subroutine set_omp_num_threads()
+  use constants, only: omp_num_threads
+  implicit none
+#  include "extra.h"
+  character(len=5) :: omp_threads
+  integer :: ier
+
+  call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+  if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+  if( master ) &
+     write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
+#endif
+end subroutine set_omp_num_threads

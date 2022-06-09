@@ -1,7 +1,7 @@
 #include "../include/dprec.fh"
 module qm2_extern_gau_module
 ! ----------------------------------------------------------------
-! Interface for Gaussian based QM MD 
+! Interface for Gaussian based QM MD
 !
 ! Currently supports:
 ! pure QM
@@ -10,7 +10,7 @@ module qm2_extern_gau_module
 ! Matthew Clark
 ! under supervision of
 ! Andreas Goetz and Ross Walker (SDSC)
-! 
+!
 ! Date: February 2011
 !       April 2015
 !
@@ -33,13 +33,15 @@ module qm2_extern_gau_module
      character(len=50) :: mem
      character(len=20) :: executable
      character(len=20) :: guess
+     character(len=20) :: charge_analysis
      integer :: scf_conv
      integer :: ntpr
-     integer :: num_threads 
+     integer :: num_threads
      integer :: debug
      logical :: dipole
      logical :: use_template
-     
+     logical :: keep_files
+
      ! Deprecated
      integer :: charge
      integer :: spinmult
@@ -54,7 +56,7 @@ contains
        nqmatoms, qmcoords, qmtypes, nclatoms, clcoords, &
        escf, dxyzqm, dxyzcl, charge, spinmult )
 
-    use qm2_extern_util_module, only: print_results, check_installation, write_dipole
+    use qm2_extern_util_module, only: print_results, check_installation, write_dipole, write_charges
     use constants, only: CODATA08_AU_TO_KCAL, CODATA08_A_TO_BOHRS, ZERO
     use file_io_dat
 
@@ -73,13 +75,14 @@ contains
     _REAL_, intent(out) :: dxyzqm(3,nqmatoms)   ! SCF QM force
     _REAL_, intent(out) :: dxyzcl(3,nclatoms)   ! SCF MM force
     _REAL_              :: dipxyz(3), dipole    ! Dipole moment
+    _REAL_              :: qmcharges(nqmatoms)  ! QM charges from population analysis
     integer, intent(in) :: charge, spinmult     ! Charge and spin multiplicity
 
     type(gau_nml_type), save     :: gau_nml
     logical, save                :: first_call = .true.
     logical                      :: exist
     integer                      :: i
-    integer                      :: printed =-1 ! Used to tell if we have printed this step yet 
+    integer                      :: printed =-1 ! Used to tell if we have printed this step yet
                                                 ! since the same step may be called multiple times
     character(len=1024)          :: call_buffer
     character(len=80), save      :: program     = ''
@@ -92,11 +95,13 @@ contains
     character(len=*), parameter  :: rstext = '.chk' ! Restart from checkpoint files
     character(len=*), parameter  :: frstext= '.fchk'! Formatted checkpoint file
     character(len=*), parameter  :: dipext = '.dip'
+    character(len=*), parameter  :: chgext = '.chg'
     character(len=*), parameter  :: tplext = '.tpl'
-    character(len=14)            :: inpfile, rstfile, frstfile, logfile, dipfile, tplfile
-    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM. 
-    !   This is triggered if 'id' is defined (not empty). 
-    character(len=25)            :: subdir 
+    character(len=14)            :: inpfile, rstfile, frstfile, logfile, dipfile, chgfile, tplfile
+    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM.
+    !   This is triggered if 'id' is defined (not empty).
+    character(len=25)            :: subdir
+    character(len=10)            :: extension
 
     ! for system call
     integer :: system
@@ -108,6 +113,7 @@ contains
     rstfile = basename//trim(id)//rstext
     frstfile= basename//trim(id)//frstext
     dipfile = basename//trim(id)//dipext
+    chgfile = basename//trim(id)//chgext
     tplfile = basename//tplext
 
     ! Setup on first call
@@ -115,10 +121,10 @@ contains
       first_call = .false.
       write (6,'(/,a,/)') '  >>> Running calculations with Gaussian <<<'
       call get_namelist( ntpr_default, gau_nml )
-      call print_namelist( gau_nml ) 
+      call print_namelist( gau_nml )
 
       ! Check for version of Gaussian to use; store in program
-      if ( trim(gau_nml%executable) /= '' ) then 
+      if ( trim(gau_nml%executable) /= '' ) then
         ! Will quit if this is not found
         call check_installation( trim(gau_nml%executable), id, .true., gau_nml%debug )
         program = gau_nml%executable
@@ -142,16 +148,16 @@ contains
       write (6,'(80a)') ('-', i=1,80)
       write (6,'(a)') '   4.  RESULTS'
       write (6,'(80a)') ('-', i=1,80)
-      ! Remove old inpfile, logfile and dipfile at the 
+      ! Remove old inpfile, logfile, dipfile, chgfile at the
       ! beginning of a run so only the latest run is stored.
-      stat = system('rm -f '//inpfile//' '//logfile//' '//rstfile//' '//dipfile)
+      stat = system('rm -f '//inpfile//' '//logfile//' '//rstfile//' '//dipfile//' '//chgfile)
       if ( stat /= 0 ) then
-        call sander_bomb('get_gau_forces (qm2_extern_gau_module)', & 
+        call sander_bomb('get_gau_forces (qm2_extern_gau_module)', &
           'Error with system call (removing files)', &
           'Will quit now.')
       end if
     end if
-    
+
     call write_inpfile( trim(inpfile), trim(rstfile), trim(tplfile), &
          nqmatoms, qmcoords, qmtypes, nclatoms, clcoords, &
          gau_nml, do_grad, charge, spinmult)
@@ -164,51 +170,64 @@ contains
     ! Separate runs into different directories if we are doing PIMD or REMD
     subdir=''
     call_buffer=''
-    if (trim(id)/='') then 
+    if (trim(id)/='') then
       subdir='./'//trim(id)//'/'
       call_buffer=' mkdir -p '//trim(subdir)//'; cd '//trim(subdir)//'; mv ../'//inpfile//' .;'
     end if
     call_buffer = trim(call_buffer)//' '//trim(program)//' '//inpfile
     call_buffer = trim(call_buffer)//'; formchk '//trim(rstfile)//' '//trim(frstfile)//' >/dev/null'
-    stat = system(call_buffer) 
+    stat = system(call_buffer)
     if ( stat /= 0 ) then
-      call sander_bomb('get_gau_forces (qm2_extern_gau_module)', & 
+      call sander_bomb('get_gau_forces (qm2_extern_gau_module)', &
         'Error with system call (executing Gaussian)', &
         'Will quit now.')
     end if
 
-    if ( gau_nml%debug > 0 ) then    
+    if ( gau_nml%debug > 0 ) then
       write(6,'(a)') ' Gaussian execution success; Processing Gaussian results...'
-    end if    
+    end if
 
     ! Call read_results - retrieve data from Gaussian .log file
     ! Will output data to escf and dxyqm for pure QM or MM runs
     ! For QM/MM runs will also return dxyzcl containing electric field strength
-    
+
     ! Search in subdir for logfile if doing PIMD
     ! Otherwise, search current directory
     call read_results( trim(subdir)//trim(logfile), trim(subdir)//trim(frstfile), &
          nqmatoms, escf, dxyzqm, nclatoms, dxyzcl, dipxyz, dipole, &
+         qmcharges, gau_nml%charge_analysis, &
          do_grad, gau_nml%debug )
 
     ! Call write_dipole with dipfile, dipxyz, and magnitude of dipxyz;
     ! will write output to dipfile
     if ( gau_nml%ntpr > 0 .and. mod(nstep, gau_nml%ntpr) == 0 ) then
-      if ( printed /= nstep .and. gau_nml%dipole ) then
-        call write_dipole( trim(dipfile), dipxyz, dipole, gau_nml%debug )
-        printed = nstep
+      if ( printed /= nstep ) then
+         printed = nstep
+         if ( gau_nml%dipole ) then
+            call write_dipole( trim(dipfile), dipxyz, dipole, gau_nml%debug )
+         end if
+         if ( trim(gau_nml%charge_analysis) /= 'NONE' ) then
+            call write_charges( trim(chgfile), nstep, qmcharges, gau_nml%debug )
+          end if
       end if
     end if
 
-    ! Save copy of last input and log files
+    ! Save copy of last input and log files (or all log and fchk files if keep_files is true)
     stat = system('mv '//trim(subdir)//inpfile//' '//trim(subdir)//'old.'//inpfile)
-    stat = stat + system('mv '//trim(subdir)//logfile//' '//trim(subdir)//'old.'//logfile)
+    if ( gau_nml%keep_files ) then
+       write(extension, '(i10)') nstep
+       extension = '.'//adjustl(extension)
+       stat = stat + system('mv '//trim(subdir)//logfile//' '//trim(subdir)//trim(logfile)//extension)
+       stat = stat + system('mv '//trim(subdir)//frstfile//' '//trim(subdir)//trim(frstfile)//extension)
+    else
+       stat = stat + system('mv '//trim(subdir)//logfile//' '//trim(subdir)//'old.'//logfile)
+    end if
     if ( stat /= 0 ) then
-      call sander_bomb('get_gau_forces (qm2_extern_gau_module)', & 
+      call sander_bomb('get_gau_forces (qm2_extern_gau_module)', &
         'Error with system call (moving / removing files)', &
         'Will quit now.')
     end if
-    
+
 
     ! F = E*q to get gradients
     ! Note dxyzcl is currently holding the electric field strength
@@ -226,7 +245,7 @@ contains
       dxyzqm = ZERO
       if ( nclatoms > 0 ) dxyzcl = ZERO
     end if
-    
+
     escf = escf * CODATA08_AU_TO_KCAL
 
     call print_results( 'qm2_extern_gau_module', escf, nqmatoms, dxyzqm, &
@@ -238,21 +257,23 @@ contains
   ! Read Gaussian namelist values from file mdin,
   ! use default values if none are present.
   ! ---------------------------------------------
-    
- 
+
+
   subroutine get_namelist(ntpr_default, gau_nml)
+
+    use UtilitiesModule, only: Upcase
 
     implicit none
     integer, intent(in) :: ntpr_default
     type(gau_nml_type), intent(out) :: gau_nml
 
-    character(len=20) :: method, basis, executable, guess
+    character(len=20) :: method, basis, executable, guess, charge_analysis
     character(len=50) :: mem
     integer :: debug
-    integer :: scf_conv, ntpr, num_threads, dipole, use_template
+    integer :: scf_conv, ntpr, num_threads, dipole, use_template, keep_files
     integer :: charge, spinmult ! deprecated
-    namelist /gau/ method, basis, mem, executable, guess, scf_conv, ntpr, &
-      num_threads, debug, dipole, use_template,&
+    namelist /gau/ method, basis, mem, executable, guess, charge_analysis, scf_conv, ntpr, &
+      num_threads, debug, dipole, use_template, keep_files, &
       charge, spinmult
 
     integer :: ierr
@@ -263,12 +284,14 @@ contains
     mem          = '256MB'
     executable   = ''
     guess        = 'read'
-    scf_conv     = 8 
+    charge_analysis = 'none'
+    scf_conv     = 8
     ntpr         = ntpr_default
     num_threads  = 1
     debug        = 0
     dipole       = 0
     use_template = 0
+    keep_files   = 0
 
     ! These are now deprecated and should be specified in the &qmmmm namelist
     charge   = -351
@@ -293,12 +316,20 @@ contains
         'Please specify charge (qmcharge) and spin multiplicity (spin) in the &qmmm namelist.')
     end if
 
+    charge_analysis = Upcase(charge_analysis)
+    if ( (trim(charge_analysis) /= 'NONE') .and. (trim(charge_analysis) /= 'MULLIKEN') ) then
+       call sander_bomb('get_namelist (qm2_extern_gau_module)', &
+        'Only Mulliken charge analysis is supported.', &
+        'Please correct charge_analysis in the &qmmm namelist.')
+    end if
+
     ! Assign namelist values to gau_nml data type
     gau_nml%method       = method
     gau_nml%basis        = basis
     gau_nml%mem          = mem
     gau_nml%executable   = executable
     gau_nml%guess        = guess
+    gau_nml%charge_analysis = charge_analysis
     gau_nml%scf_conv     = scf_conv
     gau_nml%ntpr         = ntpr
     gau_nml%num_threads  = num_threads
@@ -323,6 +354,16 @@ contains
             'Please check your input. use_template can only be 0 or 1.')
     end if
 
+    if ( keep_files == 0 ) then
+       gau_nml%keep_files = .false.
+    else if ( keep_files == 1 ) then
+       gau_nml%keep_files = .true.
+    else
+       call sander_bomb('get_namelist (qm2_extern_gau_module)', &
+            '&gau keep_files value not allowed', &
+            'Please check your input. keep_files can only be 0 or 1.')
+    end if
+
   end subroutine get_namelist
 
   ! --------------------------------
@@ -339,12 +380,14 @@ contains
     write(6, '(2a)')      '|   executable   = ', gau_nml%executable
     write(6, '(2a)')      '|   guess        = ', gau_nml%guess
     write(6, '(2a)')      '|   mem          = ', trim(gau_nml%mem)
+    write(6, '(2a)')      '|   charge_analysis = ', trim(gau_nml%charge_analysis)
     write(6, '(a,i2)')    '|   scf_conv     = ', gau_nml%scf_conv
     write(6, '(a,i0)')    '|   ntpr         = ', gau_nml%ntpr
     write(6, '(a,i2)')    '|   num_threads  = ', gau_nml%num_threads
     write(6, '(a,i2)')    '|   debug        = ', gau_nml%debug
     write(6, '(a,l)')     '|   dipole       = ', gau_nml%dipole
     write(6, '(a,l)')     '|   use_template = ', gau_nml%use_template
+    write(6, '(a,l)')     '|   keep_files   = ', gau_nml%keep_files
     write(6,'(a)')        '| /'
 
   end subroutine print_namelist
@@ -434,11 +477,11 @@ contains
     if ( do_grad ) then
       route = trim(route)//' Force'
     end if
-    ! If we are not on our first run, restart from .chk file 
+    ! If we are not on our first run, restart from .chk file
     if ( .not. first_call .and. (trim(gau_nml%guess) == 'read') ) then
       route = trim(route)//' Guess=Read'
     end if
-    ! If doing electrostatic embedding QM/MM, 
+    ! If doing electrostatic embedding QM/MM,
     ! read external point charges, print to .log
     if ( nclatoms > 0 ) then
       route = trim(route)//' Charge Prop=(Field,Read)'
@@ -466,7 +509,7 @@ contains
     end do
     write(iunit,'()')
 
-    ! When electrostatic embadding QM/MM is in use 
+    ! When electrostatic embadding QM/MM is in use
     ! write MM coordinates with point charges
     if ( nclatoms > 0 ) then
       do i = 1, nclatoms
@@ -525,8 +568,8 @@ contains
       close(tplunit)
 
    end if
-   
-   ! When electrostatic embedding is in use 
+
+   ! When electrostatic embedding is in use
    ! write point charge coordinates a second time (without charges)
    ! These are points in space where electric field will be computeed
    if ( nclatoms > 0 ) then
@@ -549,17 +592,20 @@ contains
 
   end subroutine write_inpfile
 
-  subroutine read_results( datfile, fchkfile, nqmatoms, escf, dxyzqm,&
-       nclatoms, dxyzcl, dipxyz, dipole, do_grad, debug )
+  subroutine read_results( datfile, fchkfile, nqmatoms, escf, dxyzqm, &
+       nclatoms, dxyzcl, dipxyz, dipole, qmcharges, charge_analysis, &
+       do_grad, debug )
 
     implicit none
 
     character(len=*), intent(in)  :: datfile
     character(len=*), intent(in)  :: fchkfile
     integer, intent(in)           :: nqmatoms, nclatoms
-    _REAL_, intent(out)           :: escf, dxyzqm(3,nqmatoms), & 
+    _REAL_, intent(out)           :: escf, dxyzqm(3,nqmatoms), &
                                      dxyzcl(3,nclatoms) ! dxyzcl returns containing the electric field at x,y,z
     _REAL_, intent(out)           :: dipxyz(3), dipole
+    _REAL_, intent(out)           :: qmcharges(nqmatoms)
+    character(len=*), intent(in)  :: charge_analysis
     logical, intent(in)           :: do_grad
     integer, intent(in)           :: debug
 
@@ -582,14 +628,14 @@ contains
       ! End of file; nothing left to read
       if (ios < 0) then
         exit
-      end if 
-    
-      ! Store SCF energy to escf 
+      end if
+
+      ! Store SCF energy to escf
       if ( read_buffer(1:12) == 'Total Energy' ) then
         ! Read value after the first "R"
         read(read_buffer(index(read_buffer,'R')+1:),*) escf
       end if
-       
+
       ! Read forces on QM atoms
       if ( do_grad ) then
          if ( read_buffer(1:18) == 'Cartesian Gradient' ) then
@@ -603,8 +649,15 @@ contains
          read (iunit, *) dipxyz(:)
       end if
 
+      ! Read Mulliken charges to variable qmcharges
+      if ( charge_analysis == 'MULLIKEN' ) then
+         if ( read_buffer(1:16) == 'Mulliken Charges' ) then
+            read (iunit, *) qmcharges(:)
+         end if
+      end if
+
     end do
-    
+
     close(iunit)
 
     dipole = dsqrt ( dipxyz(1)*dipxyz(1) + dipxyz(2)*dipxyz(2) + dipxyz(3)*dipxyz(3) )
@@ -626,7 +679,7 @@ contains
           if (ios < 0) then
              exit
           end if
-    
+
           ! Retrieve self energy of charges (must add to escf)
           if (read_buffer(1:30) == ' Self energy of the charges =') then
              read(read_buffer(index(read_buffer,'=')+1:),*) self_energy
@@ -642,15 +695,15 @@ contains
                 ! Read into dxyzcl
                 do i = 1, nclatoms
                    read (iunit, '(a)', iostat = ios) read_buffer
-                   read(read_buffer(25:),*) dxyzcl(:,i ) 
+                   read(read_buffer(25:),*) dxyzcl(:,i )
                 end do
              end if
           end if
 
        end do
-    
+
        close(iunit)
-     
+
        escf = escf - self_energy
 
     end if

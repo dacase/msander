@@ -201,10 +201,10 @@ contains
 !!!   tolerance :: tolerance for this calculation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine  mdiis_blas_advance (this, rms1,conver,tolerance_o)
-    implicit none 
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none 
 #include "def_time.h" 
     
     type(mdiis_blas),intent(inout) :: this
@@ -269,10 +269,10 @@ contains
     if(err /=0) call rism_report_error&
          ("MDIIS_BLAS_UPDATE: could not reduce OVERLAP")
 #else
-    call DGEMV ('T',this%np,this%nVec0,1d0,this%ri,this%np,&
-         this%ri,1,0d0,this%overlap,1)
+    call DGEMV ('T',this%np,this%nVec0,1d0,this%ri(1,1),this%np,&
+         this%ri,1,0d0,this%overlap(1,1),1)
 #endif /*defined(MPI)*/
-    call DCOPY(this%nVec0-1, this%overlap(2:this%nVec0,1), 1, this%overlap(1,2), this%nVec)
+    call DCOPY(this%nVec0-1, this%overlap(2,1), 1, this%overlap(1,2), this%nVec)
     call timer_stop(TIME_MDIIS_DATA)
  
     !................ get mean square value of new residual ................
@@ -314,7 +314,7 @@ contains
     aij(1:this%nVec0,0) = -1d0 
     aij(0,1:this%nVec0) = -1d0
     do is2=1,this%nVec0
-       call DCOPY(this%nVec0,this%overlap(1:this%nVec0,is2),1,aij(1:this%nVec0,is2),1)
+       call DCOPY(this%nVec0,this%overlap(1,is2),1,aij(1,is2),1)
     enddo
 
     !....................... calculate DIIS estimate .......................
@@ -353,7 +353,7 @@ contains
        if (any(this%xi(:,1) > 1e10)) write(6,*) 'big'
        ! MDIIS modification
        call DGEMV ('N',this%np,this%nVec0,this%delta,this%ri(1,2),this%np,&
-            bi(2,0),1,1d0,this%xi,1)
+            bi(2,0),1,1d0,this%xi(1,1),1)
        if (any(this%xi(:,1) > 1e10)) write(6,*) 'big'
     else
        ! DIIS update
@@ -362,14 +362,14 @@ contains
        if (any(this%xi(:,1) > 1e10)) write(6,*) 'big'
        ! MDIIS modification
        call DGEMV ('N',this%np,this%nVec,this%delta,this%ri(1,1),this%np,&
-            bi(1,0),1,1d0,this%xi,1)
+            bi(1,0),1,1d0,this%xi(1,1),1)
        if (any(this%xi(:,1) > 1e10)) write(6,*) 'big'
     end if
     
 
 
     !.................. reload overlaps of current point ...................
-    call DCOPY(this%nVec,this%overlap(:,1),1,this%overlap(:,vecUpdate),1)
+    call DCOPY(this%nVec,this%overlap(1,1),1,this%overlap(1,vecUpdate),1)
     call DCOPY(this%nVec,this%overlap(1,1),this%nVec,this%overlap(vecUpdate,1),this%nVec)
   end subroutine mdiis_blas_advance
 
@@ -427,8 +427,8 @@ contains
        !................... restore vector to restart from ...................
        if (isirst /= 1)  then
           call timer_start(TIME_MDIIS_DATA)
-          call DCOPY(this%np,this%ri(1:this%np,isirst),1,this%ri(1:this%np,1),1)
-          call DCOPY(this%np,this%xi(1:this%np,isirst),1,this%xi(1:this%np,1),1)
+          call DCOPY(this%np,this%ri(1,isirst),1,this%ri(1,1),1)
+          call DCOPY(this%np,this%xi(1,isirst),1,this%xi(1,1),1)
           call timer_stop(TIME_MDIIS_DATA)
           this%overlap(1,1) = this%overlap(isirst,isirst)
        endif

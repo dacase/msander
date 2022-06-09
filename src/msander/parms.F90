@@ -165,11 +165,11 @@ end subroutine clean_parms
 subroutine bcast_parms
 
    use memory_module, only: natyp
+   use mpi
 
    implicit none
 
 #  include "extra.h"
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer ierror

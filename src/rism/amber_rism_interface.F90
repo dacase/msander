@@ -66,10 +66,10 @@ contains
   !! @param[in] o_mpicomm  MPI communicator (optional).
   !! @sideeffects Allocates memory and sets value to huge.
   subroutine rismthermo_new(this, nsite, o_mpicomm)
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rismthermo_t), intent(inout) :: this
     integer, intent(in) :: nsite
     integer, optional, intent(in) :: o_mpicomm
@@ -126,10 +126,10 @@ contains
 !!! calculation, MPI is used to do this.  For serial runs this does
 !!! nothing.
   subroutine rismthermo_mpireduce(this)
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rismthermo_t), intent(inout) :: this
 #ifdef MPI
     _REAL_ :: buffer_copy(ubound(this%mpi_buffer, 1))
@@ -435,14 +435,14 @@ contains
     use amber_rism_interface
     use binrestart, only : readUnitCellDimensionsFromCrd
 #ifdef OPENMP
-    use constants_rism, only : KB, omp_num_threads, set_omp_num_threads
+    use constants_rism, only : KB, omp_num_threads
 #else
     use constants_rism, only : KB
 #endif
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer, intent(in) :: numAtoms, numTypes, atomTypeIndex(numTypes**2), nonbondedParmIndex(numAtoms)
     _REAL_, intent(in) :: charge(numAtoms), mass(numAtoms), ljA(numTypes*(numTypes + 1)/2), &
          ljB(numTypes*(numTypes + 1)/2)
@@ -477,9 +477,9 @@ contains
     ! Rank 0 only.
     if (mpirank /= 0) return
 
-    outunit = rism_report_getMUnit()
+#ifndef API
     call defaults()
-
+    outunit = rism_report_getMUnit()
     inquire(file=mdin, opened=op, number=un)
     if (op) mdin_unit=un
     open(unit=mdin_unit, file=mdin, status='OLD', form='FORMATTED', iostat=stat)
@@ -488,22 +488,29 @@ contains
     end if
     call read_namelist(mdin_unit)
     if (.not.op) close(unit=mdin_unit)
+#endif
 
     ! Initialize 3D-RISM solute and solvent.
 
 #ifdef OPENMP
-    call set_omp_num_threads()
     ier = fftw_init_threads()
     if( ier == 0 ) then
-       write(6,*) 'failure in fftw_plan_with_nthreads'
+       write(0,*) 'failure in fftw_plan_with_nthreads'
        call mexit(6,1)
+#ifndef API
     else
        write(6,'(a,i2,a)') '| calling fftw_plan_with_nthreads(', &
           omp_num_threads,')'
+#endif
     end if
     call fftw_plan_with_nthreads(omp_num_threads)
 #endif
 
+#ifdef API
+    xvvfile = 'xvvfile'
+    crdFile = 'inpcrd'
+    outunit = 0
+#endif
     call rism3d_solvent_new(solvent, xvvfile)    
     call rism3d_solute_new_sander(solute, numAtoms, numTypes, atomTypeIndex, &
          nonbondedParmIndex, charge, ljA, ljB, mass, solvent%temperature)
@@ -512,7 +519,11 @@ contains
 
     call sanity_check()
     
+#ifdef API
+    if (rismprm%rism >= 1 .and. rismprm%verbose > 0) then
+#else
     if (rismprm%rism >= 1) then
+#endif
        write(outunit, '(a)') "3D-RISM:"
        if (rismprm%rism < 1) then
           write(outunit, '(5x, a, i10)') 'irism   =', rismprm%rism
@@ -557,6 +568,7 @@ contains
        end if
        call flush(outunit)
     end if
+    return
 
   end subroutine rism_setparam
 
@@ -568,10 +580,10 @@ contains
   subroutine rism_init(comm)
     use amber_rism_interface
     use safemem
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer, intent(in) :: comm
 
     integer :: err
@@ -675,12 +687,12 @@ contains
     use constants_rism, only : KB
     use rism3d_c, only : rism3d_calculateSolution
     use rism_util, only: corr_drift
+#ifdef MPI
+    use mpi
+#endif
     implicit none
 #include "def_time.h"
 
-#ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
 
     integer, intent(in) :: irespa
     _REAL_, intent(in) :: atomPositions_md(3, rism_3d%solute%numAtoms)
@@ -741,7 +753,7 @@ contains
        call rism3d_setCoord(rism_3d, atomPositions_md)
        call rism3d_calculateSolution(rism_3d, rismprm%saveprogress, &
             rismprm%progress, rismprm%maxstep, tolerancelist, &
-            rismprm%ng3)
+            rismprm%ng3, rismprm%verbose)
        if(imin /= 0) then
           call rism_solvdist_thermo_calc(.false., 0)
        end if
@@ -800,10 +812,10 @@ contains
   subroutine rism_solvdist_thermo_calc(writedist, step)
     use amber_rism_interface
     use constants_rism, only : kb, COULOMB_CONST_E
-    implicit none
 #ifdef MPI
-    include "mpif.h"
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     logical*4, intent(in) :: writedist
     integer, intent(in) :: step
     integer :: err
@@ -1052,10 +1064,10 @@ contains
   subroutine rism_max_memory()
     use amber_rism_interface
     use safemem
-    implicit none
 #ifdef MPI
-    include "mpif.h"
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     integer*8 :: memstats(10), tmemstats(10)
     integer :: err, irank
     outunit = rism_report_getMUnit()
@@ -1112,12 +1124,11 @@ contains
     use rism3d_xyzv
     use safemem
     use rism_util, only : checksum
+#ifdef MPI
+    use mpi
+#endif
     implicit none
     
-    
-#if defined(MPI)
-    include 'mpif.h'
-#endif
     type(rism3d), intent(inout) :: this
     integer, intent(in) :: step
 
@@ -1364,8 +1375,8 @@ contains
   !!              to all processes
   subroutine rism_mpi_bcast(mrank, msize, mcomm)
     use amber_rism_interface
+    use mpi
     implicit none
-    include 'mpif.h'
     ! add the 'm' to avoid clashing with intrinsics, like size()
     integer, intent(in) :: mrank !< MPI process rank.
     integer, intent(in) :: msize !< Number of MPI processes.
@@ -1499,6 +1510,7 @@ contains
   !> Sets default values for 3D-RISM paramters.
   subroutine defaults()
     use amber_rism_interface
+    use constants_rism, only: NO_INPUT_VALUE, NO_INPUT_VALUE_FLOAT
     implicit none
 
     closurelist => safemem_realloc(closurelist, len(closurelist), nclosuredefault)
@@ -1508,15 +1520,20 @@ contains
     periodicPotential         = 'pme'
 
     !solvation box
-    rismprm%solvcut         = -1
+#ifdef API
+    rismprm%solvcut         = 8.d0
+    rismprm%grdspc          = 0.8d0
+#else
+    rismprm%solvcut         = 9.d0
     rismprm%grdspc          = 0.5d0
+#endif
     rismprm%ng3             = -1
 
     !convergence
     tolerancelist => safemem_realloc(tolerancelist, nclosuredefault)
     tolerancelist             = HUGE(1d0)
-    tolerancelist(1)          = 1d-5
-    rismprm%mdiis_del         = 0.7d0
+    tolerancelist(1)          = 1d-7
+    rismprm%mdiis_del         = 0.4d0
     rismprm%mdiis_nvec        = 5
     rismprm%mdiis_method      = 2
     rismprm%mdiis_restart     = 10d0
@@ -1535,7 +1552,11 @@ contains
     !output
     rismprm%saveprogress     = 0
     rismprm%ntwrism          = -1
+#ifdef API
+    rismprm%verbose          = -100
+#else
     rismprm%verbose          = 0
+#endif
     rismprm%progress         = 1
     volfmt                   = 'ccp4'
 
@@ -1756,4 +1777,73 @@ contains
     mylcm = lcm(a, b)
   end function mylcm
 
+#if 0
+! Initializes a struct with RISM options to all default values
+!
+! Parameters
+! ----------
+! inp : type(rismprm_t)
+!     struct of RISM input options that will be filled by this subroutine
+subroutine rism_sander_input(inp)
+
+   implicit none
+   type(rismprm_t), intent(out) :: inp
+   call defaults
+
+end subroutine rism_sander_input
+#endif
+
 end module sander_rism_interface
+
+#ifdef OPENMP
+  subroutine set_omp_num_threads_rism()
+    use constants_rism, only: omp_num_threads
+    implicit none
+    character(len=5) :: omp_threads
+    integer :: ier
+
+    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
+    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
+#ifndef API
+    write(6,'(a,i3,a)') '| Running RISM OpenMP with ',omp_num_threads,' threads'
+#endif
+  end subroutine set_omp_num_threads_rism
+#endif
+
+subroutine rism_defaults()
+   use sander_rism_interface, only: defaults
+   implicit none
+   call defaults()
+   return
+end subroutine rism_defaults
+
+#if 0
+!  Keep outside of the module, to avoid name mangling
+#ifdef API
+  subroutine rism_setparam2( solvcut, grdspc, verbose )
+     use amber_rism_interface
+     use constants_rism, only: NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
+     implicit none
+     double precision, intent(in):: solvcut, grdspc
+     integer, intent(in) :: verbose
+
+     if( solvcut <= 0.d0 ) then
+        rismprm%solvcut = 8.d0  !default
+     else
+        rismprm%solvcut = solvcut
+     endif
+     if( grdspc <= 0.d0 ) then
+        rismprm%grdspc(:) = 0.5d0  !default
+     else
+        rismprm%grdspc(:) = grdspc
+     endif
+     if( verbose == -100 ) then
+        rismprm%verbose = -1  !default
+     else
+        rismprm%verbose = verbose
+     endif
+
+     return
+  end subroutine rism_setparam2
+#endif
+#endif

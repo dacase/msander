@@ -283,18 +283,6 @@ contains
     bioCoeff = one * bc(m, n)
   end function BinomialCoefficient
 
-#ifdef OPENMP
-  subroutine set_omp_num_threads()
-    implicit none
-    character(len=5) :: omp_threads
-    integer :: ier
-
-    call get_environment_variable('OMP_NUM_THREADS', omp_threads, status=ier)
-    if( ier .ne. 1 ) read( omp_threads, * ) omp_num_threads
-    write(6,'(a,i3,a)') '| Running OpenMP with ',omp_num_threads,' threads'
-  end subroutine set_omp_num_threads
-#endif
-
   subroutine set_mkl_num_threads()
     implicit none
     character(len=5) :: mkl_threads

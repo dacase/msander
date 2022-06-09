@@ -47,10 +47,8 @@ subroutine write_nc_restart(filename,title,owrite,natom,ntb,first,Coords,Velo,&
 #endif
                            )
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use netcdf
    use nblist, only: a,b,c,alpha,beta,gamma
-#endif
 #ifdef MPI
    use sgld, only: trxsgld
 #endif
@@ -71,7 +69,6 @@ subroutine write_nc_restart(filename,title,owrite,natom,ntb,first,Coords,Velo,&
    integer, intent(in), dimension(:) :: remd_types, group_num, replica_indexes
    integer, intent(in)               :: stagid, remd_repidx, remd_crdidx 
 #  endif
-#ifdef BINTRAJ
    ! Local vars
    integer :: ncid, natom3
    logical :: has1DRemdValues = .false.
@@ -175,10 +172,6 @@ subroutine write_nc_restart(filename,title,owrite,natom,ntb,first,Coords,Velo,&
 #  endif
    ! Close restart file       
    call NC_close(ncid)
-#else
-   write(0,*) 'sander has been compiled without netcdf support'
-   call mexit(6,1)
-#endif
 end subroutine write_nc_restart
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -199,15 +192,10 @@ subroutine read_nc_restart_box(filename,a,b,c,alpha,beta,gamma)
    _REAL_, intent(out) :: a,b,c,alpha,beta,gamma
    ! local
    integer ncid
-#ifdef BINTRAJ
    if (NC_openRead(filename, ncid)) call mexit(6,1)
    if (NC_readRestartBox(ncid,a,b,c,alpha,beta,gamma)) call mexit(6,1)
    call NC_close(ncid)
    !  write(6,'(a)') '| NetCDF restart box info found'
-#else
-   write(0,*) 'sander has been compiled without netcdf support'
-   call mexit(6,1)
-#endif
 end subroutine read_nc_restart_box
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -233,9 +221,7 @@ end subroutine read_nc_restart_box
 subroutine read_nc_restart(filename,title,ntx,parmatoms,Coords,Velo,remd_values,&
                            remd_values_dim,Time)
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use netcdf
-#endif
    use constants, only : NO_INPUT_VALUE_FLOAT
    implicit none
 
@@ -246,7 +232,6 @@ subroutine read_nc_restart(filename,title,ntx,parmatoms,Coords,Velo,remd_values,
    _REAL_, dimension(*), intent(out) :: Coords, Velo
    _REAL_, intent(out)               :: Time
    _REAL_, dimension(:), intent(out) :: remd_values
-#ifdef BINTRAJ
    integer :: ncid, ncatom, ncatom3
 
    ! ---=== Open file
@@ -294,10 +279,6 @@ subroutine read_nc_restart(filename,title,ntx,parmatoms,Coords,Velo,remd_values,
   
    ! ---=== Close file
    call NC_close(ncid)
-#else
-   write(0,*) 'sander has been compiled without netcdf support'
-   call mexit(6,1)
-#endif
 end subroutine read_nc_restart
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -308,16 +289,13 @@ end subroutine read_nc_restart
 !     Read remd_dimension from the Netcdf Restart file with specified 
 !     filename. Title will be read in and set.
 subroutine read_nc_remd_dimension(filename,title,remd_dimension)
-#ifdef BINTRAJ
   use netcdf
   use AmberNetcdf_mod, only: NC_openRead, NC_setupRemdDimension, NC_error, NC_close
-#endif
   implicit none
   ! Formal Arguments
   character(len=*), intent(in)                :: filename
   character(len=80), intent(out)              :: title
   integer, intent(out) :: remd_dimension
-#ifdef BINTRAJ
   ! Local variables
   integer :: ncid
 
@@ -331,10 +309,6 @@ subroutine read_nc_remd_dimension(filename,title,remd_dimension)
   if (remd_dimension_var_id.eq.-1) remd_dimension = -1
   ! ---=== Close file
   call NC_close(ncid)
-#else
-  write(0,*) 'sander has been compiled without netcdf support'
-  call mexit(6,1)
-#endif
 end subroutine read_nc_remd_dimension
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -345,17 +319,14 @@ end subroutine read_nc_remd_dimension
 !     Read remd_types from the Netcdf Restart file with specified 
 !     filename. Title will be read in and set.
 subroutine read_nc_remd_types(filename,title,remd_types,remd_dimension)
-#ifdef BINTRAJ
   use netcdf
   use AmberNetcdf_mod, only: NC_openRead, NC_setupRemdTypes, NC_error, NC_close
-#endif
   implicit none
   ! Formal Arguments
   character(len=*), intent(in)                    :: filename
   character(len=80), intent(out)                  :: title
   integer, intent(in)                             :: remd_dimension
   integer, dimension(remd_dimension), intent(out) :: remd_types
-#ifdef BINTRAJ
   ! Local variables
   integer :: ncid
 
@@ -376,10 +347,6 @@ subroutine read_nc_remd_types(filename,title,remd_types,remd_dimension)
   end if
   ! ---=== Close file
   call NC_close(ncid)  
-#else
-  write(0,*) 'sander has been compiled without netcdf support'
-  call mexit(6,1)
-#endif
 end subroutine read_nc_remd_types
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -401,15 +368,12 @@ end subroutine read_nc_remd_types
 !     read_nc_restart_box in load_ewald_info.
 subroutine read_nc_restart_extents(filename, extents)
    use AmberNetcdf_mod
-#ifdef BINTRAJ
    use netcdf
-#endif
    use constants, only : NO_INPUT_VALUE_FLOAT
    implicit none
 
    character(len=*), intent(in)        :: filename
    _REAL_, dimension(3,2), intent(out) :: extents
-#ifdef BINTRAJ
    _REAL_, dimension(:), allocatable :: Coords
    _REAL_  :: Time
    integer :: ncid, ncatom, ncatom3, ierror, j, i
@@ -454,10 +418,6 @@ subroutine read_nc_restart_extents(filename, extents)
    ! Deallocate our work array
    deallocate(Coords, stat=ierror)
    REQUIRE( ierror == 0 )
-#else
-   write(0,*) 'sander has been compiled without netcdf support'
-   call mexit(6,1)
-#endif
 end subroutine read_nc_restart_extents
 
   !> Read unit cell dimensions from a crd / rst file.  Abort if box info
@@ -473,10 +433,10 @@ end subroutine read_nc_restart_extents
 
     ! Check for new Netcdf restart format
     if ( NC_checkRestart(file) ) then
-        write(6,'(a)') ' getting box info from netcdf restart file'
+        ! write(6,'(a)') ' getting box info from netcdf restart file'
         call read_nc_restart_box(file,ax,bx,cx,alphax,betax,gammax)
     else
-         write(6,'(a)') ' getting new box info from bottom of inpcrd'
+         ! write(6,'(a)') ' getting new box info from bottom of inpcrd'
          call peek_ewald_inpcrd(file,ax,bx,cx,alphax,betax,gammax)
     endif
     unitCellDimensions = (/ax,bx,cx, alphax,betax,gammax/)

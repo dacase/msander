@@ -11,12 +11,14 @@ MD NVE
   ntpr = 50,
  /
  &ewald
- dsum_tol = 0.000001
+ dsum_tol = 0.000001,
  /
 eof
 
-output=uucg_msander.o
-../../bin/msander -O -i mdin -p uucg_tip4pew_10.parm7 -c restrt.26_dyn -o $output
+export OMP_NUM_THREADS=16
+output=intel_omp16
+../../bin/msander -O -i mdin -p uucg_tip4pew_10.parm7 \
+   -c restrt.26_dyn -o $output  < /dev/null
 
 /bin/rm mdin restrt mdinfo
 

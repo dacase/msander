@@ -20,7 +20,7 @@ cat > mdin.rism <<EOF
  /
  &rism
     periodic='pme',
-    closure='kh','pse2',  tolerance=0.01,1e-6
+    closure='kh',  tolerance=1e-6
     grdspc=0.35,0.35,0.35,
     mdiis_del=0.4, mdiis_nvec=20, maxstep=5000, mdiis_restart=50,
     solvcut=9.0,
@@ -31,7 +31,7 @@ cat > mdin.rism <<EOF
 EOF
 
 $sander -O -i mdin.rism -o $id.pse2.r3d \
-    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id.pse2
+    -p $id.parm7 -c $id.rst7 -xvv $xvv -guv $id
 
 /bin/rm -f mdin.rism restrt mdinfo 
 
