@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander"
+if( ! $?TESTsander ) set TESTsander = "../../bin/msander"
 
 #  lmodprmtop prmtop prmtop.lmod || goto error
 

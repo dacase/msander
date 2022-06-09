@@ -708,8 +708,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
          ' temperature = ',f6.2)
   9100 format (1x,'DV/DL  = ',f14.4)
   9188 format (1x,'Ewald error estimate: ', e12.4)
-  1005 format(" SGLF = ",F8.4,X,F8.2,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
-  1006 format(" SGHF = ",F8.4,X,F8.4,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
+  1005 format(1x,A6,F9.4,F8.2,F8.2,X,F12.2,F12.2,F12.2,F10.4)
 
   return
 end subroutine prntmd

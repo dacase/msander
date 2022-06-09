@@ -1,9 +1,13 @@
 
           -------------------------------------------------------
-          Amber 10 SANDER                              2008
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 12/09/2009 at 14:48:36
+| Run on 06/09/2022 at 14:21:17
+
+|   Executable path: ../../bin/msander
+| Working directory: /home/case/msander_intel/test/gb_rna
+|          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
@@ -14,18 +18,18 @@ File Assignments:
 |RESTRT: restrt                                                                
 |  REFC: refc                                                                  
 | MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
 |  MDEN: mden                                                                  
 | MDCRD: mdcrd                                                                 
 |MDINFO: mdinfo                                                                
 |  MTMD: mtmd                                                                  
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
-
 |INPTRA: inptraj                                                               
-|
 
+ 
  Here is the input file:
-
+ 
  test of gen. Born, on a stretch of A-RNA                                      
  &cntrl                                                                        
    ntmin=3, maxcyc=10, drms=0.1,                                               
@@ -46,8 +50,8 @@ File Assignments:
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
-| New format PARM file being parsed.
-| Version =    1.000 Date = 07/12/01 Time = 15:10:28
+|  *** cutoff > system size, list only builds once
+| Largest sphere to fit in unit cell has radius =   137.807
  NATOM  =     640 NTYPES =      14 NBONH =     220 MBONA  =     468
  NTHETH =     500 MTHETA =     726 NPHIH =     918 MPHIA  =    1226
  NHPARM =       0 NPARM  =       0 NNB   =    3568 NRES   =      20
@@ -58,15 +62,20 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real               41445
+|     Real              233035
 |     Hollerith           1942
-|     Integer            52200
+|     Integer            52841
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total              535 kbytes
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
+|       Total             2034 kbytes
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+| Note: ig = -1. Setting random seed to   537521 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -82,8 +91,8 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =  100000
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       0, igb     =       2, nsnb    =      25
@@ -93,7 +102,6 @@ Potential function:
      gbbeta  =   0.00000, gbgamma =   2.90912, surften =   0.00500
      rdt     =   0.00000, rgbmax  =  25.00000  extdiel =  78.50000
      alpb  =        0
-     
 
 Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
@@ -107,8 +115,8 @@ LMOD:
      lbfgs_memory_depth           =       3
      matrix_vector_product_method = forward finite difference
      xmin_verbosity               =       0
-|  INFO: Old style inpcrd file read
-
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -124,6 +132,13 @@ PDB 5DNB, Dickerson decamer
 --------------------------------------------------------------------------------
 
   LMOD XMIN Minimization.
+
+  Note: Owing to the behaviour of the XMIN algorithm,
+        coordinates in the trajectory and intermediate
+        restart files will not match up with energies
+        in the mdout and mdinfo files. The final energy
+        and final coordinates do match.
+
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
@@ -207,7 +222,7 @@ PDB 5DNB, Dickerson decamer
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      9      -4.5233E+03     1.9613E+00     1.0356E+01     C4        439
+     10      -4.5233E+03     1.9613E+00     1.0356E+01     C4        439
 
  BOND    =       40.4500  ANGLE   =      126.4933  DIHED      =      368.2898
  VDWAALS =     -362.5357  EEL     =     2173.0867  EGB        =    -4710.0325
@@ -217,22 +232,22 @@ PDB 5DNB, Dickerson decamer
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.01 ( 0.56% of Total)
-|                Calc gb radii              0.18 (17.47% of Gen B)
-|                Calc gb diag               0.37 (35.41% of Gen B)
-|                Calc gb off-diag           0.49 (47.12% of Gen B)
-|             Gen Born time              1.04 (100.0% of Nonbo)
-|          Nonbond force              1.04 (98.36% of Force)
-|          Bond/Angle/Dihedral        0.02 ( 1.63% of Force)
-|          Other                      0.00 ( 0.01% of Force)
-|       Force time                 1.05 (100.0% of Runmd)
-|    Runmd Time                 1.05 (95.24% of Total)
-|    Other                      0.05 ( 4.20% of Total)
-| Total time                 1.11 (100.0% of ALL  )
+|                Calc gb radii              0.04 (19.16% of Gen B)
+|                Calc gb diag               0.08 (36.72% of Gen B)
+|                Calc gb off-diag           0.10 (44.12% of Gen B)
+|             Gen Born time              0.22 (100.0% of Nonbo)
+|          Nonbond force              0.22 (98.77% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 1.23% of Force)
+|       Force time                 0.22 (100.0% of Runmd)
+|    Runmd Time                 0.22 (93.59% of Total)
+|    Other                      0.01 ( 5.95% of Total)
+| Total time                 0.24 (100.0% of ALL  )
+
+| Number of list builds   :          0
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 14:48:36.566  on 12/09/2009
-|           Setup done at 14:48:36.609  on 12/09/2009
-|           Run   done at 14:48:37.672  on 12/09/2009
-|     wallclock() was called     278 times
+|           Job began  at 14:21:17.510  on 06/09/2022
+|           Setup done at 14:21:17.522  on 06/09/2022
+|           Run   done at 14:21:17.746  on 06/09/2022
+|     wallclock() was called     281 times

@@ -5,7 +5,7 @@
 #TEST-STATE   undocumented
 
 
-if( ! $?TESTsander ) set TESTsander = "${AMBERHOME}/bin/sander"
+if( ! $?TESTsander ) set TESTsander = "../../bin/msander"
 
 if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "

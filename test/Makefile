@@ -18,6 +18,10 @@ test.general:
 	-(cd qmmm2/crambin_PM6 && ./Run.crambin_md)
 	-(cd qmmm2/lysine_AM1 && ./Run.lysine)
 	-(cd qmmm2/lysine_AM1 && ./Run.lysine_md)
+	-(cd gb_rna && ./Run.gbrna)
+	-(cd gb_rna && ./Run.gbrna.xmin)
+	-(cd gb_rna && ./Run.gbrna.sgld)
+	-(cd gb_rna && ./Run.gbrna.sgldg)
 #	-(cd LES && ./Run.PME_LES)
 
 test.rism:

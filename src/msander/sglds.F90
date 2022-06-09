@@ -258,7 +258,7 @@ contains
       END DO
       epotlf=2.0d10
       epotllf=2.0d10
-      templf=tsgset*gamm*ekinsg/ekin
+      templf=tsgset*sgavg1
       temphf=0.0d0
       sgwt=0.0d0
       910   format("  _________________ SGLD parameters _________________"/  &
@@ -501,7 +501,11 @@ contains
             ! <(avg(p)avg(v))>
             sgpps(i)=sgavp0*sgpps(i)+sgavp1*sumpp
             ! energy conservation friction constant
-            sgbeta=(2.0d0+gam)*sumgv/(2.0d0*sumpv-sumgv*dtx)
+            if(sumpv<1.0d-8)then
+              sgbeta=0.0d0
+            else
+              sgbeta=(2.0d0+gam)*sumgv/(2.0d0*sumpv-sumgv*dtx)
+            endif
             !sgbeta=0.0d0
             fact=dtx*(gammas+sgbeta)
             do  m = 1,3
@@ -651,7 +655,11 @@ contains
           ! <(avg(p)avg(v))>
           sgpps(i)=sgavp0*sgpps(i)+sgavp1*sumpp
           ! energy conservation friction constant
-          sgbeta=2.0d0*sumgv/(2.0d0*sumpv-sumgv*dtx)
+          if(sumpv<1.0d-8)then
+            sgbeta=0.0d0
+          else
+            sgbeta=2.0d0*sumgv/(2.0d0*sumpv-sumgv*dtx)
+          endif
           fact=sgbeta/(1.0d0+0.5d0*sgbeta*dtx)
           do  m = 1,3
             fi3=frc(m,i)

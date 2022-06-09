@@ -1,13 +1,14 @@
 
           -------------------------------------------------------
-          Amber 21 SANDER                              2021
+          Amber 22 SANDER                              2022
           -------------------------------------------------------
 
-| Run on 03/30/2022 at 12:41:18
+| Run on 04/21/2022 at 15:50:59
 
-|   Executable path: /home/xiongwu/Ambers/install_dev///bin/sander
-| Working directory: /home/xiongwu/Ambers/install_dev/test/gb_rna
-|          Hostname: Unknown
+|   Executable path: /u/wxw/ambers/install_dev///bin/sander
+| Working directory: /u/wxw/ambers/install_dev/test/gb_rna
+|          Hostname: m2.lobos.nih.gov
+
   [-O]verwriting output
 
 File Assignments:
@@ -27,9 +28,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
  test of gen. Born, on a stretch of A-RNA                                      
  &cntrl                                                                        
    nstlim=10, cut=99.0, igb=1, saltcon=0.1,                                    
@@ -153,7 +154,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       169.8648  ANGLE   =       317.5438  DIHED      =       418.4878
  1-4 NB =       163.4163  1-4 EEL =     -2297.2470  VDWAALS    =      -356.1385
  EELEC  =      2159.3372  EGB     =     -4683.2630  RESTRAINT  =         0.0000
- SGLD:    0.0000   21.20  -21.20     -4108.00        0.00    -4108.00    0.0000
+ SGLD:    0.0000    1.50   -1.50     -4108.00        0.00    -4108.00    0.0000
  ------------------------------------------------------------------------------
 
 
@@ -162,7 +163,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       171.1658  ANGLE   =       317.3422  DIHED      =       418.8732
  1-4 NB =       163.6088  1-4 EEL =     -2298.8815  VDWAALS    =      -355.8420
  EELEC  =      2161.2241  EGB     =     -4683.5855  RESTRAINT  =         0.0000
- SGLD:   -0.0000   21.19  287.88     -4107.99        1.89    -4108.00    0.0004
+ SGLD:   -0.0000    1.50  307.57     -4107.99        1.89    -4108.00    0.0004
  ------------------------------------------------------------------------------
 
 
@@ -171,7 +172,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       172.1173  ANGLE   =       317.9837  DIHED      =       419.5748
  1-4 NB =       163.7715  1-4 EEL =     -2300.9057  VDWAALS    =      -355.4556
  EELEC  =      2163.4506  EGB     =     -4684.1073  RESTRAINT  =         0.0000
- SGLD:   -0.0068   21.18  282.30     -4107.97        4.40    -4108.00    0.0013
+ SGLD:   -0.0068    1.50  301.98     -4107.97        4.40    -4108.00    0.0013
  ------------------------------------------------------------------------------
 
 
@@ -180,7 +181,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       172.8548  ANGLE   =       319.1322  DIHED      =       420.6480
  1-4 NB =       163.7900  1-4 EEL =     -2303.0837  VDWAALS    =      -355.0075
  EELEC  =      2165.5278  EGB     =     -4684.7388  RESTRAINT  =         0.0000
- SGLD:   -0.0198   21.17  280.19     -4107.93        7.05    -4108.00    0.0028
+ SGLD:   -0.0198    1.50  299.86     -4107.93        7.05    -4108.00    0.0028
  ------------------------------------------------------------------------------
 
 
@@ -189,7 +190,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       173.3331  ANGLE   =       320.8975  DIHED      =       421.8615
  1-4 NB =       163.5890  1-4 EEL =     -2304.9635  VDWAALS    =      -354.5771
  EELEC  =      2168.0627  EGB     =     -4686.0253  RESTRAINT  =         0.0000
- SGLD:   -0.0386   21.16  281.62     -4107.88       10.06    -4108.00    0.0048
+ SGLD:   -0.0386    1.50  301.29     -4107.88       10.06    -4108.00    0.0048
  ------------------------------------------------------------------------------
 
 
@@ -198,7 +199,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       173.2476  ANGLE   =       322.6040  DIHED      =       423.1260
  1-4 NB =       163.3482  1-4 EEL =     -2306.7940  VDWAALS    =      -354.2036
  EELEC  =      2170.7203  EGB     =     -4687.7005  RESTRAINT  =         0.0000
- SGLD:   -0.0625   21.15  280.40     -4107.82       12.17    -4108.00    0.0073
+ SGLD:   -0.0625    1.50  300.05     -4107.82       12.17    -4108.00    0.0073
  ------------------------------------------------------------------------------
 
 
@@ -207,7 +208,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       172.8831  ANGLE   =       325.2074  DIHED      =       424.0602
  1-4 NB =       163.0344  1-4 EEL =     -2308.7277  VDWAALS    =      -353.9262
  EELEC  =      2173.5812  EGB     =     -4689.6495  RESTRAINT  =         0.0000
- SGLD:   -0.0906   21.14  277.84     -4107.75       14.21    -4108.00    0.0102
+ SGLD:   -0.0906    1.50  297.48     -4107.75       14.21    -4108.00    0.0102
  ------------------------------------------------------------------------------
 
 
@@ -216,7 +217,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       171.8062  ANGLE   =       327.4598  DIHED      =       424.7122
  1-4 NB =       162.7899  1-4 EEL =     -2310.4685  VDWAALS    =      -353.7463
  EELEC  =      2176.4908  EGB     =     -4691.8676  RESTRAINT  =         0.0000
- SGLD:   -0.1220   21.13  276.13     -4107.67       14.85    -4107.99    0.0133
+ SGLD:   -0.1220    1.49  295.77     -4107.67       14.85    -4107.99    0.0133
  ------------------------------------------------------------------------------
 
 
@@ -225,7 +226,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       170.7023  ANGLE   =       329.1704  DIHED      =       425.2616
  1-4 NB =       162.6031  1-4 EEL =     -2311.8557  VDWAALS    =      -353.6575
  EELEC  =      2179.2177  EGB     =     -4694.1706  RESTRAINT  =         0.0000
- SGLD:   -0.1554   21.12  273.70     -4107.60       14.87    -4107.99    0.0163
+ SGLD:   -0.1554    1.49  293.32     -4107.60       14.87    -4107.99    0.0163
  ------------------------------------------------------------------------------
 
 
@@ -234,7 +235,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       170.0581  ANGLE   =       330.4538  DIHED      =       425.3751
  1-4 NB =       162.4512  1-4 EEL =     -2312.8687  VDWAALS    =      -353.5356
  EELEC  =      2181.5498  EGB     =     -4696.3124  RESTRAINT  =         0.0000
- SGLD:   -0.1901   21.11  274.94     -4107.53       14.70    -4107.99    0.0192
+ SGLD:   -0.1901    1.49  294.56     -4107.53       14.70    -4107.99    0.0192
  ------------------------------------------------------------------------------
 
 
@@ -246,7 +247,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =       171.8033  ANGLE   =       322.7795  DIHED      =       422.1981
  1-4 NB =       163.2403  1-4 EEL =     -2305.5796  VDWAALS    =      -354.6090
  EELEC  =      2169.9162  EGB     =     -4688.1420  RESTRAINT  =         0.0000
- SGLD:   -0.0686   21.16  249.38     -4107.81        9.42    -4108.00    0.0076
+ SGLD:   -0.0686    1.50  269.04     -4107.81        9.42    -4108.00    0.0076
  ------------------------------------------------------------------------------
 
 
@@ -258,7 +259,7 @@ PDB 5DNB, Dickerson decamer
  BOND   =         1.2336  ANGLE   =         4.7370  DIHED      =         2.5367
  1-4 NB =         0.4646  1-4 EEL =         5.2015  VDWAALS    =         0.9038
  EELEC  =         7.2879  EGB     =         4.4312  RESTRAINT  =         0.0000
- SGLD:    0.0650    0.03   90.28         0.16        5.42        0.00    0.0066
+ SGLD:    0.0650    0.00   90.26         0.16        5.42        0.00    0.0066
  ------------------------------------------------------------------------------
 
 
@@ -266,22 +267,21 @@ PDB 5DNB, Dickerson decamer
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 0.43% of Total)
-|                Calc gb radii              0.02 (19.86% of Gen B)
-|                Calc gb diag               0.04 (39.35% of Gen B)
-|                Calc gb off-diag           0.04 (40.78% of Gen B)
-|                Other                      0.00 ( 0.01% of Gen B)
-|             Gen Born time              0.11 (100.0% of Nonbo)
-|          Nonbond force              0.11 (97.32% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 2.65% of Force)
-|          Other                      0.00 ( 0.03% of Force)
-|       Force time                 0.11 (91.06% of Runmd)
-|       Shake time                 0.00 ( 0.07% of Runmd)
-|       Verlet update time         0.01 ( 8.64% of Runmd)
+|    Read coords time           0.00 ( 0.73% of Total)
+|                Calc gb radii              0.05 (19.08% of Gen B)
+|                Calc gb diag               0.09 (32.68% of Gen B)
+|                Calc gb off-diag           0.14 (48.23% of Gen B)
+|             Gen Born time              0.29 (100.0% of Nonbo)
+|          Nonbond force              0.29 (98.86% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 1.12% of Force)
+|          Other                      0.00 ( 0.02% of Force)
+|       Force time                 0.29 (89.93% of Runmd)
+|       Shake time                 0.00 ( 0.05% of Runmd)
+|       Verlet update time         0.03 ( 9.78% of Runmd)
 |       Other                      0.00 ( 0.23% of Runmd)
-|    Runmd Time                 0.12 (51.68% of Total)
-|    Other                      0.11 (47.89% of Total)
-| Total time                 0.24 (100.0% of ALL  )
+|    Runmd Time                 0.32 (94.09% of Total)
+|    Other                      0.02 ( 5.18% of Total)
+| Total time                 0.34 (99.52% of ALL  )
 
 | Number of list builds   :          0
 
@@ -291,18 +291,17 @@ PDB 5DNB, Dickerson decamer
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.12 Per Step(ms) =      12.24
-|         ns/day =       7.06   seconds/ns =   12243.89
+|     Elapsed(s) =       0.32 Per Step(ms) =      32.15
+|         ns/day =       2.69   seconds/ns =   32149.40
 | -----------------------------------------------------
 
-|           Job began  at 12:41:18.758  on 03/30/2022
-|           Setup done at 12:41:18.872  on 03/30/2022
-|           Run   done at 12:41:18.994  on 03/30/2022
+|           Job began  at 15:50:59.175  on 04/21/2022
+|           Setup done at 15:50:59.197  on 04/21/2022
+|           Run   done at 15:50:59.518  on 04/21/2022
 |     wallclock() was called     263 times
 
 |3D-RISM memory allocation summary
-|Type          Maximum        Current   
-|Integer       0.00000 GB     0.00000 GB
+|Type          Maximum        Cu|3D-RISM |Integer       0.00000 GB |Type          |Real          0.00000 GB |Integer       0.00000 GB     0.00000 GB
 |Real          0.00000 GB     0.00000 GB
 |Logical       0.00000 GB     0.00000 GB
 |Character     0.00000 GB     0.00000 GB
