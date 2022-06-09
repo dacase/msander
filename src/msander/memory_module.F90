@@ -56,14 +56,10 @@ module memory_module
       belly_group, atom_noshake, num_bonds, nmr_iwork
 
    _REAL_, dimension(:), pointer :: charge, massinv, mass, &
-      bond_bcoef, hbcut, box_dimensions, radii, screen, &
-      polarizability, nmr_work, reff, onereff, group_weight, &
-      gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, &
-!      rborn_max, rborn_min, rborn_ave, rborn_fluct
-! Modified by WJM, YD, RL
-      rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor, pol2
-   _REAL_, dimension(:,:), pointer :: polbnd
-!!
+      bond_bcoef, hbcut, box_dimensions, radii, screen, skip, &
+      polarizability, nmr_work, reff, onereff, conp, group_weight, &
+      gb_vdw_radii, gb_p1, gb_p2, gb_p3, gb_p4, coord3, force3, vel3, vel3_old, &
+      rest_coord3, rborn_max, rborn_min, rborn_ave, rborn_fluct, dampfactor
 
    _REAL_, dimension(:,:), pointer :: ref_coordinate, coordinate, &
       velocity, velocity_old, frc
@@ -72,8 +68,6 @@ module memory_module
    _REAL_, pointer, dimension(:) :: &
        nmr_xmet, nmr_force, nmr_ddep, nmr_dddep, &
        nmr_dorat, nmr_ddrat, nmr_rate, nmr_trp, nmr_dint
-
-   _REAL_, pointer, dimension(:) :: cnstph_dcharge
 
 contains
    ! This routine intitializes all of the pointer arrays after they
@@ -147,35 +141,37 @@ contains
       radii => x(l97:l97+natom-1)
       screen => x(l96:l96+natom-1)
       polarizability => x(lpol:lpol+natom-1)
-! by WJM, YD
-      pol2 => x(lpol2:lpol2+natom-1)
-      dampfactor => x(ldf:ldf+natom-1)
-!!
 
       restraint_group => ix(icnstrgp:icnstrgp+ndper-1)
       tgt_fit_group => ix(itgtfitgp:itgtfitgp+natom-1)
       tgt_rms_group => ix(itgtrmsgp:itgtrmsgp+natom-1)
       belly_group => ix(ibellygp:ibellygp+natom-1)
-      atom_noshake => ix(noshake:noshake+natom-1)
+      atom_noshake => ix(noshake:noshake+nbona+nbonh-1)
 
+      coord3 => x(lcrd:lcrd+3*natom+mxvar-1)
+      force3 => x(lforce:lforce+3*natom+mxvar-1)
+      vel3 => x(lvel:lvel+3*natom+mxvar-1)
+      vel3_old => x(lvel2:lvel2+3*natom+mxvar-1)
+      rest_coord3 => x(lcrdr:lcrdr+3*natom+mxvar-1)
       call set_rank2_pointer(coordinate,x(lcrd),3,natom)
       call set_rank2_pointer(ref_coordinate,x(lcrdr),3,natom)
       call set_rank2_pointer(velocity,x(lvel),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(velocity_old,x(lvel2),3,natom) ! 6* when imin/=0 ???
       call set_rank2_pointer(frc,x(lforce),3,natom)
 ! by RL
-      call set_rank2_pointer(polbnd,x(lpolbnd),3,natom)
 
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       group_weight => x(l60:l60+natom-1)
-
-      ! l65: polarization  DEAD??
 
       nmr_work => x(lnmr01:lnmr01+irlreq-1)
       nmr_iwork => ix(inmr02:inmr02+intreq-1)
 
+#ifdef LES
       reff => x(l98:l98+natom*ncopy-1)
       onereff => x(l99:l99+natom*ncopy-1)
+#else
+      reff => x(l98:l98+natom-1)
+      onereff => x(l99:l99+natom-1)
+#endif
 
       gb_vdw_radii => x(l165:l165+natom-1)
       gb_p1 => x(l170:l170+natom-1)
@@ -187,9 +183,9 @@ contains
       rborn_ave => x(l188:l188+natom-1)
       rborn_fluct => x(l189:l189+natom-1)
 
-      !p_conp => x(l50:l50+ntbond-1)
+      conp => x(l50:l50+nbona+nbonh-1)
+      skip => x(l95:l95+nbona+nbonh-1)
       !p_nmr_scratch => x(l95:l95+???)
-      !p_tma => x(l75:l75+natom-1)
 
       if (nmropt >= 2) then
          nmr_imet => ix(i65:i65+mxsub*isubi-1)
@@ -202,10 +198,6 @@ contains
          nmr_rate => x(l135:l135+ma*ma-1)
          nmr_trp => x(l140:l140+ma*ma-1)
          nmr_dint => x(l145:l145+3*ma+mxvar-1)
-      end if
-
-      if ( icnstph /= 0 .or. icnste /= 0 ) then
-         cnstph_dcharge => x(l190:l190+natom-1)
       end if
 
       return
@@ -277,11 +269,6 @@ contains
       nullify(mass)
       nullify(radii)
       nullify(screen)
-      nullify(polarizability)
-! by WJM, YD
-      nullify(pol2)
-      nullify(dampfactor)
-!!
 
       nullify(restraint_group)
       nullify(tgt_fit_group)
@@ -294,13 +281,8 @@ contains
       nullify(velocity)
       nullify(velocity_old)
       nullify(frc)
-! by RL
-      nullify(polbnd)
 
-      !coor_ref?   x(l45:l45+3*natom+mxvar-1)
       nullify(group_weight)
-
-      ! l65: polarization  DEAD??
 
       nullify(nmr_work)
       nullify(nmr_iwork)
@@ -318,10 +300,6 @@ contains
       nullify(rborn_ave)
       nullify(rborn_fluct)
 
-      !p_conp => x(l50:l50+ntbond-1)
-      !p_nmr_scratch => x(l95:l95+???)
-      !p_tma => x(l75:l75+natom-1)
-
       if (nmropt >= 2) then
          nullify(nmr_imet)
          nullify(nmr_xmet)
@@ -333,10 +311,6 @@ contains
          nullify(nmr_rate)
          nullify(nmr_trp)
          nullify(nmr_dint)
-      end if
-
-      if ( icnstph /= 0 .or. icnste /= 0 ) then
-         nullify(cnstph_dcharge)
       end if
 
       ! Now deallocate the arrays

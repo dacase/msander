@@ -1133,10 +1133,10 @@ subroutine collect_dec(nin)
    ! Collects the data from the dec-arrays of all slave processes
    ! in the dec-array of the master process
 
+   use mpi
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
    integer, intent(in) :: nin
    integer ier, decsize, ierr
@@ -1166,10 +1166,10 @@ subroutine collect_dec2(nin)
    ! Collects the data from the dec-arrays of all slave processes
    ! in the dec-array of the master process
 
+   use mpi
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
    integer, intent(in) :: nin
    integer ier, decsize, ierr
@@ -1194,10 +1194,10 @@ end subroutine collect_dec2
 !+ [Enter a one-line description of subroutine dsynchronize_dec here]
 subroutine synchronize_dec(natom, nres)
 
+   use mpi
    implicit none
 
 #  include "parallel.h"
-   include 'mpif.h'
 
    integer, intent(in) :: natom, nres
    integer ierr

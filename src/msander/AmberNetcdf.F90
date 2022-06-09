@@ -1,11 +1,9 @@
 ! ============= NETCDF ROUTINES FOR SANDER/PMEMD =====================
 !> @file AmberNetcdf.F90 
 !> @author Daniel R. Roe, 2013
-!> @define BINTRAJ Use NetCDF.
 !> @define _NETCDF_DEBUG Activate extra debugging info.
 module AmberNetcdf_mod
   implicit none
-#ifdef BINTRAJ
   private
   integer, save       :: mdout
   character(10), save :: programName
@@ -1000,63 +998,40 @@ integer function NC_setupMultiD(ncid, expected_dim, indicesVID, groupsVID, value
   NC_setupMultiD=0
 end function NC_setupMultiD 
 
-! ===== NO BINTRAJ SECTION =====================================================
-#else /* NO BINTRAJ */
-  public NC_NoNetcdfError, NC_checkRestart, NC_readRestartIndices, NC_checkTraj
-contains
-!--------------------------------------------------------------------
-!> MODULE AMBERNETCDF FUNCTION NC_NONETCDFERROR
-!> @brief Should never be called if BINTRAJ defined.
-subroutine NC_NoNetcdfError(mdout_unit)
-  integer, intent(in) :: mdout_unit
-  write(mdout_unit,'(a)') 'No binary trajectory support in this version.'
-  write(mdout_unit,'(a)') 'Recompile using the -DBINTRAJ flag.'
-end subroutine NC_NoNetcdfError
-#endif /* BINTRAJ */
-
-! ===== SHARED BINTRAJ / NO BINTRAJ ============================================
 !--------------------------------------------------------------------
 !> MODULE AMBERNETCDF FUNCTION NC_CHECKRESTART
 !> @return true if file is an amber netcdf restart.
-!> @return false if not netcdf restart or when no BINTRAJ
+!> @return false if not netcdf restart
 logical function NC_checkRestart(filename)
-# ifdef BINTRAJ
   use netcdf
-# endif
   implicit none
   character(*), intent(in) :: filename
   ! local
   integer ncid, ierr
   NC_checkRestart=.false.
-# ifdef BINTRAJ
   ierr = nf90_open( filename, NF90_NOWRITE, ncid )
   if (ierr .eq. NF90_NOERR) then
     if (.not.NC_checkConventions(ncid, .true.)) NC_checkRestart=.true.
     call NC_close(ncid)
   endif
-# endif
 end function NC_checkRestart
 
 !--------------------------------------------------------------------
 !> MODULE AMBERNETCDF FUNCTION NC_CHECKTRAJ
 !> @return true if file is an amber netcdf trajectory.
-!> @return false if not netcdf trajectory or when no BINTRAJ
+!> @return false if not netcdf trajectory
 logical function NC_checkTraj(filename)
-# ifdef BINTRAJ
   use netcdf
-# endif
   implicit none
   character(*), intent(in) :: filename
   ! local
   integer ncid, ierr
   NC_checkTraj=.false.
-# ifdef BINTRAJ
   ierr = nf90_open( filename, NF90_NOWRITE, ncid )
   if (ierr .eq. NF90_NOERR) then
     if (.not.NC_checkConventions(ncid, .false.)) NC_checkTraj=.true.
     call NC_close(ncid)
   endif
-# endif
 end function NC_checkTraj
 
 !--------------------------------------------------------------------
@@ -1069,12 +1044,10 @@ end function NC_checkTraj
 !> @param remd_crdidx Overall coordinate index if present, -1 otherwise.
 !> @param remd_dimension Dimension of replica_indexes
 !> @return 0 if indices/groups successfully read, 1 if no indexes 
-!!         present, -1 if error or no BINTRAJ.
+!!         present, -1 if error
 integer function NC_readRestartIndices(filename, replica_indexes, group_num,&
                                        remd_repidx, remd_crdidx, remd_dimension)
-# ifdef BINTRAJ
   use netcdf
-# endif
   implicit none
   character(*), intent(in)           :: filename
   integer, dimension(:), intent(out) :: replica_indexes
@@ -1088,7 +1061,6 @@ integer function NC_readRestartIndices(filename, replica_indexes, group_num,&
   NC_readRestartIndices=-1
   remd_repidx=-1
   remd_crdidx=-1
-# ifdef BINTRAJ
   ! Open file - exit cleanly if not netcdf
   if (nf90_open( filename, NF90_NOWRITE, ncid ) .ne. NF90_NOERR) return
   ! Make sure its NetCDF restart.
@@ -1129,7 +1101,6 @@ integer function NC_readRestartIndices(filename, replica_indexes, group_num,&
     write(mdout,'(a)') '| Warning: NetCDF restart does not contain replica indices.'
   endif
   call NC_close(ncid)
-# endif
 end function NC_readRestartIndices
 
 end module AmberNetcdf_mod

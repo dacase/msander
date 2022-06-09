@@ -201,10 +201,10 @@ contains
 
   subroutine  mdiis_orig_advance (this, rms1,conver,tolerance_o)
     use rism_util, only : checksum
-    implicit none 
 #ifdef MPI
-    include 'mpif.h'
-#endif /* MPI */
+    use mpi
+#endif
+    implicit none 
 #include "def_time.h" 
     
     type(mdiis_orig), intent(inout) :: this

@@ -1,7 +1,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-void arsecond_( double *wallc ){
+void arscnd_( double *wallc ){
 
 #  ifdef NO_DETAILED_TIMINGS
 	*wallc = 0.0;

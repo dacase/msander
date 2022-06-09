@@ -59,10 +59,10 @@ contains
   !! @param[in] eps LJ epsilon. [kT]
   !! @param[in] o_mpicomm (optional) MPI communicator.
   subroutine rism3d_solute_new_internal (this, natom, mass, charge, ratu, ljSigma, eps, o_mpicomm)
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rism3d_solute), intent(inout) :: this
     integer, intent(in) :: natom
     _REAL_, intent(in) :: mass(natom), charge(natom), ratu(3, natom), ljSigma(natom), eps(natom)
@@ -121,10 +121,10 @@ contains
        o_mpicomm)
     use constants_rism, only: KB, COULOMB_CONST_E, BOLTZMANN, &
          AVOGADRO, AMBER_ELECTROSTATIC, PI
-    implicit none
 #ifdef MPI
-    include 'mpif.h'
-#endif /*MPI*/
+    use mpi
+#endif
+    implicit none
     type(rism3d_solute), intent(inout) :: this
     integer, intent(in) :: numAtoms, atomTypeIndex(numAtoms), nonbondedParmIndex(numTypes**2), numTypes
     _REAL_, intent(in) :: charge(numAtoms), ljA(numTypes * (numTypes + 1) / 2), &
@@ -316,11 +316,11 @@ contains
   !! @param[in] rank MPI rank.
   !! @param[in] comm MPI communicator.
   subroutine rism3d_solute_mpi_clone(this, rank, comm)
+    use mpi
     implicit none
     type(rism3d_solute), intent(inout) :: this
     integer, intent(in) :: rank, comm
     integer :: err
-    include 'mpif.h'
     !first distribute the pieces of information needed to allocate memory
     call mpi_bcast(this%numAtoms, 1,mpi_integer, 0,comm, err)
     if (err /=0) call rism_report_error&

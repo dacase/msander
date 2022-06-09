@@ -5,17 +5,7 @@ SHELL=/bin/sh
 VPATH=
 
 # Add search paths for .mod files
-LOCALFLAGS = -I../sqm -I../rism 
-
-QMAPIOBJ = \
-    abfqmmm_module.o qm_ewald.o qmmm_vsolv.o \
-    qm2_extern_util_module.o qm2_extern_module.o \
-    qm2_extern_adf_module.o qm2_read_adf_results.o KFReader.o \
-    ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
-    qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
-    qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
-    qmmm_adaptive_module.o prn_qmmm_dipole.o
+LOCALFLAGS = $(CUDAFLAGS) -I../sqm -I../rism -I../xray 
 
 LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     constants.o state.o wallclock.o veclib.o \
@@ -23,7 +13,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     egb.LES.o remd.LES.o findmask.o relax_mat.o nmr.LES.o multitmd.o \
     cshf.o nmrcal.o mtmdcall.o pearsn.o cpparm.LES.o \
     printe.o nonbond_list.LESAPI.o force.LES.o rdparm.LESAPI.o \
-    mdread.LES.o locmem.LES.o runmd.LES.o relaxmd.o quench.o degcnt.LES.o decnvh.o \
+    mdread.LES.o locmem.LES.o runmd.LES.o quench.o degcnt.LES.o decnvh.o \
     fastwt.API.o parallel.LES.o shake.o rattle.o ene.LES.o \
     dynlib.LESAPI.o nmlsrc.o \
     ew_force.LES.o ew_setup.LESAPI.o ew_bspline.o\
@@ -32,15 +22,15 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     amopen.o sander_lib.o random.o debug.API.o \
     mexit.o new_time.API.o extra_pts.LESAPI.o thermo_int.o matinv.o assert.o \
     erfcfun.o md_scheme.LES.o \
-    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o \
+    ips.o sglds.o iwrap2.o emap.o \
     amber_rism_interface.API.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o \
+    parms.o softcore.o mbar.o \
     linear_response.o molecule.o dssp.o \
     charmm.API.o crg_reloc.o barostats.o prmtop_type.o \
     AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o \
     mdwrit.LES.o lmod.LES.o trajene.o ew_box.LESAPI.o minrit.LES.o \
     set.LESAPI.o qm_mm.LESAPI.o amd.o scaledMD.o interface.LESAPI.o \
-    music_module.o dsarpack.o
+    music_module.o dsarpack.o nxtsec.o
 
 NFE_OBJECTS = \
     nfe-abmd-hooks.o nfe-bbmd-ctxt.o nfe-bbmd-hooks.o  \
@@ -65,7 +55,8 @@ QMOBJ= \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o \
     qm2_extern_nw_module.o qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
+    qm2_extern_genmpi_module.o tcpb_module.o \
+    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
@@ -73,7 +64,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     lmodC.o xminC.o decomp.o icosasurf.o egb.o remd.o findmask.o \
     relax_mat.o nmr.o multitmd.o trajene.o cshf.o nmrcal.o mtmdcall.o pearsn.o \
     printe.o rdparm.API.o cpparm.o sander_lib.o \
-    mdread.o locmem.o runmd.o relaxmd.o quench.o getcor.o degcnt.o decnvh.o \
+    mdread.o locmem.o runmd.o quench.o getcor.o degcnt.o decnvh.o \
     fastwt.API.o parallel.o shake.o rattle.o ene.o mdwrit.o minrit.o \
     set.API.o dynlib.API.o mdfil.o nmlsrc.o \
     ew_force.o ew_setup.API.o ew_box.API.o ew_bspline.o\
@@ -81,14 +72,14 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     pcshift.o align.o csa.o rfree.o rgroup.o amopen.o \
     debug.API.o mexit.o new_time.API.o extra_pts.API.o thermo_int.o les.o \
     matinv.o assert.o erfcfun.o md_scheme.o \
-    constantph.o constante.o ips.o sglds.o iwrap2.o emap.o\
+    ips.o sglds.o iwrap2.o emap.o\
     amber_rism_interface.API.o \
     AmberNetcdf.o bintraj.o binrestart.o \
-    spatial_recip.o spatial_fft.o parms.o softcore.o mbar.o linear_response.o \
+    parms.o softcore.o mbar.o linear_response.o \
     molecule.o dssp.o \
     charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
     random.o qm_mm.API.o \
-    prmtop_type.o music_module.o wallclock.o veclib.o dsarpack.o
+    prmtop_type.o music_module.o wallclock.o veclib.o dsarpack.o nxtsec.o
 
 QMAPIOBJ = \
     qm_ewald.o qmmm_vsolv.o \
@@ -97,13 +88,14 @@ QMAPIOBJ = \
     ArrayList.o qm2_extern_gms_module.o qm2_extern_tc_module.o \
     qm2_extern_gau_module.o qm2_extern_orc_module.o qm2_extern_nw_module.o \
     qm2_extern_qc_module.o qm2_extern_mrcc_module.o \
-    qm2_extern_genmpi_module.o \
+    qm2_extern_genmpi_module.o tcpb_module.o \
+    qm2_extern_quick_module.o  qm2_extern_reaxff_puremd_module.o \
     qmmm_adaptive_module.o prn_qmmm_dipole.o
 
 MMOBJ = \
     align.o AmberNetcdf.o amd.o amopen.o assert.o \
-    barostats.o binrestart.o bintraj.o charmm.o constante.o \
-    constantph.o constants.o crg_reloc.o csa.o cshf.o \
+    barostats.o binrestart.o bintraj.o charmm.o \
+    constants.o crg_reloc.o csa.o cshf.o \
     debug.o decnvh.o degcnt.o dssp.o \
     dynlib.o egb.o emap.o ene.o erfcfun.o \
     ew_box.o ew_bspline.o ew_fft.o \
@@ -116,17 +108,17 @@ MMOBJ = \
     multitmd.o music_module.o new_time.o nmlsrc.o nmrcal.o \
     nmr.o nonbond_list.o parallel.o parms.o pcshift.o \
     pearsn.o printe.o qm_mm.o quench.o rand2.o \
-    random.o rattle.o rdparm.o relax_mat.o relaxmd.o \
+    random.o rattle.o rdparm.o relax_mat.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
     sander_lib.o sander.o scaledMD.o set.o \
-    sglds.o shake.o $(SHORT_ENE) softcore.o spatial_fft.o \
-    spatial_recip.o stack.o state.o thermo_int.o trajene.o \
-    wallclock.o xminC.o veclib.o dsarpack.o 
+    sglds.o shake.o $(SHORT_ENE) softcore.o \
+    stack.o state.o thermo_int.o trajene.o \
+    wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
 
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o \
     assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
-    constante.o constantph.o constants.o crg_reloc.o csa.o \
+    constants.o crg_reloc.o csa.o \
     cshf.o debug.o decnvh.o degcnt.LES.o \
     dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
     erfcfun.o ew_box.LES.o ew_bspline.o \
@@ -140,22 +132,24 @@ LESOBJ= \
     nmlsrc.o nmrcal.o nmr.LES.o nonbond_list.LES.o parallel.LES.o \
     parms.o pcshift.o pearsn.o printe.o \
     qm_mm.LES.o quench.o rand2.o random.o \
-    rattle.o rdparm.LES.o relax_mat.o relaxmd.o remd.LES.o \
+    rattle.o rdparm.LES.o relax_mat.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o \
     sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
-    shake.o short_ene.LES.o softcore.o spatial_fft.o spatial_recip.o \
+    shake.o short_ene.LES.o softcore.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
-    xminC.o veclib.o dsarpack.o 
+    xminC.o veclib.o dsarpack.o nxtsec.o
 
 XRAY_OBJS = \
-   xray_fourier.o xray_globals.o xray_interface.o xray_utils.o \
-   xray_ml.o xray_reciprocal_space.o xray_bulk_solvent.o
+   xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
+   xray_interface_pre_init_data.o
 
 .PHONY: dummy
 
-msander: $(BINDIR)/msander$(SFX)
+msander$(SFX): $(BINDIR)/msander$(SFX)
 
-msander.LES: $(BINDIR)/msander.LES$(SFX)
+msander.LES$(SFX): $(BINDIR)/msander.LES$(SFX)
+
+msander.cuda$(SFX): $(BINDIR)/msander.cuda$(SFX)
 
 libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
 
@@ -169,7 +163,7 @@ libsanderles_skip::
 
 amber_rism_interface.API.o: ../rism/amber_rism_interface.F90
 	@echo "[MSANDER]  FC $<"
-	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) $(RISMSANDER) -o $@ $< 
+	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ $< 
 
 dummy:
 
@@ -181,6 +175,17 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	     $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
+
+#---------------------------------------------------------------------------
+$(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
+         $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o \
+         $(PLUMED_DEPENDENCIES) dummy
+	@echo "[MSANDER]  FC $@"
+	$(VB)$(FC) -o $@  $(MMOBJ) $(QMOBJ) \
+	     $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o  \
+	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD) \
+         -lxray_cuda -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib \
+         -lcurand -lcufft -lcudart -lcudadevrt -lgfortran -lstdc++
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
@@ -227,10 +232,12 @@ libs:
 	$(VB)cd ../lapack && $(MAKE) $(LAPACK)
 	$(VB)cd ../arpack && $(MAKE) $(ARPACK)
 	$(VB)cd ../sqm && $(MAKE) libsqm
-	$(VB)cd ../lib && $(MAKE) libsys
 	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
 	$(VB)cd ../rism && $(MAKE) $(RISM)
+	$(VB)cd ../xray && $(MAKE) libxray
     
+lib_cuda:
+	$(VB)cd ../xray/cuda && $(MAKE) libxray_cuda
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c
 	@echo "[MSANDER]  CC $<"

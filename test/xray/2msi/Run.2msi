@@ -1,0 +1,43 @@
+#!/bin/sh
+
+export XRAY_NUM_THREADS=10
+sander=../../../bin/msander
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+output=2msi_md.o
+
+cat > mdin <<EOF
+Production stage (NPT)
+ &cntrl
+  irest = 0, ntx = 1,
+  ntt = 0,
+  tempi = 0.0, ig=12345, 
+  cut = 8.0,
+  ntc = 2, ntf = 2,
+  nstlim = 5, dt = 0.002,
+  ntpr = 1,
+  ioutfm = 1
+/
+&xray
+  spacegroup_name='P1',
+  pdb_infile = 'uc.pdb',
+  pdb_read_coordinates=.false., 
+  reflection_infile = 'real.dat',
+  atom_selection_mask = ':1-264',
+  xray_weight_initial = 1.,
+  xray_weight_final = 1.,
+  bulk_solvent_model='afonine-2013',
+  target='ml',
+/
+EOF
+
+$sander -O -i mdin -o $output \
+        -p wbox_xray.parm7 -c run_cool.rst \
+        < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../../dacdif $output.save $output
+
+/bin/rm -f mdin mdinfo restrt

@@ -3,16 +3,16 @@
           Amber 18 SANDER                              2018
           -------------------------------------------------------
 
-| Run on 03/23/2020 at 22:16:59
+| Run on 12/13/2021 at 12:22:54
 
 |   Executable path: /home/case/msander/bin/msander
-| Working directory: /home/case/msander/test/xray/3onk
+| Working directory: /home/case/msander_oneapi/test/xray/3onk
 |          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
 |  MDIN: mdin                                                                  
-| MDOUT: ml_opt_debug.out                                                      
+| MDOUT: ml_opt_debug_new.out                                                  
 |INPCRD: 4amber_3onk.rst7                                                      
 |  PARM: 3onk.parm7                                                            
 |RESTRT: restrt                                                                
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   imin=0, maxcyc=30,                                                           
@@ -44,7 +44,7 @@ Test of MD with Xray restraints
   vdwmeth=0,                                                                   
  /                                                                             
  &xray                                                                         
-   pdb_infile = 'final_structure_bf.pdb'                                       
+   pdb_infile = 'final_structure_bfocc.pdb'                                    
    reflection_infile = 'real.dat',                                             
    atom_selection_mask = ':*',                                                 
    xray_weight = 1.0,                                                          
@@ -66,8 +66,7 @@ Test of MD with Xray restraints
 
 | Flags:                                                                        
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
-|Largest sphere to fit in unit cell has radius =    12.100
+| Largest sphere to fit in unit cell has radius =    12.100
  NATOM  =    2269 NTYPES =      14 NBONH =    1131 MBONA  =    1154
  NTHETH =    2557 MTHETA =    1548 NPHIH =    5269 MPHIA  =    4853
  NHPARM =       0 NPARM  =       0 NNB   =   12444 NRES   =     137
@@ -91,7 +90,6 @@ Test of MD with Xray restraints
 | Note: 1-4 VDW scale factors are being read from the topology file.
 | Duplicated    0 dihedrals
 | Duplicated    0 dihedrals
- XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
      BOX TYPE: RECTILINEAR
 
@@ -109,7 +107,7 @@ Nature and format of input:
 
 Nature and format of output:
      ntxo    =       2, ntpr    =       2, ntrx    =       1, ntwr    =       1
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
@@ -141,9 +139,25 @@ Ewald parameters:
      Cutoff=   10.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.27511
      Interpolation order =    4
+     Setting ifbox to 3 for non-orthogonal unit cell
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+| Running OpenMP with  20 threads
+| Running OpenMP with  20 threads
+
+     Sum of charges from parm topology file =       1.0000
+     Assuming uniform neutralizing plasma
+ XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1
 
 X-ray Refinement Parameters:
-     PDB InFile: final_structure_bf.pdb
+     PDB InFile: final_structure_bfocc.pdb
      PDB Read Coordinates: F
      PDB Use SegID: F
      PDB Wrap Names: F
@@ -156,26 +170,18 @@ X-ray Refinement Parameters:
      Solvent Mask Update Interval:   100
      Solvent scale:   0.000, B-factor:   0.000
      FFT method:  0
-     Atom Selection Mask: :*
-     Setting ifbox to 3 for non-orthogonal unit cell
-
---------------------------------------------------------------------------------
-   3.  ATOMIC COORDINATES AND VELOCITIES
---------------------------------------------------------------------------------
-
-                                                                                
- begin time read from input coords =     0.000 ps
-
+     Atom Selection Mask:   :*
+     Solute Selection Mask: :*
 PDB: All atoms read successfully.
+ getting box info from bottom of 4amber_3onk.rst7
 XRAY: UNIT CELL=    26.600   37.589   38.109  77.81  86.64  65.54
 Found   2269 atoms in :*;
+Found   2269 atoms in :*;
 | number of reflections:     6591     734    7325
+| highest resolution:   2.090
+| mask_grid_steps:    0.49259   0.47521   0.49640
+| mask_grid_size:         54        72        75    291600
 | creating k_mask with k_sol,b_sol =    0.000   0.000
- Number of triangulated 3-point waters found:        0
-
-     Sum of charges from parm topology file =     1.000000
-     Assuming uniform neutralizing plasma
-| Running OPENMP code, with OMP_NUM_THREADS = 8
  DEBUG FORCE!; calling force routine
  ---------------------------------------------------
  APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
@@ -186,46 +192,46 @@ Found   2269 atoms in :*;
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =     613262
 | TOTAL SIZE OF NONBOND LIST =     613262
-| updating bulk solvent:   0.589290E+02  0.141176E+03  0.000000E+00 -0.251176E+01  0.358182E+02
 | Optimizing scaling and solvent parameters:
-|    Mean k_iso    :     0.93169
-|    Mean k_iso_exp:     1.09991
+|    Mean k_iso    :     0.94175
+|    Mean k_iso_exp:     1.10373
 |    Mean k_aniso  :     1.00000
-|    Mean k_mask   :     0.09139
+|    Mean k_mask   :     0.10395
 | updating alpha and beta
+| gradient norms, amber/xray:  0.00000E+00 0.32490E+03 0.00000E+00
  DEBUG FORCE!; back from force routine
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =     28263.7283  EKtot   =         0.0000  EPtot      =     28263.7283
+ Etot   =     27695.7869  EKtot   =         0.0000  EPtot      =     27695.7869
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =     28263.7283
+ EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =     27695.7869
  EAMBER (non-restraint)  =         0.0000
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =     33884.3162
                                                     Density    =         0.7920
- Exray  =     28263.7283  Rwork   =         0.2434  Rfree      =         0.2606
+ Exray  =     27695.7869  Rwork   =         0.2292  Rfree      =         0.2332
  ------------------------------------------------------------------------------
 
  Checking numerical force for user chosen atoms
  ----------------------------------------------
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         1
-      1    0.76130134     0.76130521    -0.00000387
-      2    2.95616641     2.95616270     0.00000371
-      3   -1.68415643    -1.68416544     0.00000900
- RMS force error =  0.301E-05
+      1    1.99966331     1.99966414    -0.00000084
+      2    1.91394505     1.91394287     0.00000218
+      3   -0.36237672    -0.36237815     0.00000142
+ RMS force error =  0.980E-06
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         5
-      1   -3.57562589    -3.57563069     0.00000481
-      2   -3.89877618    -3.89877740     0.00000122
-      3   -2.79084361    -2.79084388     0.00000027
- RMS force error =  0.830E-06
+      1   -3.33535727    -3.33536095     0.00000368
+      2   -0.41221920    -0.41222180     0.00000260
+      3   -1.93454518    -1.93454783     0.00000265
+ RMS force error =  0.135E-05
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         6
-      1    0.63805794     0.63805779     0.00000015
-      2   -0.14139106    -0.14139130     0.00000023
-      3   -0.37506597    -0.37506571    -0.00000027
- RMS force error =  0.509E-06
+      1    0.02751989     0.02751973     0.00000016
+      2    0.13566812     0.13566763     0.00000050
+      3   -0.47010237    -0.47010235    -0.00000002
+ RMS force error =  0.107E-05
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         7
-      1   -2.96742061    -2.96741883    -0.00000178
-      2    3.53328400     3.53328028     0.00000372
-      3   -2.17063398    -2.17063780     0.00000382
- RMS force error =  0.110E-05
+      1   -1.00935071    -1.00935021    -0.00000050
+      2    1.64912108     1.64912116    -0.00000008
+      3   -1.08808750    -1.08809086     0.00000336
+ RMS force error =  0.153E-05
  --------------------------------------------

@@ -2103,6 +2103,9 @@
       else if (qmmm_nml%qmtheory%ISQUICK) then
          ! VWDC: We will use the QUICK library
          continue
+      else if (qmmm_nml%qmtheory%ISTCPB) then
+         ! VWDC: We will use the TCPB library
+         continue
       else
         !UNKNOWN method - should never actually get this far but might as well call
         !sander bomb just in case.
@@ -2111,7 +2114,8 @@
                          'SELECTED LEVEL OF THEORY IS NOT AVAILABLE - PLEASE CHECK YOUR INPUT FILE')
       end if
 
-      skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%ISQUICK
+      skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. &
+             qmmm_nml%qmtheory%ISQUICK .or. qmmm_nml%qmtheory%ISTCPB
       if (.not. skip) then
         ! ------------------------------------------------------
         ! Now see if user wants an MM peptide torsion correction
@@ -2250,7 +2254,8 @@
       ! Choose diagonalizer and allocate required memory
       ! ------------------------------------------------
       skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. &
-             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK
+             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK .or. &
+             qmmm_nml%qmtheory%ISTCPB
       if (.not. skip ) then
          call qm2_diagonalizer_setup(qmmm_nml%diag_routine, qmmm_nml%allow_pseudo_diag, &
               qmmm_nml%verbosity, &
@@ -2269,7 +2274,8 @@
       ! Analytical integral derivatives are not available for d orbitals
       ! for MNDO type Hamiltonians
       skip = qmmm_nml%qmtheory%DFTB .or. qmmm_nml%qmtheory%EXTERN .or. &
-             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK
+             qmmm_nml%qmtheory%SEBOMD .or. qmmm_nml%qmtheory%ISQUICK .or. &
+             qmmm_nml%qmtheory%ISTCPB
       if ( .not. skip ) then
 
          test = .false.

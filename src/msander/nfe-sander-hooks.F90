@@ -59,7 +59,7 @@ public :: on_mdstep
 #ifdef MPI
 character(SL), private, save :: initial_mdin_name
 NFE_REAL, private, save :: initial_mdin_temp0
-NFE_REAL, private, save :: initial_mdin_sgft,initial_mdin_tempsg
+NFE_REAL, private, save :: initial_mdin_sgft,initial_mdin_sgff
 
 private :: rem_preinit
 #endif /* MPI */
@@ -339,7 +339,7 @@ subroutine on_mdread1()
    initial_mdin_name  = sander_mdin_name()
    initial_mdin_temp0 = sander_temp0()
    initial_mdin_sgft = sander_sgft()
-   initial_mdin_tempsg = sander_tempsg()
+   initial_mdin_sgff = sander_sgff()
 
 end subroutine on_mdread1
 
@@ -366,8 +366,8 @@ subroutine rem_preinit(my_mdin, my_idx)
 
    NFE_REAL, allocatable :: all_initial_sgft(:)
    NFE_REAL, allocatable :: all_current_sgft(:)
-   NFE_REAL, allocatable :: all_initial_tempsg(:)
-   NFE_REAL, allocatable :: all_current_tempsg(:)
+   NFE_REAL, allocatable :: all_initial_sgff(:)
+   NFE_REAL, allocatable :: all_current_sgff(:)
 
    NFE_REAL, parameter :: TINY = 0.00010000000000000000D0 ! NFE_TO_REAL(0.0001)
 
@@ -397,8 +397,8 @@ subroutine rem_preinit(my_mdin, my_idx)
    if (isgld > 0) then
       allocate(all_initial_sgft(multisander_numgroup()), &
             all_current_sgft(multisander_numgroup()), &
-            all_initial_tempsg(multisander_numgroup()), &
-            all_current_tempsg(multisander_numgroup()), stat = error)
+            all_initial_sgff(multisander_numgroup()), &
+            all_current_sgff(multisander_numgroup()), stat = error)
       if (error.ne.0) NFE_OUT_OF_MEMORY
 
       call mpi_allgather(initial_mdin_sgft, 1, MPI_DOUBLE_PRECISION, &
@@ -410,13 +410,13 @@ subroutine rem_preinit(my_mdin, my_idx)
                       all_current_sgft, 1, MPI_DOUBLE_PRECISION, &
                       commmaster, error)
       nfe_assert(error.eq.0)
-      call mpi_allgather(initial_mdin_tempsg, 1, MPI_DOUBLE_PRECISION, &
-                      all_initial_tempsg, 1, MPI_DOUBLE_PRECISION, &
+      call mpi_allgather(initial_mdin_sgff, 1, MPI_DOUBLE_PRECISION, &
+                      all_initial_sgff, 1, MPI_DOUBLE_PRECISION, &
                       commmaster, error)
       nfe_assert(error.eq.0)
 
-      call mpi_allgather(sander_tempsg(), 1, MPI_DOUBLE_PRECISION, &
-                      all_current_tempsg, 1, MPI_DOUBLE_PRECISION, &
+      call mpi_allgather(sander_sgff(), 1, MPI_DOUBLE_PRECISION, &
+                      all_current_sgff, 1, MPI_DOUBLE_PRECISION, &
                       commmaster, error)
       nfe_assert(error.eq.0)
    endif
@@ -431,16 +431,16 @@ subroutine rem_preinit(my_mdin, my_idx)
          do j = i + 1, multisander_numgroup()
             if (abs(all_initial_temp0(i) - all_initial_temp0(j)).lt.TINY .and. &
                 abs(all_initial_sgft(i) - all_initial_sgft(j)).lt.TINY .and. &
-                abs(all_initial_tempsg(i) - all_initial_tempsg(j)).lt.TINY ) &
-               call fatal('same temp0, sgft, and tempsg in different replicas')
+                abs(all_initial_sgff(i) - all_initial_sgff(j)).lt.TINY ) &
+               call fatal('same temp0, sgft, and sgff in different replicas')
          end do
          if (abs(all_initial_temp0(i) - sander_temp0()).lt.TINY .and. &
              abs(all_initial_sgft(i) - sander_sgft()).lt.TINY .and. &
-             abs(all_initial_tempsg(i) - sander_tempsg()).lt.TINY ) &
+             abs(all_initial_sgff(i) - sander_sgff()).lt.TINY ) &
             src_rank = i - 1
          if (abs(all_current_temp0(i) - initial_mdin_temp0).lt.TINY .and. &
             abs(all_current_sgft(i) - initial_mdin_sgft).lt.TINY .and. &
-             abs(all_current_tempsg(i) - initial_mdin_tempsg).lt.TINY ) &
+             abs(all_current_sgff(i) - initial_mdin_sgff).lt.TINY ) &
             dst_rank = i - 1
       else
          do j = i + 1, multisander_numgroup()
@@ -474,12 +474,12 @@ subroutine rem_preinit(my_mdin, my_idx)
 
    if (isgld > 0) then
       ! Sort temperatures
-      call sorttempsg(multisander_numgroup(),all_current_temp0,all_current_tempsg,all_current_sgft)
+      call sorttempsg(multisander_numgroup(),all_current_temp0,all_current_sgff,all_current_sgft)
       ! Determine this replca's ID
-      my_idx=tempsglookup(multisander_numgroup(),sander_temp0(),sander_tempsg(),sander_sgft(), &
-                   all_current_temp0,all_current_tempsg,all_current_sgft)
+      my_idx=tempsglookup(multisander_numgroup(),sander_temp0(),sander_sgff(),sander_sgft(), &
+                   all_current_temp0,all_current_sgff,all_current_sgft)
       deallocate(all_current_sgft, all_initial_sgft, &
-                     all_current_tempsg, all_initial_tempsg)
+                     all_current_sgff, all_initial_sgff)
    else
    ! (bubble) sort the temperatures
    do i = 1, multisander_numgroup()

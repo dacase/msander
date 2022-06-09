@@ -41,6 +41,9 @@ subroutine do_pmesh_kspace( natom,crd,charge, &
    use nblist, only: recip,volume
    use stack
    use ew_bspline,only:get_grid_weights
+#ifdef MPI
+   use mpi
+#endif
    
    implicit none
    character(kind=1,len=15) :: routine="do_pmesh_kspace"
@@ -56,7 +59,6 @@ subroutine do_pmesh_kspace( natom,crd,charge, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
 
@@ -433,6 +435,7 @@ subroutine grad_sumrc( &
   use qmmm_module, only : qmewald, qmmm_struct
 #ifdef MPI
   use ew_bspline,only:kbot,ktop
+  use mpi
 #endif
   use crg_reloc, only: ifcr, cr_dcdr_tbl, cr_add_dcdr_factor
   use file_io_dat
@@ -450,7 +453,6 @@ subroutine grad_sumrc( &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
    !     _REAL_ Q(nfftdim1*2,nfftdim2,mxyslabs)
    _REAL_ q(*)
 #else

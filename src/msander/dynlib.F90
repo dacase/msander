@@ -61,96 +61,6 @@ subroutine corpac(r, istart, n, nf, loutfm)
 end subroutine corpac
 
 !------------------------------------------------------------------------------
-! ekcmr: Calculate various center of mass related terms.  This routine will
-!        compute the total kinetic energy of the center of mass of each
-!        sub-molecule and also the coordinates of each sub-molecule with
-!        respect to its center of mass.
-!
-! Arguments:
-!   nspm:     the number of sub molecules
-!   nsp:      the array of sub molecule atom counts
-!
-!------------------------------------------------------------------------------
-subroutine ekcmr(nspm, nsp, tma, ekcmt, xr, v, amass, istart, iend)
-  use constants, only : zero, one
-  implicit none
-
-  integer :: nspm
-  integer :: nsp(*)
-  _REAL_ :: tma(*)
-  _REAL_ :: ekcmt(*)
-  _REAL_ :: xr(*)
-  _REAL_ :: v(*)
-  _REAL_ :: amass(*)
-  integer :: istart
-  integer :: iend
-
-#  include "box.h"
-
-  integer i3, iat, j, j3, n, nn
-  _REAL_ aamass, tmn, vcm(3), xcm(3)
-
-  i3 = 0
-  iat = 0
-  ekcmt(1) = ZERO
-  ekcmt(2) = ZERO
-  ekcmt(3) = ZERO
-
-  do n = 1, nspm
-    nn = nsp(n)
-    tmn = ONE / tma(n)
-
-    ! Calculate the center of mass and then move each sub-molecule
-    ! to its center of mass.
-    j3 = i3
-    xcm(1) = ZERO
-    xcm(2) = ZERO
-    xcm(3) = ZERO
-    vcm(1) = ZERO
-    vcm(2) = ZERO
-    vcm(3) = ZERO
-    do j = 1, nn
-      aamass = amass(iat+j)
-      xcm(1) = xcm(1) + xr(j3+1)*aamass
-      xcm(2) = xcm(2) + xr(j3+2)*aamass
-      xcm(3) = xcm(3) + xr(j3+3)*aamass
-
-      ! Each processor knows all coordinates, but only some velocities:
-      if (iat+j >= istart .and. iat+j <= iend) then
-        vcm(1) = vcm(1)+v(j3+1)*aamass
-        vcm(2) = vcm(2)+v(j3+2)*aamass
-        vcm(3) = vcm(3)+v(j3+3)*aamass
-      end if
-
-      j3 = j3+3
-    end do
-
-    xcm(1) = xcm(1)*tmn
-    xcm(2) = xcm(2)*tmn
-    xcm(3) = xcm(3)*tmn
-
-    j3 = i3
-    do j = 1, nn
-      xr(j3+1) = xr(j3+1) - xcm(1)
-      xr(j3+2) = xr(j3+2) - xcm(2)
-      xr(j3+3) = xr(j3+3) - xcm(3)
-      j3 = j3 + 3
-    end do
-
-    ! Kinetic energy
-    ekcmt(1) = ekcmt(1) + tmn*vcm(1)*vcm(1)
-    ekcmt(2) = ekcmt(2) + tmn*vcm(2)*vcm(2)
-    ekcmt(3) = ekcmt(3) + tmn*vcm(3)*vcm(3)
-
-    i3 = j3
-    iat = iat + nn
-  end do
-  ! End loop over calculations for each sub-molecule
-
-  return
-end subroutine ekcmr
-
-!------------------------------------------------------------------------------
 ! open_dummp_files: open the coordinate, velocity, energy and constant pH
 !                   and constant Redox potential output files.
 !------------------------------------------------------------------------------
@@ -187,15 +97,6 @@ subroutine open_dump_files
     else
       call open_binary_files
     end if  ! (ioutfm <= 0)
-    if (icnstph /= 0 .and. .not. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpout, owrite, 'F', 'W')
-    end if
-    if (icnste /= 0 .and. .not. cpein_specified) then
-      call amopen(CEOUT_UNIT, ceout, owrite, 'F', 'W')
-    end if
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-      call amopen(CPOUT_UNIT, cpeout, owrite, 'F', 'W')
-    end if
     if (ntwe > 0) then
       call amopen(MDEN_UNIT, mden, owrite, 'F', 'W')
     end if
@@ -231,9 +132,6 @@ subroutine close_dump_files
     if (ntwe > 0) close(MDEN_UNIT)
     if (imin == 5) close(INPTRAJ_UNIT)
     if (ntpr > 0) close(7)
-    if (icnstph /= 0.and. .not. cpein_specified) close (CPOUT_UNIT)
-    if (icnste /= 0.and. .not. cpein_specified) close (CEOUT_UNIT)
-    if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) close (CPOUT_UNIT)
   end if
 
   return
@@ -263,11 +161,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #ifdef LES
   use les_data, only : temp0les
 #endif
-#ifdef RISMSANDER
   use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
                                    RISM_INTERP, rism_calc_type, &
                                    rism_thermo_print
-#endif
 
   use qmmm_module, only: qmmm_nml,qmmm_struct
   use xray_interface_module, only: xray_write_md_state
@@ -275,11 +171,12 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use state
   use charmm_mod, only: charmm_active
   use crg_reloc, only: ifcr
-  use sgld, only: isgld,sgft,tempsg
+  use sgld, only: isgld,sglabel,sgfti,sgffi
   use ff11_mod, only: cmap_active
   use nbips, only: ips
   use emap,only: temap
   use amd_mod, only: iamd
+  use md_scheme, only: ntt
 
   implicit none
 
@@ -300,10 +197,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #ifndef LES
   _REAL_ :: rms_pbs
 #endif
-#ifdef RISMSANDER
   _REAL_ :: erism
   _REAL_ :: pot_array(potential_energy_rec_len)
-#endif /* RISMSANDER */
   _REAL_ :: ect
   _REAL_ :: amd_boost
 #ifdef MPI
@@ -339,21 +234,13 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! LES KE now, not solvent KE, so it should be reported
   ! along with temperature for LES region.
   if (temp0les < 0.d0) then
-    if (ntt == 5) then
-      eksolv = ener%kin%solv*onefac(3)
-    else
-      eksolv = 0.0d0
-    end if
+    eksolv = 0.0d0
   else
     eksolv = ener%kin%solv*onefac(3)
   end if
 
 #else
-  if(ntt == 5) then
-     eksolv = ener%kin%solv*onefac(3)
-  else
-     rms_pbs = ener%kin%solv
-  end if
+  rms_pbs = ener%kin%solv
 #endif
 
   boxx    = ener%box(1)
@@ -403,9 +290,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   edisp   = ener%pot%disp
   enemap   = ener%pot%emap
   amd_boost = ener%pot%amd_boost
-#ifdef RISMSANDER
   erism   = ener%pot%rism
-#endif /*RISMSANDER*/
   ect     = ener%pot%ct
 
   write(6, 9018) nstep,time,temp,press
@@ -416,18 +301,12 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
   write(6, 9048) enb14, eel14, enonb
 
-#ifdef RISMSANDER
   if (igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-  if (igb == 0 .and. ipb == 0) then
-#endif /* RISMSANDER */
     write(6, 9058) eel, ehbond, econst
   else if (igb == 10 .or. ipb /= 0) then
     write(6, 9060) eel, epb, econst
-#ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(6, 9061) eel, erism, econst
-#endif /* RISMSANDER */
   else
     write(6, 9059) eel, egb, econst
   end if
@@ -486,18 +365,11 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(6, 9900) escf
-#endif /* PUPIL_SUPPORT */
   if (gbsa > 0) then
     write(6, 9077) esurf
   end if
   if (igb == 10 .or. ipb /= 0) then
     write(6, 9074) esurf, edisp
-  end if
-  if (econst /= 0.0) then
-    write(6, 9076) epot-econst
   end if
   if (icfe > 0) then
     write(6, 9100) dvdl
@@ -541,21 +413,22 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   ! Printout SGLD guiding information
   if (isgld > 0) then
-    write(6, 1005) ener%sgld%sgft, ener%sgld%tempsg, ener%sgld%templf, &
-                   ener%sgld%treflf, ener%sgld%frclf, ener%sgld%epotlf, &
+    write(6, 1005) sglabel,ener%sgld%sgscale, ener%sgld%templf, ener%sgld%temphf, &
+                   ener%sgld%epotlf, ener%sgld%epothf, ener%sgld%epotllf, &
                    ener%sgld%sgwt
-    write(6, 1006) ener%sgld%sgff, ener%sgld%sgscal, ener%sgld%temphf, &
-                   ener%sgld%trefhf, ener%sgld%frchf, ener%sgld%epothf, &
-                   ener%sgld%virsg
   endif
   if (xray_active) call xray_write_md_state(6)
+
+  if (econst /= 0.0) then
+    write(6, 9076) epot-econst
+  end if
 
 #ifdef MPI
   ! Print current REMD info (replica#, temp0, excgh#) only for iout7 > 0
   ! (Not for average/rms)
   if (rem /= 0 .and. rem /= 4 .and. rem /= 5 .and. rem /= -1 .and. iout7 > 0) then
     if (isgld > 0) then
-      write (6, 9064) temp0, sgft, tempsg, stagid, repnum, mdloop
+      write (6, 9064) temp0, sgfti, sgffi, stagid, repnum, mdloop
     else
       write (6, 9065) temp0, repnum, mdloop
     endif
@@ -573,7 +446,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   if (temap ) then
     write (6, 9062) enemap
   endif
-  write(6, 8088)
+  ! write(6, 8088)
 
   ! Flush i/o buffer
   call flush(6)
@@ -589,18 +462,12 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
 
   write(7, 9048) enb14, eel14, enonb
-#ifdef RISMSANDER
   if (igb == 0 .and. ipb == 0 .and. rismprm%rism == 0) then
-#else
-  if (igb == 0 .and. ipb == 0) then
-#endif
     write(7, 9058) eel, ehbond, econst
   else if ( igb == 10 .or. ipb /= 0) then
     write(7, 9060) eel, epb, econst
-#ifdef RISMSANDER
   else if (rismprm%rism == 1) then
     write(7, 9061) eel, erism, econst
-#endif
   else
     write(7, 9059) eel, egb, econst
   end if
@@ -615,7 +482,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! (Not for average/rms)
   if (rem /= 0 .and. rem /= 4 .and. rem /= 5 .and. rem /= -1 .and. iout7 > 0) then
     if (isgld > 0) then
-      write(7, 9064) temp0, sgft, tempsg, stagid, repnum, mdloop
+      write(7, 9064) temp0, sgfti, sgffi, stagid, repnum, mdloop
     else
       write(7, 9065) temp0, repnum, mdloop
     endif
@@ -681,10 +548,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     end if
   end if
 
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  write(7, 9900) escf
-#endif /* PUPIL_SUPPORT */
    if (gbsa > 0) then
      write(7, 9077) esurf
    end if
@@ -729,22 +592,17 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 
   ! Printout SGLD guiding information
   if (isgld > 0) then
-    write(7, 1005) ener%sgld%sgft, ener%sgld%tempsg, ener%sgld%templf, &
-                   ener%sgld%treflf, ener%sgld%frclf, ener%sgld%epotlf, &
+    write(7, 1005) sglabel,ener%sgld%sgscale, ener%sgld%templf, ener%sgld%temphf, &
+                   ener%sgld%epotlf, ener%sgld%epothf, ener%sgld%epotllf, &
                    ener%sgld%sgwt
-    write(7, 1006) ener%sgld%sgff, ener%sgld%sgscal, ener%sgld%temphf, &
-                   ener%sgld%trefhf, ener%sgld%frchf, ener%sgld%epothf, &
-                   ener%sgld%virsg
   endif
   call nmrptx(7)
 
-#ifdef RISMSANDER
   if (rismprm%rism == 1 .and. rismprm%write_thermo == 1) then
     if (rism_calc_type(nstep) == RISM_FULL) then
       call rism_thermo_print(.false., transfer(ener%pot, pot_array))
     end if
   end if
-#endif /* RISMSANDER */
 
 #ifndef NO_DETAILED_TIMINGS
   !Print Timing estimates to mdinfo.
@@ -784,10 +642,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
          'RESTRAINT  = ',f14.4)
   9060 format (1x,'EELEC  = ',f14.4,2x,'EPB     = ',f14.4,2x, &
          'RESTRAINT  = ',f14.4)
-#ifdef RISMSANDER
   9061 format (1x,'EELEC  = ',f14.4,2x,'ERISM   = ',f14.4,2x, &
          'RESTRAINT  = ',f14.4)
-#endif
   9062 format (1x,'EMAP   = ',f14.4)
   9180 format (1x, 'EAMD_BOOST  = ', f14.4)
 #ifdef MPI
@@ -799,8 +655,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
    999 format( 1x, A, (4(2x,f14.4)) )
   ! DAN ROE: Added Temp, Rep, Exchange
   ! Xiongwu: add sgft, tempsg for RXSGLD
-  9064 format (1x,'TEMP0= ',f6.1,1x,'SGFT= ',f4.2,1x,'TEMPSG= ',f6.1,1x,&
-         'STAGE= ',i3,1x,'REPNUM= ',i3,1x,'EXCHANGE=',i6)
+   9064 format (1x,'TEMP= ',f6.1,1x,'SGFT= ',f7.4, 1X,'SGFF= ',f7.4, 1X, &
+   'STAGE= ',i4,1x,'REPNUM= ',i4,1x,'EXCH= ',i6)
   9065 format (1x,'TEMP0  = ',f14.4,2x,'REPNUM  = ',i14,2x, &
          'EXCHANGE#  = ',i14)
   9066 format (1x,'SOLVPH = ',f14.4,2x,'REPNUM  = ',i14,2x, &
@@ -852,12 +708,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
          ' temperature = ',f6.2)
   9100 format (1x,'DV/DL  = ',f14.4)
   9188 format (1x,'Ewald error estimate: ', e12.4)
-  1005 format(" SGLF = ",F8.4,X,F8.2,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
-  1006 format(" SGHF = ",F8.4,X,F8.4,X,F9.4,X,F9.4,X,F7.4,X,F14.4,X,F10.4)
-#ifdef PUPIL_SUPPORT
-  ! PUPIL interface
-  9900 format (1x,'PUPESCF= ',f14.4)
-#endif /* PUPIL_SUPPORT  */
+  1005 format(1x,A6,F9.4,F8.2,F8.2,X,F12.2,F12.2,F12.2,F10.4)
 
   return
 end subroutine prntmd

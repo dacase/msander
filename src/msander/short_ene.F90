@@ -2,8 +2,8 @@
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
-!   #if defined(LES) || defined(MPI) /* use the older, non-openMP version for now */
-#if 1
+#if 1  /* always use the non-OpenMP code for now */
+!  #if defined(LES) || defined(MPI) /* use the older, non-openMP version */
 
 !------------------------------------------------------------------------------
 ! get_nb_energy: the main routine for vdw, hbond, and direct space Ewald sum
@@ -15,8 +15,8 @@
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                          numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
                          eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
-                         filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
-                         cn4, cn5, epol, dipole, field, mpoltype)
+                         filter_cut, ee_type, eedmeth, dxdr, cn3, &
+                         cn4, cn5, epol, dipole, field)
 
   use nblist, only : imagcrds, bckptr, nlogrid, nhigrid, numvdw, numhbnd, &
                      myindexlo, myindexhi, numimg
@@ -37,14 +37,13 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 #include "def_time.h"
    
   integer l_real_df, l_real_x, l_real_y, l_real_z, l_real_r2, l_int
-  integer numatoms, maxnblst, mpoltype
+  integer numatoms, maxnblst
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
   _REAL_ ewaldcof, eedtbdns, dxdr, eed_cub(4,*), eed_lin(2,*), dir_vir(3,3)
   integer ipairs(maxnblst)
   _REAL_ force(3,numatoms), eelt, epol, evdw, ehb
-  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*), pol(*)
-  _REAL_ pol2(*)
+  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*)
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
@@ -187,9 +186,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
   _REAL_ comm1
   _REAL_ xktran(3,18)
   _REAL_ e3dx, e4dx
-#ifdef TVDW
-  _REAL_ r4, r6pinv
-#endif
   _REAL_ cn3(*), cn4(*), cn5(*)
   _REAL_ ecur
   integer, parameter :: mask27 = 2**27 - 1
@@ -696,8 +692,8 @@ end subroutine short_ene
 subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
                          numatoms, ipairs, ewaldcof, eedtbdns, eed_cub, &
                          eed_lin, maxnblst, eelt, evdw, ehb, dir_vir, eedvir, &
-                         filter_cut, ee_type, eedmeth, dxdr, pol, pol2, cn3, &
-                         cn4, cn5, epol, dipole, field, mpoltype)
+                         filter_cut, ee_type, eedmeth, dxdr, cn3, &
+                         cn4, cn5, epol, dipole, field)
 
   use nblist, only : imagcrds, bckptr, nlogrid, nhigrid, numvdw, numhbnd, &
                      myindexlo, myindexhi, numimg, tranvec, nucgrd
@@ -707,21 +703,21 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
                    rips12r, aipse, aipsvc, aipsva, bipse, bipsvc, bipsva, &
                    pipsec, pipsvcc, pipsvac
-  use omp_lib
+!$ use omp_lib
+!$ use constants, only:  omp_num_threads
 
   implicit none
   character(kind=1, len=13) :: routine="get_nb_energy"
 #include "flocntrl.h"
 #include "def_time.h"
    
-  integer numatoms, maxnblst, mpoltype
+  integer numatoms, maxnblst
   integer iac(*), ico(*), ntypes, ee_type, eedmeth
   _REAL_ charge(*), cn1(*), cn2(*), cn6(*)
   _REAL_ ewaldcof, eedtbdns, dxdr, eed_cub(*), eed_lin(2,*), dir_vir(3,3)
   integer ipairs(maxnblst)
   _REAL_ force(3,numatoms), eelt, epol, evdw, ehb
-  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*), pol(*)
-  _REAL_ pol2(*)
+  _REAL_ eedvir, filter_cut, dipole(3,*), field(3,*)
   _REAL_ cn3(*), cn4(*), cn5(*)
    
   integer index, numpack, i, k, ncell_lo, ncell_hi, ntot, nvdw, nhbnd
@@ -733,14 +729,10 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   _REAL_ xktran(3,18)
   _REAL_ e3dx, e4dx, eeltl, evdwl
   _REAL_ forcel(3,numatoms)
-#ifdef TVDW
-  _REAL_ r4, r6pinv
-#endif
   integer, parameter :: mask27 = 2**27 - 1
   _REAL_ delx(3), delr, delr2, cgi, delr2inv, r6, f6, f12, df, &
          dfee, dx, x, dfx(3)
 
-!$  character(len=30) omp_num_threads
 !$  integer max_threads, ier
 
 #include "../include/md.h"
@@ -763,16 +755,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   filter_cut2 = filter_cut * filter_cut
   numpack = 1
 
-#ifdef OPENMP
-  call get_environment_variable('OMP_NUM_THREADS', omp_num_threads, &
-           status=ier)
-  if( ier == 1 ) then
-     max_threads = 1
-  else
-     read(omp_num_threads,*) max_threads
-  endif
-  max_threads = min( 8, max_threads )
-#endif
+!$ max_threads = min( 8, omp_num_threads )
 
   call timer_start(TIME_SHORT_ENE)
 
@@ -789,7 +772,7 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 !$  myindexhi = myindexlo + inddel - 1
 !$  if (OMP_GET_THREAD_NUM() == OMP_GET_NUM_THREADS()-1) myindexhi = nucgrd
 
-  ! local versions of reducations: will be reduced in a single critical
+  ! local versions of reductions: will be reduced in a single critical
   ! section after the end of the do loop
   evdwl = zero
   eeltl = zero

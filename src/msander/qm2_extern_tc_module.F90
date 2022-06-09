@@ -1,7 +1,7 @@
 #include "../include/dprec.fh"
 module qm2_extern_tc_module
 ! ----------------------------------------------------------------
-! Interface for TeraChem based QM and QM/MM MD 
+! Interface for TeraChem based QM and QM/MM MD
 !
 ! Currently supports:
 ! pure QM
@@ -13,8 +13,14 @@ module qm2_extern_tc_module
 ! Date: November 2010
 !
 ! Updated March 2017
-! Compute and remove self-energy among classical charges since 
+! Compute and remove self-energy among classical charges since
 ! this term (and gradient) is included in TeraChem version 1.91
+!
+! Updated October 2021 by Vinicius Wilian D. Cruzeiro
+! Removed the interface based on MPI communicators, and remove
+! the need to compute self-energy among classical charges at the
+! Amber side since now TeraChem can give energy without this
+! contribution
 !
 ! ----------------------------------------------------------------
 
@@ -24,19 +30,20 @@ module qm2_extern_tc_module
 
   private
   public :: get_tc_forces, tc_finalize
-  logical, save :: do_mpi = .false.  ! Used in finalize subroutine
 
   character(len=*), parameter :: module_name = "qm2_extern_tc_module"
 
   type tc_nml_type
-     character(len=20) :: basis
-     character(len=20) :: method
-     character(len=20) :: precision
-     character(len=20) :: executable
-     character(len=20) :: dftd
-     character(len=20) :: guess
-     character(len=20) :: cis
-     character(len=20) :: charge_analysis
+     character(len=20)  :: basis
+     character(len=20)  :: method
+     character(len=20)  :: precision
+     character(len=20)  :: executable
+     character(len=20)  :: dftd
+     character(len=150) :: guess
+     character(len=20)  :: cis
+     character(len=20)  :: charge_analysis
+     character(len=150) :: scrdir
+     character(len=20)  :: keep_scr
      _REAL_ :: threall
      _REAL_ :: convthre
      integer :: maxit
@@ -45,18 +52,15 @@ module qm2_extern_tc_module
      integer, dimension(:), pointer :: gpuids => null()
      integer :: cisnumstates
      integer :: cistarget
-     integer :: mpi
      integer :: ntpr
      integer :: debug
      logical :: dipole
      logical :: use_template
-     
+
      ! Deprecated
      integer :: charge
      integer :: spinmult
   end type tc_nml_type
-
-  integer, save         :: newcomm ! Initialized in mpi_init subroutine
 
 contains
 
@@ -86,13 +90,10 @@ contains
     _REAL_ :: dipmom(4,3)         ! Dipole moment {x, y, z, |D|}, {QM, MM, TOT}
     _REAL_ :: qmcharges(nqmatoms) ! QM charges from population analysis
 
-    _REAL_ :: self_energy               ! electrostatic energy among point charges
-    _REAL_ :: self_gradient(3,nclatoms) ! resulting gradient
-
     type(tc_nml_type), save :: tc_nml
     logical, save :: first_call = .true.
     integer :: i
-    integer :: printed =-1 ! Used to tell if we have printed this step yet 
+    integer :: printed =-1 ! Used to tell if we have printed this step yet
                            ! since the same step may be called multiple times
     character(len=150) :: call_buffer
     character(len=*),  parameter :: basename = 'tc_job'
@@ -101,20 +102,20 @@ contains
     character(len=*),  parameter :: dipext = '.dip'
     character(len=*),  parameter :: chgext = '.chg'
     character(len=*),  parameter :: tplext = '.tpl'
-    character(len=14) :: inpfile, datfile, dipfile, chgfile, crdfile, ptcfile, tplfile
-    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM. 
-    !   This is triggered if 'id' is defined (not empty). 
-    character(len=25)            :: subdir 
-    
+    character(len=14) :: inpfile, datfile, dipfile, chgfile, crdfile, ptcfile, tplfile, tmptxt
+    ! Need to prepend subdirectory if doing REMD, PIMD or multi-region QM/MM.
+    !   This is triggered if 'id' is defined (not empty).
+    character(len=25)            :: subdir, gpustxt
+
     ! assemble input - / output data filenames
-    inpfile = basename//trim(id)//runext 
+    inpfile = basename//trim(id)//runext
     datfile = basename//trim(id)//datext
-    dipfile = basename//trim(id)//dipext 
-    chgfile = basename//trim(id)//chgext 
-    crdfile = 'inpfile'//trim(id)//'.xyz' 
+    dipfile = basename//trim(id)//dipext
+    chgfile = basename//trim(id)//chgext
+    crdfile = 'inpfile'//trim(id)//'.xyz'
     ptcfile = 'ptchrg'//trim(id)//'.xyz'
-    tplfile = basename//tplext 
-    
+    tplfile = basename//tplext
+
     ! Setup on first program call
     if ( first_call ) then
       first_call = .false.
@@ -129,13 +130,6 @@ contains
       call system('rm -f '//dipfile//' '//chgfile)
     end if
 
-#ifdef MPI
-    if (tc_nml%mpi==1 ) then ! Do mpi (forced to 0 ifndef MPI)
-      call mpi_hook( trim(tplfile), nqmatoms, qmcoords, qmtypes, nclatoms, clcoords,&
-        tc_nml, escf, dxyzqm, dxyzcl, dipmom, qmcharges, do_grad, id, charge, spinmult )
-    else
-#endif
-      
        call system('rm -f '//inpfile)
        call write_inpfile( trim(inpfile), trim(crdfile), trim(ptcfile), trim(tplfile), &
             nqmatoms, qmcoords, qmtypes, nclatoms, clcoords, &
@@ -156,9 +150,18 @@ contains
 
       ! Run TeraChem with file inpfile
        call system('rm -f '//datfile)
+       if (tc_nml%ngpus > 0) then
+         gpustxt = " --gpus="
+         do i = 1,tc_nml%ngpus
+          write(tmptxt,'(i5)') tc_nml%gpuids(i)
+          gpustxt = trim(gpustxt)//trim(adjustl(tmptxt))
+         end do
+       else
+         gpustxt = ""
+       end if
        write(call_buffer,'(2a)') &
-         trim(call_buffer),trim(tc_nml%executable)//' '//trim(inpfile)//' > '//datfile
-      
+         trim(call_buffer),trim(tc_nml%executable)//trim(gpustxt)//' '//trim(inpfile)//' > '//datfile
+
        call system(trim(call_buffer))
 
        ! If working in a subdirectory, move datfile back for reading
@@ -169,12 +172,9 @@ contains
        ! Read TeraChem results
        call read_results( trim(datfile), nqmatoms, nclatoms, escf, dxyzqm, dxyzcl, &
             dipmom, qmcharges, tc_nml%charge_analysis, do_grad, tc_nml%debug )
- 
+
        call system( 'mv '//trim(subdir)//trim(inpfile)//' '//trim(subdir)//'old.'//inpfile )
        call system( 'mv '//trim(datfile)//' '//trim(subdir)//'old.'//datfile )
-#ifdef MPI
-    end if
-#endif
 
     ! Write dipole and charges to file
     if ( tc_nml%ntpr > 0 .and. mod(nstep, tc_nml%ntpr) == 0 ) then
@@ -184,17 +184,11 @@ contains
              ! using util module's write dipole, writing only QM dipole moment
              call write_dipole( trim(dipfile), dipmom(1:3,1), dipmom(4,1), tc_nml%debug )
           end if
+#if 0
           if ( trim(tc_nml%charge_analysis) /= 'NONE' ) then
-             call write_charges( trim(chgfile), qmcharges, tc_nml%debug )
+             call write_charges( trim(chgfile), nstep, qmcharges, tc_nml%debug )
           end if
-       end if
-    end if
-
-    call compute_self_energy_gradient(clcoords, nclatoms, do_grad, self_energy, self_gradient)
-    if (nclatoms > 0) then
-       escf = escf - self_energy
-       if (do_grad) then
-          dxyzcl(:,:) = dxyzcl(:,:) - self_gradient(:,:)
+#endif
        end if
     end if
 
@@ -228,16 +222,17 @@ contains
 
     integer, intent(in) :: ntpr_default
     type(tc_nml_type), intent(out) :: tc_nml
-    character(len=20):: basis, method, dftd, precision, executable, guess, cis, charge_analysis
+    character(len=20):: basis, method, dftd, precision, executable, cis, charge_analysis, keep_scr
+    character(len=150):: guess, scrdir
     _REAL_ :: threall, convthre
     integer, parameter :: maxgpus = 64
     integer :: maxit, dftgrid, ngpus, gpuids(maxgpus),  &
-         cisnumstates, cistarget, mpi, ntpr, debug, dipole, use_template
+         cisnumstates, cistarget, ntpr, debug, dipole, use_template
     integer :: charge, spinmult ! deprecated
     namelist /tc/ basis, method, dftd, precision, executable, guess, cis, charge_analysis, &
-      threall, convthre, &
+      threall, convthre, scrdir, keep_scr, &
       maxit, dftgrid, ngpus, gpuids, cisnumstates, cistarget, &
-      mpi, ntpr, debug, dipole, use_template,&
+      ntpr, debug, dipole, use_template,&
       charge, spinmult
     integer :: i, ierr
 
@@ -248,6 +243,8 @@ contains
     precision       = 'mixed'
     executable      = 'terachem'
     guess           = 'scr/c0'
+    scrdir          = 'scr'
+    keep_scr        = 'yes'
     cis             = 'no'
     charge_analysis = 'none'
     threall         = 1.0d-11
@@ -260,7 +257,6 @@ contains
     end do
     cisnumstates = 1
     cistarget    = 1
-    mpi          = 1 ! Default to using MPI if available
     ntpr         = ntpr_default
     debug        = 0
     dipole       = 0
@@ -303,6 +299,8 @@ contains
     tc_nml%precision       = precision
     tc_nml%executable      = executable
     tc_nml%guess           = guess
+    tc_nml%scrdir          = scrdir
+    tc_nml%keep_scr        = keep_scr
     tc_nml%cis             = cis
     tc_nml%charge_analysis = charge_analysis
     tc_nml%threall         = threall
@@ -320,20 +318,6 @@ contains
                'Will quit now')
        end if
        tc_nml%gpuids(:) = gpuids(:ngpus)
-    end if
-#ifndef MPI
-        if ( tc_nml%mpi == 1 ) then
-          write(6,'(a)') '| Warning: mpi=1 selected but sander was not compiled with MPI support.'
-          write(6,'(a)') '| Continuing with mpi=0'
-        end if
-        tc_nml%mpi         = 0 ! Can't pick MPI if not available 
-#else
-        tc_nml%mpi         = mpi
-#endif
-
-    ! Need this variable so we don't call MPI_Send in the finalize subroutine
-    if (mpi==1 ) then
-      do_mpi=.true.
     end if
 
     tc_nml%ntpr      = ntpr
@@ -381,6 +365,8 @@ contains
     write(6, '(2a)')       '|   precision       = ', tc_nml%precision
     write(6, '(2a)')       '|   executable      = ', tc_nml%executable
     write(6, '(2a)')       '|   guess           = ', tc_nml%guess
+    write(6, '(2a)')       '|   scrdir          = ', tc_nml%scrdir
+    write(6, '(2a)')       '|   keep_scr        = ', tc_nml%keep_scr
     write(6, '(2a)')       '|   cis             = ', tc_nml%cis
     write(6, '(2a)')       '|   charge_analysis = ', tc_nml%charge_analysis
     write(6, '(a,es10.2)') '|   threall         = ', tc_nml%threall
@@ -403,7 +389,6 @@ contains
           jstart = jstart + jstep
        end do
     end if
-    write(6, '(a,i1)')     '|   mpi             = ', tc_nml%mpi
     write(6, '(a,i0)')     '|   ntpr            = ', tc_nml%ntpr
     write(6, '(a,i2)')     '|   debug           = ', tc_nml%debug
     write(6, '(a,l)')      '|   dipole          = ', tc_nml%dipole
@@ -411,373 +396,6 @@ contains
     write(6,'(a)')         '| /'
 
   end subroutine print_namelist
-
-#ifdef MPI
-  ! Perform MPI communications with terachem. Requires MPI 2.0 or above to use
-  subroutine mpi_hook( tplfile, nqmatoms, qmcoords, qmtypes, nclatoms, clcoords,&
-       tc_nml, escf, dxyzqm, dxyzcl, dipmom, qmcharges, do_grad, id, charge, spinmult )
-    
-    use ElementOrbitalIndex, only : elementSymbol
-    
-    implicit none
-    include 'mpif.h'
-
-    character(len=*), intent(in)  :: tplfile
-    integer, intent(in) :: nqmatoms
-    _REAL_,  intent(in) :: qmcoords(3,nqmatoms) 
-    integer, intent(in) :: qmtypes(nqmatoms)
-    integer, intent(in) :: nclatoms
-    _REAL_,  intent(in) :: clcoords(4,nqmatoms)
-    type(tc_nml_type), intent(in) :: tc_nml
-    _REAL_, intent(out) :: escf
-    _REAL_, intent(out) :: dxyzqm(3,nqmatoms)
-    _REAL_, intent(out) :: dxyzcl(3,nclatoms)
-    _REAL_, intent(out) :: dipmom(4,3)
-    _REAL_, intent(out) :: qmcharges(nqmatoms)
-    logical, intent(in) :: do_grad
-    character(len=3), intent(in) :: id
-    integer         , intent(in) :: charge, spinmult
-
-    character(len=2)    :: atom_types(nqmatoms)
-    _REAL_              :: coords(3,nqmatoms+nclatoms)
-    _REAL_              :: charges(nclatoms)
-    _REAL_              :: dxyz_all(3,nclatoms+nqmatoms)
-
-    logical,save        :: first_call=.true.
-    integer             :: i, status(MPI_STATUS_SIZE)
-    integer             :: ierr
-
-    call debug_enter_function( 'mpi_hook', module_name, tc_nml%debug )
-
-    ! Determine atom types
-    ! TeraChem needs those both for initialization and later during the MD run
-    do i = 1, nqmatoms
-      atom_types(i)=elementSymbol(qmtypes(i))
-   end do
-
-    ! ---------------------------------------------------
-    ! Initialization: Connect to "terachem_port", set    
-    ! newcomm (global), send relevant namelist variables.
-    ! ---------------------------------------------------
-    if (first_call) then 
-      first_call=.false.
-      call connect_to_terachem( tplfile, tc_nml, nqmatoms, atom_types, do_grad, id, charge, spinmult )
-    end if
-
-    ! -----------------------------------------
-    ! Begin sending data each step to terachem
-    ! -----------------------------------------
-    if ( tc_nml%debug > 1 ) then
-       write(6,'(a)') 'Sending data to TeraChem'
-       call flush(6)
-    end if
-
-    ! Send nqmatoms and the type of each qmatom
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(/, a, i0)') 'Sending nqmatoms = ', nqmatoms
-       call flush(6)
-    end if
-    call MPI_Send( nqmatoms, 1, MPI_INTEGER, 0, 2, newcomm, ierr )
-
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(/,a)') 'Sending QM atom types: '
-       do i = 1, nqmatoms
-          write(6,'(a)') atom_types(i)
-          call flush(6)
-       end do
-    end if
-    call MPI_Send( atom_types, 2*size(atom_types), MPI_CHARACTER, 0, 2, newcomm, ierr )
-
-    ! Send QM coordinate array
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Sending QM coords: '
-    end if
-    do i=1, nqmatoms
-       if ( tc_nml%debug > 2 ) then
-          write(6,*) 'Atom ',i,': ',qmcoords(:,i)
-          call flush(6)
-       end if
-    end do 
-    call MPI_Send( qmcoords, 3*nqmatoms, MPI_DOUBLE_PRECISION, 0, 2, newcomm, ierr ) 
-
-    ! Send nclatoms and the charge of each atom
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a, i0)') 'Sending nclatoms = ', nclatoms
-       call flush(6)
-    end if
-    call MPI_Send( nclatoms, 1, MPI_INTEGER, 0, 2, newcomm, ierr ) 
-
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Sending charges: '
-    end if
-    do i=1, nclatoms
-      charges(i)=clcoords(4,i)
-      if ( tc_nml%debug > 2 ) then
-         write(6,*) 'Charge ',i,':',charges(i)
-         call flush(6)
-      end if
-    end do
-    call MPI_Send( charges, nclatoms, MPI_DOUBLE_PRECISION, 0, 2, newcomm, ierr ) 
-
-    ! Send MM point charge coordinate array
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Sending CL coords: '
-    end if
-    do i=1, nclatoms
-      coords(:,i)=clcoords(:3,i)
-      if ( tc_nml%debug > 2 ) then
-         write(6,*) 'Atom ',i,': ',coords(:,i)
-         call flush(6)
-      end if
-    end do 
-    call MPI_Send( coords, 3*nclatoms, MPI_DOUBLE_PRECISION, 0, 2, newcomm, ierr ) 
-
-    ! -----------------------------------
-    ! Begin receiving data from terachem
-    ! -----------------------------------
-
-    ! Energy
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Waiting to receive scf energy from TeraChem...'
-       call flush(6)
-    end if
-    call MPI_Recv( escf, 1, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-    if ( tc_nml%debug > 1 ) then
-       write(6,'(a,es15.6)') 'Received scf energy from server:', escf
-       call flush(6)
-    end if
-
-    ! Charges (Mulliken or other)
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Waiting to receive charges...'
-    end if
-    call MPI_Recv( qmcharges(:), nqmatoms, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Received the following charges from server:'
-       do i=1, nqmatoms
-          write(6,*) 'Atom ',i, ': ', qmcharges(i)
-       end do
-       call flush(6)
-    end if
-
-    ! Dipole moment
-    if ( tc_nml%debug > 2 ) then
-       write(6,'(a)') 'Waiting to receive dipole moment...'
-    end if
-    ! QM dipole moment
-    call MPI_Recv( dipmom(:,1), 4, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-    if ( tc_nml%debug > 1 ) then
-       write(6,'(a,4es15.6)') 'Received QM  dipole moment from server:', dipmom(:,1)
-       call flush(6)
-    end if
-    ! MM dipole moment
-    call MPI_Recv( dipmom(:,2), 4, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-    if ( tc_nml%debug > 1 ) then
-       write(6,'(a,4es15.6)') 'Received MM  dipole moment from server:', dipmom(:,2)
-       call flush(6)
-    end if
-    ! TOT dipole moment
-    call MPI_Recv( dipmom(:,3), 4, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-    if ( tc_nml%debug > 1 ) then
-       write(6,'(a,4es15.6)') 'Received TOT dipole moment from server:', dipmom(:,3)
-       call flush(6)
-    end if
-    
-    ! QM gradients
-    if ( do_grad ) then
-       if ( tc_nml%debug > 2 ) then
-          write(6,'(a)') 'Waiting to receive gradients...'
-       end if
-       call MPI_Recv( dxyz_all, 3*(nqmatoms+nclatoms), MPI_DOUBLE_PRECISION, &
-            MPI_ANY_SOURCE, MPI_ANY_TAG, newcomm, status, ierr )
-       if ( tc_nml%debug > 2 ) then
-          write(6,'(a)') 'Received the following gradients from server:'
-          do i=1, nqmatoms+nclatoms
-             write(6,*) 'Atom ',i, ': ',dxyz_all(:,i)
-          end do
-          call flush(6)
-       end if
-       
-       ! Poplulate our output arrays with gradients from terachem
-       do i=1, nqmatoms
-          dxyzqm(:,i)=dxyz_all(:,i)
-       end do
-       do i=1, nclatoms
-          dxyzcl(:,i)=dxyz_all(:,i+nqmatoms)
-       end do
-
-    end if
-
-    call debug_exit_function( 'connect_to_terachem', module_name, tc_nml%debug )
-
-  end subroutine mpi_hook
-
-  ! -------------------------------------------------
-  ! Search for name published by TeraChem and connect
-  ! (this step initializes newcomm)
-  ! Send relevant namelist variables to terachem
-  ! -------------------------------------------------
-  subroutine connect_to_terachem( tplfile, tc_nml, nqmatoms, atom_types, do_grad, id, charge, spinmult )
-
-    implicit none
-    include 'mpif.h'
-
-    character(len=*) , intent(in) :: tplfile
-    type(tc_nml_type), intent(in) :: tc_nml
-    integer          , intent(in) :: nqmatoms
-    character(len=2) , intent(in) :: atom_types(nqmatoms)
-    logical          , intent(in) :: do_grad
-    character(len=3) , intent(in) :: id
-    integer          , intent(in) :: charge, spinmult
-
-    character(len=17) :: server_name="terachem_port"
-    integer, parameter  :: clen=128 ! Length of character strings we are using
-    character(255) :: port_name
-    character(len=clen) :: dbuffer(2,32)
-    _REAL_          :: timer
-    integer         :: ierr, i, j, irow
-    logical         :: done=.false.
-
-    call debug_enter_function( 'connect_to_terachem', module_name, tc_nml%debug )
-
-    ! -----------------------------------
-    ! Look for server_name, get port name
-    ! After 60 seconds, exit if not found
-    ! -----------------------------------
-    if ( trim(id) /= '' ) then
-      server_name = trim(server_name)//'.'//trim(id)
-    end if
-    if ( tc_nml%debug > 1 ) then
-      write(6,'(2a)') 'Looking up server under name:', trim(server_name)
-      call flush(6)
-    end if
-    timer = MPI_WTIME(ierr)
-    do while (done .eqv. .false.)
-
-      call MPI_LOOKUP_NAME(trim(server_name), MPI_INFO_NULL, port_name, ierr)
-      if (ierr == MPI_SUCCESS) then
-        if ( tc_nml%debug > 1 ) then
-          write(6,'(2a)') 'Found port: ', trim(port_name)
-          call flush(6)
-        end if
-        done=.true.
-
-      end if
-
-      if ( (MPI_WTIME(ierr)-timer) > 60 ) then ! Time out after 60 seconds
-        call sander_bomb('connect_to_terachem() ('//module_name//')', &
-          '"'//trim(server_name)//'" not found. Timed out after 60 seconds.', &
-          'Will quit now')
-      end if
-
-    end do
-
-    ! ----------------------------------------
-    ! Establish new communicator via port name
-    ! ----------------------------------------
-    call MPI_COMM_CONNECT(port_name, MPI_INFO_NULL, 0, MPI_COMM_SELF, newcomm, ierr)
-    if ( tc_nml%debug > 1 ) then
-      write(6,'(a,i0)') 'Established new communicator:', newcomm
-      call flush(6)
-    end if
-
-    ! --------------------------------
-    ! Send job information to terachem
-    ! --------------------------------
-    dbuffer(:,:) = ''
-    if ( tc_nml%use_template ) then
-       ! using template input file for specs of QM method
-      call read_template(tplfile, tc_nml%debug, dbuffer, irow )
-    else
-      ! specs of QM method from AMBER input file 
-      irow = 1
-      write(dbuffer(:,irow),'(a,/,a)') 'basis',      tc_nml%basis
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,a)') 'method',     tc_nml%method
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,a)') 'dftd',       tc_nml%dftd
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,a)') 'precision',  tc_nml%precision
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,E22.15)') 'threall', tc_nml%threall
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,E22.15)') 'convthre', tc_nml%convthre
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,i0)') 'maxit', tc_nml%maxit
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,i0)') 'dftgrid', tc_nml%dftgrid
-      irow = irow + 1
-      write(dbuffer(:,irow),'(a,/,a)') 'cis',        tc_nml%cis
-      if ( trim(tc_nml%cis) == 'yes' ) then
-        irow = irow + 1
-        write(dbuffer(:,irow),'(a,/,i0)') 'cisnumstates', tc_nml%cisnumstates
-        irow = irow + 1
-        write(dbuffer(:,irow),'(a,/,i0)') 'cistarget', tc_nml%cistarget
-      end if
-    end if
-
-    ! common data provided both for template / AMBER input
-    irow = irow + 1
-    write(dbuffer(:,irow),'(a,/,i0)') 'charge', charge
-    irow = irow + 1
-    write(dbuffer(:,irow),'(a,/,i0)') 'spinmult', spinmult
-    irow = irow + 1
-    if ( do_grad ) then
-       write(dbuffer(:,irow),'(a,/,a)') 'run', 'gradient'
-    else
-       write(dbuffer(:,irow),'(a,/,a)') 'run', 'energy'
-    end if
-    irow = irow + 1
-    write(dbuffer(:,irow),'(a,/,a)') 'guess',       tc_nml%guess
-    ! This is set to 1 because this instructs terachem to skip 
-    ! calculating the self-energy of the charges
-    irow = irow + 1
-    write(dbuffer(:,irow),'(a,/,a)') 'amber', 'yes'
-    ! Write gpus
-    if ( tc_nml%ngpus > 0 ) then
-       irow = irow + 1
-       write(dbuffer(:,irow), '(a,/,9999(i3))') 'gpus      ', tc_nml%ngpus, (tc_nml%gpuids(i), i = 1, tc_nml%ngpus)
-    end if
-    ! Finish writing - send 'end'
-    irow = irow + 1
-    write(dbuffer(:,irow),'(a)') 'end', ''
-
-    if ( tc_nml%debug > 2 ) then
-      write(6,'(a)') '(debug) sending namelist data:'
-      do j=1, 32
-        write(6,*) trim(dbuffer(1,j)), ' = ', trim(dbuffer(2,j))
-      end do
-      call flush(6)
-    end if
-
-    call MPI_Send( dbuffer, 2*clen*size(dbuffer,2), MPI_CHARACTER, 0, 2, newcomm, ierr )
-
-    ! -----------------------------------------
-    ! Send nqmatoms and the type of each qmatom
-    ! TeraChem needs this information to correctly initialize the GPUs
-    ! (depending on whether d orbitals are in use or not)
-    ! -----------------------------------------
-    if ( tc_nml%debug > 2 ) then
-      write(6,'(/, a, i0)') 'Sending nqmatoms = ', nqmatoms
-      call flush(6)
-    end if
-    call MPI_Send( nqmatoms, 1, MPI_INTEGER, 0, 2, newcomm, ierr )
-
-    if ( tc_nml%debug > 2 ) then
-      write(6,'(/,a)') 'Sending QM atom types: '
-      do i = 1, nqmatoms
-        write(6,'(a)') atom_types(i)
-        call flush(6)
-      end do
-    end if
-    call MPI_Send( atom_types, 2*size(atom_types), MPI_CHARACTER, 0, 2, newcomm, ierr )
-
-
-    call debug_exit_function( 'connect_to_terachem', module_name, tc_nml%debug )
-
-  end subroutine connect_to_terachem
-
-#endif
 
   ! ---------------------------------
   ! Write the input file for TeraChem
@@ -832,8 +450,8 @@ contains
       write(iurun, '(2a)')       'basis        ', trim(tc_nml%basis)
       write(iurun, '(2a)')       'method       ', trim(tc_nml%method)
       write(iurun, '(2a)')       'precision    ', trim(tc_nml%precision)
-      write(iurun, '(a,E22.15)') 'threall      ', tc_nml%threall
-      write(iurun, '(a,E22.15)') 'convthre     ', tc_nml%convthre
+      write(iurun, '(a,E22.16)') 'threall      ', tc_nml%threall
+      write(iurun, '(a,E22.16)') 'convthre     ', tc_nml%convthre
       write(iurun, '(2a)')       'dftd         ', trim(tc_nml%dftd)
       write(iurun, '(a,i4)')     'maxit        ', tc_nml%maxit
       write(iurun, '(a,i3)')     'dftgrid      ', tc_nml%dftgrid
@@ -851,6 +469,8 @@ contains
        write(iurun, '(a,65(i3))')    'gpus      ', tc_nml%ngpus, (tc_nml%gpuids(i), i = 1, tc_nml%ngpus)
     end if
 
+    write(iurun, '(2a)') 'scrdir      ', tc_nml%scrdir
+    write(iurun, '(2a)') 'keep_scr    ', tc_nml%keep_scr
     if ( .not. first_call ) then
       write(iurun, '(2a)') 'guess       ', tc_nml%guess
     end if
@@ -864,13 +484,14 @@ contains
 
     if ( nclatoms > 0 ) then
       write(iurun, '(a)') 'pointcharges '//ptcfile
+      write(iurun, '(a)') 'pointcharges_self_interaction false'
 !      write(iurun, '(a)') 'amber       yes'  ! Not supported in TeraChem 1.91
     end if
 
     write(iurun, '(a)') 'end'
 
     close(iurun)
-    
+
     ! Now write xyz file with geometry
     open(iurun, file=crdfile, iostat=ios)
     if ( ios > 0 ) then
@@ -890,7 +511,7 @@ contains
     if ( nclatoms > 0 ) then
       call write_chgfile( ptcfile, nclatoms, clcoords, tc_nml%debug )
     end if
-    
+
     call debug_exit_function( 'write_inpfile', module_name, tc_nml%debug )
 
     if (first_call) then
@@ -1006,9 +627,9 @@ contains
           read (read_buffer(itmp:), *) qmcharges(i)
 
        end do
-       
+
        close(iunit)
-       
+
     end if
 
     call debug_exit_function( 'read_results', module_name, debug )
@@ -1019,20 +640,9 @@ contains
   subroutine tc_finalize()
 
     implicit none
-#ifdef MPI
-    include 'mpif.h'
-
-    integer :: ierr
-    _REAL_  :: empty
-    if (do_mpi) then
-
-      call MPI_Send( empty, 1, MPI_DOUBLE_PRECISION, 0, 0, newcomm, ierr )
-
-    end if
-#endif
 
   end subroutine tc_finalize
-      
+
 
   subroutine copy_template( tplfile, bakfile, debug )
 
@@ -1067,7 +677,7 @@ contains
        if (ios < 0 ) then
          exit
        end if
-       if ( index(Upcase(read_buffer), 'END') > 0 ) then
+       if ( ( index(Upcase(read_buffer), 'END') > 0 ) .and.  ( index(Upcase(read_buffer), '$END') == 0 ) ) then
           exit
        end if
        write(bakunit, '(a)') trim(read_buffer)
@@ -1123,54 +733,5 @@ contains
     call debug_exit_function( 'read_template', module_name, debug )
 
   end subroutine read_template
-
-  subroutine compute_self_energy_gradient(clcoords, nclatoms, do_grad, self_energy, self_gradient)
-
-    use constants, only: CODATA08_A_TO_BOHRS, ZERO
-    implicit none
-    _REAL_, intent(in) :: clcoords(4,nclatoms)
-    integer, intent(in) :: nclatoms
-    logical, intent(in) :: do_grad
-    _REAL_, intent(out) :: self_energy
-    _REAL_, intent(out) :: self_gradient(3,nclatoms)
-
-    integer :: i, j
-    _REAL_ :: qi, qj, qij, dij, one_dij, tmp
-    _REAL_ :: xyzi(3), xyzj(3), rij(3), tmp3(1:3)
-
-    if (nclatoms < 1) return
-
-    self_energy = ZERO
-    self_gradient = ZERO
-
-    do i = 1, nclatoms
-
-       qi = clcoords(4,i)
-       xyzi(1:3) = clcoords(1:3,i) * CODATA08_A_TO_BOHRS
-
-       do j = 1, i-1
-
-          qj = clcoords(4,j)
-          xyzj(1:3) = clcoords(1:3,j) * CODATA08_A_TO_BOHRS
-          qij = qi*qj
-          rij(1:3) = xyzi(1:3) - xyzj(1:3)
-          dij = rij(1)*rij(1) + rij(2)*rij(2) + rij(3)*rij(3)
-          dij = dsqrt(dij)
-          one_dij = 1/dij
-
-          self_energy = self_energy + qij*one_dij
-
-          if (do_grad) then
-             tmp = qij*one_dij*one_dij*one_dij
-             tmp3(1:3) = tmp*rij(1:3)
-             self_gradient(1:3,j) = self_gradient(1:3,j) + tmp3(1:3)
-             self_gradient(1:3,i) = self_gradient(1:3,i) - tmp3(1:3)
-          end  if
-
-       end do
-    end do
-    
-
-  end subroutine compute_self_energy_gradient
 
 end module qm2_extern_tc_module

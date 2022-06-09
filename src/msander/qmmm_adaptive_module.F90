@@ -201,8 +201,8 @@ contains
      use qmmm_module, only: qmmm_vsolv
      implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-     include 'mpif.h'
 
      integer, intent(in)    :: nstep
      integer, intent(in)    :: natom
@@ -646,8 +646,8 @@ contains
   subroutine receive_recalculate(self, recalculate, recalc_type)
 
     implicit none
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer, intent(out) :: recalc_type
@@ -679,8 +679,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer, intent(out) :: recalc_type
@@ -1236,8 +1236,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer, intent(in) :: id1, id2
@@ -1273,8 +1273,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(inout) :: self
 
@@ -1494,8 +1494,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer                 , intent(in) :: natom
@@ -1523,8 +1523,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     _REAL_, intent(in) :: energy
@@ -1557,8 +1557,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(inout) :: self
     integer                 , intent(in) :: natom
@@ -1759,8 +1759,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(inout) :: self
     integer, intent(in) :: iflag
@@ -1802,8 +1802,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer                 , intent(in) :: natom
@@ -1840,8 +1840,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(in) :: self
     integer                 , intent(in)  :: natom
@@ -1880,8 +1880,8 @@ contains
 
     implicit none
 
+#include "mpif.h"
 #include "parallel.h"
-    include 'mpif.h'
 
     type(qmmm_adaptive_type), intent(inout) :: self
 

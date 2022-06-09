@@ -12,7 +12,7 @@ cat > mdin <<EOF
   irest  = 1, ntx    = 7,
   cut    = 8.0,
   ntf=2, ntc=2, tol=0.000001,
-  ithermostat=0,
+  ntt=0,
   nstlim=10, ntpr=1,
   dt=0.001, 
   jfastw=1, watnam='TP4', ig=71277,

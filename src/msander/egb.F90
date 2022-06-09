@@ -197,6 +197,9 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
       use remd, only : rem
 #  endif
 #endif
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 
 #ifdef MPI
@@ -204,7 +207,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 #  ifdef MPI_DOUBLE_PRECISION
 #    undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #endif
 #  include "../include/md.h"
 #  include "def_time.h"
@@ -382,13 +384,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
    onstep = mod(irespa,nrespa) == 0
    onstepi = mod(irespa,nrespai) == 0
    if( .not.onstepi ) return
-
-   oncpstep = ((icnstph == 1 .or. (icnste == 1 .and. cpein_specified)) .and. &
-              mod(irespa, ntcnstph) == 0) .or. (icnstph == 2 .or. (icnste == 2 &
-              .and. cpein_specified))
-
-   oncestep = ((icnste == 1 .and. mod(irespa, ntcnste) == 0) .or. icnste == 2) &
-              .and. .not. cpein_specified
 
 !     variable for gas phase calculations (future fix by Dan Parkin)
 !  intdiele_inv = one/intdiel
@@ -1813,13 +1808,15 @@ subroutine egb_calc_radii(igb,natom,x,fs,reff,onereff,fsmax,rgbmax, &
    use les_data, only : cnum
 #endif
 
+#ifdef MPI
+  use mpi
+#endif
   implicit none
 
 #include "gbneck.h"
 
 #ifdef MPI
 # include "parallel.h"
-   include 'mpif.h'
   integer, intent(in) :: mpistart
   integer :: ierr
 #endif

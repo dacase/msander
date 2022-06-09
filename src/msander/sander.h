@@ -297,7 +297,7 @@ void pme_sander_input(sander_input*);
 void qm_sander_input(qmmm_input_options*);
 
 /// Set up rism defaults:
-void rism_defaults_();
+void rism_defaults_(void);
 
 
 /* I've found that you really need to fix strings to the same number of
@@ -390,7 +390,7 @@ get_box(double *a, double *b, double *c,
 
 /** Returns 1 if sander has been set up and 0 otherwise
  */
-static inline int is_setup() {
+static inline int is_setup(void) {
    int i;
    __internal_is_setup(&i);
    return i;

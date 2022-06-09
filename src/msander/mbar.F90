@@ -9,11 +9,13 @@
 
   module mbar
 
+#ifdef MPI
+   use mpi
+#endif
     implicit none
 
 #include "parallel.h"
 #ifdef MPI
-    include 'mpif.h'
     integer,save :: ist(MPI_STATUS_SIZE), partner
 #endif
 

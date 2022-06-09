@@ -1,16 +1,13 @@
 #include "../include/dprec.fh"
 !-------------BEGIN    md.h  ------------------------------------------------
 
-! NOTE: if you change this file, make sure you change the corresponding file
-! in both src/sander/md.h, AmberTools/src/sqm/md.h, and AmberTools/src/pbsa/md.h
-
 integer BC_MDI  ! size in integers of common block mdi
 integer BC_MDR  ! size in Reals of common block mdr
 
 ! ... integer variables:
 
 integer nrp,nspm,ig,ntx,ntcx,            &!5
-      ntxo,ntt,ntp,ntr,init,             &!10
+      ntxo,ntt_old,ntp,ntr,init,         &!10
       ntcm,nscm,nsolut,klambda,          &!14
       ntc,ntcc,ntf,ntid,ntn,             &!19
       ntnb,nsnb,ndfmin,nstlim,nrc,       &!24
@@ -29,7 +26,7 @@ integer nrp,nspm,ig,ntx,ntcx,            &!5
       mask_from_ref,hidx, reservoir_exchange_step !91
 
 common/mdi/nrp,nspm,ig, &                                               !3
-      ntx,ntcx,ntxo,ntt,ntp,ntr,init,ntcm,nscm, &                       !12
+      ntx,ntcx,ntxo,ntt_old,ntp,ntr,init,ntcm,nscm, &                   !12
       nsolut,ntc,ntcc,ntf,ntid,ntn,ntnb,nsnb,ndfmin, &                  !21
       nstlim,nrc,ntrx,npscal,imin,maxcyc,ncyc,ntmin, &                  !29
       irest,jfastw,ibgwat,ienwat,iorwat, &                              !34
@@ -50,7 +47,7 @@ parameter (BC_MDI=91) ! Number of elements in the common block;
 
 _REAL_ t,dt,temp0,tautp,pres0,comp,taup,temp,tempi, & !9
       tol,taur,dx0,drms,vlimit,rbtarg(9),tmass,tmassinv,  & !25
-      kappa,offset,surften,gamma_ln,extdiel,intdiel,rdt,  & !32
+      kappa,offset,surften,gamma_ln_old,extdiel,intdiel,rdt,  & !32
       gbalpha,gbbeta,gbgamma,cut_inner,clambda,saltcon,  & !38
       solvph,rgbmax,fsmax,restraint_wt, &  !42
       skmin,skmax,vfac,gbneckscale,v11,v12,v22,kevb,evbt,Arad, & !52
@@ -70,7 +67,7 @@ _REAL_ t,dt,temp0,tautp,pres0,comp,taup,temp,tempi, & !9
 
 common/mdr/t,dt,temp0,tautp,pres0,comp,taup,temp,tempi, &             !9
       tol,taur,dx0,drms,vlimit,rbtarg,tmass,tmassinv, &               !25
-      kappa,offset,surften,gamma_ln,extdiel,intdiel,rdt, &            !32
+      kappa,offset,surften,gamma_ln_old,extdiel,intdiel,rdt, &            !32
       gbalpha,gbbeta,gbgamma,cut_inner,clambda,saltcon, &             !38
       solvph,rgbmax,fsmax,restraint_wt,skmin,skmax,vfac,gbneckscale, &!46
       v11,v12,v22,kevb,evbt,Arad, & !52

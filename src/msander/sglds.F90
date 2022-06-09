@@ -6,7 +6,11 @@ module sgld
 
 ! MODULE: sgld
 ! ================== SELF-GUIDED MOLECULAR/LANGEVIN DYNAMICS ====================
-! Xiongwu Wu, 2011
+! Xiongwu Wu, 2022
+
+#ifdef MPI
+   use mpi
+#endif
 
 implicit none
 
@@ -24,7 +28,7 @@ implicit none
 !      ISGEND      Ending atom index applying SGLD
 !
 !
-      integer,save:: ISGSTA,ISGEND,sgrndf,FIXCOM
+      integer,save:: ISGSTA,ISGEND
 !
 ! ... floats:
 !
@@ -32,8 +36,6 @@ implicit none
 !    SGMD/SGLD VARIABLES
 !     SGFT    !  Guiding factor 
 !     TSGAVG  !  Local average time, ps
-!     TEMPSG  !  Guiding temperature, K
-!     TREFLF  !  Reference low frequency temperature, K
 !     TSGAVP  !  Convergence time, ps
 !
 !
@@ -42,76 +44,91 @@ implicit none
 !     SGAVP0  !  Convergence average remains
 !     SGAVP1  !  Convergency average factor, SGAVP1=1-SGAVP0
 !     GAMMAS  !  friction coefficient
-!     TEMPSG  !  Target guiding temperature 
-!     TREFLF  !  Reference low frequency temperature
+!     TEMPLF  !  Low frequency motion temperature 
+!     TEMPHG  !  High frequency temperature
 !
 
-      _REAL_  SGFT,SGFF,SGFD,TSGAVG,TEMPSG,TSGSET,TREFLF,TSGAVP,GAMMAS,SGMASS, &
-          SGAVG0,SGAVG1,SGAVP0,SGAVP1,SGFTI,SGFFI,SGFDI,TEMPSGI,EPOTLF,EPOTHF, &
-          SGEFLF,SGEFHF,SGCFLF,AVGDD,AVGFF,AVGGD,AVGGF,AVGPP,AVGGP, &
-          TEMPLFI,TEMPHFI,TREFLFI,TREFHFI,FRCLF,FRCHF,VIRSG,TEMPLLI,SGFTI2, &
-          AVGELF,AVGTLF,AVGEFLF,AVGEFHF,AVGCFLF,AVGCFHF,SGWT, &
-          TEMPRXLF,MYSCALSG,SGSCALE,FSGLDG
+      _REAL_  SGFT,SGFF,SGFG,TSGAVG,TSGSET,TSGAVP,GAMMAS, &
+          SGAVG0,SGAVG1,SGAVP0,SGAVP1,SGFTI,SGFFI,SGFGI,EPOTLF,EPOTHF,EPOTLLF, &
+          TEMPLF,TEMPHF, &
+          SGWT, sgrndf, &
+          MYSCALSG,SGSCALE,FSGLDG,PSGLDG,tsgfac
 
 !  common block for parallel broadcast
-      common/sgldr/SGFT,SGFF,SGFD,TSGAVG,TEMPSG,TSGSET,TREFLF,&
-          SGFTI,SGFFI,SGFDI,TEMPSGI,SGMASS, &
-          AVGDD,AVGFF,AVGGD,AVGGF,AVGPP,AVGGP, &
-          TEMPLFI,TEMPHFI,TREFLFI,TREFHFI,TEMPLLI,SGFTI2, &
-          AVGTLF,AVGEFLF,AVGEFHF,AVGCFLF,AVGCFHF, &
-          TEMPRXLF,MYSCALSG,FSGLDG
+      common/sgldr/SGFT,SGFF,SGFG,TSGAVG,TSGSET,TSGAVP,GAMMAS, &
+      SGAVG0,SGAVG1,SGAVP0,SGAVP1,SGFTI,SGFFI,SGFGI,EPOTLF,EPOTHF,EPOTLLF, &
+      TEMPLF,TEMPHF, &
+      SGWT, sgrndf, &
+      MYSCALSG,SGSCALE,FSGLDG,PSGLDG,tsgfac
 !  Number of broadcasting variables
-integer, parameter :: nsgld_real=32
+integer, parameter :: nsgld_real=26
        
 !
 ! ... flags:
 !
 !
 !     isgld   ! input control; positive values activate SGLD
-!     TSGLDFP ! Perform SGLDfp to mantain canonical ensemble distribution
-!     TSGLDG ! Perform SGLDg to mantain canonical ensemble distribution
+!     TSGBOND ! Perform guiding force average over bonded structure
+!     TSGLDGLE ! Perform SGLD-GLE to mantain canonical ensemble distribution
 !
 !
-      integer, save :: isgld
-      LOGICAL, save, private :: TSGLDFP,TSGLDG
+      integer, save :: isgld,nsgsize
+      LOGICAL, save, private :: TSGLD,TSGLDGLE,TSGBOND
       LOGICAL, save :: TRXSGLD
+      character(8), save:: sglabel
       
+!*******************************************************************************
 !
 ! ...allocatable arrays:
 !
-!     VSG     ! local averages of velocity
-!     DSG     ! interaction forces
-!     FSG     ! local averages of force
-!     GSG     ! guiding force
-!     HSG     ! local averages of guiding force
-!     SHKSG   ! constraint forces
-!
-      _REAL_, dimension(:), allocatable, private,save :: VSG,DSG,FSG,GSG,HSG,SHKSG
+!     avgx1     ! local averages of position
+!     avgx2     ! local averages of local averages of position
+!     avgp     ! local averages of momentum
+!     avgr     ! local average of random forces
+!     sgfps   !  averages of force-momentum product
+!     sgpps   ! averages of momentum-momentum product
+!*******************************************************************************
 
+      double precision, dimension(:,:), allocatable, save :: avgx1,avgx2,avgp,avgr
+      double precision, dimension(:), allocatable, private,save :: sgfps,sgpps,sgmass
 
+      type listdata_rec
+      integer             :: offset
+      integer             :: cnt
+      end type listdata_rec
+  
+
+      type(listdata_rec), allocatable, save :: atm_sg_maskdata(:)
+      integer, allocatable, save            :: atm_sg_mask(:)
+    
+   
 contains
 
 
-    SUBROUTINE PSGLD(NATOM,AMASS,V, rem)
+    SUBROUTINE PSGLD(atm_cnt,numex,natex,AMASS,crd,vel, rem)
 !-----------------------------------------------------------------------
 !     This routine performs initiation for the Self-Guided        
 !       Langevin Dynamcs (SGLD) simulaiton                 
 !
+      use md_scheme, only: gamma_ln
       implicit none
 #include "../include/md.h"
+#include "../include/memory.h"
 #ifdef MPI
 #  include "parallel.h"
 #endif
-      INTEGER NATOM
-      _REAL_ AMASS(*),V(*)
+      INTEGER atm_cnt,numex(*),natex(*)
+      _REAL_ AMASS(*),crd(3,*),vel(3,*)
       integer rem
-      INTEGER I,I3,M,ierror
-      _REAL_ AMASSI,VI3,GAMM
+      INTEGER I,I3,M,ierror,j,nsgsubi,idx_nbex,jatm
+      _REAL_ AMASSI,XI3,VI3,ekin,ekinsg,GAMM,FACT1,FACT2
       logical is_langevin  ! Is this a Langevin dynamics simulation
 !
-      TSGLDFP = (isgld == 2)
-      tsgldg = (isgld == 3)
-      trxsgld = rem > 0 .and. (isgld==1.or.isgld==3)
+      is_langevin = gamma_ln > 0.0d0
+      TSGLD = (isgld >0)
+      tsgbond = (nsgsize > 1)
+      tsgldgle = (abs(sgfg) > 1.0d-6).and.is_langevin
+      trxsgld = rem > 0 .and. tsgld
 !  Check for invalid sgld setting
       IF(ISGSTA < 1)ISGSTA=1
       IF(ISGEND > NATOM .OR. ISGEND < 1)ISGEND=NATOM
@@ -121,191 +138,246 @@ contains
       SGAVG0=1.0D0-SGAVG1
       SGAVP1=DT/TSGAVP
       SGAVP0=1.0D0-SGAVP1
-      is_langevin = gamma_ln > 0.0d0
-      SGFTI=SGFT
-      SGFFI=SGFF
-      SGFDI=SGFD
-      IF(is_langevin)THEN
-        IF(SGFT<-1.0D1)THEN
-          SGFTI=1.0D0
-          IF(TSGLDG)SGFTI=0.0D0
-        ENDIF
-        IF(FIXCOM<0)FIXCOM=0
-      ELSE
-        IF(SGFT<-1.0D1)THEN
-          SGFTI=0.2D0
-          IF(TSGLDG)SGFTI=1.0D0
-        ENDIF
-        IF(FIXCOM<0)FIXCOM=1
-      ENDIF
-      IF(SGFF<=-1.0D0)SGFFI=0.0D0
-      IF(SGFD<=-1.0D0)SGFDI=0.0D0
-      IF(TSGLDG)THEN
-        IF(SGFTI<-0.0D0)SGFTI=1.0D0
-        IF(TEMPSG<1.0D0)TEMPSG=temp0
-      ENDIF
+      gammas=gamma_ln/20.455d0
+      tsgfac=1.0d0/20.455d0/tsgavg
+      sglabel="SGMD: "
+      if(is_langevin)sglabel="SGLD: "
+      if(sgft<-1.0d0.or.sgft>1.0d0)then
+        if(sgff<-1.0d0 .or. sgff>1.0d0)then
+          sgfti=0.0d0
+          sgffi=0.0d0
+        else
+          sgffi=sgff
+          sgfti=(1.0d0+SGFFI)*(1.0d0+SGFFI)-1.0d0/(1.0d0+SGFFI)
+        endif
+      else
+        sgfti=sgft
+        if(sgff<-1.0d0 .or. sgff>1.0d0)then
+          PSGLDG=0.0d0
+          if(ABS(SGFTI)>1.0d-8)then
+            FACT1=9.0d0-SQRT(81.0d0-12.0d0*SGFTI*SGFTI*SGFTI)
+            FACT2=(ABS(FACT1)*1.5d0)**(1.0/3.0d0)
+            PSGLDG=SIGN(1.0d0,FACT1)*(FACT2/3.0d0+SGFTI/FACT2)-1.0d0
+          endif
+          sgffi=psgldg
+        else
+          sgffi=sgff
+        endif
+      endif
+      PSGLDG=0.0d0
+      if(ABS(SGFTI)>1.0d-8)then
+        FACT1=9.0d0-SQRT(81.0d0-12.0d0*SGFTI*SGFTI*SGFTI)
+        FACT2=(ABS(FACT1)*1.5d0)**(1.0/3.0d0)
+        PSGLDG=SIGN(1.0d0,FACT1)*(FACT2/3.0d0+SGFTI/FACT2)-1.0d0
+      endif
+      if(tsgldgle)then
+        sgfgi=sgfg
+        FSGLDG=SQRT(1.0d0-SGFGI)-1.0d0
+      else
+        sgfgi=0.0d0
+        FSGLDG=0.0d0
+      endif
 #ifdef MPI
       if(mytaskid.eq.0)THEN
 #endif
-        write(6,910)isgsta,isgend,tsgavg
-        if(tempsg > 1.0d0)then
-          write(6,920)tempsg
-          if(tempsg<100.0d0)write(6,921)
-          if(tsgldfp)then
-            write(6,922)
-          endif
-        endif
-        if(sgft > -1.0d2)then
-          write(6,925)sgft
-        endif
-        if(sgff > -1.0d2)then
-          write(6,926)sgff
-        endif
-        if(treflf < 1.0d-6)then
-            if(tsgldfp)write(6,941)
+      write(6,910)isgsta,isgend,tsgavg
+      if(is_langevin)then
+        if(tsgldgle)then
+          write(6,928)
+          write(6,927)sgfgi,fsgldg
         else
-            if(tsgldfp)write(6,942)treflf
+          write(6,940)
         endif
-        if(is_langevin)then
-          if(tsgldfp)then
-            write(6,928)"  SGLDfp"
-          else if(tsgldg)then
-            write(6,929)"  SGLDg"
-          else
-            write(6,929)"  SGLD"
-          endif
-          write(6,930)gamma_ln
+        write(6,930)gamma_ln
+      else
+          write(6,941)
+      endif
+      write(6,925)sgfti,psgldg
+      write(6,926)sgffi
+      if(tsgbond)then
+        if(nsgsize==2)then
+          write(6,942)
         else
-          if(tsgldfp)then
-            write(6,928)"  SGMDfp"
-            if(treflf < 1.0d-6)then
-              write(6,951)
-              call mexit(6, 1)
-            endif
-          else if(tsgldg)then
-            write(6,929)" SGMDg"
-          else
-            write(6,929)"  SGMD"
-          endif
+          write(6,943)
         endif
-        if(fixcom>0)write(6,931)
-        if(sgff>-1.0d1)then
-            write(6,961)sgffi
-        endif
-        if(sgfd>-1.0d2)then
-            write(6,962)sgfdi
-        endif
-        write(6,935)
+      endif      
+      write(6,935)
 #ifdef MPI
-      ENDIF
+    ENDIF
 #endif
-      IF(GAMMA_LN > 0.0D0)THEN
-        GAMMAS=GAMMA_LN/20.455d0
-      ELSE
-        GAMMAS=1.0D0/20.455d0
-      ENDIF
-      TSGSET=TEMP0
-      IF(TSGSET<1.0D-6)TSGSET=MAX(TEMPSG,300.0D0)
-      GAMM=SQRT(DT/TSGAVG)
-      IF(TREFLF>1.0D-6)GAMM=SQRT(TREFLF/TSGSET)
-!     Allocate working arrays
-      allocate( VSG(3*natom ),DSG(3*natom ),FSG(3*natom ),&
-                GSG(3*natom ),HSG(3*natom ),SHKSG(3*natom ),&
+      tsgset=temp0
+      if(tsgset<1.0d-6)tsgset=300.0d0
+      !     allocate working arrays
+      allocate( avgx1(3,natom),avgx2(3,natom),  &
+      avgp(3,natom ),avgr(3,natom ),sgfps(natom ),sgpps(natom ),&
                 stat=ierror)
       REQUIRE( ierror == 0 )
-!    Initialize arrays
-      SGMASS=0.0D0
-      DO I=1,NATOM
+     ! build bidireectional  exclusion lists
+      if(tsgbond)then 
+        allocate(atm_sg_maskdata(natom), &
+                 atm_sg_mask(nnb*2), &
+                 sgmass(natom),stat = ierror)
+        call make_sgavg_mask_list(natom,nnb,numex, natex)
+        REQUIRE( ierror == 0 )
+      endif
+  !    Initialize arrays
+      gamm=sqrt(dt/tsgavg)
+      ekin=0.0d0
+      ekinsg=0.0d0
+       DO I=1,NATOM
         AMASSI = AMASS(I)
-        SGMASS=SGMASS+AMASSI
-        IF((I>=ISGSTA).AND.(I<=ISGEND))THEN
-        ENDIF
+        !IF((I>=ISGSTA).AND.(I<=ISGEND))THEN
+        !ENDIF
         DO M=1,3
-          I3=3*I-3+M
-          VI3=V(I3)
-          VSG(I3)=GAMM*VI3
-          DSG(I3)=VI3
-          FSG(I3)=0.0D0
-          GSG(I3)=0.0D0
-          HSG(I3)=0.0D0
-          SHKSG(I3)=0.0D0
+          xi3=crd(m,i)
+          vi3=vel(m,i)
+          ekin=ekin+amassi*vi3*vi3
+          if(tsgbond)then 
+            nsgsubi=atm_sg_maskdata(i)%cnt
+            xi3=amassi*xi3
+            vi3=amassi*vi3
+            sgmass(i)=amassi
+            do j=1,nsgsubi
+              idx_nbex=atm_sg_maskdata(i)%offset + j 
+              jatm=atm_sg_mask(idx_nbex)
+              xi3=xi3+amass(jatm)*crd(m,jatm)
+              vi3=vi3+amass(jatm)*vel(m,jatm)
+              sgmass(i)=sgmass(i)+amass(jatm)
+            enddo
+            xi3=xi3/sgmass(i)
+            vi3=vi3/sgmass(i)
+          endif
+          avgx1(m,i)=xi3
+          avgx2(m,i)=avgx1(m,i)
+          avgp(m,i)=0.0d0
+          avgr(m,i)=0.0d0
+          ekinsg=ekinsg+amassi*vi3*vi3
         END DO
-        
+        sgfps(i)=0.0d0
+        sgpps(i)=amassi*0.001987*tsgset*sgavg1  
       END DO
-      temprxlf=0.0d0   !For RXSGLD
-      TEMPSGI=TEMPSG
-      IF(TEMPSG<1.0D-6)TEMPSGI=TSGSET
-      TREFLFI=TREFLF
-      IF(TREFLF<1.0D-6)TREFLFI=GAMM*TSGSET
-      TEMPLFI=TREFLFI
-      TREFHFI=TSGSET-TREFLFI
-      TEMPHFI=TSGSET-TEMPLFI
-      IF(TSGLDG)THEN
-        TEMPLLI=GAMM*TSGSET
-        IF(GAMMA_LN > 0.0D0)THEN
-          SGFDI=(1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT((1.0D0-SGFTI)*(1.0D0+SGFFI))-1.0D0
-          FSGLDG=((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT(1.0D0+SGFFI)-1.0D0)*SQRT(1.0D0-SGFTI)
-        ELSE
-          SGFTI2=0.0D0
-          IF(SGFTI>0.0D0)SGFTI2=SQRT(SGFTI)
-          FSGLDG=SGFTI2*((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT(1.0D0+SGFFI)-1.0D0)
-          SGFDI=SGFTI2*((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0)) &
-             *SQRT(1.0D0+SGFFI))
-        ENDIF
-      ENDIF
-      EPOTLF=2.0D10
-      SGWT=0.0D0
-      VIRSG=0.0D0
-      FRCLF=1.0D0
-      FRCHF=1.0D0
-      AVGELF=0.0D0
-      AVGTLF=TREFLFI
-      AVGEFLF=1.0D0
-      AVGEFHF=1.0D0
-      AVGCFLF=1.0D0
-      AVGCFHF=1.0D0
-      AVGFF=1.0D-6
-      AVGDD=1.0D-6
-      AVGGF=0.0D0
-      AVGGD=0.0D0
-      AVGPP=1.0D-6
-      AVGGP=0.0D0
-      SGEFLF=1.0D0
-      SGEFHF=1.0D0
-      SGCFLF=1.0D0
-910   format("  _________________ SGLD parameters _________________"/  &
+      epotlf=2.0d10
+      epotllf=2.0d10
+      templf=tsgset*sgavg1
+      temphf=0.0d0
+      sgwt=0.0d0
+      910   format("  _________________ SGLD parameters _________________"/  &
       "  Parameters for self-guided Langevin dynamics (SGLD) simulation"//  &
           "  Guiding range from ",i5,"  to ",i5 /  &
           "  Local averaging time: ",f10.4," ps ")
-920   format("  Guiding temperature:",f8.2, " K" )
-921   format("  *** WARNING: Guiding temperature is redefined since AMBER12 ***" / &
-    "  Set tempsg > temp0 to enhance conformational search!"/ &
-    "  tempsg defines a seaching ability comparable to a simulation at T=tempsg"/)
-922   format("  *** WARNING: sgft, instead of tempsg, should be set for isgld == 2! ")
-925   format("  Momentum guiding factor: ",f8.4)
-926   format("  Force guiding factor: ",f8.4)
-!927   format(" SGMDg is used for enhanced conformational search. ")
-928   format(a8,"  method is used to mantain a canonical distribution. ")
-929   format(a8,"  method is used to enhance conformational search. ")
+925   format("  sgfti: ",f8.4," psgldg: ",f8.4)
+926   format("  sgffi: ",f8.4)
+927   format("  momentum factor sgfgi= ",f8.4," random force factor fsgldg=",f8.4)
+928   format("  SGLD-GLE method is used to mantain a canonical distribution. ")
+940   format("  SGLDg  method is used to enhance conformational search. ")
+941   format("  SGMDg  method is used to enhance conformational search. ")
+942   format("  NSGSIZE=2, Guiding forces are averaged over 1-2,1-3 bonded structures" )
+943   format("  NSGSIZE>2, Guiding forces are averaged over 1-2,1-3,1-4 bonded structures" )
 930   format("  Collision frequency:",f8.2," /ps" )
-931   format("  Translation of COM is freezed!" )
-!933   format("  Guiding temperature is not defined.  Set tempsg=:",f8.2, " K" )
 935   format("  SGMD/SGLD output properties:"    /  &
-             "  SGLF=  SGFT   TEMPSG   TEMPLF   TREFLF   FRCLF   EPOTLF    SGWT" /  &
-             "  SGHF=  SGFF   SGFD     TEMPHF   TREFHF   FRCHF   EPOTHF   VIRSG" /  &
+             "  SGLABEL:  SGGAMMA TEMPLF  TEMPHF  EPOTLF EPOTHF EPOTLLF SGWT" /  &
              "         SGMD/SGLD weighting factor=exp(SGWT)"/  &
               " _______________________________________________________"/)
-941   format("  WARNING: treflf is not defined and will be estimated from simulation. ")
-942   format("  treflf= ",f8.2," K is input for guiding temperature calculation.")
-951   format("  WARNING: treflf must be defined for SGMDfp. ")
-961   format("  sgff is fixed at: ",f8.4)
-962   format("  sgfd is fixed at: ",f8.4)
       RETURN
       END SUBROUTINE PSGLD
 
+
+      subroutine make_sgavg_mask_list(atm_cnt, nnb, numex, natex)
+
+     
+        implicit none
+      
+      ! Formal arguments:
+      
+        integer               :: atm_cnt,nnb
+        ! Excluded atom count for each atom.
+        integer               :: numex(atm_cnt)
+        ! Excluded atom concatenated list:
+        integer               :: natex(nnb)
+      
+      ! Local variables:
+      
+        integer               :: atm_i, atm_j
+        integer               :: lst_idx, sublst_idx, num_sublst
+        integer               :: mask_idx
+        integer               :: offset
+        integer               :: total_excl
+      
+      ! Double the mask to deal with our list generator
+      
+      ! Pass 1: get pointers, check size
+      
+        lst_idx = 0
+      
+        atm_sg_maskdata(:)%cnt = 0       ! array assignment
+      
+        do atm_i = 1, atm_cnt - 1         ! last atom never has any...
+          num_sublst = numex(atm_i)
+          do sublst_idx = 1, num_sublst
+            atm_j = natex(lst_idx + sublst_idx)
+            if (atm_j .gt. 0 .or. nsgsize>2) then
+              atm_sg_maskdata(atm_i)%cnt = atm_sg_maskdata(atm_i)%cnt + 1
+              atm_sg_maskdata(atm_j)%cnt = atm_sg_maskdata(atm_j)%cnt + 1
+            end if
+          end do
+          lst_idx = lst_idx + num_sublst
+        end do
+      
+        total_excl = 0
+      
+        do atm_i = 1, atm_cnt
+          total_excl = total_excl + atm_sg_maskdata(atm_i)%cnt
+        end do
+        !write(6,*)"total_excl, nnb: ",total_excl, nnb
+        if (total_excl .gt. nnb*2) then
+          write(6, '(a,a)') "SGBOND: ", &
+               'The total number of sg substructure exceeds that stipulated by the'
+          write(6, '(a,a)') "SGBOND: ", &
+               'prmtop.  This is likely due to a very high density of added extra points.'
+          write(6, '(a,a)') "SGBOND: ", &
+               'Scale back the model detail, or contact the developers for a workaround.'
+          call mexit(6, 1)
+        end if
+      
+        offset = 0
+      
+        do atm_i = 1, atm_cnt
+          atm_sg_maskdata(atm_i)%offset = offset
+          offset = offset + atm_sg_maskdata(atm_i)%cnt
+        end do
+      
+      ! Pass 2: fill mask array
+      
+        lst_idx = 0
+      
+        atm_sg_maskdata(:)%cnt = 0       ! array assignment
+        
+          do atm_i = 1, atm_cnt - 1
+            num_sublst = numex(atm_i)
+            do sublst_idx = 1, num_sublst
+              atm_j = natex(lst_idx + sublst_idx)
+              if (atm_j .gt. 0 .or. nsgsize>2) then
+                if(atm_j==0)cycle
+                atm_j=abs(atm_j)
+                atm_sg_maskdata(atm_j)%cnt = atm_sg_maskdata(atm_j)%cnt + 1
+                mask_idx = atm_sg_maskdata(atm_j)%offset + &
+                           atm_sg_maskdata(atm_j)%cnt
+                atm_sg_mask(mask_idx) = atm_i
+      
+                atm_sg_maskdata(atm_i)%cnt = atm_sg_maskdata(atm_i)%cnt + 1
+                mask_idx = atm_sg_maskdata(atm_i)%offset + &
+                           atm_sg_maskdata(atm_i)%cnt
+                atm_sg_mask(mask_idx) = atm_j
+      
+              end if
+            end do
+            lst_idx = lst_idx + num_sublst
+          end do
+        return
+      
+      end subroutine make_sgavg_mask_list
+      
+      
     subroutine sg_fix_degree_count(sgsta_rndfp, sgend_rndfp, ndfmin, rndf)
 !-----------------------------------------------------------------------
 !     Correct the total number of degrees of freedom for a translatable COM,
@@ -319,51 +391,14 @@ contains
       integer, intent(in)   :: ndfmin
       _REAL_, intent(inout) :: rndf
 
-      sgrndf = int(sgend_rndfp - sgsta_rndfp)
-      if (fixcom > 0 .and. ndfmin == 0) then
-         rndf = rndf - 3
-         sgrndf = sgrndf - 3
-      end if
+      sgrndf = sgend_rndfp - sgsta_rndfp
       return
       end subroutine sg_fix_degree_count
 
-    SUBROUTINE SGFSHAKE(ISTART,IEND,DT,AMASS,X,QCALC)
-!-----------------------------------------------------------------------
-!     This routine calculate SHAKE constraint forces needed for SGLD reweighting                 
-!
-      implicit none
-      INTEGER ISTART,IEND,I,I3,M
-      LOGICAL QCALC
-      _REAL_ DT,AMASS(*),X(*)
-      _REAL_ DT2,FACT
-      IF(QCALC)THEN
-!  Calculate shake forces
-        DT2=1.0D0/(DT*DT)
-        DO I=ISTART,IEND
-          FACT=DT2*AMASS(I)
-          I3=(I-1)*3
-          DO M=1,3
-            I3=I3+1
-            SHKSG(I3)=FACT*(X(I3)-DSG(I3))
-            !FSG(I3)=FSG(I3)+SGAVG1*SHKSG(I3)
-          ENDDO
-        ENDDO
-      ELSE
-!  Save old positions
-        DO I=ISTART,IEND
-          I3=(I-1)*3
-          DO M=1,3
-            I3=I3+1
-            DSG(I3)=X(I3)
-          ENDDO
-        ENDDO
-      ENDIF
-      RETURN
-      END SUBROUTINE SGFSHAKE
 
 
-      SUBROUTINE SGLDW(NATOM,ISTART,IEND,NTP, &
-             DTX,TEMP0,ENER,AMASS,WINV,X,F,V)
+      SUBROUTINE SGLDW(NATOM,ISTART,IEND, &
+             DTX,TEMP0,ENER,AMASS,WINV,crd,Frc,Vel)
 !-----------------------------------------------------------------------
 !     This routine perform SGLD integration        
 !
@@ -371,281 +406,159 @@ contains
       use random, only: GAUSS
       implicit none
 #ifdef MPI
-   include 'mpif.h'
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
+# ifndef USE_MPI_IN_PLACE
+      _REAL_ :: temp2(20)
+# endif
 #endif
-      INTEGER NATOM,ISTART,IEND,NTP
+      INTEGER NATOM,ISTART,IEND
       _REAL_ DTX,TEMP0
       type(state_rec) :: ener
-      _REAL_ AMASS(*),WINV(*),X(*),F(*),V(*)
+      _REAL_ AMASS(*),WINV(*),crd(3,*),Frc(3,*),Vel(3,*)
 !
-      INTEGER I,M,I3,JSTA,JEND
+      INTEGER I,M,JSTA,JEND,j,nsgsubi,idx_nbex,jatm
       _REAL_ BOLTZ,AMASSI,TEMPI
-      _REAL_ FACT,WFAC,DRAGI,DRAGJ,PV1,PV2,RSD,FLN
-      _REAL_ PTOT(3),FTOT(3),EKIN,EKINSG,EKINSGG
-      _REAL_ SUMDD,SUMFF,SUMGD,SUMGF,SUMPP,SUMGP
-      _REAL_ VIT,VI3,FI3,GI3,HI3,VSGI,DSGI,FSGI,PSGI,FRICI
+      _REAL_ FACT,WFAC,GAM,RSD,FLN
+      _REAL_ EKIN,EKINSG,SGBETA
+      double precision sumgam,sumfp,sumpp,sumgv,sumpv
+      double precision sggammai,avgpi3,pi3t,avgdfi3,avgri3,fsgpi,fsgfi,fsgi3,frici
+      double precision xi3,x1i3,x2i3,vi3t,vi3,fi3
       PARAMETER (BOLTZ = 1.987192d-3)
 !
-        JSTA=ISTART
+      gam=gammas*dtx
+      JSTA=ISTART
         JEND=IEND
         IF(JSTA < ISGSTA)JSTA=ISGSTA
         IF(JEND > ISGEND)JEND=ISGEND
-!   Estimate guiding factor or guiding temperature
-        DO M=1,3
-          PTOT(M)=0.0D0
-          FTOT(M)=0.0D0
-        ENDDO
+        sumgam=0.0d0
         EKIN=0.0D0
         EKINSG=0.0D0
-        EKINSGG=0.0D0
-        PV1=0.0d0 
-        PV2=0.0d0
         DO  I = 1,NATOM 
           AMASSI = AMASS(I)
-          WFAC =  DTX*0.5D0*WINV(I)
+          WFAC =  2.0D0*DTX*WINV(I)
           RSD = SQRT(2.D0*GAMMAS*BOLTZ*TEMP0*AMASSI/DTX)
-          I3 = 3*(I-1)
+          IF(I>=JSTA.AND.I<=JEND)THEN
+            ! sggamma
+          sggammai=-sgfps(i)/sgpps(i)
+          sumgam=sumgam+sggammai
+          sumfp=0.0d0
+          sumpp=0.0d0
+          sumgv=0.0d0
+          sumpv=0.0d0
           DO  M = 1,3
 !   Keep random number series the same as that in a single cpu simulation
             CALL GAUSS( 0.D0, RSD, FLN )
-            I3 = 3*(I-1)+M
-            VI3=V(I3)
-            IF(I>=JSTA.AND.I<=JEND)THEN
-              VSGI=SGAVG0*VSG(I3)+SGAVG1*VI3
-              VSG(I3)=VSGI
-              PSGI=GAMMAS*AMASSI*VSGI
-              FI3=F(I3)
-              IF(TSGLDG)THEN
-                GI3=SGAVG0*GSG(I3)+SGAVG1*VSGI
-                GSG(I3)=GI3
-                DSGI=SGAVG0*HSG(I3)+SGAVG1*FLN
-                HSG(I3)=DSGI
-                DRAGJ=FI3+SHKSG(I3)
-                FSGI=SGAVG0*FSG(I3)+SGAVG1*DRAGJ
-                FSG(I3)=FSGI
-                EKINSGG=EKINSGG+AMASSI*GI3*GI3
-                DRAGI=SGFTI*PSGI+SGFFI*FSGI+SGFDI*DSGI
-                DRAGJ=SGFFI*FSGI+FSGLDG*DSGI
-              ELSE
-                DSGI=FI3+SHKSG(I3)
-                FSGI=SGAVG0*FSG(I3)+SGAVG1*DSGI
-                FSG(I3)=FSGI
-                DSGI=DSGI-FSGI
-                SHKSG(I3)=DSGI
-                DRAGI=SGFTI*PSGI+SGFFI*FSGI+SGFDI*DSGI
-                DRAGJ=DRAGI
-              ENDIF
-              DSG(I3)=DRAGJ
-              FI3=FI3+fln+DRAGI
-              F(I3)=FI3
-              VIT = VI3 + FI3*wfac
-              PV1=PV1+VIT*DRAGJ
-              PV2=PV2+AMASSI*VIT*VIT
-              EKIN=EKIN+AMASSI*VI3*VI3
-              EKINSG=EKINSG+AMASSI*VSGI*VSGI
-              PTOT(M)=PTOT(M)+AMASSI*VI3
-              FTOT(M)=FTOT(M)+FI3
-            ELSE IF(I>=ISTART.AND.I<=IEND)THEN
-              FI3=F(I3)+fln
-              F(I3)=FI3
-              PTOT(M)=PTOT(M)+AMASSI*VI3
-              FTOT(M)=FTOT(M)+FI3
-            ENDIF
+              ! avg(x)
+              xi3=crd(m,i)
+              if(tsgbond)then 
+                nsgsubi=atm_sg_maskdata(i)%cnt
+                xi3=amassi*xi3
+                do j=1,nsgsubi
+                  idx_nbex=atm_sg_maskdata(i)%offset + j 
+                  jatm=atm_sg_mask(idx_nbex)
+                  xi3=xi3+amass(jatm)*crd(m,jatm)
+                enddo
+                xi3=xi3/sgmass(i)
+              endif
+              x1i3=sgavg0*avgx1(m,i)+sgavg1*xi3
+              avgx1(m,i)=x1i3
+              ! avgavg(x)
+              x2i3=sgavg0*avgx2(m,i)+sgavg1*x1i3
+              avgx2(m,i)=x2i3
+              ! avg(p)
+              avgpi3=tsgfac*amassi*(xi3-x1i3)
+              pi3t=(avgpi3-sgavg0*avgp(m,i))/sgavg1
+              avgp(m,i)=avgpi3
+              ! avg(f-avg(f))
+              avgdfi3=tsgfac*(pi3t-2.0d0*avgpi3+tsgfac*amassi*(x1i3-x2i3))
+              ! sum(avg(f-avg(f))avg(p))
+              sumfp=sumfp+avgdfi3*avgpi3
+              ! sum(avg(p)avg(p))
+              sumpp=sumpp+avgpi3*avgpi3
+              ! average random forces
+              avgri3=sgavg0*avgr(m,i)+sgavg1*fln
+              avgr(m,i)=avgri3
+              ! guiding forces
+              fsgpi=(sgfti*sggammai)*avgpi3
+              fsgfi=sgffi*avgdfi3
+              fsgi3=sgfgi*gammas*avgpi3+fsgldg*avgri3+fsgpi+fsgfi
+              fi3=frc(m,i)+fln+fsgi3
+              frc(m,i)=fi3
+              ! estimate velocity at t+dt/2
+              ! Using volocities at t avoid SHAKE complication
+              vi3t=vel(m,i)
+              ! sum(g*v)
+              sumgv=sumgv+fsgi3*vi3t
+              ! sum(p*v)
+              sumpv=sumpv+amassi*vi3t*vi3t
+              ekin=ekin+pi3t*pi3t/amassi
+              ekinsg=ekinsg+avgpi3*avgpi3/amassi
+          end do
+            ! <(avg(f-avg(f))avg(v))>
+            sgfps(i)=sgavp0*sgfps(i)+sgavp1*sumfp
+            ! <(avg(p)avg(v))>
+            sgpps(i)=sgavp0*sgpps(i)+sgavp1*sumpp
+            ! energy conservation friction constant
+            if(sumpv<1.0d-8)then
+              sgbeta=0.0d0
+            else
+              sgbeta=(2.0d0+gam)*sumgv/(2.0d0*sumpv-sumgv*dtx)
+            endif
+            !sgbeta=0.0d0
+            fact=dtx*(gammas+sgbeta)
+            do  m = 1,3
+              fi3=frc(m,i)
+              vi3t=((2.0d0-fact)*vel(m,i)+fi3*wfac)/(2.0d0+fact)
+              vel(m,i)=vi3t
+            end do
+          ELSE 
+               ! without guiding forces
+            do  m = 1,3
+              !   generate random number 
+              call gauss( 0.d0, rsd, fln )
+              FI3=FRC(m,I)+fln
+              Frc(m,I)=FI3
+              vi3t=((2.0d0-gam)*vel(m,i)+fi3*wfac)/(2.0d0+gam)
+              vel(m,i)=vi3t
           END DO
-        END DO
+        ENDIF
+      END DO
 #ifdef MPI
         IF(SANDERSIZE > 1)THEN
 !  Combining all node results
 !
-          TEMP1(1)=PV1
-          TEMP1(2)=PV2
-          TEMP1(3)=PTOT(1)
-          TEMP1(4)=PTOT(2)
-          TEMP1(5)=PTOT(3)
-          TEMP1(6)=FTOT(1)
-          TEMP1(7)=FTOT(2)
-          TEMP1(8)=FTOT(3)
-          TEMP1(9)=EKIN
-          TEMP1(10)=EKINSG
-          TEMP1(11)=EKINSGG
-          call mpi_allreduce(MPI_IN_PLACE,temp1,11,&
+          TEMP1(1)=sumgam
+          TEMP1(2)=EKIN
+          TEMP1(3)=EKINSG
+# ifdef USE_MPI_IN_PLACE
+          call mpi_allreduce(MPI_IN_PLACE,temp1,3,&
              MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
-          PV1=TEMP1(1)
-          PV2=TEMP1(2)
-          PTOT(1)=TEMP1(3)
-          PTOT(2)=TEMP1(4)
-          PTOT(3)=TEMP1(5)
-          FTOT(1)=TEMP1(6)
-          FTOT(2)=TEMP1(7)
-          FTOT(3)=TEMP1(8)
-          EKIN=TEMP1(9)
-          EKINSG=TEMP1(10)
-          EKINSGG=TEMP1(11)
-        ENDIF
-#endif
-        IF(FIXCOM>0)THEN
-          DO M=1,3
-            PTOT(M)=PTOT(M)/SGMASS
-            FTOT(M)=FTOT(M)/SGMASS
-          ENDDO
-        ELSE
-          DO M=1,3
-            PTOT(M)=0.0D0
-            FTOT(M)=0.0D0
-          ENDDO
-        ENDIF
-        sgscale=(1.0d0+0.5d0*gammas*dtx)*pv1/(pv2-0.5d0*dtx*pv1)
-        SUMDD=0.0d0
-        SUMFF=0.0d0
-        SUMGD=0.0d0
-        SUMGF=0.0d0
-        SUMPP=0.0d0
-        SUMGP=0.0d0
-        DO  I = ISTART,IEND 
-          WFAC = WINV(I)*DTX
-          AMASSI=AMASS(I)
-          IF(I<JSTA.OR.I>JEND)THEN
-            FACT=0.5D0*DTX*GAMMAS
-          ELSE
-            FACT=0.5D0*DTX*(GAMMAS+SGSCALE)
-          ENDIF
-          DO  M = 1,3
-            I3 = 3*(I-1)+M
-            VI3=V(I3)-PTOT(M)
-            FI3=F(I3)-AMASSI*FTOT(M)
-            F(I3)=FI3
-            VIT=((1.0D0-FACT)*VI3+FI3*WFAC)/(1.0D0+FACT)
-            V(I3)=VIT
-            VIT=0.5D0*(VI3+VIT)
-            VSGI=VSG(I3)
-            DSGI=SHKSG(I3)
-            FSGI=FSG(I3)
-            FRICI=AMASSI*SGSCALE*VIT
-            PSGI=AMASSI*GAMMAS*VSGI
-            FI3=SGFTI*PSGI-FRICI
-            DRAGI=DSG(I3)-FRICI
-            DSG(I3)=DRAGI
-            IF(TSGLDG)CONTINUE
-            GI3=SGAVG0*GSG(I3)+SGAVG1*FI3
-            HI3=SGAVG0*HSG(I3)+SGAVG1*DRAGI
-            GSG(I3)=GI3
-            HSG(I3)=HI3
-            SUMDD=SUMDD+DSGI*DSGI
-            SUMFF=SUMFF+FSGI*FSGI
-            SUMGD=SUMGD+(FI3-GI3)*DSGI
-            SUMGF=SUMGF+(GI3)*FSGI
-            SUMPP=SUMPP+PSGI*PSGI
-            SUMGP=SUMGP+(HI3)*PSGI
-          END DO
-        END DO
-    ! Estimate the viral due to the guiding forces
-        IF(NTP>0)THEN
-           VIRSG=0.0D0
-           DO  I = ISTART,IEND 
-             DO  M = 1,3
-               I3 = 3*(I-1)+M
-               VIRSG=VIRSG+X(I3)*DSG(I3)
-             ENDDO
-           ENDDO
-           VIRSG=VIRSG/3.0D0
-        ENDIF
-#ifdef MPI
-        IF(SANDERSIZE > 1)THEN
-!  Combining all node results
-!
-          TEMP1(1)=SUMDD
-          TEMP1(2)=SUMFF
-          TEMP1(3)=SUMGD
-          TEMP1(4)=SUMGF
-          TEMP1(5)=SUMPP
-          TEMP1(6)=SUMGP
-          TEMP1(7)=VIRSG
-          call mpi_allreduce(MPI_IN_PLACE,temp1,7,&
-             MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
-          SUMDD=TEMP1(1)
-          SUMFF=TEMP1(2)
-          SUMGD=TEMP1(3)
-          SUMGF=TEMP1(4)
-          SUMPP=TEMP1(5)
-          SUMGP=TEMP1(6)
-          VIRSG=TEMP1(7)
+          sumgam=TEMP1(1)
+          EKIN=TEMP1(2)
+          EKINSG=TEMP1(3)
+#else
+          CALL MPI_ALLREDUCE(TEMP1,TEMP2,11, &
+          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
+          sumgam=TEMP2(1)
+          EKIN=TEMP2(2)
+          EKINSG=TEMP2(3)
+# endif
         ENDIF
 #endif
     ! Estimate low frequency temperatures
         TEMPI=EKIN/sgrndf/BOLTZ
-        TEMPLFI=SGAVP0*TEMPLFI+SGAVP1*EKINSG/sgrndf/BOLTZ
-        TEMPHFI=TSGSET-TEMPLFI
-        IF(TSGLDG)THEN
-          TEMPLLI=SGAVP0*TEMPLLI+SGAVP1*EKINSGG/sgrndf/BOLTZ
-          SGFDI=(1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT((1.0D0-SGFTI)*(1.0D0+SGFFI))-1.0D0
-          FSGLDG=((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT(1.0D0+SGFFI)-1.0D0)*SQRT(1.0D0-SGFTI)
-          FRCLF=1.0D0+SGFFI
-          FRCHF=1.0D0
-          SGCFLF=TSGSET/TEMPSG
-          TREFLFI=TEMPLFI*SGCFLF
-          TREFHFI=TSGSET-TREFLFI
-          SGSCALE=SGFDI
-          ! update accumulators
-          CALL SGENERGY(ENER)
-          RETURN
-        ENDIF
-    ! Estimate momentum guiding factor and guiding temperature
-        AVGFF=SGAVP0*AVGFF+SGAVP1*SUMFF
-        AVGDD=SGAVP0*AVGDD+SGAVP1*SUMDD
-        AVGGF=SGAVP0*AVGGF+SGAVP1*SUMGF
-        AVGGD=SGAVP0*AVGGD+SGAVP1*SUMGD
-        AVGPP=SGAVP0*AVGPP+SGAVP1*SUMPP
-        AVGGP=SGAVP0*AVGGP+SGAVP1*SUMGP
-    ! Estimate SGLD factors
-        SGEFLF=1.0D0+AVGGF/AVGFF
-        SGEFHF=1.0D0+AVGGD/AVGDD
-        SGCFLF=1.0D0-AVGGP/AVGPP
-    ! Estimate reference temperatures
-        TREFLFI=TREFLF
-        IF(TREFLF<1.0D-5)THEN
-          TREFLFI=MAX(TEMPLFI*SGCFLF,TEMPLFI/1.0D1)
-          IF(TRXSGLD.AND.TEMPRXLF>1.0D-5)TREFLFI=TEMPRXLF
-        ENDIF
-        TREFHFI=TSGSET-TREFLFI
-    ! Estimate weighting factor
-        frclf=sgeflf+sgffi
-        frchf=sgefhf+sgfdi
-    ! Estimate guiding temperatures
-        TEMPSGI=SGAVP0*TEMPSGI+SGAVP1*TEMPI*TREFHFI*TEMPLFI/TREFLFI/TEMPHFI
-    ! Adjust guiding factors if wanted
-        IF(TEMPSG>1.0D-5)THEN
-           SGFTI=SGFTI+SGAVP1*(TEMPSG-TEMPSGI)*(TEMPSG-TSGSET) &
-                                  /TSGSET/(TEMPSG+TEMPSGI)
-           SGFTI=MIN(SGFTI,1.0D1)
-           SGFTI=MAX(SGFTI,-1.0D1)
-        ENDIF
-        IF(TSGLDFP)THEN
-    ! Estimate force guiding factor
-          IF(SGFD<-1.0D2 .AND. SGFF<-1.0D2 )THEN
-            SGFDI=SGAVP0*SGFDI+SGAVP1*(TEMPHFI/TREFHFI-SGEFHF)
-            SGFFI=SGAVP0*SGFFI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF)
-          ELSE IF(SGFD<-1.0D2)THEN
-            SGFDI=SGAVG0*SGFDI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF-SGFF)
-          ELSE IF(SGFF<-1.0D2)THEN
-            SGFFI=SGAVP0*SGFFI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF)
-          ENDIF
-          SGSCALE=SGFDI
-        ELSE
-          ! Convert SGSCALE to unitless
-          SGSCALE=SGSCALE/GAMMAS
-        ENDIF
+        TEMPLF=SGAVP0*TEMPLF+SGAVP1*EKINSG/sgrndf/BOLTZ
+        TEMPHF=Tempi-TEMPLF
+        sgscale=20.455d0*sumgam/(isgend-isgsta+1)
         ! update accumulators
         CALL SGENERGY(ENER)
         RETURN
         END SUBROUTINE SGLDW
 
-        SUBROUTINE SGMDW(NATOM,ISTART,IEND,NTP, &
-             DTX,ENER,AMASS,WINV,X,F,V)
+        SUBROUTINE SGMDW(NATOM,ISTART,IEND, &
+             DTX,ENER,AMASS,WINV,crd,Frc,Vel)
 !-----------------------------------------------------------------------
 !     This routine calculate guiding force using SGLD method 
 !     for MD simulation        
@@ -654,259 +567,134 @@ contains
       use random, only: GAUSS
       implicit none
 #ifdef MPI
-   include 'mpif.h'
       integer ierr
 # include "parallel.h"
       _REAL_ temp1(20)
+# ifndef USE_MPI_IN_PLACE
+      _REAL_ :: temp2(20)
+# endif
 #endif
       INTEGER NATOM,ISTART,IEND,NTP
       _REAL_ DTX
       type(state_rec) :: ener
-      _REAL_ AMASS(*),WINV(*),X(*),F(*),V(*)
+      _REAL_ AMASS(*),WINV(*),crd(3,*),Frc(3,*),Vel(3,*)
 !
-      INTEGER JSTA,JEND,I,M,I3
+      INTEGER JSTA,JEND,I,M,j,nsgsubi,idx_nbex,jatm
       _REAL_ BOLTZ,AMASSI,TEMPI
-      _REAL_ FACT,WFAC,FRICI,DRAGI,DRAGJ,PV1,PV2
-      _REAL_ PTOT(3),FTOT(3),EKIN,EKINSG,EKINSGG
-      _REAL_ SUMDD,SUMFF,SUMGD,SUMGF
-      _REAL_ VI3,VIT,FI3,GI3,HI3,VSGI,DSGI,FSGI,PSGI,RSD,FLN
+      _REAL_ FACT,WFAC
+      _REAL_ EKIN,EKINSG,SGBETA
+      double precision sumgam,sumfp,sumpp,sumgv,sumpv
+      double precision sggammai,avgpi3,pi3t,avgdfi3,avgri3,fsgpi,fsgfi,fsgi3,frici
+      double precision xi3,x1i3,x2i3,vi3t,vi3,fi3
       PARAMETER (BOLTZ = 1.987192d-3)
 !
         JSTA=ISTART
         JEND=IEND
         IF(JSTA < ISGSTA)JSTA=ISGSTA
         IF(JEND > ISGEND)JEND=ISGEND
-!    Estimate guiding factor or guiding temperature
-        DO M=1,3
-          PTOT(M)=0.0D0
-          FTOT(M)=0.0D0
-        ENDDO
+        sumgam=0.0d0
         EKIN=0.0D0
         EKINSG=0.0D0
-        EKINSGG=0.0D0
-        PV1=0.0d0 
-        PV2=0.0d0
-        DO  I = 1,NATOM 
+        DO  I = jsta,jend
           AMASSI = AMASS(I)
           WFAC =  DTX*0.5D0*WINV(I)
-          RSD = SQRT(2.D0*GAMMAS*BOLTZ*TSGSET*AMASSI/DTX)
+          sggammai=-sgfps(i)/sgpps(i)
+          sumgam=sumgam+sggammai
+
+          sumfp=0.0d0
+          sumpp=0.0d0
+          sumgv=0.0d0
+          sumpv=0.0d0
           DO  M = 1,3
-            I3 = 3*(I-1)+M
-            VI3=V(I3)
-            FI3=F(I3)
-!   Keep random number series the same as that in a single cpu simulation
-            CALL GAUSS( 0.D0, RSD, FLN )
-            IF(I>=JSTA.AND.I<=JEND)THEN
-              VSGI=SGAVG0*VSG(I3)+SGAVG1*VI3
-              VSG(I3)=VSGI
-              PSGI=GAMMAS*AMASSI*VSGI
-              IF(TSGLDG)THEN
-                GI3=SGAVG0*GSG(I3)+SGAVG1*VSGI
-                GSG(I3)=GI3
-                DSGI=SGAVG0*HSG(I3)+SGAVG1*FLN
-                HSG(I3)=DSGI
-                DRAGJ=FI3+SHKSG(I3)
-                FSGI=SGAVG0*FSG(I3)+SGAVG1*DRAGJ
-                FSG(I3)=FSGI
-                EKINSGG=EKINSGG+AMASSI*GI3*GI3
-                DRAGI=-SGFTI*PSGI+SGFFI*FSGI+SGFDI*DSGI
-                DRAGJ=SGFFI*FSGI+FSGLDG*DSGI
-              ELSE
-                DSGI=FI3+SHKSG(I3)
-                FSGI=SGAVG0*FSG(I3)+SGAVG1*DSGI
-                FSG(I3)=FSGI
-                DSGI=DSGI-FSGI
-                SHKSG(I3)=DSGI
-                DRAGI=SGFTI*PSGI+SGFFI*FSGI+SGFDI*DSGI
-                DRAGJ=DRAGI
-              ENDIF
-              DSG(I3)=DRAGJ
-              FI3=FI3+DRAGI
-              F(I3)=FI3
-              VIT = VI3 + FI3*WFAC
-              PV1=PV1+VIT*DRAGJ
-              PV2=PV2+AMASSI*VIT*VIT
-              EKIN=EKIN+AMASSI*VI3*VI3
-              EKINSG=EKINSG+AMASSI*VSGI*VSGI
-              PTOT(M)=PTOT(M)+AMASSI*VI3
-              FTOT(M)=FTOT(M)+FI3
-            ELSE IF(I>=ISTART.AND.I<=IEND)THEN
-              PTOT(M)=PTOT(M)+AMASSI*VI3
-              FTOT(M)=FTOT(M)+FI3
-            ENDIF
-          END DO
+              ! avg(x)
+            xi3=crd(m,i)
+            if(tsgbond)then 
+              nsgsubi=atm_sg_maskdata(i)%cnt
+              xi3=amassi*xi3
+              do j=1,nsgsubi
+                idx_nbex=atm_sg_maskdata(i)%offset + j 
+                jatm=atm_sg_mask(idx_nbex)
+                xi3=xi3+amass(jatm)*crd(m,jatm)
+              enddo
+              xi3=xi3/sgmass(i)
+            endif
+            x1i3=sgavg0*avgx1(m,i)+sgavg1*xi3
+            avgx1(m,i)=x1i3
+            ! avgavg(x)
+            x2i3=sgavg0*avgx2(m,i)+sgavg1*x1i3
+            avgx2(m,i)=x2i3
+            ! avg(p)
+            avgpi3=tsgfac*amassi*(xi3-x1i3)
+            pi3t=(avgpi3-sgavg0*avgp(m,i))/sgavg1
+            avgp(m,i)=avgpi3
+            ! avg(f-avg(f))
+            avgdfi3=tsgfac*(pi3t-2.0d0*avgpi3+tsgfac*amassi*(x1i3-x2i3))
+            ! sum(avg(f-avg(f))avg(p))
+            sumfp=sumfp+avgdfi3*avgpi3
+            ! sum(avg(p)avg(p))
+            sumpp=sumpp+avgpi3*avgpi3
+            ! guiding forces
+            fsgpi=sgfti*sggammai*avgpi3
+            fsgfi=sgffi*avgdfi3
+            fsgi3=fsgpi+fsgfi
+            fi3=frc(m,i)+fsgi3
+            frc(m,i)=fi3
+            ! estimate velocity at t+dt/2
+            ! vi3t=vel(m,i)+fi3*wfac
+            ! Using volocities at t avoid SHAKE complication
+            vi3t=vel(m,i)
+            ! sum(g*v)
+            sumgv=sumgv+fsgi3*vi3t
+            ! sum(p*v)
+            sumpv=sumpv+amassi*vi3t*vi3t
+            ekin=ekin+pi3t*pi3t/amassi
+            ekinsg=ekinsg+avgpi3*avgpi3/amassi
+          enddo
+            ! <(avg(f-avg(f))avg(v))>
+          sgfps(i)=sgavp0*sgfps(i)+sgavp1*sumfp
+          ! <(avg(p)avg(v))>
+          sgpps(i)=sgavp0*sgpps(i)+sgavp1*sumpp
+          ! energy conservation friction constant
+          if(sumpv<1.0d-8)then
+            sgbeta=0.0d0
+          else
+            sgbeta=2.0d0*sumgv/(2.0d0*sumpv-sumgv*dtx)
+          endif
+          fact=sgbeta/(1.0d0+0.5d0*sgbeta*dtx)
+          do  m = 1,3
+            fi3=frc(m,i)
+            vi3t = vel(m,i) + fi3*wfac
+            frici=fact*amassi*vi3t
+            frc(m,i)=fi3-frici
+          end do
         END DO
 #ifdef MPI
         IF(SANDERSIZE > 1)THEN
 !  Combining all node results
 !
-          TEMP1(1)=PV1
-          TEMP1(2)=PV2
-          TEMP1(3)=PTOT(1)
-          TEMP1(4)=PTOT(2)
-          TEMP1(5)=PTOT(3)
-          TEMP1(6)=FTOT(1)
-          TEMP1(7)=FTOT(2)
-          TEMP1(8)=FTOT(3)
-          TEMP1(9)=EKIN
-          TEMP1(10)=EKINSG
-          TEMP1(11)=EKINSGG
-          call mpi_allreduce(MPI_IN_PLACE,temp1,11, &
+          TEMP1(1)=sumgam
+          TEMP1(2)=EKIN
+          TEMP1(3)=EKINSG
+# ifdef USE_MPI_IN_PLACE
+          call mpi_allreduce(MPI_IN_PLACE,temp1,3, &
             MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
-          PV1=TEMP1(1)
-          PV2=TEMP1(2)
-          PTOT(1)=TEMP1(3)
-          PTOT(2)=TEMP1(4)
-          PTOT(3)=TEMP1(5)
-          FTOT(1)=TEMP1(6)
-          FTOT(2)=TEMP1(7)
-          FTOT(3)=TEMP1(8)
-          EKIN=TEMP1(9)
-          EKINSG=TEMP1(10)
-          EKINSGG=TEMP1(11)
-        ENDIF
-#endif
-        IF(FIXCOM>0)THEN
-          DO M=1,3
-            PTOT(M)=PTOT(M)/SGMASS
-            FTOT(M)=FTOT(M)/SGMASS
-          ENDDO
-        ELSE
-          DO M=1,3
-            PTOT(M)=0.0D0
-            FTOT(M)=0.0D0
-          ENDDO
-        ENDIF
-        SGSCALE=PV1/(PV2-0.5D0*DTX*PV1)
-        FACT=SGSCALE/(1.0D0+0.5D0*SGSCALE*DTX)
-        SUMDD=0.0d0
-        SUMFF=0.0d0
-        SUMGD=0.0d0
-        SUMGF=0.0d0
-        DO  I = ISTART,IEND 
-          WFAC = 0.5D0*WINV(I)*DTX
-          AMASSI=AMASS(I)
-          DO  M = 1,3
-            I3 = 3*(I-1)+M
-            VI3 = V(I3)-PTOT(M)
-            V(I3)=VI3
-            FI3=F(I3)-AMASSI*FTOT(M)
-            IF(I<JSTA.OR.I>JEND)THEN
-              F(I3)=FI3
-              CYCLE
-            ENDIF
-            VIT = VI3 + FI3*WFAC
-            FRICI=FACT*AMASSI*VIT
-            F(I3)=FI3-FRICI
-            DRAGI=DSG(I3)-FRICI
-            DSG(I3)=DRAGI
-            IF(TSGLDG)CONTINUE
-            VSGI=VSG(I3)
-            DSGI=SHKSG(I3)
-            FSGI=FSG(I3)
-            PSGI=AMASSI*GAMMAS*VSGI
-            FI3=SGFTI*PSGI-FRICI
-            GI3=SGAVG0*GSG(I3)+SGAVG1*FI3
-            HI3=SGAVG0*HSG(I3)+SGAVG1*DRAGI
-            GSG(I3)=GI3
-            HSG(I3)=HI3
-            SUMDD=SUMDD+DSGI*DSGI
-            SUMFF=SUMFF+FSGI*FSGI
-            SUMGD=SUMGD+(FI3-GI3)*DSGI
-            SUMGF=SUMGF+(GI3)*FSGI
-          END DO
-        END DO
-    ! Estimate the viral due to the guiding forces
-        IF(NTP>0)THEN
-           VIRSG=0.0D0
-           DO  I = JSTA,JEND 
-             DO  M = 1,3
-               I3 = 3*(I-1)+M
-               VIRSG=VIRSG+X(I3)*DSG(I3)
-             ENDDO
-           ENDDO
-           VIRSG=VIRSG/3.0D0
-        ENDIF
-#ifdef MPI
-        IF(SANDERSIZE > 1)THEN
-!  Combining all node results
-!
-          TEMP1(1)=SUMDD
-          TEMP1(2)=SUMFF
-          TEMP1(3)=SUMGD
-          TEMP1(4)=SUMGF
-          TEMP1(5)=VIRSG
-          call mpi_allreduce(MPI_IN_PLACE,temp1,5, &
-            MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierr)
-          SUMDD=TEMP1(1)
-          SUMFF=TEMP1(2)
-          SUMGD=TEMP1(3)
-          SUMGF=TEMP1(4)
-          VIRSG=TEMP1(5)
+          sumgam=TEMP1(1)
+          EKIN=TEMP1(2)
+          EKINSG=TEMP1(3)
+#else
+          CALL MPI_ALLREDUCE(TEMP1,TEMP2,3, &
+          MPI_DOUBLE_PRECISION,MPI_SUM,COMMSANDER,IERR)
+          sumgam=TEMP2(1)
+          EKIN=TEMP2(2)
+          EKINSG=TEMP2(3)
+# endif
         ENDIF
 #endif
     ! Estimate low frequency temperatures
         TEMPI=EKIN/sgrndf/BOLTZ
-        TEMPLFI=SGAVP0*TEMPLFI+SGAVP1*EKINSG/sgrndf/BOLTZ
-        TEMPHFI=TSGSET-TEMPLFI
-        IF(TSGLDG)THEN
-          TEMPLLI=SGAVP0*TEMPLLI+SGAVP1*EKINSGG/sgrndf/BOLTZ
-          FSGLDG=SGFTI2*((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0))  &
-             *SQRT(1.0D0+SGFFI)-1.0D0)
-          SGFDI=SGFTI2*((1.0D0+SQRT(TEMPLFI/TEMPLLI)*(SQRT(TEMPSG/TSGSET)-1.0D0)) &
-             *SQRT(1.0D0+SGFFI))
-          FRCLF=1.0D0+SGFFI
-          FRCHF=1.0D0
-          SGCFLF=TSGSET/TEMPSG
-          TREFLFI=TEMPLFI*SGCFLF
-          TREFHFI=TSGSET-TREFLFI
-          SGSCALE=SGFDI
-          ! update accumulators
-          CALL SGENERGY(ENER)
-          RETURN
-        ENDIF
-    ! Estimate momentum guiding factor and guiding temperature
-        AVGFF=SGAVP0*AVGFF+SGAVP1*SUMFF
-        AVGDD=SGAVP0*AVGDD+SGAVP1*SUMDD
-        AVGGF=SGAVP0*AVGGF+SGAVP1*SUMGF
-        AVGGD=SGAVP0*AVGGD+SGAVP1*SUMGD
-    ! Estimate SGLD factors
-        SGEFLF=SGAVP0*SGEFLF+SGAVP1*(AVGGF/AVGFF+1.0D0)
-        SGEFHF=SGAVP0*SGEFHF+SGAVP1*(AVGGD/AVGDD+1.0D0)
-    ! Estimate reference temperatures
-        TREFLFI=TREFLF
-        IF(TREFLF<1.0D-5)THEN
-          TREFLFI=TEMPLFI
-          IF(TRXSGLD.AND.TEMPRXLF>1.0D-5)TREFLFI=TEMPRXLF
-        ENDIF
-        TREFHFI=TSGSET-TREFLFI
-    ! Estimate guiding temperatures
-        TEMPSGI=SGAVP0*TEMPSGI+SGAVP1*TEMPI*TREFHFI*TEMPLFI/TREFLFI/TEMPHFI
-    ! Estimate weighting factor
-        FRCLF=SGEFLF+SGFFI
-        FRCHF=SGEFHF+SGFDI
-    ! Adjust guiding factors if wanted
-        IF(TEMPSG>1.0D-5)THEN
-           SGFTI=SGFTI+SGAVP1*(TEMPSG-TEMPSGI)*(TEMPSG-TSGSET) &
-                                  /TSGSET/(TEMPSG+TEMPSGI)
-           SGFTI=MIN(SGFTI,1.0D1)
-           SGFTI=MAX(SGFTI,-1.0D1)
-        ENDIF
-        IF(TSGLDFP)THEN
-    ! Estimate force guiding factor
-          IF(SGFD<-1.0D2 .AND. SGFF<-1.0D2 )THEN
-            SGFDI=SGAVP0*SGFDI+SGAVP1*(TEMPHFI/TREFHFI-SGEFHF)
-            SGFFI=SGAVP0*SGFFI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF)
-          ELSE IF(SGFD<-1.0D2)THEN
-            SGFDI=SGAVG0*SGFDI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF-SGFF)
-          ELSE IF(SGFF<-1.0D2)THEN
-            SGFFI=SGAVP0*SGFFI+SGAVP1*(TEMPLFI/TREFLFI-SGEFLF)
-          ENDIF
-          SGSCALE=SGFDI
-        ELSE
-          ! Convert SGSCALE to unitless
-          SGSCALE=SGSCALE/GAMMAS
-        ENDIF
+        TEMPLF=SGAVP0*TEMPLF+SGAVP1*EKINSG/sgrndf/BOLTZ
+        TEMPHF=TEMPI-TEMPLF
+        sgscale=20.455d0*sumgam/(isgend-isgsta+1)
         ! update accumulators
         CALL SGENERGY(ENER)
         RETURN
@@ -926,38 +714,20 @@ contains
         EPOTI=ENER%POT%TOT
         IF(EPOTLF>1.0D10)THEN
           EPOTLF=EPOTI
-          AVGEFLF=FRCLF
-          AVGEFHF=FRCHF
-          AVGCFLF=TREFLFI/TEMPLFI
-          AVGCFHF=TREFHFI/(TSGSET-TEMPLFI)
-          AVGELF=EPOTLF
-          AVGTLF=TEMPLFI
+          EPOTLLF=EPOTI
         ELSE
           EPOTLF=SGAVG0*EPOTLF+SGAVG1*EPOTI
-          AVGEFLF=SGAVP0*AVGEFLF+SGAVP1*FRCLF
-          AVGEFHF=SGAVP0*AVGEFHF+SGAVP1*FRCHF
-          AVGCFLF=SGAVP0*AVGCFLF+SGAVP1*TREFLFI/TEMPLFI
-          AVGCFHF=SGAVP0*AVGCFHF+SGAVP1*TREFHFI/(TSGSET-TEMPLFI)
-          AVGELF=SGAVP0*AVGELF+SGAVP1*EPOTLF
-          AVGTLF=SGAVP0*AVGTLF+SGAVP1*TEMPLFI
+          EPOTLLF=SGAVG0*EPOTLLF+SGAVG1*EPOTLF
         ENDIF
         EPOTHF=EPOTI-EPOTLF
-        SGWT=((AVGEFLF*AVGCFLF-1.0D0)*(EPOTLF-AVGELF)+  &
-         (AVGEFHF*AVGCFHF-1.0D0)*EPOTHF+VIRSG)/(BOLTZ*TSGSET)
+        sgwt=(psgldg-sgffi)*(epotlf-epotllf)/(boltz*tsgset)
     ! Update ENER structure
-        ENER%SGLD%SGFT=SGFTI
-        ENER%SGLD%SGFF=SGFFI
-        ENER%SGLD%SGSCAL=SGSCALE
-        ENER%SGLD%TEMPSG=TEMPSGI
-        ENER%SGLD%TEMPLF=TEMPLFI
-        ENER%SGLD%TEMPHF=TEMPHFI
-        ENER%SGLD%TREFLF=TREFLFI
-        ENER%SGLD%TREFHF=TREFHFI
-        ENER%SGLD%FRCLF=FRCLF
-        ENER%SGLD%FRCHF=FRCHF
+        ENER%SGLD%SGSCALE=SGSCALE
+        ENER%SGLD%TEMPLF=TEMPLF
+        ENER%SGLD%TEMPHF=TEMPHF
         ENER%SGLD%EPOTLF=EPOTLF
         ENER%SGLD%EPOTHF=EPOTHF
-        ENER%SGLD%VIRSG=VIRSG
+        ENER%SGLD%EPOTLLF=EPOTLLF
         ENER%SGLD%SGWT=SGWT
        RETURN
        END SUBROUTINE SGENERGY
@@ -972,7 +742,6 @@ contains
 subroutine sgld_exchg(irep)
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer, intent(in) :: irep
@@ -988,19 +757,19 @@ subroutine sgld_exchg(irep)
 !*********************************************************************
 ! Scale velocities based on new temps after exchange
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-subroutine rxsgld_scale(stagid,nr,myscaling,amass,v)
+subroutine rxsgld_scale(stagid,nr,myscaling,amass,crd, vel)
 
    implicit none
-   include 'mpif.h'
 #  include "parallel.h"
 
    integer, intent(in) :: stagid,nr
    _REAL_, intent(in) :: myscaling
-   _REAL_, dimension (*), intent(inout) :: v
+   _REAL_,  intent(in) :: crd(3,nr)
+   _REAL_,  intent(inout) :: vel(3,nr)
    _REAL_, dimension (*), intent(in)    :: amass
    integer ierror
    integer i,j,jsta,jend
-   _REAL_ ek,elf,ehf,elh,amassi,vi,vlf,vhf,chk,hfscale
+   _REAL_ amassi,xi,x1i,x2i
    _REAL_ temp1(10),temp2(10)
 !--------------------
          !if (sanderrank==0) then
@@ -1018,65 +787,33 @@ subroutine rxsgld_scale(stagid,nr,myscaling,amass,v)
          if (sanderrank==0) then
             write (6,'(a,f8.3,a,f8.3)') &
                "| RXSGLD: scaling guiding properties by ",myscalsg,&
-               " to match a new guiding factor ",sgfti
+               " to match a new guiding factors sgfti, sgffi ",sgfti,sgffi
          endif
 #endif
 ! ---=== Broadcast RXSGLD guiding effect ===---
       IF(SANDERSIZE > 1)call mpi_bcast(sgft,nsgld_real,mpi_double_precision,&
                                               0,commsander,ierror)
+      if (myscaling > 0.0d0) then
+        vel(:,:)=myscaling*vel(:,:)
+      endif                         
       if (myscalsg > 0.0d0) then
+        templf=myscalsg*myscalsg*templf
+        avgp(:,:)=myscalsg*avgp(:,:)
+        avgr(:,:)=myscalsg*avgr(:,:)
+        sgfps(:)=myscalsg*sgfps(:)
+        sgpps(:)=myscalsg*myscalsg*sgpps(:)
         jsta = iparpt(mytaskid) + 1
         jend = iparpt(mytaskid+1)
         IF(JSTA < ISGSTA)JSTA=ISGSTA
         IF(JEND > ISGEND)JEND=ISGEND
-         ek=0.0d0
-         ehf=0.0d0
-         elf=0.0d0
-         elh=0.0d0
-         do i = jsta,jend
+        do i = jsta,jend
             amassi=amass(i)
-            do j=3*i-2,3*i
-               vi=v(j)
-               vlf=vsg(j)
-               vhf=vi-vlf
-               ek=ek+amassi*vi*vi
-               ehf=ehf+amassi*vhf*vhf
-               elf=elf+amassi*vlf*vlf
-               elh=elh+amassi*vhf*vlf
-            enddo
-         enddo
-        IF(SANDERSIZE > 1)THEN
-!  Combining all node results
-!
-          TEMP1(1)=ek
-          TEMP1(2)=ehf
-          TEMP1(3)=elf
-          TEMP1(4)=elh
-          call mpi_allreduce(MPI_IN_PLACE,temp1,4,&
-             MPI_DOUBLE_PRECISION,MPI_SUM,commsander,ierror)
-          ek=TEMP1(1)
-          ehf=TEMP1(2)
-          elf=TEMP1(3)
-          elh=TEMP1(4)
-        ENDIF
-         ! solve high frequency scaling factor
-         chk=elh*elh+ehf*(myscaling*myscaling*ek-myscalsg*myscalsg*elf)
-         hfscale=1.0d0
-         if(chk>0.0d0)hfscale=(sqrt(chk)-elh)/ehf
-         hfscale=max(hfscale,0.5d0)
-         hfscale=min(hfscale,2.0d0)
-         !write(6,*)"scales:",stagid,sanderrank, &
-         !        myscaling,myscalsg,hfscale,ek,elf,ehf
-         do i = 1,nr
-           do j=3*i-2,3*i
-             if(i<jsta.or.i>jend)then
-               v(j)=myscaling*v(j)
-             else
-               vsg(j) = vsg(j) * myscalsg
-               gsg(j) = gsg(j) * myscalsg
-               hsg(j) = hsg(j) * myscalsg
-               v(j)=hfscale*v(j)+(myscalsg-hfscale)*vsg(j)
-             endif
+            do j=1,3
+              xi=crd(j,i)
+              x1i=avgx1(j,i)
+              x2i=avgx2(j,i)
+              avgx1(j,i)=xi+myscalsg*(x1i-xi)
+              avgx2(j,i)=xi+myscalsg*(x2i-xi)
            enddo
          enddo
       endif
@@ -1089,22 +826,22 @@ end subroutine rxsgld_scale
 !*********************************************************************
 ! lookup temp in templist and return its index
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-integer function tempsglookup(numreps,temp,tsg,sgft,temps,tsgs,sgfts)
+integer function tempsglookup(numreps,temp,sgft,sgff,temps,sgfts,sgffs)
 
    implicit none
 #  include "parallel.h"
 
    integer numreps
-   _REAL_, intent(in) :: temp,tsg,sgft
-   _REAL_, dimension(numreps), intent(in) :: temps,tsgs,sgfts
+   _REAL_, intent(in) :: temp,sgft,sgff
+   _REAL_, dimension(numreps), intent(in) :: temps,sgfts,sgffs
 
    integer i
    
    tempsglookup=0
    do i = 1, numreps
       if(abs(temp-temps(i)) < 1.0d-6 &
-      .and. abs(tsg-tsgs(i)) < 1.0d-6 &
-      .and. abs(sgft-sgfts(i)) < 1.0d-6) then
+      .and. abs(sgft-sgfts(i)) < 1.0d-6 &
+      .and. abs(sgff-sgffs(i)) < 1.0d-6) then
          if(tempsglookup>0)then
             write (6,*) "================================"
             write (6,*) "Two replicas are the same: ",tempsglookup,i
@@ -1145,14 +882,14 @@ end function stagidlookup
 !*********************************************************************
 ! sort temp ascendingly
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-subroutine sorttempsg(numreps,temp,tsgs,sgfts)
+subroutine sorttempsg(numreps,temps,psgldgs,sgffs)
 
    implicit none
 
 #  include "parallel.h"
 
    integer numreps
-   _REAL_, dimension(numreps), intent(inout) :: temp,tsgs,sgfts
+   _REAL_, dimension(numreps), intent(inout) :: temps,psgldgs,sgffs
    _REAL_, dimension(numreps) :: tmp
    INTEGER, dimension(numreps) :: tmpid
 
@@ -1160,7 +897,7 @@ subroutine sorttempsg(numreps,temp,tsgs,sgfts)
    integer i, j, ii
 
    do i = 1, numreps
-     tmp(i)=1000000*temp(i)+100*tsgs(i)+sgfts(i)
+     tmp(i)=1000000*temps(i)+100*(psgldgs(i)- sgffs(i))
      tmpid(i)=i
    enddo
    do i = 1, numreps
@@ -1177,20 +914,20 @@ subroutine sorttempsg(numreps,temp,tsgs,sgfts)
    end do
    do i = 1, numreps
      ii=tmpid(i)
-     tmp(i)=temp(ii)
+     tmp(i)=temps(ii)
    enddo
    do i = 1, numreps
      ii=tmpid(i)
-     temp(i)=tmp(i)
-     tmp(i)=tsgs(ii)
+     temps(i)=tmp(i)
+     tmp(i)=psgldgs(ii)
    enddo
    do i = 1, numreps
      ii=tmpid(i)
-     tsgs(i)=tmp(i)
-     tmp(i)=sgfts(ii)
+     psgldgs(i)=tmp(i)
+     tmp(i)=sgffs(ii)
    enddo
    do i = 1, numreps
-     sgfts(i)=tmp(i)
+     sgffs(i)=tmp(i)
    enddo
    return
 end subroutine sorttempsg

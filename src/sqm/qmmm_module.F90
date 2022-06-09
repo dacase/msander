@@ -460,6 +460,7 @@ contains
      if (qmmm_nml%qmtheory%EXTERN) return
      if (qmmm_nml%qmtheory%SEBOMD) return
      if (qmmm_nml%qmtheory%ISQUICK) return
+     if (qmmm_nml%qmtheory%ISTCPB) return
 
      ! Divide up i=2,nquant_nlink
      !              j=1,i-1
@@ -806,6 +807,7 @@ contains
     if (qmmm_nml%qmtheory%EXTERN) return
     if (qmmm_nml%qmtheory%SEBOMD) return
     if (qmmm_nml%qmtheory%ISQUICK) return
+    if (qmmm_nml%qmtheory%ISTCPB) return
 
     !MPI Specific deallocations
 #ifdef MPI

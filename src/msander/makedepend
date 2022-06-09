@@ -3,7 +3,7 @@
 #  cycle through fortran files, determine which headers are included;
 #      the "used" array eliminates duplicate enties
 
-#  for LES, PUPIL and APBS programs, add these dependencies as well 
+#  for LES and APBS programs, add these dependencies as well 
 #      to the list
 
 printf <<EOF;
@@ -30,9 +30,6 @@ $LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} =
     $LES{"lmod"} =  $LES{"ew_box"} =  $LES{"minrit"} =  
     $LES{"set"} =  $LES{"qm_mm"} = $LES{"cpparm"} = $LES{"md_scheme"} = 1;
 
-$PUPIL{"sander"} = $PUPIL{"force"} = $PUPIL{"mexit"} = $PUPIL{"mdfil"} = 
-    $PUPIL{"mdread"} = $PUPIL{"printe"} = $PUPIL{"dynlib"} = 1;
-
 $API{"rdparm"} = $API{"debug"} = $API{"set"} = $API{"fastwt"} =
     $API{"ew_setup"} = $API{"nonbond_list"} = $API{"ew_box"} =
     $API{"new_time"} = $API{"dynlib"} = $API{"qm_mm"} = 
@@ -47,8 +44,6 @@ $LESAPI{"rdparm"} = $LESAPI{"set"} = $LESAPI{"ew_setup"} =
 #  (special cases, since source is elsewhere)
 #  (check also below  (end of this file) for "compilation" rules)
 $modulefile{"netcdf"} = "netcdf";
-$modulefile{"omp_lib"} = "omp_lib";
-$modulefile{"iso_c_binding"} = "iso_c_binding";
 $modulefile{"AmberNetcdf_mod"} = "AmberNetcdf";
 $modulefile{"ElementOrbitalIndex"} = "elementOrbitalIndex";
 $modulefile{"qmmm_module"} = "qmmm_module";
@@ -58,6 +53,13 @@ $modulefile{"qmmm_struct_module"} = "qmmm_struct_module";
 $modulefile{"qmmm_vsolv_module"} = "qmmm_vsolv_module";
 $modulefile{"qmmm_read_and_alloc"} = "qm2_read_nm_and_alloc";
 $modulefile{"sander_rism_interface"} = "../rism/amber_rism_interface";
+$modulefile{"xray_unit_cell_module"} = "../xray/xray_unit_cell";
+$modulefile{"xray_contracts_module"} = "../xray/xray_contracts";
+$modulefile{"xray_interface2_data_module"} = "../xray/xray_interface2_data";
+$modulefile{"xray_pure_utils"} = "../xray/xray_pure_utils";
+$modulefile{"xray_bulk_mask_data_module"} = "../xray/xray_bulk_mask_data";
+$modulefile{"xray_interface2_module"} = "../xray/xray_interface2";
+$modulefile{"xray_debug_dump_module"} = "../xray/xray_debug_dump";
 $modulefile{"poisson_boltzmann"} = "poisson_boltzmann";
 $modulefile{"dispersion_cavity"} = "dispersion_cavity";
 $modulefile{"pbtimer_module"} = "pbtimer_module";
@@ -65,14 +67,13 @@ $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
 $modulefile{"SANDER_API_MOD"} = "interface";
-# $modulefile{"ml_mod"} = "xray_ml";
-# $modulefile{"bulk_solvent_mod"} = "xray_bulk_solvent";
 
 # ignore certain modules:
 
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
-$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}=$ignore{"mpi"} = 1;
+$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=$ignore{"iso_c_binding"}
+    =$ignore{"mpi"}=$ignore{"mpi_f08"}=$ignore{"omp_lib"} = 1;
 # Also assume that the API in amber_rism_interface will be up-to-date
 $ignore{"amber_rism_interface"} = 1;
 
@@ -101,7 +102,7 @@ foreach $file ( <*.F90> ){
 
     next if $file =~ /^_/;
     
-    $deps = $depsLES = $depsPUPIL = $depsAPBS = $depsAPI = $depsLESAPI = "";
+    $deps = $depsLES = $depsAPBS = $depsAPI = $depsLESAPI = "";
 
     ($fileroot) = $file =~ /(.+)\.F90$/;
 
@@ -132,12 +133,6 @@ foreach $file ( <*.F90> ){
                    $depsLES .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
                 }
                                
-               if( defined $PUPIL{$modulefile{$usee}} ){
-                  $depsPUPIL .= "\\\n                    " . $modulefile{$usee} .  ".PUPIL.o" ;
-               } else {
-                  $depsPUPIL .= "\\\n                    " . $modulefile{$usee} .  ".o" ;
-               }
-
                if( defined $API{$modulefile{$usee}} ){
                   $depsAPI .= "\\\n                    " .  $modulefile{$usee} .  ".API.o" ;
                } else {
@@ -161,7 +156,6 @@ foreach $file ( <*.F90> ){
             if( !defined $used{ $fileroot,$included } ){
                 $deps .= "\\\n                    " . $included ;
                 $depsLES .= "\\\n                    " . $included ;
-                $depsPUPIL .= "\\\n                    " . $included ;
                 $depsAPBS .= "\\\n                    " . $included ;
                 $depsAPI .= "\\\n                    " . $included ;
                 $depsLESAPI .= "\\\n                    " . $included ;
@@ -180,28 +174,18 @@ foreach $file ( <*.F90> ){
 
     printf "\n$fileroot.o:   $fileroot.F90\n";
     if( $optimized{$fileroot} ){
-        printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+        printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
     } else {
-        printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+        printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
     }
 
     if( defined $LES{$fileroot} ){
         printf "$fileroot.LES.o: $depsLES\n" unless $depsLES eq "";
         printf "\n$fileroot.LES.o:   $fileroot.F90\n";
         if( $optimized{$fileroot} ){
-            printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         } else {
-            printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        }
-    }
-
-    if( defined $PUPIL{$fileroot} ){
-        printf "$fileroot.PUPIL.o: $depsPUPIL\n" unless $depsPUPIL eq "";
-        printf "\n$fileroot.PUPIL.o:   $fileroot.F90\n";
-        if( $optimized{$fileroot} ){
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
-        } else {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DPUPIL_SUPPORT -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER_LES]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         }
     }
 
@@ -209,9 +193,9 @@ foreach $file ( <*.F90> ){
         printf "$fileroot.API.o: $depsAPI\n";
         printf "\n$fileroot.API.o:   $fileroot.F90\n";
         if ( $optimized{$fileroot} ) {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         } else {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         }
     }
 
@@ -219,9 +203,9 @@ foreach $file ( <*.F90> ){
         printf "$fileroot.LESAPI.o: $depsLESAPI\n";
         printf "\n$fileroot.LESAPI.o:   $fileroot.F90\n";
         if ( $optimized{$fileroot} ) {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -DLES -c \$(FOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -DLES -c \$(FOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         } else {
-            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) \$(RISMSANDER) -o \$@ $fileroot.F90\n\n";
+            printf "\t\@echo '[MSANDER]  FC \$<'\n\t\$(VB)\$(FC) \$(LOCALFLAGS) -DAPI -DLES -c \$(FNOOPTFLAGS) \$(FFLAGS) -o \$@ $fileroot.F90\n\n";
         }
     }
 }

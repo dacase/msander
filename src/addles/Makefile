@@ -20,6 +20,9 @@ $(BINDIR)/addles$(SFX) : $(LESOBJ)
 
 #  default rules for Fortran compilation:
 
+.SUFFIXES:
+.SUFFIXES: .F .F90 .o
+
 .F.o:   $<
 	@echo "[ADDLES]  FC $<"
 	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
@@ -38,14 +41,10 @@ uninstall:
 
 $(LESOBJ) : $(COMMON_FILES)
 
-mexit.o:  ../msander/mexit.F90
+nxtsec.o:  ../msander/nxtsec.F90
 	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FREEFORMAT_FLAG) $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $<
-
-nxtsec.o:  ../lib/nxtsec.F
-	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ $<
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ $<
 
 random.o: random.F90 random.h
 	@echo "[ADDLES]  FC $<"
-	$(VB)$(FC) $(FPPFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o $@ random.F90
+	$(VB)$(FC) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ random.F90

@@ -7,7 +7,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+
 subroutine ewald_force(crd,numatoms,iac,ico,charge, &
-      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, xr,virvsene,pol,pol2,qm_pot_only, &
+      cn1,cn2,cn6,eelt,epol,frc,x,ix,ipairs, virvsene,pol,pol2,qm_pot_only, &
       cn3,cn4,cn5)
    use ew_recip
    use stack
@@ -27,6 +27,9 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use parms, only : one_scee, one_scnb
 #endif /* LES */
    use nbips, only : aipspbc,ips,teaips,tvaips,virexips
+#ifdef MPI
+   use mpi
+#endif
 
    implicit none
 #  include "extra.h"
@@ -51,13 +54,12 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #endif
 
    integer numatoms,iac(*),ico(*)
    _REAL_ crd(3,*),charge(*),cn1(*),cn2(*),cn6(*), &
-          eelt,epol,frc(3,*),xr(3,*),virvsene
+          eelt,epol,frc(3,*),virvsene
    _REAL_ pol(*), pol2(*)
    _REAL_ cn3(*), cn4(*), cn5(*)
 !!
@@ -415,8 +417,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
             ew_coeff,eedtbdns,x(leed_cub),x(leed_lin), &
             maxnblst,eed,evdw,ehb,dir_vir,eedvir, &
             nbfilter,ee_type,eedmeth,dxdr, &
-            pol, pol2, cn3, cn4, cn5, &
-            epold,x(linddip),x(lfield),mpoltype)
+            cn3, cn4, cn5, epold,x(linddip),x(lfield))
 
 #ifdef MPI
        numtasks = commsander_numtasks
@@ -573,10 +574,9 @@ end subroutine
 subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
       field,prefac1,prefac2,prefac3,fftable,qm_pot_only)
    use ew_recip
-   use ew_recip_spatial
    use nblist, only: recip, volume
-#if defined(MPI) && !defined(LES)
-   use fft,only:column_fft_flag
+#ifdef MPI
+   use mpi
 #endif
    implicit none
 #  include "../include/memory.h"
@@ -591,7 +591,6 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
 #  include "ew_pme_recip.h"
 
 #ifdef MPI
-   include 'mpif.h'
 #  include "parallel.h"
 #endif
    ! OUTPUT
@@ -616,18 +615,14 @@ subroutine do_pme_recip(mpoltype,numatoms,crd,charge,frc,dipole,   &
 
 #else /* LES */
 
-# ifdef MPI
-     if(column_fft_flag)then
-        call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
-             prefac1,prefac2,prefac3,qm_pot_only)
-     else
-# endif         
+     !  column_fft stuff is not working, November, 2021
+     ! if(column_fft_flag)then
+     !    call spatial_do_pmesh_kspace(numatoms,crd,charge,frc, &
+     !         prefac1,prefac2,prefac3,qm_pot_only)
+     ! else
         call do_pmesh_kspace(numatoms,crd,charge,frc, &
             prefac1,prefac2,prefac3,fftable,qm_pot_only)
-
-# ifdef MPI
-     endif
-# endif
+     ! endif
      frcx(:) = frcx(:) * dble(nrespa) ! scale up for respa
 
 #endif /* LES */
@@ -653,7 +648,9 @@ subroutine nb_adjust(charge,eea,crd, &
 #ifdef LES
    use les_data, only : lfac, lestyp, lesfac, cnum, nlesty
    use nblist, only : cutoffnb
-#else
+#endif
+#ifdef MPI
+   use mpi
 #endif
    implicit none
 
@@ -670,7 +667,6 @@ subroutine nb_adjust(charge,eea,crd, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
    integer numlo,numhi
@@ -942,6 +938,9 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
       adj_vir,ee_type,eedmeth, &
       dipole,field,epola)
    use constants, only : third, half
+#ifdef MPI
+   use mpi
+#endif
    implicit none
 
    _REAL_ charge(*),eea,crd(3,*)
@@ -957,7 +956,6 @@ subroutine nb_adjust_dipole(charge,eea,crd, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
 
    integer numlo,numhi
@@ -1308,6 +1306,9 @@ subroutine nb_adjust_les(charge,ene,crd, &
 
    use les_data, only : eeles, lfac, lesfac, lestyp, nlesty, nlesadj, ileslst, &
                         jleslst
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    _REAL_ charge(*),ene,crd(3,*)
    integer numatoms,use_pme
@@ -1322,7 +1323,6 @@ subroutine nb_adjust_les(charge,ene,crd, &
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
    integer numleft,numdel
 #endif /* MPI */
    !-------------------------------------------------------------------

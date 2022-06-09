@@ -23,8 +23,7 @@ subroutine startup(xx,ix,ih)
    use nblist, only : ucell,bc_ewucr,bc_ewuci,nbflag, &
                      BC_DIRPARS,numnptrs
    use file_io_dat
-   use md_scheme, only: ithermostat, therm_par
-   use fft,only:column_fft_flag
+   use md_scheme, only: ntt, gamma_ln
 ! SOFT CORE
    use softcore, only : ifsc, scalpha, scbeta, scmask, dynlmb, &
                        sceeorder, tishake
@@ -32,8 +31,8 @@ subroutine startup(xx,ix,ih)
    use mbar, only : ifmbar, bar_intervall, bar_l_min, bar_l_max, bar_l_incr
    use linear_response, only : ilrt, lrt_interval, lrtmask
 ! SGLD
-   use sgld, only : isgld, isgsta,isgend,fixcom, &
-                    sgft,sgff,sgfd,tempsg,tsgavg,tsgavp,treflf
+   use sgld, only : isgld, isgsta,isgend,nsgsize, &
+                    sgft,sgff,sgfg,tsgavg,tsgavp
 ! IPS parameters
    use nbips, only : ips,mipsx,mipsy,mipsz,mipso,raips,gridips,dvbips
 ! AMD parameters
@@ -43,22 +42,18 @@ subroutine startup(xx,ix,ih)
    use scaledMD_mod, only : scaledMD,scaledMD_lambda
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
-! constant pH
-   use constantph, only : cnstph_bcast
-! constant Redox potential
-   use constante, only : cnste_bcast
 ! bcast variables from mdfil.F90
    use commandline_module, only : commandline_bcast, cpein_specified
 ! crg_reloc
    use crg_reloc, only : ifcr
 
+   use mpi
    implicit none
 #  include "parallel.h"
 #  include "ew_parallel.h"
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #  include "extra.h"
 #  include "../include/md.h"
@@ -78,7 +73,6 @@ subroutine startup(xx,ix,ih)
    _REAL_ xx(*)
    integer ix(*), ier
    character(len=4) ih(*)
-   integer i_column_fft
 
    !     Send and receive common blocks from the master node:
 
@@ -128,8 +122,8 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(nlesty,BC_LESI,MPI_INTEGER,0,commsander,ierr)
 #endif
 
-   call mpi_bcast(ithermostat, 1, MPI_INTEGER, 0, commsander, ierr)
-   call mpi_bcast(therm_par, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
+   call mpi_bcast(ntt, 1, MPI_INTEGER, 0, commsander, ierr)
+   call mpi_bcast(gamma_ln, 1, MPI_DOUBLE_PRECISION, 0, commsander, ierr)
 
    ! carlos: targeted MD
 
@@ -142,12 +136,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(sizfftab,BC_PME_PARS_INT,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(dsum_tol,BC_PME_PARS_REAL,MPI_DOUBLE_PRECISION, &
          0,commsander,ier)
-
-   i_column_fft = 0
-   if(master .and. column_fft_flag) i_column_fft = 1
-   call mpi_bcast(i_column_fft,1,MPI_INTEGER, &
-         0,commsander,ier)
-   column_fft_flag = (i_column_fft == 1)
 
    ! ew_mpole.h
 
@@ -211,14 +199,12 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(isgld,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(isgsta,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(isgend,1,MPI_INTEGER,0,commsander,ier)
-   call mpi_bcast(fixcom,1,MPI_INTEGER,0,commsander,ier)
+   call mpi_bcast(nsgsize,1,MPI_INTEGER,0,commsander,ier)
    call mpi_bcast(tsgavg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(tsgavp,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(sgft,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
    call mpi_bcast(sgff,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(sgfd,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(tempsg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
-   call mpi_bcast(treflf,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
+   call mpi_bcast(sgfg,1,MPI_DOUBLE_PRECISION,0,commsander,ier)
 
    !     IX,XX,IH
 
@@ -290,12 +276,6 @@ subroutine startup(xx,ix,ih)
 ! broadcast commandline info
    call commandline_bcast(ierr)
 
-! constant pH
-   if (icnstph .gt. 0 .or. (icnste .gt. 0 .and. cpein_specified)) call cnstph_bcast(ierr)
-
-! constant Redox potential
-   if (icnste .gt. 0 .and. .not. cpein_specified) call cnste_bcast(ierr)
-
    ! Charmm force field support - will simply return if charmm is not in use.
    call mpi_bcast_charmm_params(master)
    ! FF11 Cmap support - will simply return if ff11cmap is not in use.
@@ -325,13 +305,13 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
 
    use qmmm_module, only : qmmm_nml
    use state
+   use mpi
    implicit none
 #  include "../include/memory.h"
 #  include "parallel.h"
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 #  include "../include/md.h"
 #  include "extra.h"
@@ -415,6 +395,7 @@ subroutine fsum(f,tmp)
    !       to f, and the appropriate part of the result winds up on each
    !       processor
 
+   use mpi
    implicit none
    _REAL_ f(*),tmp(*)
 
@@ -424,7 +405,6 @@ subroutine fsum(f,tmp)
 #ifdef MPI_DOUBLE_PRECISION
 #  undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
    integer ierr
 
    !Used for Binary Tree
@@ -491,6 +471,7 @@ end subroutine fsum
 !+ Distribute the coordinates to all processors.
 subroutine xdist(x, tmp, size)
 
+   use mpi
    implicit none
 
    integer, intent(in) :: size   ! will be 3*natom + iscale
@@ -500,7 +481,6 @@ subroutine xdist(x, tmp, size)
 #    ifdef MPI_DOUBLE_PRECISION
 #      undef MPI_DOUBLE_PRECISION
 #    endif
-   include 'mpif.h'
    integer ierr
 
    !Used for Binary Tree

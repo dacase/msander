@@ -7,8 +7,8 @@ tempi = 300               ! initial temperature
 dt = 0.002,               ! time step, in ps
 cut = 8,                  ! non-bond cut off 
 ig = 6666,                ! random seed for reproducing results
-ithermostat = 1           !! Langevin thermostat
-therm_par = 5.0,          !! thermostat parameter, in 1/ps
+ntt = 3                  !! Langevin thermostat
+gamma_ln = 5.0,          !! thermostat parameter, in 1/ps
 ntc=2,ntf=2               ! SHAKE hydrogen atoms
 ntpr=1, ntwr=0, ntwx=0    ! output settings
 ifqnt=1                   ! Switch on QM/MM coupled potential

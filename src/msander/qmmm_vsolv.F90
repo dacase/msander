@@ -655,6 +655,9 @@ subroutine qmmm_vsolv_update(nstep, natom, qsetup, charge, unimaged_coords, &
   use qmmm_module, only : qmmm_struct, qmmm_nml, qmmm_vsolv, qmmm_scratch, qmmm_mpi
   use qmmm_vsolv_module, only : print
   use parms, only : numbnd
+#ifdef MPI
+   use mpi
+#endif
 
   implicit none
 
@@ -679,7 +682,6 @@ subroutine qmmm_vsolv_update(nstep, natom, qsetup, charge, unimaged_coords, &
   integer :: i, oldnumbnd
 
 #ifdef MPI
-   include 'mpif.h'
   integer :: ier
 #endif
 

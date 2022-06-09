@@ -255,6 +255,9 @@ subroutine nmrcal(x,f,name,irsnam,ipres,rimass,enmr,devdis,devang, &
    ! ISCOP1 and ISCOP2 are scratch unit numbers, used when input/output
    ! redirection is requested. ISCOP3 is a dedicated unit number, used for
    ! opening the file which contains periodic "dumps" of the restraint values.
+#ifdef MPI
+   use mpi
+#endif
    implicit none
    integer:: iavtyp, ichgwt, idmpav, ier, in, iout, ipower, ipres, &
         iscop1, iscop2, iscop3, iscrth, ishrtb, itimav, itotst, &
@@ -310,7 +313,6 @@ subroutine nmrcal(x,f,name,irsnam,ipres,rimass,enmr,devdis,devang, &
 #ifdef MPI_DOUBLE_PRECISION
 #undef MPI_DOUBLE_PRECISION
 #endif
-   include 'mpif.h'
 #endif
    
    ! On first non-initialization call to this routine, initialize NSTEPL and set

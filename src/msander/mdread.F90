@@ -16,15 +16,13 @@ subroutine mdread1()
    use qmmm_module, only : qmmm_nml, qm_gb
    use constants, only : RETIRED_INPUT_OPTION, zero, one, two, three, seven, &
                          eight, NO_INPUT_VALUE_FLOAT, NO_INPUT_VALUE
-   use constantph, only : mccycles
-   use constante, only : mccycles_e
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
    use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
-   use sgld, only : isgld, isgsta,isgend,fixcom, &
-                    tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp
+   use sgld, only : isgld, isgsta,isgend,nsgsize, &
+                    tsgavg,sgft,sgff,sgfg,tsgavp
    use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use scaledMD_mod, only: scaledMD,scaledMD_lambda
@@ -46,7 +44,6 @@ subroutine mdread1()
 #endif /* MPI */
    ! Parameter for LIE module
    use linear_response, only: ilrt, lrt_interval, lrtmask
-#ifdef RISMSANDER
 #  ifndef API
    use sander_rism_interface, only: xvvfile, guvfile, huvfile, cuvfile,&
         uuvfile, quvFile, chgDistFile,  &
@@ -54,7 +51,6 @@ subroutine mdread1()
         solventPotentialEnergyfile
 #  endif /* API */
    use sander_rism_interface, only: rismprm
-#endif /*RISMSANDER*/
    use nfe_sander_proxy, only: infe
    implicit none
 #  include "box.h"
@@ -97,10 +93,8 @@ subroutine mdread1()
    character(len=512) :: char_tmp_512
 #endif /* API */
 
-#ifdef RISMSANDER
    integer irism
    character(len=8) periodicPotential
-#endif /*RISMSANDER*/
 
 !  N.B.: If you make changes to this namelist, you also need to make
 !        corresponding changes in ./sander.h and in
@@ -109,7 +103,7 @@ subroutine mdread1()
    namelist /cntrl/ irest,ibelly, &
          ntx,ntxo,ntcx,ig,tempi, &
          ntb,temp0,tautp, &
-         ntp,pres0,comp,taup,barostat,mcbarint, &
+         ntp,pres0,comp,barostat,mcbarint, &
          nscm,nstlim,t,dt, &
          ntc,ntcc,nconp,tol,ntf,ntn,nsnb, &
          cut,dielc, &
@@ -126,23 +120,23 @@ subroutine mdread1()
          iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
-         ithermostat, therm_par, &
+         ntt, gamma_ln, &
          scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
-         isgld,isgsta,isgend,fixcom,tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp,&
+         isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
          jar, &
          numexchg, repcrd, numwatkeep, hybridgb, reservoir_exchange_step, &
          ntwprt,tausw, &
          ntwr,iyammp,imcdo, &
          plumed,plumedfile, &
          igb,alpb,Arad,rgbmax,saltcon,offset,gbsa,vrand, &
-         surften,nrespa,nrespai,gamma_ln,extdiel,intdiel, &
+         surften,nrespa,nrespai,extdiel,intdiel, &
          cut_inner,icfe,clambda,klambda, rbornstat,lastrst,lastist,  &
          itgtmd,tgtrmsd,tgtmdfrc,tgtfitmask,tgtrmsmask, dec_verbose, &
          temp0les,restraintmask,restraint_wt,bellymask, &
          noshakemask,crgmask, &
          mask_from_ref, &
-         rdt,icnstph,solvph,ntcnstph,ntrelax,icnste,solve,ntcnste,ntrelaxe,mccycles,mccycles_e, &
+         rdt, &
          ifqnt,ievb, profile_mpi, &
          ipb, inp, &
          gbneckscale, &
@@ -164,9 +158,7 @@ subroutine mdread1()
 #ifdef DSSP
          idssp, &
 #endif
-#ifdef RISMSANDER
          irism,&
-#endif /*RISMSANDER*/
          vdwmodel, & ! mjhsieh - the model used for van der Waals
          ! retired:
          dtemp, dxm, heat, timlim, &
@@ -224,7 +216,6 @@ subroutine mdread1()
                  'RESERVOIR',  trim(reservoirname), &
                  'REMDDIM',    trim(remd_dimension_file)
 #  endif
-#ifdef RISMSANDER
    if (len_trim(xvvfile) > 0) &
         write(6,9701) 'Xvv', trim(xvvfile)
    if (len_trim(guvfile) > 0) &
@@ -247,7 +238,6 @@ subroutine mdread1()
         write(6,9701) 'Entropy', trim(entropyfile)
    if (len_trim(solventPotentialEnergyfile) > 0) &
         write(6,9701) 'PotUV', trim(solventPotentialEnergyfile)
-#endif /*RISMSANDER*/
 
    ! Echo the input file to the user:
    call echoin(5,6)
@@ -275,18 +265,14 @@ subroutine mdread1()
    iesp = 0
    ntx = 1
    ntxo = NO_INPUT_VALUE
-   ig = 71277
+   ig = -1
    tempi = ZERO
    ntb = NO_INPUT_VALUE
    temp0 = 300.0d0
-! MIDDLE SCHEME{ 
-   ithermostat = 1
-   therm_par = 5.0d0
-! } 
-! PLUMED
+   ntt = 3    ! was ithermostat=1
+   gamma_ln = 5.d0  ! was therm_par = 5.0d0
    plumed = 0
    plumedfile = 'plumed.dat'
-! END PLUMED
 #ifdef LES
    ! alternate temp for LES copies, if negative then use single bath
    ! single bath not the same as 2 baths with same target T
@@ -301,7 +287,6 @@ subroutine mdread1()
    mcbarint = 100
    pres0 = ONE
    comp = 44.6d0
-   taup = ONE
    npscal = 1
    nscm = 1000
    nstlim = 1
@@ -323,18 +308,9 @@ subroutine mdread1()
    ntwe = 0
    ipb = 0
    inp = 2
-
-#ifdef RISMSANDER
    irism = 0
-#endif /*RISMSANDER*/
-
    ntave = 0
-#ifdef BINTRAJ
-!RCW: Amber 16 default to netcdf if support is compiled in.
    ioutfm = 1
-#else
-   ioutfm = 0
-#endif
    ntr = 0
    ntrx = 1
    ivcap = 0
@@ -431,7 +407,6 @@ subroutine mdread1()
    nrespa = 1
    nrespai = 1
    irespa = 1
-   gamma_ln = ZERO
    extdiel = 78.5d0
    intdiel = ONE
    gbgamma = ZERO
@@ -512,16 +487,6 @@ subroutine mdread1()
    noshakemask=''
    crgmask=''
 
-   icnstph = 0
-   solvph = SEVEN
-   ntcnstph = 10
-   ntrelax = 500 ! how long to let waters relax
-   icnste = 0
-   solve = -0.22d0
-   ntcnste = 10
-   ntrelaxe = 500 ! how long to let waters relax
-   mccycles = 1  ! How many cycles of Monte Carlo steps to run (constant pH)
-   mccycles_e = 1  ! How many cycles of Monte Carlo steps to run (constant Redox potential)
    skmin = 50 !used by neb calculation
    skmax = 100 !used by neb calculation
    vv = 0 !velocity verlet -- off if vv/=1
@@ -568,13 +533,13 @@ subroutine mdread1()
    isgld = 0   ! no self-guiding
    isgsta=1    ! Begining index of SGLD range
    isgend=0    ! Ending index of SGLD range
-   fixcom=-1    ! fix center of mass in SGLD simulation
+   nsgsize=1       !   1--self atom only,
+                   !   2--bond and angle atoms,
+                   !   3--bond, angle, and dihedral atoms
    tsgavg=0.2d0    !  Local averaging time of SGLD simulation
-   sgft=-1.0d3      !  Guiding factor of SGLD simulation
-   sgff=-1.0d3      !  Guiding factor of SGLD simulation
-   sgfd=-1.0d3      !  Guiding factor of SGLD simulation
-   tempsg=0.0d0    !  Guiding temperature of SGLD simulation
-   treflf=0.0d0    !  Reference low frequency temperature of SGLD simulation
+   sgft=0.0d0      !  Guiding factor of SGLD simulation
+   sgff=0.0d0      !  Guiding factor of SGLD simulation
+   sgfg=0.0d0      !  Guiding factor of SGLD simulation
    tsgavp=2.0d0    !  Convergency time of SGLD simulation
 
    !     Check to see if "cntrl" namelist has been defined.
@@ -662,8 +627,8 @@ subroutine mdread1()
 
    call nmlsrc('xray',5,ifind)
    xray_active = (ifind /= 0)
-
    rewind 5
+
    if ( mdin_cntrl ) then
       read(5,nml=cntrl,err=999)
    else
@@ -708,14 +673,13 @@ subroutine mdread1()
    end if
 
    ! middle scheme is now the only scheme {
-   gamma_ln = therm_par  !  gamma_ln is the old variable in ../include/md.h
-   if (ithermostat < 0 .or. ithermostat > 2) then
+   if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne.  3) then
       write(6,'(1x,a,/)') &
-         'Middle scheme: ithermostat is only available for 0-2'
+         'Middle scheme: ntt is only available for 0,2,3'
       FATAL_ERROR
    end if
-   if (therm_par < 0d0) then
-      write(6,'(1x,a,/)') 'Middle scheme: therm_par MUST be non-negative'
+   if (gamma_ln < 0d0) then
+      write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
       FATAL_ERROR
    end if
    ! }
@@ -733,23 +697,7 @@ subroutine mdread1()
    end if
 
    if (ntxo == NO_INPUT_VALUE) then
-#ifdef MPI
-      if (rem < 0) then
-         ntxo = 2
-      else
-#  ifdef BINTRAJ
-         ntxo = 2
-#  else
-         ntxo = 1
-#  endif
-      end if
-#else /* NOT MPI */
-#  ifdef BINTRAJ
       ntxo = 2
-#  else
-      ntxo = 1
-#  endif
-#endif /* MPI */
    end if
 
    if (cut == NO_INPUT_VALUE_FLOAT) then
@@ -760,7 +708,6 @@ subroutine mdread1()
       end if
    end if
 
-#ifdef RISMSANDER
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
    ! electrostatics are initialized properly.
@@ -775,7 +722,6 @@ subroutine mdread1()
 #   endif
       igb = 0
    end if
-#endif /*RISMSANDER*/
 
    if (ifqnt>0) then
       qmmm_nml%ifqnt = .true.
@@ -1094,13 +1040,11 @@ subroutine mdread1()
    ! --- input file polar opts read err trapping:
 
    9308 format(/10x,55('-'),/10x, &
-         'Amber 18 SANDER                              2018', &
+         'MSANDER                                      2021', &
          /10x,55('-')/)
    9309 format(/80('-')/'   1.  RESOURCE   USE: ',/80('-')/)
    9700 format(/,'File Assignments:',/,15('|',a6,': ',a,/))
-#  ifdef RISMSANDER
    9701 format('|',a6,': ',a)
-#  endif /* RISMSANDER */
 #  ifdef MPI
    9702 format(7('|',a10,': ',a,/))
 #  endif /* MPI */
@@ -1135,13 +1079,10 @@ subroutine mdread2(x,ix,ih)
    use constants, only : ZERO, ONE, TWO
    use parms, only: req
    use nbips, only: ips
-   use md_scheme, only: ithermostat, therm_par
+   use md_scheme, only: ntt, gamma_ln
    use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
-   use md_scheme, only: ithermostat
-   use constantph, only: cnstphread, cnstph_zero, cph_igb, mccycles
-   use constante, only: cnsteread, cnste_zero, ce_igb, mccycles_e
    use file_io_dat
    use sander_lib, only: upper
 #ifdef LES
@@ -1166,6 +1107,7 @@ subroutine mdread2(x,ix,ih)
 ! REMD
    use remd, only : rem, rremd
    use sgld, only : isgld ! for RXSGLD
+   use mpi
 #endif /* MPI */
    use linear_response, only: ilrt, lrtmask
    use nfe_sander_proxy, only: infe
@@ -1198,7 +1140,6 @@ subroutine mdread2(x,ix,ih)
 #  ifdef MPI_DOUBLE_PRECISION
 #     undef MPI_DOUBLE_PRECISION
 #  endif
-   include 'mpif.h'
 #  include "parallel.h"
    integer ist(MPI_STATUS_SIZE), partner, nbonh_c, num_noshake_c
    integer nquant_c, noshake_overlap_c
@@ -1262,13 +1203,12 @@ subroutine mdread2(x,ix,ih)
       ndfmin = 0
    end if
    if(nscm <= 0) nscm = 0
-   if (ithermostat == 1) ndfmin = 0 ! No COM motion removal for Langevin
+   if (ntt == 3) ndfmin = 0 ! No COM motion removal for Langevin
 
    init = 3
    if (irest > 0) init = 4
    if (dielc <= ZERO ) dielc = ONE
    if (tautp <= ZERO ) tautp = 0.2d0
-   if (taup <= ZERO ) taup = 0.2d0
 
    !     ----- RESET THE CAP IF NEEDED -----
 
@@ -1303,14 +1243,14 @@ subroutine mdread2(x,ix,ih)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                &time in microseconds"
      write (6, '(a)') "      and disabling the synchronization of random &
                                &numbers between tasks"
      write (6, '(a)') "      to improve performance."
 #else
 #  ifndef API
-     write (6, '(a,i8,a)') "Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
                                 &time in microseconds."
 #  endif /* API */
 #endif
@@ -1482,8 +1422,8 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,2(a,f10.5))') 'crcut   =', crcut, ', crskin  =', crskin
    end if
 
-   if (( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
-                                  .or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+   if ( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
+                                   then
       write(6,'(5x,3(a,f10.5))') 'saltcon =',saltcon, &
             ', offset  =',offset,', gbalpha= ',gbalpha
       write(6,'(5x,3(a,f10.5))') 'gbbeta  =',gbbeta, &
@@ -1556,16 +1496,16 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 't       =',t, &
             ', dt      =',dt,', vlimit  =',vlimit
 
-      if( ithermostat == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
+      if( ntt == 0 .and. tempi > 0.0d0 .and. irest == 0 ) then
          write(6,'(/a)') 'Initial temperature generation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,a,f10.5)') 'tempi   =',tempi
-      else if( ithermostat == 1) then
+      else if( ntt == 3) then
          write(6,'(/a)') 'Langevin dynamics temperature regulation:'
          write(6,'(5x,a,i8)') 'ig      =',ig
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, &
-               ', tempi   =',tempi,', therm_par=', therm_par
-      else if( ithermostat == 2 ) then
+               ', tempi   =',tempi,', gamma_ln=', gamma_ln
+      else if( ntt == 2 ) then
          write(6,'(/a)') 'Anderson (strong collision) temperature regulation:'
          write(6,'(5x,2(a,i8))') 'ig      =',ig, ', vrand   =',vrand
          write(6,'(5x,3(a,f10.5))') 'temp0   =',temp0, ', tempi   =',tempi
@@ -1574,8 +1514,7 @@ subroutine mdread2(x,ix,ih)
       if( ntp /= 0 ) then
          write(6,'(/a)') 'Pressure regulation:'
          write(6,'(5x,4(a,i8))') 'ntp     =',ntp
-         write(6,'(5x,3(a,f10.5))') 'pres0   =',pres0, &
-               ', comp    =',comp,', taup    =',taup
+         write(6,'(5x,a,f10.5)') 'pres0   =',pres0
          if (barostat == 2) then
             write(6, '(5x,a)') 'Monte-Carlo Barostat:'
             write(6, '(5x,a,i8)') 'mcbarint  =', mcbarint
@@ -1655,52 +1594,6 @@ subroutine mdread2(x,ix,ih)
       write(6,'(5x,3(a,f10.5))') 'tgtrmsd =',tgtrmsd, &
             ', tgtmdfrc=',tgtmdfrc
    end if
-
-   if( icnstph /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant pH options:'
-      write(6, '(5x,a,i8)') 'icnstph =', icnstph
-      write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-      write(6, '(5x,a,f10.5)') 'solvph =', solvph
-      if ( icnstph .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', mccycles
-   end if
-   if( icnstph /= 2) then
-      ntrelax = 0 ! needed for proper behavior of timing
-   end if
-
-   if( icnste /= 0 .and. .not. cpein_specified) then
-      write(6, '(/a)') 'Constant Redox potential options:'
-      write(6, '(5x,a,i8)') 'icnste =', icnste
-      write(6, '(5x,a,i8)') 'ntcnste =', ntcnste
-      write(6, '(5x,a,f10.5)') 'solve =', solve
-      if ( icnste .ne. 1 ) &
-         write(6,'(5x,2(a,i8))') 'ntrelaxe =', ntrelaxe, ' mccycles_e =', mccycles_e
-   end if
-   if( icnste /= 2) then
-      ntrelaxe = 0 ! needed for proper behavior of timing
-   end if
-
-   if ((icnstph /= 0 .or. icnste /= 0) .and. cpein_specified) then
-     write(6, '(/a)') 'Constant pH and Redox Potential options:'
-     write(6, '(5x,a,i8)') 'icnstph =', icnstph
-     write(6, '(5x,a,i8)') 'ntcnstph =', ntcnstph
-     write(6, '(5x,a,f10.5)') 'solvph =', solvph
-     write(6, '(5x,a,i8)') 'icnste =', icnste
-     write(6, '(5x,a,f10.5)') 'solve =', solve
-     if (icnstph .eq. 2 .or. icnste .eq. 2) then
-       write(6, '(5x,2(a,i8))') 'ntrelax =', ntrelax, ' mccycles =', 1
-       write(6, '(a)') '| Note: when the cpein file is provided the flags'
-       write(6, '(a)') '|       ntcnste and ntrelaxe are not considered,'
-       write(6, '(a)') '|       only ntcnstph and ntrelax, which works for'
-       write(6, '(a)') '|       both protonation or redox state changes.'
-     else
-       write(6, '(a)') '| Note: when the cpein file is provided the flag'
-       write(6, '(a)') '|       ntcnste is not considered, only ntcnstph,'
-       write(6, '(a)') '|       which works for both protonation or redox'
-       write(6, '(a)') '|       state changes.'
-     end if
-   end if
-
 
    if( ntb > 0 ) then
       write(6,'(/a)') 'Ewald parameters:'
@@ -1929,7 +1822,7 @@ subroutine mdread2(x,ix,ih)
       write(0,*) 'GBSA=3 only works for pmemd, not sander'
       FATAL_ERROR
    end if
-   if (( igb /= 0 .and. igb /= 10 .and. ipb == 0 ).or.hybridgb>0.or.icnstph>1.or.icnste>1) then
+   if ( igb /= 0 .and. igb /= 10 .and. ipb == 0 ) then
 #if defined (LES) && !defined (API)
       write(6,*) 'igb=1,5,7 are working with LES, no SA term included'
 #endif
@@ -2571,109 +2464,6 @@ subroutine mdread2(x,ix,ih)
 
    end if ! ( ilrt /= 0 )
 
-   !------------------------------------------------------------------------
-   ! If user has requested constantpH or constantE, set up variables
-   !------------------------------------------------------------------------
-
-   if (icnstph /= 0 .or. (icnste /= 0 .and. cpein_specified)) then
-      !  Initialize all constant pH data to 0 and read it in
-      call cnstph_zero()
-      call cnstphread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CpH, fill gbv* arrays
-      if ( (icnstph .gt. 1 .or. (icnste .gt. 1 .and. cpein_specified)) .and. cph_igb == 2 &
-           .or. cph_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-   if (icnste /= 0 .and. .not. cpein_specified) then
-      !  Initialize all constant Redox potential data to 0 and read it in
-      call cnste_zero()
-      call cnsteread(x(l15))
-
-      !     Fill proposed charges array from current charges
-      do i=1,natom
-         x(l190-1+i) = x(l15-1+i)
-      end do
-
-      !  If we're doing explicit CE, fill gbv* arrays
-      if ( icnste .gt. 1 .and. ce_igb == 2 .or. ce_igb == 5) then
-        do i=1,natom
-            x(l2402+i-1) = gbalpha
-            x(l2403+i-1) = gbbeta
-            x(l2404+i-1) = gbgamma
-        end do
-      end if
-   end if
-
-  ! Check if the CPIN file is valid for Explicit Solvent constant pH simulations
-  if (icnstph .eq. 2 .and. .not. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPIN file is valid for Implicit Solvent constant pH simulations
-  if (icnstph .eq. 1 .and. .not. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Explicit Solvent constant redox potential simulations
-  if (icnste .eq. 2 .and. .not. cpein_specified) then
-    if (ce_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CEIN file is valid for Implicit Solvent constant redox potential simulations
-  if (icnste .eq. 1 .and. .not. cpein_specified) then
-    if (ce_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Explicit Solvent constant pH simulations
-  if ((icnstph .eq. 2 .or. icnste .eq. 2) .and. cpein_specified) then
-    if (cph_igb .eq. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Explicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-  ! Check if the CPEIN file is valid for Implicit Solvent constant pH simulations
-  if ((icnstph .eq. 1 .or. icnste .eq. 1) .and. cpein_specified) then
-    if (cph_igb .ne. 0) then
-      write(6, '(a,/)') ' Error: your CPEIN file is invalid for an Implicit Solvent simulation.'
-      call mexit(6, 1)
-    end if
-  end if
-
-    ! Check if the igb values for constant pH and constant redox potential are the same in Explicit Solvent
-    if (icnstph .eq. 2 .and. icnste .eq. 2 .and. .not. cpein_specified) then
-      if (cph_igb .ne. ce_igb) then
-        write(6, '(a,/)') ' Error: the GB models on your CPIN and CEIN files need to be the same'
-        call mexit(6, 1)
-      end if
-    end if
-
-   if( iyammp /= 0 ) write( 6, '(a)' ) '  Using yammp non-bonded potential'
-
    ! -------------------------------------------------------------------
    !
    ! -- add check to see if the space in nmr.h is likely to be
@@ -2716,15 +2506,6 @@ subroutine mdread2(x,ix,ih)
       DELAYED_ERROR
 #endif
    end if
-#ifdef PUPIL_SUPPORT
-   ! BPR: PUPIL does not work with GB (or, I suppose, PB) for the
-   ! time being. It is known to either crash or produce bogus
-   ! results.
-   if (igb > 0 .or. ipb /= 0) then
-      write(6,'(a)') 'Cannot use implicit solvation (GB or PB) with PUPIL'
-      DELAYED_ERROR
-   end if
-#endif /*PUPIL_SUPPORT*/
    if( (igb > 0 .or. ipb /= 0) .and. numextra > 0) then
       if (igb /= 6) then
          write(6,'(a)') 'Cannot use igb>0 (except igb=6) with extra-point force fields'
@@ -2840,12 +2621,6 @@ subroutine mdread2(x,ix,ih)
       write(6, '(/2x,a,i3,a)') 'NTXO (',ntxo,') must be 1 or 2.'
       DELAYED_ERROR
    end if
-#ifndef BINTRAJ
-   if (ntxo == 2) then
-      write(6, '(/2x,a)') 'ntxo cannot be 2 without NetCDF support'
-      DELAYED_ERROR
-   end if
-#endif
 
    if (imin == 5) then
       if (ifbox /= 0 .and. ntb == 2) then
@@ -3079,14 +2854,6 @@ subroutine mdread2(x,ix,ih)
          DELAYED_ERROR
       end if
    end if
-   ! skip this test until fallback to rgroup() is supported
-   !if (itgtmd == 1 .and. ntr == 0) then
-   !   if (len_trim(tgtfitmask) == 0 .and. len_trim(tgtrmsmask) == 0) then
-   !      write(6,'(/2x,a)')  &
-   !        'ITGTMD: both tgtfitmask and tgtrmsmask should be specified if NTR=0'
-   !      DELAYED_ERROR
-   !   end if
-   !end if
 
    !     -- consistency checking
 
@@ -3232,73 +2999,6 @@ subroutine mdread2(x,ix,ih)
       write (6,'(a)') 'Linear Response Theory activated, but lrtmask is not set'
       DELAYED_ERROR
    end if
-
-   if (icnstph /= 0) then
-
-      if ( icnstph < 0 ) then
-         write(6, '(/,a)') 'icnstph must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnstph == 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnstph .gt. 1 ) then
-         write(6, '(/,a)') 'Constant pH using icnstph = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant pH and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnstph <= 0) then
-         write(6, '(/,a)') 'ntcnstph must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnstph > 1 .and. mccycles <= 0) then
-         write(6, '(/,a)') 'mccycles must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnstph
-   if (icnste /= 0) then
-
-      if ( icnste < 0 ) then
-         write(6, '(/,a)') 'icnste must be greater than 0'
-         DELAYED_ERROR
-      end if
-      if ( igb == 0 .and. ipb == 0 .and. icnste == 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 1 requires &
-                           &GB implicit solvent'
-         DELAYED_ERROR
-      end if
-      if ( ntb .eq. 0 .and. icnste .gt. 1 ) then
-         write(6, '(/,a)') 'Constant Redox potential using icnste = 2 requires &
-                           &periodic boundary conditions'
-         DELAYED_ERROR
-      end if
-      if (icfe /= 0) then
-         write(6, '(/,a)') &
-         'Constant Redox potential and thermodynamic integration are incompatable'
-         DELAYED_ERROR
-      end if
-
-      if (ntcnste <= 0) then
-         write(6, '(/,a)') 'ntcnste must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-      if (icnste > 1 .and. mccycles_e <= 0) then
-         write(6, '(/,a)') 'mccycles_e must be a positive integer.'
-         DELAYED_ERROR
-      end if
-
-   end if ! icnste
 
    !-----------------------------------------------------
    !     ----sanity checks for Ewald
@@ -3618,7 +3318,6 @@ subroutine mdread2(x,ix,ih)
          if (ifsc == 0) then
             call mpi_bcast(x(lmass),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
             call mpi_bcast(x(lwinv),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
-            call mpi_bcast(x(l75),natom,MPI_DOUBLE_PRECISION,0,commmaster,ierr)
          end if
          tmass = sum(x(lmass:lmass+natom-1))
          tmassinv = 1.d0/tmass
@@ -3673,7 +3372,7 @@ subroutine mdread2(x,ix,ih)
          ix(i40),ix(i42),ix(i44),ix(i46),ix(i48), &
          ix(i50),ix(i52),ix(i54),ix(i56),ix(i58), &
          ih(m06),ix,x,ix(i08),ix(i10), &
-         nspm,ix(i70),x(l75),tmass,tmassinv,x(lmass),x(lwinv),req)
+         nspm,ix(i70),tmass,tmassinv,x(lmass),x(lwinv),req)
 
    !  DEBUG input; force checking
 #ifdef API

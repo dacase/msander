@@ -10,19 +10,22 @@
 !   status:        exit status (returned)
 !------------------------------------------------------------------------------
 subroutine mexit(output_unit, status)
-#ifdef PUPIL_SUPPORT
-  use pupildata
-#endif
 
+#ifdef MPI
+   use mpi
+#endif
+  use xray_interface_impl_cpu_module, only: xray_fini=>finalize
   implicit none
   integer output_unit
   integer status
 
 #ifdef MPI
-  include 'mpif.h'
   integer ierr
 #  include "parallel.h"
    
+  ! We always need to call xray_fini() in order to properly shut down the GPU
+  if( mytaskid .eq. 0 ) call xray_fini()
+
   ! Status .gt. 0 implies an error condition, therefore
   ! kill all the nodes.  mpi_abort on the world communicator
   ! should do this, but it does not on some implementations.
@@ -34,17 +37,8 @@ subroutine mexit(output_unit, status)
   else
     call mpi_finalize(ierr)
   endif
-#endif
-
-#ifdef PUPIL_SUPPORT
-  ! Terminate the PUPIL CORBA interface, only if such an interface exists.
-  if (pupactive) then
-    puperror = 0
-    call killcorbaintfc(puperror)
-    if (puperror /= 0) then
-      write(6,*) 'Error ending PUPIL CORBA interface.'
-    endif
-  endif
+#else
+  call xray_fini()
 #endif
 
   if (output_unit > 0 .and. status/=0) then

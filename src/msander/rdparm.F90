@@ -187,8 +187,7 @@ subroutine rdparm1(nf)
 
 #ifndef API
    ! Write implicit solvent radius and screening info to mdout
-   if (( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) &
-                                  .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) then
+   if ( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
       fmtin = afmt
       type = 'RADIUS_SET'
       call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)
@@ -749,8 +748,7 @@ subroutine rdparm2(x,ix,ih,nf)
       call mexit(6,1)
    end if
 
-   if (( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) &
-                                  .or.hybridgb>0.or.icnstph.gt.1.or.icnste.gt.1) then
+   if ( (igb /= 0 .or. ipb /= 0) .and. (ifcap == 0 .or. ifcap == 5)) then
       fmtin = rfmt
       type = 'RADII'
       call nxtsec(nf,  6,  1,fmtin,  type,  fmt,  iok)
@@ -967,31 +965,25 @@ subroutine rdparm2(x,ix,ih,nf)
    
    tmass = 0.0d0
    !     -- index over molecules
-   j = l75-1
    jj = i70-1
    !     -- index over mass->invmass
    k = lwinv-1
    !     -- index over saved mass
    l = lmass-1
    do n = 1,nspm
-      j = j + 1
       jj = jj + 1
-      x(j) = 0.0d0
       natsm = ix(jj)
       do nn = 1,natsm
          k = k+1
          l = l+1
          
-         ! -- sum molecule
-         x(j) = x(j) + x(k)
-         
          ! -- save mass in "new" Lmass area
          x(l) = x(k)
+         tmass = tmass + x(l)
          
          ! -- make inverse in "old" Lwinv area
          if( x(k) /= 0.d0 ) x(k) = 1.0d0 / x(k)
       end do
-      tmass = tmass + x(j)
    end do
    tmassinv = 1.0d0 / tmass
 
@@ -1012,10 +1004,10 @@ subroutine rdparm2(x,ix,ih,nf)
       hbcut(i) = 1.0e0/hbcut(i)
    end do
    
-   !     ----- duplicate dihedral pointers for vector ephi -----
+   !     ----- check of negative dihedral periodicities ---
    
-   call dihdup(nphih,ix(i40),ix(i42),ix(i44),ix(i46),ix(i48),pn)
-   call dihdup(nphia,ix(i50),ix(i52),ix(i54),ix(i56),ix(i58),pn)
+   call dihdup(nphih,ix(i48),pn)
+   call dihdup(nphia,ix(i58),pn)
    
    !     --- pre-calculate some parameters for vector ephi ---
    

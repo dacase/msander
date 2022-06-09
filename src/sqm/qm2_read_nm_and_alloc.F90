@@ -555,6 +555,15 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    end if
 #endif
 
+#ifndef TCPB
+   ! Quit if Amber has not been compiled with the TCPB library but the user requests it nevertheless
+   if (qmmm_nml%qmtheory%ISTCPB) then
+      call sander_bomb('read_qmmm_namelist', &
+           'Code was compiled without TCPB (client to communicate with TeraChem) support. Please change qm_theory', &
+           '(qm_theory = ''TCPB'')')
+   end if
+#endif
+
 #ifdef SQM
    ! Disable EXTERN in SQM since
    ! it does not make sense for SQM to be calling the external ADF interface.
@@ -566,6 +575,11 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    if (qmmm_nml%qmtheory%ISQUICK) then
       call sander_bomb('read_qmmm_namelist','QUICK library is not supported in SQM.', &
            '(qm_theory = ''QUICK'')')
+   end if
+
+   if (qmmm_nml%qmtheory%ISTCPB) then
+      call sander_bomb('read_qmmm_namelist','TCPB library is not supported in SQM.', &
+           '(qm_theory = ''TCPB'')')
    end if
 
    if (qmmm_nml%qmtheory%SEBOMD) then
@@ -1155,7 +1169,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    call int_legal_range('QMMM: (PRINT CHARGES) ', printcharges,0,1)
    call int_legal_range('QMMM: (PRINT BONDORDERS) ',printbondorders,0,1)
    call int_legal_range('QMMM: (PRINT QM/Dipole) ', printdipole,0,2)
-   if (qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%ISQUICK) then
+   if (qmmm_nml%qmtheory%EXTERN .or. qmmm_nml%qmtheory%ISQUICK .or. qmmm_nml%qmtheory%ISTCPB) then
      !AWG: Allow any spin multiplicity for external QM programs
      call int_legal_range('QMMM: (Spin multiplicity) ', spin, 1,100)
    else
@@ -1685,6 +1699,17 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
     if (qmmm_nml%qmgb /= 0) then
       call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=QUICK but qmgb /= 0.', &
                        'The Quick interface does not currently support Generalized Born.')
+    end if
+  else if (qmmm_nml%qmtheory%ISTCPB) then
+    ! 1) PME and EWALD are not supported with TCPB.
+    if (qmmm_nml%qm_ewald /= 0) then
+      call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=TCPB but qm_ewald /= 0.', &
+                       'The TCPB interface does not currently support EWALD or PME.')
+    end if
+    ! 2) GB is not currently supported with TCPB.
+    if (qmmm_nml%qmgb /= 0) then
+      call sander_bomb('read_qmmm_nm_and_alloc','qm_theory=TCPB but qmgb /= 0.', &
+                       'The TCPB interface does not currently support Generalized Born.')
     end if
   end if
   !--- END EXTERNAL INTERFACE LIMITATIONS ---

@@ -2,6 +2,7 @@
 #include "../include/dprec.fh"
 module xray_globals_module
    use file_io_dat, only : MAX_FN_LEN
+   use xray_unit_cell_module, only: unit_cell_t
    implicit none
    public
 
@@ -21,10 +22,11 @@ module xray_globals_module
    ! NameList Input Parameters
    integer, parameter :: REFL_LABEL_MAXLEN=32
 
-   character(len=MAX_FN_LEN), save :: pdb_infile, pdb_outfile, &
-         fave_outfile, fmtz_outfile
+   character(len=MAX_FN_LEN), save :: pdb_infile, pdb_outfile, sf_outfile, &
+                                      fave_outfile, fmtz_outfile
    integer, save :: n_fcalc_ave = 0
-
+   integer, save :: ntwsf = 0
+   
    ! If true, PDB coordinates will overwrite INPCRD coordinates.
    ! NOTE: the cell still comes from the INPCRD!
    logical, save :: pdb_read_coordinates
@@ -32,10 +34,7 @@ module xray_globals_module
    ! If TRUE, write the full 4-character ChainID to the SegID field.
    logical, save :: pdb_use_segid, pdb_wrap_names
 
-   ! character string to identify the type of target function being used
-   !   current values are "ls" (least squares), "vls" (vector least
-   !   squares, and "ml" (phenix-like maximum likelihood).  We hope
-   !   to implement the LLGI target soon(?!?)
+   ! Xray energy target function, see xray_target.F90 for details
    character(len=4), save :: target
 
    ! Standard condensed spacegroup name, or integer spacegroup number
@@ -44,51 +43,24 @@ module xray_globals_module
    ! Filename for reflection input file.
    character(len=MAX_FN_LEN), save :: reflection_infile
 
-   ! Resolution limits for all X-ray calculations
-   real(real_kind), save :: resolution_low, resolution_high
+   ! Weight term for X-ray force:
+   real(real_kind), save :: xray_weight
 
-   ! Weight term and offset for X-ray force:
-   real(real_kind), save :: xray_weight = 1.0, xray_offset = 0.0
+   !> Increment to be added to atomic radii of the atoms selected
+   !  by atom_selection_mask as a part of the algorithm to build bulk mask
+   real(real_kind), save :: solvent_mask_adjustment
 
-   ! Solvent mask generation parameters
-   real(real_kind), save :: solvent_mask_probe_radius, solvent_mask_expand
+   !> The radius of solvent probe to apply as a part of the algorithm
+   !  to build bulk solvent mask (shrinks non-bulk volume)
+   real(real_kind), save :: solvent_mask_probe_radius
 
    ! Output file for bulk-solvent reflections (Fbulk) and mask
    character(len=MAX_FN_LEN), save :: solvent_mask_reflection_outfile
    character(len=MAX_FN_LEN), save :: solvent_mask_outfile
 
-   ! 0=direct, fft=1. This is currently is a boolean option, but
-   ! may have other fft options for spacegroup-optimized fft.
-   integer, save :: fft_method
+   character(len=256) :: atom_selection_mask
 
-   ! Define specific grid size for FFT
-   integer, save :: fft_grid_size(3)
-
-   ! Maximum grid spacing for automatic grid-size determination
-   real(real_kind), save :: fft_grid_spacing
-
-   ! Fourier sharpening factor (value subtracted from atomic B-factor)
-   real(real_kind), save :: fft_bfactor_sharpen
-
-   ! Maximum density outside of the cutoff-radius for atomic density gridding
-   real(real_kind), save :: fft_density_tolerance
-
-   ! Maximum reflection intensity at resolution_max; enforces a minimum radius
-   real(real_kind), save :: fft_reflection_tolerance
-
-   ! Maximum and minimum radius for atomic gridding
-   real(real_kind), save :: fft_radius_min, fft_radius_max
-
-   ! Maximum and minimum B-factor
-   real(real_kind), save :: bfactor_min, bfactor_max
-
-   integer, save :: bfactor_refinement_interval
-
-   character(len=256) :: atom_selection_mask, solute_selection_mask
-
-   ! parameters describing scaling options for Fcalc:
-   logical :: inputscale = .false., user_fmask = .false.
-   real(real_kind) :: k_tot, b_tot
+   real(real_kind), save :: ihkl_duration=0._rk_, dhkl_duration=0._rk_
 
    !----------------------------------------------------------------------------
    ! GLOBALS:
@@ -98,7 +70,7 @@ module xray_globals_module
    integer, save :: num_atoms, num_residues, NAT_for_mask
    real(real_kind), allocatable, save :: atom_bfactor(:), atom_occupancy(:)
    integer, allocatable, save :: atom_scatter_type(:)
-   integer, allocatable, save :: atom_selection(:), solute_selection(:)
+   integer, allocatable, save :: atom_selection(:)
 
    ! Residue and atom data that may become SANDER globals:
    character(len=4), allocatable, save :: residue_chainid(:), residue_icode(:)
@@ -109,24 +81,21 @@ module xray_globals_module
    ! Reflection data:
 
    integer, save :: num_hkl
-   real(real_kind), save :: norm_scale
-   integer, allocatable, save :: hkl_index(:,:) ! (3,num_hkl)
+   integer, save :: num_free_flags
+   integer, save :: num_work_flags
+   integer, save :: has_f_user
+   
+   integer, allocatable, target, save :: hkl_index(:,:) ! (3,num_hkl)
 
-   real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:), &
-         d_star_sq(:), f_weight(:)
-   real(real_kind), allocatable, save :: mSS4(:), k_scale(:)
-   integer, allocatable, save :: test_flag(:)
-   integer, save :: scale_update_frequency, &
-          ml_update_frequency, mask_update_frequency, xray_nstep
-
-   complex(real_kind), allocatable, save :: Fcalc_ave(:), Fcalc(:), Fobs(:)
+   real(real_kind), allocatable, save :: abs_Fobs(:), sigFobs(:)
+   complex(real_kind), allocatable, save :: Fuser(:)
+   integer, allocatable, save :: test_flag(:)  ! 0 -- "free set" ; 1 -- "work set"
+   integer, save :: scale_update_period, &
+          ml_update_period, mask_update_period
 
    !----------------------------------------------------------------------------
-   ! Symmetry, unit cell, and transformations:
-
-   real(real_kind), save :: cell_volume
-   real(real_kind), save :: unit_cell(6), recip_cell(6)
-   real(real_kind), dimension(3,3), save :: orth_to_frac, frac_to_orth
+   ! Symmetry and transformations:
+   type(unit_cell_t) :: unit_cell
    integer, parameter :: MAX_SYMMOPS = 16 ! actually 96
    real(real_kind), save :: symmop(3,4,MAX_SYMMOPS), symmop_inv(3,4,MAX_SYMMOPS)
    integer, save :: num_symmops
@@ -135,62 +104,9 @@ module xray_globals_module
    integer, save :: au_type ! Laue code index
    integer, save :: system  ! i.e. SYMM_TRICLINIC
 
-   character(len=1), save :: lattice_type
-
-   real(real_kind), save :: fft_normalization = 1._rk_
    real(real_kind), save :: xray_energy, r_work, r_free
 
-   !----------------------------------------------------------------------------
-   ! Electron-density and FFT configuration and conversions:
-
-   integer, save :: grid_size(3), recip_size(3)
-   real(real_kind), dimension(3,3), save :: orth_to_grid, grid_to_orth
-   real(real_kind), dimension(3), save :: frac_to_grid, angstrom_to_grid
-
-   !dimension(0:grid_size(1)-1,0:grid_size(2)-1,0:grid_size(3)-1)
-   real(real_kind), allocatable, target, save :: density_map(:,:,:)
-   ! NOTE: the reciprocal map is complex, but an in-place complex-to-real
-   ! FFT is used. The complex map is an alias of the real-space map,
-   ! but F90 won't let us equivalence allocatable or pointer arrays.
-   ! To access the array as complex numbers, it must be passed via a
-   ! non-prototyped external procedure.
-   
-   !  dac: don't follow the above...let's set up a separate complex map
-   !       variable here, for development
-   complex(real_kind), allocatable, target, save :: cmap(:,:,:)
-
-   !----------------------------------------------------------------------------
-   ! Fourier coefficients:
-
-   ! number of gaussian coefficients, including the constant term
-   integer, parameter :: scatter_ncoeffs = 5
-   integer, save :: num_scatter_types
-   real(real_kind), allocatable, save :: scatter_coefficients(:,:,:)
-                                                       !(2,ncoeffs,ntypes)
-#ifdef QMMM_OMP
-   integer, save :: fft3_max_threads = 2
-#endif
-
-   ! MPI distribution on reflections:
-   integer, save :: ihkl1, ihkl2
-
    ! bulk solvent model
-   character(len=10), save :: bulk_solvent_model
-
-contains
-
-  !----------------------------------------------------------------------------
-  ! cross:   Compute the cross product of vectors a and b.  
-  !----------------------------------------------------------------------------
-  function cross(a, b) result(cross_product)
-
-    real(real_kind), dimension(3) :: cross_product
-    real(real_kind), dimension(3), intent(in) :: a, b
-
-    cross_product(1) = a(2) * b(3) - a(3) * b(2)
-    cross_product(2) = a(3) * b(1) - a(1) * b(3)
-    cross_product(3) = a(1) * b(2) - a(2) * b(1)
-
-  end function cross
+   character(len=16), save :: bulk_solvent_model
 
 end module xray_globals_module

@@ -23,7 +23,6 @@
 !   f:         force array, used to hold old coordinates temporarily, too
 !   v:         velocity array
 !   vold:      old velocity array, from the previous step
-!   xr:        coordinates with respect to COM of molecule
 !   xc:        array of reals, matching the size of x itself, used for scratch
 !              space in various subroutine calls
 !   conp:      bond parameters for SHAKE
@@ -40,7 +39,7 @@
 !   relax_nstlim:     number of relaxation dynamics steps to run
 !   increment_nmropt: flag to signal whether the nmropt counter will increment
 !------------------------------------------------------------------------------
-subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
+subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
                    conp, skip, nsp, tma, erstop, qsetup, relax_nstlim, &
                    mobile_atoms, increment_nmropt)
 
@@ -57,6 +56,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   use random
   use stack
   use state
+  use md_scheme, only: ntt, gamma_ln
 
   ! Local variables
   !  factt       : degree-of-freedom correction factor for temperature scaling
@@ -66,6 +66,9 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Common memory variables
   !  nrp         : number of atoms, adjusted for LES copies
 
+#ifdef MPI
+   use mpi
+#endif
   implicit none
   integer   ipairs(*), ix(*), relax_nstlim
   integer, intent(in) :: mobile_atoms(*)
@@ -75,7 +78,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
 
 #ifdef MPI
 #  include "parallel.h"
-  include 'mpif.h'
   _REAL_ mpitmp(8) !Use for temporary packing of mpi messages.
   integer ierr
 #else
@@ -106,7 +108,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   logical do_list_update
   logical skip(*), lout, loutfm, erstop, vlim, onstep
   _REAL_ x(*), winv(*), amass(*), f(*), v(*), vold(*), &
-         xr(*), xc(*), conp(*)
+         xc(*), conp(*)
   type(state_rec) :: ener
   _REAL_ rmu(3), fac(3), onefac(3)
   _REAL_ tma(*)
@@ -117,7 +119,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   _REAL_ fit, fiti, fit2
   logical is_langevin  ! Is this a Langevin dynamics simulation
   _REAL_ gammai, c_implic, c_explic, c_ave, sdfac, ekins0
-  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dtcp, dttp
+  _REAL_ dtx, dtxinv, dt5, factt, ekin0, ekinp0, dttp
   _REAL_ rndf, rndfs, rndfp, boltz2, pconv
 
   ! Variables and parameters for constant surface tension:
@@ -162,7 +164,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   pres0y = 0.d0
   pres0z = 0.d0
   gamma_ten_int = 0.d0
-  dtcp = 0.d0
   dttp = 0.d0
 
   do_list_update=.false.
@@ -250,12 +251,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   if (is_langevin .and. ifbox == 0) then
     call get_position(nr, x, sysx, sysy, sysz, sysrange, 0)
   end if
-  if (ntt == 1) then
-    dttp = dt / tautp
-  end if
-  if (ntp > 0) then
-    dtcp = comp * 1.0d-06 * dt / taup
-  end if
 
   nrek = 4
   nrep = 15
@@ -302,20 +297,8 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ! Step 1a: do some setup for pressure calculations
   if (ntp > 0) then
     ener%cmt(1:3) = 0.d0
-    xr(1:nr3) = x(1:nr3)
-      
-    ! Calculate, for each molecule, the center of mass, kinetic energy
-    ! of the center of mass, and the coordinates of the molecule
-    ! relative to that center of mass.
-    call timer_start(TIME_EKCMR)
-    call ekcmr(nspm, nsp, tma, ener%cmt, xr, v, amass, istart, iend)
-#ifdef MPI
-    call mpi_allreduce(MPI_IN_PLACE, ener%cmt, 3, MPI_DOUBLE_PRECISION, &
-                       mpi_sum, commsander, ierr)
-#endif
-    call timer_stop(TIME_EKCMR)
   end if
-
+      
   ! If we're using the MC barostat, go ahead and do the trial move now
   if (ntp > 0 .and. barostat == 2 .and. mod(nstep+1, mcbarint) == 0) then
     call mcbar_trial(xx, ix, ih, ipairs, x, xc, f, ener%vir, xx(l96), &
@@ -341,9 +324,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ekinp0 = fac(2)*temp0
   ekins0 = fac(3)*temp0
   ekin0 = fac(1)*temp0
-  if (ntt == 1) then
-    dttp = dt / tautp
-  end if
   if (ntp > 0) then
     ener%volume = volume
     ener%density = tmass / (0.602204d0*volume)
@@ -537,7 +517,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     call timer_stop(TIME_SHAKE)
   end if
   call timer_start(TIME_VERLET)
-  if (ntt == 1 .or. onstep) then
+  if (onstep) then
 
     ! Step 4c: get the KE, either for averaging or for Berendsen:
     eke = 0.d0
@@ -592,22 +572,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
     eke = eke * 0.5d0
     ekph = ekph * 0.5d0
     ekpbs = ekpbs * 0.5d0
-    if (ntt == 1) then
-         
-      ! The following is from T.E. Cheatham, III and B.R. Brooks,
-      ! Theor. Chem. Acc. 99:279, 1998.
-      scaltp = sqrt(1.d0 + 2.d0*dttp*(ekin0 - eke) / (ekmh + ekph))
-      do j = istart, iend
-        i3 = (j - 1)*3 + 1
-        v(i3) = v(i3) * scaltp
-        v(i3+1) = v(i3+1) * scaltp
-        v(i3+2) = v(i3+2) * scaltp
-      end do
-      do im = 1, iscale
-        v(nr3+im) = v(nr3+im) * scaltp
-      end do
-    end if
-    ! End contingency for Berendsen thermocoupling
   end if
   ! End of step 4c: a contingency for kinetic energy computation when
   ! we are either on a reportable step or doing Berendsen thermocoupling
@@ -663,7 +627,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xr, xc, &
   ener%kin%solv = ekpbs + ener%pot%tot  
   ener%kin%solt = eke
   ener%kin%tot  = ener%kin%solt
-  if (ntt == 1 .and. onstep) then
+  if (onstep) then
     ekmh = max(ekph, fac(1)*10.d0)
   end if
 
