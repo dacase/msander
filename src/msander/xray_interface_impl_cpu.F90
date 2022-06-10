@@ -393,8 +393,8 @@ contains
          write(20,&
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
-          resolution(i), achar(9), Fobs(i)%re, achar(9), &
-          Fobs(i)%im, achar(9), Fcalc(i)%re, achar(9), Fcalc(i)%im
+          resolution(i), achar(9), real(Fobs(i)), achar(9), &
+          aimag(Fobs(i)), achar(9), real(Fcalc(i)), achar(9), aimag(Fcalc(i))
       end do
    else
       write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &

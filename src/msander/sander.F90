@@ -74,8 +74,8 @@ subroutine sander()
 #if defined(MPI)
   ! Replica Exchange Molecular Dynamics
   use remd, only : rem, mdloop, remd1d_setup, remd_exchange, reservoir_remd_exchange, &
-                   remd_cleanup, hremd_exchange, ph_remd_exchange, e_remd_exchange, &
-                   multid_remd_setup, multid_remd_exchange, setup_pv_correction, rremd
+    remd_cleanup, hremd_exchange, &
+    multid_remd_setup, multid_remd_exchange, setup_pv_correction, rremd, stagid
 #ifdef VERBOSE_REMD
   use remd, only : repnum
 #endif
@@ -1027,7 +1027,7 @@ subroutine sander()
 
             ! 1D REMD. Set up temptable, open remlog, etc.
             call remd1d_setup(numexchg, hybridgb, numwatkeep, &
-                              temp0, mxvar, natom, ig, solvph, solve)
+                              temp0, mxvar, natom, ig, solvph, solve,stagid)
           end if
           call setup_pv_correction(6, ntp, sanderrank)
 
@@ -1066,10 +1066,6 @@ subroutine sander()
             if (nmropt .ne. 0) then
               call nmrdcp
             end if
-          else if (rem == 4 .and. mdloop > 0) then
-            call ph_remd_exchange(1, solvph)
-          else if (rem == 5 .and. mdloop > 0) then
-            call e_remd_exchange(1, temp0, solve)
           end if
           ! End of block for replica exchange handling
 

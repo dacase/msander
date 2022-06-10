@@ -1,4 +1,5 @@
 ! <compile=optimized>
+#include "copyright.h"
 #include "../include/assert.fh"
 #include "../include/dprec.fh"
 
@@ -20,8 +21,6 @@ module remd
 !     remd_cleanup (from sander.F90)
 !     remd_exchange (from sander.F90)
 !     hremd_exchange (from sander.F90)
-!     ph_remd_exchange (from sander.F90)
-!     e_remd_exchange (from sander.F90)
 !     reservoir_remd_exchange (from sander.F90)
 !     hybrid_remd_ene (from runmd.F90)
 !     multid_remd_exchange (from sander.F90)
@@ -50,7 +49,6 @@ use file_io_dat, only : MAX_FN_LEN, REMLOG_UNIT, REMTYPE_UNIT, &
                         inpcrd, numgroup, owrite, target_ph, target_e
 use commandline_module, only : cpein_specified
 use random
-use mpi
 
 implicit none
 
@@ -248,8 +246,10 @@ _REAL_, allocatable, save :: saveene(:)
 _REAL_,              save :: restemp0
 integer,             save :: rremd_idx, reservoirsize
 integer,             save :: reservoir_ncid = -1
+#ifdef BINTRAJ
 ! Required for netcdf reservoir
 integer,             save :: coordVID, velocityVID
+#endif
 
 ! ... RREMD Dihedral Clustering:
 ! clusternum()   - cluster that reservoir structure belongs to
@@ -335,6 +335,7 @@ subroutine remd1d_setup(numexchg, hybridgb, numwatkeep, temp0, &
 
 implicit none
 #  include "parallel.h"
+   include 'mpif.h'
 
 ! Passed variables
    integer, intent(in) :: numexchg
@@ -343,12 +344,13 @@ implicit none
    integer, intent(in) :: mxvar
    integer, intent(in) :: natom
    integer, intent(in) :: ig
+   integer, intent(in out) :: stagid
 
    _REAL_, intent(in) :: temp0
    _REAL_, intent(in) :: solvph
    _REAL_, intent(in) :: solve
 
-! Local variabes
+! Local variables
    integer i, j, ierror, add_fac
 
 !--------------------
@@ -449,7 +451,8 @@ implicit none
    hybridwritetraj=.false.
    if (numwatkeep >= 0) then
       ! 1a- Allocate memory for temp. coord/force storage
-      ! Note: This should be the same as in locmem.F90 
+      ! Note: This should be the same as in locmem.F90 except am_nbead is
+      !  not known. amoeba may not work with hybrid remd.
       allocate( hybrid_coord(3*natom + mxvar), &
                 hybrid_force(3*natom + mxvar + 40), &
                 hybrid_refc(3*natom + mxvar), stat=ierror)
@@ -703,6 +706,7 @@ subroutine multid_remd_setup(numexchg, numwatkeep, temp0, &
 
    implicit none
 
+   include 'mpif.h'
 #  include "parallel.h"
 
    ! Formal arguments:
@@ -1206,9 +1210,12 @@ end subroutine multid_remd_setup
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Close REMD files, free memory
 subroutine remd_cleanup()
+#  ifdef BINTRAJ
    use AmberNetcdf_mod, only: NC_close
+#  endif
 
    implicit none
+   include 'mpif.h'
 #  include "parallel.h"
 
    integer  :: ierror
@@ -1249,7 +1256,9 @@ subroutine remd_cleanup()
 
    ! Reservoir REMD storage
    if (allocated(saveene)) deallocate(saveene)
+#  ifdef BINTRAJ
    if (reservoir_ncid.ne.-1) call NC_close(reservoir_ncid)
+#  endif
 
    ! DihedralCluster arrays
    if (allocated(clusternum)) deallocate(clusternum)
@@ -1284,6 +1293,7 @@ subroutine remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
+   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -1358,6 +1368,7 @@ subroutine subrem(rem_dim)
 
    implicit none
 
+   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -1433,22 +1444,13 @@ subroutine subrem(rem_dim)
       ! statetable is SORTED
       if (isgld > 0) then
          call mpi_allgather(Epotlf, 1, mpi_double_precision, &
-                         allelf, 1, mpi_double_precision, &
+                         alleplf, 1, mpi_double_precision, &
                          remd_comm, ierror)
-         call mpi_allgather(avgtlf, 1, mpi_double_precision, &
+         call mpi_allgather(epotllf, 1, mpi_double_precision, &
+                         allepllf, 1, mpi_double_precision, &
+                         remd_comm, ierror)
+         call mpi_allgather(templf, 1, mpi_double_precision, &
                          alltlf, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-         call mpi_allgather(avgefhf, 1, mpi_double_precision, &
-                         allfhf, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-         call mpi_allgather(avgeflf, 1, mpi_double_precision, &
-                         allflf, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-         call mpi_allgather(avgcflf, 1, mpi_double_precision, &
-                         allclf, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-         call mpi_allgather(avgcfhf, 1, mpi_double_precision, &
-                         allchf, 1, mpi_double_precision, &
                          remd_comm, ierror)
          call mpi_allgather(stagid, 1, mpi_integer, &
                          allstagid, 1, mpi_integer, &
@@ -1544,7 +1546,7 @@ subroutine subrem(rem_dim)
       ! Calculate pressure/volume correction if necessary
       if (use_pv) pvterm = pv_correction(my_remd_data%mytargettemp, o_temp0, o_repnum-1, remd_comm)
 
-      ! Calculate the exchange probablity if even # replica.
+      ! Calculate the exchange probability if even # replica.
       if(mod(myindex, 2) == 0) then
          if (isgld > 0) then
             ! Replica exchange self-guided Langevin dynamics
@@ -1901,6 +1903,7 @@ subroutine set_partners(rem_dim, num_replicas)
 
    implicit none
 
+   include 'mpif.h'
 
    ! Passed Variables
 
@@ -1988,9 +1991,12 @@ end subroutine sorttable
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Load the specified structure from the reservoir into coords
 subroutine load_reservoir_structure(x, v, nr3, natom)
+#  ifdef BINTRAJ
    use netcdf
    use AmberNetcdf_mod, only: NC_error
+#  endif
    implicit none
+   include 'mpif.h'
 #  include "parallel.h"
 
    _REAL_, dimension(*), intent(inout) :: x, v
@@ -2038,6 +2044,7 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
          if (reserv_velo) read (reservoir_unit,"(6(f12.7))") (v(i),i=1,nr3)
          close (unit=reservoir_unit)
          ! DAN ROE: Should be some error checking on reservoir read.
+#     ifdef BINTRAJ
       else ! Netcdf reservoir
          ! Read coordinates
          if ( NC_error(nf90_get_var(reservoir_ncid, coordVID, x(1:nr3), &
@@ -2051,6 +2058,7 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
                                       count = (/ 3, natom, 1 /)), &
                          'reading reservoir velocities')) call mexit(6,1)
          end if
+#     endif
       end if
 !#     ifdef RREMD_DEBUG
       ! DAN ROE: Debug
@@ -2287,7 +2295,7 @@ subroutine stripwat(nrp,x,ipres,lbres,amass,nsp,nspm,nres,numwatkeep)
 !    * At this point, the routine uses a a "selection sort" algorithm,
 !      which scales as N**2, N being the number of waters. If this
 !      becomes a bottleneck, it can be changed later to "mergesort"
-!      or a "bynary tree" sor, which are N*logN.
+!      or a "binary tree" sort, which are N*logN.
 !
 ! 5. Set a new logical array "keepwat(size)", which is a logical mask
 !    indicating whether to keep this water or not. The first "numkeepwat"
@@ -2304,7 +2312,7 @@ subroutine stripwat(nrp,x,ipres,lbres,amass,nsp,nspm,nres,numwatkeep)
 !
 ! 7. Get the coordinates for the atoms in the solute plus *only* the
 !    waters we want to keep. That means looping through all residues and
-!    copying the coordiantes only of the non-water atoms, plus the atoms
+!    copying the coordinates only of the non-water atoms, plus the atoms
 !    from water residues marked with "keepwat = .true."
 !
 ! 8. Copy those coordinates to the main coordinate array, update the "nrp"
@@ -2652,21 +2660,27 @@ end subroutine calc_rremd_cluster
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ load energy/cluster information for doing reservoir REMD
 subroutine load_reservoir_files()
+#ifdef BINTRAJ
    use AmberNetcdf_mod, only: NC_checkTraj, NC_openRead, NC_setupReservoir,&
                               NC_readReservoir
+#endif
    ! All threads call this subroutine
    implicit none
 
 #  include "parallel.h"
+   include 'mpif.h'
 
    integer numatoms, iseed, ierror, i, nodeid, holder
 ! i1-4 for reading dihedral atom nums
    integer j, i1, i2, i3, i4
    _REAL_ minIn
+#  ifdef BINTRAJ
    integer eptotVID, binsVID
+#  endif
 
 ! --------------------
    if (master) then
+#     ifdef BINTRAJ
       ! Check if reservoirname is a Netcdf reservoir
       if (NC_checkTraj(reservoirname)) then
          if (NC_openRead(reservoirname, reservoir_ncid)) call mexit(6,1)
@@ -2680,6 +2694,7 @@ subroutine load_reservoir_files()
          end if
          reserv_velo = (velocityVID.ne.-1)
       else
+#     endif
          reservoir_ncid = -1
          ! Open saveene, which contains energies for each reservoir struct
          call amopen(remin_unit,saveenefile,'O','F','R')
@@ -2693,7 +2708,9 @@ subroutine load_reservoir_files()
          !  unit since remlog is not used yet.
          read (remin_unit,*,err=5000) reservoirsize,restemp0,numatoms,iseed,holder
          reserv_velo = holder == 1
+#     ifdef BINTRAJ
       end if
+#     endif
       ! Write the reservoir type and other info to remtype
       if (master_master) then
          write (remtype_unit,'(a,a)') &
@@ -2741,12 +2758,12 @@ subroutine load_reservoir_files()
 
       ! Check reservoir size limits - non-netcdf reservoir only
       ! Currently the format for reservoir files allows a max integer
-      ! width of 6. To accomodate a larger reservoir the format string
+      ! width of 6. To accommodate a larger reservoir the format string
       ! in load_reservoir_structure would have to be changed.
       if (reservoir_ncid.eq.-1 .and. reservoirsize.gt.maxreservoir) then
          write (6,'(a,i6)') "RREMD ERROR: Reservoir size limit is currently ",&
                             maxreservoir
-         write (6,'(a)') "To accomodate larger reservoir sizes edit the reservoir&
+         write (6,'(a)') "To accommodate larger reservoir sizes edit the reservoir&
                          & file format string in load_reservoir_structure (remd.F90)"
          call mexit(6,1)
       end if
@@ -2789,11 +2806,13 @@ subroutine load_reservoir_files()
             end if
          enddo
          close (unit=remin_unit)
+#     ifdef BINTRAJ
       else ! Netcdf reservoir read
          if (NC_readReservoir(reservoir_ncid, reservoirsize, eptotVID, &
                               binsVID, saveene, clusternum))&
             call mexit(6,1)
 
+#     endif
       end if
 !#     ifdef RREMD_DEBUG
       ! Write energy and clusternum (if present)
@@ -2932,6 +2951,8 @@ function pv_correction(ourtemp, nbrtemp, neighbor, comm_rep_master)
   _REAL_, intent(in)  :: ourtemp, nbrtemp
   integer, intent(in) :: neighbor
   integer, intent(in) :: comm_rep_master
+  ! INCLUDES
+  include 'mpif.h'
   ! LOCAL VARIABLES
   _REAL_, dimension(2) :: our, nbr
   integer ierr, istat(mpi_status_size)
@@ -2970,6 +2991,7 @@ subroutine remd_bcast_cell(box0, box1, commsander)
   _REAL_, intent(in), dimension(:) :: box1       ! New box
   integer, intent(in)              :: commsander ! COMM for broadcast
   ! INCLUDES
+  include 'mpif.h'
   ! LOCAL VARS
   integer ierr
   _REAL_ rmu(3)
@@ -2995,6 +3017,7 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
 #  include "box.h"
 #  include "parallel.h"
 #  include "../include/memory.h"
+   include 'mpif.h'
 
    ! sander.F90
    _REAL_  x(*)
@@ -3180,7 +3203,7 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
    !write(6,'(a,3f8.3)') 'DBG: New box: ', box(1:3)
    ! Call force on temporary coordinate array to get new energy
    call force(x, ix, ih, ipairs, xtemp, ftemp, expe, expe%vir, x(l96), &
-              x(l97), x(l98), x(l99), qsetup, do_list_update)
+              x(l97), x(l98), x(l99), qsetup, do_list_update,-1)
 
    ! =======================================================
    ! Step 3: calculate free energy difference, delta
@@ -3198,7 +3221,7 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
       oex_eptot = allexeptot(o_repnum)
       myexeptot = allexeptot(myrepnum)
 
-      ! Calculate the exchange probablity if even # replica.
+      ! Calculate the exchange probability if even # replica.
       if (mod(myrepnum,2)==0) then
          ! The below equation is generalized for each replica at a different
          ! temperature, but NOT exchanging that temperature (just coords).
@@ -3508,423 +3531,6 @@ subroutine hremd_exchange(rem_dim, x, ix, ih, ipairs, qsetup, do_list_update)
 end subroutine hremd_exchange
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ Performs pH exchanges
-subroutine ph_remd_exchange(rem_dim, solvph)
-
-   use constants, only : LN_TO_LOG, TWO
-   implicit none
-
-#  include "parallel.h"
-
-! Passed Variables
-   integer, intent(in)   :: rem_dim ! dimension we are exchanging in
-   _REAL_, intent(inout) :: solvph  ! SOLVent PH
-
-! Local variables
-   _REAL_   :: delta              ! DELTA value for MC transition evaluation
-   _REAL_   :: randval            ! Random number to evaluate MC success
-   _REAL_   :: all_ph(numreps)    ! table of all pH values
-   _REAL_   :: new_ph(numreps)    ! table of all pH values after exchanges
-   _REAL_   :: exchfrac(numreps)  ! fraction of exchange successes
-   _REAL_   :: o_ph               ! pH of the replica we're exchanging with
-
-   integer  :: i                  ! counter
-   integer  :: ierror             ! MPI error flag
-   integer  :: prot               ! # of protons in my replica
-   integer  :: suc_arry(numreps)  ! array containing success values
-   integer  :: suc_buf(numreps)   ! receive buffer for success arrays
-   integer  :: prot_table(numreps)! table with the total protcnt for each rep
-   integer  :: my_index           ! my index in the pH table
-   integer  :: o_index            ! index of replica we're exchanging with
-   integer  :: o_repnum           ! replica number that we're exchanging with
-   integer  :: o_prot             ! # of protons in other replica
-
-   logical  :: success            ! Did our exchange attempt succeed?
-
-   integer, dimension(MPI_STATUS_SIZE) :: istatus
-
-   ! First, we have to initialize some variables
-   suc_arry(:) = 0
-   suc_buf(:)  = 0
-   success = .false.
-   delta = 0.d0
-   randval = 0.d0
-
-   if (master) then
-
-      ! Get partner array. NOTE: also sets index_list
-      call set_partners(rem_dim, remd_size)
-
-#ifdef VERBOSE_REMD
-      write(6,'(a)') '| =============== REMD ==============='
-#endif
-      ! Determine our index and our neighbor's index, wrapping the replicas
-      ! if we go off either end of the ladder
-      my_index = replica_indexes(rem_dim)
-
-      if (jumpright(rem_dim)) then
-
-         if (mod(my_index, 2) == 0) then
-            o_index = my_index + 1
-            if (o_index > remd_size) o_index = 1
-            o_repnum = partners(2)
-         else
-            o_index = my_index - 1
-            if (o_index < 1) o_index = remd_size
-            o_repnum = partners(1)
-         end if
-
-      else
-
-         if (mod(my_index, 2) == 0) then
-            o_index = my_index - 1
-            if (o_index < 1) o_index = remd_size
-            o_repnum = partners(1)
-         else
-            o_index = my_index + 1
-            if (o_index > remd_size) o_index = 1
-            o_repnum = partners(2)
-         end if
-
-      end if ! (jumpright(rem_dim))
-
-      ! Get all of our neigbhor's information
-      o_ph = all_ph(o_repnum)
-      o_prot = prot_table(o_repnum)
-
-#ifdef VERBOSE_REMD
-      write(6,'(a,i3,a,f5.2,a,i3)') '| Found partner information: &
-               &protonation = ', o_prot, ' pH = ', o_ph, ' repnum = ', o_repnum
-#endif
-
-      if (mod(my_index, 2) == 0) then
-         ! Get random value and evaluate MC transition. Then tell our neighbor
-         ! if we succeeded
-         call amrand_gen(remd_gen, randval)
-         delta = LN_TO_LOG * (prot - o_prot) * (o_ph - solvph)
-         success = randval < exp(-delta)
-
-         ! Tell our neighbor if we succeeded
-         call mpi_send(success, 1, mpi_logical, o_repnum-1, &
-                       22, remd_comm, ierror)
-
-         ! If we succeeded, mark it in the success array
-         if (success) then
-            if (jumpright(rem_dim)) then
-               suc_arry(my_index) = 1
-            else
-               suc_arry( o_index) = 1
-            end if
-         end if
-#ifdef VERBOSE_REMD
-         write(6, '(2(a,i3))') '| Proton count: ', prot, ' --> ', o_prot
-         write(6, '(2(a,f8.3))') '| pH transition:', solvph, ' --> ', o_ph
-         if (success) then
-            write(6, '(a,E16.8)') '| Success! delta = ', delta
-         else
-            write(6, '(a,E16.8)') '| Failure. delta = ', delta
-         end if
-#endif
-      else
-         ! Listen for news of success
-         call mpi_recv(success, 1, mpi_logical, o_repnum-1, &
-                       22, remd_comm, istatus, ierror)
-#ifdef VERBOSE_REMD
-         write(6, '(2(a,i3))') '| Proton count: ', prot, ' --> ', o_prot
-         write(6, '(2(a,f8.3))') '| pH transition:', solvph, ' --> ', o_ph
-         if (success) then
-            write(6, '(a)') '| Success!'
-         else
-            write(6, '(a)') '| Failure.'
-         end if
-#endif
-      end if
-
-      ! If we succeeded, update our solvph
-      if (success) solvph = o_ph
-
-      ! Swap the replica_indexes and group_num if our exchange was successful
-      if (success .and. master) then
-         call mpi_sendrecv_replace(replica_indexes, remd_dimension, &
-                     mpi_integer, o_repnum-1, 22, o_repnum-1, 22, &
-                     remd_comm, istatus, ierror)
-         call mpi_sendrecv_replace(group_num, remd_dimension, mpi_integer, &
-                     o_repnum-1, 23, o_repnum-1, 23, remd_comm, istatus, ierror)
-         call mpi_sendrecv_replace(remd_repidx, 1, mpi_integer, &
-                                   o_repnum-1, 24, o_repnum-1, 24, &
-                                   remd_comm, istatus, ierror)
-      end if
-      ! Reduce our success array to master for printing
-      call mpi_reduce(suc_arry, suc_buf, remd_size, mpi_integer, &
-                      mpi_sum, 0, remd_comm, ierror)
-
-      ! Generate our new pH table
-      call mpi_gather(solvph, 1, mpi_double_precision, new_ph, 1, &
-                      mpi_double_precision, 0, remd_comm, ierror)
-
-   end if ! (master)
-
-   ! Tell the rest of our replica about our (maybe) new pH
-   call mpi_bcast(solvph, 1, mpi_double_precision, 0, commsander, ierror)
-
-   ! Set the target_ph
-   target_ph = solvph
-
-   ! Only the master of the remd_comm does any writing
-   if (remd_master .and. rem > 0) then
-      ! Add up our total exchange successes
-      do i = 1, remd_size
-         exchsuccess(rem_dim, i) = exchsuccess(rem_dim, i) + suc_buf(i)
-         exchfrac(i) = dble(exchsuccess(rem_dim, i)) &
-                              / dble(mdloop) * dble(remd_dimension) * TWO
-      end do
-
-      write(REMLOG_UNIT, '(a,i8)') '# exchange ', mdloop
-
-      do i = 1, remd_size
-         write(REMLOG_UNIT, '(i6,x,i7,x,2f7.3,x,f8.4)') &
-         i, &             ! Replica #
-         prot_table(i), & ! number of protons
-         all_ph(i),     & ! our pH at the beginning of this subroutine
-         new_ph(i),     & ! our pH after the exchange attempt
-         exchfrac(index_list(i)) ! our exchange success rate
-      end do
-
-   else if (remd_master) then
-
-      do i = 1, remd_size
-         exchsuccess(rem_dim, i) = exchsuccess(rem_dim, i) + suc_buf(i)
-         exchfrac(i) = dble(exchsuccess(rem_dim, i)) &
-                        / dble(mdloop) * dble(remd_dimension) * TWO
-      end do
-
-      do i = 1, remd_size
-         multid_print_data(i)%nprot    = prot_table(i)
-         multid_print_data(i)%my_ph    = all_ph(i)
-         multid_print_data(i)%nei_ph   = new_ph(i)
-         multid_print_data(i)%num_rep  = remd_size
-         multid_print_data(i)%group_num = group_num(rem_dim)
-         multid_print_data(i)%success_ratio = exchfrac(index_list(i))
-      end do
-   end if
-
-   if (allocated(jumpright)) jumpright(rem_dim) = .not. jumpright(rem_dim)
-
-end subroutine ph_remd_exchange
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+ Performs Redox potential exchanges
-subroutine e_remd_exchange(rem_dim, temp0, solve)
-
-   use constants, only  : KB, FARADAY, TWO
-
-   implicit none
-
-#  include "parallel.h"
-
-! Passed Variables
-   integer, intent(in)   :: rem_dim ! dimension we are exchanging in
-   _REAL_, intent(inout) :: temp0  ! Temperature from the mdin file
-   _REAL_, intent(inout) :: solve  ! SOLVent E (Redox Potential)
-
-! Local variables
-   _REAL_   :: delta              ! DELTA value for MC transition evaluation
-   _REAL_   :: randval            ! Random number to evaluate MC success
-   _REAL_   :: all_e(numreps)    ! table of all Redox potential values
-   _REAL_   :: new_e(numreps)    ! table of all Redox potential values after exchanges
-   _REAL_   :: exchfrac(numreps)  ! fraction of exchange successes
-   _REAL_   :: o_e               ! Redox potential of the replica we're exchanging with
-
-   integer  :: i                  ! counter
-   integer  :: ierror             ! MPI error flag
-   integer  :: elec               ! # of electrons in my replica
-   integer  :: suc_arry(numreps)  ! array containing success values
-   integer  :: suc_buf(numreps)   ! receive buffer for success arrays
-   integer  :: elec_table(numreps)! table with the total eleccnt for each rep
-   integer  :: my_index           ! my index in the Redox potential table
-   integer  :: o_index            ! index of replica we're exchanging with
-   integer  :: o_repnum           ! replica number that we're exchanging with
-   integer  :: o_elec             ! # of electrons in other replica
-
-   logical  :: success            ! Did our exchange attempt succeed?
-
-   integer, dimension(MPI_STATUS_SIZE) :: istatus
-
-   ! First, we have to initialize some variables
-   suc_arry(:) = 0
-   suc_buf(:)  = 0
-   success = .false.
-   delta = 0.d0
-   randval = 0.d0
-
-   if (master) then
-
-      ! Get partner array. NOTE: also sets index_list
-      call set_partners(rem_dim, remd_size)
-
-#ifdef VERBOSE_REMD
-      write(6,'(a)') '| =============== REMD ==============='
-#endif
-      ! compile the Redox potential table
-      call mpi_allgather(solve, 1, mpi_double_precision, &
-                         all_e, 1, mpi_double_precision, &
-                         remd_comm, ierror)
-
-      ! Determine our index and our neighbor's index, wrapping the replicas
-      ! if we go off either end of the ladder
-      my_index = replica_indexes(rem_dim)
-
-      if (jumpright(rem_dim)) then
-
-         if (mod(my_index, 2) == 0) then
-            o_index = my_index + 1
-            if (o_index > remd_size) o_index = 1
-            o_repnum = partners(2)
-         else
-            o_index = my_index - 1
-            if (o_index < 1) o_index = remd_size
-            o_repnum = partners(1)
-         end if
-
-      else
-
-         if (mod(my_index, 2) == 0) then
-            o_index = my_index - 1
-            if (o_index < 1) o_index = remd_size
-            o_repnum = partners(1)
-         else
-            o_index = my_index + 1
-            if (o_index > remd_size) o_index = 1
-            o_repnum = partners(2)
-         end if
-
-      end if ! (jumpright(rem_dim))
-
-      ! Get all of our neigbhor's information
-      o_e = all_e(o_repnum)
-      o_elec = elec_table(o_repnum)
-
-#ifdef VERBOSE_REMD
-      write(6,'(a,i3,a,f5.2,a,i3)') '| Found partner information: &
-               &reduction = ', o_elec, ' E = ', o_e, ' repnum = ', o_repnum
-#endif
-
-      if (mod(my_index, 2) == 0) then
-         ! Get random value and evaluate MC transition. Then tell our neighbor
-         ! if we succeeded
-         call amrand_gen(remd_gen, randval)
-         delta = ( FARADAY / ( KB * temp0 ) ) * (elec - o_elec) * (o_e - solve)
-         success = randval < exp(-delta)
-
-         ! Tell our neighbor if we succeeded
-         call mpi_send(success, 1, mpi_logical, o_repnum-1, &
-                       22, remd_comm, ierror)
-
-         ! If we succeeded, mark it in the success array
-         if (success) then
-            if (jumpright(rem_dim)) then
-               suc_arry(my_index) = 1
-            else
-               suc_arry( o_index) = 1
-            end if
-         end if
-#ifdef VERBOSE_REMD
-         write(6, '(2(a,i3))') '| Electron count: ', elec, ' --> ', o_elec
-         write(6, '(2(a,f8.3))') '| E transition:', solve, ' --> ', o_e
-         if (success) then
-            write(6, '(a,E16.8)') '| Success! delta = ', delta
-         else
-            write(6, '(a,E16.8)') '| Failure. delta = ', delta
-         end if
-#endif
-      else
-         ! Listen for news of success
-         call mpi_recv(success, 1, mpi_logical, o_repnum-1, &
-                       22, remd_comm, istatus, ierror)
-#ifdef VERBOSE_REMD
-         write(6, '(2(a,i3))') '| Electron count: ', elec, ' --> ', o_elec
-         write(6, '(2(a,f8.3))') '| E transition:', solve, ' --> ', o_e
-         if (success) then
-            write(6, '(a)') '| Success!'
-         else
-            write(6, '(a)') '| Failure.'
-         end if
-#endif
-      end if
-
-      ! If we succeeded, update our solve
-      if (success) solve = o_e
-
-      ! Swap the replica_indexes and group_num if our exchange was successful
-      if (success .and. master) then
-         call mpi_sendrecv_replace(replica_indexes, remd_dimension, &
-                     mpi_integer, o_repnum-1, 22, o_repnum-1, 22, &
-                     remd_comm, istatus, ierror)
-         call mpi_sendrecv_replace(group_num, remd_dimension, mpi_integer, &
-                     o_repnum-1, 23, o_repnum-1, 23, remd_comm, istatus, ierror)
-         call mpi_sendrecv_replace(remd_repidx, 1, mpi_integer, &
-                                   o_repnum-1, 24, o_repnum-1, 24, &
-                                   remd_comm, istatus, ierror)
-      end if
-      ! Reduce our success array to master for printing
-      call mpi_reduce(suc_arry, suc_buf, remd_size, mpi_integer, &
-                      mpi_sum, 0, remd_comm, ierror)
-
-      ! Generate our new Redox potential table
-      call mpi_gather(solve, 1, mpi_double_precision, new_e, 1, &
-                      mpi_double_precision, 0, remd_comm, ierror)
-
-   end if ! (master)
-
-   ! Tell the rest of our replica about our (maybe) new Redox potential
-   call mpi_bcast(solve, 1, mpi_double_precision, 0, commsander, ierror)
-
-   ! Set the target_e
-   target_e = solve
-
-   ! Only the master of the remd_comm does any writing
-   if (remd_master .and. rem > 0) then
-      ! Add up our total exchange successes
-      do i = 1, remd_size
-         exchsuccess(rem_dim, i) = exchsuccess(rem_dim, i) + suc_buf(i)
-         exchfrac(i) = dble(exchsuccess(rem_dim, i)) &
-                              / dble(mdloop) * dble(remd_dimension) * TWO
-      end do
-
-      write(REMLOG_UNIT, '(a,i8)') '# exchange ', mdloop
-
-      do i = 1, remd_size
-         write(REMLOG_UNIT, '(i6,x,i7,x,2f7.3,x,f8.4)') &
-         i, &             ! Replica #
-         elec_table(i), & ! number of electrons
-         all_e(i),     & ! our Redox potential at the beginning of this subroutine
-         new_e(i),     & ! our Redox potential after the exchange attempt
-         exchfrac(index_list(i)) ! our exchange success rate
-      end do
-
-   else if (remd_master) then
-
-      do i = 1, remd_size
-         exchsuccess(rem_dim, i) = exchsuccess(rem_dim, i) + suc_buf(i)
-         exchfrac(i) = dble(exchsuccess(rem_dim, i)) &
-                        / dble(mdloop) * dble(remd_dimension) * TWO
-      end do
-
-      do i = 1, remd_size
-         multid_print_data(i)%nelec    = elec_table(i)
-         multid_print_data(i)%my_e    = all_e(i)
-         multid_print_data(i)%nei_e   = new_e(i)
-         multid_print_data(i)%num_rep  = remd_size
-         multid_print_data(i)%group_num = group_num(rem_dim)
-         multid_print_data(i)%success_ratio = exchfrac(index_list(i))
-      end do
-   end if
-
-   if (allocated(jumpright)) jumpright(rem_dim) = .not. jumpright(rem_dim)
-
-end subroutine e_remd_exchange
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ calculation of exchange probability for Reservoir REMD
 subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
 
@@ -3932,6 +3538,7 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
 
    implicit none
 
+   include 'mpif.h'
 #  include "parallel.h"
 
    ! Passed arguments
@@ -4110,7 +3717,7 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
       ! Calculate pressure/volume correction if necessary
       if (use_pv) pvterm = pv_correction(my_remd_data%mytargettemp, o_temp0, o_repnum-1, remd_comm)
 
-      ! Calculate the exchange probablity if even # replica.
+      ! Calculate the exchange probability if even # replica.
       if(mod(myindex, 2) == 0) then
          ! RREMD: Here we calculate delta beta term for normal exchanges but
          !  only beta for exchanges with non-Boltzmann weighting (rremd>1)
@@ -4310,7 +3917,7 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
 
          write(unit = REMLOG_UNIT, fmt = '(a,i8)') '# exchange ', mdloop
          do i = 1, remd_size
-            write(REMLOG_UNIT, '(i2, 6f10.2, i8)') &
+            write(REMLOG_UNIT, '(i2,f12.4,f10.2,f15.2,3f10.2,i8)') &
             i, & ! Replica #
             d_scaling(i), & ! scaling factor
             alltempi(i), & ! current temperature
@@ -4396,7 +4003,7 @@ subroutine subrem_reservoir(rem_dim, reservoir_exchange_step)
       end if ! rremd>0, RREMD information writeout
 #endif /* NOTE ifNdef */
 
-      ! If no exchange occured reset rremd_idx
+      ! If no exchange occurred, reset rremd_idx
       if (.not. exchange) rremd_idx = -1
 
    else  ! not part of remd_comm
@@ -4418,6 +4025,7 @@ subroutine reservoir_remd_exchange(rem_dim, rem_kind, x, v, amass, nr3, &
 implicit none
 
 #  include "parallel.h"
+   include 'mpif.h'
 
 ! Passed variables
    _REAL_, intent(in out) :: x(*)      ! Atomic coordinates
@@ -4514,6 +4122,7 @@ subroutine multid_remd_exchange(x, ix, ih, ipairs, qsetup, &
    use sander_lib, only : strip
 
    implicit none
+   include 'mpif.h'
 #  include "../include/memory.h"
 #  include "parallel.h"
 
@@ -4601,10 +4210,6 @@ subroutine multid_remd_exchange(x, ix, ih, ipairs, qsetup, &
          end if
       case (3)
          call hremd_exchange(my_dim, x, ix, ih, ipairs, qsetup, do_list_update)
-      case (4)
-         call ph_remd_exchange(my_dim, solvph)
-      case (5)
-         call e_remd_exchange(my_dim, temp0, solve)
 
    end select
 
