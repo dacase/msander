@@ -93,7 +93,8 @@ subroutine mdread1()
    character(len=512) :: char_tmp_512
 #endif /* API */
 
-   integer irism
+   integer irism, stat
+   character(len=256) line
    character(len=8) periodicPotential
 
 !  N.B.: If you make changes to this namelist, you also need to make
@@ -630,7 +631,14 @@ subroutine mdread1()
    rewind 5
 
    if ( mdin_cntrl ) then
-      read(5,nml=cntrl,err=999)
+      read(5,nml=cntrl,iostat=stat)
+      if (stat /= 0) then
+        backspace(5)
+        read(5, fmt='(A)') line
+        write(6, '(A)') 'Invalid line in &cntrl namelist '//': '//trim(line)
+        call mexit(6,1)
+      end if
+
    else
       write(6, '(1x,a,/)') 'Could not find cntrl namelist'
       FATAL_ERROR
@@ -1033,9 +1041,6 @@ subroutine mdread1()
    return
 
 #ifndef API
-   999 continue   ! bad cntrl read
-   write(6,*) 'error in reading namelist cntrl'
-   FATAL_ERROR
 
    ! --- input file polar opts read err trapping:
 
