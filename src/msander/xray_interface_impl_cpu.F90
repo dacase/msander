@@ -600,15 +600,6 @@ contains
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
       real(real_kind), intent(out) :: xray_e
-      ! local
-      real(real_kind) :: xray_weight
-      integer :: total_steps
-
-      if( imin > 0 ) then
-         total_steps = 100*maxcyc  ! FIXME: make this an input variable?
-      else
-         total_steps = nstlim  ! FIXME: make this an input variable?
-      endif
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
