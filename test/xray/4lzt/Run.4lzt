@@ -27,8 +27,7 @@ Test of MD with Xray restraints
    ! pdb_read_coordinates=.true.,
    reflection_infile = '4lzt-sf.dat',
    atom_selection_mask = ':*',
-   xray_weight_initial = 1., 
-   xray_weight_final = 1.,
+   xray_weight = 1., 
    target = 'ml',
    bulk_solvent_model = 'afonine-2013',
  /
