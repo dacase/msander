@@ -74,6 +74,7 @@ contains
     
     if(mod(current_step, scale_update_period) == 0) then
       call optimize_scale_factors(absFobs, Fcalc, f_mask, mSS4, hkl)
+      write(6,'(a)') '| updating scaling factors'
     end if
     
     Fcalc = combine(Fcalc, f_mask)
