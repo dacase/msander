@@ -23,8 +23,7 @@ md for 3j9d
    pdb_infile = '4phenix_3j9d_box2.pdb',
    reflection_infile = '3j9d_noH-sf.directi.dat',
    atom_selection_mask = '!@H=',
-   xray_weight_initial = 10000.,
-   xray_weight_final = 10000.,
+   xray_weight = 10000.,
    target = 'vls', bulk_solvent_model = 'none',
    scale_update_period = 100,
  /
