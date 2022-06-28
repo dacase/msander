@@ -14,7 +14,7 @@ Map Constraint Self-Guided Langevin dynamics
     ntc=2, ntf=2, cut=9.0,temp0=300,tempi=300,
     ntpr=1, ntwr=0,ntwx=0, ntt=0,
     dt=0.001, ntb=0,igb=1,ips=0,
-   isgld=1, tsgavg=0.2, sgft=0.5,tempsg=0, 
+   isgld=1, tsgavg=0.2, sgft=0.5,
    iemap=1, ig=71277,
  /
  &emap     
