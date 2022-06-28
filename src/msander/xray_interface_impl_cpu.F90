@@ -533,6 +533,14 @@ contains
          & solvent_mask_adjustment, solvent_mask_probe_radius &
       )
       
+      ! should be able to do some deallocations here:
+      deallocate(hkl_index,Fobs,sigFobs, atom_bfactor, atom_occupancy, &
+           test_flag, atom_scatter_type, stat=alloc_status)
+      if( alloc_status .ne. 0 ) then
+         write(6,*) 'error in deallocation after init_interface2()'
+         call mexit(6,1)
+      end if
+
       return
       1 continue
       write(stdout,'(A)') 'End-of-file reading HKL file.'
