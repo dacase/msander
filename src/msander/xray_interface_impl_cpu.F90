@@ -534,7 +534,7 @@ contains
       )
       
       ! should be able to do some deallocations here:
-      deallocate(hkl_index,Fobs,sigFobs, atom_bfactor, atom_occupancy, &
+      deallocate(hkl_index,Fobs,sigFobs, &
            test_flag, atom_scatter_type, stat=alloc_status)
       if( alloc_status .ne. 0 ) then
          write(6,*) 'error in deallocation after init_interface2()'
