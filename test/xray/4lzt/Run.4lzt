@@ -25,6 +25,7 @@ Test of MD with Xray restraints
  &xray
    pdb_infile = '4lzt_uc.pdb',
    ! pdb_read_coordinates=.true.,
+   fmtz_outfile = '4lzt_uc.fmtz',
    reflection_infile = '4lzt-sf.dat',
    atom_selection_mask = ':*',
    xray_weight = 1., 
@@ -37,5 +38,6 @@ $DO_PARALLEL $sander -O -i mdin -p 4lzt_uc.parm7 -c 4lzt_uc.rst7 \
     -o 4lzt_md.out < /dev/null
 
 ../../dacdif -r 2e-4 4lzt_md.out.save 4lzt_md.out
+../../dacdif 4lzt_uc.fmtz.save 4lzt_uc.fmtz
 
 /bin/rm -f mdin mdinfo restrt

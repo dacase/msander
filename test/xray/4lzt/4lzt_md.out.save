@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/28/2022 at 15:27:21
+| Run on 07/05/2022 at 20:16:00
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/xray/4lzt
+| Working directory: /home/case/msander/test/xray/4lzt
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
 Test of MD with Xray restraints                                                
  &cntrl                                                                        
   ntx = 1, irest = 0, ntpr = 1,                                                
@@ -42,6 +42,7 @@ Test of MD with Xray restraints
  &xray                                                                         
    pdb_infile = '4lzt_uc.pdb',                                                 
    ! pdb_read_coordinates=.true.,                                              
+   fmtz_outfile = '4lzt_uc.fmtz',                                              
    reflection_infile = '4lzt-sf.dat',                                          
    atom_selection_mask = ':*',                                                 
    xray_weight = 1.,                                                           
@@ -81,6 +82,7 @@ Test of MD with Xray restraints
 
 X-ray Refinement Parameters:
      PDB InFile: 4lzt_uc.pdb
+     FMTZ OutFile:4lzt_uc.fmtz
      PDB Read Coordinates: F
      PDB Use SegID: F
      PDB Wrap Names: F
@@ -250,28 +252,25 @@ Found   1960 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (62.12% of List )
-|                Other                      0.00 (37.88% of List )
-|             List time                  0.01 (23.78% of Nonbo)
-|                   Short_ene time             0.03 (97.44% of Direc)
-|                   Other                      0.00 ( 2.56% of Direc)
-|                Direct Ewald time          0.03 (64.54% of Ewald)
-|                Adjust Ewald time          0.00 ( 4.02% of Ewald)
-|                   Fill Bspline coeffs        0.00 (11.11% of Recip)
-|                   Fill charge grid           0.00 (15.08% of Recip)
-|                   Scalar sum                 0.00 (20.63% of Recip)
-|                   Grad sum                   0.00 (11.90% of Recip)
-|                   FFT time                   0.01 (41.27% of Recip)
-|                Recip Ewald time           0.01 (29.79% of Ewald)
-|                Other                      0.00 ( 1.42% of Ewald)
-|             Ewald time                 0.04 (76.22% of Nonbo)
-|             Fcalc loop                 1.73 (11.65% of Xray )
-|             Deriv loop                 5.04 (33.87% of Xray )
-|             Other                      8.11 (54.48% of Xray )
-|          Xray restaints            14.88 (99.60% of Force)
-|       Force time                14.94 (100.0% of Runmd)
-|    Runmd Time                14.94 (99.27% of Total)
-| Total time                15.05 (100.0% of ALL  )
+|                Build the list             0.01 (63.64% of List )
+|                Other                      0.00 (36.36% of List )
+|             List time                  0.01 (25.00% of Nonbo)
+|                   Short_ene time             0.02 (100.0% of Direc)
+|                Direct Ewald time          0.02 (66.67% of Ewald)
+|                Adjust Ewald time          0.00 ( 3.03% of Ewald)
+|                   Fill charge grid           0.00 (20.00% of Recip)
+|                   Scalar sum                 0.00 (10.00% of Recip)
+|                   Grad sum                   0.00 (10.00% of Recip)
+|                   FFT time                   0.01 (60.00% of Recip)
+|                Recip Ewald time           0.01 (30.30% of Ewald)
+|             Ewald time                 0.03 (75.00% of Nonbo)
+|             Fcalc loop                 2.65 (17.00% of Xray )
+|             Deriv loop                 8.52 (54.73% of Xray )
+|             Other                      4.40 (28.26% of Xray )
+|          Xray restaints            15.57 (99.68% of Force)
+|       Force time                15.62 (100.0% of Runmd)
+|    Runmd Time                15.62 (99.37% of Total)
+| Total time                15.72 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -281,11 +280,11 @@ Found   1960 atoms in :*;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      14.94 Per Step(ms) =    2988.68
-|         ns/day =       0.03   seconds/ns = 2988680.00
+|     Elapsed(s) =      15.62 Per Step(ms) =    3123.60
+|         ns/day =       0.03   seconds/ns = 3123600.00
 | -----------------------------------------------------
 
-|           Job began  at 15:27:21.558  on 06/28/2022
-|           Setup done at 15:27:21.667  on 06/28/2022
-|           Run   done at 15:27:36.611  on 06/28/2022
+|           Job began  at 20:16:00.225  on 07/05/2022
+|           Setup done at 20:16:00.324  on 07/05/2022
+|           Run   done at 20:16:15.942  on 07/05/2022
 |     wallclock() was called     304 times
