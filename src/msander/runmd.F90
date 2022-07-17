@@ -181,7 +181,6 @@ module runmd_module
   _REAL_ :: exp1, exp2
 
   logical ivscm
-  logical qspatial
   logical resetvelo
   _REAL_ etot_save,ekpbs
 
@@ -384,10 +383,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 !----------------------------------------------------------------------------
     ! middle scheme for constrained MD
     if (ntc /= 1) then
-       qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake))
        ! use SETTLE to deal with water model
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
     end if  
@@ -618,10 +616,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
      ! for constrained MD
      if (ntc /= 1) then
-       qspatial = .false.
        ! RATTLE-V, correct velocities
        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+       winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake))
 
        ! use SETTLE to deal with water model
        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
@@ -686,10 +683,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Step 4a: if shake is being used, update the positions {{{
     call timer_start(TIME_SHAKE)
     xold(istart3:iend3) = x(istart3:iend3)
-    qspatial = .false.
     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
                winv, conp, skip, f, x, nitp, belly, ix(iifstwt), &
-               ix(noshake), qspatial)
+               ix(noshake))
     call quick3(f, x, ix(iifstwr), natom, nres, ix(i02))
     if (nitp == 0) then
       erstop = .true.
@@ -723,10 +719,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
 
-    qspatial = .false.
     ! RATTLE-V, correct velocities
     call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
-      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake), qspatial)
+      winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake))
 
     ! use SETTLE to deal with water model
     call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))

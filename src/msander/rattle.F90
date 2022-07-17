@@ -4,7 +4,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! RATTLEV: correct velocities with bond length constraints
 subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
-      skip,x,v,niter,belly,ifstwt,noshake,qspatial )
+      skip,x,v,niter,belly,ifstwt,noshake )
 
    implicit none
    logical skip(*),ready,first
@@ -28,7 +28,6 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    _REAL_ conp(*),x(*),v(*)
    _REAL_ xij(3),vij(3)
    integer ifstwt(*),noshake(*)
-   logical :: qspatial
 
    _REAL_ winvi,winvj,diff,acor,xh,toler,rvdot, &
          tol2,zero
@@ -42,35 +41,28 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    integer istart, iend
 #endif
 
-   if(qspatial)then
-      if(ntc == 1)then
-         niter=1
-         return
-      end if
+   if(ntc == 1)then
+      niter=1
+      return
+   else if(ntc == 2)then
+      nbt = nbonh
    else
-      if(ntc == 1)then
-         niter=1
-         return
-      else if(ntc == 2)then
-         nbt = nbonh
-      else
-         nbt = nbonh+nbona+nbper
-      end if
-      
-      !     first time through, figure out last bond that is not a 3-point water
-      !     bond:
-      
-      if (first) then
-         nbt_new = 0
-         do i=1,nbt
-            if(ifstwt(i) == 0 ) nbt_new = i
-         end do
-         first= .false.
-      end if
-      if( nbt_new == 0 ) then
-         niter=1
-         return
-      end if
+      nbt = nbonh+nbona+nbper
+   end if
+   
+   !     first time through, figure out last bond that is not a 3-point water
+   !     bond:
+   
+   if (first) then
+      nbt_new = 0
+      do i=1,nbt
+         if(ifstwt(i) == 0 ) nbt_new = i
+      end do
+      first= .false.
+   end if
+   if( nbt_new == 0 ) then
+      niter=1
+      return
    end if
 
    niter = 0
@@ -199,4 +191,4 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
          /5x,'NITER, NIT, LL, I and J are :',5i7)
    322 format(/5x,'Note: This is usually a symptom of some deeper', &
          /5x,'problem with the energetics of the system.' )
-end subroutine
+end subroutine rattlev
