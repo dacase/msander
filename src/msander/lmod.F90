@@ -1313,9 +1313,10 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
 
    belly = ibelly.eq.1
    if( ntc .ne. 1 ) then
+
      call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
-               winv, conp, skip, forces, coordinates, nitp, belly, ix(iifstwt), &
-               ix(noshake))
+        winv, conp, skip, coordinates, coordinates, nitp, belly, ix(iifstwt), &
+        ix(noshake))
      call quick3(forces, coordinates, ix(iifstwr), natom, nres, ix(i02))
      if (nitp == 0) then
         write(6,*) 'SHAKE error....'

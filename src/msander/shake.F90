@@ -82,8 +82,6 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
       if( nit > 3000 ) then
          write(6,311)
          write(6,322)
-         if (imin == 1) write(6,*) &
-               ' *** Especially for minimization, try ntc=1 (no shake)'
          call mexit(6,1)
       end if
 
@@ -173,8 +171,6 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
          if(rrpr < toler*1.0d-06) then
             write(6,321) niter,nit,ll,i,j
             write(6,322)
-            if (imin == 1) write(6,*) &
-                  ' *** Especially for minimization, try ntc=1 (no shake)'
             call mexit(6,1)
          end if
          acor = diff/(rrpr*(winv(i)+winv(j)+winv(i)+winv(j)))

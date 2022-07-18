@@ -66,7 +66,11 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    end if
 
    niter = 0
-   tol2 = tol / dt
+   if( imin .eq. 1 ) then
+      tol2 = tol / dt
+   else
+      tol2 = tol
+   endif
    
    nit = 0
    do k = 1,nrr
