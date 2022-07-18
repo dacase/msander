@@ -374,7 +374,8 @@ contains
    subroutine xray_write_fmtz(filename)
 
    use xray_globals_module
-   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution
+   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution, &
+       sigma_Fobs
    use xray_target_module, only : target_function_id
    implicit none
    character(len=*), intent(in) :: filename
@@ -408,7 +409,7 @@ contains
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
-          sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
+          sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
       end do
    end if
    close(20)
@@ -534,7 +535,7 @@ contains
       )
       
       ! should be able to do some deallocations here:
-      deallocate(hkl_index,Fobs,sigFobs, atom_bfactor, atom_occupancy, &
+      deallocate(hkl_index,Fobs,sigFobs, &
            test_flag, atom_scatter_type, stat=alloc_status)
       if( alloc_status .ne. 0 ) then
          write(6,*) 'error in deallocation after init_interface2()'
