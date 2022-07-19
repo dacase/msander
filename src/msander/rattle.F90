@@ -32,10 +32,6 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    _REAL_ winvi,winvj,diff,acor,xh,toler,rvdot, &
          tol2,zero
    integer m,i,j,i3,j3,niter,nbt,nit,k,ll
-   integer nbt_new,bnd_first,bnd_last
-   data first /.true./
-   data zero /0.0d0/
-   save first,zero,nbt_new
    integer llind
 #ifdef MPI
    integer istart, iend
@@ -50,21 +46,6 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
       nbt = nbonh+nbona+nbper
    end if
    
-   !     first time through, figure out last bond that is not a 3-point water
-   !     bond:
-   
-   if (first) then
-      nbt_new = 0
-      do i=1,nbt
-         if(ifstwt(i) == 0 ) nbt_new = i
-      end do
-      first= .false.
-   end if
-   if( nbt_new == 0 ) then
-      niter=1
-      return
-   end if
-
    niter = 0
    if( imin .eq. 1 ) then
       tol2 = tol / dt
@@ -109,10 +90,7 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
       
       !     ----- LOOP OVER ALL THE BONDS that are not 3-point waters: -----
       
-      bnd_first=1
-      bnd_last=nbt_new
-
-      bonds: do llind = bnd_first,bnd_last
+      bonds: do llind = 1,nbt
          !  Skip bonds constrained in fast 3-point routine:
          if (ifstwt(llind) == 1) cycle bonds
          !  Skip bonds identified by the noshake user input:
