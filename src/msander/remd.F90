@@ -245,10 +245,8 @@ _REAL_, allocatable, save :: saveene(:)
 _REAL_,              save :: restemp0
 integer,             save :: rremd_idx, reservoirsize
 integer,             save :: reservoir_ncid = -1
-#ifdef BINTRAJ
 ! Required for netcdf reservoir
 integer,             save :: coordVID, velocityVID
-#endif
 
 ! ... RREMD Dihedral Clustering:
 ! clusternum()   - cluster that reservoir structure belongs to
@@ -1209,9 +1207,7 @@ end subroutine multid_remd_setup
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Close REMD files, free memory
 subroutine remd_cleanup()
-#  ifdef BINTRAJ
    use AmberNetcdf_mod, only: NC_close
-#  endif
 
    implicit none
    include 'mpif.h'
@@ -1255,9 +1251,7 @@ subroutine remd_cleanup()
 
    ! Reservoir REMD storage
    if (allocated(saveene)) deallocate(saveene)
-#  ifdef BINTRAJ
    if (reservoir_ncid.ne.-1) call NC_close(reservoir_ncid)
-#  endif
 
    ! DihedralCluster arrays
    if (allocated(clusternum)) deallocate(clusternum)
@@ -1990,10 +1984,8 @@ end subroutine sorttable
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Load the specified structure from the reservoir into coords
 subroutine load_reservoir_structure(x, v, nr3, natom)
-#  ifdef BINTRAJ
    use netcdf
    use AmberNetcdf_mod, only: NC_error
-#  endif
    implicit none
    include 'mpif.h'
 #  include "parallel.h"
@@ -2043,7 +2035,6 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
          if (reserv_velo) read (reservoir_unit,"(6(f12.7))") (v(i),i=1,nr3)
          close (unit=reservoir_unit)
          ! DAN ROE: Should be some error checking on reservoir read.
-#     ifdef BINTRAJ
       else ! Netcdf reservoir
          ! Read coordinates
          if ( NC_error(nf90_get_var(reservoir_ncid, coordVID, x(1:nr3), &
@@ -2057,17 +2048,7 @@ subroutine load_reservoir_structure(x, v, nr3, natom)
                                       count = (/ 3, natom, 1 /)), &
                          'reading reservoir velocities')) call mexit(6,1)
          end if
-#     endif
       end if
-!#     ifdef RREMD_DEBUG
-      ! DAN ROE: Debug
-      write (6,'(a,i10)') "RREMD: coords read for frame ",rremd_idx
-      write (6,*) (x(i),i=1,10)
-      if (reserv_velo) then
-         write (6,'(a,i10)') "RREMD: velocities read for frame ",rremd_idx
-         write (6,*) (v(i),i=1,10)
-      end if
-!#     endif
       ! CARLOS: IMPORTANT! Scale the reservoir velocities!
       !  Scaling is set in subrem_reservoir
       ! If we have const P, need box change. Currently unsupported
@@ -2659,10 +2640,8 @@ end subroutine calc_rremd_cluster
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ load energy/cluster information for doing reservoir REMD
 subroutine load_reservoir_files()
-#ifdef BINTRAJ
    use AmberNetcdf_mod, only: NC_checkTraj, NC_openRead, NC_setupReservoir,&
                               NC_readReservoir
-#endif
    ! All threads call this subroutine
    implicit none
 
@@ -2673,13 +2652,10 @@ subroutine load_reservoir_files()
 ! i1-4 for reading dihedral atom nums
    integer j, i1, i2, i3, i4
    _REAL_ minIn
-#  ifdef BINTRAJ
    integer eptotVID, binsVID
-#  endif
 
 ! --------------------
    if (master) then
-#     ifdef BINTRAJ
       ! Check if reservoirname is a Netcdf reservoir
       if (NC_checkTraj(reservoirname)) then
          if (NC_openRead(reservoirname, reservoir_ncid)) call mexit(6,1)
@@ -2693,7 +2669,6 @@ subroutine load_reservoir_files()
          end if
          reserv_velo = (velocityVID.ne.-1)
       else
-#     endif
          reservoir_ncid = -1
          ! Open saveene, which contains energies for each reservoir struct
          call amopen(remin_unit,saveenefile,'O','F','R')
@@ -2707,9 +2682,7 @@ subroutine load_reservoir_files()
          !  unit since remlog is not used yet.
          read (remin_unit,*,err=5000) reservoirsize,restemp0,numatoms,iseed,holder
          reserv_velo = holder == 1
-#     ifdef BINTRAJ
       end if
-#     endif
       ! Write the reservoir type and other info to remtype
       if (master_master) then
          write (remtype_unit,'(a,a)') &
@@ -2805,23 +2778,11 @@ subroutine load_reservoir_files()
             end if
          enddo
          close (unit=remin_unit)
-#     ifdef BINTRAJ
       else ! Netcdf reservoir read
          if (NC_readReservoir(reservoir_ncid, reservoirsize, eptotVID, &
                               binsVID, saveene, clusternum))&
             call mexit(6,1)
-
-#     endif
       end if
-!#     ifdef RREMD_DEBUG
-      ! Write energy and clusternum (if present)
-      do i=1,reservoirsize
-         if (master_master) then
-            write (remtype_unit,'(a,i10,f12.4)') "frame,energy ", i, saveene(i)
-            if (rremd==3) write(remtype_unit,'(a,i10)') "  cluster ", clusternum(i)
-         end if
-      enddo
-!#     endif
 
       ! Read in the cluster info file for rremd==3
       ! DAN ROE: Put in error checking on reads
