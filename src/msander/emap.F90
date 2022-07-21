@@ -1530,7 +1530,7 @@ contains
       ELSE IF(MODE==1)THEN
         DO I=1,NDATA
           READ(UNIT)IDATAI
-          RDATA(I)=REAL(IDATAI,int16)
+          RDATA(I)=REAL(IDATAI,real32)
         ENDDO
       ELSE IF(MODE==2)THEN
         DO I=1,NDATA
