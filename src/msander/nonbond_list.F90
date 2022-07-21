@@ -2257,11 +2257,11 @@ subroutine check_skin(crd,do_list_update)
 
   use constants, only : zero, fourth
   implicit none
-  _REAL_, intent(in) :: crd(3,natom)
-  logical, intent(out) :: do_list_update
-
 #include "extra.h"
 #include "../include/memory.h"
+
+  _REAL_, intent(in) :: crd(3,natom)
+  logical, intent(out) :: do_list_update
 
   integer first_atom
   integer last_atom

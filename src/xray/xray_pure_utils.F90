@@ -6,14 +6,15 @@ module xray_pure_utils
   ! MUST NOT depend on any other module
   
   use xray_contracts_module
+  use iso_fortran_env   ! system module--hope side effects are not present
   
   implicit none
 
   double precision, private :: r_dummy ! FIXME: enforce same kind as in xray_global_module
                                        !        without injecting explicit module dependency
   integer, parameter :: real_kind = kind(r_dummy)
-  real(8), parameter :: PI = 3.1415926535897932384626433832795d0 ! FIXME: import from global constants module
-  real(4), private, parameter :: PI_real_4 = 3.1415926535897932384626433832795 ! FIXME: import from global constants module
+  real(real64), parameter :: PI = 3.1415926535897932384626433832795d0 ! FIXME: import from global constants module
+  real(real32), private, parameter :: PI_real_4 = 3.1415926535897932384626433832795 ! FIXME: import from global constants module
 
   interface cross_product
     module procedure cross_product_real_4
@@ -1277,8 +1278,8 @@ contains
   !----------------------------------------------------------------------------
   pure function cross_product_real_4(a, b) result(result)
     
-    real(4), intent(in) :: a(3), b(3)
-    real(4) :: result(3)
+    real(real32), intent(in) :: a(3), b(3)
+    real(real32) :: result(3)
 
     result(1) = a(2) * b(3) - a(3) * b(2)
     result(2) = a(3) * b(1) - a(1) * b(3)
@@ -1288,8 +1289,8 @@ contains
   
   pure function cross_product_real_8(a, b) result(result)
     
-    real(8), intent(in) :: a(3), b(3)
-    real(8) :: result(3)
+    real(real64), intent(in) :: a(3), b(3)
+    real(real64) :: result(3)
     
     result(1) = a(2) * b(3) - a(3) * b(2)
     result(2) = a(3) * b(1) - a(1) * b(3)
@@ -1330,7 +1331,7 @@ contains
   end subroutine set_start_size_from_bin_index
   
   pure function is_sorted_real_4(array) result(result)
-    real(4), intent(in) :: array(:)
+    real(real32), intent(in) :: array(:)
     logical :: result
     integer :: i
     
@@ -1344,7 +1345,7 @@ contains
   end function is_sorted_real_4
   
   pure function is_sorted_real_8(array) result(result)
-    real(8), intent(in) :: array(:)
+    real(real64), intent(in) :: array(:)
     logical :: result
     integer :: i
     
@@ -1358,7 +1359,7 @@ contains
   end function is_sorted_real_8
   
   pure function is_sorted_integer_4(array) result(result)
-    integer(4), intent(in) :: array(:)
+    integer(int32), intent(in) :: array(:)
     logical :: result
     integer :: i
     
@@ -1372,7 +1373,7 @@ contains
   end function is_sorted_integer_4
   
   pure function is_sorted_integer_8(array) result(result)
-    integer(8), intent(in) :: array(:)
+    integer(int64), intent(in) :: array(:)
     logical :: result
     integer :: i
     
@@ -1387,33 +1388,33 @@ contains
   
   elemental function to_radians_4(degrees) result(result)
     implicit none
-    real(4), intent(in) :: degrees
-    real(4), parameter :: radian_over_degree = PI_real_4 / 180
-    real(4) :: result
+    real(real32), intent(in) :: degrees
+    real(real32), parameter :: radian_over_degree = PI_real_4 / 180
+    real(real32) :: result
     result = degrees * radian_over_degree
   end function to_radians_4
   
   elemental function to_radians_8(degrees) result(result)
     implicit none
-    real(8), intent(in) :: degrees
-    real(8), parameter :: radian_over_degree = PI / 180
-    real(8) :: result
+    real(real64), intent(in) :: degrees
+    real(real64), parameter :: radian_over_degree = PI / 180
+    real(real64) :: result
     result = degrees * radian_over_degree
   end function to_radians_8
   
   elemental function to_degrees_4(radians) result(result)
     implicit none
-    real(4), intent(in) :: radians
-    real(4), parameter :: degree_over_radian = 180 / PI_real_4
-    real(4) :: result
+    real(real32), intent(in) :: radians
+    real(real32), parameter :: degree_over_radian = 180 / PI_real_4
+    real(real32) :: result
     result = radians * degree_over_radian
   end function to_degrees_4
   
   elemental function to_degrees_8(radians) result(result)
     implicit none
-    real(8), intent(in) :: radians
-    real(8), parameter :: degree_over_radian = 180 / PI
-    real(8) :: result
+    real(real64), intent(in) :: radians
+    real(real64), parameter :: degree_over_radian = 180 / PI
+    real(real64) :: result
     result = radians * degree_over_radian
   end function to_degrees_8
   

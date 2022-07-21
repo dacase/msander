@@ -8,6 +8,7 @@ module emap
 !            updated 10/1/2011
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  use, intrinsic :: iso_fortran_env
   implicit none
 
 #include "../include/assert.fh"
@@ -33,10 +34,10 @@ public
       _REAL_    :: ux,uy,uz           !  unit cell sizes (angstroms)
       _REAL_    :: ox,oy,oz           !  absolute coordinates of map center (angstroms)
       _REAL_    :: sx,sy,sz           !  parameters for reduced coordinates (angstroms)
-      integer(kind=1),pointer :: bdata(:)=> null()     !   integer data
-      integer(kind=2),pointer :: idata(:)=> null()     !   integer data
-      real(kind=4),pointer:: rdata(:)=> null()        !   real data
-      complex(kind=8), pointer :: Cdata(:)=> null()  !   double precision data
+      integer(int32),pointer :: bdata(:)=> null()     !   integer data
+      integer(int64),pointer :: idata(:)=> null()     !   integer data
+      real(real32),pointer:: rdata(:)=> null()        !   real data
+      complex(real64), pointer :: Cdata(:)=> null()  !   double precision data
       type (emapobject), pointer :: next   !  pointer to next emap object
       type (emapobject), pointer :: ref    !  pointer to a reference emap object
     END TYPE EMAPOBJECT
@@ -1247,7 +1248,7 @@ contains
       INTEGER*1 BDATAI
       INTEGER*2 IDATAI
       REAL*4 RDATAI
-      COMPLEX(KIND=4) CDATAI
+      COMPLEX(int32) CDATAI
 !
       INTEGER I,NDATA
       logical ismrc
@@ -1349,12 +1350,12 @@ contains
         ENDDO
       ELSE IF(MODE==3)THEN
         DO I=1,NDATA
-          CDATAI=CMPLX(MAP%CDATA(I), KIND=4)
+          CDATAI=CMPLX(MAP%CDATA(I), real32)
           WRITE(UNIT)CDATAI
         ENDDO
       ELSE IF(MODE==4)THEN
         DO I=1,NDATA
-          CDATAI=CMPLX(MAP%CDATA(I), KIND=4)
+          CDATAI=CMPLX(MAP%CDATA(I), real32)
           WRITE(UNIT)CDATAI
         ENDDO
       ELSE IF(MODE==5)THEN
@@ -1470,7 +1471,7 @@ contains
       INTEGER*1 BDATAI
       INTEGER*2 IDATAI
       REAL*4 RDATAI
-      COMPLEX(KIND=4) CDATAI
+      COMPLEX(real32) CDATAI
 !
       INTEGER*4 LXC,LYC,LZC
       INTEGER*4 IX,IY,IZ,JX,JY,JZ,JX1,JY1,JZ1
@@ -1479,7 +1480,7 @@ contains
       REAL*8 MAT11,MAT12,MAT13,MAT22,MAT23,MAT33
       REAL*8 BG,XI,YI,ZI
       INTEGER I,IXYZ,NDATA,MDATA,alloc_err
-      real(kind=4),pointer:: rdata(:)        !   real data
+      real(real32),pointer:: rdata(:)        !   real data
       logical ismrc
 
 !
@@ -1529,7 +1530,7 @@ contains
       ELSE IF(MODE==1)THEN
         DO I=1,NDATA
           READ(UNIT)IDATAI
-          RDATA(I)=FLOAT(IDATAI)
+          RDATA(I)=REAL(IDATAI,int16)
         ENDDO
       ELSE IF(MODE==2)THEN
         DO I=1,NDATA
@@ -1865,7 +1866,7 @@ contains
       _REAL_ CRD(*)
       _REAL_ RESO
 !
-      real(kind=4),pointer:: rho(:)=> null()        !   real data
+      real(real32),pointer:: rho(:)=> null()        !   real data
 !
       INTEGER*4 LX,LY,LZ,MODE,MNX,MNY,MNZ
       REAL*4 XC,YC,ZC
@@ -2073,10 +2074,10 @@ contains
 !_________________________________________________________________
 !
       INTEGER IDEMP
-      real(kind=4),pointer:: rho(:)=> null()        !   real data
+      real(real32),pointer:: rho(:)=> null()        !   real data
 !
       INTEGER NDATA,I
-      real(kind=4) RHOI
+      real(real32) RHOI
       REAL*8 AMAX,AMIN,AMEAN,ARMS
 !
       NDATA=EMAPS(IDEMP)%LX*EMAPS(IDEMP)%LY*EMAPS(IDEMP)%LZ
@@ -2147,7 +2148,7 @@ subroutine emapforce(natom,enemap,amass,x,f)
       REAL*8 ENRIG,SCRIG,AMASS(*),X(*)
       type(EMAPRIGID) :: rigobj
       type(EMAPOBJECT) :: mapobj
-      real(kind=4),pointer:: rho(:)=> null()        !   real data
+      real(real32),pointer:: rho(:)=> null()        !   real data
       integer,pointer:: idx(:)=> null()        !   real data
       INTEGER NATC,MNX,MNY,MNZ,LX,LY,LZ
       REAL*8 TR(3),U(3,3)
@@ -2294,7 +2295,7 @@ subroutine emapforce(natom,enemap,amass,x,f)
       REAL*8 ENRIG,SCRIG,AMASS(*),X(*),F(*)
       type(EMAPRIGID) :: rigobj
       type(EMAPOBJECT) :: mapobj
-      real(kind=4),pointer:: rho(:)=> null()        !   real data
+      real(real32),pointer:: rho(:)=> null()        !   real data
       integer,pointer:: idx(:)=> null()        !   real data
       INTEGER NATC,MNX,MNY,MNZ,LX,LY,LZ
       REAL*8 TR(3),U(3,3)

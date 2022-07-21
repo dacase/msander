@@ -175,7 +175,7 @@ subroutine cr_read_input( natom )
    ! open input file
    open( unit=inunit, file=crin, status='old', iostat=ierror ) 
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to open ', crin
+      write(6,'(1x,a)') 'CRGRELOC: failed to open ', crin
       call mexit(6,1)
    end if
 
@@ -217,7 +217,7 @@ subroutine cr_read_input( natom )
    end do
 
    if ( tag /= 1 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to read namelist crset'
+      write(6,'(1x,a)') 'CRGRELOC: failed to read namelist crset'
       call mexit(6,1)
    end if
 
@@ -250,7 +250,7 @@ subroutine cr_prepare_order( natom )
    cr_max_order = count( found )
    allocate( cr_order(2,cr_max_order), stat=ierr ) 
    if ( ierr /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_order'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_order'
       call mexit(6,1)
    end if
 
@@ -288,7 +288,7 @@ subroutine cr_check_input( ips )
    integer, intent(in) :: ips
 
    if ( ips > 0 ) then
-      write(6,'(x,a)') 'ifcr > 0 and ips > 0: This combination is not supported'
+      write(6,'(1x,a)') 'ifcr > 0 and ips > 0: This combination is not supported'
       call mexit(6,1)
    end if
 
@@ -303,37 +303,37 @@ subroutine cr_check_crset_atom( cur_type, at1, at2, at3, at4, natom )
 
    ! atom set
    if ( cur_type == 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: charge function should be set first'
+      write(6,'(1x,a)') 'CRGRELOC: charge function should be set first'
       call mexit(6,1)
    end if
    if ( at1 <= 0 .or. at1 > natom ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: at1 is out of range ', at1
+      write(6,'(1x,a,i8)') 'CRGRELOC: at1 is out of range ', at1
       call mexit(6,1)
    end if
    if ( at2 <= 0 .or. at2 > natom ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: at2 is out of range ', at2
+      write(6,'(1x,a,i8)') 'CRGRELOC: at2 is out of range ', at2
       call mexit(6,1)
    end if
    if ( at3 <= 0 .or. at3 > natom ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: at3 is out of range ', at3
+      write(6,'(1x,a,i8)') 'CRGRELOC: at3 is out of range ', at3
       call mexit(6,1)
    end if
    if ( at4 < 0 .or. at4 > natom ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: at4 is out of range ', at4
+      write(6,'(1x,a,i8)') 'CRGRELOC: at4 is out of range ', at4
       call mexit(6,1)
    end if
    if ( at1 == at2 ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: at1 and at2 cannot be equal ', at1
+      write(6,'(1x,a,i8)') 'CRGRELOC: at1 and at2 cannot be equal ', at1
       call mexit(6,1)
    end if
    if ( at4 /= 0 ) then
       if ( at2 == at3 ) then
-         write(6,'(x,a,3i8)') &
+         write(6,'(1x,a,3i8)') &
             'CRGRELOC: at2 and at3 cannot be equal with at4 ', at2, at3, at4
          call mexit(6,1)
       end if
       if ( at1 == at3 ) then
-         write(6,'(x,a,3i8)') &
+         write(6,'(1x,a,3i8)') &
             'CRGRELOC: at1 and at3 cannot be equal with at4 ', at1, at3, at4
          call mexit(6,1)
       end if
@@ -349,23 +349,23 @@ subroutine cr_check_crset_cubspl( type, npts, pi1, pi2 )
 
    ! cubic spline set
    if ( type <= 0 .or. type > 9 ) then
-      write(6,'(x,a)') 'CRGRELOC: type should be (1 <= type <= 9)'
+      write(6,'(1x,a)') 'CRGRELOC: type should be (1 <= type <= 9)'
       call mexit(6,1)
    end if
    if ( npts < 4 ) then
-      write(6,'(x,a)') 'CRGRELOC: npts should be greater than 4'
+      write(6,'(1x,a)') 'CRGRELOC: npts should be greater than 4'
       call mexit(6,1)
    end if
    if ( npts > CR_MAX_NPTS ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: npts exceeds CR_MAX_NPTS ', CR_MAX_NPTS
+      write(6,'(1x,a,i8)') 'CRGRELOC: npts exceeds CR_MAX_NPTS ', CR_MAX_NPTS
       call mexit(6,1)
    end if
    if ( pi1 < 1 .or. pi1 > 2 ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: pi1 should be 1 or 2 ', pi1
+      write(6,'(1x,a,i8)') 'CRGRELOC: pi1 should be 1 or 2 ', pi1
       call mexit(6,1)
    end if
    if ( pi2 < 1 .or. pi2 > 2 ) then
-      write(6,'(x,a,i8)') 'CRGRELOC: pi2 should be 1 or 2 ', pi2
+      write(6,'(1x,a,i8)') 'CRGRELOC: pi2 should be 1 or 2 ', pi2
       call mexit(6,1)
    end if
 end subroutine cr_check_crset_cubspl
@@ -388,7 +388,7 @@ subroutine cr_reallocate_info( at1, at2, at3, at4, cur_type, cur_cubi, &
    ierror = 0
 
 !   if ( cur_cubi == 0 ) then
-!      write(6,'(x,a)') 'CRGRELOC: charge function should be set first'
+!      write(6,'(1x,a)') 'CRGRELOC: charge function should be set first'
 !      call mexit(6,1)
 !   end if
 
@@ -431,23 +431,23 @@ subroutine cr_reallocate_info( at1, at2, at3, at4, cur_type, cur_cubi, &
    ! copy info2 back to cr_info
    if ( allocated(cr_info) ) deallocate( cr_info, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info'
       call mexit(6,1)
    end if
    if ( allocated(cr_cect) ) deallocate( cr_cect, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_cect'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_cect'
       call mexit(6,1)
    end if
    allocate( cr_info(9,cr_max_info), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info' 
       call mexit(6,1)
    end if
    cr_info(1:8,:) = info2(1:8,:)
    allocate( cr_cect(cr_max_info,2), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_cect' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_cect' 
       call mexit(6,1)
    end if
    cr_cect = cect2
@@ -479,8 +479,8 @@ subroutine cr_reallocate_cub( npts, r, c, cur_cubi, cur_cubf, pi1, pi2, &
    prev_r = r(1)
    do i = 1, npts
       if ( prev_r > r(i) ) then
-         write(6,'(x,a)') 'CRGRELOC: r should be in increasing order'
-         write(6,'(x,a,f10.3,a,f10.3)' ) 'CRGRELOC: ', prev_r, ' > ', r(i)
+         write(6,'(1x,a)') 'CRGRELOC: r should be in increasing order'
+         write(6,'(1x,a,f10.3,a,f10.3)' ) 'CRGRELOC: ', prev_r, ' > ', r(i)
       end if
       cub2(1,i+cr_max_cub) = r(i)
       cub2(2,i+cr_max_cub) = c(i)
@@ -493,12 +493,12 @@ subroutine cr_reallocate_cub( npts, r, c, cur_cubi, cur_cubf, pi1, pi2, &
    cur_cubf = cr_max_cub
    if ( allocated(cr_cub) ) deallocate( cr_cub, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_cub'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_cub'
       call mexit(6,1)
    end if
    allocate( cr_cub(5,cr_max_cub), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_cub' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_cub' 
       call mexit(6,1)
    end if
    cr_cub = cub2
@@ -528,7 +528,7 @@ subroutine cr_prepare_info3( natom )
    cr_max_info3_i = count( found )
    allocate( cr_info3_i(cr_max_info3_i,3), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_i' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_i' 
       call mexit(6,1)
    end if
    cr_info3_i = 0
@@ -541,7 +541,7 @@ subroutine cr_prepare_info3( natom )
    ! allocate cr_info3_ptr
    allocate( cr_info3_ptr(cr_max_info3_ptr), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_ptr' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_ptr' 
       call mexit(6,1)
    end if
 
@@ -560,7 +560,7 @@ subroutine cr_prepare_info3( natom )
    end do
    allocate( cr_info3_j( cr_max_info3_j, 3 ), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_j' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_j' 
       call mexit(6,1)
    end if
    cr_info3_j = 0
@@ -603,7 +603,7 @@ subroutine cr_prepare_info3( natom )
    end do
    allocate( cr_info3_k( cr_max_info3_k, 3 ), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_k' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_k' 
       call mexit(6,1)
    end if
    cr_info3_k = 0
@@ -702,7 +702,7 @@ subroutine cr_prepare_info( natom )
    cr_max_info_i = count( found )
    allocate( cr_info_i(cr_max_info_i,3), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_i' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_i' 
       call mexit(6,1)
    end if
    j = 1
@@ -715,7 +715,7 @@ subroutine cr_prepare_info( natom )
    ! allocate cr_info_j and cr_info_ptr
    allocate( cr_info_ptr(cr_max_info_ptr), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_ptr' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_ptr' 
       call mexit(6,1)
    end if
    si = 1
@@ -733,7 +733,7 @@ subroutine cr_prepare_info( natom )
       if (allocated(j2)) deallocate(j2)
       allocate( j2(cr_max_info_j + sj,3), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to deallocate j2' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to deallocate j2' 
          call mexit(6,1)
       end if
       ! copy cr_info_j to j2
@@ -763,20 +763,20 @@ subroutine cr_prepare_info( natom )
       if ( allocated(cr_info_j) ) then
          deallocate( cr_info_j, stat=ierror )
          if ( ierror /= 0 ) then
-            write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info_j' 
+            write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info_j' 
             call mexit(6,1)
          end if
       end if
       allocate( cr_info_j(cr_max_info_j,3), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_j'
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_j'
          call mexit(6,1)
       end if
       ! copy j2 back to cr_info_j
       cr_info_j = j2
       deallocate( j2, stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to deallocate j2'
+         write(6,'(1x,a)') 'CRGRELOC: failed to deallocate j2'
          call mexit(6,1)
       end if
    end do
@@ -876,125 +876,125 @@ subroutine cr_allocate( master, natom )
 
    allocate( cr_pair_distance(cr_max_info_j), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_pair_distance'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_pair_distance'
       call mexit(6,1)
    end if
    allocate( cr_pair_eval(cr_max_info_j), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_pair_eval' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_pair_eval' 
       call mexit(6,1)
    end if
    allocate( cr_tranunit(3,cr_max_info_j), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_tranunit'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_tranunit'
       call mexit(6,1)
    end if
 
    allocate( cr_tb_distance(3,cr_max_info3_k), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_tb_distance'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_tb_distance'
       call mexit(6,1)
    end if
    allocate( cr_tb_eval(cr_max_info3_k), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_tb_eval' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_tb_eval' 
       call mexit(6,1)
    end if
    allocate( cr_tb_tranunit(9,cr_max_info3_k), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_tb_tranunit'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_tb_tranunit'
       call mexit(6,1)
    end if
    allocate( cr_dcdr_fac(cr_max_dcdr_i), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_max_dcdr_i'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_max_dcdr_i'
       call mexit(6,1)
    end if
    allocate( cr_upcharge(cr_max_order), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_upcharge' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_upcharge' 
       call mexit(6,1)
    end if
 
    if ( .not. master ) then
       allocate(cr_charge(natom), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_charge' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_charge' 
          call mexit(6,1)
       end if
       allocate(cr_cub(5,cr_max_cub), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_cub' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_cub' 
          call mexit(6,1)
       end if
       allocate(cr_info(9,cr_max_info), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info' 
          call mexit(6,1)
       end if
       allocate(cr_info_i(cr_max_info_i,3), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_i' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_i' 
          call mexit(6,1)
       end if
       allocate(cr_info_j(cr_max_info_j,3), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_j' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_j' 
          call mexit(6,1)
       end if
       allocate(cr_info_ptr(cr_max_info_ptr), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info_ptr' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info_ptr' 
          call mexit(6,1)
       end if
       allocate(cr_info3_i(cr_max_info3_i,3), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_i' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_i' 
          call mexit(6,1)
       end if
       allocate(cr_info3_j(cr_max_info3_j,3), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_j' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_j' 
          call mexit(6,1)
       end if
       allocate(cr_info3_k(cr_max_info3_k,3), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_k' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_k' 
          call mexit(6,1)
       end if
       allocate(cr_info3_ptr(cr_max_info3_ptr), stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_info3_ptr' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_info3_ptr' 
          call mexit(6,1)
       end if
       allocate( cr_dcdr_tbl(natom), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_tbl' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_tbl' 
          call mexit(6,1)
       end if
       allocate( cr_dcdr_i(cr_max_dcdr_i,2), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_i' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_i' 
          call mexit(6,1)
       end if
       allocate( cr_dcdr_j(cr_max_dcdr_j), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_j' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_j' 
          call mexit(6,1)
       end if
       allocate( cr_dcdr(cr_max_dcdr_j,3), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr' 
          call mexit(6,1)
       end if
       allocate( cr_order(2,cr_max_order), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_order' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_order' 
          call mexit(6,1)
       end if
       allocate( cr_cect(cr_max_info,2), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_cect' 
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_cect' 
          call mexit(6,1)
       end if
    end if
@@ -1042,7 +1042,7 @@ subroutine cr_prepare_dcdr( natom, foundi )
    ! cr_dcdr_tbl
    allocate( cr_dcdr_tbl(natom), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_tbl' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_tbl' 
       call mexit(6,1)
    end if
    ! initialize
@@ -1052,7 +1052,7 @@ subroutine cr_prepare_dcdr( natom, foundi )
    cr_max_dcdr_i = count( foundi )
    allocate( cr_dcdr_i(cr_max_dcdr_i,2), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_i' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_i' 
       call mexit(6,1)
    end if
    j = 1
@@ -1093,7 +1093,7 @@ subroutine cr_prepare_dcdr( natom, foundi )
       if (allocated(jlist2)) deallocate(jlist2)
       allocate( jlist2( cr_max_dcdr_j+sj ), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate jlist2'
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate jlist2'
          call mexit(6,1)
       end if
       ! copy cr_dcdr_j to jlist2
@@ -1113,19 +1113,19 @@ subroutine cr_prepare_dcdr( natom, foundi )
       si = si + 1
       if ( allocated(cr_dcdr_j) ) deallocate(cr_dcdr_j, stat=ierror)
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_j'
+         write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_j'
          call mexit(6,1)
       end if
       allocate( cr_dcdr_j(cr_max_dcdr_j), stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr_j'
+         write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr_j'
          call mexit(6,1)
       end if
       ! copy jlist2 back to cr_dcdr_j
       cr_dcdr_j(:) = jlist2(:)
       deallocate( jlist2, stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to deallocate jlist2'
+         write(6,'(1x,a)') 'CRGRELOC: failed to deallocate jlist2'
          call mexit(6,1)
       end if
    end do
@@ -1133,7 +1133,7 @@ subroutine cr_prepare_dcdr( natom, foundi )
    ! allocate cr_dcdr for later use
    allocate( cr_dcdr(cr_max_dcdr_j,3), stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_dcdr' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_dcdr' 
       call mexit(6,1)
    end if
 
@@ -1162,124 +1162,124 @@ subroutine cr_cleanup()
 
    deallocate( cr_charge, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_charge'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_charge'
       call mexit(6,1)
    end if
    deallocate( cr_cub, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_cub' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_cub' 
       call mexit(6,1)
    end if
    deallocate( cr_info, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info'
       call mexit(6,1)
    end if
    deallocate( cr_info_i, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info_i'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info_i'
       call mexit(6,1)
    end if
    if ( allocated(cr_info_j) ) then
       deallocate( cr_info_j, stat=ierror )
       if ( ierror /= 0 ) then
-         write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info_j'
+         write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info_j'
          call mexit(6,1)
       end if
    end if
    deallocate( cr_info_ptr, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info_ptr'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info_ptr'
       call mexit(6,1)
    end if
    deallocate( cr_info3_i, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info3_i'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info3_i'
       call mexit(6,1)
    end if
    deallocate( cr_info3_j, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info3_j'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info3_j'
       call mexit(6,1)
    end if
    deallocate( cr_info3_k, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info3_k'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info3_k'
       call mexit(6,1)
    end if
    deallocate( cr_info3_ptr, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_info3_ptr'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_info3_ptr'
       call mexit(6,1)
    end if
    deallocate( cr_dcdr_tbl, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_tbl'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_tbl'
       call mexit(6,1)
    end if
    deallocate( cr_dcdr_i, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_i'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_i'
       call mexit(6,1)
    end if
    deallocate( cr_dcdr_j, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_j'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_j'
       call mexit(6,1)
    end if
    deallocate( cr_dcdr, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr'
       call mexit(6,1)
    end if
    deallocate( cr_pair_distance, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_pair_distance'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_pair_distance'
       call mexit(6,1)
    end if
    deallocate( cr_pair_eval, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_pair_eval' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_pair_eval' 
       call mexit(6,1)
    end if
    deallocate( cr_tranunit, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_tranunit'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_tranunit'
       call mexit(6,1)
    end if
    deallocate( cr_tb_distance, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_tb_distance'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_tb_distance'
       call mexit(6,1)
    end if
    deallocate( cr_tb_eval, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_tb_eval' 
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_tb_eval' 
       call mexit(6,1)
    end if
    deallocate( cr_tb_tranunit, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_tb_tranunit'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_tb_tranunit'
       call mexit(6,1)
    end if
    deallocate( cr_order, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_order'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_order'
       call mexit(6,1)
    end if
    deallocate( cr_cect, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_cect'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_cect'
       call mexit(6,1)
    end if
    deallocate( cr_dcdr_fac, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_fac'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_dcdr_fac'
       call mexit(6,1)
    end if
    deallocate( cr_upcharge, stat=ierror )
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to deallocate cr_upcharge'
+      write(6,'(1x,a)') 'CRGRELOC: failed to deallocate cr_upcharge'
       call mexit(6,1)
    end if
 end subroutine cr_cleanup
@@ -1357,17 +1357,17 @@ subroutine cr_calc_charge3( geom3, geom3_mask )
                        cr_cub(2:5,j:k), k-j+1, ierr )
 
 !      if ( ierr == 1 ) then
-!         write(6,'(x,a)')  &                 
+!         write(6,'(1x,a)')  &                 
 !            'CRGRELOC: Angle is less than the lower limit'
-!         write(6,'(x,a,3(a,i8),2(a,f4.2))')  &
+!         write(6,'(1x,a,3(a,i8),2(a,f4.2))')  &
 !            'CRGRELOC: ', 'at1 ', cr_info(1,i), ' at2 ', cr_info(2,i),&
 !            ' at3 ', cr_info(3,i), ' ANGLE ', angle, ' LIMIT ', &
 !            cr_cub(1,j)
 !         call mexit(6,1)
 !      else if ( ierr == 2 ) then
-!         write(6,'(x,a)')  &
+!         write(6,'(1x,a)')  &
 !            'CRGRELOC: Angle is greater than the upper limit'
-!         write(6,'(x,a,3(a,i8),2(a,f4.2))')  &
+!         write(6,'(1x,a,3(a,i8),2(a,f4.2))')  &
 !            'CRGRELOC: ', 'at1 ', cr_info(1,i), ' at2 ', cr_info(2,i),&
 !            ' at3 ', cr_info(3,i), ' ANGLE ', angle, ' LIMIT ', &
 !            cr_cub(1,k)
@@ -1478,17 +1478,17 @@ subroutine cr_calc_charge( geom, geom_mask )
                        cr_cub(2:5,j:k), k-j+1, ierr )
 
 !      if ( ierr == 1 ) then
-!         write(6,'(x,a)')  &                 
+!         write(6,'(1x,a)')  &                 
 !            'CRGRELOC: Distance is shorter than the lower limit'
-!         write(6,'(x,a,3(a,i8),2(a,f4.2))')  &
+!         write(6,'(1x,a,3(a,i8),2(a,f4.2))')  &
 !            'CRGRELOC: ', 'at1 ', cr_info(1,i), ' at2 ', cr_info(2,i),&
 !            ' at3 ', cr_info(3,i), ' DISTANCE ', distance, ' LIMIT ', &
 !            cr_cub(1,j)
 !         call mexit(6,1)
 !      else if ( ierr == 2 ) then
-!         write(6,'(x,a)')  &
+!         write(6,'(1x,a)')  &
 !            'CRGRELOC: Distance is longer than the upper limit'
-!         write(6,'(x,a,3(a,i8),2(a,f4.2))')  &
+!         write(6,'(1x,a,3(a,i8),2(a,f4.2))')  &
 !            'CRGRELOC: ', 'at1 ', cr_info(1,i), ' at2 ', cr_info(2,i),&
 !            ' at3 ', cr_info(3,i), ' DISTANCE ', distance, ' LIMIT ', &
 !            cr_cub(1,k)
@@ -1649,14 +1649,14 @@ subroutine cr_print_charge( charge, nstep )
    _REAL_, intent(in) :: charge(*) ! natom
    integer :: i, a_mod
 
-   write(6,'(x,a,i8)') 'CRGRELOC: Modified Atomic Charges for Step: ', nstep
-   write(6,'(x,a)') ' ATOM  CHARGE'
+   write(6,'(1x,a,i8)') 'CRGRELOC: Modified Atomic Charges for Step: ', nstep
+   write(6,'(1x,a)') ' ATOM  CHARGE'
    do i = 1, cr_max_order
       if ( .not. cr_upcharge(i) ) cycle
       a_mod = cr_order(1,i)
-      write(6,'(x,i5,a,f7.4)') a_mod, ' ', charge(a_mod)*INV_AMBER_ELECTROSTATIC
+      write(6,'(1x,i5,a,f7.4)') a_mod, ' ', charge(a_mod)*INV_AMBER_ELECTROSTATIC
    end do
-   write(6,'(x,a)') '-------------'
+   write(6,'(1x,a)') '-------------'
 end subroutine cr_print_charge
 !===============================================================================
 
@@ -1873,7 +1873,7 @@ subroutine cr_combine_charge( charge, dcdr, new_c, new_dcdr, cr_type, &
             dcdr(j,1:3) = ( dcdr(j,1:3) - charge * new_dcdr(j,1:3) ) * ncinv
          end do
       case default
-         write(6,'(x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
+         write(6,'(1x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
          call mexit(6,1)
    end select
 
@@ -2010,7 +2010,7 @@ subroutine cr_update_angle_charge( charge, dcdr, new_c, new_dcdr1, new_dcdr2, &
          dcdr(ind2,1:3) = new_dcdr2(1:3)
          dcdr(ind3,1:3) = new_dcdr3(1:3)
       case default
-         write(6,'(x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
+         write(6,'(1x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
          call mexit(6,1)
    end select
 
@@ -2172,7 +2172,7 @@ subroutine cr_update_distance_charge( charge, dcdr, new_c, new_dcdr, a1, a2, &
          dcdr(ind1,1:3) = -new_dcdr(1:3)*AMBER_ELECTROSTATIC
          dcdr(ind2,1:3) = new_dcdr(1:3)*AMBER_ELECTROSTATIC
       case default
-         write(6,'(x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
+         write(6,'(1x,a,i8)') 'CRGRELOC: unknown cr_type', cr_type
          call mexit(6,1)
    end select
 
@@ -2185,9 +2185,9 @@ subroutine cr_fill_geom3( crd, geom3, natom )
 
 #include "box.h"
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom3(13,cr_max_geom3)
-   integer, intent(in) :: natom
    _REAL_ :: half_box_size2
 
    half_box_size2 =  sum( box * box ) * 0.25
@@ -2206,9 +2206,9 @@ subroutine cr_fill_geom( crd, geom, natom )
 
 #include "box.h"
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom(4,cr_max_geom)
-   integer, intent(in) :: natom
    _REAL_ :: half_box_size2
 
    half_box_size2 =  sum( box * box ) * 0.25
@@ -2226,9 +2226,9 @@ end subroutine cr_fill_geom
 subroutine cr_fill_geom3_noupdate( crd, geom3, natom, half_box_size2 )
    use nblist, only: ucell
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom3(13,cr_max_geom3)
-   integer, intent(in) :: natom
    _REAL_, intent(in) :: half_box_size2
    _REAL_ :: half_box_size
    integer :: ai, aj, ak, al, am, i, j, k, gi
@@ -2402,9 +2402,9 @@ end subroutine cr_fill_geom3_noupdate
 subroutine cr_fill_geom_noupdate( crd, geom, natom, half_box_size2 )
    use nblist, only: ucell
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom(4,cr_max_geom)
-   integer, intent(in) :: natom
    _REAL_, intent(in) :: half_box_size2
    _REAL_ :: half_box_size
    integer :: ai, aj, ak, al, i, j, gi
@@ -2522,9 +2522,9 @@ end subroutine cr_calc_angle
 !===============================================================================
 subroutine cr_fill_geom3_update( crd, geom3, natom, half_box_size2 )
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom3(13,cr_max_geom3)
-   integer, intent(in) :: natom
    _REAL_, intent(in) :: half_box_size2
    integer :: ai, aj, ak, al, am, i, j, k, gi
    _REAL_ :: dist1, delr12, delx1, dely1, delz1  ! j - i
@@ -2633,9 +2633,9 @@ end subroutine cr_fill_geom3_update
 !===============================================================================
 subroutine cr_fill_geom_update( crd, geom, natom, half_box_size2 )
 
+   integer, intent(in) :: natom
    _REAL_, intent(in) :: crd(3,natom)
    _REAL_, intent(out) :: geom(4,cr_max_geom)
-   integer, intent(in) :: natom
    _REAL_, intent(in) :: half_box_size2
    integer :: ai, aj, ak, al, i, j, gi
    _REAL_ :: delr, delr2, delx, dely, delz
@@ -2773,7 +2773,7 @@ subroutine cr_backup_charge( charge, natom )
 
    allocate( cr_charge(natom), stat=ierror)
    if ( ierror /= 0 ) then
-      write(6,'(x,a)') 'CRGRELOC: failed to allocate cr_charge'
+      write(6,'(1x,a)') 'CRGRELOC: failed to allocate cr_charge'
       call mexit(6,1)
    end if
 
