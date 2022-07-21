@@ -24,7 +24,7 @@ amber_rism_interface.o: \
 amber_rism_interface.o:   amber_rism_interface.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ amber_rism_interface.F90
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -I../sqm -o $@ amber_rism_interface.F90
 
 
 array_util.o:   array_util.F90
