@@ -2,6 +2,7 @@
 
 module nfe_constants
 
+use, intrinsic :: iso_fortran_env
 implicit none
 
 private
@@ -14,7 +15,7 @@ NFE_REAL, public, parameter :: TWO   = 2.d0
 NFE_REAL, public, parameter :: THREE = 3.d0
 NFE_REAL, public, parameter :: FOUR  = 4.d0
 NFE_REAL, public, parameter :: kB = 1.9872041d-3  !Boltzmann's constant in (kcal/mol)/K
-NFE_REAL, public, parameter :: PI    = 4 * atan (1.0_8)
+NFE_REAL, public, parameter :: PI    = 4 * atan (1.0_real64)
 #else
 NFE_REAL, public, parameter :: ZERO  = 0.0
 NFE_REAL, public, parameter :: ONE   = 1.0

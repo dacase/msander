@@ -320,8 +320,8 @@ contains
     write(6, '(a,i0)')     '|   ntpr         = ', orc_nml%ntpr
     write(6, '(a,i0)')     '|   num_threads  = ', orc_nml%num_threads
     write(6, '(a,i2)')     '|   debug        = ', orc_nml%debug
-    write(6, '(a,l)')      '|   dipole       = ', orc_nml%dipole
-    write(6, '(a,l)')      '|   use_template = ', orc_nml%use_template
+    write(6, '(a,l1)')      '|   dipole       = ', orc_nml%dipole
+    write(6, '(a,l1)')      '|   use_template = ', orc_nml%use_template
     write(6,'(a)')         '| /'
 
   end subroutine print_namelist
@@ -445,7 +445,7 @@ contains
     end if
 
     ! Charge / Spin / Coordinates
-    write(iurun, '(a,i0,x,i0,x,a)') '*xyzfile ',charge,&
+    write(iurun, '(a,i0,1x,i0,1x,a)') '*xyzfile ',charge,&
          spinmult, crdfile
 
     close(iurun)

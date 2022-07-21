@@ -3,6 +3,7 @@
 
 module nfe_utils
 
+use, intrinsic :: iso_fortran_env
 implicit none
 
 private
@@ -206,9 +207,9 @@ subroutine swap_r4(a, b)
 
    implicit none
 
-   real(4), intent(inout) :: a, b
+   real(real32), intent(inout) :: a, b
 
-   real(4) :: tmp
+   real(real32) :: tmp
 
    tmp = a
    a = b
@@ -222,9 +223,9 @@ subroutine swap_r8(a, b)
 
    implicit none
 
-   real(8), intent(inout) :: a, b
+   real(real64), intent(inout) :: a, b
 
-   real(8) :: tmp
+   real(real64) :: tmp
 
    tmp = a
    a = b
@@ -278,7 +279,7 @@ function f0_format_1(x, y) result(f)
    implicit none
 
    character(8) :: f
-   real(8), intent(in) :: x
+   real(real64), intent(in) :: x
    integer, intent(in) :: y
 
    integer :: n
@@ -315,7 +316,7 @@ pure function n_digits_r(r) result(n)
 
    integer :: n
 
-   real(8), intent(in)  :: r
+   real(real64), intent(in)  :: r
 
    if (r.gt.1.0D0) then
       n = 1 + int(floor(log10(r)))

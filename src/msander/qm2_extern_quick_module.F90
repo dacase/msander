@@ -325,8 +325,8 @@ contains
     write(6, '(a,f15.10)')'|   denserms     = ', quick_nml%denserms
     write(6, '(a,i0)')    '|   ntpr         = ', quick_nml%ntpr
     write(6, '(a,i2)')    '|   debug        = ', quick_nml%debug
-    write(6, '(a,l)')     '|   dipole       = ', quick_nml%dipole
-    write(6, '(a,l)')     '|   use_template = ', quick_nml%use_template
+    write(6, '(a,l1)')     '|   dipole       = ', quick_nml%dipole
+    write(6, '(a,l1)')     '|   use_template = ', quick_nml%use_template
     write(6,'(a)')        '| /'
 
   end subroutine print_namelist

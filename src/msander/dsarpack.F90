@@ -376,7 +376,7 @@
                        ncv, v, ldv, iparam, ipntr, workd, workl,&
                        lworkl, info )
 !
-         if (ido .eq. -1 .or. ido .eq. 1) then
+         if (ido .ne. -1 .and. ido .ne. 1) go to 14
 !
 !           %--------------------------------------%
 !           | Perform matrix vector multiplication |
@@ -405,14 +405,14 @@
 !
             go to 10
 !
-         end if 
+ 14      continue
 !
 !     %----------------------------------------%
 !     | Either we have convergence or there is |
 !     | an error.                              |
 !     %----------------------------------------%
 !
-      if ( info .lt. 0 ) then
+      if ( info .ge. 0 ) go to 103
 !
 !        %--------------------------%
 !        | Error message. Check the |
@@ -425,7 +425,7 @@
          print *, ' '
          go to 9000
 !
-      else 
+ 103  continue
 !
 !        %-------------------------------------------%
 !        | No fatal errors occurred.                 |
@@ -464,7 +464,7 @@
 !        | eigenvalues in D is returned in V.           |
 !        %----------------------------------------------%
 !
-         if ( ierr .ne. 0) then
+         if ( ierr .eq. 0) go to 101
 !
 !           %------------------------------------%
 !           | Error condition:                   |
@@ -477,7 +477,7 @@
             print *, ' '
             go to 9000
 !
-         else if ( debug_arpack.eq.1 ) then
+ 101     if ( debug_arpack.ne.1 ) go to 102
 !
             nconv =  iparam(5)
             n_eig_out = nconv
@@ -569,7 +569,7 @@
             print *, ' The number of OP*x is ', iparam(9)
             print *, ' The convergence criterion is ', tol
             print *, ' '
-         end if
+ 102     continue
 !
 !        %----------------------------%
 !        | Return eigvals and eigvecs |
@@ -591,8 +591,6 @@
                 eigvecs((j-1)*n+i) = v(i,j)
  30          continue
  40      continue
-!
-      end if
 !
 !     %--------------------------------%
 !     | Done with subroutine dsarpack. |

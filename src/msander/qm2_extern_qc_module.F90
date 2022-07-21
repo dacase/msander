@@ -368,8 +368,8 @@ contains
     write(6, '(a,i2)')    '|   num_mpi_prcs = ', qc_nml%num_mpi_prcs
     write(6, '(a,i2)')    '|   num_threads  = ', qc_nml%num_threads
     write(6, '(a,i2)')    '|   debug        = ', qc_nml%debug
-    write(6, '(a,l)')     '|   dipole       = ', qc_nml%dipole
-    write(6, '(a,l)')     '|   use_template = ', qc_nml%use_template
+    write(6, '(a,l1)')    '|   dipole       = ', qc_nml%dipole
+    write(6, '(a,l1)')    '|   use_template = ', qc_nml%use_template
     write(6,'(a)')        '| /'
 
   end subroutine print_namelist

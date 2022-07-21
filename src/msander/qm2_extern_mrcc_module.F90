@@ -550,8 +550,8 @@ contains
     write(6,'(a,i0)')    '|   nprintlog    = ', mrcc_nml%nprintlog
     write(6,'(a,i2)')    '|   verbosity    = ', mrcc_nml%verbosity
     write(6,'(a,i2)')    '|   debug        = ', mrcc_nml%debug
-    write(6,'(a,l)')     '|   do_dipole    = ', mrcc_nml%do_dipole
-    write(6,'(a,l)')     '|   use_template = ', mrcc_nml%use_template
+    write(6,'(a,l1)')     '|   do_dipole    = ', mrcc_nml%do_dipole
+    write(6,'(a,l1)')     '|   use_template = ', mrcc_nml%use_template
     write(6,'(2a)')      '|   embed        = ', mrcc_nml%embed
     if(mrcc_nml%embed.ne.'off') then
        write(6,'(a,i6)')    '|   nmo_embed    = ', mrcc_nml%nmo_embed
@@ -643,7 +643,7 @@ contains
     ! If we are using template, copy tplfile to inpfile.
     ! Note that MRCC only using the first read keywords.
     if(mrcc_nml%use_template) then
-       call system(&
+       call execute_command_line(&
             'echo "! User defined keywords from MRCC template file" >'&
             //inpfile//'; cat '//tplfile//' >> '//inpfile)
        open(iunit, file=inpfile, iostat=ierr, position='append')

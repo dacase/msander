@@ -385,9 +385,9 @@ contains
     write(6, '(a,i0)')    '|   ntpr         = ', gau_nml%ntpr
     write(6, '(a,i2)')    '|   num_threads  = ', gau_nml%num_threads
     write(6, '(a,i2)')    '|   debug        = ', gau_nml%debug
-    write(6, '(a,l)')     '|   dipole       = ', gau_nml%dipole
-    write(6, '(a,l)')     '|   use_template = ', gau_nml%use_template
-    write(6, '(a,l)')     '|   keep_files   = ', gau_nml%keep_files
+    write(6, '(a,l1)')     '|   dipole       = ', gau_nml%dipole
+    write(6, '(a,l1)')     '|   use_template = ', gau_nml%use_template
+    write(6, '(a,l1)')     '|   keep_files   = ', gau_nml%keep_files
     write(6,'(a)')        '| /'
 
   end subroutine print_namelist

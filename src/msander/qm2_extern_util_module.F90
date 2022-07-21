@@ -41,14 +41,14 @@ module qm2_extern_util_module
       write(6,'(a)') extern_routine//' - final gradient(s):'
       write(6,'(a)') 'QM region:'
       do i = 1, nqmatoms
-         write(6,'(3(x,f16.10))') dxyzqm(:, i)
+         write(6,'(3(1x,f16.10))') dxyzqm(:, i)
       end do
       ! If the user specified MM forces, print these as well
       if ( present( nclatoms ) .and. present( dxyzcl ) ) then
         if ( nclatoms > 0 ) then
           write(6,'(a)') 'MM region:'
           do i = 1, nclatoms
-            write(6,'(3(x,f16.10))') dxyzcl(:, i)
+            write(6,'(3(1x,f16.10))') dxyzcl(:, i)
           end do
         end if
       end if
