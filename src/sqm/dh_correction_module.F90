@@ -1143,7 +1143,6 @@ contains
     _REAL_ :: xyz(3,natom)
     _REAL_ :: vec(3), dum
     integer :: iatom, jatom
-    _REAL_ :: xyz(3,natom)
 
     vec(1:3) = xyz(1:3,iatom) - xyz(1:3,jatom)
     dum = vec(1)**2 + vec(2)**2 + vec(3)**2

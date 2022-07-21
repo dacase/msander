@@ -345,7 +345,6 @@ function checksum(a,n,comm)
     use mpi
 #endif
   implicit none
-  _REAL_, intent(in) :: a(n)
   integer, intent(in) :: n,comm
   _REAL_, intent(in) :: a(n)
   _REAL_ :: checksum
