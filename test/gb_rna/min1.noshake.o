@@ -1,0 +1,246 @@
+
+          -------------------------------------------------------
+          MSANDER                                      2021
+          -------------------------------------------------------
+
+| Run on 07/18/2022 at 14:58:25
+
+|   Executable path: ../../bin/msander
+| Working directory: /home/case/msander_intel/test/gb_rna
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: gbin                                                                  
+| MDOUT: minout.gbrna.noshake                                                  
+|INPCRD: md4.x                                                                 
+|  PARM: prmtop                                                                
+|RESTRT: min1.x                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+ 
+ Here is the input file:
+ 
+ test of gen. Born, on a stretch of A-RNA                                      
+ &cntrl                                                                        
+   cut=99.0, igb=1, saltcon=0.1,                                               
+   ntpr=500, ntwr=100000, ntt=0, gamma_ln=0.0,                                 
+   ntx=5, irest=1,                                                             
+   ntc=1, ntf=1, tol=0.000001,                                                 
+   dt=0.001, ntb=0, ig=71277,                                                  
+   imin=1, maxcyc=5000,                                                        
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+|  *** cutoff > system size, list only builds once
+| Largest sphere to fit in unit cell has radius =   137.807
+ NATOM  =     640 NTYPES =      14 NBONH =     220 MBONA  =     468
+ NTHETH =     500 MTHETA =     726 NPHIH =     918 MPHIA  =    1226
+ NHPARM =       0 NPARM  =       0 NNB   =    3568 NRES   =      20
+ NBONA  =     468 NTHETA =     726 NPHIA =    1226 NUMBND =      35
+ NUMANG =      72 NPTRA  =      33 NATYP =      24 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      35 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              233035
+|     Hollerith           1942
+|     Integer            52841
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total             2034 kbytes
+
+| Note: 1-4 EEL scale factors were NOT found in the topology file.
+|       Using default value of 1.2.
+
+| Note: 1-4 VDW scale factors were NOT found in the topology file.
+|       Using default value of 2.0.
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+simple RNA example                                                              
+
+General flags:
+     imin    =       1, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       5, irest   =       1, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =     500, ntrx    =       1, ntwr    =  100000
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       0, igb     =       1, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =  99.00000, intdiel =   1.00000
+     saltcon =   0.10000, offset  =   0.09000, gbalpha=    1.00000
+     gbbeta  =   0.00000, gbgamma =   0.00000, surften =   0.00500
+     rdt     =   0.00000, rgbmax  =  25.00000  extdiel =  78.50000
+     alpb  =        0
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =    5000, ncyc    =      10, ntmin   =       3
+     dx0     =   0.01000, drms    =   0.00010
+
+LMOD:
+     xmin_method                  = LBFGS
+     lbfgs_memory_depth           =       3
+     matrix_vector_product_method = forward finite difference
+     xmin_verbosity               =       0
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+PDB 5DNB, Dickerson decamer                                                     
+ begin time read from input coords =   130.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+  LMOD XMIN Minimization.
+
+  Note: Owing to the behaviour of the XMIN algorithm,
+        coordinates in the trajectory and intermediate
+        restart files will not match up with energies
+        in the mdout and mdinfo files. The final energy
+        and final coordinates do match.
+
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      0      -4.1080E+03     1.9272E+01     1.0292E+02     N1        554
+
+ BOND    =      169.8648  ANGLE   =      317.5438  DIHED      =      418.4878
+ VDWAALS =     -356.1385  EEL     =     2159.3372  EGB        =    -4683.2630
+ 1-4 VDW =      163.4163  1-4 EEL =    -2297.2470  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+    500      -4.6001E+03     5.0803E-02     2.4802E-01     C6        303
+
+ BOND    =       34.5317  ANGLE   =      110.7740  DIHED      =      332.3407
+ VDWAALS =     -380.2301  EEL     =     2223.4826  EGB        =    -4775.8393
+ 1-4 VDW =      153.3836  1-4 EEL =    -2298.5745  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   1000      -4.6009E+03     3.3304E-02     3.8273E-01     C6        303
+
+ BOND    =       34.5706  ANGLE   =      110.8513  DIHED      =      332.5500
+ VDWAALS =     -381.2842  EEL     =     2220.8667  EGB        =    -4774.3698
+ 1-4 VDW =      153.2720  1-4 EEL =    -2297.3483  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   1500      -4.6011E+03     8.6735E-03     4.2850E-02     N1        402
+
+ BOND    =       34.5365  ANGLE   =      110.6584  DIHED      =      332.5968
+ VDWAALS =     -381.4782  EEL     =     2221.5377  EGB        =    -4775.2466
+ 1-4 VDW =      153.2392  1-4 EEL =    -2296.9546  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   2000      -4.6013E+03     5.4164E-03     3.7334E-02     N3        311
+
+ BOND    =       34.5390  ANGLE   =      110.4438  DIHED      =      332.7396
+ VDWAALS =     -381.9232  EEL     =     2223.2248  EGB        =    -4777.1937
+ 1-4 VDW =      153.1289  1-4 EEL =    -2296.2918  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   2500      -4.6014E+03     1.0589E-02     7.8999E-02     C6        303
+
+ BOND    =       34.5332  ANGLE   =      110.3252  DIHED      =      332.9045
+ VDWAALS =     -382.2334  EEL     =     2224.3102  EGB        =    -4778.4148
+ 1-4 VDW =      153.0507  1-4 EEL =    -2295.8788  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   3000      -4.6014E+03     2.4620E-03     1.7182E-02     H5T         1
+
+ BOND    =       34.5211  ANGLE   =      110.2510  DIHED      =      332.9610
+ VDWAALS =     -382.2829  EEL     =     2224.7162  EGB        =    -4778.9260
+ 1-4 VDW =      153.0350  1-4 EEL =    -2295.6952  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   3500      -4.6014E+03     3.2939E-03     2.0993E-02     C6        555
+
+ BOND    =       34.5134  ANGLE   =      110.0594  DIHED      =      333.1820
+ VDWAALS =     -382.5969  EEL     =     2226.1846  EGB        =    -4780.5674
+ 1-4 VDW =      152.9476  1-4 EEL =    -2295.1598  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   4000      -4.6014E+03     3.2073E-04     2.8495E-03     P         158
+
+ BOND    =       34.5141  ANGLE   =      110.0864  DIHED      =      333.1416
+ VDWAALS =     -382.5942  EEL     =     2226.2697  EGB        =    -4780.6829
+ 1-4 VDW =      152.9564  1-4 EEL =    -2295.1288  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   4500      -4.6014E+03     4.1275E-04     2.7324E-03     C4        632
+
+ BOND    =       34.5143  ANGLE   =      110.0926  DIHED      =      333.1255
+ VDWAALS =     -382.5915  EEL     =     2226.4420  EGB        =    -4780.8534
+ 1-4 VDW =      152.9579  1-4 EEL =    -2295.1253  RESTRAINT  =        0.0000
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+   4611      -4.6014E+03     8.8634E-05     9.8193E-04     H1'       392
+
+ BOND    =       34.5142  ANGLE   =      110.0907  DIHED      =      333.1281
+ VDWAALS =     -382.5919  EEL     =     2226.4607  EGB        =    -4780.8693
+ 1-4 VDW =      152.9582  1-4 EEL =    -2295.1284  RESTRAINT  =        0.0000
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|                Calc gb radii             12.88 (19.37% of Gen B)
+|                Calc gb diag              23.89 (35.94% of Gen B)
+|                Calc gb off-diag          29.71 (44.69% of Gen B)
+|             Gen Born time             66.49 (100.0% of Nonbo)
+|          Nonbond force             66.49 (98.64% of Force)
+|          Bond/Angle/Dihedral        0.91 ( 1.35% of Force)
+|       Force time                67.40 (100.0% of Runmd)
+|    Runmd Time                67.40 (99.71% of Total)
+| Total time                67.60 (100.0% of ALL  )
+
+| Number of list builds   :          0
+
+| Highest rstack allocated:          0
+| Highest istack allocated:          0
+|           Job began  at 14:58:25.001  on 07/18/2022
+|           Setup done at 14:58:25.012  on 07/18/2022
+|           Run   done at 14:59:32.601  on 07/18/2022
+|     wallclock() was called   85006 times

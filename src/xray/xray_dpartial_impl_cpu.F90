@@ -117,7 +117,7 @@ contains
         phase = -sum(hkl_v * frac(:, i))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
             * exp(mSS4(ihkl) * atom_b_factor(i)) &
-            * ( sin(phase) * derivc(ihkl)%re + cos(phase) * derivc(ihkl)%im )
+            * ( sin(phase) * real(derivc(ihkl)) + cos(phase) * aimag(derivc(ihkl)) )
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
             + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * f

@@ -31,10 +31,10 @@ test.rism:
 
 test.xray:
 #	-(cd xray/2wcu && ./Run.2wcu)
-#	-(cd xray/3onk && ./Run.3onk_ml)
-#	-(cd xray/3onk && ./Run.3onk_mlopt)
+	-(cd xray/3onk && ./Run.3onk_ml)
+	-(cd xray/3onk && ./Run.3onk_mlopt)
 #	-(cd xray/480d && ./Run.480d_xray)
-#	-(cd xray/6o2h && ./Run.6o2h_min)
+	-(cd xray/6o2h && ./Run.6o2h_min)
 	-(cd xray/4lzt && ./Run.4lzt)
 #	-(cd xray/2msi && ./Run.2msi)
 	-(cd cryoem/3j9d && ./Run.3j9d)

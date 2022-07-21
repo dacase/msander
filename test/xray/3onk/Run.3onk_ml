@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export XRAY_NUM_THREADS=8
+
 sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
@@ -12,7 +14,7 @@ Test of MD with Xray restraints
   ntc = 2, ntf = 2, tol = 0.000001,
   cut = 10.0,
   nstlim = 3, dt = 0.001,
-  ithermostat=0, ig=827534,
+  ntt=0, ig=827534,
  /
  &xray
    pdb_infile = 'final_structure_bf.pdb'
@@ -21,7 +23,6 @@ Test of MD with Xray restraints
    xray_weight = 1.0,
    target='ml', bulk_solvent_model='simple', 
    k_sol=0.35, b_sol=46.0,
-   resolution_high = 2.090153,
  /
 EOF
 

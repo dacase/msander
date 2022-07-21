@@ -497,6 +497,7 @@ contains
            f_mask(i) = 0
          end if
        end do
+       write(6,'(a)') '| updating f_mask'
     end if
   
   end subroutine update_f_bulk

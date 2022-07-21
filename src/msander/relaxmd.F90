@@ -100,8 +100,6 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
   integer m
    
-  logical qspatial
-
   logical resetvelo
   _REAL_ etot_save,ekpbs
    
@@ -501,10 +499,9 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     ! Step 4a: if shake is being used, update the new positions to fix
     !          the bond lengths.
     call timer_start(TIME_SHAKE)
-    qspatial = .false.
     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
                winv, conp, skip, f, x, nitp, .false., ix(iifstwt), &
-               ix(noshake), qspatial)
+               ix(noshake))
     call quick3(f, x, ix(iifstwr), natom, nres, ix(i02))
     if (nitp == 0) then
       erstop = .true.

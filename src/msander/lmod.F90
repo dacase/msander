@@ -1257,6 +1257,8 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
 
    use state
    use file_io_dat
+   use fastwt
+   use memory_module, only:  conp, skip
    implicit none
 
    _REAL_,  intent(inout) :: xx(*)          ! real dynamic memory
@@ -1283,7 +1285,11 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
    ! ntnb is the actual variable that is tested by subroutine nonbond_list.
 
    _REAL_        :: virials(4)
+   _REAL_  :: winv(nbonh+nbona)
+   integer :: nitp
+   logical :: belly
 
+   winv = 1.d0
    iprint = 0
    if ( xmin_iter == maxcyc .or. xmin_iter == 1 ) then
       iprint = 1
@@ -1305,9 +1311,31 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
 
    !  no shake for xmin
 
+   belly = ibelly.eq.1
+   if( ntc .ne. 1 ) then
+
+     call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
+        winv, conp, skip, coordinates, coordinates, nitp, belly, ix(iifstwt), &
+        ix(noshake))
+     call quick3(coordinates, coordinates, ix(iifstwr), natom, nres, ix(i02))
+     if (nitp == 0) then
+        write(6,*) 'SHAKE error....'
+        call mexit(6,1)
+     end if
+   end if
+
    call force( xx,ix,ih,ipairs,coordinates,forces,energies,virials, &
          xx(l96),xx(l97),xx(l98), xx(l99), qsetup, &
          do_list_update, xmin_iter)
+
+   if( ntc .ne. 1 ) then
+     ! RATTLE-V, correct forces
+     call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
+       winv,conp,skip,coordinates,forces,nitp,belly,ix(iifstwt),ix(noshake))
+
+     ! use SETTLE to deal with water model
+     call quick3v(coordinates, forces, ix(iifstwr), natom, nres, ix(i02))
+   end if
 
 end subroutine gradient_calc
 

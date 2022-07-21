@@ -17,23 +17,24 @@ metatwist --dx $id.Cl-.0.ccp4  --species Cl-  --odx rho.Cl-.0.ccp4  \
 metatwist --dx rho.O.0.ccp4 rho.Na+.0.ccp4 rho.Cl-.0.ccp4 \
      --odx solvent.ccp4 --species none >> metatwist.log
 
+# mv rho.O.0.ccp4 solvent.ccp4   # replaces above if only water is present
 
 # ================== convert to proper axis order for SFALL
-mapmask mapin solvent.ccp4 mapout a.map <<EOF > maps.log
+mapmask mapin solvent.ccp4 mapout a.map <<EOF > metatwist.log
 AXIS Z X Y
 EOF
 
-grid=`echo | mapdump mapin a.map | awk '/Grid sampling on x, y, z ../{print $8,$9,$10}'`
-
 # =================== run SFALL
-sfall mapin a.map hklout sfalled.mtz <<EOF >> maps.log
+sfall mapin a.map hklout $id.mtz <<EOF >> metatwist.log
 mode sfcalc mapin
+RESO $resolution
 EOF
 
-# =================== rename column labels for refmac
-cad hklin1 sfalled.mtz hklout solvent.mtz <<EOF >> maps.log
-labin file 1 E1=FC E2=PHIC
-labou file 1 E1=Fpart1 E2=PHIpart1
+# ==================== convert to rdb file to merge with an sf-dat file:
+cat <<EOF > $id.fmtz
+h	k	l	FC	PHIC
+4N	4N	4N	10N	10N
 EOF
+phenix.mtz.dump -f s -c $id.mtz | tr ',' '\t' | awk 'NR>2' >> $id.fmtz
 
-/bin/rm -f sfalled.mtz a.map rho.*.ccp4  maps.log
+# /bin/rm -f $id.mtz a.map rho.*.ccp4  

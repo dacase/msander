@@ -3,7 +3,7 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/06/2022 at 16:30:42
+| Run on 06/28/2022 at 16:12:30
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/cryoem/3j9d
@@ -45,8 +45,7 @@ md for 3j9d
    pdb_infile = '4phenix_3j9d_box2.pdb',                                       
    reflection_infile = '3j9d_noH-sf.directi.dat',                              
    atom_selection_mask = '!@H=',                                               
-   xray_weight_initial = 10000.,                                               
-   xray_weight_final = 10000.,                                                 
+   xray_weight = 10000.,                                                       
    target = 'vls', bulk_solvent_model = 'none',                                
    scale_update_period = 100,                                                  
  /                                                                             
@@ -90,7 +89,7 @@ X-ray Refinement Parameters:
      PDB Wrap Names: F
      Spacegroup: P 1
      Reflection InFile: 3j9d_noH-sf.directi.dat
-     X-ray weights:  0.100E+05 ...  0.100E+05
+     X-ray weight:  0.100E+05
      Use target: vls 
      Scale update Interval:   100
      Solvent Mask Update Interval:   100
@@ -261,18 +260,18 @@ Found   6089 atoms in !@H=;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              1.56 (22.77% of Gen B)
-|                Calc gb diag               2.86 (41.72% of Gen B)
-|                Calc gb off-diag           2.43 (35.50% of Gen B)
-|             Gen Born time              6.85 (100.0% of Nonbo)
-|          Nonbond force              6.85 (21.17% of Force)
-|             Fcalc loop                 6.61 (25.94% of Xray )
-|             Deriv loop                18.85 (73.98% of Xray )
-|          Xray restaints            25.49 (78.76% of Force)
-|       Force time                32.36 (99.85% of Runmd)
-|    Runmd Time                32.41 (98.83% of Total)
-|    Other                      0.38 ( 1.16% of Total)
-| Total time                32.79 (100.0% of ALL  )
+|                Calc gb radii              1.55 (22.99% of Gen B)
+|                Calc gb diag               2.82 (41.81% of Gen B)
+|                Calc gb off-diag           2.37 (35.19% of Gen B)
+|             Gen Born time              6.74 (100.0% of Nonbo)
+|          Nonbond force              6.74 (20.92% of Force)
+|             Fcalc loop                 6.55 (25.73% of Xray )
+|             Deriv loop                18.88 (74.19% of Xray )
+|          Xray restaints            25.44 (79.00% of Force)
+|       Force time                32.20 (99.85% of Runmd)
+|    Runmd Time                32.25 (98.81% of Total)
+|    Other                      0.38 ( 1.18% of Total)
+| Total time                32.64 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -282,11 +281,11 @@ Found   6089 atoms in !@H=;
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      32.41 Per Step(ms) =    6481.82
-|         ns/day =       0.01   seconds/ns = 6481820.00
+|     Elapsed(s) =      32.25 Per Step(ms) =    6450.22
+|         ns/day =       0.01   seconds/ns = 6450220.00
 | -----------------------------------------------------
 
-|           Job began  at 16:30:42.997  on 06/06/2022
-|           Setup done at 16:30:43.382  on 06/06/2022
-|           Run   done at 16:31:15.791  on 06/06/2022
+|           Job began  at 16:12:30.704  on 06/28/2022
+|           Setup done at 16:12:31.094  on 06/28/2022
+|           Run   done at 16:13:03.345  on 06/28/2022
 |     wallclock() was called     192 times

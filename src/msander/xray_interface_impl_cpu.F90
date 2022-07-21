@@ -374,7 +374,8 @@ contains
    subroutine xray_write_fmtz(filename)
 
    use xray_globals_module
-   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution
+   use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution, &
+       sigma_Fobs
    use xray_target_module, only : target_function_id
    implicit none
    character(len=*), intent(in) :: filename
@@ -393,8 +394,8 @@ contains
          write(20,&
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
-          resolution(i), achar(9), Fobs(i)%re, achar(9), &
-          Fobs(i)%im, achar(9), Fcalc(i)%re, achar(9), Fcalc(i)%im
+          resolution(i), achar(9), real(Fobs(i)), achar(9), &
+          aimag(Fobs(i)), achar(9), real(Fcalc(i)), achar(9), aimag(Fcalc(i))
       end do
    else
       write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
@@ -408,7 +409,7 @@ contains
           '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
-          sigFobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
+          sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
       end do
    end if
    close(20)
@@ -533,6 +534,14 @@ contains
          & solvent_mask_adjustment, solvent_mask_probe_radius &
       )
       
+      ! should be able to do some deallocations here:
+      deallocate(hkl_index,Fobs,sigFobs, &
+           test_flag, atom_scatter_type, stat=alloc_status)
+      if( alloc_status .ne. 0 ) then
+         write(6,*) 'error in deallocation after init_interface2()'
+         call mexit(6,1)
+      end if
+
       return
       1 continue
       write(stdout,'(A)') 'End-of-file reading HKL file.'
@@ -600,15 +609,6 @@ contains
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
       real(real_kind), intent(out) :: xray_e
-      ! local
-      real(real_kind) :: xray_weight
-      integer :: total_steps
-
-      if( imin > 0 ) then
-         total_steps = 100*maxcyc  ! FIXME: make this an input variable?
-      else
-         total_steps = nstlim  ! FIXME: make this an input variable?
-      endif
 
       call check_precondition(size(xyz, 1) == 3)
       call check_precondition(size(xyz, 2) == size(force, 2))
