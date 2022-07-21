@@ -66,7 +66,7 @@ subroutine rattlev( nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    end if
 
    niter = 0
-   if( imin .eq. 1 ) then
+   if( imin .eq. 0 ) then
       tol2 = tol / dt
    else
       tol2 = tol
