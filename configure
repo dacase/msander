@@ -52,7 +52,7 @@ blas="skip"
 inc="-I$msanderhome/include"
 netcdflibf_static="$msanderhome/lib/libnetcdff.a $msanderhome/lib/libnetcdf.a"
 netcdflibf_shared="-L$msanderhome/lib -lnetcdff -lnetcdf"
-netcdflibf=$netcdflibf_shared
+netcdflibf=$netcdflibf_static
 
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
@@ -98,11 +98,6 @@ for var in "$@"; do
             openblas="yes";;
         --static)
             ldflags="-static";;
-        --nag)
-            fc="nagfor"
-            fpic=""
-            longlines=""
-            optflags="-g -O3";;
         --intel)
             compiler="intel"
             cc="icc"
@@ -405,13 +400,13 @@ fi   # end of if conda block
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
 #--------------------------------------------------------------------------
-if [ ! -s "lib/libnetcdf.la" ]; then
+if [ ! -s "lib/libnetcdf.a" ]; then
    cd src/netcdf-c-4.7.2
    printf "Configuring the NetCDF C interface..."
    make clean > /dev/null 2>&1
-   ./configure CC="$cc" CFLAGS="" LDFLAGS="" \
+   ./configure CC="$cc" CFLAGS="-fPIC" LDFLAGS="" \
       --prefix=$msanderhome --disable-netcdf-4 --disable-dap \
-      --disable-static --disable-doxygen > ../netcdf_c.config.log 2>&1
+      --disable-shared --disable-doxygen > ../netcdf_c.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
        echo "Error: NetCDF configure failed!  Check netcdf_c.config.log"
@@ -435,11 +430,11 @@ if [ ! -s "lib/libnetcdf.la" ]; then
    export LD_LIBRARY_PATH="$msanderhome/lib:$LD_LIBRARY_PATH"
    printf "Configuring the NetCDF Fortran interface..."
    make clean > /dev/null 2>&1
-   ./configure  CC="$cc" CFLAGS="$fpic" \
+   ./configure  CC="$cc" CFLAGS="-fPIC" \
                   LDFLAGS="-L$msanderhome/lib $ldflags" \
                   CPPFLAGS="-I$msanderhome/include" \
                   FC="$fc" FCFLAGS="" \
-                  F77="$fc" --disable-static  --disable-doxygen \
+                  F77="$fc" FFLAGS="-fPIC" --disable-shared  --disable-doxygen \
                   --prefix=$msanderhome >> ../netcdf_f.config.log 2>&1
    ncerror=$?
    if [ $ncerror -gt 0 ]; then
@@ -486,8 +481,8 @@ if [ "$flibs_fftw" != "" ]; then
               ./configure --disable-doc --prefix=$msanderhome \
               --libdir=$msanderhome/lib $enableomp $fftw_flags \
               --enable-static --enable-threads $enable_sse MPICC="$mpicc" \
-              CFLAGS="$optflags $fpic"  \
-              FFLAGS="$optflags $fpic"  \
+              CFLAGS="$optflags -fPIC"  \
+              FFLAGS="$optflags -fPIC"  \
               FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
             ncerror=$?
           if [ $ncerror -gt 0 ]; then
@@ -504,8 +499,8 @@ if [ "$flibs_fftw" != "" ]; then
               ./configure --disable-doc --prefix=$msanderhome \
               --libdir=$msanderhome/lib $enableomp $fftw_flags \
               --enable-static $enable_sse MPICC="$mpicc" \
-              CC="$cc" CFLAGS="$gccsys $optflags $fpic"  \
-              F77="$fc" FFLAGS="$optflags $fpic" \
+              CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
+              F77="$fc" FFLAGS="$optflags -fPIC" \
               FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
             ncerror=$?
           if [ $ncerror -gt 0 ]; then
