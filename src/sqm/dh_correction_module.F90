@@ -1139,8 +1139,9 @@ contains
 
     implicit none
 
-    _REAL_ :: vec(3), dum
     integer :: natom
+    _REAL_ :: xyz(3,natom)
+    _REAL_ :: vec(3), dum
     integer :: iatom, jatom
     _REAL_ :: xyz(3,natom)
 
