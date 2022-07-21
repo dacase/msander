@@ -1350,12 +1350,12 @@ contains
         ENDDO
       ELSE IF(MODE==3)THEN
         DO I=1,NDATA
-          CDATAI=CMPLX(MAP%CDATA(I), real32)
+          CDATAI=CMPLX(MAP%CDATA(I))
           WRITE(UNIT)CDATAI
         ENDDO
       ELSE IF(MODE==4)THEN
         DO I=1,NDATA
-          CDATAI=CMPLX(MAP%CDATA(I), real32)
+          CDATAI=CMPLX(MAP%CDATA(I))
           WRITE(UNIT)CDATAI
         ENDDO
       ELSE IF(MODE==5)THEN
