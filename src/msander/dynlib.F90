@@ -67,7 +67,6 @@ end subroutine corpac
 subroutine open_dump_files
   use bintraj, only: open_binary_files
   use file_io_dat
-  use commandline_module, only : cpein_specified
 
   implicit none
 #  include "../include/md.h"
@@ -115,7 +114,6 @@ end subroutine open_dump_files
 subroutine close_dump_files
   use bintraj, only: close_binary_files
   use file_io_dat
-  use commandline_module, only : cpein_specified
 
   implicit none
 #  include "extra.h"
@@ -161,19 +159,18 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
 #ifdef LES
   use les_data, only : temp0les
 #endif
-  use sander_rism_interface, only: rismprm, RISM_NONE, RISM_FULL, &
-                                   RISM_INTERP, rism_calc_type, &
+  use sander_rism_interface, only: rismprm, RISM_FULL, &
+                                   rism_calc_type, &
                                    rism_thermo_print
 
-  use qmmm_module, only: qmmm_nml,qmmm_struct
+  use qmmm_module, only: qmmm_nml
   use xray_interface_module, only: xray_write_md_state
   use xray_globals_module, only: xray_active
   use state
   use charmm_mod, only: charmm_active
   use crg_reloc, only: ifcr
-  use sgld, only: isgld,sglabel,sgfti,sgffi
+  use sgld, only: isgld,sglabel
   use ff11_mod, only: cmap_active
-  use nbips, only: ips
   use emap,only: temap
   use amd_mod, only: iamd
   use md_scheme, only: ntt
@@ -189,12 +186,14 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   ! Local
   integer :: total_nstlim, total_nstep
   _REAL_ :: enb14, edihed, eangle, ebond, ehbond, eel, enonb, epot, egb, epb
-  _REAL_ :: virx, viry, virz, virt, dipole_temp, dipiter, diprms, virvsene
-  _REAL_ :: dvdl, esurf, avetot, aveind, aveper, epol, econst, eel14, ekcmt
-  _REAL_ :: edisp, escf, ekcmx, ekcmy, ekcmz,enemap
-  _REAL_ :: press, presx, presy, presz, densit, volume, boxx, boxy, boxz
-  _REAL_ :: eksolv, eksolt, ektot, etot
-#ifndef LES
+  _REAL_ :: virt
+  _REAL_ :: dvdl, esurf, epol, econst, eel14, ekcmt
+  _REAL_ :: edisp, escf, enemap
+  _REAL_ :: press, densit, volume
+  _REAL_ :: ektot, etot
+#ifdef LES
+  _REAL_ :: eksolt
+#else
   _REAL_ :: rms_pbs
 #endif
   _REAL_ :: erism
@@ -225,10 +224,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   etot   = ener%tot
   ektot  = ener%kin%tot
 
-  ! For Path Integral MD, this is mean classical KE of beads
   temp = ener%kin%tot*onefac(1)
-  eksolt = ener%kin%solt*onefac(2)
 #ifdef LES
+  eksolt = ener%kin%solt*onefac(2)
 
   ! Modified for Locally Enhanced Sampling, ener(4) is
   ! LES KE now, not solvent KE, so it should be reported
@@ -243,25 +241,11 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   rms_pbs = ener%kin%solv
 #endif
 
-  boxx    = ener%box(1)
-  boxy    = ener%box(2)
-  boxz    = ener%box(3)
   volume  = ener%volume
   densit  = ener%density
 
-  presx   = ener%pres(1)
-  presy   = ener%pres(2)
-  presz   = ener%pres(3)
   press   = ener%pres(4)
-
-  ekcmx   = ener%cmt(1)
-  ekcmy   = ener%cmt(2)
-  ekcmz   = ener%cmt(3)
   ekcmt   = ener%cmt(4)
-
-  virx    = ener%vir(1)
-  viry    = ener%vir(2)
-  virz    = ener%vir(3)
   virt    = ener%vir(4)
 
   epot    = ener%pot%tot
@@ -277,15 +261,8 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   eel14   = ener%pot%elec_14
   econst  = ener%pot%constraint
   epol    = ener%pot%polar
-  virvsene= ener%virvsene
-  aveper  = ener%aveper
-  aveind  = ener%aveind
-  avetot  = ener%avetot
   esurf   = ener%pot%surf
   dvdl    = ener%pot%dvdl
-  diprms  = ener%diprms
-  dipiter = ener%dipiter
-  dipole_temp = ener%dipole_temp
   escf    = ener%pot%scf
   edisp   = ener%pot%disp
   enemap   = ener%pot%emap
@@ -864,7 +841,7 @@ end subroutine mdeng
 !+ Compute the Center of Mass motion.
 subroutine cenmas(natom,x,v,amass,ekcm,xcm,vcm,acm,ekrot,ocm,icm)
    implicit none
-   integer:: i, i0, icm, j, lh, m, mh, n, natom
+   integer:: i, icm, j, lh, m, mh, n, natom
    _REAL_ :: aamass, acm, amass, comvel, crit, d, ekcm, ekrot, ocm, &
         tcm, tmass, tmassinv, v, vcm, x, x1, x2, x3, xcm, &
         xx, xy, xz, yy, yz, zz
@@ -886,8 +863,6 @@ subroutine cenmas(natom,x,v,amass,ekcm,xcm,vcm,acm,ekrot,ocm,icm)
    data crit/1.0d-06/
 
    if (icm == 0) return
-
-   i0 = 3*natom
 
    !     ----- CALCULATE THE CENTER OF MASS COORDINATES -----
 
