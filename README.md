@@ -10,7 +10,7 @@ This is a work in progress, and may not always be in a stable
 state.  I may not be able to respond to requests for support.
 The documentation is here:
 
-    https://ambermd.org/doc12/Amber21.pdf
+    https://ambermd.org/doc12/Amber22.pdf
 
 This code is probably only useful to those who are already familiar with
 AmberTools, and there are some small differences that are not yet
@@ -25,11 +25,14 @@ most useful parts of the code, and to serve as a test bed for how
 modern Fortran coding techniques can be used.  Key application areas 
 are expected to be in structure refinements using NMR, cryoEM or 
 Xray diffraction information.  This version has a fair amount of OpenMP
-support, especially for Xray and 3D-RISM calculations.
+support, especially for Xray and 3D-RISM calculations.  Parts of the Xray
+code uses GPU acceleration.
 
 * Since this code is based on sander, tons of people have been involved in its
 creation over the years.  See https://ambermd.org/contributors.html for more
-information, although even that gets out of date.
+information, although even that gets out of date.  The Xray codes have
+significant contributions from Juno Krahn, Oleg Mikhailovsii, Sergei Izmailov
+and Nikolai Skrynnikov.
 
 # Key differences in functionality versus sander
 
