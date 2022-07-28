@@ -630,7 +630,7 @@ File usage
 \end_layout
 
 \begin_layout LyX-Code
-sander [-help] [-O] [-A] -i mdin -o mdout -p prmtop -c inpcrd -r restrt
+msander [-help] [-O] [-A] -i mdin -o mdout -p prmtop -c inpcrd -r restrt
 \end_layout
 
 \begin_layout LyX-Code
@@ -862,48 +862,58 @@ restraintmask=':1-58', (atoms in residues 1-58 restrained)
  "Plain" molecular dynamics run
 \end_layout
 
-\begin_layout LyX-Code
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
 molecular dynamics run
 \end_layout
 
-\begin_layout LyX-Code
+\begin_layout Plain Layout
+
 &cntrl
 \end_layout
 
-\begin_layout LyX-Code
-imin=0, irest=1, ntx=5, 
-\shape italic
-(restart MD)
+\begin_layout Plain Layout
+
+imin=0, irest=1, ntx=5, (restart MD)
+\end_layout
+
+\begin_layout Plain Layout
+
+ntt=3, temp0=300.0, gamma_ln=5.0, (temperature control)
+\end_layout
+
+\begin_layout Plain Layout
+
+ntp=1, taup=2.0, (pressure control)
+\end_layout
+
+\begin_layout Plain Layout
+
+ntb=2, ntc=2, ntf=2, (SHAKE, periodic bc.)
+\end_layout
+
+\begin_layout Plain Layout
+
+nstlim=500000, (run for 0.5 nsec)
+\end_layout
+
+\begin_layout Plain Layout
+
+ntwx=1000, ntpr=200, (output frequency)
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
-ntt=3, temp0=300.0, gamma_ln=5.0, 
-\shape italic
-(temperature control)
-\end_layout
 
-\begin_layout LyX-Code
-ntp=1, taup=2.0, 
-\shape italic
-(pressure control)
-\end_layout
-
-\begin_layout LyX-Code
-ntb=2, ntc=2, ntf=2, 
-\shape italic
-(SHAKE, periodic bc.)
-\end_layout
-
-\begin_layout LyX-Code
-nstlim=500000, 
-\shape italic
-(run for 0.5 nsec)
-\end_layout
-
-\begin_layout LyX-Code
-ntwx=1000, ntpr=200, 
-\shape italic
-(output frequency)
 \end_layout
 
 \begin_layout Section
@@ -2380,6 +2390,77 @@ drms
 Molecular dynamics
 \end_layout
 
+\begin_layout Standard
+The 
+\begin_inset Quotes eld
+\end_inset
+
+middle
+\begin_inset Quotes erd
+\end_inset
+
+ scheme offers a unified framework to develop efficient thermostatting algorithm
+s for configurational sampling for the canonical ensemble, as described
+ in Refs.
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "middle-scheme-2017,PIMD-BAOAB-2016, Langevin-virtual-2017, Andersen-virtual-2017, LFMiddle-2018"
+literal "true"
+
+\end_inset
+
+.
+ It is the only MD scheme implemented in 
+\emph on
+msander
+\emph default
+.
+ It can be implemented for performing molecular dynamics (MD) or path integral
+ molecular dynamics (PIMD), either with or without holonomic constraints.
+ The 
+\begin_inset Quotes eld
+\end_inset
+
+middle
+\begin_inset Quotes erd
+\end_inset
+
+ scheme allows the use of much larger time intervals (i.e., time stepsizes)
+ 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ to maintain the same accuracy, which significantly improves the configurational
+ sampling efficiency.
+ That is, it is efficient for calculating structural properties and thermodynami
+c observables that depend on coordinate variables.
+ Most thermostats control the temperature by updating momenta of the system.
+ Some prevailing thermostats include stochastic ones (such as the Andersen
+ thermostat and Langevin dynamics) and deterministic ones (such as the Nosé-Hoov
+er thermostat and Nosé-Hoover chain).
+ In the 
+\begin_inset Quotes eld
+\end_inset
+
+middle
+\begin_inset Quotes erd
+\end_inset
+
+ scheme, immediately after the coordinate-updating step for half a time
+ interval, the thermostat process for a full time interval takes place,
+ which is then followed by the coordinate-updating step for another half
+ time interval
+\begin_inset CommandInset citation
+LatexCommand citep
+key "middle-scheme-2017, LFMiddle-2018"
+literal "true"
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 
@@ -2984,6 +3065,120 @@ literal "true"
 
 \end_layout
 
+\begin_deeper
+\begin_layout Standard
+The recommended value for 
+\shape italic
+gamma_ln
+\shape default
+ is related to the characteristic frequency (
+\begin_inset Formula $\tilde{\omega}$
+\end_inset
+
+) of the specific system.
+ The characteristic time of the potential energy autocorrelation function
+ is 
+\begin_inset Formula 
+\begin{equation}
+\tau_{UU}=\int_{0}^{\infty}\frac{\langle U(0)U(t)\rangle-\langle U\rangle^{2}}{\langle U^{2}\rangle-\langle U\rangle^{2}}\,\mathrm{d}t
+\end{equation}
+
+\end_inset
+
+The optimal value of the thermostat parameter that produces the minimum
+ correlation time of the potential is 
+\begin_inset Formula $\xi^{opt}\approx\tilde{\omega}$
+\end_inset
+
+ for Langevin dynamics and 
+\begin_inset Formula $\xi^{opt}\approx\sqrt{2}\tilde{\omega}$
+\end_inset
+
+ for the Andersen thermostat, as the time interval 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ approaches zero.
+ E.g.
+ for a HO molecule, the frequency of the O-H stretch is around 3600 cm
+\begin_inset Formula $^{-1}$
+\end_inset
+
+(
+\begin_inset space ~
+\end_inset
+
+680 ps
+\begin_inset Formula $^{-1}$
+\end_inset
+
+), so one can choose 680 ps
+\begin_inset Formula $^{-1}$
+\end_inset
+
+ as the value of 
+\shape italic
+therm_par
+\shape default
+ when Langevin dynamics is used, or 960 ps
+\begin_inset Formula $^{-1}$
+\end_inset
+
+ when the Andersen thermostat is employed.
+ When the time interval 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ is finite in the two thermostatting methods, while the characteristic correlati
+on time goes to infinity as the thermostat parameter approaches zero, the
+ characteristic correlation time gradually reaches a plateau as the thermostat
+ parameter increases.
+ (Please see Refs.
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Langevin-virtual-2017, Andersen-virtual-2017, LFMiddle-2018"
+literal "true"
+
+\end_inset
+
+ for more discussion.) When condensed phase systems are simulated, it is
+ not straightforward to estimate the optimal thermostat parameter(s) that
+ could be related to the mixing of frequencies (or time scales) of the system
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Andersen80"
+literal "true"
+
+\end_inset
+
+.
+  Some numerical tests are necessary for obtaining the reasonable region
+ for the thermostat parameter such that the characteristic time divided
+ by the time interval is relatively small.
+  (This is true not only for the  
+\begin_inset Quotes eld
+\end_inset
+
+middle
+\begin_inset Quotes erd
+\end_inset
+
+ scheme but for all thermostat algorithms.)   For a liquid water system (216
+ water molecules in a cell with periodic boundary conditions) with no holonomic
+ constraints, the thermostat parameter is usually chosen to be 
+\begin_inset Formula $2-50$
+\end_inset
+
+ ps
+\begin_inset Formula $^{-1}$
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
 
@@ -3610,1537 +3805,6 @@ n.)
 \end_layout
 
 \end_deeper
-\begin_layout Subsection
-The 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:middle-scheme"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
-Introduction
-\end_layout
-
-\begin_layout Standard
-The 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme offers a unified framework to develop efficient thermostatting algorithm
-s for configurational sampling for the canonical ensemble, as described
- in Refs.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "middle-scheme-2017,PIMD-BAOAB-2016, Langevin-virtual-2017, Andersen-virtual-2017, LFMiddle-2018"
-literal "true"
-
-\end_inset
-
-.
- It can be implemented for performing molecular dynamics (MD) or path integral
- molecular dynamics (PIMD), either with or without holonomic constraints.
- The 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme allows the use of much larger time intervals (i.e., time stepsizes)
- 
-\begin_inset Formula $\Delta t$
-\end_inset
-
- to maintain the same accuracy, which significantly improves the configurational
- sampling efficiency.
- That is, it is efficient for calculating structural properties and thermodynami
-c observables that depend on coordinate variables.
- Most thermostats control the temperature by updating momenta of the system.
- Some prevailing thermostats include stochastic ones (such as the Andersen
- thermostat and Langevin dynamics) and deterministic ones (such as the Nosé-Hoov
-er thermostat and Nosé-Hoover chain).
- In the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme, immediately after the coordinate-updating step for half a time
- interval, the thermostat process for a full time interval takes place,
- which is then followed by the coordinate-updating step for another half
- time interval
-\begin_inset CommandInset citation
-LatexCommand citep
-key "middle-scheme-2017, LFMiddle-2018"
-literal "true"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-Here we present a brief introduction to the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme.
- For many thermostats, the integration in one time step 
-\begin_inset Formula $\Delta t$
-\end_inset
-
- can be splitted into three parts, the steps for updating coordinates, momenta
- and thermostat, denoted as 
-\begin_inset Quotes eld
-\end_inset
-
-x
-\begin_inset Quotes erd
-\end_inset
-
-, 
-\begin_inset Quotes eld
-\end_inset
-
-p
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-T
-\begin_inset Quotes erd
-\end_inset
-
-, respectively.
- In this case the 
-\begin_inset Quotes eld
-\end_inset
-
-equation of motion
-\begin_inset Quotes erd
-\end_inset
-
- may be expressed as 
-\begin_inset Formula 
-\begin{equation}
-\begin{bmatrix}\mathrm{d}\mathbf{x}_{t}\\
-\mathrm{d}\mathbf{p}_{t}
-\end{bmatrix}=\underbrace{\begin{bmatrix}\mathbf{M}^{-1}\mathbf{p}_{t}\\
-0
-\end{bmatrix}\mathrm{d}t}_{\text{x}}+\underbrace{\begin{bmatrix}0\\
--\nabla_{\mathbf{x}_{t}}U(\mathbf{x}_{t})
-\end{bmatrix}\mathrm{d}t}_{\text{p}}+\underbrace{\begin{bmatrix}\text{thermostat}\end{bmatrix}}_{\text{T}}\label{middle:eq1}
-\end{equation}
-
-\end_inset
-
-Here, 
-\begin_inset Formula $U$
-\end_inset
-
- is the potential energy, 
-\begin_inset Formula $\mathbf{M}$
-\end_inset
-
- is the diagonal mass matrix, 
-\begin_inset Formula $\mathbf{x}$
-\end_inset
-
- and 
-\begin_inset Formula $\mathbf{p}$
-\end_inset
-
- are the vectors of coordinate and momentum, respectively.
- Equation (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "middle:eq1"
-
-\end_inset
-
-) is, however, not convenient to do the analysis.
-\end_layout
-
-\begin_layout Standard
-A more useful approach is to employ the forward Kolmogorov equation to express
- the evolution of the density distribution in the phase space 
-\begin_inset Formula $\rho(\mathbf{x},\mathbf{p})$
-\end_inset
-
-.
- 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}\frac{\partial}{\partial t}\rho= & \mathcal{L}\rho\\
-= & (\mathcal{L}_{\text{x}}+\mathcal{L}_{\text{p}}+\mathcal{L}_{\text{T}})\rho
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-The relevant Kolmogorov operators for the 1st and 2nd terms of the right-hand
- side (RHS) are 
-\begin_inset Formula 
-\begin{equation}
-\mathcal{L}_{\text{x}}\rho=-\mathbf{p}^{T}\mathbf{M}^{-1}\nabla_{\mathbf{x}}\rho
-\end{equation}
-
-\end_inset
-
-
-\begin_inset Formula 
-\begin{equation}
-\mathcal{L}_{\text{p}}\rho=\nabla{}_{\mathbf{x}}U(\mathbf{x})\cdot\nabla{}_{\mathbf{p}}\rho
-\end{equation}
-
-\end_inset
-
-respectively.
- The definition of 
-\begin_inset Formula $\mathcal{L}_{\text{T}}$
-\end_inset
-
- depends on the specific thermostat.
- The phase space propagators for a time interval 
-\begin_inset Formula $\Delta t$
-\end_inset
-
- for the three parts are 
-\begin_inset Formula $e^{\mathcal{L}_{\text{x}}\Delta t}$
-\end_inset
-
-, 
-\begin_inset Formula $e^{\mathcal{L}_{\text{p}}\Delta t}$
-\end_inset
-
-, and 
-\begin_inset Formula $e^{\mathcal{L}_{\text{T}}\Delta t}$
-\end_inset
-
-, respectively.
-\end_layout
-
-\begin_layout Standard
-The propagation in each time step with the velocity Verlet (VV) algorithm
- is performed as 
-\begin_inset Formula 
-\begin{equation}
-e^{\mathcal{L}\Delta t}\approx e^{\mathcal{L}_{\text{middle}}^{\text{VV}}\Delta t}=e^{\mathcal{L}_{\text{p}}\Delta t/2}e^{\mathcal{L}_{\text{x}}\Delta t/2}e^{\mathcal{L}_{\text{T}}\Delta t}e^{\mathcal{L}_{\text{x}}\Delta t/2}e^{\mathcal{L}_{\text{p}}\Delta t/2}\label{middle:eq2}
-\end{equation}
-
-\end_inset
-
-The phase space propagator for the thermostat part 
-\begin_inset Formula $e^{\mathcal{L}_{\text{T}}\Delta t}$
-\end_inset
-
- is designed in the middle.
- Equation (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "middle:eq2"
-
-\end_inset
-
-) is denoted as 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
-.
- The numerical algorithm reads 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}\text{Update Momenta for half a step:}\quad & \mathbf{p}\leftarrow\mathbf{p}-\frac{\partial U}{\partial\mathbf{x}}\frac{\Delta t}{2}\\
-\text{Update Coordinates for half a step:}\quad & \mathbf{x}\leftarrow\mathbf{x}+\mathbf{M}^{-1}\mathbf{p}\frac{\Delta t}{2}\\
-\text{Thermostat for a full time step:}\quad & \textit{thermostat\_step}\\
-\text{Update Coordinates for another half step:}\quad & \mathbf{x}\leftarrow\mathbf{x}+\mathbf{M}^{-1}\mathbf{p}\frac{\Delta t}{2}\\
-\text{Update Momenta for another half step:}\quad & \mathbf{p}\leftarrow\mathbf{p}-\frac{\partial U}{\partial\mathbf{x}}\frac{\Delta t}{2}
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-where 
-\shape italic
-thermostat_step
-\shape default
- is the subroutine for the thermostat process, which is determined according
- to the thermostat method of choice.
-\end_layout
-
-\begin_layout Standard
-The stationary state distribution of 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
- for a harmonic system 
-\begin_inset Formula $U(\mathbf{x})=\frac{1}{2}(\mathbf{x}-\mathbf{x}_{\text{eq}})^{T}\mathbf{A}(\mathbf{x}-\mathbf{x}_{\text{eq}})$
-\end_inset
-
- is 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}\rho_{\text{middle}}^{\text{VV}}(\mathbf{x},\mathbf{p})= & \frac{1}{Z_{N}}\exp\left\{ -\beta\left[\frac{1}{2}\mathbf{p}^{T}\left(\mathbf{M}-\mathbf{A}\frac{\Delta t^{2}}{4}\right)^{-1}\mathbf{p}\right.\right.\\
- & \left.\left.+\frac{1}{2}(\mathbf{x}-\mathbf{x}_{\text{eq}})^{T}\mathbf{A}(\mathbf{x}-\mathbf{x}_{\text{eq}})\right]\right\} 
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-as long as the thermostat process keeps the Maxwell (or Maxwell-Boltzmann)
- momentum distribution unchanged, i.e.
- 
-\begin_inset Formula 
-\begin{equation}
-e^{\mathcal{L}_{\text{T}}\Delta t}\rho_{\text{MB}}(\mathbf{p})=\rho_{\text{MB}}(\mathbf{p})\label{eq:criteria}
-\end{equation}
-
-\end_inset
-
-where the Maxwell momentum distribution is 
-\begin_inset Formula 
-\begin{equation}
-\rho_{\text{MB}}(\mathbf{p})=\left(\frac{\beta}{2\pi}\right)^{3N/2}\lvert\mathbf{M}\rvert^{-1/2}\exp\left[-\beta\left(\frac{1}{2}\mathbf{p}^{T}\mathbf{M}^{-1}\mathbf{p}\right)\right]
-\end{equation}
-
-\end_inset
-
-Here 
-\begin_inset Formula $\beta=\frac{1}{k_{B}T}$
-\end_inset
-
- with 
-\begin_inset Formula $k_{B}$
-\end_inset
-
- as the Boltzmann constant, 
-\begin_inset Formula $T$
-\end_inset
-
- is the temperature of the system.
- (
-\begin_inset Formula $N$
-\end_inset
-
- is the number of particles.) It is then easy to verify that the marginal
- distribution of coordinates for 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
- is exact in the harmonic limit.
- Many types of thermostats satisfy the criteria (thermostat process keeps
- the Maxwell momentum distribution unchanged, Equation (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:criteria"
-
-\end_inset
-
-)), which include, but not limited to, the thermostats listed below.
-\end_layout
-
-\begin_layout Itemize
-Andersen thermostat (real dynamics case)
-\begin_inset Newline newline
-\end_inset
-
- In this thermostat, each particle of the system stochastically collides
- with a fictitious heat bath, and once the collision occurs, the momentum
- of this particle is chosen afresh from the Maxwell-Boltzmann momentum distribut
-ion.
- The explicit form for the thermostat process can be expressed as 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}\mathbf{p}^{(j)} & \leftarrow\sqrt{\frac{m_{j}}{\beta}}\bm{\theta}_{j},\ (j=\overline{1,N})\\
- & \text{if }\mu_{j}<\nu\Delta t\ (\text{or more precisely }\mu_{j}<1-e^{-\nu\Delta t})
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-Here 
-\begin_inset Formula $\nu$
-\end_inset
-
- is the collision frequency, 
-\begin_inset Formula $\bm{\theta}_{j}$
-\end_inset
-
- is a vector of independent Gaussian-distributed random numbers with zero
- mean and unit variance, 
-\begin_inset Formula $m_{j}$
-\end_inset
-
- the mass for the 
-\begin_inset Formula $j$
-\end_inset
-
-th atom, 
-\begin_inset Formula $\mu_{j}$
-\end_inset
-
- is a uniformly distributed random number in the range (0,1).
- Here 
-\begin_inset Formula $\mu_{j}$
-\end_inset
-
- may be different for each particle (
-\begin_inset Formula $j=\overline{1,N}$
-\end_inset
-
-).
- In the current version of AMBER 
-\begin_inset Formula $\mu_{j}$
-\end_inset
-
- is the same for all particles.
- (I.e., the global Andersen thermostat is employed.)
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-The phase space propagator for the thermostat process is 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}e^{\mathcal{L}_{\text{T}}\Delta t}\rho= & e^{-\nu\Delta t}\rho(\mathbf{x},\mathbf{p})\\
- & +(1-e^{-\nu\Delta t})\rho_{\text{MB}}(\mathbf{p})\int_{-\infty}^{\infty}\rho(\mathbf{x},\mathbf{p})\mathrm{d}\mathbf{p}
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-Andersen thermostat (virtual dynamics case)
-\begin_inset Newline newline
-\end_inset
-
- The explicit form for the virtual dynamics case of the Andersen thermostat
- is expressed as 
-\begin_inset Formula 
-\begin{equation}
-\left.\begin{aligned}\mathbf{p}^{(j)}\leftarrow & \sqrt{\frac{m_{j}}{\beta}}\bm{\theta}_{j},\text{ if }\mu_{j}<1-e^{-\nu\Delta t}\\
-\mathbf{p}^{(j)}\leftarrow & -\mathbf{p}^{(j)},\quad\text{otherwise}
-\end{aligned}
-\right\rbrace (j=\overline{1,N})
-\end{equation}
-
-\end_inset
-
-The phase space propagator for the thermostat process is 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}e^{\mathcal{L}_{\text{T}}\Delta t}\rho= & e^{-\nu\Delta t}\rho(\mathbf{x},-\mathbf{p})\\
- & +(1-e^{-\nu\Delta t})\rho_{\text{MB}}(\mathbf{p})\int_{-\infty}^{\infty}\rho(\mathbf{x},\mathbf{p})\mathrm{d}\mathbf{p}
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-Langevin dynamics (real dynamics case)
-\begin_inset Newline newline
-\end_inset
-
- The thermostat process is the solution to the Ornstein-Uhlenbeck (OU) process
- 
-\begin_inset Formula 
-\begin{equation}
-\mathbf{p}\leftarrow e^{-\bm{\gamma}\Delta t}\mathbf{p}+\sqrt{\frac{1}{\beta}}\mathbf{M}^{1/2}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})^{1/2}\bm{\eta}
-\end{equation}
-
-\end_inset
-
-Here, 
-\begin_inset Formula $\bm{\eta}$
-\end_inset
-
- is a vector of independent Gaussian-distributed random numbers with zero
- mean and unit variance, 
-\begin_inset Formula $\bm{\gamma}$
-\end_inset
-
- is the diagonal friction coefficient matrix.
- In the current version of AMBER all diagonal elements of 
-\begin_inset Formula $\bm{\gamma}$
-\end_inset
-
- are set to be the same.
- (That is, the friction coefficient is the same for all particles.
-  The global Langevin thermostat is used.) 
-\begin_inset Newline newline
-\end_inset
-
- The phase space propagator for the thermostat process is 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}e^{\mathcal{L}_{\text{T}}\Delta t}\rho= & \left(\frac{\beta}{2\pi}\right)^{3N/2}\lvert\mathbf{M}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})\rvert^{-1/2}\\
- & \cdot\int\mathrm{d}\mathbf{p}_{0}\,\rho(\mathbf{x},\mathbf{p}_{0})\exp\left[-\frac{\beta}{2}(\mathbf{p}-e^{-\bm{\gamma}\Delta t}\mathbf{p}_{0})^{T}\right.\\
- & \left.\cdot\mathbf{M}^{-1}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})^{-1}(\mathbf{p}-e^{-\bm{\gamma}\Delta t}\mathbf{p}_{0})\right]
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-Langevin dynamics (virtual dynamics case)
-\begin_inset Newline newline
-\end_inset
-
- The virtual dynamics case represents another type of discrete evolution
- that may not correspond to a continuous, real dynamical counterpart of
- the Langevin equation.
- 
-\begin_inset Formula 
-\begin{equation}
-\mathbf{p}\leftarrow-e^{-\bm{\gamma}\Delta t}\mathbf{p}+\sqrt{\frac{1}{\beta}}\mathbf{M}^{1/2}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})^{1/2}\bm{\eta}
-\end{equation}
-
-\end_inset
-
-The virtual dynamics case is also able to produce the desired stationary
- distribution.
- The phase space propagator for the thermostat process is then 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}e^{\mathcal{L}_{\text{T}}\Delta t}\rho= & \left(\frac{\beta}{2\pi}\right)^{3N/2}\lvert\mathbf{M}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})\rvert^{-1/2}\\
- & \cdot\int\mathrm{d}\mathbf{p}_{0}\,\rho(\mathbf{x},\mathbf{p}_{0})\exp\left[-\frac{\beta}{2}(\mathbf{p}+e^{-\bm{\gamma}\Delta t}\mathbf{p}_{0})^{T}\right.\\
- & \left.\cdot\mathbf{M}^{-1}(\mathbf{1}-e^{-2\bm{\gamma}\Delta t})^{-1}(\mathbf{p}+e^{-\bm{\gamma}\Delta t}\mathbf{p}_{0})\right]
-\end{aligned}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-Nosé-Hoover (NH) thermostat and Nosé-Hoover chain (NHC)
-\begin_inset Newline newline
-\end_inset
-
- See Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "middle-scheme-2017"
-literal "true"
-
-\end_inset
-
- for more detailed discussions.
- 
-\end_layout
-
-\begin_layout Standard
-The 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme of a thermostat includes both real and virtual dynamics cases.
- (See Refs.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Andersen-virtual-2017, Langevin-virtual-2017"
-literal "true"
-
-\end_inset
-
-.) It is proved in Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Langevin-virtual-2017"
-literal "true"
-
-\end_inset
-
- that, while the Langevin equation algorithm (BAOAB) proposed in Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "BAOAB-AMRX-2013"
-literal "true"
-
-\end_inset
-
- is simply only the real dynamics case of 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
-, another Langevin equation algorithm proposed (without employing the Lie-Trotte
-r splitting) in Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "GF-BAOAB-2012"
-literal "true"
-
-\end_inset
-
- is equivalent to 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
- for Langevin dynamics.
- The real dynamics case for the Andersen thermostat and that for Langevin
- dynamics have been implemented in the current version of AMBER.
-\end_layout
-
-\begin_layout Standard
-When the leapfrog algorithm, rather than the velocity-Verlet algorithm,
- is employed in the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme, it is denoted as 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
-
-\begin_inset CommandInset citation
-LatexCommand citep
-key "LFMiddle-2018"
-literal "true"
-
-\end_inset
-
-.
- The propagation in each time step with the leapfrog (LF) algorithm is performed
- as
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-e^{\mathcal{L}\Delta t}\approx e^{\mathcal{L}_{\text{middle}}^{\text{LF}}\Delta t}=e^{\mathcal{L}_{\text{x}}\Delta t/2}e^{\mathcal{L}_{\text{T}}\Delta t}e^{\mathcal{L}_{\text{x}}\Delta t/2}e^{\mathcal{L}_{\text{p}}\Delta t}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The numerical algorithm of 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- reads 
-\begin_inset Formula 
-\begin{equation}
-\begin{aligned}\text{Update Momenta for a full time step:}\quad & \mathbf{p}\leftarrow\mathbf{p}-\frac{\partial U}{\partial\mathbf{x}}{\Delta t}\\
-\text{Update Coordinates for half a step:}\quad & \mathbf{x}\leftarrow\mathbf{x}+\mathbf{M}^{-1}\mathbf{p}\frac{\Delta t}{2}\\
-\text{Thermostat for a full time step:}\quad & \textit{thermostat\_step}\\
-\text{Update Coordinates for another half step:}\quad & \mathbf{x}\leftarrow\mathbf{x}+\mathbf{M}^{-1}\mathbf{p}\frac{\Delta t}{2}
-\end{aligned}
-\end{equation}
-
-\end_inset
-
- For any general systems, 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- shares the same accuracy as 
-\begin_inset Quotes eld
-\end_inset
-
-VVMiddle
-\begin_inset Quotes erd
-\end_inset
-
- for sampling the marginal distribution of coordinates.
- In addition, 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- leads to the exact marginal distribution of momenta in the harmonic limit
-\begin_inset CommandInset citation
-LatexCommand citep
-key "LFMiddle-2018"
-literal "true"
-
-\end_inset
-
-.
- For simplicity and compatibility, only 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- is integrated into AMBER.
- 
-\end_layout
-
-\begin_layout Standard
-The 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme with holonomic constraints (such as bond length constraints) is
- also implemented.
- While MD with holonomic constraints are widely used in biological simulations,
- PIMD with holonomic constraints may help understand nuclear quantum effects
- of different motions in molecular systems.
- For instance, help assign spectral features as shown in Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "RamanWater2018"
-literal "true"
-
-\end_inset
-
-.
- In the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme, when holonomic constraints are applied, the SHAKE 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Ryckaert77"
-literal "true"
-
-\end_inset
-
- and RATTLE 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "RATTLE1983"
-literal "true"
-
-\end_inset
-
- algorithms are used for fixing coordinates and velocities, respectively.
- Particularly for the molecular system that contains water molecules, the
- analytical SETTLE algorithm 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Miyamoto92"
-literal "true"
-
-\end_inset
-
- may be used to apply the constraint to the water molecule.
-\end_layout
-
-\begin_layout Standard
-Besides Refs.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "PIMD-BAOAB-2016, middle-scheme-2017, Langevin-virtual-2017, Andersen-virtual-2017, LFMiddle-2018"
-literal "true"
-
-\end_inset
-
-, one more paper is in preparation for the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "middle-constr-SINR-2019"
-literal "true"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-While the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme for PIMD with the staging transformation (staging PIMD) was first
- demonstrated in Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "PIMD-BAOAB-2016"
-literal "true"
-
-\end_inset
-
-, that for PIMD with the normal-mode transformation (normal-mode PIMD) was
- first proposed in the supplemental material of Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "PIMD-BAOAB-2016"
-literal "true"
-
-\end_inset
-
- in 2016, which can be found via the URLs provided by the publisher:
-\end_layout
-
-\begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-https://aip.scitation.org/doi/suppl/10.1063/1.4954990/suppl_file/supplemental+materi
-al-submitted.docx
-\end_layout
-
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Itemize
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-ftp://ftp.aip.org/epaps/journ_chem_phys/E-JCPSA6-145-007626
-\end_layout
-
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-In addition, the arXiv preprint (that includes Ref.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "PIMD-BAOAB-2016"
-literal "true"
-
-\end_inset
-
- and its supplemental material) is also available (
-\begin_inset Flex URL
-status collapsed
-
-\begin_layout Plain Layout
-
-https://arxiv.org/ftp/arxiv/papers/1611/1611.06331.pdf
-\end_layout
-
-\end_inset
-
-).
- In the current version, the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
-  scheme is implemented for the primitive version of PIMD (PRIMPIMD) of
- AMBER.
- The staging PIMD or normal-mode PIMD algorithms in the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme will also be implemented into AMBER soon.
-\end_layout
-
-\begin_layout Subsubsection
-Input parameters
-\end_layout
-
-\begin_layout Standard
-The recommended value for 
-\shape italic
-gamma_ln
-\shape default
- is related to the characteristic frequency (
-\begin_inset Formula $\tilde{\omega}$
-\end_inset
-
-) of the specific system.
- The characteristic time of the potential energy autocorrelation function
- is 
-\begin_inset Formula 
-\begin{equation}
-\tau_{UU}=\int_{0}^{\infty}\frac{\langle U(0)U(t)\rangle-\langle U\rangle^{2}}{\langle U^{2}\rangle-\langle U\rangle^{2}}\,\mathrm{d}t
-\end{equation}
-
-\end_inset
-
-The optimal value of the thermostat parameter that produces the minimum
- correlation time of the potential is 
-\begin_inset Formula $\xi^{opt}\approx\tilde{\omega}$
-\end_inset
-
- for Langevin dynamics and 
-\begin_inset Formula $\xi^{opt}\approx\sqrt{2}\tilde{\omega}$
-\end_inset
-
- for the Andersen thermostat, as the time interval 
-\begin_inset Formula $\Delta t$
-\end_inset
-
- approaches zero.
- E.g.
- for a HO molecule, the frequency of the O-H stretch is around 3600 cm
-\begin_inset Formula $^{-1}$
-\end_inset
-
-(
-\begin_inset space ~
-\end_inset
-
-680 ps
-\begin_inset Formula $^{-1}$
-\end_inset
-
-), so one can choose 680 ps
-\begin_inset Formula $^{-1}$
-\end_inset
-
- as the value of 
-\shape italic
-therm_par
-\shape default
- when Langevin dynamics is used, or 960 ps
-\begin_inset Formula $^{-1}$
-\end_inset
-
- when the Andersen thermostat is employed.
- When the time interval 
-\begin_inset Formula $\Delta t$
-\end_inset
-
- is finite in the two thermostatting methods, while the characteristic correlati
-on time goes to infinity as the thermostat parameter approaches zero, the
- characteristic correlation time gradually reaches a plateau as the thermostat
- parameter increases.
- (Please see Refs.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Langevin-virtual-2017, Andersen-virtual-2017, LFMiddle-2018"
-literal "true"
-
-\end_inset
-
- for more discussion.) When condensed phase systems are simulated, it is
- not straightforward to estimate the optimal thermostat parameter(s) that
- could be related to the mixing of frequencies (or time scales) of the system
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Andersen80"
-literal "true"
-
-\end_inset
-
-.
-  Some numerical tests are necessary for obtaining the reasonable region
- for the thermostat parameter such that the characteristic time divided
- by the time interval is relatively small.
-  (This is true not only for the  
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme but for all thermostat algorithms.)   For a liquid water system (216
- water molecules in a cell with periodic boundary conditions) with no holonomic
- constraints, the thermostat parameter is usually chosen to be 
-\begin_inset Formula $2-50$
-\end_inset
-
- ps
-\begin_inset Formula $^{-1}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Subsubsection
-Examples
-\end_layout
-
-\begin_layout Standard
-Examples include a liquid water system (216 water molecules in a cell with
- the periodic boundary conditions) with the q-SPC/Fw model, an alanine dipeptide
- (ACE-ALA-NME) solved in a box with 401 methol molecules, and a peptide
- chain ACE-ALA-ALA-ALA-NME in vacuum.
- One is also encouraged to check the test cases in 
-\shape italic
-$AMBERHOME/test/middle-scheme
-\shape default
-.
- In AMBER the analytical SETTLE algorithm is the default (
-\shape italic
-jfastw
-\shape default
-=0) for applying the constraints for the water molecule.
- (Note that in some liquid water models, the intramolecular H-H is specified
- as a bond in the topology file, so all the intramolecular O-H and H-H distances
- are constrained when 
-\shape italic
-ntc
-\shape default
-=2 is employed in AMBER.)
-\end_layout
-
-\begin_layout Subsubsection*
-
-\series bold
-Molecular dynamics (for classical statistics)
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-(1) MD input using the Langevin thermostat with the 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- scheme for liquid water.
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-Test: $AMBERHOME/test/middle-scheme/MD_Unconstr_Langevin_water
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
-MD: NVT simulation of liquid water 
-\end_layout
-
-\begin_layout Plain Layout
-
-&cntrl    
-\end_layout
-
-\begin_layout Plain Layout
-
-ipimd = 0, nstlim = 10        ! MD for 10 steps    
-\end_layout
-
-\begin_layout Plain Layout
-
-ntx = 1, irest = 0            ! read coordinates    
-\end_layout
-
-\begin_layout Plain Layout
-
-temp0 = 300, tempi = 300      ! temperature: target and initial    
-\end_layout
-
-\begin_layout Plain Layout
-
-dt = 0.001                    ! time step in ps    
-\end_layout
-
-\begin_layout Plain Layout
-
-cut = 7.0                     ! non-bond cut off    
-\end_layout
-
-\begin_layout Plain Layout
-
-ntt = 3                       ! Langevin thermostat   
-\end_layout
-
-\begin_layout Plain Layout
-
-gamma_ln = 5.0                ! thermostat parameter in 1/ps
-\end_layout
-
-\begin_layout Plain Layout
-
-ig = -1                       ! random seed 
-\end_layout
-
-\begin_layout Plain Layout
-
-ntc = 1, ntf = 1              ! no constraints
-\end_layout
-
-\begin_layout Plain Layout
-
-ntpr = 1, ntwr = 5, ntwx = 5  ! output settings 
-\end_layout
-
-\begin_layout Plain Layout
-
-/ 
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-(2) MD input using Langevin dynamics with the 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- scheme for the liquid water.
- Lengths of the bonds having hydrogen atoms are constrained.
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-Test: $AMBERHOME/test/middle-scheme/MD_Constr_Langevin_water
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
-MD: NVT simulation of liquid water
-\end_layout
-
-\begin_layout Plain Layout
-
-&cntrl
-\end_layout
-
-\begin_layout Plain Layout
-
-ipimd = 0, nstlim = 10        ! MD for 10 steps
-\end_layout
-
-\begin_layout Plain Layout
-
-ntx = 1, irest = 0            ! read coordinates
-\end_layout
-
-\begin_layout Plain Layout
-
-temp0 = 300, tempi = 300      ! temperature: target and initial
-\end_layout
-
-\begin_layout Plain Layout
-
-dt = 0.004                    ! time step in ps
-\end_layout
-
-\begin_layout Plain Layout
-
-cut = 7.0                     ! non-bond cut off
-\end_layout
-
-\begin_layout Plain Layout
-
-ntt = 3                       ! Langevin thermostat, random seed is default
- value
-\end_layout
-
-\begin_layout Plain Layout
-
-gamma_ln = 5.0                ! thermostat parameter, in 1/ps
-\end_layout
-
-\begin_layout Plain Layout
-
-ntc = 2, ntf = 2              ! constrain lengths of the bonds having hydrogen
- atoms
-\end_layout
-
-\begin_layout Plain Layout
-
-ntpr = 1, ntwr = 5, ntwx = 5  ! output settings 
-\end_layout
-
-\begin_layout Plain Layout
-
-/
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection*
-
-\series bold
-Replica exchange molecular dynamics
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
- REMD input using the Langevin thermostat with the 
-\begin_inset Quotes eld
-\end_inset
-
-LFMiddle
-\begin_inset Quotes erd
-\end_inset
-
- scheme for the ACE-ALA-ALA-ALA-NME in vacuum.Lengths of the bonds having
- hydrogen atoms are constrained.
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-Test: $AMBERHOME/test/middle-scheme/REMD_Constr_ALA
-\end_layout
-
-\begin_layout Standard
-Below is the input file for one of the replicas.
- The target temperatures are 300, 325, 350, and 400K for the 4 replicas,
- respectively.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
-REMD test with 4 replicas  
-\end_layout
-
-\begin_layout Plain Layout
-
-&cntrl         
-\end_layout
-
-\begin_layout Plain Layout
-
-imin = 0, nstlim = 100,     ! MD for 100 steps         
-\end_layout
-
-\begin_layout Plain Layout
-
-irest=1, ntx = 5,           ! read coordinates and velocities 	
-\end_layout
-
-\begin_layout Plain Layout
-
-tempi = 0.0, temp0 = 300.0, ! initial and target temperature         	
-\end_layout
-
-\begin_layout Plain Layout
-
-ntt = 3,                    ! Langevin thermostat 	
-\end_layout
-
-\begin_layout Plain Layout
-
-gamma_ln = 1.0,             ! thermostat parameter,in 1/ps  	
-\end_layout
-
-\begin_layout Plain Layout
-
-dt = 0.002,                 ! time step, in ps 	
-\end_layout
-
-\begin_layout Plain Layout
-
-ig=-1,                      ! random seed         
-\end_layout
-
-\begin_layout Plain Layout
-
-ntc = 2, ntf = 2,           ! constrain lengths of the bonds having hydrogen
- atoms         
-\end_layout
-
-\begin_layout Plain Layout
-
-ntwx = 50, ntwr =50, ntpr = 50,  ! output setting 	 	
-\end_layout
-
-\begin_layout Plain Layout
-
-ntb=0,                      ! no periodicity         
-\end_layout
-
-\begin_layout Plain Layout
-
-cut = 99.0,                 ! non bond cut off         
-\end_layout
-
-\begin_layout Plain Layout
-
-numexchg=5,                 ! exchange frequency 
-\end_layout
-
-\begin_layout Plain Layout
-
-&end
-\end_layout
-
-\end_inset
-
-When one runs REMD in AMBER, a groupfile is needed.
- The groupfile 
-\shape italic
-groupfile
-\shape default
- may look like:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
--O -rem 1 -remlog rem.log -i rem.in.000 -p ala3.top -c mdrestrt -o rem.out.000
- 
-\end_layout
-
-\begin_layout Plain Layout
-
- -r rem.r.000 -inf reminfo.000
-\end_layout
-
-\begin_layout Plain Layout
-
--O -rem 1 -remlog rem.log -i rem.in.001 -p ala3.top -c mdrestrt -o rem.out.001
- 
-\end_layout
-
-\begin_layout Plain Layout
-
- -r rem.r.001 -inf reminfo.001
-\end_layout
-
-\begin_layout Plain Layout
-
--O -rem 1 -remlog rem.log -i rem.in.002 -p ala3.top -c mdrestrt -o rem.out.002
- 
-\end_layout
-
-\begin_layout Plain Layout
-
- -r rem.r.002 -inf reminfo.002
-\end_layout
-
-\begin_layout Plain Layout
-
--O -rem 1 -remlog rem.log -i rem.in.003 -p ala3.top -c mdrestrt -o rem.out.003
- 
-\end_layout
-
-\begin_layout Plain Layout
-
- -r rem.r.003 -inf reminfo.003 
-\end_layout
-
-\end_inset
-
-Note that each line starts with 
-\begin_inset Quotes eld
-\end_inset
-
--O
-\begin_inset Quotes erd
-\end_inset
-
- and ends with 
-\begin_inset Quotes eld
-\end_inset
-
--inf <info>
-\begin_inset Quotes erd
-\end_inset
-
-.
- The groupfile has 4 lines, which means 4 replicas are employed in REMD.
-\end_layout
-
-\begin_layout Standard
-
-\shape italic
-sander.MPI
-\shape default
- is executed via the following command:
-\end_layout
-
-\begin_layout Verbatim
-
-    $ mpirun -np 4 sander.MPI -ng 4 -groupfile groupfile
-\end_layout
-
-\begin_layout Standard
-The number of processes (4) that is specified by 
-\begin_inset Quotes eld
-\end_inset
-
--np
-\begin_inset Quotes erd
-\end_inset
-
- can be replaced by any multiple of the number of replicas used in REMD
- (4 in this case).
-\end_layout
-
-\begin_layout Standard
-One is also encouraged to access the tutorial for the 
-\begin_inset Quotes eld
-\end_inset
-
-middle
-\begin_inset Quotes erd
-\end_inset
-
- scheme on the webpage 
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex URL
-status open
-
-\begin_layout Plain Layout
-
-http://jianliugroup.pku.edu.cn/tutorials.html
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Subsection
 
 \series bold
@@ -5918,505 +4582,7 @@ literal "true"
 
  term.
  However, the remaining L-J parameters will still be optimized for the 12-6-4
- potential, so this should only be done when testing! It currently only
- supports 
-\emph on
-sander
-\emph default
- and 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions) but not 
-\emph on
-pmemd.cuda
-\emph default
-.
- It is currently only compatible with the Particle Mesh Ewald method for
- long-range electrostatics.
- For more information please see 
-\begin_inset CommandInset ref
-LatexCommand formatted
-reference "sec:Ions"
-
-\end_inset
-
-.
- For adding it to your topology file, see 
-\begin_inset CommandInset ref
-LatexCommand formatted
-reference "subsec:add12_6_4_parmed"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-efx
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-efx
-\end_layout
-
-\end_inset
-
-
-\series default
- This sets the x component of the electric field in kcal/(mol*A*e).
- Electric fields are naturally off if efx, efy, efz are 0.
- Default value is 0.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-efy
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-efy
-\end_layout
-
-\end_inset
-
- This sets the y component of the electric field in kcal/(mol*A*e).
- Electric fields are naturally off if efx, efy, efz are 0.
- Default value is 0.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-efz
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-efz
-\end_layout
-
-\end_inset
-
- This sets the z component of the electric field in kcal/(mol*A*e).
- Electric fields are naturally off if efx, efy, efz are 0.
- Default value is 0.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-efn
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-efx
-\end_layout
-
-\end_inset
-
-
-\series default
- If efn is on (efn=1), the x, y, z (efx, efy, efz) components are scaled
- to box size.
- For example efx/x length of box size, efy/y length of box size, efz/z length
- of box size.
- This normalizes the electric field charge to your box size.
- It is off when it is 0.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-efphase
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-efphase
-\end_layout
-
-\end_inset
-
-
-\series default
- efphase sets the timestep phase for the electric field using the equation
-\begin_inset Formula $\cos\left((2\pi\times effreq/1000)(dt\times step)-(\pi\times efphase/180)\right)$
-\end_inset
-
-.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-effreq
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-effreq
-\end_layout
-
-\end_inset
-
- effreq sets the timestep frequency for the electric field using the equation
- 
-\begin_inset Formula $\cos\left((2\pi\times effreq/1000)(dt\times step)-(\pi\times efphase/180)\right)$
-\end_inset
-
-.
- It currently only supports 
-\emph on
-pmemd
-\emph default
- (both the serial and MPI versions).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mcwat
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-mcwat
-\end_layout
-
-\end_inset
-
-
-\series default
- controls the Monte Carlo (MC) water equilibration function.
- Set 1 to run, 0 otherwise.
- mcint, mcrescyc, mcwatmaxdif, and mcboxshift are variables control the
- frequency and functionality of this feature.
- Currently only supported on 
-\emph on
-pmemd 
-\emph default
-and 
-\emph on
-pmemd.cuda.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mcint
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-mcint
-\end_layout
-
-\end_inset
-
- Number of MD steps between each cycle of MC.
- Preliminary recommendation is 1,000.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mcrescyc
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-mcrescyc
-\end_layout
-
-\end_inset
-
-
-\series default
- Number of MC move attempts in each MC cycle.
- Preliminary recommendation is 10,000-100,000.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mcwatmaxdif
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-mcwatmaxdiff
-\end_layout
-
-\end_inset
-
- Sets the maximum absolute difference for MC acceptance between old and
- new energy in kcal/mol (recommended value 100).
- This variable is intended to prevent artifacts from numerical “rollover”,
- where an energy is so high, due to a severe clash at the trial water position,
- that Fortran rolls it over to a large negative value which would be accepted
- by the Metropolis criterion.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mcboxshift
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-mcboxshift
-\end_layout
-
-\end_inset
-
-
-\series default
- Trims the region in which waters are moved away from the edges of the simulatio
-n box, to reduce the number of uninteresting “bulk to bulk” moves, and instead
- focus on moves connecting bulk with the solute at the middle of the box..
- If the system was prepared with cubic periodic boundary conditions with
- an equal amount of solvent padding along all three axes, it is recommended
- that this value be set to amount of padding (default is 10 Angstroms).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdboost
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdboost
-\end_layout
-
-\end_inset
-
-
-\series default
- Sets default random boost acceleration for ramd (default 1).
- This boost is multiplied by the mass of each atom in the ligand to determine
- the force each atom receives.
- This value is in internal acceleration units refer to the Amber units.
- Ramd is a pmemd and pmemd.cuda only feature and does not support MPI.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdboostfreq
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdboostfreq
-\end_layout
-
-\end_inset
-
-
-\series default
- Sets number of steps between each time ramd boost strength is increased
- (defualt 0).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdboostrate
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdboostrate
-\end_layout
-
-\end_inset
-
-
-\series default
- Sets the amount to increase the ramdboost acceleration each time ramdboostfreq
- (default is 0).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdint
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdint
-\end_layout
-
-\end_inset
-
-
-\series default
- Sets the time step interval to apply ramd boost on to the ligand (default
- is 0).
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdmaxdist
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdmaxdist
-\end_layout
-
-\end_inset
-
-
-\series default
- Determines the end condition for the simulation (ramd terminates when nstlim
- is reached or when ramdmaxdist is satisfied).
- ramdmaxdist is the amount of angstrom displacement from initial center
- of mass distance of protein and ligand to when this displacement increases
- by ramdmaxdist.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdligmask
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdligmask
-\end_layout
-
-\end_inset
-
-
-\series default
- Amber selection mask for what is considered the ligand that needs to be
- boosted in ramd.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ramdprotmask
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdprotmask
-\end_layout
-
-\end_inset
-
-
-\series default
- Amber selection mask for what is considered the protein that is used to
- calculate the distance the ligand has moved.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-reweight
-\series bold
-
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ramdprotmask
-\end_layout
-
-\end_inset
-
-
-\series default
- Allows the re-evaluation of trajectories (usually with a new parameter
- file).
- Set 1 to turn on.
- When running this command, in the topology command of the run file (-c)
- place the trajectory instead of the topology file.
- This supports netcdf only.
- Do note if matching against an older run, this does not capture step 0
- because step 0 usually evaluates off of the topology which the trajectory
- generally does not contain.
- It is recommended to rerun with the same parameter file to check if the
- feature is working as intended before proceeding with a modified parameter
- topology file as Amber has a lot of features and not all of them were tested
- for this feature (was primarily written for TI calculation reweighting).
- Reweight is supported in pmemd and pmemd.cuda, and does not support MPI.
+ potential, so this should only be done when testing!.
 \end_layout
 
 \begin_layout Subsection
@@ -7760,6 +5926,11 @@ SHIFTS Varies the overall weight for chemical shift restraints.
  array.
  (Only if NMROPT=2; see section 4 below).
  
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+XRAY Varies the xray_weight restraint weight.
 \end_layout
 
 \begin_layout Labeling
@@ -26936,469 +25107,6 @@ use_template
 \end_layout
 
 \end_deeper
-\begin_layout Chapter
-Setting up crystal simulations
-\begin_inset CommandInset label
-LatexCommand label
-name "chap:crystals"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\align center
-
-\emph on
-David S.
- Cerutti
-\end_layout
-
-\begin_layout Standard
-Simulations of biomolecular crystals are in principle no different than
- any of the simulations that AMBER does in periodic boundary conditions.
- However, the setup of these systems is not trivial and probably cannot
- be accomplished with the LEaP software.
- Of principal importance are the construction of the solvent conditions
- (packing precise amounts of multiple solvent species into the simulation
- cell), and tailoring the unit cell dimensions to accommodate the inherently
- periodic nature of the system.
- The LEaP software, designed to construct simulations of molecules in solution,
- will overlay a pre-equilibrated solvent mask over the (biomolecular) solute,
- tile that mask throughout the simulation cell, and then prune solvent residues
- which clash with the solute.
- The result of this procedure is a system which will likely contract under
- constant pressure dynamics as the pruning process has left vacuum bubbles
- at the solute:solvent interface.
- Simulations of biomolecular crystals require that the simulation cell begin
- at a size corresponding to the crystallographic unit cell, and deviate
- very little from that size over the course of equilibration and onset of
- constant pressure dynamics.
- This demands a different strategy for placing solvent in the simulation
- cell.
- Four programs in the 
-\emph on
-AmberTools
-\emph default
- release are designed to accomplish this.
- An example of their use in given in a web-based tutorial at 
-\emph on
-https://ambermd.org/tutorials/advanced/tutorial13/XtalTutor1.html 
-\emph default
-.
- A recent (2018) review of crystal simulations is also worth consulting.
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Cerutti18"
-literal "true"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-For brevity, only basic descriptions of the programs are given in this manual.
- All of the programs may be run with command line input; the input options
- to each program may be listed by running each program with no arguments.
-\end_layout
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:UnitCell"
-
-\end_inset
-
-UnitCell
-\end_layout
-
-\begin_layout Standard
-A macromolecular crystal contains many repeating unit cells which stack
- like blocks in three dimensional space just as simulation cells do in periodic
- boundary conditions.
- Each unit cell, in turn, may contain multiple symmetry-related clusters
- of atoms.
- A PDB file contains one set of coordinates for the irreducible unit of
- the crystal, the 
-\begin_inset Quotes eld
-\end_inset
-
-asymmetric unit,
-\begin_inset Quotes erd
-\end_inset
-
- and also information about the crystal space group and unit cell dimensions.
- The 
-\emph on
-UnitCell
-\emph default
- program reads PDB files, seeking the SMTRY records within the REMARKs to
- enumerate the rotation and translation operations which may be applied
- to the coordinates given in the PDB file to reconstruct one complete unit
- cell.
-\end_layout
-
-\begin_layout Standard
-Usage of the 
-\shape italic
-UnitCell
-\shape default
- program is as follows.
- The simple command rests on a critical assumption, that the PDB file contains
- an accurate CRYST1 record and that the REMARK 290 SMTRY records provide
- its space group symmetry operations.
- 
-\end_layout
-
-\begin_layout LyX-Code
-UnitCell -p MyProtein.pdb -o UnitCell.pdb
-\end_layout
-
-\begin_layout Section
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:PropPDB"
-
-\end_inset
-
-PropPDB
-\end_layout
-
-\begin_layout Standard
-Simulations in periodic boundary conditions require a minimum unit cell
- size: the simulation cell must be able to enclose a sphere of at least
- the nonbonded direct space cutoff radius plus a small buffer region for
- nonbonded pairlist updates.
- Many biomolecular crystal unit cells come in 
-\begin_inset Quotes eld
-\end_inset
-
-shoebox
-\begin_inset Quotes erd
-\end_inset
-
- dimensions that may have one very short side; many unit cells are also
- not rectangular but triclinic, meaning that the size of the largest sphere
- they can enclose is further reduced.
- The workhorse simulation engine, pmemd.cuda, even requires that the simulation
- cell be at least three times as thick as the cutoff plus some buffer margin
- in order to run safely: for typical sum conditions this thickness is about
- 30Å.
- For these reasons, and perhaps to ensure that the rigid symmetry imposed
- by periodic boundary conditions does not create artifacts (crystallographic
- unit cells are equivalent when averaged over all time and space, but are
- not necessarily identical at any given moment), it may be necessary to
- include multiple unit cells within the simulation cell.
- This is the purpose of the 
-\emph on
-PropPDB
-\emph default
- program: to propagate a unit cell in one or more directions so that the
- complete simulation cell meets minimum size requirements.
-\end_layout
-
-\begin_layout Standard
-Drawing on the hypothetical example above, if the unit cell is too small
- we can extend it in the 
-\shape italic
-x
-\shape default
- and 
-\shape italic
-z
-\shape default
- dimensions:
-\end_layout
-
-\begin_layout LyX-Code
-PropPDB -p UnitCell -o ExpandedCell.pdb -ix 2 -iy 1 -iz 2
-\end_layout
-
-\begin_layout Section
-AddToBox
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:AddToBox"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The 
-\emph on
-AddToBox
-\emph default
- program handles placement of solvent within a crystal unit cell or supercell
- (as may be created by PropPDB).
- As described in the introduction, the basic strategy is to place solvent
- such that added solvent molecules do not clash with biomolecule solutes,
- but 
-\shape italic
-may
-\shape default
- clash with one another initially.
- This compromise is necessary because enough solvent must be added to the
- system to ensure that the correct unit cell dimensions are maintained in
- the long run, but it is not acceptable to place solvent within the interior
- of a biomolecule where it might not belong and never escape.
-\end_layout
-
-\begin_layout Standard
-The 
-\emph on
-AddToBox
-\emph default
- program takes a PDB file providing the coordinates of a complete biomolecular
- unit cell or supercell (argument -c), the dimensions by which that supercell
- repeats in space (the unit cell dimensions are taken from the CRYST1 record
- of this file), a PDB file describing the solvent residue to add (argument
- -a), and the number of copies of that solvent molecule to add (argument
- -na).
- 
-\emph on
-AddToBox
-\emph default
- inherently assumes that the biomolecular unit cell it is initially presented
- may contain some amount of solvent already, and according to the AMBER
- convention of listing macromolecular solute atoms first and solvent last
- assumes that the first -P atoms in the file are the protein (or biomolecule).
- 
-\emph on
-AddToBox
-\emph default
- will then color a very fine grid 
-\begin_inset Quotes eld
-\end_inset
-
-black
-\begin_inset Quotes erd
-\end_inset
-
- if the grid point is within a certain distance of a biomolecular atom (argument
- -RP, default 5.0Å) or other solvent atom (argument -RW, default 1.0Å); the
- grid is 
-\begin_inset Quotes eld
-\end_inset
-
-white
-\begin_inset Quotes erd
-\end_inset
-
- otherwise (the grid is stored in binary for memory efficiency).
- 
-\emph on
-AddToBox
-\emph default
- will the make a copy of the solvent residue and randomly rotate and translate
- it somewhere within the unit cell.
- If all atoms of the solvent residue land on 
-\begin_inset Quotes eld
-\end_inset
-
-white
-\begin_inset Quotes erd
-\end_inset
-
- grid voxels, the solvent molecule will become part of the system and the
- grid around the newly added solvent will be blacked out accordingly.
- If the solvent molecule cannot be placed, this process will be repeated
- until a million consecutive failures are encountered, at which point the
- program will terminate.
- If 
-\emph on
-AddToBox
-\emph default
- has not placed the requested number of solvent molecules by the time it
- terminates, the -V option can be used to order the program to recursively
- call itself with progressively smaller solvent buffer distances until all
- the requested solvent can be placed.
- The output of the 
-\emph on
-AddToBox
-\emph default
- program is another PDB named by the -o option.
-\end_layout
-
-\begin_layout Standard
-Successful operation of 
-\emph on
-AddToBox
-\emph default
- may take practice.
- If multiple solvent species are required, as is the case with heterogeneous
- crystallization solutions, 
-\emph on
-AddToBox
-\emph default
- may be called repeatedly with each input molecular cell being the previous
- call's output.
- When considering crystal solvation, the order of addition is important!
- It is recommended that rare species, such as trace buffer reagents, be
- added first, with large -RW argument to ensure that they are dispersed
- throughout the available crystal void zones.
- Large solvent species such as MPD (an isohexane diol commonly used in crystalli
-zation conditions) should be added second, and with a sufficiently large
- -RW argument that methyl groups and ring systems cannot become interlocked
- (which will likely lead to SHAKE / vlimit errors).
- Small and abundant species such as water should be added last, as they
- can go anywhere that space remains.
-\end_layout
-
-\begin_layout Standard
-Below is an example of the usage for a hypothetical protein with 5431 atoms
- and a net charge of +6 that is to be neutralized with ammonium sulfate:
-\end_layout
-
-\begin_layout LyX-Code
-AddToBox -c ExpandedCell.pdb -a Sulfate.pdb -na 18 -RP 3.0 -P 5431 -o System.pdb
-\end_layout
-
-\begin_layout LyX-Code
-AddToBox -c System.pdb -a Ammonium.pdb -na 30 -RP 3.0 -P 5431 -o System.pdb
-\end_layout
-
-\begin_layout LyX-Code
-AddToBox -c System.pdb -a Water.pdb -na 1089 -RP 3.0 -P 5431 -o System.pdb
-\end_layout
-
-\begin_layout Standard
-The use of the -V flag ensures that the desired amounts of each species
- are included.
- The protein clipping radius of 3Å is lower than the default, but safe (remember
-, this radius stipulates that no solvent atom, regardless of the size of
- the solvent molecule, come within 3Å of the protein).
- Note how the original protein PDB file serves as the base for system, but
- thereafter we work with the System.pdb to accumulate more solvent particles.
- Here, the ammonium sulfate serves both to neutralize the system and replicate
- a salty bath, perhaps from a crystallization mother liquor, hence the break
- from the usual 2:1 stoichiometry of ammonium sulfate ions.
-\end_layout
-
-\begin_layout Standard
-It is likely that the unobservable 
-\begin_inset Quotes eld
-\end_inset
-
-void
-\begin_inset Quotes erd
-\end_inset
-
- regions between biomolecules in most crystals 
-\shape italic
-do not
-\shape default
- contain solvent species in proportion to their abundance in the crystallization
- solution–the vast majority of these regions are within a few Ångstroms
- of some biomolecular surface, and different biomolecular functional groups
- will preferentially interact with some types of solvent over others.
- Also, in many crystals some solvent molecules 
-\shape italic
-are
-\shape default
- observed; in many of these, the amount of solvent observed is such that
- it would be impossible to pack other species into the unit cell in proportion
- to their abundances in the crystallization fluid.
- In these cases, we recommend estimating the amount of volume that must
- be filled with solvent 
-\shape italic
-apart from solvent which has already been observed in the crystal
-\shape default
-, and filling this void with solvent in proportion to the composition of
- the crystallization fluid.
- For example, if a crystal were grown in a 1:1 mole-to-mole water/ethanol
- mixture, and the crystal coordinates as deposited in the PDB contained
- 500 water molecules and 3 ethanol molecules, we would use 
-\emph on
-AddToBox
-\emph default
- to add water and ethanol in a 1:1 ratio until the system contained enough
- solvent to maintain the correct volume during equilibrium dynamics at constant
- pressure.
-\end_layout
-
-\begin_layout Standard
-Finally, it is difficult to estimate exactly how much solvent will be needed
- to maintain the correct equilibrium volume; the advisable approach is simply
- to make an initial guess and script the setup so that, over multiple runs
- and reconstructions, the correct system composition can be found.
- We recommend matching the equilibrium unit cell volume to within 0.3% to
- keep this simulation parameter within the error of most crystallographic
- measurements.
- While errors of 0.5-1% will show up quickly after constant pressure dynamics
- begin, a 10 to 20ns simulation may be needed to ensure that the correct
- equilibrium volume has been achieved.
-\end_layout
-
-\begin_layout Section
-ChBox
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:ChBox"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-After the complex process of adding solvent, the LEaP program may be used
- to produce a topology and initial set of coordinates based on the PDB file
- produced by 
-\emph on
-AddToBox
-\emph default
-.
- By using the 
-\shape italic
-SetBox
-\shape default
- command, LEaP will create a periodic system without adding any more solvent
- on its own.
- The only problem with using LEaP at this point is that the program will
- fail to realize that the system 
-\shape italic
-does
-\shape default
- tile in three dimensions if only the box dimensions are set properly.
- If visualized, the output of UnitCell / PropPDB will likely look jagged,
- but the output of 
-\emph on
-AddToBox
-\emph default
-, containing lots of added water, will make it obvious how parts of biomolecules
- jutting out one face of the box fit neatly into open spaces on an opposite
- face.
- The topology produced by LEaP needs no editing; only the last line of the
- coordinates does.
- This can be done manually, but the 
-\emph on
-ChBox
-\emph default
- program automates the process, taking the same coordinates supplied to
- AddToBox and grafting them into the input coordinates file.
-\end_layout
-
-\begin_layout Standard
-The program is even unnecessary in the case of orthorhombic (rectangular)
- unit cells, as this the tleap command will substitute:
-\end_layout
-
-\begin_layout LyX-Code
-set [unit] box { <x> <y> <z> }
-\end_layout
-
-\begin_layout Standard
-For cells that do not have only 90-degree box angles, 
-\shape italic
-ChBox
-\shape default
- will do the trick.
-\end_layout
-
 \begin_layout Chapter
 Atom and Residue Selections
 \begin_inset CommandInset label
@@ -50313,6 +48021,469 @@ molfit='scratch/gb1c_1.pdb', / (final restrained atoms related to initial
 \end_layout
 
 \begin_layout Section
+Setting up crystal simulations
+\begin_inset CommandInset label
+LatexCommand label
+name "chap:crystals"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\emph on
+David S.
+ Cerutti
+\end_layout
+
+\begin_layout Standard
+Simulations of biomolecular crystals are in principle no different than
+ any of the simulations that AMBER does in periodic boundary conditions.
+ However, the setup of these systems is not trivial and probably cannot
+ be accomplished with the LEaP software.
+ Of principal importance are the construction of the solvent conditions
+ (packing precise amounts of multiple solvent species into the simulation
+ cell), and tailoring the unit cell dimensions to accommodate the inherently
+ periodic nature of the system.
+ The LEaP software, designed to construct simulations of molecules in solution,
+ will overlay a pre-equilibrated solvent mask over the (biomolecular) solute,
+ tile that mask throughout the simulation cell, and then prune solvent residues
+ which clash with the solute.
+ The result of this procedure is a system which will likely contract under
+ constant pressure dynamics as the pruning process has left vacuum bubbles
+ at the solute:solvent interface.
+ Simulations of biomolecular crystals require that the simulation cell begin
+ at a size corresponding to the crystallographic unit cell, and deviate
+ very little from that size over the course of equilibration and onset of
+ constant pressure dynamics.
+ This demands a different strategy for placing solvent in the simulation
+ cell.
+ Four programs in the 
+\emph on
+AmberTools
+\emph default
+ release are designed to accomplish this.
+ An example of their use in given in a web-based tutorial at 
+\emph on
+https://ambermd.org/tutorials/advanced/tutorial13/XtalTutor1.html 
+\emph default
+.
+ A recent (2018) review of crystal simulations is also worth consulting.
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Cerutti18"
+literal "true"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For brevity, only basic descriptions of the programs are given in this manual.
+ All of the programs may be run with command line input; the input options
+ to each program may be listed by running each program with no arguments.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:UnitCell"
+
+\end_inset
+
+UnitCell
+\end_layout
+
+\begin_layout Standard
+A macromolecular crystal contains many repeating unit cells which stack
+ like blocks in three dimensional space just as simulation cells do in periodic
+ boundary conditions.
+ Each unit cell, in turn, may contain multiple symmetry-related clusters
+ of atoms.
+ A PDB file contains one set of coordinates for the irreducible unit of
+ the crystal, the 
+\begin_inset Quotes eld
+\end_inset
+
+asymmetric unit,
+\begin_inset Quotes erd
+\end_inset
+
+ and also information about the crystal space group and unit cell dimensions.
+ The 
+\emph on
+UnitCell
+\emph default
+ program reads PDB files, seeking the SMTRY records within the REMARKs to
+ enumerate the rotation and translation operations which may be applied
+ to the coordinates given in the PDB file to reconstruct one complete unit
+ cell.
+\end_layout
+
+\begin_layout Standard
+Usage of the 
+\shape italic
+UnitCell
+\shape default
+ program is as follows.
+ The simple command rests on a critical assumption, that the PDB file contains
+ an accurate CRYST1 record and that the REMARK 290 SMTRY records provide
+ its space group symmetry operations.
+ 
+\end_layout
+
+\begin_layout LyX-Code
+UnitCell -p MyProtein.pdb -o UnitCell.pdb
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:PropPDB"
+
+\end_inset
+
+PropPDB
+\end_layout
+
+\begin_layout Standard
+Simulations in periodic boundary conditions require a minimum unit cell
+ size: the simulation cell must be able to enclose a sphere of at least
+ the nonbonded direct space cutoff radius plus a small buffer region for
+ nonbonded pairlist updates.
+ Many biomolecular crystal unit cells come in 
+\begin_inset Quotes eld
+\end_inset
+
+shoebox
+\begin_inset Quotes erd
+\end_inset
+
+ dimensions that may have one very short side; many unit cells are also
+ not rectangular but triclinic, meaning that the size of the largest sphere
+ they can enclose is further reduced.
+ The workhorse simulation engine, pmemd.cuda, even requires that the simulation
+ cell be at least three times as thick as the cutoff plus some buffer margin
+ in order to run safely: for typical sum conditions this thickness is about
+ 30Å.
+ For these reasons, and perhaps to ensure that the rigid symmetry imposed
+ by periodic boundary conditions does not create artifacts (crystallographic
+ unit cells are equivalent when averaged over all time and space, but are
+ not necessarily identical at any given moment), it may be necessary to
+ include multiple unit cells within the simulation cell.
+ This is the purpose of the 
+\emph on
+PropPDB
+\emph default
+ program: to propagate a unit cell in one or more directions so that the
+ complete simulation cell meets minimum size requirements.
+\end_layout
+
+\begin_layout Standard
+Drawing on the hypothetical example above, if the unit cell is too small
+ we can extend it in the 
+\shape italic
+x
+\shape default
+ and 
+\shape italic
+z
+\shape default
+ dimensions:
+\end_layout
+
+\begin_layout LyX-Code
+PropPDB -p UnitCell -o ExpandedCell.pdb -ix 2 -iy 1 -iz 2
+\end_layout
+
+\begin_layout Subsection
+AddToBox
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:AddToBox"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+AddToBox
+\emph default
+ program handles placement of solvent within a crystal unit cell or supercell
+ (as may be created by PropPDB).
+ As described in the introduction, the basic strategy is to place solvent
+ such that added solvent molecules do not clash with biomolecule solutes,
+ but 
+\shape italic
+may
+\shape default
+ clash with one another initially.
+ This compromise is necessary because enough solvent must be added to the
+ system to ensure that the correct unit cell dimensions are maintained in
+ the long run, but it is not acceptable to place solvent within the interior
+ of a biomolecule where it might not belong and never escape.
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+AddToBox
+\emph default
+ program takes a PDB file providing the coordinates of a complete biomolecular
+ unit cell or supercell (argument -c), the dimensions by which that supercell
+ repeats in space (the unit cell dimensions are taken from the CRYST1 record
+ of this file), a PDB file describing the solvent residue to add (argument
+ -a), and the number of copies of that solvent molecule to add (argument
+ -na).
+ 
+\emph on
+AddToBox
+\emph default
+ inherently assumes that the biomolecular unit cell it is initially presented
+ may contain some amount of solvent already, and according to the AMBER
+ convention of listing macromolecular solute atoms first and solvent last
+ assumes that the first -P atoms in the file are the protein (or biomolecule).
+ 
+\emph on
+AddToBox
+\emph default
+ will then color a very fine grid 
+\begin_inset Quotes eld
+\end_inset
+
+black
+\begin_inset Quotes erd
+\end_inset
+
+ if the grid point is within a certain distance of a biomolecular atom (argument
+ -RP, default 5.0Å) or other solvent atom (argument -RW, default 1.0Å); the
+ grid is 
+\begin_inset Quotes eld
+\end_inset
+
+white
+\begin_inset Quotes erd
+\end_inset
+
+ otherwise (the grid is stored in binary for memory efficiency).
+ 
+\emph on
+AddToBox
+\emph default
+ will the make a copy of the solvent residue and randomly rotate and translate
+ it somewhere within the unit cell.
+ If all atoms of the solvent residue land on 
+\begin_inset Quotes eld
+\end_inset
+
+white
+\begin_inset Quotes erd
+\end_inset
+
+ grid voxels, the solvent molecule will become part of the system and the
+ grid around the newly added solvent will be blacked out accordingly.
+ If the solvent molecule cannot be placed, this process will be repeated
+ until a million consecutive failures are encountered, at which point the
+ program will terminate.
+ If 
+\emph on
+AddToBox
+\emph default
+ has not placed the requested number of solvent molecules by the time it
+ terminates, the -V option can be used to order the program to recursively
+ call itself with progressively smaller solvent buffer distances until all
+ the requested solvent can be placed.
+ The output of the 
+\emph on
+AddToBox
+\emph default
+ program is another PDB named by the -o option.
+\end_layout
+
+\begin_layout Standard
+Successful operation of 
+\emph on
+AddToBox
+\emph default
+ may take practice.
+ If multiple solvent species are required, as is the case with heterogeneous
+ crystallization solutions, 
+\emph on
+AddToBox
+\emph default
+ may be called repeatedly with each input molecular cell being the previous
+ call's output.
+ When considering crystal solvation, the order of addition is important!
+ It is recommended that rare species, such as trace buffer reagents, be
+ added first, with large -RW argument to ensure that they are dispersed
+ throughout the available crystal void zones.
+ Large solvent species such as MPD (an isohexane diol commonly used in crystalli
+zation conditions) should be added second, and with a sufficiently large
+ -RW argument that methyl groups and ring systems cannot become interlocked
+ (which will likely lead to SHAKE / vlimit errors).
+ Small and abundant species such as water should be added last, as they
+ can go anywhere that space remains.
+\end_layout
+
+\begin_layout Standard
+Below is an example of the usage for a hypothetical protein with 5431 atoms
+ and a net charge of +6 that is to be neutralized with ammonium sulfate:
+\end_layout
+
+\begin_layout LyX-Code
+AddToBox -c ExpandedCell.pdb -a Sulfate.pdb -na 18 -RP 3.0 -P 5431 -o System.pdb
+\end_layout
+
+\begin_layout LyX-Code
+AddToBox -c System.pdb -a Ammonium.pdb -na 30 -RP 3.0 -P 5431 -o System.pdb
+\end_layout
+
+\begin_layout LyX-Code
+AddToBox -c System.pdb -a Water.pdb -na 1089 -RP 3.0 -P 5431 -o System.pdb
+\end_layout
+
+\begin_layout Standard
+The use of the -V flag ensures that the desired amounts of each species
+ are included.
+ The protein clipping radius of 3Å is lower than the default, but safe (remember
+, this radius stipulates that no solvent atom, regardless of the size of
+ the solvent molecule, come within 3Å of the protein).
+ Note how the original protein PDB file serves as the base for system, but
+ thereafter we work with the System.pdb to accumulate more solvent particles.
+ Here, the ammonium sulfate serves both to neutralize the system and replicate
+ a salty bath, perhaps from a crystallization mother liquor, hence the break
+ from the usual 2:1 stoichiometry of ammonium sulfate ions.
+\end_layout
+
+\begin_layout Standard
+It is likely that the unobservable 
+\begin_inset Quotes eld
+\end_inset
+
+void
+\begin_inset Quotes erd
+\end_inset
+
+ regions between biomolecules in most crystals 
+\shape italic
+do not
+\shape default
+ contain solvent species in proportion to their abundance in the crystallization
+ solution–the vast majority of these regions are within a few Ångstroms
+ of some biomolecular surface, and different biomolecular functional groups
+ will preferentially interact with some types of solvent over others.
+ Also, in many crystals some solvent molecules 
+\shape italic
+are
+\shape default
+ observed; in many of these, the amount of solvent observed is such that
+ it would be impossible to pack other species into the unit cell in proportion
+ to their abundances in the crystallization fluid.
+ In these cases, we recommend estimating the amount of volume that must
+ be filled with solvent 
+\shape italic
+apart from solvent which has already been observed in the crystal
+\shape default
+, and filling this void with solvent in proportion to the composition of
+ the crystallization fluid.
+ For example, if a crystal were grown in a 1:1 mole-to-mole water/ethanol
+ mixture, and the crystal coordinates as deposited in the PDB contained
+ 500 water molecules and 3 ethanol molecules, we would use 
+\emph on
+AddToBox
+\emph default
+ to add water and ethanol in a 1:1 ratio until the system contained enough
+ solvent to maintain the correct volume during equilibrium dynamics at constant
+ pressure.
+\end_layout
+
+\begin_layout Standard
+Finally, it is difficult to estimate exactly how much solvent will be needed
+ to maintain the correct equilibrium volume; the advisable approach is simply
+ to make an initial guess and script the setup so that, over multiple runs
+ and reconstructions, the correct system composition can be found.
+ We recommend matching the equilibrium unit cell volume to within 0.3% to
+ keep this simulation parameter within the error of most crystallographic
+ measurements.
+ While errors of 0.5-1% will show up quickly after constant pressure dynamics
+ begin, a 10 to 20ns simulation may be needed to ensure that the correct
+ equilibrium volume has been achieved.
+\end_layout
+
+\begin_layout Subsection
+ChBox
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:ChBox"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+After the complex process of adding solvent, the LEaP program may be used
+ to produce a topology and initial set of coordinates based on the PDB file
+ produced by 
+\emph on
+AddToBox
+\emph default
+.
+ By using the 
+\shape italic
+SetBox
+\shape default
+ command, LEaP will create a periodic system without adding any more solvent
+ on its own.
+ The only problem with using LEaP at this point is that the program will
+ fail to realize that the system 
+\shape italic
+does
+\shape default
+ tile in three dimensions if only the box dimensions are set properly.
+ If visualized, the output of UnitCell / PropPDB will likely look jagged,
+ but the output of 
+\emph on
+AddToBox
+\emph default
+, containing lots of added water, will make it obvious how parts of biomolecules
+ jutting out one face of the box fit neatly into open spaces on an opposite
+ face.
+ The topology produced by LEaP needs no editing; only the last line of the
+ coordinates does.
+ This can be done manually, but the 
+\emph on
+ChBox
+\emph default
+ program automates the process, taking the same coordinates supplied to
+ AddToBox and grafting them into the input coordinates file.
+\end_layout
+
+\begin_layout Standard
+The program is even unnecessary in the case of orthorhombic (rectangular)
+ unit cells, as this the tleap command will substitute:
+\end_layout
+
+\begin_layout LyX-Code
+set [unit] box { <x> <y> <z> }
+\end_layout
+
+\begin_layout Standard
+For cells that do not have only 90-degree box angles, 
+\shape italic
+ChBox
+\shape default
+ will do the trick.
+\end_layout
+
+\begin_layout Section
 X-ray functionality and diffraction-based restraints
 \end_layout
 
@@ -51314,8 +49485,13 @@ xray_weight_initial
 )
 \end_layout
 
+\begin_layout Section
+Preparing inputs X-ray refinement
+\end_layout
+
 \begin_layout Standard
-\begin_inset Newpage cleardoublepage
+Coming(?!)....
+\begin_inset Newpage pagebreak
 \end_inset
 
 
