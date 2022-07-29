@@ -226,19 +226,6 @@ cpparm.LES.o:   cpparm.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ cpparm.F90
 
-crg_reloc.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    parallel.h\
-                    constants.o\
-                    box.h\
-                    nonbond_list.o
-
-
-crg_reloc.o:   crg_reloc.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ crg_reloc.F90
-
 csa.o: \
                     ../include/dprec.fh\
                     file_io_dat.o\
@@ -383,7 +370,6 @@ dynlib.o: \
                     xray_globals.o\
                     state.o\
                     charmm.o\
-                    crg_reloc.o\
                     sglds.o\
                     ips.o\
                     emap.o\
@@ -419,7 +405,6 @@ dynlib.LES.o: \
                     xray_globals.o\
                     state.o\
                     charmm.o\
-                    crg_reloc.o\
                     sglds.o\
                     ips.o\
                     emap.o\
@@ -454,7 +439,6 @@ dynlib.API.o: \
                     xray_globals.o\
                     state.o\
                     charmm.API.o\
-                    crg_reloc.o\
                     sglds.o\
                     ips.o\
                     emap.o\
@@ -489,7 +473,6 @@ dynlib.LESAPI.o: \
                     xray_globals.o\
                     state.o\
                     charmm.o\
-                    crg_reloc.o\
                     sglds.o\
                     ips.o\
                     emap.o\
@@ -515,7 +498,6 @@ egb.o: \
                     qmmm_module.o\
                     parms.o\
                     constants.o\
-                    crg_reloc.o\
                     mdfil.o\
                     les.o\
                     remd.o\
@@ -537,7 +519,6 @@ egb.LES.o: \
                     qmmm_module.o\
                     parms.o\
                     constants.o\
-                    crg_reloc.o\
                     mdfil.LES.o\
                     les.o\
                     remd.LES.o\
@@ -582,7 +563,6 @@ ene.o: \
                     flocntrl.h\
                     constants.o\
                     charmm.o\
-                    crg_reloc.o\
                     amd.o\
                     mdfil.o\
                     ../include/memory.h\
@@ -611,7 +591,6 @@ ene.LES.o: \
                     flocntrl.h\
                     constants.o\
                     charmm.o\
-                    crg_reloc.o\
                     amd.o\
                     mdfil.LES.o\
                     ../include/memory.h\
@@ -767,7 +746,6 @@ ew_force.o: \
                     ew_frc.h\
                     ew_parallel.h\
                     parallel.h\
-                    crg_reloc.o\
                     flocntrl.h\
                     linear_response.o
 
@@ -803,7 +781,6 @@ ew_force.LES.o: \
                     ew_frc.h\
                     ew_parallel.h\
                     parallel.h\
-                    crg_reloc.o\
                     flocntrl.h\
                     linear_response.o
 
@@ -826,7 +803,6 @@ ew_recip.o: \
                     ew_parallel.h\
                     constants.o\
                     qmmm_module.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     ../include/md.h\
                     extra.h
@@ -851,7 +827,6 @@ ew_recip.LES.o: \
                     ew_parallel.h\
                     constants.o\
                     qmmm_module.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     ../include/md.h\
                     extra.h
@@ -984,7 +959,6 @@ extra_pts.o: \
                     extra_pts.h\
                     ew_cntrl.h\
                     constants.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     softcore.o\
                     flocntrl.h\
@@ -1003,7 +977,6 @@ extra_pts.LES.o: \
                     extra_pts.h\
                     ew_cntrl.h\
                     constants.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     softcore.o\
                     flocntrl.h\
@@ -1021,7 +994,6 @@ extra_pts.API.o: \
                     extra_pts.h\
                     ew_cntrl.h\
                     constants.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     softcore.o\
                     flocntrl.h\
@@ -1039,7 +1011,6 @@ extra_pts.LESAPI.o: \
                     extra_pts.h\
                     ew_cntrl.h\
                     constants.o\
-                    crg_reloc.o\
                     file_io_dat.o\
                     softcore.o\
                     flocntrl.h\
@@ -1123,7 +1094,6 @@ force.o: \
                     xray_globals.o\
                     charmm.o\
                     state.o\
-                    crg_reloc.o\
                     music_module.o\
                     def_time.h\
                     ew_frc.h\
@@ -1174,7 +1144,6 @@ force.LES.o: \
                     xray_globals.o\
                     charmm.o\
                     state.o\
-                    crg_reloc.o\
                     music_module.o\
                     def_time.h\
                     ew_frc.h\
@@ -1204,6 +1173,7 @@ getcor.o: \
                     file_io_dat.o\
                     sander_lib.o\
                     remd.o\
+                    sglds.o\
                     ew_cntrl.h
 
 
@@ -1220,6 +1190,7 @@ getcor.LES.o: \
                     file_io_dat.o\
                     sander_lib.o\
                     remd.LES.o\
+                    sglds.o\
                     ew_cntrl.h
 
 getcor.LES.o:   getcor.F90
@@ -1249,7 +1220,6 @@ interface.o: \
                     les.o\
                     stack.o\
                     nmr.o\
-                    crg_reloc.o\
                     sglds.o\
                     amd.o\
                     scaledMD.o\
@@ -1309,7 +1279,6 @@ interface.LESAPI.o: \
                     les.o\
                     stack.o\
                     nmr.o\
-                    crg_reloc.o\
                     sglds.o\
                     amd.o\
                     scaledMD.o\
@@ -1381,7 +1350,6 @@ interface_setup.F90: \
                     memory_module.o\
                     sglds.o\
                     ips.o\
-                    crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
                     barostats.o\
@@ -1469,6 +1437,8 @@ lmod.o: \
                     constants.o\
                     bintraj.o\
                     extra.h\
+                    fastwt.o\
+                    memory_module.o\
                     nmr.h
 
 
@@ -1488,6 +1458,8 @@ lmod.LES.o: \
                     constants.o\
                     bintraj.LES.o\
                     extra.h\
+                    fastwt.o\
+                    memory_module.o\
                     nmr.h
 
 lmod.LES.o:   lmod.F90
@@ -1610,7 +1582,6 @@ mdread.o: \
                     les.o\
                     stack.o\
                     nmr.o\
-                    crg_reloc.o\
                     sglds.o\
                     amd.o\
                     scaledMD.o\
@@ -1664,7 +1635,6 @@ mdread.LES.o: \
                     les.o\
                     stack.o\
                     nmr.LES.o\
-                    crg_reloc.o\
                     sglds.o\
                     amd.o\
                     scaledMD.o\
@@ -2794,7 +2764,6 @@ parallel.o: \
                     scaledMD.o\
                     emap.o\
                     mdfil.o\
-                    crg_reloc.o\
                     parallel.h\
                     ew_parallel.h\
                     extra.h\
@@ -2836,7 +2805,6 @@ parallel.LES.o: \
                     scaledMD.o\
                     emap.o\
                     mdfil.LES.o\
-                    crg_reloc.o\
                     parallel.h\
                     ew_parallel.h\
                     extra.h\
@@ -2905,7 +2873,6 @@ printe.o: \
                     nmr.h\
                     tgtmd.h\
                     multitmd.h\
-                    crg_reloc.o\
                     constants.o\
                     ../rism/amber_rism_interface.o\
                     qmmm_module.o\
@@ -3570,7 +3537,6 @@ runmd.o: \
                     barostats.o\
                     random.o\
                     qmmm_adaptive_module.o\
-                    crg_reloc.o\
                     amd.o\
                     scaledMD.o\
                     parallel.h\
@@ -3620,7 +3586,6 @@ runmd.LES.o: \
                     barostats.o\
                     random.o\
                     qmmm_adaptive_module.o\
-                    crg_reloc.o\
                     amd.o\
                     scaledMD.o\
                     parallel.h\
@@ -3681,7 +3646,6 @@ sander.o: \
                     memory_module.o\
                     sglds.o\
                     ips.o\
-                    crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
                     barostats.o\
@@ -3747,7 +3711,6 @@ sander.LES.o: \
                     memory_module.o\
                     sglds.o\
                     ips.o\
-                    crg_reloc.o\
                     emap.o\
                     file_io_dat.o\
                     barostats.o\
@@ -3881,6 +3844,7 @@ sglds.o: \
                     ../include/dprec.fh\
                     md_scheme.o\
                     ../include/md.h\
+                    ../include/memory.h\
                     parallel.h\
                     state.o\
                     random.o
@@ -3915,7 +3879,6 @@ short_ene.o: \
                     les.o\
                     ips.o\
                     mbar.o\
-                    crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
                     ips_lj.h\
@@ -3944,7 +3907,6 @@ short_ene.LES.o: \
                     les.o\
                     ips.o\
                     mbar.o\
-                    crg_reloc.o\
                     ew_cntrl.h\
                     ../include/md.h\
                     ips_lj.h\
@@ -4083,6 +4045,7 @@ xray_interface_impl_cpu.o: \
                     nmr.h\
                     memory_module.o\
                     ../xray/xray_interface2_data.o\
+                    ../xray/xray_target.o\
                     AmberNetcdf.o\
                     binrestart.o\
                     ../xray/xray_pure_utils.o\

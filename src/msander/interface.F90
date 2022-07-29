@@ -325,7 +325,6 @@ subroutine api_mdread1(input_options, ierr)
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
-   use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
    use sgld, only : isgld, isgsta,isgend,fixcom, &
                     tsgavg,sgft,sgff,sgfd,tempsg,treflf,tsgavp
    use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
@@ -457,7 +456,6 @@ subroutine api_mdread1(input_options, ierr)
          gbalphaP,gbbetaP,gbgammaP, &
          Sh,Sc,Sn,So,Ss,Sp, &
          lj1264, fswitch, &
-         ifcr, cropt, crcut, crskin, crin, crprintcharges, &
          ninterface, gamma_ten, infe, baroscalingdir, &
 #ifdef MPI /* SOFT CORE */
          scalpha, scbeta, ifsc, scmask, logdvdl, dvdl_norest, dynlmb, &
@@ -838,13 +836,6 @@ subroutine api_mdread1(input_options, ierr)
    irism = NO_INPUT_VALUE
    grdspc1 = NO_INPUT_VALUE_FLOAT
    mdiis_del = NO_INPUT_VALUE_FLOAT
-
-   ifcr = 0 ! no charge relocation
-   cropt = 0 ! 1-4 EEL is calculated with the original charges
-   crcut = 3.0
-   crskin = 2.0
-   crin = ''
-   crprintcharges = 0
 
    ips = 0    ! no isotropic periodic sum
    raips=-1.0d0   ! automatically determined
@@ -1447,7 +1438,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
    use qmmm_module, only : qmmm_nml, qmmm_vsolv, qmmm_struct
    use qmmm_vsolv_module, only : print
    use linear_response, only : lrt_interval
-   use crg_reloc, only: ifcr, cropt, crcut, crskin, crprintcharges
 #else
 #  ifdef LES
    use qmmm_module, only : qmmm_nml
@@ -1763,7 +1753,7 @@ subroutine api_mdread2(x, ix, ih, ierr)
    write(6,'(/a)') 'Nature and format of output:'
    write(6,'(5x,4(a,i8))') 'ntxo    =',ntxo,', ntpr    =',ntpr, &
          ', ntrx    =',ntrx,', ntwr    =',ntwr
-   write(6,'(5x,3(a,i8))') ntwx    =',ntwx, &
+   write(6,'(5x,3(a,i8))') 'ntwx    =',ntwx, &
          ', ntwv    =',ntwv,', ntwe    =',ntwe
    write(6,'(5x,2(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
          ', ntwprt  =',ntwprt, &
@@ -1779,14 +1769,6 @@ subroutine api_mdread2(x, ix, ih, ierr)
          ', cut     =',cut,', intdiel =',intdiel
    if (lj1264 /= 0) &
       write(6, '(5x,a,i8)') 'lj1264  =',lj1264
-
-   ! charge relocation
-   if ( ifcr /= 0 ) then
-      write(6,'(/a)') 'Charge relocation:'
-      write(6,'(5x,2(a,i8))') 'cropt   =', cropt, &
-                                ', crprintcharges=', crprintcharges
-      write(6,'(5x,2(a,f10.5))') 'crcut   =', crcut, ', crskin  =', crskin
-   end if
 
    if (( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
                                   ) then

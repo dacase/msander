@@ -60,6 +60,7 @@ $modulefile{"xray_pure_utils"} = "../xray/xray_pure_utils";
 $modulefile{"xray_bulk_mask_data_module"} = "../xray/xray_bulk_mask_data";
 $modulefile{"xray_interface2_module"} = "../xray/xray_interface2";
 $modulefile{"xray_debug_dump_module"} = "../xray/xray_debug_dump";
+$modulefile{"xray_target_module"} = "../xray/xray_target";
 $modulefile{"poisson_boltzmann"} = "poisson_boltzmann";
 $modulefile{"dispersion_cavity"} = "dispersion_cavity";
 $modulefile{"pbtimer_module"} = "pbtimer_module";

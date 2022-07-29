@@ -45,10 +45,6 @@
    use sgld, only : isgld,psgld
    
    use nbips, only: ipssys,ips
-
-   use crg_reloc, only: ifcr, cr_backup_charge, cr_allocate, &
-                        cr_read_input, cr_check_input
-
    use emap,only: temap,pemap,qemap
 
    use file_io_dat
@@ -246,12 +242,6 @@
       !   be different; for now, they are the same
 !$    call set_omp_num_threads()
 !$    call set_omp_num_threads_rism()
-
-      if ( ifcr /= 0 ) then
-         call cr_read_input(natom)
-         call cr_check_input( ips )
-         call cr_backup_charge( x(l15), natom )
-      end if
 
       ! ----- EVALUATE SOME CONSTANTS FROM MDREAD SETTINGS -----
 
@@ -452,9 +442,6 @@
 
    ! If we are using openmp for matrix diagonalization print some information.
 !$ if (qmmm_nml%ifqnt .and. master) call qm_print_omp_info()
-
-   ! allocate memory for crg relocation
-   if (ifcr /= 0) call cr_allocate( master, natom )
 
    ! initialize LIE module if used
    if ( ilrt /= 0 ) then

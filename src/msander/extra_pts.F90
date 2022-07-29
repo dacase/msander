@@ -1411,7 +1411,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
       ee14,enb14,one_scee,one_scnb,e14vir,nb_14_list,numnb14, &
       mytaskid,numtasks,eedmeth)
   use constants, only: zero,one
-  use crg_reloc, only: ifcr, cropt, cr_charge, cr_add_dcdr_factor
   use file_io_dat
 #ifdef MPI /* SOFT CORE */
   use softcore, only: ifsc, nsc, sc_ener, oneweight
@@ -1454,13 +1453,8 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          rinv = sqrt(1.d0/r2)
          r2inv = rinv*rinv
          r6 = r2inv*r2inv*r2inv
-         if ( ifcr /= 0 .and. cropt == 0 ) then
-            cgi = cr_charge(i)
-            cgj = cr_charge(j)
-         else
-            cgi = charge(i)
-            cgj = charge(j)
-         end if
+         cgi = charge(i)
+         cgj = charge(j)
          g = cgi*cgj*r2inv
          ee14 = ee14 + scee0*g
          !  always use the 6-12 parameters, even if 10-12 are available:
@@ -1473,10 +1467,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          f12 = cn1(ic)*(r6*r6)
          enb14 = enb14 + scnb0*(f12 - f6)
          df = (2.d0*scee0*g + scnb0*(12.d0*f12 - 6.d0*f6))*r2inv
-         if ( ifcr /= 0 .and. cropt /= 0 ) then
-            call cr_add_dcdr_factor( i, cgj*r2inv*scee0 )
-            call cr_add_dcdr_factor( j, cgi*r2inv*scee0 )
-         end if
          frc(1,j) = frc(1,j) + df*dx
          frc(2,j) = frc(2,j) + df*dy
          frc(3,j) = frc(3,j) + df*dz
@@ -1500,13 +1490,8 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          rinv = sqrt(1.d0/r2)
          r2inv = rinv*rinv
          r6 = r2inv*r2inv*r2inv
-         if ( ifcr /= 0 .and. cropt == 0 ) then
-            cgi = cr_charge(i)
-            cgj = cr_charge(j)
-         else
-            cgi = charge(i)
-            cgj = charge(j)
-         end if
+         cgi = charge(i)
+         cgj = charge(j)
          g = cgi*cgj*rinv
          ee14 = ee14 + scee0*g
          !  always use the 6-12 parameters, even if 10-12 are available:
@@ -1519,10 +1504,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
          f12 = cn1(ic)*(r6*r6)
          enb14 = enb14 + scnb0*(f12 - f6)
          df = (scee0*g + scnb0*(12.d0*f12 - 6.d0*f6))*r2inv
-         if ( ifcr /= 0 .and. cropt /= 0 ) then
-            call cr_add_dcdr_factor( i, cgj*rinv*scee0 )
-            call cr_add_dcdr_factor( j, cgi*rinv*scee0 )
-         end if
 #ifdef MPI /* SOFT CORE */
       ! For dual-topology softcore runs, 1-4 interactions involving sc atoms are modified here
          if (ifsc /= 0) then
@@ -1537,10 +1518,6 @@ subroutine do_14_cg(charge,crd,frc,iac,cn1,cn2, &
                sc_ener(5) = sc_ener(5) + (scee0*g)
                ee14 = ee14 - (scee0*g)
                df = df * oneweight
-               if ( ifcr /= 0 .and. cropt /= 0 ) then
-                  call cr_add_dcdr_factor( i, -cgj*rinv*scee0 )
-                  call cr_add_dcdr_factor( j, -cgi*rinv*scee0 )
-               end if
             end if
          endif
 #endif

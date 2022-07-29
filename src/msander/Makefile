@@ -26,7 +26,7 @@ LESAPIOBJ= memory_module.o stack.o file_io_dat.o les.o \
     amber_rism_interface.API.o \
     parms.o softcore.o mbar.o \
     linear_response.o molecule.o dssp.o \
-    charmm.API.o crg_reloc.o barostats.o prmtop_type.o \
+    charmm.API.o barostats.o prmtop_type.o \
     AmberNetcdf.o bintraj.LES.o binrestart.LES.o getcor.LES.o mdfil.LES.o \
     mdwrit.LES.o lmod.LES.o trajene.o ew_box.LESAPI.o minrit.LES.o \
     set.LESAPI.o qm_mm.LESAPI.o amd.o scaledMD.o interface.LESAPI.o \
@@ -77,7 +77,7 @@ APIOBJ=  file_io_dat.o constants.o state.o memory_module.o stack.o \
     AmberNetcdf.o bintraj.o binrestart.o \
     parms.o softcore.o mbar.o linear_response.o \
     molecule.o dssp.o \
-    charmm.API.o crg_reloc.o amd.o scaledMD.o barostats.o interface.o \
+    charmm.API.o amd.o scaledMD.o barostats.o interface.o \
     random.o qm_mm.API.o \
     prmtop_type.o music_module.o wallclock.o veclib.o dsarpack.o nxtsec.o
 
@@ -95,7 +95,7 @@ QMAPIOBJ = \
 MMOBJ = \
     align.o AmberNetcdf.o amd.o amopen.o assert.o \
     barostats.o binrestart.o bintraj.o charmm.o \
-    constants.o crg_reloc.o csa.o cshf.o \
+    constants.o csa.o cshf.o \
     debug.o decnvh.o degcnt.o dssp.o \
     dynlib.o egb.o emap.o ene.o erfcfun.o \
     ew_box.o ew_bspline.o ew_fft.o \
@@ -118,7 +118,7 @@ MMOBJ = \
 LESOBJ= \
     align.o AmberNetcdf.o amd.o amopen.o \
     assert.o barostats.o binrestart.LES.o bintraj.LES.o charmm.o \
-    constants.o crg_reloc.o csa.o \
+    constants.o csa.o \
     cshf.o debug.o decnvh.o degcnt.LES.o \
     dssp.o dynlib.LES.o egb.LES.o emap.o ene.LES.o \
     erfcfun.o ew_box.LES.o ew_bspline.o \

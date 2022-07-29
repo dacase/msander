@@ -170,7 +170,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use xray_globals_module, only: xray_active
   use state
   use charmm_mod, only: charmm_active
-  use crg_reloc, only: ifcr
   use sgld, only: isgld,sglabel,sgfti,sgffi
   use ff11_mod, only: cmap_active
   use nbips, only: ips
@@ -309,9 +308,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
     write(6, 9061) eel, erism, econst
   else
     write(6, 9059) eel, egb, econst
-  end if
-  if (ifcr /= 0) then
-    write(6, 9099) ect
   end if
 
   if (iamd .gt. 0) then

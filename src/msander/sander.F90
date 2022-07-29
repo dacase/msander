@@ -96,8 +96,6 @@ subroutine sander()
   use sgld, only: isgld, psgld
 
   use nbips, only: ipssys,ips
-  use crg_reloc, only: ifcr, cr_backup_charge, cr_cleanup, cr_allocate, &
-                       cr_read_input, cr_check_input, cr_print_info
   use emap,only: temap,pemap,qemap
 
   use file_io_dat
@@ -336,11 +334,6 @@ subroutine sander()
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-      if (ifcr .ne. 0) then
-        call cr_read_input(natom)
-        call cr_check_input(ips)
-        call cr_backup_charge( x(l15), natom )
-      end if
 
       ! Evaluate constants frommderead settings
       nr = nrp
@@ -834,9 +827,6 @@ subroutine sander()
 
         ! TODO: add igb == 8 here
       end if
-      if (ifcr .ne. 0) then
-        call cr_allocate(master, natom)
-      end if
       n_force_calls = 0
       do while(notdone == 1)
         n_force_calls = n_force_calls+1
@@ -891,11 +881,6 @@ subroutine sander()
     call stack_setup()
 
 #endif /* MPI */
-
-    ! Allocate memory for crg relocation
-    if (ifcr /= 0) then
-      call cr_allocate( master, natom )
-    end if
 
     ! Initialize LIE module if used
     if ( ilrt /= 0 ) then
@@ -1303,10 +1288,6 @@ subroutine sander()
          call xray_write_fmtz(fmtz_outfile)
       endif
    end if
-
-  if (ifcr .ne. 0) then
-    call cr_cleanup()
-  end if
 
   call nblist_deallocate()
   call deallocate_stacks()

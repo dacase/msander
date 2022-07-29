@@ -86,7 +86,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                         do_charmm_dump_gold
   use ff11_mod, only: cmap_active, calc_cmap
   use state
-  use crg_reloc, only: ifcr, cr_reassign_charge, cr_calc_force
   use les_data, only: temp0les
   use music_module, only : music_force
 #ifdef MPI
@@ -258,10 +257,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
                       belly, newbalance, qsetup, do_list_update)
     call timer_stop(TIME_LIST)
     call timer_stop(TIME_NONBON)
-  end if
-  ! charge reassign here !
-  if (ifcr /= 0) then
-    call cr_reassign_charge(x, f, pot%ct, xx(l15), natom)
   end if
 
 #if !defined(DISABLE_NFE)
@@ -740,11 +735,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     if (iredir(7) /= 0) call pcshift(natom,x,f)
     if (iredir(9) /= 0) call csa1(natom,x,f)
     if (iredir(8) /= 0) call align1(natom,x,f,xx(lmass))
-  end if
-
-  ! additional force due to charge relocation
-  if (ifcr /= 0) then
-    call cr_calc_force(f)
   end if
 
   ! MuSiC - GAL17 force field
