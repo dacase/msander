@@ -30,15 +30,6 @@ $LES{"multisander"} = $LES{"rdparm"} = $LES{"mdread"} = $LES{"r6ave"} =
     $LES{"lmod"} =  $LES{"ew_box"} =  $LES{"minrit"} =  
     $LES{"set"} =  $LES{"qm_mm"} = $LES{"cpparm"} = $LES{"md_scheme"} = 1;
 
-$API{"rdparm"} = $API{"debug"} = $API{"set"} = $API{"fastwt"} =
-    $API{"ew_setup"} = $API{"nonbond_list"} = $API{"ew_box"} =
-    $API{"new_time"} = $API{"dynlib"} = $API{"qm_mm"} = 
-    $API{"extra_pts"} = $API{"charmm"} = 1;
-
-$LESAPI{"rdparm"} = $LESAPI{"set"} = $LESAPI{"ew_setup"} =
-    $LESAPI{"nonbond_list"} = $LESAPI{"ew_box"} = $LESAPI{"dynlib"} =
-    $LESAPI{"interface"} = $LESAPI{"qm_mm"} = $LESAPI{"extra_pts"} = 1;
-
 #  in order to get a mapping between module names and file names, we have
 #  have to set up the following hash. 
 #  (special cases, since source is elsewhere)
@@ -67,7 +58,6 @@ $modulefile{"pbtimer_module"} = "pbtimer_module";
 $modulefile{"UtilitiesModule"} = "utilitiesmodule";
 $modulefile{"random"} = "random";
 $modulefile{"constants"} = "constants";
-$modulefile{"SANDER_API_MOD"} = "interface";
 
 # ignore certain modules:
 
@@ -164,12 +154,7 @@ foreach $file ( <*.F90> ){
             }
         }
     }
-    if ($fileroot eq "isokinetic" or $fileroot eq "oininit" or $fileroot eq "interface_setup") {
-        printf "$fileroot.F90: $deps\n\n" unless $deps eq "";
-        next;
-    } else {
-        printf "$fileroot.o: $deps\n\n" unless $deps eq "";
-    }
+    printf "$fileroot.o: $deps\n\n" unless $deps eq "";
 
     #  construct the compilation rules:
 
