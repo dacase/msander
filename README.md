@@ -46,10 +46,14 @@ the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
 potentials, some parts of adaptive QM/MM, nudged elastic band, constant pH
-and constant redox potential simulations.
+and constant redox potential simulations.  The API interface has also been
+removed.
 
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
+
+(If you need some of these deleted pieces, use sander from AmberTools
+instead.)
 
 * Key pieces of code that are still there, and being emphasized:
 
