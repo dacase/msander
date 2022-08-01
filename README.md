@@ -1,8 +1,7 @@
 # Overview
 
 This directory tree contains "msander", a "modern" version of parts of
-sander.  Also included are the API's to msander, and various X-ray-related 
-utilities.
+sander.  Also included are various X-ray and cryoEM-related code and utilities.
 
 # Warning
 
