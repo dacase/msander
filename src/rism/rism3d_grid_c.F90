@@ -124,7 +124,9 @@ contains
     implicit none
     type(rism3d_grid), intent(inout) :: this
     integer, intent(in) :: comm
+#ifdef MPI
     integer :: err
+#endif
     this%mpicomm = comm
     this%mpirank = 0
     this%mpisize = 1
@@ -173,8 +175,6 @@ contains
     integer, intent(in) :: localDimsR(3), localDimsK(3)
     integer, intent(in) :: offsetR(3), offsetK(3)
     _REAL_, optional, intent(in) :: gridSpacing(3)
-
-    _REAL_ :: unitCellDimensions(6)
 
     integer id, idd
     _REAL_ :: width_a, width_b, width_c
@@ -345,35 +345,29 @@ contains
   subroutine setup_wavevector(this)
     use constants_rism, only : PI
     use safemem
-    use rism_util, only: indexArray, checksum
+    use rism_util, only: indexArray
     implicit none
     type(rism3d_grid), intent(inout) :: this
 
+#ifdef MPI
     integer :: gDimX, gDimY, gDimZ
-    integer :: lDimX, lDimY, lDimZ
+#endif
+    integer :: ier
     integer :: lgx, lgy, lgz
     integer :: igx, igy, igz
     integer :: igk, igs
-    _REAL_ ::  waveX, waveY, waveZ
     _REAL_ :: waveVector2, largestWaveVector2
     integer, pointer :: waveVectorToWaveVector2Map(:) => NULL()
-
-    integer :: ierr
 
     waveVectorToWaveVector2Map => safemem_realloc(waveVectorToWaveVector2Map, &
          this%totalLocalPointsK / 2, .false.)
 
+#if defined(MPI)
     ! Getting and checking box arrays sizes.
     gDimX = this%globalDimsR(1)
     gDimY = this%globalDimsR(2)
     gDimZ = this%globalDimsR(3)
-    ! gDimX = this%globalDimsK(1)
-    ! gDimY = this%globalDimsK(2)
-    ! gDimZ = this%globalDimsK(3)
-    ! print *, 'globalDimsR', this%globalDimsR
-    ! print *, 'globalDimsK', this%globalDimsK
 
-#if defined(MPI)
     ! Initializing wave vector for real FFT in wrap-around order.
     do igz = 0, this%localDimsK(3) - 1
        do igy = 0, this%localDimsK(2) - 1
@@ -492,7 +486,7 @@ contains
 
     ! Reduce allocated memory to what is required.
     this%waveNumbers => safemem_realloc(this%waveNumbers, this%waveNumberArraySize, .true.)
-    ierr = safemem_dealloc(waveVectorToWaveVector2Map)
+    ier = safemem_dealloc(waveVectorToWaveVector2Map)
   end subroutine setup_wavevector
 
 end module rism3d_grid_c

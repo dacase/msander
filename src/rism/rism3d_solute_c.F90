@@ -119,8 +119,7 @@ contains
   subroutine rism3d_solute_new_sander (this, numAtoms, numTypes, atomTypeIndex, &
        nonbondedParmIndex, charge, ljA, ljB, mass, temperature, &
        o_mpicomm)
-    use constants_rism, only: KB, COULOMB_CONST_E, BOLTZMANN, &
-         AVOGADRO, AMBER_ELECTROSTATIC, PI
+    use constants_rism, only: KB, COULOMB_CONST_E, AMBER_ELECTROSTATIC
 #ifdef MPI
     use mpi
 #endif
@@ -131,7 +130,7 @@ contains
          ljB(numTypes * (numTypes + 1) / 2), mass(numAtoms), temperature
     integer, optional, intent(in) :: o_mpicomm
 
-    integer :: id, iu, iv, ir    
+    integer :: id, iu
 
     integer :: mpicomm, mpirank, mpisize, err
     mpicomm = 0
@@ -204,8 +203,8 @@ contains
     integer, optional, intent(in) :: o_mpicomm
 
     character(len=80) fmt
-    character(len=80) fmtin, ifmt, afmt, rfmt, type, line
-    integer :: i, iok, unit
+    character(len=80) fmtin, ifmt, rfmt, type
+    integer :: iok, unit
     integer :: numAtoms, numTypes, nbonh, mbona, ntheth, mtheta, nphih, mphia, &
          nhparm, nparm, nnb, nres, nbona, ntheta, nphia, &
          numbnd, numang, nptra, natyp, nphb, ifpert, nbper, ngper, ndper, &
@@ -222,7 +221,6 @@ contains
     open (unit, file=parm, status='old')
 
     ifmt = '(12I6)'
-    afmt = '(20A4)'
     rfmt = '(5E16.8)'
     call rism_parm_nxtsec_init()
 

@@ -550,9 +550,8 @@ contains
     logical ,optional, intent(in) :: o_aligned
     integer, intent(in) :: n1, n2, n3, n4, n5
     logical :: aligned
-    integer :: order =3, err
+    integer :: err
     integer :: i1,i2,i3, i4,i5,index(3)
-    _REAL_ :: x(0:1,0:1,0:1),r,s,t
     type(C_PTR) :: cptr=C_NULL_PTR
 
 #ifdef RISM_DEBUG
@@ -625,7 +624,7 @@ contains
     integer, intent(in) :: n1, n2, n3, n4, n5
     logical :: preserve,center,aligned
     integer :: nold1, nold2, nold3, nold4, nold5, err, offset(5)
-    integer :: i1,i2,i3,i4,i5
+    integer :: i2,i3,i4,i5
     type(C_PTR) :: cptr=C_NULL_PTR
 
 #ifdef RISM_DEBUG

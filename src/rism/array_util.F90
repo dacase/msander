@@ -81,8 +81,9 @@ contains
 !!!    Index of the element matching the value, -1 if it does not exist
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   function index_r8(a,value,back) result(i)
+    use, intrinsic :: iso_fortran_env
     implicit none
-    real*8, intent(in) :: a(:), value
+    real(real64), intent(in) :: a(:), value
     logical, optional, intent(in) :: back
     integer :: i, start, finish, incr
     start = lbound(a,1)
