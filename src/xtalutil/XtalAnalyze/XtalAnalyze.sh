@@ -5,7 +5,6 @@
 #      instructions), then run this script. Outputs will contain 
 #      a basic analysis of structures and B-factors.
 #
-#
 # More complete instructions (PAJ, 1/14):
 #
 #  1. Prepare supercell trajectory for analysis. Such preparation could 
@@ -19,10 +18,10 @@
 #     the same set of atoms as the trajectory in step 1 above and therefore 
 #     should work with the topology file created in step 1. The coordinates 
 #     of the first asymmetric unit in this file must be the same as the 
-#     experimentallly obtained (pdb) coordiantes. Easiest way to do this:
+#     experimentallly obtained (pdb) coordinates. Easiest way to do this:
 #     when first using tleap to set up the supercell for MD, use the 
 #     'set default nocenter on' option. Then take the supercell rst7 file
-#      before any minimization/dynamics and use cpptraj to strip desired
+#     before any minimization/dynamics and use cpptraj to strip desired
 #     atoms to match the trajectory file from step 1.
 #
 #  3. Prepare a PDB file of the asymmetric unit that contains experimental pdb 
