@@ -41,33 +41,41 @@
 #  (paths may be absolute or relative to working directory;
 #  files here are for a lysozyme example: change to match your filenames)
 
-SC_PRMTOP=1jw8_uc.strip.parm7      # supercell topology (possibly stripped)
-SC_TRAJECTORY=md6-37.5.strip.nc    # supercell trajectory
-SC_REFERENCE=1jw8_uc.strip.rst7    # supercell with pdb (experimental) coords 
+SC_PRMTOP=../alt1_uc.parm7         # supercell topology (possibly stripped)
+SC_TRAJECTORY=../alt1_009.min1.x   # supercell trajectory
+SC_REFERENCE=../alt1_uc.rst7       # supercell with pdb (experimental) coords 
                                    #   and correct supercell box size
 PDB_FILE=asu.pdb                   # must contain SMTRY and CRYST1 cards
 PARM_FILE=asu.parm7                #  (also need a matching "asu.parm7" file)
-SC_PROP="1 1 1"                    # (x,y,z) used to create supercell 
-ASU_NRESIDUES=156                  # number of residues in an asymmetric unit
+SC_PROP="2 4 2"                    # (x,y,z) used to create supercell 
+ASU_NRESIDUES=11                   # number of residues in an asymmetric unit
 Timestep=1.0   	                   # Trajectory frame timestep
 
 # Amber masks for b-factor and rmsd calculations. These can be modified 
 # according to the user's needs.
 
-BM1=":3-152@CA"                 # B-factor "Calpha" mask
-BM2=":3-152&!@H="               # B-factor "meanresidue" mask
-RM1=":3-152,155-156&!(@H=)"     # RMSD heavy atom mask, for asu 
-RM2=":3-152@CA,C,N,O"           # RMSD backbone atom mask, for asu
-SCMASK="@CA,C,N,O"              # supercell mask for drift calculation
+BM1=":1-6@CA"                 # B-factor "Calpha" mask
+BM2=":1-6&!@H="               # B-factor "meanresidue" mask
+RM1=":1-6&!(@H=)"             # RMSD heavy atom mask, for asu 
+RM2=":1-6@CA,C,N,O"           # RMSD backbone atom mask, for asu
+SCMASK="@CA,C,N"              # supercell mask for drift calculation
+
+# location of the analysis scripts:
+XTAL_ANALYSIS_PATH=$MSANDERHOME/src/xtalutil/XtalAnalyze
+
+# List of scripts used by XtalAnalyze.sh
+#       RevSym.py
+#       RevSym_com.py
+#       SplitTrajectory.py
+#       AnalyzeRevSym.py
+#       AnalyzeIndivASU.py
+#       GetVolume.py
+#       GetSym.py
 
 #======================================================================#
-#                                                                      #
 # USER: NOTHING TO SET BELOW THIS LINE                                 #
 #======================================================================#
-#======================================================================#
 
-
-#======================================================================#
 #======================================================================#
 # SETUP                                                                # 
 #======================================================================#
@@ -75,9 +83,6 @@ echo
 echo '#################################################################'
 echo '#                          setup                                #'
 echo '#################################################################'
-
-# location of the analysis scripts:
-XTAL_ANALYSIS_PATH=$AMBERHOME/AmberTools/src/xtalutil/Analysis
 
 # working directory variable, for use below:
 WD=`pwd`
@@ -245,13 +250,3 @@ rm -f ctraj.translate.in
 rm -f splittrajectories/ctraj.*.in
 rm -f revsym/ctraj.*.in
 
-
-
-# List of scripts used by XtalAnalyze.sh
-#       RevSym.py
-#       RevSym_com.py
-#       SplitTrajectory.py
-#       AnalyzeRevSym.py
-#       AnalyzeIndivASU.py
-#       GetVolume.py
-#       GetSym.py
