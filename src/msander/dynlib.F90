@@ -190,7 +190,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   _REAL_ :: press, densit, volume
   _REAL_ :: ektot, etot
 #ifdef LES
-  _REAL_ :: eksolt
+  _REAL_ :: eksolt, eksolv
 #else
   _REAL_ :: rms_pbs
 #endif

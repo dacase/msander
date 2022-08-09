@@ -93,20 +93,6 @@ msander.LES$(SFX): $(BINDIR)/msander.LES$(SFX)
 
 msander.cuda$(SFX): $(BINDIR)/msander.cuda$(SFX)
 
-libsander: $(LIBDIR)/libsander$(SHARED_SUFFIX)
-
-libsanderles: $(LIBDIR)/libsanderles$(SHARED_SUFFIX)
-
-libsander_skip::
-	@echo "Skipping libsander"
-
-libsanderles_skip::
-	@echo "Skipping libsander"
-
-amber_rism_interface.API.o: ../rism/amber_rism_interface.F90
-	@echo "[MSANDER]  FC $<"
-	$(VB)$(FC) -DAPI -c $(FOPTFLAGS) $(FFLAGS) -o $@ $< 
-
 dummy:
 
 #---------------------------------------------------------------------------
