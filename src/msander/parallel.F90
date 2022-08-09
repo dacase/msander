@@ -38,8 +38,6 @@ subroutine startup(xx,ix,ih)
 ! AMD parameters
    use amd_mod, only : iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w
-! scaledMD parameters
-   use scaledMD_mod, only : scaledMD,scaledMD_lambda
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
 ! bcast variables from mdfil.F90
@@ -255,11 +253,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(EthreshD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(alphaD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
 ! end AMD
-
-!scaledMD
-   call mpi_bcast(scaledMD,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(scaledMD_lambda,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-! end scaledMD
 
 ! EMAP
    call mpi_bcast(temap,1,MPI_LOGICAL,0,commsander,ierr)

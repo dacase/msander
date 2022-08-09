@@ -69,7 +69,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
 #endif /* DSSP */
 
   use amd_mod
-  use scaledMD_mod
   use nbips, only: ips, eexips
   use emap, only: temap, emapforce
 
@@ -829,13 +828,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     pot%tot = pot%tot + pot%amd_boost
   end if
    
-  ! scaledMD: scale the total potential and forces by the
-  ! factor scaledMD_lambda.  Added by Romelia Salomon
-  if (scaledMD .gt. 0) then
-    call scaledMD_scale_frc(natom, pot%tot, f)
-    pot%tot = pot%tot * scaledMD_lambda
-  end if
-
   ! The handover
   ener%pot = pot
   ener%aveper = aveper

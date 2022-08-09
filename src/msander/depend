@@ -836,7 +836,6 @@ force.o: \
                     nonbond_list.o\
                     dssp.o\
                     amd.o\
-                    scaledMD.o\
                     ips.o\
                     emap.o\
                     linear_response.o\
@@ -886,7 +885,6 @@ force.LES.o: \
                     nonbond_list.LES.o\
                     dssp.o\
                     amd.o\
-                    scaledMD.o\
                     ips.o\
                     emap.o\
                     linear_response.o\
@@ -1168,7 +1166,6 @@ mdread.o: \
                     nmr.o\
                     sglds.o\
                     amd.o\
-                    scaledMD.o\
                     ips.o\
                     emap.o\
                     dssp.o\
@@ -1221,7 +1218,6 @@ mdread.LES.o: \
                     nmr.LES.o\
                     sglds.o\
                     amd.o\
-                    scaledMD.o\
                     ips.o\
                     emap.o\
                     dssp.o\
@@ -2291,7 +2287,6 @@ parallel.o: \
                     sglds.o\
                     ips.o\
                     amd.o\
-                    scaledMD.o\
                     emap.o\
                     mdfil.o\
                     parallel.h\
@@ -2332,7 +2327,6 @@ parallel.LES.o: \
                     sglds.o\
                     ips.o\
                     amd.o\
-                    scaledMD.o\
                     emap.o\
                     mdfil.LES.o\
                     parallel.h\
@@ -2982,7 +2976,6 @@ runmd.o: \
                     random.o\
                     qmmm_adaptive_module.o\
                     amd.o\
-                    scaledMD.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3031,7 +3024,6 @@ runmd.LES.o: \
                     random.o\
                     qmmm_adaptive_module.o\
                     amd.o\
-                    scaledMD.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3095,7 +3087,6 @@ sander.o: \
                     barostats.o\
                     random.o\
                     amd.o\
-                    scaledMD.o\
                     music_module.o\
                     mdfil.o\
                     nmr.h\
@@ -3160,7 +3151,6 @@ sander.LES.o: \
                     barostats.o\
                     random.o\
                     amd.o\
-                    scaledMD.o\
                     music_module.o\
                     mdfil.LES.o\
                     nmr.h\
@@ -3186,17 +3176,6 @@ sander.LES.o:   sander.F90
 sander_lib.o:   sander_lib.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ sander_lib.F90
-
-scaledMD.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    file_io_dat.o\
-                    parallel.h
-
-
-scaledMD.o:   scaledMD.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ scaledMD.F90
 
 set.o: \
                     ../include/dprec.fh\

@@ -105,9 +105,6 @@ subroutine sander()
   ! Accelerated MD
   use amd_mod
 
-  ! scaledMD
-  use scaledMD_mod
-
   use music_module, only: read_music_nml, print_music_settings
 
   use commandline_module, only: cpein_specified
@@ -983,11 +980,6 @@ subroutine sander()
         ! Set up Accelerated Molecular Dynamics
         if (iamd .gt. 0) then
           call amd_setup(ntwx)
-        endif
-
-        ! Set up scaledMD
-        if (scaledMD .gt. 0) then
-          call scaledMD_setup(ntwx)
         endif
 
 #ifdef MPI

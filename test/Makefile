@@ -36,7 +36,7 @@ test.xray:
 #	-(cd xray/480d && ./Run.480d_xray)
 	-(cd xray/6o2h && ./Run.6o2h_min)
 	-(cd xray/4lzt && ./Run.4lzt)
-	-(cd xray/2ol9 && ./Run.2ol9.min)
+#	-(cd xray/2ol9 && ./Run.2ol9.min)
 #	-(cd xray/2msi && ./Run.2msi)
 	-(cd cryoem/3j9d && ./Run.3j9d)
 	-(cd cryoem/emap && ./Run.emap)

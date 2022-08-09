@@ -24,7 +24,6 @@ subroutine mdread1()
                     tsgavg,sgft,sgff,sgfg,tsgavp
    use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
-   use scaledMD_mod, only: scaledMD,scaledMD_lambda
    use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
                     mipso,gridips,dvbips
    use emap,only: temap,gammamap
@@ -121,7 +120,6 @@ subroutine mdread1()
          w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
          igamd, &
          ntt, gamma_ln, &
-         scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
          jar, &
@@ -516,9 +514,6 @@ subroutine mdread1()
    alphaP_w = 0.d0
 
    igamd = 0 ! No GaMD used
-
-   scaledMD = 0 ! No scaled MD used
-   scaledMD_lambda = 0.d0
 
    iemap=0     ! no emap constraint
    gammamap=1     ! default friction constant for map motion, 1/ps
@@ -928,20 +923,6 @@ subroutine mdread1()
 #endif
       endif
    endif
-
-
-   !--------------------------------------------------------------------
-   ! Set up some parameters for scaledMD simulations:
-   ! scaledMD initialization
-   ! scaledMD=0 no scaling is used, 1 scale the potential energy
-   !--------------------------------------------------------------------
-#ifndef API
-   if(scaledMD.gt.0)then
-      write(6,'(a,i3)')'| Using Scaled MD to enhance sampling scaledMD =',&
-                        scaledMD
-      write(6,'(a,f22.12)')'| scaledMD scaling factor lambda: ',scaledMD_lambda
-   endif
-#endif
 
    !--------------------------------------------------------------------
    ! Set up some parameters for GB simulations:

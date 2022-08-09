@@ -114,9 +114,6 @@ module runmd_module
   ! Accelerated Mmolecular Dynamics (aMD)
   use amd_mod
 
-  ! scaledMD
-  use scaledMD_mod
-
   ! }}}
 
   ! Local variables  {{{
@@ -1063,17 +1060,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       if (worldrank == 0) then
 #endif /* MPI */
       call write_amd_weights(ntwx,total_nstep)
-#ifdef MPI
-      end if
-#endif /* MPI */
-    end if
-
-    ! ScaledMD: Flush scaledMDlog file
-    if (scaledMD > 0) then
-#ifdef MPI
-      if (worldrank == 0) then
-#endif /* MPI */
-      call write_scaledMD_log(ntwx,total_nstep)
 #ifdef MPI
       end if
 #endif /* MPI */

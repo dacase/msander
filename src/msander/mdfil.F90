@@ -82,7 +82,6 @@ subroutine mdfil(VERSION, version_requested)
    logical :: cperestrt_specified = .false.
    logical :: evbout_specified   = .false.
    logical :: amdlog_specified   = .false.
-   logical :: scaledMDlog_specified   = .false.
    logical :: cph_dump_specified = .false.
    logical :: ce_dump_specified = .false.
    logical :: cphe_dump_specified = .false.
@@ -175,9 +174,6 @@ subroutine mdfil(VERSION, version_requested)
 
 !AMD log file
    amdlog = 'amd.log'   ! default log file name for AMD
-
-!scaledMD log file
-   scaledMDlog = 'scaledMD.log'   ! default log file name for scaledMD
 
    !     --- get command line arguments ---
 
@@ -334,11 +330,6 @@ subroutine mdfil(VERSION, version_requested)
          amdlog_specified = .true.
          iarg = iarg + 1
          call getarg_wrap(iarg, amdlog)
-!scaledMD log file
-      else if (arg == '-scaledMD') then
-         scaledMDlog_specified = .true.
-         iarg = iarg + 1
-         call getarg_wrap(iarg, scaledMDlog)
       else if (arg == '-xvv') then
          iarg = iarg + 1
          call getarg_wrap(iarg,xvvfile)
@@ -568,9 +559,6 @@ subroutine mdfil(VERSION, version_requested)
       if (.not. amdlog_specified .or. always_add_suffix) &
          call add_suffix(amdlog, outfile_suffix)
 
-      if (.not. scaledMDlog_specified .or. always_add_suffix) &
-         call add_suffix(scaledMDlog, outfile_suffix)
-
       if (.not. cph_dump_specified .or. always_add_suffix) &
          call add_suffix(cph_dump, outfile_suffix)
 
@@ -600,7 +588,7 @@ subroutine mdfil(VERSION, version_requested)
          '-clusterinfo cluster.info ', &
          '-reservoir reserv/frame -hybridtraj hybrid.strip.crd', /19x, &
 #endif
-         '-inf mdinfo -radii radii -y inptraj -amd amd.log -scaledMD scaledMD.log] -cph-data -ce-data <file>' &
+         '-inf mdinfo -radii radii -y inptraj -amd amd.log] -cph-data -ce-data <file>' &
          , /, 'Consult the manual for additional options.')
 end subroutine mdfil
 
@@ -664,7 +652,6 @@ end module commandline_module
 !        '-evbin  EVBIN     EVB input file ',
 !        '-evbout EVBOUT    EVB output file ',
 !        '-amd AMDLOG    the filename for AMD log file',
-!        '-scaledMD scaledMDLOG    the filename for scaledMD log file',
 !#ifdef MPI
 !        '-nrecip N     Set number of reciprocal tasks to N;'
 !        '              if < numtasks, remaining tasks go to direct.'

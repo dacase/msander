@@ -52,7 +52,7 @@ MMOBJ = \
     pearsn.o printe.o qm_mm.o quench.o rand2.o \
     random.o rattle.o rdparm.o relax_mat.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
-    sander_lib.o sander.o scaledMD.o set.o \
+    sander_lib.o sander.o set.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
     stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
@@ -76,7 +76,7 @@ LESOBJ= \
     qm_mm.LES.o quench.o rand2.o random.o \
     rattle.o rdparm.LES.o relax_mat.o remd.LES.o \
     rfree.o rgroup.o rmsgrd.o runmd.LES.o \
-    sander.LES.o  sander_lib.o scaledMD.o set.LES.o sglds.o \
+    sander.LES.o  sander_lib.o set.LES.o sglds.o \
     shake.o short_ene.LES.o softcore.o \
     stack.o state.o thermo_int.o trajene.o wallclock.o \
     xminC.o veclib.o dsarpack.o nxtsec.o
