@@ -68,7 +68,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use dssp, only: fdssp, edssp, idssp
 #endif /* DSSP */
 
-  use amd_mod
   use nbips, only: ips, eexips
   use emap, only: temap, emapforce
 
@@ -522,33 +521,7 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
     end if
   end if
 
-  ! Added by Romelia Salomon: for Accelerated MD, calculate
-  ! dihedral energy first to estimate dihedral weight, then
-  ! use it in the regular ephi function.  Fix this later, as
-  ! AMD dihedral weight does NOT support AMOEBA
-  if (iamd .gt. 1) then
-    ! Dihedrals with H 
-    if (ntf < 6) then
-      call ephi_ene_amd(nphih, ix(i40), ix(i42), ix(i44), ix(i46), ix(i48), &
-                        x, amd_dih_noH)
-    endif
-    ! Dihedrals without H 
-    if (ntf < 7) then
-      call ephi_ene_amd(nphia+ndper, ix(i50), ix(i52), ix(i54), ix(i56), &
-                        ix(i58), x, amd_dih_H)
-    endif
-#ifdef MPI 
-    temp_amd_totdih = amd_dih_noH + amd_dih_H
-    call mpi_allreduce(temp_amd_totdih, amd_totdih, 1, MPI_DOUBLE_PRECISION, &
-                       mpi_sum, commsander, ierr)
-#else
-    amd_totdih = amd_dih_noH + amd_dih_H
-#endif /* MPI */
-    call calculate_amd_dih_weights(amd_totdih)
-  endif
-
   ! Dihedrals with H
-  ! initialize 14 nb energy virial
   if (ntf < 6) then
 
 #ifdef MPI /* SOFT CORE */
@@ -819,15 +792,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! MuSiC - GAL17 force field
   pot%tot = pot%tot + music_vdisp + music_vang + music_vgauss + music_spohr89
 
-  ! Accelerate MD: calculate the total potential energy weight,
-  ! then apply it to all the force elements f=f*fwgt.  Update
-  ! the total energy.  Added by Romelia Salomon
-  if (iamd .gt. 0) then
-    call calculate_amd_total_weights(natom, pot%tot, pot%dihedral, &
-                                     pot%amd_boost, f, temp0)
-    pot%tot = pot%tot + pot%amd_boost
-  end if
-   
   ! The handover
   ener%pot = pot
   ener%aveper = aveper

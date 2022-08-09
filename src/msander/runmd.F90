@@ -111,9 +111,6 @@ module runmd_module
   ! Andreas Goetz's adaptive QM/MM
   use qmmm_adaptive_module, only: adaptive_qmmm
 
-  ! Accelerated Mmolecular Dynamics (aMD)
-  use amd_mod
-
   ! }}}
 
   ! Local variables  {{{
@@ -1052,20 +1049,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       call rism_solvdist_thermo_calc(irismdump, nstep)
   end if
    ! }}}
-  !    some non-standard dumps: {{{
-  if (itdump) then
-    ! Accelerated MD: Flush amdlog file
-    if (iamd > 0) then
-#ifdef MPI
-      if (worldrank == 0) then
-#endif /* MPI */
-      call write_amd_weights(ntwx,total_nstep)
-#ifdef MPI
-      end if
-#endif /* MPI */
-    end if
-  end if
-  ! }}}
 
   ! Begin writing output on the master process.
   if (master) then

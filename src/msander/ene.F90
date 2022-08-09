@@ -397,7 +397,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
    use charmm_mod, only : charmm_cn114,charmm_cn214, charmm_active
    use constants, only : zero, one, two, six, twelve, PI
    use file_io_dat
-   use amd_mod, only : iamd,fwgtd
    use commandline_module, only : cpein_specified
 
 !! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -626,10 +625,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       end if
 #endif
       df(jn) = df1*fzi(jn)
-!AMD aply weight to dighedral forces, only if iamd==2,3
-      if ( iamd == 2 .or. iamd == 3 ) then
-        df(jn) = df(jn) * fwgtd
-      endif
    end do
 
    !         ----- NOW DO TORSIONAL FIRST DERIVATIVES -----

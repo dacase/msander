@@ -33,18 +33,6 @@ ambmask.o:   ambmask.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ ambmask.F90
 
-amd.o: \
-                    ../include/assert.fh\
-                    ../include/dprec.fh\
-                    file_io_dat.o\
-                    parallel.h\
-                    constants.o
-
-
-amd.o:   amd.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ amd.F90
-
 
 amopen.o:   amopen.F90
 	@echo '[MSANDER]  FC $<'
@@ -334,7 +322,6 @@ dynlib.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    amd.o\
                     md_scheme.o\
                     ew_mpole.h\
                     ew_cntrl.h\
@@ -369,7 +356,6 @@ dynlib.LES.o: \
                     sglds.o\
                     ips.o\
                     emap.o\
-                    amd.o\
                     md_scheme.LES.o\
                     ew_mpole.h\
                     ew_cntrl.h\
@@ -456,7 +442,6 @@ ene.o: \
                     flocntrl.h\
                     constants.o\
                     charmm.o\
-                    amd.o\
                     mdfil.o\
                     ../include/memory.h\
                     ew_frc.h\
@@ -484,7 +469,6 @@ ene.LES.o: \
                     flocntrl.h\
                     constants.o\
                     charmm.o\
-                    amd.o\
                     mdfil.LES.o\
                     ../include/memory.h\
                     ew_frc.h\
@@ -835,7 +819,6 @@ force.o: \
                     parms.o\
                     nonbond_list.o\
                     dssp.o\
-                    amd.o\
                     ips.o\
                     emap.o\
                     linear_response.o\
@@ -884,7 +867,6 @@ force.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     dssp.o\
-                    amd.o\
                     ips.o\
                     emap.o\
                     linear_response.o\
@@ -1165,7 +1147,6 @@ mdread.o: \
                     stack.o\
                     nmr.o\
                     sglds.o\
-                    amd.o\
                     ips.o\
                     emap.o\
                     dssp.o\
@@ -1217,7 +1198,6 @@ mdread.LES.o: \
                     stack.o\
                     nmr.LES.o\
                     sglds.o\
-                    amd.o\
                     ips.o\
                     emap.o\
                     dssp.o\
@@ -2286,7 +2266,6 @@ parallel.o: \
                     linear_response.o\
                     sglds.o\
                     ips.o\
-                    amd.o\
                     emap.o\
                     mdfil.o\
                     parallel.h\
@@ -2326,7 +2305,6 @@ parallel.LES.o: \
                     linear_response.o\
                     sglds.o\
                     ips.o\
-                    amd.o\
                     emap.o\
                     mdfil.LES.o\
                     parallel.h\
@@ -2975,7 +2953,6 @@ runmd.o: \
                     barostats.o\
                     random.o\
                     qmmm_adaptive_module.o\
-                    amd.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3023,7 +3000,6 @@ runmd.LES.o: \
                     barostats.o\
                     random.o\
                     qmmm_adaptive_module.o\
-                    amd.o\
                     parallel.h\
                     ../include/md.h\
                     box.h\
@@ -3086,7 +3062,6 @@ sander.o: \
                     file_io_dat.o\
                     barostats.o\
                     random.o\
-                    amd.o\
                     music_module.o\
                     mdfil.o\
                     nmr.h\
@@ -3150,7 +3125,6 @@ sander.LES.o: \
                     file_io_dat.o\
                     barostats.o\
                     random.o\
-                    amd.o\
                     music_module.o\
                     mdfil.LES.o\
                     nmr.h\

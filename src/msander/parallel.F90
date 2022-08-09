@@ -35,9 +35,6 @@ subroutine startup(xx,ix,ih)
                     sgft,sgff,sgfg,tsgavg,tsgavp
 ! IPS parameters
    use nbips, only : ips,mipsx,mipsy,mipsz,mipso,raips,gridips,dvbips
-! AMD parameters
-   use amd_mod, only : iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
-        w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
 ! bcast variables from mdfil.F90
@@ -239,20 +236,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(dvbips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
    call mpi_bcast(gridips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
 ! end IPS
-
-! AMD
-   call mpi_bcast(iamd,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(w_amd,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(iamdlag,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(EthreshP,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaP,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshD,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaD,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshP_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaP_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-! end AMD
 
 ! EMAP
    call mpi_bcast(temap,1,MPI_LOGICAL,0,commsander,ierr)

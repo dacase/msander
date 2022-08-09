@@ -102,9 +102,6 @@ subroutine sander()
   use barostats, only: mcbar_setup
   use random, only: amrset
 
-  ! Accelerated MD
-  use amd_mod
-
   use music_module, only: read_music_nml, print_music_settings
 
   use commandline_module, only: cpein_specified
@@ -976,11 +973,6 @@ subroutine sander()
 
         ! Dynamics:  {{{
         call timer_start(TIME_RUNMD)
-
-        ! Set up Accelerated Molecular Dynamics
-        if (iamd .gt. 0) then
-          call amd_setup(ntwx)
-        endif
 
 #ifdef MPI
         ! Replica Exchange Molecular Dynamics.  If this is not a REMD run,
