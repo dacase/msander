@@ -37,6 +37,7 @@ contains
     use rism_util, only : freeUnit, rmExPrec
     use rism3d_grid_c
     use rism3d_solute_c
+    use iso_fortran_env
     implicit none
 #if defined(MPI)
     include 'mpif.h'
@@ -105,52 +106,53 @@ contains
 
        ! Number of columns, rows, and sections (fastest to slowest changing).
        ! NX, NY, NZ
-       write(unit) int(grid%globalDimsR, 4)
+       write(unit) int(grid%globalDimsR, int32)
 
        ! Since values are stored as reals, mode == 2.
        ! MODE
-       write(unit) int(2, 4)
+       write(unit) int(2, int32)
 
        ! There is no offset for column, row, or section.
        ! NXSTART, NYSTART, NZSTART
-       write(unit) int((/ 0, 0, 0 /), 4)
+       write(unit) int((/ 0, 0, 0 /), int32)
        
        ! Number of intervals along X, Y, Z.
        ! MX, MY, MZ
-       write(unit) int(grid%globalDimsR, 4)
+       write(unit) int(grid%globalDimsR, int32)
 
        ! Cell dimensions (Angstroms).
        ! CELLA
-       write(unit) real(grid%boxLength, 4)
+       write(unit) real(grid%boxLength, real32)
 
        ! Cell angles (degrees).
        ! CELLB
-       write(unit) real(grid%unitCellAngles * 180 / PI, 4)
+       write(unit) real(grid%unitCellAngles * 180 / PI, real32)
 
        ! Map column, rows, sects to X, Y, Z (1, 2, 3).
        ! MAPC, MAPR, MAPs
-       write(unit) int((/ 1, 2, 3 /), 4)
+       write(unit) int((/ 1, 2, 3 /), int32)
 
        ! rmsd = sqrt(rmsd / size(data))
        ! meanValue = totalValue / size(data)
        ! DMIN, DMAX, DMEAN
-       write(unit) real(minValue, 4), real(maxValue, 4), real(meanValue, 4)
+       write(unit) real(minValue, real32), real(maxValue, real32), &
+                   real(meanValue, real32)
 
        ! Space group number.  We assume P 1.
        ! ISPG
-       write(unit) int(1, 4)
+       write(unit) int(1, int32)
 
        ! Number of bytes used for storing symmetry operators.
        ! In our case, none.
        ! NSYMBT
-       write(unit) int(0, 4)
+       write(unit) int(0, int32)
 
        ! extra space used for anything - 0 by default
        ! The format is a bit confusing here.  It indicates 25 words
        ! but it is the third and fourth are EXTTYP AND NVERSION
        ! EXTRA
        do i=1, 2
-          write(unit) int(i, 4)
+          write(unit) int(i, int32)
        end do
 
        ! code for the type of extended header. One of CCP4, MCRO, SERI, AGAR, FEI1, HDF5
@@ -163,9 +165,9 @@ contains
        ! Year * 10 + version within the year (base 0)
        ! For the current format change, the value would be 20140. 
        ! NVERSION
-       write(unit) int(20140, 4)
+       write(unit) int(20140, int32)
        do i=1, 21
-          write(unit) int(i, 4)
+          write(unit) int(i, int32)
        end do
 
        ! The rest of EXTRA, words 29-49
@@ -174,7 +176,7 @@ contains
        ! This should be the same origin as for DX files
        ! ORIGIN
        ! dac: origin is always zero for periodic code:
-       write(unit) real((/ 0., 0., 0. /), 4)
+       write(unit) real((/ 0., 0., 0. /), real32)
        ! below is from non-periodic code; commented out here since 
        !   msander is periodic-only
        !   write(unit) real(solute%centerOfMass - grid%boxLength / 2, 4)
@@ -187,32 +189,32 @@ contains
        ! MACHST
        if (bigEndian) then
           ! 0x11 0x11 0x00 0x00
-          write(unit) int(z'11110000', 4)
+          write(unit) int(z'11110000', int32)
        else
           ! 0x44 0x44 0x00 0x00 but 0x44 0x41 0x00 0x00 (z'00004144') is also ok
-          write(unit) int(z'00004444', 4)
+          write(unit) int(z'00004444', int32)
        end if
        
        ! RMS deviation of map from mean density.
        ! RMS
-       write(unit) real(rmsd, 4)
+       write(unit) real(rmsd, real32)
 
        ! Number of labels being used.
        ! NLABL
-       write(unit) int(1, 4)
+       write(unit) int(1, int32)
 
        ! Ten 80-character labels.
        ! LABEL
        write(unit) amberLabel
        do id = 1, (9 * 80) + (80 - len(amberLabel))
-          write(unit) int(0, 1)
+          write(unit) int(0, int8)
        end do
 
        ! Symmetry records would go here, but we are not using any.
        
        ! Write volumetric data. This is in column-major format, so
        ! rank-0 always writes out first.
-       write(unit) real(data, 4)
+       write(unit) real(data, real32)
     end if
 #if defined(MPI)
     ! only rank-0 needs temp data
@@ -224,7 +226,7 @@ contains
     do i = 1, nproc-1
        if (rank == 0) then
           call mpi_recv(wrk_data, size(wrk_data), mpi_double, i, 0, comm, status, err)
-          write(unit) real(wrk_data,4)
+          write(unit) real(wrk_data,real32)
        elseif(rank == i) then
           call mpi_send(data, size(data), mpi_double, 0, 0, comm, err)
        end if

@@ -619,9 +619,9 @@ subroutine check_match_partition(qsetup, nsp, nsp_prev, nsolvent)
   implicit none
 
   logical, intent(inout) :: qsetup
+  integer, intent(in) :: nsolvent
   integer, intent(in) :: nsp(nsolvent)      ! QM solvent index, current step
   integer, intent(in) :: nsp_prev(nsolvent) ! QM solvent index, previous step
-  integer, intent(in) :: nsolvent
 
   integer :: i, j, match
 

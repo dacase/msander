@@ -179,9 +179,10 @@ contains
   subroutine mdiis_blas2_resize(this,xi,ri,np,nvec)
     implicit none
     type(mdiis_blas2),intent(inout) :: this
-    _REAL_,target, intent(in) :: xi(np,nvec), ri(np,nvec)
     integer,intent(in) ::  np
     integer, intent(in) :: nvec
+    _REAL_,target, intent(in) :: xi(np,nvec), ri(np,nvec)
+
     !transfer the current working vector to the first index
     this%np = np
     this%nvec = nvec

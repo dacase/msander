@@ -22,7 +22,7 @@
 !!
 !!   ! At any point you can get a summary of the current and maximum
 !!   ! allocated memory in bytes.
-!!   integer(kind=8) :: memstats(10)
+!!   integer(kind=int64) :: memstats(10)
 !!   memstats = memStatus()
 !!   write(unit,'(a)') "Type         Current         Maximum"
 !!   write(unit,'(a,i12,a,f12.5,a)') "Integer  ",memstats(1)," B ",&
@@ -63,6 +63,7 @@
 module safemem
   use rism_report_c
   use FFTW3
+  use iso_fortran_env, only: int64
   implicit none
   public
   type memTracker
@@ -72,21 +73,21 @@ module safemem
      ! logical :: Current number of bytes of logical memory allocated
      ! char    :: Current number of bytes of character memory allocated
      ! total   :: Current number of bytes of total memory allocated
-     integer(8) :: int = 0, real = 0, logical = 0, char = 0, total = 0
+     integer(kind=int64) :: int = 0, real = 0, logical = 0, char = 0, total = 0
      ! maxint     :: Current number of bytes of integer memory allocated
      ! maxreal    :: Current number of bytes of real memory allocated
      ! maxlogical :: Current number of bytes of logical memory allocated
      ! maxchar    :: Current number of bytes of character memory allocated
      ! max        :: Current number of bytes of total memory allocated
-     integer(8) :: maxint = 0, maxreal = 0, maxlogical = 0, maxchar = 0, max = 0
+     integer(kind=int64) :: maxint = 0, maxreal = 0, maxlogical = 0, maxchar = 0, max = 0
   end type memTracker
 
   ! BYTES_PER_GIGABYTES :: used to convert between bytes and GB
-  integer(8), parameter :: BYTES_PER_GB = 1024**3
+  integer(kind=int64), parameter :: BYTES_PER_GB = 1024**3
   ! BYTES_PER_MEGABYTES :: used to convert between bytes and MB
-  integer(8), parameter :: BYTES_PER_MB = 1024**2
+  integer(kind=int64), parameter :: BYTES_PER_MB = 1024**2
   ! BYTES_PER_KILOBYTES :: used to convert between bytes and KB
-  integer(8), parameter :: BYTES_PER_KB = 1024**1
+  integer(kind=int64), parameter :: BYTES_PER_KB = 1024**1
 
   type(memTracker), private, save :: totalMem
 
@@ -245,7 +246,7 @@ contains
     logical, optional, intent(in) :: o_preserve,o_aligned
     integer, intent(in) :: n1
     logical :: preserve,aligned
-    integer :: i,nold1, err
+    integer :: nold1, err
 
     type(C_PTR) :: cptr=C_NULL_PTR
 
@@ -549,10 +550,8 @@ contains
     logical ,optional, intent(in) :: o_aligned
     integer, intent(in) :: n1, n2, n3, n4, n5
     logical :: aligned
-    _REAL_ :: dy
-    integer :: nold1, nold2,nold3, nold4,nold5,order =3, err
-    integer :: i1,i2,i3, i4,i5,index(3), id
-    _REAL_ :: x(0:1,0:1,0:1),r,s,t
+    integer :: err
+    integer :: i1,i2,i3, i4,i5,index(3)
     type(C_PTR) :: cptr=C_NULL_PTR
 
 #ifdef RISM_DEBUG
@@ -562,11 +561,6 @@ contains
     aligned = .false.
     if (present(o_aligned)) aligned = o_aligned
 
-    nold1 = min(Ubound(p,1), n1)
-    nold2 = min(ubound(p,2), n2)
-    nold3 = min(ubound(p,3), n3)
-    nold4 = min(ubound(p,4), n4)
-    nold5 = min(ubound(p,5), n5)
     if (aligned) then
        err = 0
        cptr = fftw_alloc_real(int(n1*n2*n3*n4*n5, C_SIZE_T))
@@ -582,11 +576,6 @@ contains
          call rism_report_error("reallocation_pointer allocate error: 5D REAL Interpolate")
     call memadd_r(totalmem,arraySize(safemem_realloc_5d_real_interp))
     if (.not. associated(p)) return
-    nold1 = min(Ubound(p,1), n1)
-    nold2 = min(ubound(p,2), n2)
-    nold3 = min(ubound(p,3), n3)
-    nold4 = min(ubound(p,4), n4)
-    nold5 = min(ubound(p,5), n5)
 
     do i5 = 1 , n5
        do i4 = 1 , n4
@@ -635,7 +624,7 @@ contains
     integer, intent(in) :: n1, n2, n3, n4, n5
     logical :: preserve,center,aligned
     integer :: nold1, nold2, nold3, nold4, nold5, err, offset(5)
-    integer :: i1,i2,i3,i4,i5
+    integer :: i2,i3,i4,i5
     type(C_PTR) :: cptr=C_NULL_PTR
 
 #ifdef RISM_DEBUG
@@ -1274,9 +1263,10 @@ contains
   !! IN:
   !!    this : memTracker object
   function memStatus_obj(this) result(mem)
+    use iso_fortran_env, only: int64
     implicit none
     type(memTracker), intent(in) :: this
-    integer(kind=8) :: mem(10)
+    integer(kind=int64) :: mem(10)
     mem = (/this%int, this%real, this%logical, this%char, this%total,&
          this%maxint, this%maxreal, this%maxlogical, this%maxchar, this%max/)
   end function memStatus_obj
@@ -1296,7 +1286,7 @@ contains
   !! (10): Max logical memory
   function memStatus_global() result(mem)
     implicit none
-    integer(kind=8) :: mem(10)
+    integer(kind=int64) :: mem(10)
     mem = memStatus_obj(totalMem)
   end function memStatus_global
 
@@ -1317,94 +1307,94 @@ contains
   function arraySize_1d_real(array) result (nbytes)
     implicit none
     _REAL_, intent(in) :: array(:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_1d_real
     
   function arraySize_2d_real(array) result (nbytes)
     implicit none
     _REAL_, intent(in) :: array(:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_2d_real
     
   function arraySize_3d_real(array) result (nbytes)
     implicit none
     _REAL_, intent(in) :: array(:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_3d_real
     
   function arraySize_4d_real(array) result (nbytes)
     implicit none
     _REAL_, intent(in) :: array(:,:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_4d_real
     
   function arraySize_5d_real(array) result (nbytes)
     implicit none
     _REAL_, intent(in) :: array(:,:,:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_5d_real
     
   function arraySize_1d_int(array) result (nbytes)
     implicit none
     integer, intent(in) :: array(:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
 
   end function arraySize_1d_int
     
   function arraySize_2d_int(array) result (nbytes)
     implicit none
     integer, intent(in) :: array(:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_2d_int
     
   function arraySize_3d_int(array) result (nbytes)
     implicit none
     integer, intent(in) :: array(:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_3d_int
     
   function arraySize_4d_int(array) result (nbytes)
     implicit none
     integer, intent(in) :: array(:,:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_4d_int
     
   function arraySize_5d_int(array) result (nbytes)
     implicit none
     integer, intent(in) :: array(:,:,:,:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_5d_int
 
   function arraySize_1d_character(array) result (nbytes)
     implicit none
     character(len=*), intent(in) :: array(:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
 
   end function arraySize_1d_character
     
   function arraySize_2d_character(array) result (nbytes)
     implicit none
     character(len=*), intent(in) :: array(:,:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
   end function arraySize_2d_character
     
   function arraySize_1d_logical(array) result (nbytes)
     implicit none
     logical, intent(in) :: array(:)
-    integer(kind=8) :: nbytes
-    nbytes = size(array,kind=8)*STORAGE_SIZE(array)/BITS_PER_BYTE
+    integer(kind=int64) :: nbytes
+    nbytes = size(array,kind=int64)*STORAGE_SIZE(array)/BITS_PER_BYTE
 
   end function arraySize_1d_logical
       
@@ -1417,7 +1407,7 @@ contains
   subroutine memadd_i(this,nbyte)
     implicit none
     type(memTracker),intent(inout) :: this
-    integer(kind=8), intent(in) :: nbyte
+    integer(kind=int64), intent(in) :: nbyte
     this%int = this%int+nbyte
     this%total = this%total+nbyte
     if (this%int > this%maxint) this%maxint = this%int
@@ -1433,7 +1423,7 @@ contains
   subroutine memadd_r(this,nbyte)
     implicit none
     type(memTracker),intent(inout) :: this
-    integer(kind=8), intent(in) :: nbyte
+    integer(kind=int64), intent(in) :: nbyte
     this%real = this%real+nbyte
     this%total = this%total+nbyte
     if (this%real > this%maxreal) this%maxreal = this%real
@@ -1449,7 +1439,7 @@ contains
   subroutine memadd_c(this,nbyte)
     implicit none
     type(memTracker),intent(inout) :: this
-    integer(kind=8), intent(in) :: nbyte
+    integer(kind=int64), intent(in) :: nbyte
     this%char = this%char+nbyte
     this%total = this%total+nbyte
     if (this%char > this%maxchar) this%maxchar = this%char
@@ -1464,7 +1454,7 @@ contains
   subroutine memadd_l(this,nbyte)
     implicit none
     type(memTracker),intent(inout) :: this
-    integer(kind=8), intent(in) :: nbyte
+    integer(kind=int64), intent(in) :: nbyte
     this%logical = this%logical+nbyte
     this%total = this%total+nbyte
     if (this%logical > this%maxlogical) this%maxlogical = this%logical

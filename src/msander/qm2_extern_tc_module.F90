@@ -391,8 +391,8 @@ contains
     end if
     write(6, '(a,i0)')     '|   ntpr            = ', tc_nml%ntpr
     write(6, '(a,i2)')     '|   debug           = ', tc_nml%debug
-    write(6, '(a,l)')      '|   dipole          = ', tc_nml%dipole
-    write(6, '(a,l)')      '|   use_template    = ', tc_nml%use_template
+    write(6, '(a,l1)')      '|   dipole          = ', tc_nml%dipole
+    write(6, '(a,l1)')      '|   use_template    = ', tc_nml%use_template
     write(6,'(a)')         '| /'
 
   end subroutine print_namelist

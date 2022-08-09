@@ -32,7 +32,9 @@
     !mpirank :: process id
     !mpicomm :: communicator
     !mpisize :: number of processes
+#ifdef MPI
     integer, private :: mpirank=0, mpicomm=0, mpisize=1
+#endif
 
     !Fortran does not support variable number arguments so we have bunch of 
     !subroutines to cover all the required instances.  Add as needed.
@@ -62,30 +64,29 @@
     end interface mwrite
   contains
 
+#ifdef MPI
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!Sets up MPI.  This should be called for any MPI code that uses this class
 !!!IN:
 !!!   comm : MPI communicator
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism_report_MPI(comm)
-#ifdef MPI
     use mpi
-#endif
-      implicit none
-      integer, intent(in) :: comm
-      integer :: err
-      mpicomm = comm
-#ifdef MPI
-      if(comm == MPI_COMM_NULL)&
-           call rism_report_error("RISM3D_REPORT: received NULL MPI communicator")
-      call mpi_comm_rank(comm,mpirank,err)
-      if(err /=0) call rism_report_error&
-           ("RISM3D_REPORT: could not get MPI rank for communicator")
-      call mpi_comm_size(comm,mpisize,err)
-      if(err /=0) call rism_report_error&
-           ("RISM3D_REPORT: could not get MPI size for communicator")
-#endif /*MPI*/
+    implicit none
+    integer, intent(in) :: comm
+    integer :: err
+
+    mpicomm = comm
+    if(comm == MPI_COMM_NULL)&
+         call rism_report_error("RISM3D_REPORT: received NULL MPI communicator")
+    call mpi_comm_rank(comm,mpirank,err)
+    if(err /=0) call rism_report_error&
+         ("RISM3D_REPORT: could not get MPI rank for communicator")
+    call mpi_comm_size(comm,mpisize,err)
+    if(err /=0) call rism_report_error&
+         ("RISM3D_REPORT: could not get MPI size for communicator")
     end subroutine rism_report_MPI
+#endif /*MPI*/
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!Sets the unit number for output messages
@@ -1000,11 +1001,11 @@
       implicit none
       integer, optional, intent(in) :: o_code
       integer :: code
-      integer, pointer :: p=>NULL()
+      ! integer, pointer :: p=>NULL()
       code =1
       if(present(o_code)) code = o_code
       ! stop code
-      call mexit(6,1)
+      call mexit(6,code)
       !using the below statement instead of 'stop' will trigger a 
       !segfault, which can be useful if tracebacks are enabled through 
       !the compiler

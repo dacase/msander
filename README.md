@@ -1,8 +1,7 @@
 # Overview
 
 This directory tree contains "msander", a "modern" version of parts of
-sander.  Also included are the API's to msander, and various X-ray-related 
-utilities.
+sander.  Also included are various X-ray and cryoEM-related code and utilities.
 
 # Warning
 
@@ -10,7 +9,7 @@ This is a work in progress, and may not always be in a stable
 state.  I may not be able to respond to requests for support.
 The documentation is here:
 
-    https://ambermd.org/doc12/Amber21.pdf
+    https://ambermd.org/doc12/Amber22.pdf
 
 This code is probably only useful to those who are already familiar with
 AmberTools, and there are some small differences that are not yet
@@ -25,11 +24,14 @@ most useful parts of the code, and to serve as a test bed for how
 modern Fortran coding techniques can be used.  Key application areas 
 are expected to be in structure refinements using NMR, cryoEM or 
 Xray diffraction information.  This version has a fair amount of OpenMP
-support, especially for Xray and 3D-RISM calculations.
+support, especially for Xray and 3D-RISM calculations.  Parts of the Xray
+code uses GPU acceleration.
 
 * Since this code is based on sander, tons of people have been involved in its
 creation over the years.  See https://ambermd.org/contributors.html for more
-information, although even that gets out of date.
+information, although even that gets out of date.  The Xray codes have
+significant contributions from Juno Krahn, Oleg Mikhailovsii, Sergei Izmailov
+and Nikolai Skrynnikov.
 
 # Key differences in functionality versus sander
 
@@ -43,10 +45,14 @@ the "middle" scheme, Berendsen barostat
 
   * Things that might be useful, but really complicate the code: evb
 potentials, some parts of adaptive QM/MM, nudged elastic band, constant pH
-and constant redox potential simulations.
+and constant redox potential simulations.  The API interface has also been
+removed.
 
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
+
+(If you need some of these deleted pieces, use sander from AmberTools
+instead.)
 
 * Key pieces of code that are still there, and being emphasized:
 

@@ -188,7 +188,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
                         eight, nine, ten, eleven, twelve, half, third, &
                         fourth, eighth, pi, fourpi, alpb_alpha, &
                         AMBER_ELECTROSTATIC
-   use crg_reloc, only: ifcr, cr_add_dcdr_factor
    use commandline_module, only: cpein_specified
 
 #ifdef LES
@@ -813,10 +812,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
            temp1 = -dl*(fgbi + one_Arad_beta)
 #endif
            e = qiqj*temp1
-           if ( ifcr /= 0 ) then
-              call cr_add_dcdr_factor( i, temp1*charge(j) )
-              call cr_add_dcdr_factor( j, temp1*qi )
-           end if
            epol = epol + e
 
 #ifdef LES
@@ -959,10 +954,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 !              temp1 = intdiele_inv*rinv !add to implement Dan Parkin's fix
 #endif
                eel = qiqj*temp1
-               if ( ifcr /= 0 ) then
-                  call cr_add_dcdr_factor( i, temp1*charge(j) )
-                  call cr_add_dcdr_factor( j, temp1*qi )
-               end if
                deel=eel*r2inv
             else
                eel = zero
@@ -1161,8 +1152,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
               qid2h = qi2h*dl
               temp1 = (onereff(istrt+k) + one_Arad_beta) *lfaci
               self_e = self_e + qid2h*temp1
-              if ( ifcr /= 0 ) &
-                 call cr_add_dcdr_factor( i, -qi*temp1*dl )
 
               ! add in contribution with scaling factor for average over
               ! reff : DECREASE using lfaci
@@ -1183,8 +1172,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
             qid2h = qi2h*dl
             temp1 = (onereff(istrt+icnum) + one_Arad_beta) *lfac
             self_e =  qid2h*temp1
-            if ( ifcr /= 0 ) &
-               call cr_add_dcdr_factor( i, -qi*temp1*dl )
 
             ! add in contribution with scaling factor for q^2 :
             ! INCREASE using lfac
@@ -1203,8 +1190,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
 
          temp1 = (onereff(i) + one_Arad_beta)
          self_e = qid2h*temp1
-         if ( ifcr /= 0 ) &
-            call cr_add_dcdr_factor( i, -qi*temp1*dl )
 
          temp7 = -sumdeijda(i) + qid2h - &
                kappa*qi2h*expmkf*reff(i)*(one+one_Arad_beta*reff(i))
@@ -1222,8 +1207,6 @@ subroutine egb(x,f,rborn,fs,reff,onereff,charge,iac,ico,numex, &
          if(rem == 2) then
            if(cnum(i) > 0) then
              elesp = elesp - qid2h*onereff(i)
-             if ( ifcr /= 0 ) &
-                call cr_add_dcdr_factor( i, -qi*dl*onereff(i) )
            endif
          endif
 #  endif

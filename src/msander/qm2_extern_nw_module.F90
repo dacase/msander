@@ -329,7 +329,7 @@ contains
     ! More info here: http://www.nwchem-sw.org/index.php/Release61:Geometry
     write(iunit,'(a)') 'geometry units an noautoz nocenter noautosym noprint'
     do i = 1, nqmatoms
-      write(iunit,'(a2,x,3f25.16)') elementSymbol(qmtypes(i)), qmcoords(1:3,i)
+      write(iunit,'(a2,1x,3f25.16)') elementSymbol(qmtypes(i)), qmcoords(1:3,i)
     end do
     write(iunit,'(a,/)') 'end'
 
@@ -340,7 +340,7 @@ contains
           write ( iunit, '(a)' ) 'force'
        end if
        do i = 1, nclatoms
-          write ( iunit, '(4(x,f19.9))' ) clcoords(1:4,i)
+          write ( iunit, '(4(1x,f19.9))' ) clcoords(1:4,i)
        end do
        write ( iunit, '(a/)' ) 'end'
     end if

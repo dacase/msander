@@ -28,6 +28,7 @@
 !---------------------------------------------------------
 
 module charmm_mod
+  use, intrinsic :: iso_fortran_env
   implicit none
 
   private
@@ -139,7 +140,7 @@ module charmm_mod
 
     integer  :: gridOrigin=-180 !Where the 2D grid starts in degrees
 
-    real(kind=8), pointer, dimension(:,:) :: grid
+    real(real64), pointer, dimension(:,:) :: grid
                           !The number of grid points for that CMAP parameter
                           !The total should be resolution**2
 
@@ -166,9 +167,9 @@ module charmm_mod
 
    !Derivative grids; populated at CMAP readtime by generate_cmap_derivatives()
    !then used later by weight_stencil()
-    real(kind=8), pointer, dimension(:,:) :: dPhi !horizontal
-    real(kind=8), pointer, dimension(:,:) :: dPsi !vertical
-    real(kind=8), pointer, dimension(:,:) :: dPhi_dPsi !cross
+    real(real64), pointer, dimension(:,:) :: dPhi !horizontal
+    real(real64), pointer, dimension(:,:) :: dPsi !vertical
+    real(real64), pointer, dimension(:,:) :: dPhi_dPsi !cross
 
    end type cmapParameter
  
@@ -2156,6 +2157,8 @@ module ff11_mod
 !
 ! adapted by Mengjue Hsieh for general-purpose CMAP
 !
+   use, intrinsic :: iso_fortran_env
+
 !#define CHARMM_DEBUG
   !Variables
   public :: cmap_active
@@ -2213,7 +2216,7 @@ module ff11_mod
 
     integer  :: gridOrigin=-180 !Where the 2D grid starts in degrees
 
-    real(kind=8), pointer, dimension(:,:) :: grid
+    real(real64), pointer, dimension(:,:) :: grid
                           !The number of grid points for that CMAP parameter
                           !The total should be resolution**2
 
@@ -2239,9 +2242,9 @@ module ff11_mod
 
    !Derivative grids; populated at CMAP readtime by generate_cmap_derivatives()
    !then used later by weight_stencil()
-    real(kind=8), pointer, dimension(:,:) :: dPhi !horizontal
-    real(kind=8), pointer, dimension(:,:) :: dPsi !vertical
-    real(kind=8), pointer, dimension(:,:) :: dPhi_dPsi !cross
+    real(real64), pointer, dimension(:,:) :: dPhi !horizontal
+    real(real64), pointer, dimension(:,:) :: dPsi !vertical
+    real(real64), pointer, dimension(:,:) :: dPhi_dPsi !cross
 
    end type cmapParameter
 

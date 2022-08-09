@@ -35,25 +35,12 @@
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here.
         comm1 = cgi * cgj
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         comm1 = cgi * cgj * lfac
-        if (ifcr .ne. 0) then
-          b2 = b0 * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       comm1 = cgi*cgj
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
@@ -106,25 +93,12 @@
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here.
         comm1 = cgi*cgj
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         comm1 = cgi * cgj * lfac
-        if (ifcr .ne. 0) then
-          b2 = lfac * b0
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       comm1 = cgi*cgj
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor( i, b0*cgj )
-        call cr_add_dcdr_factor( j, b0*cgi )
-      end if
 #endif
       ecur = comm1*b0        
       eelt = eelt + ecur
@@ -169,25 +143,12 @@
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here.
         comm1 = cgi * cgj
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         comm1 = cgi * cgj * lfac
-        if (ifcr .ne. 0) then
-          b2 = b0 * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       comm1 = cgi * cgj
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
@@ -236,25 +197,12 @@
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here.
         comm1 = cgi * cgj
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         comm1 = cgi*cgj*lfac
-        if (ifcr .ne. 0) then
-          b2 = b0 * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       comm1 = cgi * cgj
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
@@ -289,25 +237,12 @@
 #ifdef LES
       if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, delrinv*cgj)
-          call cr_add_dcdr_factor(j, delrinv*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         b0 = cgi*cgj*lfac*delrinv
-        if (ifcr .ne. 0) then
-          b2 = lfac * delrinv
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       b0 = cgi * cgj * delrinv
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, delrinv*cgj)
-        call cr_add_dcdr_factor(j, delrinv*cgi)
-      end if
 #endif
       ecur = b0
       eelt = eelt + ecur
@@ -348,25 +283,12 @@
 #ifdef LES
       if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, delrinv*cgj)
-          call cr_add_dcdr_factor(j, delrinv*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         b0 = cgi * cgj * lfac * delrinv
-        if (ifcr .ne. 0) then
-          b2 = lfac * delrinv
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       b0 = cgi * cgj * delrinv
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, delrinv*cgj)
-        call cr_add_dcdr_factor(j, delrinv*cgi)
-      end if
 #endif
       ecur = b0
       eelt = eelt + ecur
@@ -397,25 +319,12 @@
 #  if defined(LES) 
       if (use_pme .ne. 0) then
         b0 = cgi * cgj * delrinv
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, delrinv*cgj)
-          call cr_add_dcdr_factor(j, delrinv*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         b0 = cgi * cgj * lfac * delrinv
-        if (ifcr .ne. 0) then
-          b2 = lfac * delrinv
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #  else
       b0 = cgi*cgj*delrinv
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, delrinv*cgj)
-        call cr_add_dcdr_factor(j, delrinv*cgi)
-      end if
 #  endif /* LES */
       eelt = eelt + b0
       dfee = b0 * delr2inv
@@ -458,25 +367,12 @@
 #ifdef LES
       if (use_pme .ne. 0) then
         b0 = cgi * cgj * delr2inv
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, delr2inv*cgj)
-          call cr_add_dcdr_factor(j, delr2inv*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         b0 = cgi * cgj * lfac * delr2inv
-        if (ifcr .ne. 0) then
-          b2 = delr2inv * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       b0 = cgi*cgj*delr2inv
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, delr2inv*cgj)
-        call cr_add_dcdr_factor(j, delr2inv*cgi)
-      end if
 #endif 
       ecur = b0
       eelt = eelt + ecur
@@ -513,25 +409,12 @@
 #ifdef LES
       if (use_pme .ne. 0) then
         b0 = cgi * cgj * delr2inv
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, delr2inv*cgj)
-          call cr_add_dcdr_factor(j, delr2inv*cgi)
-        end if
       else
         lfac = lesfac(lestmp+lestyp(j))
         b0 = cgi * cgj * lfac * delr2inv
-        if (ifcr .ne. 0) then
-          b2 = delr2inv * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
       end if
 #else
       b0 = cgi * cgj * delr2inv
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, delr2inv*cgj)
-        call cr_add_dcdr_factor(j, delr2inv*cgi)
-      end if
 #endif
       ecur = b0
       eelt = eelt + ecur
@@ -584,11 +467,6 @@
       ecur = b0*(pipse - pipsec)
       eelt = eelt + ecur
       dfee = -b0 * dpipse * delr2inv
-      if (ifcr .ne. 0) then
-        b2 = b1*(pipse - pipsec)
-        call cr_add_dcdr_factor(i, b2*cgj)
-        call cr_add_dcdr_factor(j, b2*cgi)
-      end if
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
@@ -641,11 +519,6 @@
                uips2*(BIPSE(1) + uips2*(BIPSE(2) + uips2*BIPSE(3)))
       ecur = b0*(pipse - pipsec)
       eelt = eelt + ecur
-      if (ifcr /= 0) then
-        b2 = b1*(pipse - pipsec)
-      call cr_add_dcdr_factor(i, b2*cgj)
-      call cr_add_dcdr_factor(j, b2*cgi)
-    end if
     dfee = -b0 * dpipse * delr2inv
 
     cache_df(im_new)=dfee

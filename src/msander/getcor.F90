@@ -4,7 +4,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Read initial coordinates (and velocities) from restart file
 #ifdef MPI
-subroutine getcor(nr,x,v,f,ntx,box,irest,tt,temp0,writeflag,solvph,solve)
+subroutine getcor(nr,x,v,f,ntx,box,irest,tt,temp0,writeflag,solvph,solve,stagid)
 #else
 subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
 #endif
@@ -35,7 +35,7 @@ subroutine getcor(nr,x,v,f,ntx,box,irest,tt,writeflag)
 
    implicit none
 #  include "ew_cntrl.h"
-   integer lun,nr,ntx,irest
+   integer lun,nr,ntx,irest,stagid
    _REAL_ x(*),v(*),f(*),box(3),tt
 #ifdef MPI
    _REAL_ temp0,solvph,solve

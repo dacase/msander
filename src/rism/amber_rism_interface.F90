@@ -530,7 +530,7 @@ contains
        else if (rismprm%rism == 1) then
           write(outunit, '(5x, 3(a10, "=", 100a10))') &
                'closure'//whtspc, closurelist
-          write(outunit, '(5x, 2(a10, "="f10.5))') &
+          write(outunit, '(5x, 2(a10, "=", f10.5))') &
                'solvcut'//whtspc, rismprm%solvcut
           write(outunit, '(5x, a10, "=", 3(f10.5, 1x))') &
                'grd_spc'//whtspc, rismprm%grdspc
@@ -956,8 +956,8 @@ contains
   subroutine thermo_print_descr_line(category, units, total, prefix, item, nitem)
     use amber_rism_interface
     implicit none
-    character(len=*), intent(in) :: category, units, total, prefix, item(nitem)
     integer, intent(in) :: nitem
+    character(len=*), intent(in) :: category, units, total, prefix, item(nitem)
     ! Format for category (calculation type, e.g. excess chemical
     ! potential).
     character(len=64) :: catFmt = "(a40)"
@@ -1000,8 +1000,8 @@ contains
     use amber_rism_interface
     implicit none
     character(len=*), intent(in) :: category
-    _REAL_, intent(in) :: total, item(nitem)
     integer, intent(in) :: nitem
+    _REAL_, intent(in) :: total, item(nitem)
     ! Format for category (calculation type, e.g. excess chemical
     ! potential).
     character(len=64) :: catFmt = "(a30)"

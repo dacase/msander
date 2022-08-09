@@ -1150,8 +1150,8 @@ end
 !sorting of array A
 Subroutine sort(A, n)
 
-   NFE_REAL :: A(1:n)
    integer :: i,j,n 
+   NFE_REAL :: A(1:n)
 
     do i=1, n
       do j=n, i+1, -1

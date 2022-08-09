@@ -394,13 +394,13 @@ contains
     write(6, '(a,i0)')       '|   ntpr           = ', adf_nml%ntpr
     write(6, '(a,i3)')       '|   num_threads    = ', adf_nml%num_threads
     write(6, '(a,i3)')       '|   linear_scaling = ', adf_nml%linear_scaling
-    write(6, '(a,l)')        '|   use_dftb       = ', adf_nml%use_dftb
+    write(6, '(a,l1)')        '|   use_dftb       = ', adf_nml%use_dftb
     if ( .not. adf_nml%use_dftb ) then
-      write(6, '(a,l)')      '|   oldgradients   = ', adf_nml%oldgradients
-      write(6, '(a,l)')      '|   dipole         = ', adf_nml%dipole
-      write(6, '(a,l)')      '|   exactdensity   = ', adf_nml%exactdensity
+      write(6, '(a,l1)')      '|   oldgradients   = ', adf_nml%oldgradients
+      write(6, '(a,l1)')      '|   dipole         = ', adf_nml%dipole
+      write(6, '(a,l1)')      '|   exactdensity   = ', adf_nml%exactdensity
     end if
-    write(6, '(a,l)')        '|   use_template   = ', adf_nml%use_template
+    write(6, '(a,l1)')        '|   use_template   = ', adf_nml%use_template
     write(6, '(2a)')        '|   beckegrid   = ', adf_nml%beckegrid
     write(6, '(2a)')        '|   zlmfit   = ', adf_nml%zlmfit
     write(6,'(a)')           '| /'

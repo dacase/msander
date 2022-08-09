@@ -1,20 +1,21 @@
 module xray_bulk_mask_data_module
   
   use xray_unit_cell_module, only: unit_cell_t
+  use iso_fortran_env
   
   implicit none
   
   public
   
   ! Arrays to hold the bulk solvent mask
-  complex(8), dimension(:), allocatable :: mask_bs_grid_t_c
+  complex(real64), dimension(:), allocatable :: mask_bs_grid_t_c
   ! Bulk solvent mask parameters
   double precision, dimension(3)   :: reciprocal_norms ! Norms of reciprocal vectors hkl=100; 010; 001
   double precision, dimension(3)   :: mask_grid_steps
   type(unit_cell_t), save :: unit_cell ! Copy of unit cell
   
   double precision, dimension(:), allocatable :: mask_cutoffs
-  complex(8), dimension(:), allocatable :: f_mask
+  complex(real64), dimension(:), allocatable :: f_mask
   
   
   ! hkl_indexing_bs_mask:     (H, K, L) set represented as a 1D array index of

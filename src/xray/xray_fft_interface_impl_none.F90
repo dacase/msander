@@ -8,11 +8,11 @@ module xray_fft_interface_impl_none_module
 contains
 
 subroutine dft_i2c_3d(dim, data_in, data_out)
-  use, intrinsic :: iso_fortran_env, only : stderr=>error_unit
+  use, intrinsic :: iso_fortran_env, only : stderr=>error_unit, real64
   implicit none
   integer, intent(in) :: dim(3)
   integer, allocatable, intent(in) :: data_in(:)
-  complex(8), allocatable, intent(inout) :: data_out(:)
+  complex(real64), allocatable, intent(inout) :: data_out(:)
   
   write(stderr, "(A)") "ERROR: xray module requires FFT library."
   write(stderr, "(A)") "This version of pmemd compiled without CPU FFT support."

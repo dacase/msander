@@ -122,12 +122,19 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
    integer :: ifind
    integer :: qmqmdx     ! local copied to qmmm_nml%qmqm_analyt - 1 = analytical, 2 = numerical QM-QM derivatives in qm2
    integer :: verbosity  ! local copied to qmmm_nml%verbosity - Controls amount of info about QM part of calc that is printed (0=Def)
-   integer :: tight_p_conv ! local copied to qmmm_nml%tight_p_conv - Controls convergence of density matrix. 0 (Def) = 0.05*sqrt(SCFCRT)
+   integer :: tight_p_conv ! local copied to qmmm_nml%tight_p_conv - Controls convergence of density matrix. 
+                           ! 0 (Def) = 0.05*sqrt(SCFCRT)
                            ! 1 = Converged both Energy and Density to SCFCONV
    integer :: printcharges !Local copied to qmmm_nml%printcharges as a logical. 1 = true - print mulliken and cm1a and cm2a charges
                            !on every step. 0 = false = don't print charges. Default = 0 (.false.)
-   integer :: printdipole  !Local copied to qmmm_nml%printdipole as an integer 1 = QM dipole moment, 2 = QM + MM dipole moment, (0=Def)
-   integer :: print_eigenvalues  !Local copied to qmmm_nml%print_eigenvalues, 0 = no printing, 1 = at end of run (default), 2 = each SCF cycle, 3 = each SCF iteration
+   integer :: printdipole  !Local copied to qmmm_nml%printdipole as an integer 
+                           ! 1 = QM dipole moment, 
+                           ! 2 = QM + MM dipole moment, (0=Def)
+   integer :: print_eigenvalues  !Local copied to qmmm_nml%print_eigenvalues, 
+                           ! 0 = no printing, 
+                           ! 1 = at end of run (default), 
+                           ! 2 = each SCF cycle, 
+                           ! 3 = each SCF iteration
    integer :: peptide_corr !Local copied to the logical qmmm_nml%peptide_corr
                            !Add MM correction to peptide linkages 0 = No (Default), 1 = Yes.
    integer :: itrmax       !Local copied to qmmm_nml%itrmax - Maximum number of scf cycles to run

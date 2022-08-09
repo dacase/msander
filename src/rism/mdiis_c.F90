@@ -176,9 +176,9 @@ contains
   subroutine mdiis_setData(this, xi, ri, np, nvec)
     implicit none
     type(mdiis), intent(inout) :: this
-    _REAL_, target, intent(in) :: xi(np, nvec), ri(np, nvec)
     integer, intent(in) ::  np
     integer, intent(in) :: nvec
+    _REAL_, target, intent(in) :: xi(np, nvec), ri(np, nvec)
     call mdiis_resize(this, xi, ri, np, nvec)
   end subroutine mdiis_setData
 
@@ -196,9 +196,9 @@ contains
   subroutine mdiis_resize(this, xi, ri, np, nvec)
     implicit none
     type(mdiis), intent(inout) :: this
-    _REAL_, target, intent(in) :: xi(np, nvec), ri(np, nvec)
     integer, intent(in) ::  np
     integer, intent(in) :: nvec
+    _REAL_, target, intent(in) :: xi(np, nvec), ri(np, nvec)
     if (associated(this%orig)) then
        call mdiis_orig_resize(this%orig, xi, ri, np, nvec)
     end if

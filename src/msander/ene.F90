@@ -396,9 +396,7 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
    use parms, only: ipn,pn,pk,gamc,gams,cn1,cn2,one_scnb, one_scee
    use charmm_mod, only : charmm_cn114,charmm_cn214, charmm_active
    use constants, only : zero, one, two, six, twelve, PI
-   use crg_reloc, only : ifcr, cropt, cr_charge, cr_add_dcdr_factor
    use file_io_dat
-   use amd_mod, only : iamd,fwgtd
    use commandline_module, only : cpein_specified
 
 !! ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -627,10 +625,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
       end if
 #endif
       df(jn) = df1*fzi(jn)
-!AMD aply weight to dighedral forces, only if iamd==2,3
-      if ( iamd == 2 .or. iamd == 3 ) then
-        df(jn) = df(jn) * fwgtd
-      endif
    end do
 
    !         ----- NOW DO TORSIONAL FIRST DERIVATIVES -----
@@ -735,13 +729,8 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
         lfac = 1.d0
 #endif
 
-        if ( ifcr /= 0 .and. cropt == 0 ) then
-           cgi = cr_charge(ii)
-           cgj = cr_charge(jj)
-        else
-           cgi = cg(ii)
-           cgj = cg(jj)
-        end if
+        cgi = cg(ii)
+        cgj = cg(jj)
 
         if( eedmeth == 5 ) then
            crfac = r2*lfac
@@ -751,10 +740,6 @@ subroutine ephi(nphiin,ip,jp,kp,lp,icp,cg,iac,x,f,dvdl, &
            g = cgi*cgj*crfac
         end if
         sphi(jn) = g*scee0
-        if ( ifcr /= 0 .and. cropt /= 0 ) then
-           call cr_add_dcdr_factor( ii, cgj*crfac*scee0 )
-           call cr_add_dcdr_factor( jj, cgi*crfac*scee0 )
-        end if
         r6 = r2*r2*r2
         r12 = r6*r6
         if (charmm_active) then

@@ -391,7 +391,7 @@ else
 
   else
     # ----- Use simple flag for Intel compilers on Linux ------------
-    flibs_la='-qmkl'
+    flibs_la='-mkl'
   fi
 fi
 

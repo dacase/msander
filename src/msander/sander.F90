@@ -74,8 +74,8 @@ subroutine sander()
 #if defined(MPI)
   ! Replica Exchange Molecular Dynamics
   use remd, only : rem, mdloop, remd1d_setup, remd_exchange, reservoir_remd_exchange, &
-                   remd_cleanup, hremd_exchange, ph_remd_exchange, e_remd_exchange, &
-                   multid_remd_setup, multid_remd_exchange, setup_pv_correction, rremd
+    remd_cleanup, hremd_exchange, &
+    multid_remd_setup, multid_remd_exchange, setup_pv_correction, rremd, stagid
 #ifdef VERBOSE_REMD
   use remd, only : repnum
 #endif
@@ -96,19 +96,11 @@ subroutine sander()
   use sgld, only: isgld, psgld
 
   use nbips, only: ipssys,ips
-  use crg_reloc, only: ifcr, cr_backup_charge, cr_cleanup, cr_allocate, &
-                       cr_read_input, cr_check_input, cr_print_info
   use emap,only: temap,pemap,qemap
 
   use file_io_dat
   use barostats, only: mcbar_setup
   use random, only: amrset
-
-  ! Accelerated MD
-  use amd_mod
-
-  ! scaledMD
-  use scaledMD_mod
 
   use music_module, only: read_music_nml, print_music_settings
 
@@ -336,11 +328,6 @@ subroutine sander()
       call rism_setparam(mdin, commsander, natom, ntypes, x(L15:L15+natom-1), &
                          x(LMASS:LMASS+natom-1), cn1, cn2, &
                          ix(i04:i04+ntypes**2-1), ix(i06:i06+natom-1))
-      if (ifcr .ne. 0) then
-        call cr_read_input(natom)
-        call cr_check_input(ips)
-        call cr_backup_charge( x(l15), natom )
-      end if
 
       ! Evaluate constants frommderead settings
       nr = nrp
@@ -834,9 +821,6 @@ subroutine sander()
 
         ! TODO: add igb == 8 here
       end if
-      if (ifcr .ne. 0) then
-        call cr_allocate(master, natom)
-      end if
       n_force_calls = 0
       do while(notdone == 1)
         n_force_calls = n_force_calls+1
@@ -891,11 +875,6 @@ subroutine sander()
     call stack_setup()
 
 #endif /* MPI */
-
-    ! Allocate memory for crg relocation
-    if (ifcr /= 0) then
-      call cr_allocate( master, natom )
-    end if
 
     ! Initialize LIE module if used
     if ( ilrt /= 0 ) then
@@ -995,16 +974,6 @@ subroutine sander()
         ! Dynamics:  {{{
         call timer_start(TIME_RUNMD)
 
-        ! Set up Accelerated Molecular Dynamics
-        if (iamd .gt. 0) then
-          call amd_setup(ntwx)
-        endif
-
-        ! Set up scaledMD
-        if (scaledMD .gt. 0) then
-          call scaledMD_setup(ntwx)
-        endif
-
 #ifdef MPI
         ! Replica Exchange Molecular Dynamics.  If this is not a REMD run,
         ! runmd is called only once.  If this is a REMD run, runmd is
@@ -1027,7 +996,7 @@ subroutine sander()
 
             ! 1D REMD. Set up temptable, open remlog, etc.
             call remd1d_setup(numexchg, hybridgb, numwatkeep, &
-                              temp0, mxvar, natom, ig, solvph, solve)
+                              temp0, mxvar, natom, ig, solvph, solve,stagid)
           end if
           call setup_pv_correction(6, ntp, sanderrank)
 
@@ -1066,10 +1035,6 @@ subroutine sander()
             if (nmropt .ne. 0) then
               call nmrdcp
             end if
-          else if (rem == 4 .and. mdloop > 0) then
-            call ph_remd_exchange(1, solvph)
-          else if (rem == 5 .and. mdloop > 0) then
-            call e_remd_exchange(1, temp0, solve)
           end if
           ! End of block for replica exchange handling
 
@@ -1307,10 +1272,6 @@ subroutine sander()
          call xray_write_fmtz(fmtz_outfile)
       endif
    end if
-
-  if (ifcr .ne. 0) then
-    call cr_cleanup()
-  end if
 
   call nblist_deallocate()
   call deallocate_stacks()

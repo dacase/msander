@@ -187,7 +187,7 @@ subroutine eglcao(qm_coords,total_e,elec_eng,ethird,enuclr_qmqm, &
    use qmmm_module, only: qm_gb, qmewald
 #endif
    use ElementOrbitalIndex, only : elementSymbol
-   use constants, only : BOHRS_TO_A, AU_TO_KCAL, AU_TO_EV
+   use constants, only : BOHRS_TO_A
 
    implicit none
 
@@ -207,13 +207,11 @@ subroutine eglcao(qm_coords,total_e,elec_eng,ethird,enuclr_qmqm, &
 
    ! Locals
    ! ======
-   integer :: lumo
    integer :: liend, ljend
    integer :: j, k, li, lj, i
    integer :: n, m
    integer :: nstart, nend, mstart, mend
    integer :: indkn, indjm, indi, indj, indili, indjlj
-   _REAL_  :: shifti, shiftj
 
 #ifndef SQM
    _REAL_  :: ew_corr ! Ewald correction to energy in ev. Needed only if qm_ewald > 0.
@@ -477,7 +475,7 @@ subroutine eglcao(qm_coords,total_e,elec_eng,ethird,enuclr_qmqm, &
             DUhub(i) = -2.0d0*dftb_3rd_order_str%Gaussian_G0 * (-scf_mchg(i) - dftb_3rd_order_str%Gaussian_q0 )*gaussian
 
             if ( dftb_3rd_order_str%debug_print ) then
-               write (6,'(A,2X,I3,2X,E15.8,$)') "DEBUG ==> 3RD ORDER SCC-DFTB: ", i, Uhub(i)
+               write (6,'(A,2X,I3,2X,E15.8)',advance='no') "DEBUG ==> 3RD ORDER SCC-DFTB: ", i, Uhub(i)
                write (6,'(2X,E15.8)')DUhub(i)
             endif
          end do
@@ -485,14 +483,12 @@ subroutine eglcao(qm_coords,total_e,elec_eng,ethird,enuclr_qmqm, &
          do i = 1,qmmm_struct%nquant_nlink
             indi = ks_struct%ind(i)
             liend = lmax( izp_str%izp(i) )**2
-            shifti = ks_struct%shift(i)
             do li = 1,liend
                indili = indi + li
                do j = 1,i          
                   ! --> Note: Only the lower triangle is used
                   indj = ks_struct%ind(j)
                   ljend = lmax( izp_str%izp(j) )**2
-                  shiftj = ks_struct%shift(j)
                   do lj = 1,ljend
                      indjlj = indj + lj
                      third_order_h_contrib = 0.25d0 * ks_struct%overl(indili,indjlj)    * &
@@ -576,9 +572,6 @@ subroutine eglcao(qm_coords,total_e,elec_eng,ethird,enuclr_qmqm, &
                          qm2_struct%nclosed = qm2_struct%nclosed + 1
            qm2_struct%nopenclosed = qm2_struct%nopenclosed + 1
         end do
-
-        ! Lowest unoccupied level
-        lumo = i
 
         ! MULLIKEN CHARGES
         ! ----------------

@@ -4,7 +4,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ [Enter a one-line description of subroutine shake here]
 subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
-      skip,x,xp,niter,belly,ifstwt,noshake,qspatial )
+      skip,x,xp,niter,belly,ifstwt,noshake)
 
    implicit none
    logical skip(*),ready,first
@@ -28,7 +28,6 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    _REAL_ conp(*),x(*),xp(*)
    _REAL_ xij(3),xpij(3)
    integer ifstwt(*),noshake(*)
-   logical :: qspatial
 
    _REAL_ winvi,winvj,diff,rrpr,acor,xh,toler,rpij2, &
          tol2,zero
@@ -42,36 +41,29 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
    integer istart, iend
 #endif
 
-   if(qspatial)then
-      if(ntc == 1)then
-         niter=1
-         return
-      end if
-   else
-      if(ntc == 1)then
-         niter=1
-         return
-      else if(ntc == 2)then
-         nbt = nbonh
-      else
-         nbt = nbonh+nbona+nbper
-      end if
-      
-      !     first time through, figure out last bond that is not a 3-point water
-      !     bond:
-      
-      if (first) then
-         nbt_new = 0
-         do i=1,nbt
-            if(ifstwt(i) == 0 ) nbt_new = i
-         end do
-         first= .false.
-      end if
-      if( nbt_new == 0 ) then
-         niter=1
-         return
-      end if
-   end if
+  if(ntc == 1)then
+     niter=1
+     return
+  else if(ntc == 2)then
+     nbt = nbonh
+  else
+     nbt = nbonh+nbona+nbper
+  end if
+  
+  !     first time through, figure out last bond that is not a 3-point water
+  !     bond:
+  
+  if (first) then
+     nbt_new = 0
+     do i=1,nbt
+        if(ifstwt(i) == 0 ) nbt_new = i
+     end do
+     first= .false.
+  end if
+  if( nbt_new == 0 ) then
+     niter=1
+     return
+  end if
 
    niter = 0
    tol2 = tol
@@ -90,8 +82,6 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
       if( nit > 3000 ) then
          write(6,311)
          write(6,322)
-         if (imin == 1) write(6,*) &
-               ' *** Especially for minimization, try ntc=1 (no shake)'
          call mexit(6,1)
       end if
 
@@ -181,8 +171,6 @@ subroutine shake(nrr,nbonh,nbona,nbper,ib,jb,igrp,winv,conp, &
          if(rrpr < toler*1.0d-06) then
             write(6,321) niter,nit,ll,i,j
             write(6,322)
-            if (imin == 1) write(6,*) &
-                  ' *** Especially for minimization, try ntc=1 (no shake)'
             call mexit(6,1)
          end if
          acor = diff/(rrpr*(winv(i)+winv(j)+winv(i)+winv(j)))

@@ -167,7 +167,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                       weight1, sceeorder, sc_dvdl_ee
   use mbar, only: ifmbar, bar_i, bar_states, bar_lambda, bar_cont, do_mbar
 #endif
-  use crg_reloc, only: ifcr, cr_add_dcdr_factor
 
   implicit none
   _REAL_ xk(3)
@@ -311,37 +310,13 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here
         comm1 = cgi * cgj
-
-#if 0
-        ! calculate contribution of dc/dr to force
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
-#endif
       else
         lfac = lesfac(lestmp + lestyp(j))
         comm1 = cgi * cgj * lfac
-
-#if 0
-        ! Calculate contribution of dc/dr to force
-        if (ifcr .ne. 0) then
-          b2 = b0*lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
-#endif
       end if
 #else
       comm1 = cgi*cgj
  
-#if 0
-      ! Calculate contribution of dc/dr to force
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
-#endif
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
@@ -456,31 +431,12 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
         ! be done after the reciprocal space calculation is done,
         ! so no need for it here
         comm1 = cgi*cgj
-#if 0
-        if (ifcr .ne. 0) then
-          call cr_add_dcdr_factor( i, b0*cgj )
-          call cr_add_dcdr_factor( j, b0*cgi )
-        end if
-#endif
       else
         lfac = lesfac(lestmp+lestyp(j))
         comm1 = cgi * cgj * lfac
-#if 0
-        if (ifcr .ne. 0) then
-          b2 = b0 * lfac
-          call cr_add_dcdr_factor(i, b2*cgj)
-          call cr_add_dcdr_factor(j, b2*cgi)
-        end if
-#endif
       end if
 #else
       comm1 = cgi*cgj
-#if 0
-      if (ifcr .ne. 0) then
-        call cr_add_dcdr_factor(i, b0*cgj)
-        call cr_add_dcdr_factor(j, b0*cgi)
-      end if
-#endif
 #endif
       ecur = comm1 * b0
       eelt = eelt + ecur
@@ -565,11 +521,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 
         ! Scaled up by oneweight
         dfee = dfee + oneweight * comm1 * delrinv * delr2inv
-        if (ifcr .ne. 0) then
-          b0 = (oneweight - switch_c) * delrinv
-          call cr_add_dcdr_factor(i, b0*cgj)
-          call cr_add_dcdr_factor(j, b0*cgi)
-        end if
       else 
 
         ! Use electrostatic softcore potential
@@ -589,10 +540,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                        switch / sceeorder * comm1 * denom_n * scbeta
           dfee = -(d_switch_dx*dxdr * comm1 * denom * delrinv) + &
                   (switch * comm1 * denom_n * delr_n * delr2inv)
-          if (ifcr .ne. 0) then
-            call cr_add_dcdr_factor(i, b0*cgj)
-            call cr_add_dcdr_factor(j, b0*cgi)
-          end if
 
           ! Collect lambda-dependent contributions to BAR FEP energy 
           ! differences
@@ -622,10 +569,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
                        switch / sceeorder * comm1 * denom_n * scbeta
           dfee = -(d_switch_dx*dxdr * comm1 * denom * delrinv) + &
                   (switch * comm1 * denom_n * delr_n * delr2inv)
-          if (ifcr .ne. 0) then
-            call cr_add_dcdr_factor(i, b0*cgj)
-            call cr_add_dcdr_factor(j, b0*cgi)
-          end if
 
           ! Collect lambda-dependent contributions to
           ! Bennet Acceptance Ratio Free Energy Perturbation differences

@@ -643,7 +643,6 @@ subroutine nb_adjust(charge,eea,crd, &
       adj_vir, ee_type,eedmeth)
 
    use constants, only : INVSQRTPI, third, half
-   use crg_reloc, only: ifcr, cr_add_dcdr_factor
    use file_io_dat
 #ifdef LES
    use les_data, only : lfac, lestyp, lesfac, cnum, nlesty
@@ -822,10 +821,6 @@ subroutine nb_adjust(charge,eea,crd, &
          
          r2=1.d0/r2
          eea = eea - cgi*cgk/r
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, -cgk/r )
-            call cr_add_dcdr_factor( k, -cgi/r )
-         end if
          df = -cgi*cgk*r2/r
          dfx = delx*df
          dfy = dely*df
@@ -834,10 +829,6 @@ subroutine nb_adjust(charge,eea,crd, &
          efit = (x/xsmall)*esmall + ((xsmall - x)/xsmall)*ezero
          ffit = (x/xsmall)*fsmall + ((xsmall - x)/xsmall)*fzero
          eea = eea + cgi*cgk*efit
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, cgk*efit )
-            call cr_add_dcdr_factor( k, cgi*efit )
-         end if
          
          !         *r2 accounted for in fsmall calc above
          
@@ -882,17 +873,9 @@ subroutine nb_adjust(charge,eea,crd, &
          d1 = (d0 - ewaldcof*derfc)*delr2inv
 #ifdef LES
          eea = eea + cgi*cgk*d0
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, cgk*d0 )
-            call cr_add_dcdr_factor( k, cgi*d0 )
-         end if
          df = cgi*cgk*d1
 #else
          eea = eea + cgi*cgk*d0
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, cgk * d0 )   
-            call cr_add_dcdr_factor( k, cgi * d0 )   
-         end if
          df = cgi*cgk*d1
 #endif /* LES */
          dfx = delx*df
@@ -1126,7 +1109,6 @@ end subroutine nb_adjust_dipole
 !+ [Enter a one-line description of subroutine self here]
 subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
    use constants, only : PI, INVSQRTPI
-   use crg_reloc, only : ifcr, cr_add_dcdr_factor
    use linear_response, only: ilrt
    use file_io_dat
 #ifdef LES
@@ -1161,32 +1143,15 @@ subroutine self(cg,numatoms,ene,ewaldcof,volume,self_vir)
          sumq = sumq + cg(i)
 #ifdef LES
          sumq2 = sumq2 + cg(i)*cg(i)
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, 2.0*cg(i)*d0 )
-         end if
 #else
          sumq2 = sumq2 + cg(i)*cg(i)
-         if ( ifcr /= 0 ) then
-            call cr_add_dcdr_factor( i, 2.0*cg(i)*d0 )
-         end if
 #endif
       end do
-      if ( ilrt == 0 .and. ifcr == 0 ) then
-         first = .false.
-      else
-         ! recompute sum every time because total charge can change
-      end if
    end if
    ene = sumq2*d0
    factor = pi / (ewaldcof*ewaldcof*volume)
    ee_plasma = -0.5d0*factor*sumq*sumq
    ! force related to ee_plasma
-   if ( ifcr /= 0 ) then
-      d1 = -factor * sumq
-      do i = 1,numatoms
-         call cr_add_dcdr_factor( i, d1 )
-      end do
-   end if
    ene = ene + ee_plasma
    do j = 1,3
       do i = 1,3
@@ -1421,10 +1386,6 @@ subroutine nb_adjust_les(charge,ene,crd, &
       !       temp variable for cgi*cgk*(lfac - 1.d0)*r
       
       tmpreal=cgi*cgk*(lfac - 1.d0)*r
-      !if ( ifcr /= 0 ) then 
-      !   call cr_add_dcdr_factor( i, cgk*(lfac-1.0d0)*r )
-      !   call cr_add_dcdr_factor( k, cgi*(lfac-1.0d0)*r )
-      !end if
       
       eeles = eeles + tmpreal
       

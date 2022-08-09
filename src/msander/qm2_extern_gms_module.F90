@@ -66,8 +66,8 @@ contains
     integer, intent(in) :: nstep              ! MD step number
     integer, intent(in) :: ntpr_default       ! frequency of printing
     character(len=3), intent(in) :: id        ! ID number for PIMD or REMD
-    integer, intent(in) :: qmtypes(natoms)    ! QM atom types (nuclear charge in au
     integer, intent(in) :: natoms             ! Total number of atoms
+    integer, intent(in) :: qmtypes(natoms)    ! QM atom types (nuclear charge in au
     _REAL_,  intent(in) :: coords(3,natoms)   ! Sander coordinate data
     _REAL_, intent(out) :: escf               ! SCF energy
     _REAL_, intent(out) :: dxyzqm(3,natoms)   ! SCF QM force
@@ -312,9 +312,9 @@ contains
     write(6, '(a,i3)')    "|   num_threads  = ", gms_nml%num_threads
     write(6, '(a,i0)')    "|   ntpr         = ", gms_nml%ntpr
     write(6, '(a,i0)')    "|   mwords       = ", gms_nml%mwords
-    write(6, '(a,l)')     "|   chelpg       = ", gms_nml%chelpg
-    write(6, '(a,l)')     "|   dipole       = ", gms_nml%dipole
-    write(6, '(a,l)')     "|   use_template = ", gms_nml%use_template
+    write(6, '(a,l1)')     "|   chelpg       = ", gms_nml%chelpg
+    write(6, '(a,l1)')     "|   dipole       = ", gms_nml%dipole
+    write(6, '(a,l1)')     "|   use_template = ", gms_nml%use_template
     write(6,'(a)')        "| /"
 
   end subroutine print_namelist
@@ -663,7 +663,7 @@ contains
              ifound = 1
              cycle
            else
-             read (junit, '(x,4(x,f11.6))') dipxyz(:), dipole
+             read (junit, '(1x,4(1x,f11.6))') dipxyz(:), dipole
              exit
            end if
          end if

@@ -87,6 +87,7 @@ subroutine colvar_force(cv, x, fcv, f)
 
    NFE_USE_AFAILED
 
+   use, intrinsic :: iso_fortran_env
    use nfe_constants, only : ERR_UNIT
    use nfe_colvar_type
    use nfe_colvar_math
@@ -105,7 +106,7 @@ subroutine colvar_force(cv, x, fcv, f)
    NFE_REAL :: cm1(3), cm2(3), cm3(3), cm4(3)
 
    NFE_REAL :: d12, d23, d34
-   real(8), parameter :: tiny = 1.0d-8
+   real(real64), parameter :: tiny = 1.0d-8
 
    integer :: n
 

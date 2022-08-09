@@ -3,7 +3,8 @@
 sander="../../../bin/msander"
 
 if [ ! -z "$DO_PARALLEL" ]; then
-   sander=$sander.MPI
+   echo "This test does not run in parallel -- skipping"
+   exit 0
 fi
 
 cat > mdin <<EOF

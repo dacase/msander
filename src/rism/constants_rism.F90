@@ -264,7 +264,7 @@ contains
     integer, save :: bc(size, size) = 0
     logical, save :: initialized = .false.;
         
-    integer:: i, j, k
+    integer:: i, j
         
     if (.not. initialized) then
        do i = 1, size

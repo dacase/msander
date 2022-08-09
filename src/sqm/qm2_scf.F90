@@ -496,9 +496,9 @@ end subroutine qm2_scf
 subroutine level_shift(fock, dens, norbs, vshift)
   
   implicit none
+  integer, intent(in) :: norbs
   _REAL_, intent(inout) :: fock(norbs*(norbs+1)/2)
   _REAL_, intent(in) :: dens(norbs*(norbs+1)/2)
-  integer, intent(in) :: norbs
   _REAL_, intent(in) :: vshift
 
   integer :: i, j, ij

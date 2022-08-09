@@ -11,10 +11,10 @@ cat > mdin.0 <<EOF
 NPT production
  &cntrl
   imin = 1,	
-  ntpr = 10,	ntwr = 0,	ntwx = 0,
+  ntpr = 1,	ntwr = 0,	ntwx = 0,
   ntf = 1,	ntc = 2,
   ntb = 1,	cut = 9.0,
-  maxcyc = 100, ntmin = 2,
+  maxcyc = 10, 
   icfe=1,       clambda = 0.50000,
   ifsc=1,       scmask=':1', ntxo=1,
  /
@@ -24,10 +24,10 @@ cat > mdin.1 <<EOF
 NPT production
  &cntrl
   imin = 1,	
-  ntpr = 10,	ntwr = 0,	ntwx = 0,
+  ntpr = 1,	ntwr = 0,	ntwx = 0,
   ntf = 1,	ntc = 2,
   ntb = 1,	cut = 9.0,
-  maxcyc = 100, ntmin = 2,
+  maxcyc = 10,
   icfe=1,       clambda = 0.50000,
   ifsc=1,       scmask='', ntxo=1,
  /
