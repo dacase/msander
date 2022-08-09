@@ -1057,6 +1057,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    use state
    use bintraj, only: end_binary_frame
    use file_io_dat
+   use softcore, only: ifsc, sc_print_energies, sc_ener
    implicit none
 
    _REAL_,  intent(inout) :: xx(*)          ! real dynamic memory
@@ -1193,6 +1194,8 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
          call rmsgrd(forces,grms)
          call report_min_progress( iter, grms, forces, energies, &
                ih(m04), xx(l15) )  ! ih(m04) = atom names, xx(l15) = charges
+         if (ifsc /= 0) call sc_print_energies(6, sc_ener)
+         if (ifsc /= 0) call sc_print_energies(7, sc_ener)
       end if
 
       if (master) then

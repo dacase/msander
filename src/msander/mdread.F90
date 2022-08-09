@@ -1154,11 +1154,10 @@ subroutine mdread2(x,ix,ih)
      wallc = modulo( 1.d3*wallc, 1.d6) ! should give six digits, positive
      ig = wallc
 #ifdef MPI
-     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
-                               &time in microseconds"
-     write (6, '(a)') "      and disabling the synchronization of random &
+     write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock"
+     write (6, '(a)') "|     and disabling the synchronization of random &
                                &numbers between tasks"
-     write (6, '(a)') "      to improve performance."
+     write (6, '(a)') "|     to improve performance."
 #else
 #  ifndef API
      write (6, '(a,i8,a)') "| Note: ig = -1. Setting random seed to ", ig ," based on wallclock &
@@ -2838,11 +2837,6 @@ subroutine mdread2(x,ix,ih)
       end if
       if (klambda /= 1) then
          write (6,'(/,a)') ' Softcore potential requires linear mixing, set klambda to 1'
-         DELAYED_ERROR
-      end if
-      if (imin == 1 .and. ntmin /= 2) then
-         write (6,'(/,a)') ' Minimizations with ifsc=1 require the steepest descent algorithm.'
-         write (6,'(/,a)') ' Set ntmin to 2 and restart'
          DELAYED_ERROR
       end if
    end if

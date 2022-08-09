@@ -1,28 +1,10 @@
-#!/bin/csh -f
-#TEST-PROGRAM sander
-#TEST-DESCRIP TO_BE_DEtermined
-#TEST-PURPOSE regression, basic
-#TEST-STATE   undocumented
+#!/bin/sh
 
-if( ! $?TESTsander ) set TESTsander = "../../bin/msander"
+sander="../../bin/msander"
 
-#  lmodprmtop prmtop prmtop.lmod || goto error
-
-if( ! $?DO_PARALLEL ) then
-        setenv DO_PARALLEL " "
-else
-  set numprocs=`echo $DO_PARALLEL | awk -f ../numprocs.awk `
-  if ( "$numprocs" > 19 ) then
-      echo " DO_PARALLEL set to $DO_PARALLEL"
-      goto toomany
-  else if ( $?MP_PROCS)then
-      if ($MP_PROCS > 19)then
-#               --- For IBM AIX ---
-          echo "    MP_PROCS set to "$MP_PROCS
-          goto toomany
-      endif
-  endif
-endif
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
 
 cat > gbin <<EOF
  test of gen. Born, on a stretch of A-RNA
@@ -41,29 +23,12 @@ cat > gbin <<EOF
  /
 EOF
 
-set output = mdout.gbrna.xmin
+output=mdout.gbrna.xmin
 
-$DO_PARALLEL $TESTsander -O -i gbin -p prmtop -c md4.x -o $output || goto error
+$DO_PARALLEL $sander -O -i gbin -p prmtop -c md4.x -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../dacdif $output.save $output
 /bin/rm -f gbin restrt mdinfo prmtop.lmod
-exit(0)
-
-error:
-echo "  ${0}:  Program error"
-exit(1)
-
-toomany:
-    echo " too many processors for this test, exiting (Max = 19)"
-    echo "============================================================"
-    exit(0)
-
-
-
-
-
-
-
-
-
+exit 0 
 

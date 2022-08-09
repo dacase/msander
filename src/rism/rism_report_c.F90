@@ -72,18 +72,19 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine rism_report_MPI(comm)
     use mpi
+    implicit none
+    integer, intent(in) :: comm
     integer :: err
-      implicit none
-      integer, intent(in) :: comm
-      mpicomm = comm
-      if(comm == MPI_COMM_NULL)&
-           call rism_report_error("RISM3D_REPORT: received NULL MPI communicator")
-      call mpi_comm_rank(comm,mpirank,err)
-      if(err /=0) call rism_report_error&
-           ("RISM3D_REPORT: could not get MPI rank for communicator")
-      call mpi_comm_size(comm,mpisize,err)
-      if(err /=0) call rism_report_error&
-           ("RISM3D_REPORT: could not get MPI size for communicator")
+
+    mpicomm = comm
+    if(comm == MPI_COMM_NULL)&
+         call rism_report_error("RISM3D_REPORT: received NULL MPI communicator")
+    call mpi_comm_rank(comm,mpirank,err)
+    if(err /=0) call rism_report_error&
+         ("RISM3D_REPORT: could not get MPI rank for communicator")
+    call mpi_comm_size(comm,mpisize,err)
+    if(err /=0) call rism_report_error&
+         ("RISM3D_REPORT: could not get MPI size for communicator")
     end subroutine rism_report_MPI
 #endif /*MPI*/
 
