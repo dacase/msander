@@ -437,7 +437,6 @@ subroutine grad_sumrc( &
   use ew_bspline,only:kbot,ktop
   use mpi
 #endif
-  use crg_reloc, only: ifcr, cr_dcdr_tbl, cr_add_dcdr_factor
   use file_io_dat
   
    implicit none
@@ -564,17 +563,7 @@ subroutine grad_sumrc( &
 #else
          n = im
 #endif
-         ! Does this charge fluctuate?
-         if ( ifcr /= 0 ) then
-            if ( cr_dcdr_tbl(n) /= 0 ) then
-               fluc_crg = .true.
-               dedc = zero
-            else
-               fluc_crg = .false.
-            end if
-         else
-            fluc_crg = .false.
-         end if
+         fluc_crg = .false.
 
          f1 = zero
          f2 = zero

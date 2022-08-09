@@ -35,17 +35,10 @@ subroutine startup(xx,ix,ih)
                     sgft,sgff,sgfg,tsgavg,tsgavp
 ! IPS parameters
    use nbips, only : ips,mipsx,mipsy,mipsz,mipso,raips,gridips,dvbips
-! AMD parameters
-   use amd_mod, only : iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
-        w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w
-! scaledMD parameters
-   use scaledMD_mod, only : scaledMD,scaledMD_lambda
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
 ! bcast variables from mdfil.F90
    use commandline_module, only : commandline_bcast, cpein_specified
-! crg_reloc
-   use crg_reloc, only : ifcr
 
    use mpi
    implicit none
@@ -244,34 +237,12 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(gridips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
 ! end IPS
 
-! AMD
-   call mpi_bcast(iamd,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(w_amd,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(iamdlag,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(EthreshP,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaP,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshD,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaD,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshP_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaP_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(EthreshD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(alphaD_w,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-! end AMD
-
-!scaledMD
-   call mpi_bcast(scaledMD,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(scaledMD_lambda,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-! end scaledMD
-
 ! EMAP
    call mpi_bcast(temap,1,MPI_LOGICAL,0,commsander,ierr)
    call mpi_bcast(NEMAP,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(NRIGID,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(GAMMAMAP,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
 ! end EMAP
-
-! crg_reloc -- everyone has to know ifcr
-   call mpi_bcast(ifcr,1,MPI_INTEGER,0,commsander,ierr)
 
 ! broadcast commandline info
    call commandline_bcast(ierr)

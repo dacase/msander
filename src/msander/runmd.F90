@@ -110,13 +110,6 @@ module runmd_module
 
   ! Andreas Goetz's adaptive QM/MM
   use qmmm_adaptive_module, only: adaptive_qmmm
-  use crg_reloc, only: ifcr, crprintcharges, cr_print_charge
-
-  ! Accelerated Mmolecular Dynamics (aMD)
-  use amd_mod
-
-  ! scaledMD
-  use scaledMD_mod
 
   ! }}}
 
@@ -460,8 +453,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener)
       if (ifsc .ne. 0) call sc_print_energies(7, sc_ener)
 #endif
-      if (ifcr > 0 .and. crprintcharges > 0) &
-        call cr_print_charge(xx(l15), nstep)
       if (nmropt > 0) call nmrptx(6)
       if (infe == 1) call nfe_prt(6)
       call flush(7)
@@ -1058,31 +1049,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       call rism_solvdist_thermo_calc(irismdump, nstep)
   end if
    ! }}}
-  !    some non-standard dumps: {{{
-  if (itdump) then
-    ! Accelerated MD: Flush amdlog file
-    if (iamd > 0) then
-#ifdef MPI
-      if (worldrank == 0) then
-#endif /* MPI */
-      call write_amd_weights(ntwx,total_nstep)
-#ifdef MPI
-      end if
-#endif /* MPI */
-    end if
-
-    ! ScaledMD: Flush scaledMDlog file
-    if (scaledMD > 0) then
-#ifdef MPI
-      if (worldrank == 0) then
-#endif /* MPI */
-      call write_scaledMD_log(ntwx,total_nstep)
-#ifdef MPI
-      end if
-#endif /* MPI */
-    end if
-  end if
-  ! }}}
 
   ! Begin writing output on the master process.
   if (master) then
@@ -1217,8 +1183,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener)
       if (ifsc .ne. 0) call sc_print_energies(7, sc_ener)
 #endif
-      if (ifcr > 0 .and. crprintcharges > 0) &
-        call cr_print_charge(xx(l15), total_nstep)
 
 !------------------------------------------------------------------------------
       ! Print QMMM Muliken Charges if needed

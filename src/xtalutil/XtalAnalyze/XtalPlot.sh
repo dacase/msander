@@ -7,7 +7,7 @@
 #
 # Instructions:
 # 1. Run XtalAnalyze.sh.
-# 2. Run GetBfactors.py.
+# 2. Run GetBfactors.py.  (optional: set BFAC_CRYST_CALPHA to "" to skip)
 # 3. Copy XtalPlot.py to working directory (where you ran XtalAnalyze.sh)
 #    and run.
 #
@@ -38,7 +38,8 @@ XTAL_ANALYSIS_PATH=$AMBERHOME/AmberTools/src/xtalutil/Analysis
 #======================================================================#
 # get absolute paths and check existence of files
 echo "Using files:"
-for i in BFAC_CRYST_CALPHA BFAC_CRYST_SDCH PDB_FILE
+# for i in BFAC_CRYST_CALPHA BFAC_CRYST_SDCH PDB_FILE
+for i in PDB_FILE
 do
   x=${!i}
   x=$(cd $(dirname ${x}); pwd)/$(basename ${x})
@@ -69,21 +70,23 @@ ${XTAL_ANALYSIS_PATH}/plotRmsd_v4.py $PLOT_PFX
 # per asu rmsd
 echo "plotting individual asu rmsd"
 ${XTAL_ANALYSIS_PATH}/plotRmsdPerASU.py $PLOT_PFX $ASUS $UNITCELLS $ROWS $COLS
-#~ 
-# bfactors
-echo "plotting bfactors"
-${XTAL_ANALYSIS_PATH}/plotBfac.py \
-  $PLOT_PFX \
-  $BFAC_CRYST_CALPHA \
-  $BFAC_CRYST_SDCH
 
-# individual asu's
-echo "plotting individual asu data"
-cd splittrajectories
-${XTAL_ANALYSIS_PATH}/plotIndivASU.py \
-  -Title $PLOT_PFX -u $UNITCELLS -a $ASUS \
-  -b $BFAC_CRYST_CALPHA -row $ROWS -col $COLS
-cd ..
+# bfactors
+if [ ! -z "$BFAC_CRYST_CALPHA" ]; then
+   echo "plotting bfactors"
+   ${XTAL_ANALYSIS_PATH}/plotBfac.py \
+     $PLOT_PFX \
+     $BFAC_CRYST_CALPHA \
+     $BFAC_CRYST_SDCH
+
+   # individual asu's
+   echo "plotting individual asu data"
+   cd splittrajectories
+   ${XTAL_ANALYSIS_PATH}/plotIndivASU.py \
+     -Title $PLOT_PFX -u $UNITCELLS -a $ASUS \
+     -b $BFAC_CRYST_CALPHA -row $ROWS -col $COLS
+   cd ..
+fi
 
 # move plots to plots directory
 mkdir -p plots; mv *.pdf plots

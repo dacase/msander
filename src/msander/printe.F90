@@ -81,7 +81,6 @@ subroutine report_min_progress( nstep, gradient_rms, forces, energies, &
 
    use state
    use file_io_dat
-   use crg_reloc, only : ifcr, crprintcharges, cr_print_charge
    implicit none
 
    integer, intent(in)           :: nstep
@@ -108,9 +107,6 @@ subroutine report_min_progress( nstep, gradient_rms, forces, energies, &
       if (nmropt > 0) then
          call nmrptx(6)
          call nmrptx(MDINFO_UNIT)
-      end if
-      if ( ifcr > 0 .and. crprintcharges > 0 ) then
-         call cr_print_charge( charge, nstep ) 
       end if
       if (imin /= 5) call flush(MDINFO_UNIT)
    end if
@@ -172,7 +168,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
    use qmmm_module, only : qmmm_nml
    use state ! Access to energy_rec
    use charmm_mod, only : charmm_active
-   use crg_reloc, only : ifcr
    use emap,only : temap,scemap
    use ff11_mod, only : cmap_active
    use xray_interface_module, only: xray_write_min_state
@@ -247,8 +242,6 @@ subroutine printe( nstep, gradient_rms, gradient_max, ene, &
       write(6,9049) enonb,enele,egb
    end if
    write(6,9058) enb14,eel14,econst
-
-   if ( ifcr /= 0 ) write(6,9099) ect
 
 !  wxw: EMAP energy
    if (temap) then

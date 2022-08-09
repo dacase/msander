@@ -384,7 +384,6 @@ SUBROUTINE EEXIPS(ENB,EEL,IFRSTA,ILASTA,NTB,NTYPES,IAC,ICO,numex,natex,CG, &
 !-----------------------------------------------------------------------
 
       use constants, only : zero,half,ONE,TWO,THREE,FOUR,FIVE,EIGHT,NINE
-!      use crg_reloc, only : ifcr, cr_add_dcdr_factor
 
       implicit none
       _REAL_ ENB, EEL
@@ -437,9 +436,6 @@ SUBROUTINE EEXIPS(ENB,EEL,IFRSTA,ILASTA,NTB,NTYPES,IAC,ICO,numex,natex,CG, &
             CGIJ=CGI*CGI
             EELIJ=HALF*CGIJ*PIPSE0*RIPSR
             EEL=EEL+EELIJ
-            !if ( ifcr /= 0 ) then
-            !   call cr_add_dcdr_factor( i, 2.0*cgi*half*pipse0*ripsr )
-            !end if
          ENDIF
          IF(TVIPS)THEN
             ITI=IAC(I)
@@ -483,10 +479,6 @@ SUBROUTINE EEXIPS(ENB,EEL,IFRSTA,ILASTA,NTB,NTYPES,IAC,ICO,numex,natex,CG, &
             DEU=U2*(BIPSE(1)+U2*(BIPSE(2)+U2*(BIPSE(3))))
             EELIJ=CGIJ*(PE-PIPSEC)
             EEL=EEL+EELIJ
-            !if ( ifcr /= 0 ) then
-            !   call cr_add_dcdr_factor( i, (pe-pipsec)/rips * cg(j) )
-            !   call cr_add_dcdr_factor( j, (pe-pipsec)/rips * cgi )
-            !end if
             DIJ=-CGIJ*DEU/R2
            ELSE
             DIJ=ZERO

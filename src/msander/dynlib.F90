@@ -168,11 +168,9 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   use xray_globals_module, only: xray_active
   use state
   use charmm_mod, only: charmm_active
-  use crg_reloc, only: ifcr
-  use sgld, only: isgld,sglabel
+  use sgld, only: isgld,sglabel,sgfti,sgffi
   use ff11_mod, only: cmap_active
   use emap,only: temap
-  use amd_mod, only: iamd
   use md_scheme, only: ntt
 
   implicit none
@@ -287,13 +285,7 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   else
     write(6, 9059) eel, egb, econst
   end if
-  if (ifcr /= 0) then
-    write(6, 9099) ect
-  end if
 
-  if (iamd .gt. 0) then
-    write(6, 9180) amd_boost
-  end if
   if (qmmm_nml%ifqnt) then
 
     ! Write the SCF energy
@@ -450,9 +442,6 @@ subroutine prntmd(nstep, time, ener, onefac, iout7, rms)
   end if
   if (xray_active) call xray_write_md_state(7)
 
-  if (iamd .gt. 0) then
-    write(7, 9180) amd_boost
-  end if
 #ifdef MPI
 
   ! Print current REMD info (replica#, temp0, excgh#) only for iout7 > 0

@@ -20,12 +20,8 @@ subroutine mdread1()
    use les_data, only : temp0les
    use stack, only: lastist,lastrst
    use nmr, only: echoin
-   use crg_reloc, only: ifcr, cropt, crcut, crskin, crin, crprintcharges
    use sgld, only : isgld, isgsta,isgend,nsgsize, &
                     tsgavg,sgft,sgff,sgfg,tsgavp
-   use amd_mod, only: iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
-        w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
-   use scaledMD_mod, only: scaledMD,scaledMD_lambda
    use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
                     mipso,gridips,dvbips
    use emap,only: temap,gammamap
@@ -118,11 +114,7 @@ subroutine mdread1()
          mxsub,jfastw,watnam,owtnm,hwtnm1,hwtnm2, iesp, &
          skmin, skmax, vv,vfac, tmode, ips, &
          mipsx,mipsy,mipsz,mipso,gridips,raips,dvbips, &
-         iamd,iamdlag,EthreshD,alphaD,EthreshP,alphaP, &
-         w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w, &
-         igamd, &
          ntt, gamma_ln, &
-         scaledMD,scaledMD_lambda, &
          iemap,gammamap, &
          isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
          jar, &
@@ -148,7 +140,6 @@ subroutine mdread1()
          gbalphaP,gbbetaP,gbgammaP, &
          Sh,Sc,Sn,So,Ss,Sp, &
          lj1264, fswitch, &
-         ifcr, cropt, crcut, crskin, crin, crprintcharges, &
          infe, baroscalingdir, &
 #ifdef MPI /* SOFT CORE */
          scalpha, scbeta, ifsc, scmask, logdvdl, dvdl_norest, dynlmb, &
@@ -496,13 +487,6 @@ subroutine mdread1()
 
    ifqnt = NO_INPUT_VALUE
 
-   ifcr = 0 ! no charge relocation
-   cropt = 0 ! 1-4 EEL is calculated with the original charges
-   crcut = 3.0
-   crskin = 2.0
-   crin = ''
-   crprintcharges = 0
-
    ips = 0    ! no isotropic periodic sum
    raips=-1.0d0   ! automatically determined
    mipsx=-1   ! number of grids in x direction, <0 for automatically determined
@@ -511,23 +495,6 @@ subroutine mdread1()
    mipso=4    ! default 4th order b-spline
    gridips=2   ! grid size. used to determine grid number if not defined
    dvbips=1.0d-8   ! Volume change tolerance. aips will be done when change more than dvbips
-
-   iamd = 0 ! No accelerated MD used
-   iamdlag = 0 !frequency of boosting in steps
-   EthreshD = 0.d0
-   alphaD = 0.d0
-   EthreshP = 0.d0
-   alphaP = 0.d0
-   w_amd = 0 ! windowed amd
-   EthreshD_w = 0.d0
-   alphaD_w = 0.d0
-   EthreshP_w = 0.d0
-   alphaP_w = 0.d0
-
-   igamd = 0 ! No GaMD used
-
-   scaledMD = 0 ! No scaled MD used
-   scaledMD_lambda = 0.d0
 
    iemap=0     ! no emap constraint
    gammamap=1     ! default friction constant for map motion, 1/ps
@@ -895,64 +862,6 @@ subroutine mdread1()
    if (ntc > 1) ishake = 1
 
    !--------------------------------------------------------------------
-   ! Set up some parameters for AMD simulations:
-   ! AMD initialization
-   ! iamd=0 no boost is used, 1 boost on the total energy,
-   ! 2 boost on the dohedrals, 3 boost on dihedrals and total energy
-   !--------------------------------------------------------------------
-   if(iamd.gt.0)then
-      if(iamd.eq.1)then !only total potential energy will be boosted
-         EthreshD=0.d0
-         alphaD=0.d0
-      else if(iamd.eq.2)then !only dihedral energy will be boosted
-         EthreshP=0.d0
-         alphaP=0.d0
-      endif
-      if(w_amd.gt.0)then
-         if(iamd.eq.1)then !only total potential energy will be boosted
-            EthreshD_w=0.d0
-            alphaD_w=0.d0
-         else if(iamd.eq.2)then !only dihedral energy will be boosted
-            EthreshP_w=0.d0
-            alphaP_w=0.d0
-         endif
-#ifndef API
-         write(6,'(a,i3)')'| Using Windowed Accelerated MD (wAMD) &
-                          &LOWERING BARRIERS to enhance sampling w_amd =', w_amd
-         write(6,'(a,2f22.12)')'| AMD boost to total energy: EthreshP,alphaP',&
-                           EthreshP, alphaP
-         write(6,'(a,2f22.12)')'| AMD boost to dihedrals: EthreshD,alphaD',&
-                           EthreshD,alphaD
-         write(6,'(a,2f22.12)')'| AMD extra parameters boost to total energy: &
-                           &EthreshP_w,alphaP_w', EthreshP_w, alphaP_w
-         write(6,'(a,2f22.12)')'| AMD extra parameters boost to dihedrals: &
-                           &EthreshD_w,alphaD_w', EthreshD_w, alphaD_w
-      else
-         write(6,'(a,i3)')'| Using Accelerated MD (AMD) RASING VALLEYS to &
-                           &enhance sampling iamd =',iamd
-         write(6,'(a,2f22.12)')'| AMD boost to total energy: EthreshP,alphaP', &
-                           EthreshP, alphaP
-         write(6,'(a,2f22.12)')'| AMD boost to dihedrals: EthreshD,alphaD', &
-                           EthreshD, alphaD
-#endif
-      endif
-   endif
-
-
-   !--------------------------------------------------------------------
-   ! Set up some parameters for scaledMD simulations:
-   ! scaledMD initialization
-   ! scaledMD=0 no scaling is used, 1 scale the potential energy
-   !--------------------------------------------------------------------
-#ifndef API
-   if(scaledMD.gt.0)then
-      write(6,'(a,i3)')'| Using Scaled MD to enhance sampling scaledMD =',&
-                        scaledMD
-      write(6,'(a,f22.12)')'| scaledMD scaling factor lambda: ',scaledMD_lambda
-   endif
-#endif
-
-   !--------------------------------------------------------------------
    ! Set up some parameters for GB simulations:
    !--------------------------------------------------------------------
    ! update offset = 0.09d0 for igb /= 8
@@ -1085,8 +994,6 @@ subroutine mdread2(x,ix,ih)
    use parms, only: req
    use nbips, only: ips
    use md_scheme, only: ntt, gamma_ln
-   use amd_mod, only: iamd,EthreshD,alphaD,EthreshP,alphaP, &
-        w_amd,EthreshD_w,alphaD_w,EthreshP_w,alphaP_w,igamd
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use file_io_dat
    use sander_lib, only: upper
@@ -1098,7 +1005,6 @@ subroutine mdread2(x,ix,ih)
    use qmmm_module, only : qmmm_nml, qmmm_vsolv, qmmm_struct
    use qmmm_vsolv_module, only : print
    use linear_response, only : lrt_interval
-   use crg_reloc, only: ifcr, cropt, crcut, crskin, crprintcharges
 #else
 #  ifdef LES
    use qmmm_module, only : qmmm_nml
@@ -1418,14 +1324,6 @@ subroutine mdread2(x,ix,ih)
          ', cut     =',cut,', intdiel =',intdiel
    if (lj1264 /= 0) &
       write(6, '(5x,a,i8)') 'lj1264  =',lj1264
-
-   ! charge relocation
-   if ( ifcr /= 0 ) then
-      write(6,'(/a)') 'Charge relocation:'
-      write(6,'(5x,2(a,i8))') 'cropt   =', cropt, &
-                                ', crprintcharges=', crprintcharges
-      write(6,'(5x,2(a,f10.5))') 'crcut   =', crcut, ', crskin  =', crskin
-   end if
 
    if ( igb /= 0 .and. igb /= 6 .and. igb /= 10 .and. ipb == 0 .and. igb /= 8) &
                                    then
@@ -2516,26 +2414,6 @@ subroutine mdread2(x,ix,ih)
          write(6,'(a)') 'Cannot use igb>0 (except igb=6) with extra-point force fields'
          DELAYED_ERROR
       end if
-   end if
-
-!AMD validation
-   if(iamd.gt.0)then
-     if (EthreshD .eq. 0.d0 .and. alphaD .eq. 0.d0 .and. EthreshP .eq. 0.d0 .and. alphaP .eq. 0.d0) then
-     write(6,'(a,i3)')'| AMD error all main parameters are 0.0 for Accelerated MD (AMD) or Windowed Accelerated MD (wAMD) '
-     DELAYED_ERROR
-     endif
-    if(w_amd.gt.0)then
-     if (EthreshD_w .eq. 0.d0 .and. alphaD_w .eq. 0.d0 .and. EthreshP_w .eq. 0.d0 .and. alphaP_w .eq. 0.d0) then
-     write(6,'(a,i3)')'| AMD error all extra parameters are 0.0 for Windowed Accelerated MD (wAMD) LOWERING BARRIERS'
-     DELAYED_ERROR
-     endif
-    endif
-   endif
-
-!GAMD not supported
-   if (igamd .gt. 0) then
-      write(6,*)'GaMD is not supported in Sander for now. Please use PMEMD instead.'
-      inerr=1
    end if
 
    if (ips < 0 .or. ips > 6) then

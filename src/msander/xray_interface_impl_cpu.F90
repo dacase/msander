@@ -375,13 +375,15 @@ contains
 
    use xray_globals_module
    use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution, &
-       sigma_Fobs
+       sigma_Fobs, new_order
    use xray_target_module, only : target_function_id
    implicit none
    character(len=*), intent(in) :: filename
-
+   integer rfree(num_hkl)
    real(real_kind) :: phicalc
    integer :: i
+
+   rfree = test_flag(new_order)
 
    open(20,file=trim(fmtz_outfile),action='write')
    if( target_function_id == 1 ) then
@@ -398,18 +400,20 @@ contains
           aimag(Fobs(i)), achar(9), real(Fcalc(i)), achar(9), aimag(Fcalc(i))
       end do
    else
-      write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+      write(20,'(17a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
          'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
-         'fcalc',achar(9),'phicalc'
-      write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
-         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
+         'fcalc',achar(9),'phicalc',achar(9),'R-free-flag'
+      write(20,'(17a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', &
+         achar(9),'15N',achar(9),'12'
       do i=1,num_hkl
          phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
          write(20,&
-          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3)') &
+          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i4)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
-          sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc
+          sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
+          achar(9), rfree(i)
       end do
    end if
    close(20)
@@ -536,7 +540,7 @@ contains
       
       ! should be able to do some deallocations here:
       deallocate(hkl_index,Fobs,sigFobs, &
-           test_flag, atom_scatter_type, stat=alloc_status)
+           atom_scatter_type, stat=alloc_status)
       if( alloc_status .ne. 0 ) then
          write(6,*) 'error in deallocation after init_interface2()'
          call mexit(6,1)
