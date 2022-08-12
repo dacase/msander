@@ -2,19 +2,18 @@
 
 This directory tree contains "msander", a "modern" version of parts of
 sander.  Also included are various X-ray and cryoEM-related code and utilities.
+The documentation is in the doc/msander.pdf file.
 
 # Warning
 
-This is a work in progress, and may not always be in a stable
-state.  I may not be able to respond to requests for support.
-The documentation is here:
-
-    https://ambermd.org/doc12/Amber22.pdf
+This is a work in progress, and may not always be in a stable state
+(although that is my goal for the main branch).  I may not be able to
+respond to requests for support.
 
 This code is probably only useful to those who are already familiar with
-AmberTools, and there are some small differences that are not yet
-documented.  You can look in the test directory for examples of input files,
-or send email to dacase1@gmail.com if you want to participate in development.
+AmberTools, and access to AmberTools is a practical requirement for using
+msander.  You can look in the test directory for examples of input files, or
+send email to dacase1@gmail.com if you want to participate in development.
 
 # Design goals
 
@@ -65,10 +64,21 @@ instead.)
   * NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
     restraints include NVIDIA GPU-enabled capabilities)
 
-  * Thermodynamic integration and non-equilibrium sampling methods
+  * Thermodynamic integration and non-equilibrium sampling methods,
+    including adaptively biassed sampling and self-guided Langevin dynamics
+
+  * Sampling and minimization using the lmod and xmin approaches; these
+    can now be used in conjunction with SHAKE and SETTLE.
 
   * Replica exchange capabilities, except for constant pH and redox potential
     simulations
+
+# Execution speed
+
+Force field evaluation is still slow compared to many other codes.  This
+project thus focusses on systems where other parts of the simulation, such
+as QM, RISM, or Xray/Cryoem restraints, are the bottleneck, so that force
+field speed is not the limiting component.
 
 # Building the code
 
@@ -80,6 +90,7 @@ instead.)
 ```
 
 # License
+
 This project is licensed under the GNU General Public License, 
 version 2, or (at your option) any later version.   Some components use 
 different, but compatible, open source licenses.  See the LICENSE file 
