@@ -1,8 +1,8 @@
 # Overview
 
-This directory tree contains "msander", a "modern" version of parts of
+This directory tree contains `msander`, a "modern" version of parts of
 sander.  Also included are various X-ray and cryoEM-related code and utilities.
-The documentation is in the doc/msander.pdf file.
+The documentation is in the *doc/msander.pdf* file.
 
 # Warning
 
@@ -11,9 +11,10 @@ This is a work in progress, and may not always be in a stable state
 respond to requests for support.
 
 This code is probably only useful to those who are already familiar with
-AmberTools, and access to AmberTools is a practical requirement for using
-msander.  You can look in the test directory for examples of input files, or
-send email to dacase1@gmail.com if you want to participate in development.
+AmberTools, and access to AmberTools (https://ambermd.org) is a practical
+requirement for using msander.  You can look in the test directory for
+examples of input files, or send email to dacase1@gmail.com if you want to
+participate in development.
 
 # Design goals
 
@@ -50,7 +51,7 @@ removed.
   * Non-periodic 3D-RISM has been removed for now, in an attempt to get the
 simplest possible RISM code, perhaps as a basis for future GPU work.
 
-(If you need some of these deleted pieces, use sander from AmberTools
+(If you need some of these deleted pieces, use *sander* from AmberTools
 instead.)
 
 * Key pieces of code that are still there, and being emphasized:
