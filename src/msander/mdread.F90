@@ -22,8 +22,6 @@ subroutine mdread1()
    use nmr, only: echoin
    use sgld, only : isgld, isgsta,isgend,nsgsize, &
                     tsgavg,sgft,sgff,sgfg,tsgavp
-   use nbips, only: ips,teips,tvips,teaips,tvaips,raips,mipsx,mipsy,mipsz, &
-                    mipso,gridips,dvbips
    use emap,only: temap,gammamap
 #ifdef DSSP
    use dssp, only: idssp
@@ -112,8 +110,7 @@ subroutine mdread1()
          pencut,ipnlty,iscale,scalm,noeskp, &
          maxcyc,ncyc,ntmin,vlimit, &
          mxsub,jfastw,watnam,owtnm,hwtnm1,hwtnm2, iesp, &
-         skmin, skmax, vv,vfac, tmode, ips, &
-         mipsx,mipsy,mipsz,mipso,gridips,raips,dvbips, &
+         skmin, skmax, vv,vfac, tmode, &
          ntt, gamma_ln, &
          iemap,gammamap, &
          isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
@@ -487,15 +484,6 @@ subroutine mdread1()
 
    ifqnt = NO_INPUT_VALUE
 
-   ips = 0    ! no isotropic periodic sum
-   raips=-1.0d0   ! automatically determined
-   mipsx=-1   ! number of grids in x direction, <0 for automatically determined
-   mipsy=-1   ! number of grids in y direction, <0 for automatically determined
-   mipsz=-1   ! number of grids in z direction, <0 for automatically determined
-   mipso=4    ! default 4th order b-spline
-   gridips=2   ! grid size. used to determine grid number if not defined
-   dvbips=1.0d-8   ! Volume change tolerance. aips will be done when change more than dvbips
-
    iemap=0     ! no emap constraint
    gammamap=1     ! default friction constant for map motion, 1/ps
    isgld = 0   ! no self-guiding
@@ -826,37 +814,6 @@ subroutine mdread1()
    if( ipb == 0 ) call load_ewald_info(inpcrd,ntp)
 #endif
 
-   !--------------------------------------------------------------------
-   ! parameters for IPS and for SGLD:
-   ! ips=1  3D IPS for electrostatic and Lennard-Jones potentials
-   ! ips=2  3D IPS for electrostatic potential only
-   ! ips=3  3D IPS for  Lennard-Jones potential only
-   ! ips=4  3D IPS/DFFT for electrostatic and Lennard-Jones potentials
-   ! ips=5  3D IPS/DFFT for electrostatic potential only
-   ! ips=6  3D IPS/DFFT for Lennard-Jones potential only
-   !--------------------------------------------------------------------
-
-   teips=.false.
-   tvips=.false.
-   teaips=.false.
-   tvaips=.false.
-   if((ips-4)*(ips-6) == 0 )tvaips =.true.
-   if ( (ips-4)*(ips-5) == 0 )teaips =.true.
-   if( tvaips.OR.( (ips -1)*(ips-3) == 0 ))tvips =.true.
-   if( teaips.OR.((ips -1)*(ips-2) == 0 ))teips =.true.
-   if( teips ) then
-      use_pme = 0
-      eedmeth = 6
-   end if
-   if( tvips ) then
-      vdwmeth = 2
-      if(use_pme/=0.and.tvaips)then
-        mipsx=nfft1   ! number of grids in x direction, <0 for automatically determined
-        mipsy=nfft2   ! number of grids in y direction, <0 for automatically determined
-        mipsz=nfft3   ! number of grids in z direction, <0 for automatically determined
-        mipso=order    ! default 6th order b-spline
-      endif
-   end if
    temap=iemap>0
    ishake = 0
    if (ntc > 1) ishake = 1
@@ -992,7 +949,6 @@ subroutine mdread2(x,ix,ih)
 #endif
    use constants, only : ZERO, ONE, TWO
    use parms, only: req
-   use nbips, only: ips
    use md_scheme, only: ntt, gamma_ln
    use nblist, only: a,b,c,alpha,beta,gamma,nbflag,skinnb,sphere,nbtell,cutoffnb
    use file_io_dat
@@ -2419,23 +2375,6 @@ subroutine mdread2(x,ix,ih)
       end if
    end if
 
-   if (ips < 0 .or. ips > 6) then
-      write(6,'(/2x,a,i3,a)') 'IPS (',ips,') must be between 0 and 6'
-      DELAYED_ERROR
-   end if
-   if (ips /= 0 .and. ipol > 0 ) then
-      write(6,'(/2x,a)') 'IPS and IPOL are inconsistent options'
-      DELAYED_ERROR
-   endif
-   if (ips /= 0 .and. lj1264 > 0) then
-      write(6, '(/2x,a)') 'IPS and the LJ 12-6-4 potential are incompatible'
-      DELAYED_ERROR
-   endif
-   if ( (igb > 0 .or. ipb /= 0) .and. ips > 0 ) then
-      write(6,'(/2x,a,i3,a,i3,a)') 'IGB (',igb,') and ips (',ips, &
-          ') cannot both be turned on'
-      DELAYED_ERROR
-   end if
    if (igb /= 0 .and. igb /= 1 .and. igb /= 2 .and. igb /= 5 &
          .and. igb /= 6 .and. igb /= 7 .and. igb /= 8 .and. igb /= 10) then
       write(6,'(/2x,a,i3,a)') 'IGB (',igb,') must be 0,1,2,5,6,7,8 or 10.'

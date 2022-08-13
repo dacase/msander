@@ -95,7 +95,6 @@ subroutine sander()
   ! Self-Guided molecular/Langevin Dynamics (SGLD)
   use sgld, only: isgld, psgld
 
-  use nbips, only: ipssys,ips
   use emap,only: temap,pemap,qemap
 
   use file_io_dat
@@ -950,12 +949,6 @@ subroutine sander()
     ! Prepare for EMAP constraints
     if (temap) then
       call pemap(dt,temp0,x,ix,ih)
-    end if
-
-    ! Prepare for Isotropic periodic sum of nonbonded interaction
-    if (ips .gt. 0) then
-      call ipssys(natom, ntypes, ntb, x(l15), cut, cn1, cn2, ix(i04), &
-                  ix(i06), x(lcrd))
     end if
 
     if (master .and. (.not. qmmm_nml%ifqnt)) then

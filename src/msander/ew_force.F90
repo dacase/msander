@@ -26,7 +26,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    use charmm_mod, only : charmm_active, charmm_cn114, charmm_cn214
    use parms, only : one_scee, one_scnb
 #endif /* LES */
-   use nbips, only : aipspbc,ips,teaips,tvaips,virexips
 #ifdef MPI
    use mpi
 #endif
@@ -147,9 +146,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    e14vir(1:3,1:3) = 0.d0
    framevir(1:3,1:3) = 0.d0
    virvsene = 0.d0
-   if(ips>0)then
-     adj_vir=virexips
-   endif
 
    frcx(1:3) = 0.d0
    
@@ -355,45 +351,6 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
       call timer_stop(TIME_SELF)
       
    end if      ! (use_pme and respa check)
-   if( teaips .or. tvaips ) then
-      !--------------------------------------------------------
-      ! Remaining IPS ENERGY
-      !--------------------------------------------------------
-
-      call timer_stop_start(TIME_EWALD,TIME_AIPS)
-#ifdef MPI
-        if(i_do_recip)then
-           call mpi_comm_size(recip_comm,numtasks,ierr)
-           call mpi_comm_rank(recip_comm,mytaskid,ierr)
-           master = mytaskid.eq.0
-#endif
-
-            call aipspbc(evdwr,eer,numatoms,crd,charge,frcx,frc,rec_vir)
-
-           ! Scaleup forces, field for respa
-         
-#ifdef MPI
-           numtasks = commsander_numtasks
-           mytaskid = commsander_mytaskid
-           master = mytaskid.eq.0
-        end if         !loop for ido_recip
-#endif
-      call timer_stop_start(TIME_AIPS,TIME_EWALD)
-      
-   end if      ! (do aips )
-   
-   if( ips>0 .and. vdwmeth==1 .and. master ) then
-
-      !-------------------------------------------------------
-      ! LONG RANGE DISPERSION CONTRIBUTION
-      !-------------------------------------------------------
-      
-      call timer_start(TIME_SELF)
-      call vdw_correction(ico,ntypes,nvdwcls, &
-               volume,evdwr,rec_vird,cn2,cutoffnb)
-      call timer_stop(TIME_SELF)
-
-   end if
 
    !--------------------------------------------------------
    ! DIRECT PART OF EWALD PLUS VDW, HBOND
@@ -536,7 +493,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
 #else
    eelt = ees + eer + eed + eea
 #endif
-   epol = epold + epola + epols + dipself + dipkine
+   epol = epold + epola + epols 
    epol = epol + epol14
    
    evdw = evdw + evdwr

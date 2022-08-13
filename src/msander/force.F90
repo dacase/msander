@@ -68,7 +68,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   use dssp, only: fdssp, edssp, idssp
 #endif /* DSSP */
 
-  use nbips, only: ips, eexips
   use emap, only: temap, emapforce
 
   use linear_response, only: ilrt, ee_linear_response, energy_m0, energy_w0, &
@@ -362,16 +361,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   ! Calculate the non-bonded contributions
   call timer_start(TIME_NONBON)
 
-  ! EEXIPS: three dimensional Isotropic Periodic Sums.  This routine
-  ! initializes electrostatic and vdW energies in IPS and updates
-  ! the IPS parameters.
-  call timer_start(TIME_EEXIPS)
-  if (ips > 0) then
-    call eexips(evdwex, eelex, istart, iend, ntb, ntypes, ix(i04), &
-                  ix(i06), ix(i08), ix(i10), xx(l15), cn1, cn2, f, x)
-  endif
-  call timer_stop(TIME_EEXIPS)
-
   if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
 
     ! (for GB: do all nonbondeds together below)
@@ -437,10 +426,6 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
         pot%hbond    = 0.d0
       end if
 #endif
-      if( ips > 0 )then
-         pot%vdw   = pot%vdw   + evdwex
-         pot%elec  = pot%elec  + eelex
-      endif
    end if  ! ( igb == 0 .and. ipb == 0 .and. iyammp == 0 )
 
    ! End of non-bonded computations

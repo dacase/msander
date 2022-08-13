@@ -308,7 +308,6 @@ dynlib.o: \
                     ../include/assert.fh\
                     bintraj.o\
                     file_io_dat.o\
-                    mdfil.o\
                     ../include/md.h\
                     extra.h\
                     remd.o\
@@ -320,7 +319,6 @@ dynlib.o: \
                     state.o\
                     charmm.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     md_scheme.o\
                     ew_mpole.h\
@@ -342,7 +340,6 @@ dynlib.LES.o: \
                     ../include/assert.fh\
                     bintraj.LES.o\
                     file_io_dat.o\
-                    mdfil.LES.o\
                     ../include/md.h\
                     extra.h\
                     remd.LES.o\
@@ -354,7 +351,6 @@ dynlib.LES.o: \
                     state.o\
                     charmm.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     md_scheme.LES.o\
                     ew_mpole.h\
@@ -568,7 +564,6 @@ ew_force.o: \
                     les.o\
                     charmm.o\
                     parms.o\
-                    ips.o\
                     extra.h\
                     ew_cntrl.h\
                     def_time.h\
@@ -603,7 +598,6 @@ ew_force.LES.o: \
                     les.o\
                     charmm.o\
                     parms.o\
-                    ips.o\
                     extra.h\
                     ew_cntrl.h\
                     def_time.h\
@@ -819,7 +813,6 @@ force.o: \
                     parms.o\
                     nonbond_list.o\
                     dssp.o\
-                    ips.o\
                     emap.o\
                     linear_response.o\
                     xray_interface.o\
@@ -867,7 +860,6 @@ force.LES.o: \
                     parms.o\
                     nonbond_list.LES.o\
                     dssp.o\
-                    ips.o\
                     emap.o\
                     linear_response.o\
                     xray_interface.o\
@@ -937,27 +929,6 @@ icosasurf.o:   icosasurf.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ icosasurf.F90
 
-ips.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    constants.o\
-                    extra.h\
-                    nonbond_list.o\
-                    parallel.h\
-                    stack.o\
-                    ew_bspline.o\
-                    flocntrl.h\
-                    def_time.h\
-                    box.h\
-                    ew_parallel.h\
-                    file_io_dat.o\
-                    ../include/md.h
-
-
-ips.o:   ips.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ ips.F90
-
 iwrap2.o: \
                     ../include/dprec.fh\
                     molecule.o\
@@ -1000,6 +971,7 @@ lmod.o: \
                     parallel.h\
                     constants.o\
                     bintraj.o\
+                    softcore.o\
                     extra.h\
                     fastwt.o\
                     memory_module.o\
@@ -1021,6 +993,7 @@ lmod.LES.o: \
                     parallel.h\
                     constants.o\
                     bintraj.LES.o\
+                    softcore.o\
                     extra.h\
                     fastwt.o\
                     memory_module.o\
@@ -1147,7 +1120,6 @@ mdread.o: \
                     stack.o\
                     nmr.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     dssp.o\
                     xray_globals.o\
@@ -1198,7 +1170,6 @@ mdread.LES.o: \
                     stack.o\
                     nmr.LES.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     dssp.o\
                     xray_globals.o\
@@ -2265,7 +2236,6 @@ parallel.o: \
                     mbar.o\
                     linear_response.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     mdfil.o\
                     parallel.h\
@@ -2304,7 +2274,6 @@ parallel.LES.o: \
                     mbar.o\
                     linear_response.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     mdfil.LES.o\
                     parallel.h\
@@ -3057,7 +3026,6 @@ sander.o: \
                     charmm.o\
                     memory_module.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     file_io_dat.o\
                     barostats.o\
@@ -3120,7 +3088,6 @@ sander.LES.o: \
                     charmm.o\
                     memory_module.o\
                     sglds.o\
-                    ips.o\
                     emap.o\
                     file_io_dat.o\
                     barostats.o\
@@ -3232,15 +3199,12 @@ short_ene.o: \
                     def_time.h\
                     file_io_dat.o\
                     les.o\
-                    ips.o\
                     mbar.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ips_lj.h\
                     ew_directp.h\
                     ew_directe3.h\
-                    ew_directe4.h\
-                    eedmeth2-6.h
+                    ew_directe4.h
 
 
 short_ene.o:   short_ene.F90
@@ -3260,15 +3224,12 @@ short_ene.LES.o: \
                     def_time.h\
                     file_io_dat.o\
                     les.o\
-                    ips.o\
                     mbar.o\
                     ew_cntrl.h\
                     ../include/md.h\
-                    ips_lj.h\
                     ew_directp.h\
                     ew_directe3.h\
-                    ew_directe4.h\
-                    eedmeth2-6.h
+                    ew_directe4.h
 
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'

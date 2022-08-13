@@ -33,8 +33,6 @@ subroutine startup(xx,ix,ih)
 ! SGLD
    use sgld, only : isgld, isgsta,isgend,nsgsize, &
                     sgft,sgff,sgfg,tsgavg,tsgavp
-! IPS parameters
-   use nbips, only : ips,mipsx,mipsy,mipsz,mipso,raips,gridips,dvbips
 ! EMAP parameters
    use emap, only : temap,gammamap,nemap,nrigid
 ! bcast variables from mdfil.F90
@@ -225,17 +223,6 @@ subroutine startup(xx,ix,ih)
    call mpi_bcast(ilrt,1,MPI_INTEGER,0,commsander,ierr)
    call mpi_bcast(lrtmask,256,MPI_CHARACTER,0,commsander,ierr)
    call mpi_bcast(lrt_interval,1,MPI_INTEGER,0,commsander,ierr)
-
-! IPS
-   call mpi_bcast(ips,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(mipsx,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(mipsy,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(mipsz,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(mipso,1,MPI_INTEGER,0,commsander,ierr)
-   call mpi_bcast(raips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(dvbips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-   call mpi_bcast(gridips,1,MPI_DOUBLE_PRECISION,0,commsander,ierr)
-! end IPS
 
 ! EMAP
    call mpi_bcast(temap,1,MPI_LOGICAL,0,commsander,ierr)

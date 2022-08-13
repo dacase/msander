@@ -158,9 +158,6 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #ifdef LES
   use les_data, only: cnum, lestyp, lestmp, lesfac, lfac, nlesty
 #endif
-  use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
-                   rips12r, aipse, aipsvc, aipsva, bipse, bipsvc, bipsva, &
-                   pipsec, pipsvcc, pipsvac
 #ifdef MPI /* SOFT CORE */
   use softcore, only: scalpha, scbeta, sigma6, foureps, sc_dvdl, &
                       isProcessV1, sc_ener, nsc, oneweight, weight0, &
@@ -198,8 +195,7 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif
 
 #include "../include/md.h"
-  _REAL_ uips, uips2, uips4, uips2r, uips6r, uips12r
-  _REAL_ pipse, dpipse, pvc, dvcu, pva, dvau
+  _REAL_ pvc, dvcu, pva, dvau
   integer itran
 
   ! variables for conditionally cached data.
@@ -329,52 +325,41 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
     end do
     ! End prologue loop
 
-    if (tvips) then
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-        ! regular epilogue:
-        !call wallclock(time0)
-!   #     include "ew_directe.h"
+    ! epilogue: 12-6 LF terms
 
-! epilogue: 12-6 LF terms
+    do im_new = 1,icount
+       j = cache_bckptr(im_new)
 
-        do im_new = 1,icount
-           j = cache_bckptr(im_new)
+       dfee = cache_df(im_new)
+       delx = cache_x(im_new)
+       dely = cache_y(im_new)
+       delz = cache_z(im_new)
+       delr2inv = cache_r2(im_new)
 
-           dfee = cache_df(im_new)
-           delx = cache_x(im_new)
-           dely = cache_y(im_new)
-           delz = cache_z(im_new)
-           delr2inv = cache_r2(im_new)
+       ic = ico(iaci+iac(j))
+       r6 = delr2inv*delr2inv*delr2inv
+       delr12inv = r6 * r6
+#ifdES 
+       lfac=lesfac(lestmp+lestyp(j))
+       f6 = cn2(ic)*r6*lfac
+       f12 = cn1(ic)*delr12inv*lfac
+#els
+       f6 = cn2(ic)*r6
+       f12 = cn1(ic)*delr12inv
+#end
+       evdw = evdw + f12 - f6
+       df = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
 
-           ic = ico(iaci+iac(j))
-           r6 = delr2inv*delr2inv*delr2inv
-           delr12inv = r6 * r6
-#ifdef LES 
-           lfac=lesfac(lestmp+lestyp(j))
-           f6 = cn2(ic)*r6*lfac
-           f12 = cn1(ic)*delr12inv*lfac
-#else
-           f6 = cn2(ic)*r6
-           f12 = cn1(ic)*delr12inv
-#endif
-           evdw = evdw + f12 - f6
-           df = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
-
-           dfx = delx*df
-           dfy = dely*df
-           dfz = delz*df
-           dumx = dumx + dfx
-           dumy = dumy + dfy
-           dumz = dumz + dfz
-           force(1,j) = force(1,j) + dfx
-           force(2,j) = force(2,j) + dfy
-           force(3,j) = force(3,j) + dfz
-        end do  !  im_new = 1,icount
-        !call wallclock(time1)
-        !time_ewd = time_ewd + time1-time0
-    end if
+       dfx = delx*df
+       dfy = dely*df
+       dfz = delz*df
+       dumx = dumx + dfx
+       dumy = dumy + dfy
+       dumz = dumz + dfz
+       force(1,j) = force(1,j) + dfx
+       force(2,j) = force(2,j) + dfy
+       force(3,j) = force(3,j) + dfz
+    end do  !  im_new = 1,icount
       
     ! Now loop over the 12-10 LJ terms for eedmeth = 1
     icount = 0
@@ -611,7 +596,7 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif /* MPI for SOFT CORE  */
 !============================================================================
 
-#include "eedmeth2-6.h"
+!  #include "eedmeth2-6.h"
 
   end if
   ! End switch over six eedmeth options
@@ -643,9 +628,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
   use stack
   use constants, only: zero, one, two, half, third, TWOPI, six, twelve
   use file_io_dat
-  use nbips, only: teips, tvips, nnbips, rips2, ripsr, rips2r, rips6r, &
-                   rips12r, aipse, aipsvc, aipsva, bipse, bipsvc, bipsva, &
-                   pipsec, pipsvcc, pipsvac
 !$ use omp_lib
 !$ use constants, only:  omp_num_threads
 
@@ -679,8 +661,6 @@ subroutine get_nb_energy(iac, ico, ntypes, charge, cn1, cn2, cn6, force, &
 !$  integer max_threads, ier
 
 #include "../include/md.h"
-  _REAL_ uips, uips2, uips4, uips2r, uips6r, uips12r
-  _REAL_ pipse, dpipse, pvc, dvcu, pva, dvau
   integer itran
 
   _REAL_ time0, time1
