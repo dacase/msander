@@ -1391,6 +1391,10 @@ subroutine mdread2(x,ix,ih)
          write(6,'(/2x,a,i3,a)') 'Error: Invalid NTMIN (',ntmin,').'
          stop
       end select
+
+      ! skip (for now) using settle for waters if minimization is on
+      jfastw = 4
+
    else
       write(6,'(/a)') 'Molecular dynamics:'
       write(6,'(5x,4(a,i10))') 'nstlim  =',nstlim,', nscm    =',nscm, &

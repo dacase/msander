@@ -1,12 +1,12 @@
 
           -------------------------------------------------------
-          Amber 18 SANDER                              2018
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 03/04/2021 at 15:54:21
+| Run on 08/13/2022 at 09:28:56
 
 |   Executable path: ../../bin/msander
-| Working directory: /Users/case/msander/test/dhfr
+| Working directory: /home/case/msander_intel/test/dhfr
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
  short xmin minimization                                                       
  &cntrl                                                                        
    ntx=7, irest=1,                                                             
@@ -51,8 +51,7 @@ File Assignments:
 
 | Flags:                                                                        
  getting new box info from bottom of inpcrd
-| peek_ewald_inpcrd: Box info found
-|Largest sphere to fit in unit cell has radius =    27.261
+| Largest sphere to fit in unit cell has radius =    27.261
  NATOM  =   22930 NTYPES =      17 NBONH =   21651 MBONA  =    1302
  NTHETH =    2789 MTHETA =    1772 NPHIH =    5026 MPHIA  =    3140
  NHPARM =       0 NPARM  =       0 NNB   =   41018 NRES   =    6980
@@ -63,23 +62,22 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real             1956889
+|     Real             1294103
 |     Hollerith          75772
 |     Integer           954547
 |     Max Pairs        7643333
 |     nblistReal        275160
 |     nblist Int       1111282
-|       Total            55660 kbytes
+|       Total            50482 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
 
      BOX TYPE: RECTILINEAR
+| Note: ig = -1. Setting random seed to   548555 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -125,6 +123,8 @@ Ewald parameters:
      Cutoff=    8.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.34864
      Interpolation order =    4
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -133,11 +133,10 @@ Ewald parameters:
                                                                                 
  begin time read from input coords =   510.050 ps
 
- Number of triangulated 3-point waters found:     6810
+ Number of triangulated 3-point waters found:        0
 
      Sum of charges from parm topology file =      -0.0000
      Forcing neutrality...
-| Running OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -333,31 +332,30 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.13 (96.21% of List )
-|                Other                      0.01 ( 3.79% of List )
-|             List time                  0.13 ( 6.69% of Nonbo)
-|                   Short_ene time             1.50 (98.95% of Direc)
-|                   Other                      0.02 ( 1.05% of Direc)
-|                Direct Ewald time          1.52 (82.40% of Ewald)
-|                   Fill Bspline coeffs        0.03 ( 8.17% of Recip)
-|                   Fill charge grid           0.05 (17.97% of Recip)
-|                   Scalar sum                 0.01 ( 4.58% of Recip)
-|                   Grad sum                   0.08 (26.14% of Recip)
-|                   FFT time                   0.13 (43.14% of Recip)
-|                Recip Ewald time           0.31 (16.62% of Ewald)
-|             Ewald time                 1.84 (93.31% of Nonbo)
-|          Nonbond force              1.97 (98.50% of Force)
-|          Bond/Angle/Dihedral        0.03 ( 1.50% of Force)
-|       Force time                 2.00 (100.0% of Runmd)
-|    Runmd Time                 2.00 (92.35% of Total)
-|    Other                      0.15 ( 6.69% of Total)
-| Total time                 2.17 (100.0% of ALL  )
+|                Build the list             0.12 (94.15% of List )
+|                Other                      0.01 ( 5.85% of List )
+|             List time                  0.13 ( 5.83% of Nonbo)
+|                   Short_ene time             1.63 (98.53% of Direc)
+|                   Other                      0.02 ( 1.47% of Direc)
+|                Direct Ewald time          1.65 (79.84% of Ewald)
+|                   Fill Bspline coeffs        0.03 ( 7.45% of Recip)
+|                   Fill charge grid           0.08 (20.75% of Recip)
+|                   Scalar sum                 0.02 ( 4.79% of Recip)
+|                   Grad sum                   0.11 (28.00% of Recip)
+|                   FFT time                   0.15 (39.02% of Recip)
+|                Recip Ewald time           0.39 (19.08% of Ewald)
+|             Ewald time                 2.07 (94.17% of Nonbo)
+|          Nonbond force              2.20 (99.21% of Force)
+|       Force time                 2.21 (100.0% of Runmd)
+|    Runmd Time                 2.21 (91.09% of Total)
+|    Other                      0.20 ( 8.17% of Total)
+| Total time                 2.43 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:    1124788
 | Highest istack allocated:      22930
-|           Job began  at 15:54:21.984  on 03/04/2021
-|           Setup done at 15:54:22.111  on 03/04/2021
-|           Run   done at 15:54:24.154  on 03/04/2021
-|     wallclock() was called     962 times
+|           Job began  at 09:28:56.475  on 08/13/2022
+|           Setup done at 09:28:56.576  on 08/13/2022
+|           Run   done at 09:28:58.906  on 08/13/2022
+|     wallclock() was called     963 times

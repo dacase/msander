@@ -3,7 +3,7 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/28/2022 at 15:32:19
+| Run on 08/13/2022 at 09:33:40
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/xray/6o2h
@@ -90,7 +90,7 @@ X-ray Refinement Parameters:
      Atom Selection Mask: !@H=
 
      BOX TYPE: RECTILINEAR
-| Note: ig = -1. Setting random seed to   416168 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   832980 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -151,7 +151,7 @@ PDB: All atoms read successfully.
 XRAY: UNIT CELL=    82.272   96.402  103.539  88.66 108.46 111.88
 Found  30197 atoms in !@H=;                                                                                                                                                                                                                                                           
 | Running Xray OpenMP with   8 threads
- Number of triangulated 3-point waters found:     2414
+ Number of triangulated 3-point waters found:        0
 
      Sum of charges from parm topology file =      54.0002
      Assuming uniform neutralizing plasma
@@ -225,35 +225,35 @@ Found  30197 atoms in !@H=;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.27 (96.14% of List )
-|                Other                      0.01 ( 3.86% of List )
-|             List time                  0.28 (13.33% of Nonbo)
-|                   Short_ene time             1.17 (97.57% of Direc)
-|                   Other                      0.03 ( 2.43% of Direc)
-|                Direct Ewald time          1.20 (65.60% of Ewald)
-|                Adjust Ewald time          0.06 ( 3.27% of Ewald)
-|                   Fill Bspline coeffs        0.04 ( 7.09% of Recip)
-|                   Fill charge grid           0.10 (17.25% of Recip)
-|                   Scalar sum                 0.10 (18.43% of Recip)
-|                   Grad sum                   0.09 (15.77% of Recip)
-|                   FFT time                   0.23 (41.47% of Recip)
-|                Recip Ewald time           0.56 (30.30% of Ewald)
-|             Ewald time                 1.84 (86.67% of Nonbo)
-|          Nonbond force              2.12 ( 2.17% of Force)
-|             Fcalc loop                 9.39 ( 9.84% of Xray )
-|             Deriv loop                26.96 (28.26% of Xray )
-|             Other                     59.05 (61.90% of Xray )
-|          Xray restaints            95.40 (97.71% of Force)
-|       Force time                97.64 (100.0% of Runmd)
-|    Runmd Time                97.64 (98.92% of Total)
-|    Other                      1.06 ( 1.08% of Total)
-| Total time                98.70 (100.0% of ALL  )
+|                Build the list             0.26 (95.97% of List )
+|                Other                      0.01 ( 4.03% of List )
+|             List time                  0.28 (13.18% of Nonbo)
+|                   Short_ene time             1.17 (97.61% of Direc)
+|                   Other                      0.03 ( 2.39% of Direc)
+|                Direct Ewald time          1.20 (66.14% of Ewald)
+|                Adjust Ewald time          0.05 ( 2.96% of Ewald)
+|                   Fill Bspline coeffs        0.04 ( 7.10% of Recip)
+|                   Fill charge grid           0.09 (15.68% of Recip)
+|                   Scalar sum                 0.10 (18.84% of Recip)
+|                   Grad sum                   0.09 (15.60% of Recip)
+|                   FFT time                   0.23 (42.78% of Recip)
+|                Recip Ewald time           0.55 (30.12% of Ewald)
+|             Ewald time                 1.82 (86.82% of Nonbo)
+|          Nonbond force              2.09 ( 2.14% of Force)
+|             Fcalc loop                 9.31 ( 9.77% of Xray )
+|             Deriv loop                27.23 (28.58% of Xray )
+|             Other                     58.74 (61.65% of Xray )
+|          Xray restaints            95.28 (97.74% of Force)
+|       Force time                97.49 (100.0% of Runmd)
+|    Runmd Time                97.49 (98.91% of Total)
+|    Other                      1.07 ( 1.09% of Total)
+| Total time                98.56 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:    3624601
 | Highest istack allocated:      60945
-|           Job began  at 15:32:19.563  on 06/28/2022
-|           Setup done at 15:32:20.349  on 06/28/2022
-|           Run   done at 15:33:58.266  on 06/28/2022
+|           Job began  at 09:33:40.375  on 08/13/2022
+|           Setup done at 09:33:41.164  on 08/13/2022
+|           Run   done at 09:35:18.934  on 08/13/2022
 |     wallclock() was called     365 times
