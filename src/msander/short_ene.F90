@@ -339,14 +339,14 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
        ic = ico(iaci+iac(j))
        r6 = delr2inv*delr2inv*delr2inv
        delr12inv = r6 * r6
-#ifdES 
+#ifdef LES 
        lfac=lesfac(lestmp+lestyp(j))
        f6 = cn2(ic)*r6*lfac
        f12 = cn1(ic)*delr12inv*lfac
-#els
+#else
        f6 = cn2(ic)*r6
        f12 = cn1(ic)*delr12inv
-#end
+#endif
        evdw = evdw + f12 - f6
        df = dfee + (12.d0*f12 - 6.d0*f6)*delr2inv
 
@@ -596,7 +596,7 @@ subroutine short_ene(i, xk, ipairs, ntot, nvdw, nhbnd, eedtbdns, &
 #endif /* MPI for SOFT CORE  */
 !============================================================================
 
-!  #include "eedmeth2-6.h"
+#include "eedmeth2-6.h"
 
   end if
   ! End switch over six eedmeth options

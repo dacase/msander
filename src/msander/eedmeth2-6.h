@@ -51,15 +51,8 @@
     end do
     ! End prologue loop
 
-    if (tvips) then
-
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-
-      ! regular epilogue:
-#     include "ew_directe.h"
-    end if
+    ! regular epilogue:
+#   include "ew_directe.h"
 
     ! Now loop over the 12-10 LJ terms for eedmeth = 2
     icount = 0
@@ -159,15 +152,8 @@
     end do
     ! End electrostatic loop
 
-    if (tvips) then
-
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-
-      ! regular epilogue:
-#     include "ew_directe.h"
-    end if
+    ! regular epilogue:
+#   include "ew_directe.h"
 
     ! Now loop over the 12-10 LJ terms for eedmeth = 3
     icount = 0
@@ -253,15 +239,8 @@
     end do
     ! End prologue loop
 
-    if (tvips) then
-
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-
-      ! regular epilogue:
-#     include "ew_directe.h"
-    end if
+    ! regular epilogue:
+#   include "ew_directe.h"
 
     ! Now loop over the 12-10 LJ terms for eedmeth = 4
     icount = 0
@@ -381,15 +360,9 @@
       cache_r2(im_new) = delr2inv
       cache_df(im_new) = dfee
     end do
-    if (tvips) then
 
-      ! Use IPS for L-J energy:
-#     include "ips_lj.h"
-    else
-
-      ! regular epilogue:
-#     include "ew_directe.h"
-    end if
+    ! regular epilogue:
+#   include "ew_directe.h"
 
     !     Now loop over the 12-10 LJ terms for eedmeth = 5
     icount = 0
@@ -426,102 +399,7 @@
 #   include "ew_directe2.h"
   else if (eedmeth == 6) then
 
-    ! Loop over the 12-6 LJ terms for eedmeth = 6
-    icount = 0
-    do m = 1,nvdw
-#     include "ew_directp.h"
-    end do
-    call vdinvsqrt( icount, cache_r2, cache_df )
-
-    ! the df cache now stores the reciprocal of delta r, variable delrinv.
-    if (teips .or. tvips) then
-      nnbips = nnbips + icount*2
-    end if
-    do im_new = 1, icount
-      j = cache_bckptr(im_new)
-      delr2 = cache_r2(im_new)
-      delrinv = cache_df(im_new)
-      delr2inv = delrinv * delrinv
-
-      ! Use the ips potential:
-      uips = ripsr * delr2 * delrinv
-      uips2 = rips2r * delr2
-      cgj = charge(j)
-#ifdef LES
-      if (use_pme .ne. 0) then
-        b0 = cgi * cgj * delrinv
-        b1 = delrinv
-      else
-        lfac = lesfac(lestmp+lestyp(j))
-        b1 = lfac * delrinv
-        b0 = cgi * cgj * b1
-      end if
-#else
-      b0 = cgi * cgj * ripsr
-      b1 = ripsr
-#endif
-      pipse = one/uips + AIPSE(0) + &
-              uips2*(AIPSE(1) + uips2*(AIPSE(2) + uips2*AIPSE(3)))
-      dpipse = -one/uips + &
-               uips2*(BIPSE(1) + uips2*(BIPSE(2) + uips2*BIPSE(3)))
-      ecur = b0*(pipse - pipsec)
-      eelt = eelt + ecur
-      dfee = -b0 * dpipse * delr2inv
-      cache_r2(im_new) = delr2inv
-      cache_df(im_new) = dfee
-    end do
-
-    if (TVIPS) then
-
-      ! Use IPS for L-J energy
-#     include "ips_lj.h"
-    else
-
-      ! epilogue
-#     include "ew_directe.h"
-    endif
-
-    ! Now loop over the 12-10 LJ terms for eedmeth = 6
-    icount = 0
-    do m = nvdw+1, ntot
-#     include "ew_directp.h"
-    end do
-    call vdinvsqrt(icount, cache_r2, cache_df)
-    if (teips .or. tvips) then
-      nnbips = nnbips + icount*2
-    end if
-    do im_new = 1, icount
-      j = cache_bckptr(im_new)
-      delr2 = cache_r2(im_new)
-      delrinv = cache_df(im_new)
-      delr2inv = delrinv * delrinv
-      cgj = charge(j)
-#ifdef LES
-      if (use_pme .ne. 0) then
-        b0 = cgi*cgj*delrinv
-        b1 = delrinv
-      else
-        lfac = lesfac(lestmp+lestyp(j))
-        b1 = lfac * delrinv
-        b0 = cgi * cgj * b1
-      end if
-#else
-      b0 = cgi * cgj * ripsr
-      b1 = ripsr
-#endif
-
-      ! Use a ips potential:
-      uips = ripsr * delr2 * delrinv
-      uips2 = rips2r * delr2
-      pipse = one/uips + AIPSE(0) + &
-              uips2*(AIPSE(1) + uips2*(AIPSE(2) + uips2*AIPSE(3)))
-      dpipse = -one/uips + &
-               uips2*(BIPSE(1) + uips2*(BIPSE(2) + uips2*BIPSE(3)))
-      ecur = b0*(pipse - pipsec)
-      eelt = eelt + ecur
-    dfee = -b0 * dpipse * delr2inv
-
-    cache_df(im_new)=dfee
-  end do
+    write(6,*) 'Error:  eedmeth=6 is not supported in msander'
+    call mexit(6,1)
 
 #   include "ew_directe2.h"
