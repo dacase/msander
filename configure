@@ -34,7 +34,7 @@ flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
 gccsys=""
-optflags="-g -Ofast -mtune=native"
+optflags="-g -Ofast -march=native"
 
 openmp='no'
 ompflag=""
@@ -187,7 +187,6 @@ fi
 if [ ! -d include ]; then
     mkdir include
 fi
-cp src/include/CompatibilityMacros.h include
 cp src/msander/sander.h include
 
 #------------------------------------------------------------------------------
@@ -391,7 +390,7 @@ else
 
   else
     # ----- Use simple flag for Intel compilers on Linux ------------
-    flibs_la='-mkl'
+    flibs_la='-qmkl'
   fi
 fi
 
