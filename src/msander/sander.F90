@@ -443,7 +443,7 @@ subroutine sander()
       call timer_stop(TIME_FASTWT)
       call getwds(ih(m04), nres, ix(i02), ih(m02), nbonh, nbona, 0, ix(iibh), &
                   ix(ijbh), iwtnm, iowtnm, ihwtnm, jfastw, ix(iicbh), req, &
-                  x(lwinv), rbtarg, ibelly, ix(ibellygp), 6)
+                  x(lwinv), rbtarg, ibelly, ix(ibellygp), 6, imin)
 
       ! Assign link atoms between quantum mechanical and molecular mechanical
       ! atoms if quantum atoms are present.  After assigning the link atoms,

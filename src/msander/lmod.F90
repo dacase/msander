@@ -1320,11 +1320,11 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
      call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
         winv, conp, skip, coordinates, coordinates, nitp, belly, ix(iifstwt), &
         ix(noshake))
-     call quick3(coordinates, coordinates, ix(iifstwr), natom, nres, ix(i02))
      if (nitp == 0) then
         write(6,*) 'SHAKE error....'
         call mexit(6,1)
      end if
+     call quick3(coordinates, coordinates, ix(iifstwr), natom, nres, ix(i02))
    end if
 
    call force( xx,ix,ih,ipairs,coordinates,forces,energies,virials, &

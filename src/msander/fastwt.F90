@@ -748,7 +748,6 @@ subroutine quick3v(x1, v1, ifstwr, natom, nres, ipres)
 end subroutine quick3v 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ shake velocities of 3-point waters;  
-!subroutine setlev (iwatat, natom, x, y, z, vx, vy, vz)
 subroutine setlev (iwatat, natom, x1, v1, mxatm, iorwat, rbtarg)
    !Note from Ross Walker : If you decide to use this routine at some point
    !you should invert all the divisions in the same fashion as setlep above.
@@ -913,7 +912,7 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
       nbonh     ,nbona     ,nbper     ,ib        ,jb        , &
       iwtnm     ,iowtnm    ,ihwtnm    ,jfastw    ,icb       , &
       req       ,winv      ,rbtarg    ,ibelly    ,igrp      , &
-      iout)
+      iout, imin)
    
    ! Subroutine GET Water DiStances
    
@@ -944,6 +943,7 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
    ! REQ(I): REQ(ICB(I)) is the target bond length of bond I.
    ! WINV(I): The inverse mass of atom I.
    ! IOUT: Unit for warning writes.
+   ! IMIN: for minimization, set all masses to 1
    
    ! Output:
    
@@ -958,7 +958,7 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
    integer nbonh     ,nbona     ,nbper     ,ib        ,jb
    integer jfastw    ,icb
    integer ibelly, igrp
-   integer iout
+   integer iout, imin
    _REAL_  req       ,winv      ,rbtarg
    dimension igraph(*),ipres(*),lbres(*),ib(*),jb(*)
    dimension ihwtnm(*),icb(*),req(*),rbtarg(9),winv(*)
@@ -1004,12 +1004,15 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
          if (igraph(iat) == iowtnm) then
             iof = 3*(iat-1)
             rbtarg(6) = 1.0d0/winv(iat)
+            if( imin .ne. 0 ) rbtarg(6) = 1.d0
          else if (igraph(iat) == ihwtnm(1)) then
             ihf1 = 3*(iat-1)
             rbtarg(7) = 1.0d0/winv(iat)
+            if( imin .ne. 0 ) rbtarg(7) = 1.d0
          else if (igraph(iat) == ihwtnm(2)) then
             ihf2 = 3*(iat-1)
             rbtarg(7) = 1.0d0/winv(iat)
+            if( imin .ne. 0 ) rbtarg(7) = 1.d0
          else
             cycle nres_loop
          end if
@@ -1042,7 +1045,7 @@ subroutine getwds(igraph    ,nres      ,ipres     ,lbres     , &
    end do
    
    ! If all three bond lengths were not assigned in list, or if ROH1 and
-   ! ROH2 are not the same length, assume something is a bit cockey,
+   ! ROH2 are not the same length, assume something is wrong,
    ! and exit with an error message.
    
    if (roh1 < 0.0d0 .or. roh2 < 0.0d0 .or. rhh < 0.0d0) then

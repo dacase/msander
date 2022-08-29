@@ -451,8 +451,6 @@ contains
     integer, intent(in) :: comm
     character(len=16) :: whtspc
     integer :: i, stat, err
-    !iclosure :: counter for closures
-    !iclosurechar :: current index in the closurechar array from sff
     integer :: iclosure, iclosurechar, un, ier
     logical :: op
     character(len=5) omp_threads

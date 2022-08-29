@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 08/13/2022 at 09:28:56
+| Run on 08/15/2022 at 09:06:53
 
 |   Executable path: ../../bin/msander
-| Working directory: /home/case/msander_intel/test/dhfr
+| Working directory: /home/case/msander/test/dhfr
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
  short xmin minimization                                                       
  &cntrl                                                                        
    ntx=7, irest=1,                                                             
@@ -77,7 +77,7 @@ File Assignments:
 |       Using default value of 2.0.
 
      BOX TYPE: RECTILINEAR
-| Note: ig = -1. Setting random seed to   548555 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   615319 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -133,7 +133,7 @@ Ewald parameters:
                                                                                 
  begin time read from input coords =   510.050 ps
 
- Number of triangulated 3-point waters found:        0
+ Number of triangulated 3-point waters found:     6810
 
      Sum of charges from parm topology file =      -0.0000
      Forcing neutrality...
@@ -332,30 +332,31 @@ Ewald parameters:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.12 (94.15% of List )
-|                Other                      0.01 ( 5.85% of List )
-|             List time                  0.13 ( 5.83% of Nonbo)
-|                   Short_ene time             1.63 (98.53% of Direc)
-|                   Other                      0.02 ( 1.47% of Direc)
-|                Direct Ewald time          1.65 (79.84% of Ewald)
-|                   Fill Bspline coeffs        0.03 ( 7.45% of Recip)
-|                   Fill charge grid           0.08 (20.75% of Recip)
-|                   Scalar sum                 0.02 ( 4.79% of Recip)
-|                   Grad sum                   0.11 (28.00% of Recip)
-|                   FFT time                   0.15 (39.02% of Recip)
-|                Recip Ewald time           0.39 (19.08% of Ewald)
-|             Ewald time                 2.07 (94.17% of Nonbo)
-|          Nonbond force              2.20 (99.21% of Force)
-|       Force time                 2.21 (100.0% of Runmd)
-|    Runmd Time                 2.21 (91.09% of Total)
-|    Other                      0.20 ( 8.17% of Total)
-| Total time                 2.43 (100.0% of ALL  )
+|    Read coords time           0.02 ( 1.26% of Total)
+|                Build the list             0.12 (95.87% of List )
+|                Other                      0.01 ( 4.13% of List )
+|             List time                  0.12 ( 8.22% of Nonbo)
+|                   Short_ene time             1.09 (99.45% of Direc)
+|                Direct Ewald time          1.10 (81.13% of Ewald)
+|                   Fill Bspline coeffs        0.01 ( 4.94% of Recip)
+|                   Fill charge grid           0.05 (20.16% of Recip)
+|                   Scalar sum                 0.02 ( 7.00% of Recip)
+|                   Grad sum                   0.06 (26.75% of Recip)
+|                   FFT time                   0.10 (41.15% of Recip)
+|                Recip Ewald time           0.24 (17.99% of Ewald)
+|             Ewald time                 1.35 (91.78% of Nonbo)
+|          Nonbond force              1.47 (98.33% of Force)
+|          Bond/Angle/Dihedral        0.03 ( 1.67% of Force)
+|       Force time                 1.50 (100.0% of Runmd)
+|    Runmd Time                 1.50 (90.13% of Total)
+|    Other                      0.14 ( 8.61% of Total)
+| Total time                 1.66 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:    1124788
 | Highest istack allocated:      22930
-|           Job began  at 09:28:56.475  on 08/13/2022
-|           Setup done at 09:28:56.576  on 08/13/2022
-|           Run   done at 09:28:58.906  on 08/13/2022
-|     wallclock() was called     963 times
+|           Job began  at 09:06:53.475  on 08/15/2022
+|           Setup done at 09:06:53.581  on 08/15/2022
+|           Run   done at 09:06:55.136  on 08/15/2022
+|     wallclock() was called     913 times
