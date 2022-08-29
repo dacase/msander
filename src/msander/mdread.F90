@@ -621,11 +621,6 @@ subroutine mdread1()
    if ( igb == 10 .and. ipb == 0 ) ipb = 2
    if ( igb == 0  .and. ipb /= 0 ) igb = 10
 
-   if (plumed.eq.1) then
-     write(6, '(1x,a,/)') 'PLUMED is on'
-     write(6, '(1x,a,a,/)') 'PLUMEDfile is ',plumedfile
-   endif
-
    if (ifqnt == NO_INPUT_VALUE) then
       ifqnt = 0 ! default value
       if (mdin_qmmm) then
@@ -709,6 +704,11 @@ subroutine mdread1()
    if ( mdin_lmod ) then
       rewind 5
       call read_lmod_namelist()
+   end if
+
+   if ( imin .ne. 0 ) then   ! turn of SHAKE for minimization
+      ntc = 1
+      ntf = 1
    end if
 
    !--------------------------------------------------------------------
@@ -1348,10 +1348,8 @@ subroutine mdread2(x,ix,ih)
          stop
       end select
 
-      ! skip (for now) using settle for waters if minimization is on
-      jfastw = 4
-
    else
+
       write(6,'(/a)') 'Molecular dynamics:'
       write(6,'(5x,4(a,i10))') 'nstlim  =',nstlim,', nscm    =',nscm, &
             ', nrespa  =',nrespa
