@@ -15,20 +15,20 @@ fi
 cat > mdin <<eof
    checking out 2ol9 crystal
  &cntrl
-    imin=1, maxcyc=5, ntpr=1,
+    imin=1, maxcyc=5, ntpr=1,  drms=1.e-6,
     ntx=1, irest=0,
     tempi=0.0, ntt=0, gamma_ln=0.0, dt=0.002, temp0=200.,
     ntc=2, ntf=2, tol=1.d-6, 
     nstlim=3, ntwx=0, ntwr=0,
     nmropt=0, 
-    ntr=0, restraint_wt=1.0, restraintmask='!@H=',
+    ntr=1, restraint_wt=1.0, restraintmask='!@H=',
  /
  &ewald  skinnb=0.5, /
  &lmod  xmin_verbosity=0, xmin_method='PRCG', /
 eof
 
 $DO_PARALLEL $sander -O -i mdin -o minout.o \
-    -p alt1_uc.parm7 -c alt1_uc.rst7 \
+    -p alt1_uc.parm7 -c restrt.min -ref alt1_uc.rst7 \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../../dacdif minout.o.save minout.o

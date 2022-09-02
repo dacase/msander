@@ -706,11 +706,6 @@ subroutine mdread1()
       call read_lmod_namelist()
    end if
 
-   if ( imin .ne. 0 ) then   ! turn of SHAKE for minimization
-      ntc = 1
-      ntf = 1
-   end if
-
    !--------------------------------------------------------------------
    !     --- vars have been read ---
    !--------------------------------------------------------------------

@@ -1211,6 +1211,10 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       select case ( return_flag )
       case ( DONE ) 
          ! Finished minimization.
+         !  One final gradient calc to re-establish SHAKE constraints:
+         call gradient_calc( xx, ix, ih, ipairs, coordinates, forces, & 
+              energies, NBL_CASE, xmin_iter, qsetup )
+         n_force_calls = n_force_calls + 1
          exit
       case ( CALCENRG, CALCGRAD, CALCBOTH )
          ! Normal Amber control of NB list updates.
@@ -1232,7 +1236,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
          n_force_calls = n_force_calls + 1
      end if
      
-  end do
+   end do
    
    if ( is_error ) then
       write(6,'(a,i4)') '  XMIN ERROR: Status is ', status_flag
@@ -1316,7 +1320,6 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
 
    belly = ibelly.eq.1
    if( ntc .ne. 1 ) then
-
      call shake(nrp, nbonh, nbona, 0, ix(iibh), ix(ijbh), ix(ibellygp), &
         winv, conp, skip, coordinates, coordinates, nitp, belly, ix(iifstwt), &
         ix(noshake))
