@@ -245,11 +245,11 @@ void PutPDB(pdb *thispdb, symT *S, char* filename, char* pdb_form,
       exit(1);
 #endif
       sprintf(line, 
-   "ATOM %6d %.4s%c%.4s%c%4d%c   %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf          %c%c\n",
+   "ATOM %6d %.4s%c%.4s%c%4d    %8.3lf%8.3lf%8.3lf%6.2lf%6.2lf          %c%c\n",
           (thispdb->atom_nums[i]+1) % 100000, ctmp, 
           thispdb->alt[i], ctm2p, thispdb->chain[i],
           (thispdb->res_nums[i]+1) % 10000, 
-          thispdb->icode[i],dtmp[0], dtmp[1], dtmp[2],
+          dtmp[0], dtmp[1], dtmp[2],
           thispdb->charges[i], thispdb->radii[i], 
           thispdb->element[2*i], thispdb->element[2*i+1]);
     }
