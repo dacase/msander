@@ -38,7 +38,7 @@ module lmod_driver
    !   Software Standards: Internal Amber Standards.
 
    ! **********************************************************************
-   !  Copyright 2003                                                      *
+   !  Copyright 2003-2020                                                 *
    !                                                                      *
    !   Modified BSD license                                               *
    !                                                                      *
@@ -170,9 +170,9 @@ module lmod_driver
 
    ! The verbosity of the internal status output from the LMOD package:
    ! 0 = none, 1 = some details, 2 = more details, 3 = everything
-   ! including ARPACK.
+   ! including ARPACK, 4 = ARPACK only, 5 = visualize normal modes.
    ! Renaming of Kolossvary's print_level.
-   integer,      parameter :: MAXIMUM_LMOD_VERBOSITY = 3
+   integer,      parameter :: MAXIMUM_LMOD_VERBOSITY = 5
    integer,      parameter :: MINIMUM_LMOD_VERBOSITY = 0
    integer                 :: lmod_verbosity = MINIMUM_LMOD_VERBOSITY
    namelist /lmod/ lmod_verbosity
@@ -658,6 +658,7 @@ subroutine run_lmod( xx, ix, ih, ipairs, &
    !integer :: iter
    integer :: return_flag
    integer :: status_flag
+   integer :: n_frames
 
 _REAL_ , dimension(:, :, :), allocatable :: conflib
 _REAL_ , dimension(:, :, :), allocatable :: lmod_trajectory
@@ -690,14 +691,19 @@ _REAL_ , dimension(:), allocatable :: tr_min
    grms_tol           = drms
    natm               = natom
 
-   allocate( conflib(1:3, natm, conflib_size), stat = ier )
+   allocate( conflib(1:3, natm, conflib_size + 1), stat = ier )
    if( ier /= 0 ) then
-      write(6,*) 'Failed to allocate memory for conflib:', 3*natm*conflib_size
+      write(6,*) 'Failed to allocate memory for conflib:', 3*natm*(conflib_size+1)
       call mexit(6,1)
    end if
-   allocate( lmod_trajectory(1:3, natm, number_lmod_iterations + 1), stat = ier)
+   if( lmod_verbosity.eq.5 ) then
+      n_frames = number_lmod_iterations * (explored_low_modes + 1) * (4 * number_lmod_moves + 3)
+   else
+      n_frames = number_lmod_iterations + 1
+   end if
+   allocate( lmod_trajectory(1:3, natm, n_frames), stat = ier)
    if( ier /= 0 ) then
-      write(6,*) 'Failed to allocate memory for lmod_trajectory:', 3*natm*(number_lmod_iterations + 1)
+      write(6,*) 'Failed to allocate memory for lmod_trajectory:', 3*natm*n_frames
       call mexit(6,1)
    end if
 
@@ -759,7 +765,7 @@ _REAL_ , dimension(:), allocatable :: tr_min
    end if
 
 
-   status_flag        = 0
+   status_flag = 0
    n_force_calls = 0
    is_error = .false.
    is_lmod_done = .false.
@@ -854,6 +860,23 @@ _REAL_ , dimension(:), allocatable :: tr_min
             ntpr = amber_xmin_print_level  ! restore user specified ntpr
             write(6,'(/a)') 'End of LMOD requested XMIN relaxation'
          end if
+       case ( LMOD_1ST_MINIM )
+         ! Minimize the initial structure with xmin.
+         is_error = status_flag < 0
+         if ( .not. is_error ) then
+            write(6,'(a)') 'Start of LMOD requested XMIN minimization of initial structure'
+            ! pass the original drms to run_xmin when initial structure is minimized
+            !grms = drms  ! drms is an argument to run_xmin via common
+            !drms = lmod_minimize_grms
+            amber_xmin_print_level = ntpr  ! ntpr is a common argument to run_xmin
+            ntpr = maxcyc  ! turn off run_xmin printing
+            xmin_iter = 0
+            call run_xmin( xx, ix, ih, ipairs, &
+                  coordinates, forces, energies, qsetup, xmin_iter, ntpr )
+            !drms = grms  ! restore user specified drms
+            ntpr = amber_xmin_print_level  ! restore user specified ntpr
+            write(6,'(/a)') 'End of LMOD requested XMIN minimization of initial structure'
+         end if
       case default
          ! error from LMOD or the return_flag is corrupted.
          is_error = status_flag < 0
@@ -880,19 +903,26 @@ _REAL_ , dimension(:), allocatable :: tr_min
          forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
 
    ! dump conflib and lmod_trajectory
-   is_dump_formatted = ioutfm <= 0
-   call amopen( CONFLIB_UNIT, conflib_filename, owrite, 'F', 'W' )
-   write( CONFLIB_UNIT, '(a80)' ) lmod_job_title
-   do i = 1, conflib_size
-      call corpac( conflib, (i-1)*3*natm + 1, i*3*natm, CONFLIB_UNIT, &
-            is_dump_formatted )
-   end do
-   call amopen( LMOD_TRAJECTORY_UNIT, lmod_trajectory_filename, owrite, 'F', 'W' )
-   write( LMOD_TRAJECTORY_UNIT, '(a80)' ) lmod_job_title
-   do i = 1, number_lmod_iterations
-      call corpac( lmod_trajectory, (i-1)*3*natm + 1, i*3*natm, &
-            LMOD_TRAJECTORY_UNIT, is_dump_formatted )
-   end do
+   ! Ignore user input variable ioutfm and force formatted output:
+   ! Starting with Amber16, binary format is NetCDF; in its current
+   ! implementation NetCDF format does not support extraneous units
+   ! such as CONFLIB_UNIT and LMOD_TRAJECTORY_UNIT.
+   if (master) then
+      is_dump_formatted = .true.
+      call amopen( CONFLIB_UNIT, conflib_filename, owrite, 'F', 'W' )
+      write( CONFLIB_UNIT, '(a80)' ) lmod_job_title
+      do i = 1, conflib_size
+         call corpac( conflib, (i-1)*3*natm + 1, i*3*natm, CONFLIB_UNIT, &
+               is_dump_formatted )
+      end do
+      call amopen( LMOD_TRAJECTORY_UNIT, lmod_trajectory_filename, owrite, 'F', 'W' )
+      write( LMOD_TRAJECTORY_UNIT, '(a80)' ) lmod_job_title
+      do i = 1, n_frames
+         call corpac( lmod_trajectory, (i-1)*3*natm + 1, i*3*natm, &
+               LMOD_TRAJECTORY_UNIT, is_dump_formatted )
+      end do
+      write(6,*)is_dump_formatted,ioutfm,conflib_size,number_lmod_iterations,natm
+   end if
    return
 
 end subroutine run_lmod
@@ -909,7 +939,7 @@ subroutine write_lmod_namelist( )
    write(6,'(/a)') 'LMOD:'
    if ( ntmin /= LMOD_NTMIN_XMIN .and. ntmin /= LMOD_NTMIN_LMOD ) then
       write(6,'(5x,2(a))') &
-            'Warning: namelist present but methods unrequested.'
+            'Warning: lmod namelist is present but its methods are not requested.'
    end if
 
    ! always emit XMIN options since LMOD uses XMIN
@@ -937,6 +967,8 @@ subroutine write_lmod_namelist( )
          'arnoldi_dimension            = ', arnoldi_dimension
       write(6,'(5x,a,i7)') &
          'conflib_size                 = ', conflib_size
+      write(6,'(5x,a,g12.5)') &
+         'conf_separation_rms          = ', conf_separation_rms
       write(6,'(5x,a,g12.5)') &
          'energy_window                = ', energy_window
       write(6,'(5x,a,i7)') &
@@ -1239,6 +1271,9 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       call mexit(6,1)
    end if
 
+   ! call report_min_results( xmin_iter, grms, coordinates, &
+   !      forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
+
    return
 
 end subroutine run_xmin
@@ -1251,7 +1286,7 @@ end subroutine run_xmin
 !+ Do processing associated with gradient computation for minimization.
 !-----------------------------------------------------------------------
 ! Maintain bookkeeping for calls to force; call force, ie, calculate
-! the gradient.  Shake is not performed.
+! the gradient.
 ! Various types of nonbond pair list update control are possible.
 ! Emit a minimization progress report.
 
@@ -1312,7 +1347,6 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
       ASSERT( .false. )
    end select
 
-   !  no shake for xmin
 
    belly = ibelly.eq.1
    if( ntc .ne. 1 ) then
