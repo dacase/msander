@@ -241,13 +241,13 @@ contains
          do i=1,num_atoms
             if (atom_occupancy(i)==MISSING) then
                atom_occupancy(i)=0
-               ires = residue_number(i)
                j=j+1
                if (j<=10) then
-                  write(stdout,'(3(A,1X),A,I4,A)') &
-                     'PDB: Missing ATOM:', &
-                      atom_name(i),residue_label(i),residue_chainID(ires)(1:1),&
-                      ires,residue_iCode(ires)(1:1)
+                  ! would be better to print more info here, but it's 
+                  ! awkward, since find_atom() only returns the atom number.
+                  ! Let's hope this is rare, and provides enough info....
+                  write(stdout,'(A,I5,1x,A)') &
+                     'PDB: Missing ATOM:', i, atom_name(i)
                end if
             end if
          end do

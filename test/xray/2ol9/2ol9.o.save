@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 07/20/2022 at 10:55:41
+| Run on 09/02/2022 at 11:39:37
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/xray/2ol9
+| Working directory: /home/case/msander_gnu/test/xray/2ol9
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,9 +27,9 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
- 
+
  Here is the input file:
- 
+
    checking out 2ol9 crystal                                                   
  &cntrl                                                                        
     imin=1, maxcyc=5, ntpr=1,                                                  
@@ -99,7 +99,7 @@ X-ray Refinement Parameters:
      Atom Selection Mask: :*
 
      BOX TYPE: RECTILINEAR
-| Note: ig = -1. Setting random seed to   885249 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to    57379 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -192,99 +192,98 @@ Found   1728 atoms in :*;
 | TOTAL SIZE OF NONBOND LIST =     241534
 | updating f_mask
 | updating scaling factors
-| gradient norms, amber/xray:  0.70414E+03 0.51255E+03 0.13738E+01
+| gradient norms, amber/xray:  0.70413E+03 0.51255E+03 0.13738E+01
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      0      -3.8892E+03     1.2222E+01     7.1046E+01     OXT      1065
+      0      -3.8892E+03     1.1348E+01     7.1067E+01     OXT      1065
 
  BOND    =       18.5958  ANGLE   =       94.3703  DIHED      =     1354.7835
- VDWAALS =     -976.0051  EEL     =    -9161.2470  HBOND      =        0.0000
- 1-4 VDW =      351.8629  1-4 EEL =     1136.7793  RESTRAINT  =     3291.6855
- EAMBER  =    -7180.8603
- Exray   =     3291.6855  Rwork   =        0.0888  Rfree      =        0.0866
+ VDWAALS =     -976.0396  EEL     =    -9161.2265  HBOND      =        0.0000
+ 1-4 VDW =      351.8629  1-4 EEL =     1136.7793  RESTRAINT  =     3291.6733
+ EAMBER  =    -7180.8743
+ Exray   =     3291.6733  Rwork   =        0.0888  Rfree      =        0.0866
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      1      -4.1427E+03     9.0792E+00     6.3716E+01     OXT      1605
+      1      -4.1422E+03     8.6059E+00     6.3421E+01     OXT      1605
 
- BOND    =       79.4034  ANGLE   =       63.7295  DIHED      =     1361.5474
- VDWAALS =    -1024.5252  EEL     =    -9293.0133  HBOND      =        0.0000
- 1-4 VDW =      349.5534  1-4 EEL =     1107.1481  RESTRAINT  =     3213.5053
- EAMBER  =    -7356.1568
- Exray   =     3213.5053  Rwork   =        0.0855  Rfree      =        0.0881
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      2      -4.2452E+03     7.4835E+00     6.7520E+01     C        1603
-
- BOND    =       44.1836  ANGLE   =       59.2173  DIHED      =     1370.3837
- VDWAALS =    -1055.3479  EEL     =    -9337.8572  HBOND      =        0.0000
- 1-4 VDW =      348.4261  1-4 EEL =     1095.5660  RESTRAINT  =     3230.2577
- EAMBER  =    -7475.4284
- Exray   =     3230.2577  Rwork   =        0.0864  Rfree      =        0.0894
+ BOND    =       78.7191  ANGLE   =       63.7268  DIHED      =     1361.4692
+ VDWAALS =    -1025.3314  EEL     =    -9289.2248  HBOND      =        0.0000
+ 1-4 VDW =      349.5597  1-4 EEL =     1107.2927  RESTRAINT  =     3211.6302
+ EAMBER  =    -7353.7888
+ Exray   =     3211.6302  Rwork   =        0.0855  Rfree      =        0.0883
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      3      -4.3342E+03     6.2972E+00     3.5725E+01     C        1063
+      2      -4.2584E+03     7.1759E+00     6.1395E+01     C         739
 
- BOND    =       41.2161  ANGLE   =       71.0314  DIHED      =     1377.7744
- VDWAALS =    -1072.1078  EEL     =    -9461.9117  HBOND      =        0.0000
- 1-4 VDW =      341.9747  1-4 EEL =     1099.2622  RESTRAINT  =     3268.5690
- EAMBER  =    -7602.7606
- Exray   =     3268.5690  Rwork   =        0.0883  Rfree      =        0.0915
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      4      -4.4153E+03     5.7938E+00     3.9651E+01     C        1711
-
- BOND    =       39.8410  ANGLE   =       79.1359  DIHED      =     1379.3607
- VDWAALS =    -1083.4294  EEL     =    -9553.8018  HBOND      =        0.0000
- 1-4 VDW =      337.7441  1-4 EEL =     1098.6497  RESTRAINT  =     3287.1724
- EAMBER  =    -7702.4999
- Exray   =     3287.1724  Rwork   =        0.0888  Rfree      =        0.0927
+ BOND    =       48.0369  ANGLE   =       60.4496  DIHED      =     1372.3417
+ VDWAALS =    -1060.5694  EEL     =    -9343.9036  HBOND      =        0.0000
+ 1-4 VDW =      348.2357  1-4 EEL =     1093.4116  RESTRAINT  =     3223.6422
+ EAMBER  =    -7481.9975
+ Exray   =     3223.6422  Rwork   =        0.0863  Rfree      =        0.0903
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -4.5066E+03     5.9541E+00     2.7470E+01     CA        183
+      3      -4.3775E+03     7.1203E+00     4.2901E+01     C        1279
 
- BOND    =       40.3528  ANGLE   =       81.1124  DIHED      =     1378.5950
- VDWAALS =    -1092.4708  EEL     =    -9639.8379  HBOND      =        0.0000
- 1-4 VDW =      335.8444  1-4 EEL =     1099.0008  RESTRAINT  =     3290.8314
- EAMBER  =    -7797.4032
- Exray   =     3290.8314  Rwork   =        0.0889  Rfree      =        0.0920
+ BOND    =       46.7992  ANGLE   =       78.4276  DIHED      =     1382.1371
+ VDWAALS =    -1085.1511  EEL     =    -9490.6086  HBOND      =        0.0000
+ 1-4 VDW =      340.4840  1-4 EEL =     1098.4449  RESTRAINT  =     3251.9864
+ EAMBER  =    -7629.4669
+ Exray   =     3251.9864  Rwork   =        0.0877  Rfree      =        0.0922
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      4      -4.4979E+03     6.8559E+00     4.9719E+01     C        1711
+
+ BOND    =       41.9142  ANGLE   =      102.2695  DIHED      =     1388.1531
+ VDWAALS =    -1105.1499  EEL     =    -9633.3265  HBOND      =        0.0000
+ 1-4 VDW =      333.7256  1-4 EEL =     1099.0252  RESTRAINT  =     3275.4580
+ EAMBER  =    -7773.3889
+ Exray   =     3275.4580  Rwork   =        0.0888  Rfree      =        0.0957
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+      5      -4.5495E+03     1.2377E+01     6.2327E+01     C        1711
+
+ BOND    =      102.8425  ANGLE   =      152.7052  DIHED      =     1396.7163
+ VDWAALS =    -1126.3401  EEL     =    -9820.3669  HBOND      =        0.0000
+ 1-4 VDW =      330.0083  1-4 EEL =     1093.6631  RESTRAINT  =     3321.3012
+ EAMBER  =    -7870.7717
+ Exray   =     3321.3012  Rwork   =        0.0912  Rfree      =        0.0982
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (71.59% of List )
-|                Other                      0.01 (28.41% of List )
-|             List time                  0.02 (21.44% of Nonbo)
-|                   Short_ene time             0.05 (98.50% of Direc)
-|                   Other                      0.00 ( 1.50% of Direc)
-|                Direct Ewald time          0.05 (72.52% of Ewald)
-|                Adjust Ewald time          0.00 ( 3.88% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 8.78% of Recip)
-|                   Fill charge grid           0.00 (16.89% of Recip)
-|                   Scalar sum                 0.00 (18.92% of Recip)
-|                   Grad sum                   0.00 (19.59% of Recip)
-|                   FFT time                   0.01 (35.81% of Recip)
-|                Recip Ewald time           0.01 (22.98% of Ewald)
-|             Ewald time                 0.06 (78.44% of Nonbo)
-|             Fcalc loop                 0.18 ( 1.58% of Xray )
-|             Deriv loop                 0.55 ( 4.79% of Xray )
-|             Other                     10.70 (93.63% of Xray )
-|          Xray restaints            11.43 (99.25% of Force)
-|       Force time                11.51 (100.0% of Runmd)
-|    Runmd Time                11.51 (99.67% of Total)
-| Total time                11.55 (100.0% of ALL  )
+|                Build the list             0.01 (66.67% of List )
+|                Other                      0.01 (33.33% of List )
+|             List time                  0.02 (21.43% of Nonbo)
+|                   Short_ene time             0.06 (100.0% of Direc)
+|                Direct Ewald time          0.06 (74.03% of Ewald)
+|                Adjust Ewald time          0.00 ( 3.90% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 5.88% of Recip)
+|                   Fill charge grid           0.00 ( 5.88% of Recip)
+|                   Scalar sum                 0.01 (41.18% of Recip)
+|                   Grad sum                   0.00 (11.76% of Recip)
+|                   FFT time                   0.01 (35.29% of Recip)
+|                Recip Ewald time           0.02 (22.08% of Ewald)
+|             Ewald time                 0.08 (78.57% of Nonbo)
+|             Fcalc loop                 0.97 ( 8.23% of Xray )
+|             Deriv loop                 1.05 ( 8.91% of Xray )
+|             Other                      9.78 (82.86% of Xray )
+|          Xray restaints            11.80 (99.08% of Force)
+|       Force time                11.91 (100.0% of Runmd)
+|    Runmd Time                11.91 (99.55% of Total)
+| Total time                11.97 (100.0% of ALL  )
 
 | Number of list builds   :          2
 
 | Highest rstack allocated:      90358
 | Highest istack allocated:       1728
-|           Job began  at 10:55:41.223  on 07/20/2022
-|           Setup done at 10:55:41.258  on 07/20/2022
-|           Run   done at 10:55:52.774  on 07/20/2022
-|     wallclock() was called     543 times
+|           Job began  at 11:39:37.178  on 09/02/2022
+|           Setup done at 11:39:37.231  on 09/02/2022
+|           Run   done at 11:39:49.146  on 09/02/2022
+|     wallclock() was called     519 times
