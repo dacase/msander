@@ -907,22 +907,22 @@ _REAL_ , dimension(:), allocatable :: tr_min
    ! Starting with Amber16, binary format is NetCDF; in its current
    ! implementation NetCDF format does not support extraneous units
    ! such as CONFLIB_UNIT and LMOD_TRAJECTORY_UNIT.
-   if (master) then
-      is_dump_formatted = .true.
-      call amopen( CONFLIB_UNIT, conflib_filename, owrite, 'F', 'W' )
-      write( CONFLIB_UNIT, '(a80)' ) lmod_job_title
-      do i = 1, conflib_size
-         call corpac( conflib, (i-1)*3*natm + 1, i*3*natm, CONFLIB_UNIT, &
-               is_dump_formatted )
-      end do
-      call amopen( LMOD_TRAJECTORY_UNIT, lmod_trajectory_filename, owrite, 'F', 'W' )
-      write( LMOD_TRAJECTORY_UNIT, '(a80)' ) lmod_job_title
-      do i = 1, n_frames
-         call corpac( lmod_trajectory, (i-1)*3*natm + 1, i*3*natm, &
-               LMOD_TRAJECTORY_UNIT, is_dump_formatted )
-      end do
-      write(6,*)is_dump_formatted,ioutfm,conflib_size,number_lmod_iterations,natm
-   end if
+
+   is_dump_formatted = .true.
+   call amopen( CONFLIB_UNIT, conflib_filename, owrite, 'F', 'W' )
+   write( CONFLIB_UNIT, '(a80)' ) lmod_job_title
+   do i = 1, conflib_size
+      call corpac( conflib, (i-1)*3*natm + 1, i*3*natm, CONFLIB_UNIT, &
+            is_dump_formatted )
+   end do
+   call amopen( LMOD_TRAJECTORY_UNIT, lmod_trajectory_filename, owrite, 'F', 'W' )
+   write( LMOD_TRAJECTORY_UNIT, '(a80)' ) lmod_job_title
+   do i = 1, n_frames
+      call corpac( lmod_trajectory, (i-1)*3*natm + 1, i*3*natm, &
+            LMOD_TRAJECTORY_UNIT, is_dump_formatted )
+   end do
+   write(6,*)is_dump_formatted,ioutfm,conflib_size,number_lmod_iterations,natm
+
    return
 
 end subroutine run_lmod
