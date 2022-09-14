@@ -4,6 +4,7 @@ module xray_bulk_model_module
   use xray_pure_utils, only : real_kind
   use xray_contracts_module
   use xray_unit_cell_module
+  use xray_interface2_data_module, only : model_id
   
   implicit none
   private
@@ -13,7 +14,6 @@ module xray_bulk_model_module
   public :: finalize
   public :: init
   
-  integer :: model_id
   integer, parameter :: none_id = 0
   integer, parameter :: afonine_2013_id = 1
   integer, parameter :: simple_id = 2
@@ -30,7 +30,6 @@ contains
       & resolution_high, hkl, unit_cell, atm_atomicnumber, k_sol, b_sol, &
       & solvent_mask_adjustment, solvent_mask_probe_radius )
     use xray_bulk_model_afonine_2013_module, only : init_afonine => init
-    use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
     ! use xray_bulk_model_user_module, only : init_user => init
     implicit none
@@ -50,7 +49,9 @@ contains
     
     select case (model_id)
     case (none_id)
-      call init_none(scale_update_period)
+      call init_afonine(mask_update_period, scale_update_period, &
+            resolution_high, hkl, unit_cell, atm_atomicnumber, &
+            solvent_mask_adjustment, solvent_mask_probe_radius)
     case (afonine_2013_id)
       call init_afonine(mask_update_period, scale_update_period, &
             resolution_high, hkl, unit_cell, atm_atomicnumber, &
@@ -59,8 +60,6 @@ contains
       call init_simple(k_sol, b_sol, mask_update_period, scale_update_period, &
             resolution_high, hkl, unit_cell, atm_atomicnumber, &
             solvent_mask_adjustment, solvent_mask_probe_radius)
-    ! case (user_id)
-    !   call init_user(mask_update_period, k_sol, b_sol)
     case default
       write(6,'(a)') "bad model id"
       call mexit(6,1)
@@ -69,20 +68,17 @@ contains
   
   subroutine finalize()
     use xray_bulk_model_afonine_2013_module, only : finalize_afonine => finalize
-    use xray_bulk_model_none_module, only : finalize_none => finalize
     use xray_bulk_model_simple_module, only : finalize_simple => finalize
     ! use xray_bulk_model_user_module, only : finalize_user => finalize
     implicit none
     
     select case (model_id)
     case (none_id)
-      call finalize_none()
+      call finalize_afonine()
     case (afonine_2013_id)
       call finalize_afonine()
     case (simple_id)
       call finalize_simple()
-    ! case (user_id)
-    !   call finalize_user()
     case default
       write(6,'(a)') "bad model id"
       call mexit(6,1)
@@ -92,9 +88,7 @@ contains
   subroutine add_bulk_contribution_and_rescale(frac, current_step, absFobs, &
         Fcalc, mSS4, hkl, Fuser)
     use xray_bulk_model_afonine_2013_module, only : afonine_f => add_bulk_contribution_and_rescale
-    use xray_bulk_model_none_module, only : none_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_simple_module, only : simple_f => add_bulk_contribution_and_rescale
-    ! use xray_bulk_model_user_module, only : user_f => add_bulk_contribution_and_rescale
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     integer, intent(in) :: current_step
@@ -113,13 +107,11 @@ contains
 
     select case (model_id)
     case (none_id)
-      call none_f(current_step, absFobs, Fcalc)
+      call afonine_f(frac, current_step, absFobs, Fcalc, mSS4, hkl, Fuser)
     case (afonine_2013_id)
       call afonine_f(frac, current_step, absFobs, Fcalc, mSS4, hkl, Fuser)
     case (simple_id)
       call simple_f(frac, current_step, absFobs, Fcalc, mSS4, Fuser)
-    ! case (user_id)
-    !   call user_f(current_step, absFobs, Fcalc, Fuser, mSS4, hkl)
     case default
       write(6,'(a)') "bad model id"
       call mexit(6,1)
@@ -128,7 +120,6 @@ contains
   
   function get_f_scale(n_hkl) result(result)
     use xray_bulk_model_afonine_2013_module, only : afonine_f => get_f_scale
-    use xray_bulk_model_none_module, only : none_f => get_f_scale
     use xray_bulk_model_simple_module, only : simple_f => get_f_scale
     ! use xray_bulk_model_user_module, only : user_f => get_f_scale
     implicit none
@@ -137,13 +128,11 @@ contains
     
     select case (model_id)
     case (none_id)
-      result = none_f(n_hkl)
+      result = afonine_f(n_hkl)
     case (afonine_2013_id)
       result = afonine_f(n_hkl)
     case (simple_id)
       result = simple_f(n_hkl)
-    ! case (user_id)
-    !   result = user_f(n_hkl)
     case default
       write(6,'(a)') "bad model id"
       call mexit(6,1)

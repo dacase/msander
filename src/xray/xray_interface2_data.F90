@@ -36,6 +36,9 @@ module xray_interface2_data_module
   real(real_kind), allocatable, save :: atom_occupancy(:)
   real(real_kind), allocatable, save :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
 
+  !! info about bulk solvent model
+  integer, save :: model_id
+
 contains
   
   subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &

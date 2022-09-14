@@ -5,6 +5,7 @@ module xray_bulk_model_afonine_2013_module
   use xray_contracts_module
   use xray_unit_cell_module
   use xray_pure_utils, only : real_kind
+  use xray_interface2_data_module, only : model_id
   
   implicit none
   private
