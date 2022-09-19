@@ -28,7 +28,7 @@ module xray_target_module
 
 contains
 
-    subroutine init(target, resolution, num_work_flags, absFobs, sigFobs, meta_update_period)
+    subroutine init(target, resolution, num_work_flags, absFobs, meta_update_period)
         use xray_target_least_squares_module, only : ls_init => init
         use xray_target_vector_least_squares_module, only : vls_init => init
         use xray_target_max_likelihood_module, only : ml_init => init
@@ -37,7 +37,6 @@ contains
         real(real_kind), intent(in) :: resolution(:)
         integer, intent(in) :: num_work_flags
         real(real_kind), intent(in) :: absFobs(:)
-        real(real_kind), intent(in) :: sigFobs(:)
         integer, intent(in) :: meta_update_period
         target_function_id = target_function_name_to_id(target)
 

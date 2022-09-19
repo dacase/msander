@@ -18,7 +18,7 @@ contains
         real(real_kind), intent(in) :: abs_Fobs_work(:)
 
         ! convert sigma_Fobs to weights:
-        sigma_Fobs(:) = 1.d0 / ( 0.5 * sigma_Fobs(:)**2 )
+        sigma_Fobs(:) = 1.d0 / ( 2.0 * sigma_Fobs(:)**2 )
 
     end subroutine init
 

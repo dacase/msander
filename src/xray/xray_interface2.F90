@@ -234,7 +234,7 @@ contains
     abs_Fobs = abs(Fobs)
     allocate(abs_Fcalc(n_hkl))
     
-    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, &
+    call init_target(target, resolution, n_work, abs_Fobs, &
             target_meta_update_period)
     ! FIXME: the atom selection for the mask creation logically should
     !        be different than the atom selectrion for Fcalc stuff
