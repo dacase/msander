@@ -2,7 +2,7 @@ module xray_target_least_squares_module
 
     use xray_contracts_module
     use xray_pure_utils, only : real_kind
-    use xray_interface2_data_module, only: n_work, sigma_Fobs
+    use xray_interface2_data_module, only: n_work, sigma_Fobs, penalty
 
     implicit none
 
@@ -41,6 +41,7 @@ contains
 
 #if 1   /* optimize R_work, based on disnrg()  */
         deriv(n_work + 1:) = 0 ! no force for things unselected here
+        penalty(n_work + 1:) = 0 ! no penalty for things unselected here
         xray_energy = 0
 
         ! initial gueses:
@@ -74,6 +75,7 @@ contains
                e = df * (rij-r4) + k3*dif1*dif1
             end if
             deriv(i) = df
+            penalty(i) = e
             xray_energy = xray_energy + e
         end do
 

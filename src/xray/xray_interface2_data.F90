@@ -25,6 +25,7 @@ module xray_interface2_data_module
   complex(real_kind), allocatable, save :: Fcalc(:) ! size = (n_hkl)
   real(real_kind), allocatable, save :: sigma_Fobs(:)  ! size = (n_hkl)
   real(real_kind), allocatable, save :: resolution(:)
+  real(real_kind), allocatable, save :: penalty(:)  ! per-reflection penalty
 
   !! Atomic data
   integer, save :: n_atom
@@ -87,6 +88,7 @@ contains
     unit_cell = input_unit_cell
   
     resolution = 1 / sqrt(unit_cell%get_s2(input_hkl))
+    allocate(penalty(n_hkl))
 
     allocate(new_order(n_hkl))
     allocate(hkl_io_order(n_hkl))
