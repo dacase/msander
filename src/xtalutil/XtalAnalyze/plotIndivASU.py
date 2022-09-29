@@ -90,7 +90,7 @@ def cmap_center_at_zero(cmap, array):
     cdict = copy.copy(cmap._segmentdata)
     fn = lambda x: (x[0]**a, x[1], x[2])
     for key in ('red', 'green', 'blue'):
-        cdict[key] = map(fn, cdict[key])
+        cdict[key] = list(map(fn, cdict[key]))
         cdict[key].sort()
         assert (cdict[key][0] < 0 or cdict[key][-1] >
                 1), "Resulting indices extend out of the [0, 1] segment."

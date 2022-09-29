@@ -28,23 +28,23 @@ ax = fig.add_subplot(111)
 
 x = []
 y = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data1[2 * i, 0]))
-    y.append(average(data1[2 * i:2 * i + 2, 1]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data1[10 * i, 0]))
+    y.append(average(data1[10 * i:10 * i + 10, 1]))
 ax.plot(x, y, '#F86606', linewidth=4)
 
 x = []
 y = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data2[2 * i, 0]))
-    y.append(average(data2[2 * i:2 * i + 2, 1]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data2[10 * i, 0]))
+    y.append(average(data2[10 * i:10 * i + 10, 1]))
 ax.plot(x, y, 'b', linewidth=4)
 
 x = []
 y = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data3[2 * i, 0]))
-    y.append(average(data3[2 * i:2 * i + 2, 1]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data3[10 * i, 0]))
+    y.append(average(data3[10 * i:10 * i + 10, 1]))
 ax.plot(x, y, '#9B2DE7', linewidth=4)
 
 for label in ax.xaxis.get_ticklabels():

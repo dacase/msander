@@ -40,7 +40,7 @@ def find_crystal_contacts(xray_structure,
         resname_i = atom_i.resname
         atmname_i = atom_i.name
         chainid_i = atom_i.chain_id
-        for j_seq, sym_ops in pair_sym_dict.items():
+        for j_seq, sym_ops in list(pair_sym_dict.items()):
             site_j = sites_frac[j_seq]
             atom_j = pdb_atoms[j_seq]
             resname_j = atom_j.resname
@@ -190,7 +190,7 @@ def find_supercell_contacts_by_residue(residue_contacts, atoms, prop_vec,
 
             # populate duplicate_test{} with only one instance of a given
             # residue pair, keeping the shortest distance value
-            if (j_resid, j_resname, sc_sym_op) in duplicate_test.keys():
+            if (j_resid, j_resname, sc_sym_op) in list(duplicate_test.keys()):
                 if dist < duplicate_test[(j_resid, j_resname, sc_sym_op)]:
                     duplicate_test[(j_resid, j_resname, sc_sym_op)] = dist
             else:
@@ -201,7 +201,7 @@ def find_supercell_contacts_by_residue(residue_contacts, atoms, prop_vec,
         # of the symop from the rt_mx_matrices object (SYMM cards in PDB file)
         # applied to the resiude in the original ASU to bring it to it's current
         # ASU), and the translation operation to bring it to its current unit cell
-        for (j_resid, j_resname, sc_sym_op) in duplicate_test.keys():
+        for (j_resid, j_resname, sc_sym_op) in list(duplicate_test.keys()):
             dist = duplicate_test[(j_resid, j_resname, sc_sym_op)]
             i_transop, symop1, i_asymresid = SC_mapping(prop_vec, nres, nsymop, i_resid)
             j_transop, symop2, j_asymresid = SC_mapping(prop_vec, nres, nsymop, j_resid)
@@ -355,7 +355,7 @@ def find_supercell_contacts_by_residue(residue_contacts, atoms, prop_vec,
             # The residue numbers, names and symmetry operation uniquely identify
             # each contact. Populate supercell_contacts dictionary object. Keys
             # are the cotnact identified. Values are list of distances.
-            if i_key in supercell_contacts.keys():
+            if i_key in list(supercell_contacts.keys()):
                 supercell_contacts[i_key].append(dist)
             else:
                 supercell_contacts[i_key] = [dist]
@@ -367,10 +367,10 @@ def find_supercell_contacts_by_residue(residue_contacts, atoms, prop_vec,
 
 
 def report_supercell_contacts(supercell_contacts):
-    transops = set([i[4] for i in supercell_contacts.keys()])
+    transops = set([i[4] for i in list(supercell_contacts.keys())])
     for transop in transops:
-        tmp_l = [(k, v) for k, v in supercell_contacts.iteritems() if k[4] == transop]
-        print("S%12s %3d|\n" % (transop, len(tmp_l)),)
+        tmp_l = [(k, v) for k, v in supercell_contacts.items() if k[4] == transop]
+        print("S%12s %3d|\n" % (transop, len(tmp_l)), end=' ')
         for h, i in enumerate(tmp_l):
             print("                  %4d %3s %4d %3s %3d" \
                 % (i[0][0], i[0][1], i[0][2], i[0][3], len(i[1])))

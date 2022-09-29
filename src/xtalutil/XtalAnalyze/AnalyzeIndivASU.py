@@ -47,7 +47,7 @@ for i in range(unitcells):
 #		average structures                                             #
 #                                                                      #
 ########################################################################
-print( "Calculating rmsd between all average structures.")
+print("Calculating rmsd between all average structures.")
 # calculate the rmsd's using ptraj
 f = open('ctraj.RmsdPerAsu.in', 'w')
 f.write('parm %s\n' % topo)
