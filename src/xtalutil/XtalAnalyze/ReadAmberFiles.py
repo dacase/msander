@@ -18,7 +18,7 @@ class General():
             if len(i) == 1:
                 tmp.append(i[0])
             if len(i) == 2:
-                tmp.extend(range(i[0], i[1] + 1))
+                tmp.extend(list(range(i[0], i[1] + 1)))
         return tmp
 
 
@@ -665,9 +665,9 @@ def pdb_line_out(
         segment_id="    ",
         element=" H",
         charge="  "):
-    print("%6s%5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %-4s%2s%2s" % (
+    print(("%6s%5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %-4s%2s%2s" % (
         record, atm_no, atm_name, alt_loc, res_name, chain, res_no, insert_code,
-        X, Y, Z, occupancy, B, segment_id, element, str(charge)))
+        X, Y, Z, occupancy, B, segment_id, element, str(charge))))
     return 0
 
 
@@ -848,14 +848,14 @@ def Adp2B(box, Uij):
 def CalcDensity(topo, coord):
     A = prmtop(topo)
     masses = A.Get_Masses()
-    print('Number of atoms in prmtop: %d' % shape(masses)[0])
+    print(('Number of atoms in prmtop: %d' % shape(masses)[0]))
     if coord[-3:] == 'pdb':
         B = pdb(coord)
-        print('Number of atoms in pdb file: %d' % (shape(B.Get_Bfactors())[0]))
+        print(('Number of atoms in pdb file: %d' % (shape(B.Get_Bfactors())[0])))
         box = B.Get_Box()
     elif coord[-4:] == 'rst7':
         B = rst7(coord)
-        print('Number of atoms in restart file: %d' % B.Get_Natoms())
+        print(('Number of atoms in restart file: %d' % B.Get_Natoms()))
         box = B.Get_Box()
     else:
         sys.exit('Unrecognized coordinate file extension')

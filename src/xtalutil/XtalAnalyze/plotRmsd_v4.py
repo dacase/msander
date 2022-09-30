@@ -30,13 +30,13 @@ y = []
 x4errs = []
 y4errs = []
 yerrs = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data2[2 * i, 0]))
-    y.append(average(data2[2 * i:2 * i + 2, 1]))
-for i in range(int(frames/30)):
-    x4errs.append((data2[30 * i, 0]))
-    y4errs.append(average(data2[30 * i:30 * i + 30, 1]))
-    yerrs.append(average(data2[30 * i, 2]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data2[10 * i, 0]))
+    y.append(average(data2[10 * i:10 * i + 10, 1]))
+for i in range(int(frames/150)):
+    x4errs.append((data2[150 * i, 0]))
+    y4errs.append(average(data2[150 * i:150 * i + 150, 1]))
+    yerrs.append(average(data2[150 * i, 2]))
 p1 = ax.plot(x, y, 'k', linewidth=2)
 ax.errorbar(x4errs, y4errs, yerr=yerrs, fmt='r.', color='k')
 
@@ -45,13 +45,13 @@ y = []
 x4errs = []
 y4errs = []
 yerrs = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data3[2 * i, 0]))
-    y.append(average(data3[2 * i:2 * i + 2, 1]))
-for i in range(int(frames/30)):
-    x4errs.append((data3[30 * i, 0]))
-    y4errs.append(average(data3[30 * i:30 * i + 30, 1]))
-    yerrs.append(average(data3[30 * i, 2]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data3[10 * i, 0]))
+    y.append(average(data3[10 * i:10 * i + 10, 1]))
+for i in range(int(frames/150)):
+    x4errs.append((data3[150 * i, 0]))
+    y4errs.append(average(data3[150 * i:150 * i + 150, 1]))
+    yerrs.append(average(data3[150 * i, 2]))
 p2 = ax.plot(x, y, '#9B2DE7', linewidth=2)
 ax.errorbar(x4errs, y4errs, yerr=yerrs, fmt='r.', color='#9B2DE7')
 
@@ -60,13 +60,13 @@ y = []
 x4errs = []
 y4errs = []
 yerrs = []
-for i in range(int(frames/2)):  # this is to get average over each 2 frames
-    x.append((data4[2 * i, 0]))
-    y.append(average(data4[2 * i:2 * i + 2, 1]))
-for i in range(int(frames/30)):
-    x4errs.append((data4[30 * i, 0]))
-    y4errs.append(average(data4[30 * i:30 * i + 30, 1]))
-    yerrs.append(average(data4[30 * i, 2]))
+for i in range(int(frames/10)):  # this is to get average over each 10 frames
+    x.append((data4[10 * i, 0]))
+    y.append(average(data4[10 * i:10 * i + 10, 1]))
+for i in range(int(frames/150)):
+    x4errs.append((data4[150 * i, 0]))
+    y4errs.append(average(data4[150 * i:150 * i + 150, 1]))
+    yerrs.append(average(data4[150 * i, 2]))
 p3 = ax.plot(x, y, '#37AECD', linewidth=2)
 ax.errorbar(x4errs, y4errs, yerr=yerrs, fmt='r.', color='#37AECD')
 
