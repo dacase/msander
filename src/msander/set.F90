@@ -329,7 +329,7 @@ end subroutine rdrest
 !+ duplicates pointers to multi-term dihedrals for vectorized ephi
 subroutine dihdup(nphia,icp,pn)
    
-   !  originally duplcated dihedrals with negative periodicities; not
+   !  originally duplcated dihedrals with negative periodicities; now
    !   just reports such a periodicity as an error, and exits
    
    implicit none
@@ -474,7 +474,7 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 
    else
       
-      !   all nodes will divide the work in runmd
+      !   all nodes will divide the work in force
       
       if( ntp > 0 ) then   !  constant pressure run, divide on molecules:
 
@@ -507,72 +507,73 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
          end do
       
       else   !  this is not a constant pressure run; divide on residues:
+             !    (or on atoms when SHAKE is turned off)
 
-#if 1  /* original: divide on residues, so that SHAKE will work: */
-
-         if (nres < numtasks) then
+         if (ntc >= 2 .and. nres < numtasks) then
             write(6,*) 'Must have more residues than processors!'
             call mexit(6,1)
-         end if
-         portion = natom/numtasks
-         target = 0
-         iparpt(0) = 0
-         iparpt(numtasks) = natom
-         nodes: do node=1,numtasks-1
-            target = target + portion
-            residues: do ires=1,nres
-
-               !  don't stop before a residue whose single atom is a hydrogen:
-            
-               if ((ipres(ires+1) - ipres(ires)) < 2) then
-                  iat = 0
-                  do i=1,ires
-                     iat = iat + ipres(i+1) - ipres(i)
-                  enddo
-                  if (amass(iat) < 4.0) cycle residues
+#ifndef LES /* avoid conflicts with LES */
+         ! divide among atoms with shake and sinr turned off
+         else if (ntc == 1) then
+            portion =natom/numtasks 
+            iparpt(0) = 0 
+            target = portion 
+            iparpt(numtasks) = natom
+            ratom =mod(natom,numtasks)
+            do node=1,numtasks-1
+               iparpt(node) = iparpt(node - 1) + target
+               if ( node <= ratom )then
+                  iparpt(node) = iparpt(node) + 1
                endif
-
-               !  don't stop after a residue whose single atom is a hydrogen:
-
-               if ( ires > 1 )then
-                  if( (ipres(ires) - ipres(ires-1)) < 2 ) then
+            enddo
+#endif /*LES*/            
+         else   !  here, we divide on residues, to avoid splitting bonds to H
+            portion = natom/numtasks
+            target = 0
+            iparpt(0) = 0
+            iparpt(numtasks) = natom
+            nodes: do node=1,numtasks-1
+               target = target + portion
+               residues: do ires=1,nres
+                  
+                  !  don't stop before a residue whose single atom is a hydrogen:
+            
+                  if ((ipres(ires+1) - ipres(ires)) < 2) then
                      iat = 0
-                     do i=1,ires-1
+                     do i=1,ires
                         iat = iat + ipres(i+1) - ipres(i)
                      enddo
-                     if (amass(iat) < 4.0) cycle residues
+                     if (amass(iat) < 3.0) cycle residues
                   endif
-               endif
- 
-               !   --- if this residue starts past the target atom, end 
-               !       the atom list at the end of the previous residue:
-            
-               if (ipres(ires) > target) then
-                  iparpt(node) = ipres(ires) - 1
-                  cycle nodes
-               end if
-            end do residues
 
-            !  should never get here, unless single atom residues are really
-            !  messed up somehow....
-            write(6,*) 'ERROR IN SETPAR() upon atom distribution'
-            call mexit(6,1)
+                  !  don't stop after a residue whose single atom is a hydrogen:
 
-         end do nodes
+                  if ( ires > 1 )then
+                     if( (ipres(ires) - ipres(ires-1)) < 2 ) then
+                        iat = 0
+                        do i=1,ires-1
+                           iat = iat + ipres(i+1) - ipres(i)
+                        enddo
+                        if (amass(iat) < 3.0) cycle residues
+                     endif
+                  endif
+                  
+                  !   --- if this residue starts past the target atom, end 
+                  !       the atom list at the end of the previous residue:
+                  
+                  if (ipres(ires) > target) then
+                     iparpt(node) = ipres(ires) - 1
+                     cycle nodes
+                  end if
+               end do residues
 
-#else   /* trial: assume that SHAKE is off, and we can divide how we want */
-
-         portion = natom/numtasks
-         target = 0
-         iparpt(0) = 0
-         iparpt(numtasks) = natom
-         do node=1,numtasks-1
-            target = target + portion
-            iparpt(node) = target
-         end do
-
-#endif
-      
+               !  should never get here, unless single atom residues are really
+               !  messed up somehow....
+               write(6,*) 'ERROR IN SETPAR() upon atom distribution'
+               call mexit(6,1)
+               
+            end do nodes
+         end if
       end if  !  (ntp > 0 )
 
       !       --- following used when forces, coords. communicated:
@@ -589,14 +590,12 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
          rcvcnt(i) = iparpt(i+1) - iparpt(i)
          rcvcnt3(i) = iparpt3(i+1) - iparpt3(i)
       end do
-#ifndef API
       if (master) then
          write(6,'(a)') '|  Atom division among processors:'
          write(6,'("|  ", 8i8)') (iparpt(j),j=0,numtasks)
          write(6,'(a)') '|  Coordinate  division among processors:'
          write(6,'("|  ", 8i8)') (iparpt3(j),j=0,numtasks)
       end if
-#endif
    end if  
    return
 end subroutine setpar 
