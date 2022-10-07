@@ -3,7 +3,7 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 09/02/2022 at 11:39:37
+| Run on 10/01/2022 at 12:58:39
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_gnu/test/xray/2ol9
@@ -99,7 +99,7 @@ X-ray Refinement Parameters:
      Atom Selection Mask: :*
 
      BOX TYPE: RECTILINEAR
-| Note: ig = -1. Setting random seed to    57379 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   915680 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -206,7 +206,7 @@ Found   1728 atoms in :*;
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      1      -4.1422E+03     8.6059E+00     6.3421E+01     OXT      1605
+      1      -4.1422E+03     8.6059E+00     6.3421E+01     OXT       741
 
  BOND    =       78.7191  ANGLE   =       63.7268  DIHED      =     1361.4692
  VDWAALS =    -1025.3314  EEL     =    -9289.2248  HBOND      =        0.0000
@@ -226,7 +226,7 @@ Found   1728 atoms in :*;
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      3      -4.3775E+03     7.1203E+00     4.2901E+01     C        1279
+      3      -4.3775E+03     7.1203E+00     4.2901E+01     C         415
 
  BOND    =       46.7992  ANGLE   =       78.4276  DIHED      =     1382.1371
  VDWAALS =    -1085.1511  EEL     =    -9490.6086  HBOND      =        0.0000
@@ -236,7 +236,7 @@ Found   1728 atoms in :*;
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      4      -4.4979E+03     6.8559E+00     4.9719E+01     C        1711
+      4      -4.4979E+03     6.8559E+00     4.9719E+01     C         847
 
  BOND    =       41.9142  ANGLE   =      102.2695  DIHED      =     1388.1531
  VDWAALS =    -1105.1499  EEL     =    -9633.3265  HBOND      =        0.0000
@@ -246,7 +246,7 @@ Found   1728 atoms in :*;
 
 
    NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -4.5495E+03     1.2377E+01     6.2327E+01     C        1711
+      5      -4.5495E+03     1.2377E+01     6.2327E+01     C         847
 
  BOND    =      102.8425  ANGLE   =      152.7052  DIHED      =     1396.7163
  VDWAALS =    -1126.3401  EEL     =    -9820.3669  HBOND      =        0.0000
@@ -258,32 +258,32 @@ Found   1728 atoms in :*;
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (66.67% of List )
-|                Other                      0.01 (33.33% of List )
-|             List time                  0.02 (21.43% of Nonbo)
-|                   Short_ene time             0.06 (100.0% of Direc)
-|                Direct Ewald time          0.06 (74.03% of Ewald)
-|                Adjust Ewald time          0.00 ( 3.90% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 5.88% of Recip)
-|                   Fill charge grid           0.00 ( 5.88% of Recip)
-|                   Scalar sum                 0.01 (41.18% of Recip)
-|                   Grad sum                   0.00 (11.76% of Recip)
-|                   FFT time                   0.01 (35.29% of Recip)
-|                Recip Ewald time           0.02 (22.08% of Ewald)
-|             Ewald time                 0.08 (78.57% of Nonbo)
-|             Fcalc loop                 0.97 ( 8.23% of Xray )
-|             Deriv loop                 1.05 ( 8.91% of Xray )
-|             Other                      9.78 (82.86% of Xray )
-|          Xray restaints            11.80 (99.08% of Force)
-|       Force time                11.91 (100.0% of Runmd)
-|    Runmd Time                11.91 (99.55% of Total)
-| Total time                11.97 (100.0% of ALL  )
+|                Build the list             0.01 (70.00% of List )
+|                Other                      0.01 (30.00% of List )
+|             List time                  0.02 (21.28% of Nonbo)
+|                   Short_ene time             0.05 (100.0% of Direc)
+|                Direct Ewald time          0.05 (67.57% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.70% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 4.55% of Recip)
+|                   Fill charge grid           0.00 (22.73% of Recip)
+|                   Scalar sum                 0.01 (22.73% of Recip)
+|                   Grad sum                   0.00 (13.64% of Recip)
+|                   FFT time                   0.01 (36.36% of Recip)
+|                Recip Ewald time           0.02 (29.73% of Ewald)
+|             Ewald time                 0.07 (78.72% of Nonbo)
+|             Fcalc loop                 0.92 ( 7.85% of Xray )
+|             Deriv loop                 0.96 ( 8.21% of Xray )
+|             Other                      9.80 (83.94% of Xray )
+|          Xray restaints            11.68 (99.08% of Force)
+|       Force time                11.78 (100.0% of Runmd)
+|    Runmd Time                11.78 (99.48% of Total)
+| Total time                11.84 (100.0% of ALL  )
 
 | Number of list builds   :          2
 
 | Highest rstack allocated:      90358
 | Highest istack allocated:       1728
-|           Job began  at 11:39:37.178  on 09/02/2022
-|           Setup done at 11:39:37.231  on 09/02/2022
-|           Run   done at 11:39:49.146  on 09/02/2022
+|           Job began  at 12:58:39.127  on 10/01/2022
+|           Setup done at 12:58:39.181  on 10/01/2022
+|           Run   done at 12:58:50.971  on 10/01/2022
 |     wallclock() was called     519 times
