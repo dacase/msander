@@ -437,7 +437,8 @@ xray_target_max_likelihood_impl_cpu.o: \
                     ../include/assert.fh\
                     xray_pure_utils.o\
                     xray_contracts.o\
-                    xray_target_max_likelihood_data.o
+                    xray_target_max_likelihood_data.o\
+                    xray_interface2_data.o
 
 
 xray_target_max_likelihood_impl_cpu.o:   xray_target_max_likelihood_impl_cpu.F90
