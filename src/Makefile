@@ -37,6 +37,7 @@ clean:
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
+	-(cd xtalutil && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
