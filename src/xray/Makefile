@@ -8,7 +8,7 @@ OBJ = add_xray.o add_pdb.o
 LIBOBJ = xray_atomic_scatter_factor.o xray_atomic_scatter_factor_impl_cpu.o \
 xray_atomic_scatter_factor_impl_gpu.o xray_bulk_mask_data.o \
 xray_bulk_mask.o xray_bulk_mask_impl_cpu.o xray_bulk_mask_impl_gpu.o \
-xray_bulk_model_afonine_2013.o xray_bulk_model.o xray_bulk_model_none.o \
+xray_bulk_model_afonine_2013.o xray_bulk_model.o \
 xray_bulk_model_simple.o xray_contracts.o \
 xray_dpartial_data.o xray_dpartial.o xray_dpartial_impl_cpu.o \
 xray_dpartial_impl_gpu.o xray_interface2_data.o xray_interface2.o \
