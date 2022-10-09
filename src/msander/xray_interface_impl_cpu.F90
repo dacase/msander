@@ -375,7 +375,7 @@ contains
 
    use xray_globals_module
    use xray_interface2_data_module, only:  Fcalc, Fobs, hkl, resolution, &
-       sigma_Fobs, new_order
+       sigma_Fobs, new_order, penalty
    use xray_target_module, only : target_function_id
    implicit none
    character(len=*), intent(in) :: filename
@@ -400,20 +400,21 @@ contains
           aimag(Fobs(i)), achar(9), real(Fcalc(i)), achar(9), aimag(Fcalc(i))
       end do
    else
-      write(20,'(17a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
+      write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
          'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
-         'fcalc',achar(9),'phicalc',achar(9),'R-free-flag'
-      write(20,'(17a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
+         'fcalc',achar(9),'phicalc',achar(9),'R-free-flag', &
+         achar(9),'penalty'
+      write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
          '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', &
-         achar(9),'15N',achar(9),'12'
+         achar(9),'15N',achar(9),'12N',achar(9),'15N'
       do i=1,num_hkl
          phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
          write(20,&
-          '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i4)') &
+         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i4,a,f12.4)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
           sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
-          achar(9), rfree(i)
+          achar(9), rfree(i),achar(9),penalty(i)
       end do
    end if
    close(20)

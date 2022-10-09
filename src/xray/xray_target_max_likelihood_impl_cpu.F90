@@ -113,6 +113,8 @@ contains
   ! -------------------------------------------------------------------------
   subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
     use xray_pure_utils, only: i1_over_i0, ln_of_i0
+    use xray_interface2_data_module, only : penalty
+
     implicit none
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
@@ -140,13 +142,14 @@ contains
     end if
     
     if (present(xray_energy)) then
-      xray_energy = &
-        sum( &
+      penalty(n_work + 1:) = 0._real_kind
+      penalty(:n_work) = &
             - log(2 * absFobs(:n_work) / ml_beta / epsilon) &
                 + absFobs(:n_work) ** 2 / ml_beta / epsilon &
                 + ml_alpha ** 2 * absFcalc(:n_work) ** 2 / ml_beta / epsilon &
-                - ln_of_i0(2 * ml_alpha / ml_beta / epsilon * absFobs(:n_work) * absFcalc(:n_work)) &
-            )
+                - ln_of_i0(2 * ml_alpha / ml_beta &
+                / epsilon * absFobs(:n_work) * absFcalc(:n_work)) 
+      xray_energy = sum( penalty )
     end if
   
   end subroutine calc_partial_d_target_d_absFcalc
