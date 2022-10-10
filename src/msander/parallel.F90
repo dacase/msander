@@ -244,7 +244,7 @@ subroutine startup(xx,ix,ih)
    !   ---- divide atoms up among the processors, always splitting on
    !        residue boundaries:
 
-   call setpar(nspm, ix(i70), ntp, ix(i02), xx(lmass))
+   call setpar(nspm, ix(i70), ntp, ntc, ix(i02), xx(lmass))
 
    if ( no_ntt3_sync == 1 ) then
      !Here we are not synching the random number generator across threads for

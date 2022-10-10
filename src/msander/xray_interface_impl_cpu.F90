@@ -541,7 +541,7 @@ contains
          & atom_selection==1, ix(i100+1:i100+natom), &
          & mask_update_period, scale_update_period, &
          & ml_update_period, k_sol, b_sol, &
-         & solvent_mask_adjustment, solvent_mask_probe_radius &
+         & solvent_mask_adjustment, solvent_mask_probe_radius, ls_r3, ls_r4 &
       )
       
       ! should be able to do some deallocations here:

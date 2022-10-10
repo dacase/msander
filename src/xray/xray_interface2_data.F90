@@ -40,12 +40,15 @@ module xray_interface2_data_module
   !! info about bulk solvent model
   integer, save :: model_id
 
+  !! options for ls target
+  real(real_kind), save :: ls_r3, ls_r4
+
 contains
   
   subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &
           input_unit_cell, input_scatter_coefficients, &
           input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, &
-          input_atom_selection )
+          input_atom_selection, r3, r4 )
     use xray_pure_utils, only: index_partition, index_sort, calc_resolution, pack_index
     
     implicit none
@@ -60,6 +63,7 @@ contains
     real(real_kind), intent(in) :: input_atom_occupancy(:)
     integer, intent(in) :: input_atom_scatter_type(:)
     logical, intent(in) :: input_atom_selection(:)
+    real(real_kind), intent(in) :: r3, r4
     
     ! locals
     integer :: j
@@ -131,6 +135,9 @@ contains
     ASSERT(size(Fobs) == n_hkl)
     ASSERT(size(sigma_Fobs) == n_hkl)
     ASSERT(size(hkl_io_order) == n_hkl)
+
+    ls_r3 = r3
+    ls_r4 = r4
     
   end subroutine init
   

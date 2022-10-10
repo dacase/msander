@@ -449,11 +449,11 @@ end subroutine setgms
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+ Distribute atoms to processors using molecule boundaries
-subroutine setpar(nspm, nsp, ntp, ipres, amass)
+subroutine setpar(nspm, nsp, ntp, ntc, ipres, amass)
    
    use mpi
    implicit none
-   integer nspm, nsp(*), ntp, ipres(*)
+   integer nspm, nsp(*), ntp, ntc, ipres(*)
    _REAL_ amass(*)
 
 #  include "../include/memory.h"
@@ -463,7 +463,7 @@ subroutine setpar(nspm, nsp, ntp, ipres, amass)
 #endif
 #  include "extra.h"
 #  include "nmr.h"
-   integer target,i,iat,imol,ipmol(nspm),node,j,ires,portion
+   integer target,i,iat,imol,ipmol(nspm),node,j,ires,portion,ratom
 
    if (mpi_orig) then
       

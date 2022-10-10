@@ -28,7 +28,7 @@ contains
       &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_selection, &
       &   atom_atomic_number, mask_update_period, scale_update_period, &
       &   target_meta_update_period, k_sol, b_sol, &
-      &   solvent_mask_adjustment, solvent_mask_probe_radius)
+      &   solvent_mask_adjustment, solvent_mask_probe_radius, r3, r4)
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
     use constants_xray, only : set_xray_num_threads
@@ -56,6 +56,7 @@ contains
     real(real_kind), intent(in) :: b_sol
     real(real_kind), intent(in) :: solvent_mask_adjustment
     real(real_kind), intent(in) :: solvent_mask_probe_radius
+    real(real_kind), intent(in) :: r3,r4  !  ls_nmr options
 
     ASSERT(size(hkl, 1) == 3)
     ASSERT(size(hkl, 2) == size(Fobs))
@@ -77,7 +78,7 @@ contains
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
         &   atom_b_factor, atom_occupancy, atom_scatter_type, &
-        &   atom_selection )
+        &   atom_selection, r3, r4 )
   
     call init_submodules(target, bulk_model, atom_atomic_number, &
         mask_update_period, scale_update_period, target_meta_update_period, &

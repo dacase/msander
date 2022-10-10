@@ -2,7 +2,8 @@ module xray_target_least_squares_module
 
     use xray_contracts_module
     use xray_pure_utils, only : real_kind
-    use xray_interface2_data_module, only: n_work, sigma_Fobs, penalty
+    use xray_interface2_data_module, only: n_work, sigma_Fobs, penalty, &
+         ls_r3, ls_r4
 
     implicit none
 
@@ -30,7 +31,6 @@ contains
     ! restraint on the magnitudes of Fobs and Fcalc
     ! -------------------------------------------------------------------------
     subroutine calc_partial_d_target_d_absFcalc(absFobs, absFcalc, deriv, xray_energy)
-        use xray_globals_module, only : ls_r3, ls_r4
         implicit none
         real(real_kind), intent(in) :: absFobs(:)
         real(real_kind), intent(in) :: absFcalc(size(absFobs))
