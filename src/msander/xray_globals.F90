@@ -36,6 +36,8 @@ module xray_globals_module
 
    ! Xray energy target function, see xray_target.F90 for details
    character(len=4), save :: target
+   ! variable parameters for the least-squares target:
+   real(real_kind), save :: ls_r3 = 0.0, ls_r4 = 0.5
 
    ! Standard condensed spacegroup name, or integer spacegroup number
    character(len=16), save :: spacegroup_name

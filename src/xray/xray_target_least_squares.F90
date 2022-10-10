@@ -30,13 +30,14 @@ contains
     ! restraint on the magnitudes of Fobs and Fcalc
     ! -------------------------------------------------------------------------
     subroutine calc_partial_d_target_d_absFcalc(absFobs, absFcalc, deriv, xray_energy)
+        use xray_globals_module, only : ls_r3, ls_r4
         implicit none
         real(real_kind), intent(in) :: absFobs(:)
         real(real_kind), intent(in) :: absFcalc(size(absFobs))
         real(real_kind), intent(out), optional :: deriv(size(absFobs))
         real(real_kind), intent(out), optional :: xray_energy
 
-        real(real_kind) :: e,rij,r1,dif1,r2,k2,df,r3,k3,r4,dif
+        real(real_kind) :: e,rij,r1,dif1,r2,df,r3,r4,dif
         integer :: i
 
 #if 1   /* optimize R_work, based on disnrg()  */
@@ -44,49 +45,38 @@ contains
         penalty(n_work + 1:) = 0 ! no penalty for things unselected here
         xray_energy = 0
 
-        ! initial gueses:
-        r1 = -0.3
-        r2 = -0.1
-        r3 =  0.1
-        r4 =  0.3
-        k2 =  1.0
-        k3 =  1.0
+        ! disnrg() -like parameters
+        r1 = -ls_r4
+        r2 = -ls_r3
+        r3 =  ls_r3
+        r4 =  ls_r4
 
         do i = 1,n_work
            rij = absFcalc(i) - absFobs(i)
            if (rij < r1) then
                dif1 = r1-r2
-               df = 2.0d0 * k2 * dif1
-               e = df * (rij-r1) + k2*dif1*dif1
+               df = 2.0d0 * dif1
+               e = df * (rij-r1) + dif1*dif1
             else if (rij < r2) then
                dif = rij - r2
-               df = 2.0d0 * k2 * dif
-               e = k2*dif*dif
+               df = 2.0d0 * dif
+               e = dif*dif
             else if (rij <= r3) then
                df = 0.d0
                e = 0.0d0
             else if (rij < r4) then
                dif = rij - r3
-               df = 2.0d0 * k3 * dif
-               e = k3*dif*dif
+               df = 2.0d0 * dif
+               e = dif*dif
             else
                dif1 = r4-r3
-               df = 2.0d0 * k3 * dif1
-               e = df * (rij-r4) + k3*dif1*dif1
+               df = 2.0d0 * dif1
+               e = df * (rij-r4) + dif1*dif1
             end if
-            deriv(i) = df
-            penalty(i) = e
+            deriv(i) = sigma_Fobs(i)*df
+            penalty(i) = sigma_Fobs(i)*e
             xray_energy = xray_energy + e
         end do
-
-        ! if (present(deriv)) then
-        !     deriv(n_work + 1:) = 0 ! no force for things unselected here
-        !     deriv(:n_work) = sign(absFcalc(:n_work), &
-        !        absFcalc(:n_work) - absFobs(:n_work)) / denom
-        ! endif
-        ! if (present(xray_energy))then
-        !     xray_energy = sum( abs(absFobs(:n_work) - absFcalc(:n_work)))
-        ! end if
 
 #else  /* weighted least-squares  */
         if (present(deriv)) then

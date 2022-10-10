@@ -788,11 +788,6 @@ findmask.o:   findmask.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ findmask.F90
 
-
-fixport.o:   fixport.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ fixport.F90
-
 force.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\

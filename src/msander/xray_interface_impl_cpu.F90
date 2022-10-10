@@ -39,7 +39,7 @@ module xray_interface_impl_cpu_module
          ntwsf, &
          sf_outfile, &
          atom_selection_mask, &
-         k_sol, b_sol,  &
+         k_sol, b_sol, ls_r3, ls_r4, &
          mask_update_period, scale_update_period, &
          ml_update_period, bulk_solvent_model
    
@@ -100,7 +100,12 @@ contains
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
-      write(stdout,'(5X,A,A4)') 'Use target: ',target
+      if( target(1:2) .eq. 'ls' ) then
+         write(stdout,'(5X,A,A4,2F3.8)') 'Use target: ',target, ls_r3, ls_r4
+      else
+         write(stdout,'(5X,A,A4)') 'Use target: ',target
+      endif
+
       write(stdout,'(5X,A,I5)') 'Scale update Interval: ',scale_update_period
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask probe radius: ',solvent_mask_probe_radius
       ! write(stdout,'(5X,A,F8.3)') 'Solvent mask expand: ',solvent_mask_expand
