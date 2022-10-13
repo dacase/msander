@@ -588,7 +588,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
-CFLAGS=$clangf $inc $gcc10c $ompflag $iccflags $fpic $debug
+CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
