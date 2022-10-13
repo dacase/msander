@@ -101,7 +101,7 @@ contains
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
       if( target(1:2) .eq. 'ls' ) then
-         write(stdout,'(5X,A,A4,2F3.8)') 'Use target: ',target, ls_r3, ls_r4
+         write(stdout,'(5X,A,A4,2F8.3)') 'Use target: ',target, ls_r3, ls_r4
       else
          write(stdout,'(5X,A,A4)') 'Use target: ',target
       endif
