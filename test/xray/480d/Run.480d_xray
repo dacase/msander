@@ -11,7 +11,7 @@ cat > mdin.rism <<eof
   single-point 3D-RISM calculation using the sander interface
  &cntrl
     ntx=1, nstlim=5, ntpr=1,
-    tempi=0.0, ithermostat=0, dt=0.001, 
+    tempi=0.0, ntt=0, dt=0.001, 
  /
  &xray
    pdb_infile = '4phenix_480d_uc.pdb',
