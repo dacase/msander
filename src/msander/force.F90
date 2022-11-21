@@ -705,8 +705,8 @@ subroutine force(xx, ix, ih, ipairs, x, f, ener, vir, fs, rborn, reff, &
   endif
 
 #ifdef MPI
-  call timer_barrier( commsander )
   call timer_start(TIME_COLLFRC)
+  call timer_barrier( commsander )
   !     add force, ene, vir, copies from all nodes
   !            also add up newbalance for nonperiodic.
 

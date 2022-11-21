@@ -855,8 +855,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 #ifdef MPI
 !------------------------------------------------------------------------------
   ! Distribute the coordinates, dipoles, and velocities as necessary
-  call timer_barrier(commsander)
   call timer_stop_start(TIME_VERLET,TIME_DISTCRD)
+  call timer_barrier(commsander)
   if (.not. mpi_orig .and. numtasks > 1) call xdist(x, xx(lfrctmp), nr3+iscale)
 
   ! DAC/knut change: force the coordinates to be the same on both masters.
