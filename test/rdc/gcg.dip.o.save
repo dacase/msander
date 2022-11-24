@@ -1,14 +1,13 @@
 
           -------------------------------------------------------
-          Amber 14 SANDER                              2014
+          MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 11/24/2015 at 21:09:00
+| Run on 11/24/2022 at 13:30:13
 
-|   Executable path: sander
-| Working directory: /usr/local/amber/test/rdc
-|          Hostname: caffeine.sdsc.edu
-
+|   Executable path: ../../bin/msander
+| Working directory: /home/case/msander_intel/test/rdc
+|          Hostname: Unknown
   [-O]verwriting output
 
 File Assignments:
@@ -28,16 +27,17 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
-
+ 
  Here is the input file:
-
+ 
   test of distance, angle, rdc and chemical shifts restraints for a DNA duplex 
  &cntrl                                                                        
     pencut=0.05, nmropt=2,                                                     
-    imin=1, maxcyc=10, igb=1, rgbmax=15.,                                      
+    imin=0, maxcyc=10, igb=1, rgbmax=15.,                                      
+    nstlim=10, ntt=0, tempi=0.0, ntx=1, irest=0, dt=0.001,                     
     ntpr=1,                                                                    
     ipnlty=1, cut=12.0, ntb=0, iscale=5, scalm=300.,                           
-    ntc=1, ntb=0,                                                              
+    ntc=2, ntb=0,                                                              
  /                                                                             
  &wt type='SHIFTS', value1=2.0, /                                              
  &wt type='END'  /                                                             
@@ -52,8 +52,7 @@ END
 --------------------------------------------------------------------------------
 
 | Flags:                                                                        
-| New format PARM file being parsed.
-| Version =    1.000 Date = 06/02/03 Time = 15:18:49
+| Largest sphere to fit in unit cell has radius =   133.550
  NATOM  =     632 NTYPES =      15 NBONH =     228 MBONA  =     452
  NTHETH =     536 MTHETA =     694 NPHIH =     946 MPHIA  =    1142
  NHPARM =       0 NPARM  =       0 NNB   =    3508 NRES   =      20
@@ -64,21 +63,20 @@ END
 
 
 |     Memory Use     Allocated
-|     Real              201311
+|     Real              476516
 |     Hollerith           1918
-|     Integer           178465
+|     Integer           180053
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2277 kbytes
+|       Total             4433 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Duplicated    0 dihedrals
-| Duplicated    0 dihedrals
+| Note: ig = -1. Setting random seed to   409982 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -87,15 +85,15 @@ END
                                                                                 
 
 General flags:
-     imin    =       1, nmropt  =       2
+     imin    =       0, nmropt  =       2
 
 Nature and format of input:
      ntx     =       1, irest   =       0, ntrx    =       1
 
 Nature and format of output:
-     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =       1
-     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
-     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      10
+     ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
      ntf     =       1, ntb     =       0, igb     =       1, nsnb    =      25
@@ -109,15 +107,19 @@ Potential function:
 Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
-Energy minimization:
-     maxcyc  =      10, ncyc    =      10, ntmin   =       1
-     dx0     =   0.01000, drms    =   0.00010
+Molecular dynamics:
+     nstlim  =        10, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
 
 NMR refinement options:
      iscale  =       5, noeskp  =       1, ipnlty  =       1, mxsub   =       1
      scalm   = 300.00000, pencut  =   0.05000, tausw   =   0.10000
-|  INFO: Old style inpcrd file read
-
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
 
 --------------------------------------------------------------------------------
    3.  ATOMIC COORDINATES AND VELOCITIES
@@ -150,23 +152,25 @@ Here are comments from the DISANG input file:
 
  Alignment info will be read from file: RST.dip
  Here are comments from the alignment input file:
-
+ 
  Number of triangulated 3-point waters found:        0
 
 --------------------------------------------------------------------------------
    4.  RESULTS
 --------------------------------------------------------------------------------
 
+|  # of SOLUTE  degrees of freedom (RNDFP):    1668.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =    1662.     NUM_NOSHAKE =      0     CORRECTED RNDFP =    1662.
+|  TOTAL # of degrees of freedom (RNDF) =    1662.
  Chemical shifts will be read from file: gcg10.shf
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      1      -4.0768E+03     4.5105E+00     2.3213E+01     H1'       202
-
- BOND    =       15.2816  ANGLE   =       88.9731  DIHED      =      368.4253
- VDWAALS =     -324.4472  EEL     =      202.5241  EGB        =    -2428.8371
- 1-4 VDW =      173.0467  1-4 EEL =    -2389.4169  RESTRAINT  =      217.6051
- EAMBER  =    -4294.4503
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =     -4076.8452  EKtot   =         0.0000  EPtot      =     -4076.8452
+ BOND   =        15.2816  ANGLE   =        88.9731  DIHED      =       368.4253
+ 1-4 NB =       173.0467  1-4 EEL =     -2389.4169  VDWAALS    =      -324.4472
+ EELEC  =       202.5241  EGB     =     -2428.8371  RESTRAINT  =       217.6051
+ EAMBER (non-restraint)  =     -4294.4503
  NMR restraints: Bond =    7.593   Angle =     3.855   Torsion =    20.709
                : Noesy=    0.000   Shift =   155.846   Pcshift =     0.000
  Energy (this step): Align=    29.602  CSA=     0.000
@@ -175,172 +179,176 @@ Here are comments from the DISANG input file:
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      2      -4.0788E+03     3.8654E+00     2.0583E+01     H1'       202
-
- BOND    =       15.7138  ANGLE   =       88.9644  DIHED      =      368.3490
- VDWAALS =     -324.3900  EEL     =      219.8536  EGB        =    -2446.7513
- 1-4 VDW =      172.5567  1-4 EEL =    -2389.8450  RESTRAINT  =      216.7505
- EAMBER  =    -4295.5488
- NMR restraints: Bond =    7.590   Angle =     3.493   Torsion =    20.711
-               : Noesy=    0.000   Shift =   155.849   Pcshift =     0.000
- Energy (this step): Align=    29.107  CSA=     0.000
+ NSTEP =        1   TIME(PS) =       0.001  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =     -4076.8445  EKtot   =         0.0007  EPtot      =     -4076.8452
+ BOND   =        15.2816  ANGLE   =        88.9731  DIHED      =       368.4253
+ 1-4 NB =       173.0467  1-4 EEL =     -2389.4169  VDWAALS    =      -324.4472
+ EELEC  =       202.5241  EGB     =     -2428.8371  RESTRAINT  =       217.6051
+ EAMBER (non-restraint)  =     -4294.4503
+ NMR restraints: Bond =    7.593   Angle =     3.855   Torsion =    20.709
+               : Noesy=    0.000   Shift =   155.846   Pcshift =     0.000
+ Energy (this step): Align=    29.602  CSA=     0.000
           Alignment tensor:   -14.357     1.286   -29.811
                                 1.286   -18.844   -44.361
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      3      -4.0809E+03     3.2433E+00     1.7607E+01     H1'       202
-
- BOND    =       16.4855  ANGLE   =       88.9594  DIHED      =      368.2443
- VDWAALS =     -324.3237  EEL     =      229.3485  EGB        =    -2457.0802
- 1-4 VDW =      171.9668  1-4 EEL =    -2390.4282  RESTRAINT  =      215.9356
- EAMBER  =    -4296.8277
- NMR restraints: Bond =    7.590   Angle =     3.211   Torsion =    20.721
-               : Noesy=    0.000   Shift =   155.853   Pcshift =     0.000
- Energy (this step): Align=    28.562  CSA=     0.000
+ NSTEP =        2   TIME(PS) =       0.002  TEMP(K) =     0.35  PRESS =     0.0
+ Etot   =     -4075.6003  EKtot   =         0.5845  EPtot      =     -4076.1848
+ BOND   =        13.7235  ANGLE   =        88.8839  DIHED      =       368.4217
+ 1-4 NB =       172.7294  1-4 EEL =     -2388.9543  VDWAALS    =      -323.6162
+ EELEC  =       189.2981  EGB     =     -2415.9221  RESTRAINT  =       219.2512
+ EAMBER (non-restraint)  =     -4295.4360
+ NMR restraints: Bond =    9.110   Angle =     3.649   Torsion =    20.717
+               : Noesy=    0.000   Shift =   155.836   Pcshift =     0.000
+ Energy (this step): Align=    29.939  CSA=     0.000
           Alignment tensor:   -14.357     1.286   -29.811
                                 1.286   -18.844   -44.361
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      4      -4.0830E+03     2.6551E+00     1.4385E+01     H1'       202
-
- BOND    =       17.6894  ANGLE   =       88.9403  DIHED      =      368.1026
- VDWAALS =     -324.2502  EEL     =      233.9211  EGB        =    -2462.6807
- 1-4 VDW =      171.2650  1-4 EEL =    -2391.2051  RESTRAINT  =      215.1840
- EAMBER  =    -4298.2175
- NMR restraints: Bond =    7.596   Angle =     3.010   Torsion =    20.738
-               : Noesy=    0.000   Shift =   155.856   Pcshift =     0.000
- Energy (this step): Align=    27.984  CSA=     0.000
+ NSTEP =        3   TIME(PS) =       0.003  TEMP(K) =     1.06  PRESS =     0.0
+ Etot   =     -4075.4031  EKtot   =         1.7436  EPtot      =     -4077.1468
+ BOND   =        14.0387  ANGLE   =        88.4793  DIHED      =       368.4107
+ 1-4 NB =       172.4610  1-4 EEL =     -2389.3874  VDWAALS    =      -323.4518
+ EELEC  =       206.0199  EGB     =     -2432.7461  RESTRAINT  =       219.0290
+ EAMBER (non-restraint)  =     -4296.1757
+ NMR restraints: Bond =    9.073   Angle =     3.360   Torsion =    20.733
+               : Noesy=    0.000   Shift =   155.851   Pcshift =     0.000
+ Energy (this step): Align=    30.012  CSA=     0.000
           Alignment tensor:   -14.357     1.286   -29.811
                                 1.286   -18.844   -44.361
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      5      -4.0851E+03     2.1338E+00     1.1117E+01     H1'       202
-
- BOND    =       19.3418  ANGLE   =       88.8996  DIHED      =      367.9153
- VDWAALS =     -324.1766  EEL     =      235.9964  EGB        =    -2465.8640
- 1-4 VDW =      170.4467  1-4 EEL =    -2392.2287  RESTRAINT  =      214.5241
- EAMBER  =    -4299.6694
- NMR restraints: Bond =    7.611   Angle =     2.887   Torsion =    20.764
-               : Noesy=    0.000   Shift =   155.860   Pcshift =     0.000
- Energy (this step): Align=    27.402  CSA=     0.000
+ NSTEP =        4   TIME(PS) =       0.004  TEMP(K) =     1.91  PRESS =     0.0
+ Etot   =     -4075.2824  EKtot   =         3.1615  EPtot      =     -4078.4440
+ BOND   =        14.6091  ANGLE   =        87.9377  DIHED      =       368.3608
+ 1-4 NB =       172.0312  1-4 EEL =     -2390.1714  VDWAALS    =      -323.2850
+ EELEC  =       213.6680  EGB     =     -2440.5820  RESTRAINT  =       218.9877
+ EAMBER (non-restraint)  =     -4297.4316
+ NMR restraints: Bond =    9.081   Angle =     3.353   Torsion =    20.758
+               : Noesy=    0.000   Shift =   155.857   Pcshift =     0.000
+ Energy (this step): Align=    29.939  CSA=     0.000
           Alignment tensor:   -14.357     1.286   -29.811
                                 1.286   -18.844   -44.361
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      6      -4.0870E+03     1.7189E+00     8.3961E+00     H1'       518
-
- BOND    =       21.2526  ANGLE   =       88.8705  DIHED      =      367.6820
- VDWAALS =     -324.1185  EEL     =      249.4893  EGB        =    -2480.1621
- 1-4 VDW =      169.5231  1-4 EEL =    -2393.5504  RESTRAINT  =      213.9828
- EAMBER  =    -4301.0134
- NMR restraints: Bond =    7.641   Angle =     2.832   Torsion =    20.793
-               : Noesy=    0.000   Shift =   155.863   Pcshift =     0.000
- Energy (this step): Align=    26.854  CSA=     0.000
-          Alignment tensor:   -14.357     1.285   -29.811
-                                1.285   -18.844   -44.361
+ NSTEP =        5   TIME(PS) =       0.005  TEMP(K) =     3.04  PRESS =     0.0
+ Etot   =     -4075.4650  EKtot   =         5.0248  EPtot      =     -4080.4898
+ BOND   =        15.4735  ANGLE   =        87.3320  DIHED      =       368.2770
+ 1-4 NB =       171.4548  1-4 EEL =     -2391.3289  VDWAALS    =      -323.1662
+ EELEC  =       202.6718  EGB     =     -2429.8724  RESTRAINT  =       218.6686
+ EAMBER (non-restraint)  =     -4299.1584
+ NMR restraints: Bond =    9.164   Angle =     3.329   Torsion =    20.789
+               : Noesy=    0.000   Shift =   155.839   Pcshift =     0.000
+ Energy (this step): Align=    29.547  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
                               -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      7      -4.0888E+03     1.4364E+00     6.3406E+00     H1'       518
-
- BOND    =       22.9550  ANGLE   =       88.9350  DIHED      =      367.4276
- VDWAALS =     -324.1161  EEL     =      271.7451  EGB        =    -2502.6315
- 1-4 VDW =      168.5261  1-4 EEL =    -2395.1787  RESTRAINT  =      213.5753
- EAMBER  =    -4302.3374
- NMR restraints: Bond =    7.696   Angle =     2.826   Torsion =    20.816
-               : Noesy=    0.000   Shift =   155.865   Pcshift =     0.000
- Energy (this step): Align=    26.373  CSA=     0.000
-          Alignment tensor:   -14.357     1.285   -29.812
-                                1.285   -18.844   -44.361
-                              -29.812   -44.361    33.201
+ NSTEP =        6   TIME(PS) =       0.006  TEMP(K) =     4.13  PRESS =     0.0
+ Etot   =     -4075.3340  EKtot   =         6.8234  EPtot      =     -4082.1574
+ BOND   =        16.6589  ANGLE   =        86.8081  DIHED      =       368.2110
+ 1-4 NB =       170.7561  1-4 EEL =     -2392.8517  VDWAALS    =      -323.0758
+ EELEC  =       217.4294  EGB     =     -2444.4472  RESTRAINT  =       218.3539
+ EAMBER (non-restraint)  =     -4300.5113
+ NMR restraints: Bond =    9.300   Angle =     3.551   Torsion =    20.825
+               : Noesy=    0.000   Shift =   155.800   Pcshift =     0.000
+ Energy (this step): Align=    28.878  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      8      -4.0907E+03     1.8538E+00     3.5398E+01     C8        266
-
- BOND    =       24.1054  ANGLE   =       89.1710  DIHED      =      367.2019
- VDWAALS =     -324.2359  EEL     =      270.9895  EGB        =    -2501.6693
- 1-4 VDW =      167.5091  1-4 EEL =    -2397.1143  RESTRAINT  =      213.3585
- EAMBER  =    -4304.0426
- NMR restraints: Bond =    7.789   Angle =     2.903   Torsion =    20.831
-               : Noesy=    0.000   Shift =   155.863   Pcshift =     0.000
- Energy (this step): Align=    25.972  CSA=     0.000
-          Alignment tensor:   -14.357     1.284   -29.812
-                                1.284   -18.843   -44.361
-                              -29.812   -44.361    33.201
+ NSTEP =        7   TIME(PS) =       0.007  TEMP(K) =     4.89  PRESS =     0.0
+ Etot   =     -4075.2700  EKtot   =         8.0743  EPtot      =     -4083.3443
+ BOND   =        18.1639  ANGLE   =        86.5027  DIHED      =       368.2382
+ 1-4 NB =       169.9676  1-4 EEL =     -2394.6828  VDWAALS    =      -322.9490
+ EELEC  =       219.9582  EGB     =     -2446.8827  RESTRAINT  =       218.3396
+ EAMBER (non-restraint)  =     -4301.6839
+ NMR restraints: Bond =    9.442   Angle =     4.114   Torsion =    20.861
+               : Noesy=    0.000   Shift =   155.758   Pcshift =     0.000
+ Energy (this step): Align=    28.164  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-      9      -4.0858E+03     1.0303E+01     2.5268E+02     C8        266
-
- BOND    =       24.9672  ANGLE   =       89.4306  DIHED      =      367.1197
- VDWAALS =     -324.4416  EEL     =      269.9020  EGB        =    -2500.3605
- 1-4 VDW =      166.7019  1-4 EEL =    -2398.2750  RESTRAINT  =      219.1281
- EAMBER  =    -4304.9557
- NMR restraints: Bond =    7.867   Angle =     8.783   Torsion =    20.835
-               : Noesy=    0.000   Shift =   155.855   Pcshift =     0.000
- Energy (this step): Align=    25.788  CSA=     0.000
-          Alignment tensor:   -14.357     1.284   -29.812
-                                1.284   -18.843   -44.361
-                              -29.812   -44.361    33.201
+ NSTEP =        8   TIME(PS) =       0.008  TEMP(K) =     5.54  PRESS =     0.0
+ Etot   =     -4075.2023  EKtot   =         9.1479  EPtot      =     -4084.3502
+ BOND   =        19.9391  ANGLE   =        86.4424  DIHED      =       368.4099
+ 1-4 NB =       169.1221  1-4 EEL =     -2396.7051  VDWAALS    =      -322.7298
+ EELEC  =       226.7078  EGB     =     -2453.5648  RESTRAINT  =       218.0282
+ EAMBER (non-restraint)  =     -4302.3784
+ NMR restraints: Bond =    9.549   Angle =     4.216   Torsion =    20.896
+               : Noesy=    0.000   Shift =   155.741   Pcshift =     0.000
+ Energy (this step): Align=    27.626  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
 ===============================================================================
 
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-     10      -4.0919E+03     2.8189E+00     6.3384E+01     C8        266
-
- BOND    =       24.6424  ANGLE   =       89.3609  DIHED      =      367.1027
- VDWAALS =     -324.4540  EEL     =      269.3122  EGB        =    -2499.6315
- 1-4 VDW =      166.6985  1-4 EEL =    -2398.5677  RESTRAINT  =      213.6124
- EAMBER  =    -4305.5365
- NMR restraints: Bond =    7.881   Angle =     3.265   Torsion =    20.836
-               : Noesy=    0.000   Shift =   155.854   Pcshift =     0.000
- Energy (this step): Align=    25.777  CSA=     0.000
-          Alignment tensor:   -14.357     1.284   -29.812
-                                1.284   -18.843   -44.361
-                              -29.812   -44.361    33.201
+ NSTEP =        9   TIME(PS) =       0.009  TEMP(K) =     6.09  PRESS =     0.0
+ Etot   =     -4075.0482  EKtot   =        10.0517  EPtot      =     -4085.1000
+ BOND   =        21.8894  ANGLE   =        86.6422  DIHED      =       368.7143
+ 1-4 NB =       168.2485  1-4 EEL =     -2398.7929  VDWAALS    =      -322.4175
+ EELEC  =       241.2795  EGB     =     -2468.1590  RESTRAINT  =       217.4955
+ EAMBER (non-restraint)  =     -4302.5955
+ NMR restraints: Bond =    9.622   Angle =     3.851   Torsion =    20.928
+               : Noesy=    0.000   Shift =   155.745   Pcshift =     0.000
+ Energy (this step): Align=    27.350  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
 ===============================================================================
 
-
-  Maximum number of minimization cycles reached.
-
-
-                    FINAL RESULTS
-
-
-
-   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
-     10      -4.0919E+03     2.8189E+00     6.3384E+01     C8        266
-
- BOND    =       24.6424  ANGLE   =       89.3609  DIHED      =      367.1027
- VDWAALS =     -324.4540  EEL     =      269.3122  EGB        =    -2499.6315
- 1-4 VDW =      166.6985  1-4 EEL =    -2398.5677  RESTRAINT  =      213.6124
- EAMBER  =    -4305.5365
- NMR restraints: Bond =    7.881   Angle =     3.265   Torsion =    20.836
-               : Noesy=    0.000   Shift =   155.854   Pcshift =     0.000
- Energy (this step): Align=    25.777  CSA=     0.000
-          Alignment tensor:   -14.357     1.284   -29.812
-                                1.284   -18.843   -44.361
-                              -29.812   -44.361    33.201
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =     6.39  PRESS =     0.0
+ Etot   =     -4074.7320  EKtot   =        10.5548  EPtot      =     -4085.2868
+ BOND   =        23.9006  ANGLE   =        87.1167  DIHED      =       369.0802
+ 1-4 NB =       167.3684  1-4 EEL =     -2400.9296  VDWAALS    =      -322.0910
+ EELEC  =       265.3146  EGB     =     -2492.1552  RESTRAINT  =       217.1085
+ EAMBER (non-restraint)  =     -4302.3953
+ NMR restraints: Bond =    9.698   Angle =     3.501   Torsion =    20.957
+               : Noesy=    0.000   Shift =   155.751   Pcshift =     0.000
+ Energy (this step): Align=    27.203  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
 ===============================================================================
+
+      A V E R A G E S   O V E R      10 S T E P S
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =     3.34  PRESS =     0.0
+ Etot   =     -4075.4182  EKtot   =         5.5167  EPtot      =     -4080.9349
+ BOND   =        17.3678  ANGLE   =        87.5118  DIHED      =       368.4549
+ 1-4 NB =       170.7186  1-4 EEL =     -2393.3221  VDWAALS    =      -323.1230
+ EELEC  =       218.4871  EGB     =     -2445.3169  RESTRAINT  =       218.2867
+ EAMBER (non-restraint)  =     -4299.2217
+ NMR restraints: Bond =    9.698   Angle =     3.501   Torsion =    20.957
+               : Noesy=    0.000   Shift =   155.751   Pcshift =     0.000
+ Energy (this step): Align=    27.203  CSA=     0.000
+          Alignment tensor:   -14.357     1.286   -29.811
+                                1.286   -18.844   -44.361
+                              -29.811   -44.361    33.201
+===============================================================================
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =       10   TIME(PS) =       0.010  TEMP(K) =     2.28  PRESS =     0.0
+ Etot   =         0.5265  EKtot   =         3.7704  EPtot      =         3.3955
+ BOND   =         3.3284  ANGLE   =         0.9347  DIHED      =         0.2472
+ 1-4 NB =         1.8763  1-4 EEL =         4.0624  VDWAALS    =         0.6231
+ EELEC  =        20.7816  EGB     =        20.8361  RESTRAINT  =         0.6835
+|E(PBS) =         0.5570
+ EAMBER (non-restraint)  =         2.7120
+
+ NMR restraints on final step:
+
  ------------------------------------------------------------------------------
 
 
@@ -352,69 +360,64 @@ Here are comments from the DISANG input file:
  ------------------------------------------------------------------------------
      First atom        Last atom    curr. value target deviation  penalty
  ------------------------------------------------------------------------------
-  H4'  DC     2 --  H2'1 DC     2:    3.714    3.600    0.114    0.416 d    0: 0
-  H6   DC     2 --  H1'  DG5    1:    3.865    3.800    0.065    0.134 d    0: 0
+  H4'  DC     2 --  H2'1 DC     2:    3.741    3.600    0.141    0.640 d    0: 0
+  H6   DC     2 --  H1'  DG5    1:    3.856    3.800    0.056    0.100 d    0: 0
   H6   DC     2 --  H2'1 DC     2:    2.440    2.400    0.040    0.051 d    0: 0
-  H6   DC     2 --  H4'  DC     2:    4.297    4.200    0.097    0.301 d    0: 0
-  H6   DT     4 --  H1'  DG     3:    3.742    3.700    0.042    0.056 d    0: 0
-  H6   DT     5 --  H4'  DT     5:    4.293    4.100    0.193    1.195 d    0: 0
-  H3'  DC     8 --  H2'1 DA     7:    6.058    6.000    0.058    0.107 d    0: 0
-  H4'  DC     8 --  H2'1 DC     8:    3.840    3.800    0.040    0.051 d    0: 0
-  H6   DC     8 --  H4'  DA     7:    6.043    6.000    0.043    0.059 d    0: 0
-  H6   DC     8 --  H2'2 DC     8:    3.983    3.900    0.083    0.222 d    0: 0
-  H3'  DG     9 --  H2'1 DC     8:    4.466    4.400    0.066    0.141 d    0: 0
-  H4'  DC    12 --  H2'1 DC    12:    3.768    3.600    0.168    0.901 d    0: 0
-  H5   DC    12 --  H2'1 DG5   11:    3.950    3.900    0.050    0.080 d    0: 0
-  H6   DC    12 --  H2'1 DG5   11:    4.131    4.000    0.131    0.546 d    0: 0
-  H6   DC    12 --  H3'  DC    12:    3.595    3.500    0.095    0.287 d    0: 0
-  H6   DC    12 --  H4'  DC    12:    4.285    4.200    0.085    0.229 d    0: 0
-  H4'  DG    13 --  H2'2 DG    13:    3.980    3.900    0.080    0.204 d    0: 0
-  H4'  DT    14 --  H2'1 DT    14:    3.840    3.800    0.040    0.052 d    0: 0
-  H4'  DT    14 --  H2'2 DT    14:    3.862    3.800    0.062    0.121 d    0: 0
-  H6   DT    14 --  H3'  DT    14:    3.845    3.800    0.045    0.065 d    0: 0
-  H6   DT    15 --  H4'  DT    15:    4.274    4.100    0.174    0.967 d    0: 0
-  H1'  DA    17 --  H4'  DC    18:    4.074    4.000    0.074    0.177 d    0: 0
-  H6   DC    18 --  H2'2 DC    18:    4.027    3.900    0.127    0.517 d    0: 0
-  H3'  DG    19 --  H2'1 DC    18:    4.447    4.400    0.047    0.070 d    0: 0
-  H8   DG    19 --  H2'2 DG    19:    3.657    3.600    0.057    0.105 d    0: 0
-  H6   DC3   20 --  H4'  DC3   20:    4.251    4.200    0.051    0.084 d    0: 0
-  H3   DT     5 --  N1   DA    16:    1.984    1.910    0.074    0.176 d    0: 0
-  N1   DA     6 --  H3   DT    15:    1.968    1.910    0.058    0.107 d    0: 0
-  C3'  DG5   11 --  C4'  DG5   11:  -20.323  -16.900    3.423    0.114 t
-  C4'  DG5   11 --  O4'  DG5   11:   40.520   34.000    6.520    0.414 t
-  C3'  DT    14 --  C4'  DT    14:    9.761    5.000    4.761    0.221 t
-  C4'  DT    14 --  O4'  DT    14:   10.143   13.500    3.357    0.110 t
-  O5'  DG5    1 --  C5'  DG5    1:  298.907  240.000   58.907   19.705 t
-  O5'  DG5   11 --  C5'  DG5   11:   88.056   90.000    1.944    0.069 t
-  H1'  DC     2 --  N1   DC     2:  110.034  109.500    0.534    0.052 a
-  H1'  DT     5 --  N1   DT     5:  110.119  109.500    0.619    0.070 a
-  H1'  DG5   11 --  C2'  DG5   11:  108.633  109.500    0.867    0.138 a
-  H1'  DC    12 --  N1   DC    12:  110.081  109.500    0.581    0.062 a
-  H1'  DC    12 --  O4'  DC    12:  110.222  109.500    0.722    0.095 a
-  H1'  DA    16 --  N9   DA    16:  110.071  109.500    0.571    0.060 a
-  H1'  DA    17 --  N9   DA    17:  110.171  109.500    0.671    0.082 a
-  H1'  DA    17 --  C2'  DA    17:  110.078  109.500    0.578    0.061 a
-  H4'  DT     5 --  O4'  DT     5:  108.792  109.500    0.708    0.091 a
-  H4'  DT    15 --  O4'  DT    15:  108.966  109.500    0.534    0.052 a
-  H6   DC     2 --  C5   DC     2:  119.673  119.100    0.573    0.060 a
-  H6   DT     5 --  C5   DT     5:  119.643  119.100    0.543    0.054 a
-  H6   DC    12 --  C5   DC    12:  119.645  119.100    0.545    0.054 a
-  H6   DC    18 --  C5   DC    18:  119.659  119.100    0.559    0.057 a
-  H8   DG     9 --  N9   DG     9:  122.397  123.050    0.653    0.078 a
-  H8   DA    17 --  N9   DA    17:  122.486  123.050    0.564    0.058 a
-  H3   DT     5 --  C2   DT     5:  115.917  116.800    0.883    0.142 a
-  H3   DT     5 --  C4   DT     5:  116.272  116.800    0.528    0.051 a
-  H3   DT    14 --  C4   DT    14:  116.169  116.800    0.631    0.073 a
-  H3   DT    15 --  C2   DT    15:  115.916  116.800    0.884    0.143 a
-  H3   DT    15 --  C4   DT    15:  115.843  116.800    0.957    0.167 a
-  H1   DG    19 --  C2   DG    19:  117.474  118.000    0.526    0.051 a
-  H8   DG     9 --  N9   DG     9:  122.397  123.050    0.653    0.078 a
-  H8   DA    17 --  N9   DA    17:  122.486  123.050    0.564    0.058 a
-                                       Total distance penalty:      7.881
-                                       Total angle    penalty:      3.265
-                                       Total torsion  penalty:     20.836
-|                               RMS deviation from ideal bonds :      0.0094
-|                               RMS deviation from ideal angles:      2.171
+  H6   DC     2 --  H4'  DC     2:    4.320    4.200    0.120    0.457 d    0: 0
+  H6   DT     5 --  H4'  DT     5:    4.304    4.100    0.204    1.338 d    0: 0
+  H3'  DC     8 --  H2'1 DA     7:    6.059    6.000    0.059    0.113 d    0: 0
+  H4'  DC     8 --  H2'1 DC     8:    3.853    3.800    0.053    0.090 d    0: 0
+  H6   DC     8 --  H2'2 DC     8:    4.000    3.900    0.100    0.318 d    0: 0
+  H3'  DG     9 --  H2'1 DC     8:    4.467    4.400    0.067    0.145 d    0: 0
+  H8   DG     9 --  H4'  DC     8:    6.040    6.000    0.040    0.051 d    0: 0
+  H4'  DC    12 --  H2'1 DC    12:    3.795    3.600    0.195    1.213 d    0: 0
+  H5   DC    12 --  H2'1 DG5   11:    3.962    3.900    0.062    0.125 d    0: 0
+  H6   DC    12 --  H2'1 DG5   11:    4.140    4.000    0.140    0.627 d    0: 0
+  H6   DC    12 --  H3'  DC    12:    3.612    3.500    0.112    0.399 d    0: 0
+  H6   DC    12 --  H4'  DC    12:    4.308    4.200    0.108    0.376 d    0: 0
+  H4'  DG    13 --  H2'2 DG    13:    3.984    3.900    0.084    0.224 d    0: 0
+  H4'  DT    14 --  H2'1 DT    14:    3.849    3.800    0.049    0.078 d    0: 0
+  H4'  DT    14 --  H2'2 DT    14:    3.875    3.800    0.075    0.181 d    0: 0
+  H6   DT    15 --  H4'  DT    15:    4.285    4.100    0.185    1.091 d    0: 0
+  H1'  DA    17 --  H4'  DC    18:    4.098    4.000    0.098    0.310 d    0: 0
+  H6   DC    18 --  H2'2 DC    18:    4.045    3.900    0.145    0.674 d    0: 0
+  H3'  DG    19 --  H2'1 DC    18:    4.450    4.400    0.050    0.082 d    0: 0
+  H8   DG    19 --  H2'2 DG    19:    3.668    3.600    0.068    0.148 d    0: 0
+  H6   DC3   20 --  H4'  DC3   20:    4.260    4.200    0.060    0.117 d    0: 0
+  H3   DT     5 --  N1   DA    16:    1.988    1.910    0.078    0.193 d    0: 0
+  N1   DA     6 --  H3   DT    15:    1.982    1.910    0.072    0.168 d    0: 0
+  C4'  DA     7 --  O4'  DA     7:   -6.715   -4.400    2.315    0.052 t
+  C3'  DG5   11 --  C4'  DG5   11:  -20.622  -16.900    3.722    0.135 t
+  C4'  DG5   11 --  O4'  DG5   11:   40.793   34.000    6.793    0.450 t
+  C3'  DT    14 --  C4'  DT    14:    9.957    5.000    4.957    0.240 t
+  C4'  DT    14 --  O4'  DT    14:    9.904   13.500    3.596    0.126 t
+  O5'  DG5    1 --  C5'  DG5    1:  299.165  240.000   59.165   19.800 t
+  H1'  DG5   11 --  C2'  DG5   11:  108.930  109.500    0.570    0.059 a
+  H1'  DC    12 --  O4'  DC    12:  110.333  109.500    0.833    0.127 a
+  H1'  DT    14 --  O4'  DT    14:  110.032  109.500    0.532    0.052 a
+  H1'  DT    15 --  O4'  DT    15:  110.035  109.500    0.535    0.052 a
+  H1'  DA    17 --  N9   DA    17:  110.181  109.500    0.681    0.085 a
+  H4'  DT     5 --  O4'  DT     5:  108.908  109.500    0.592    0.064 a
+  H4'  DC     8 --  C3'  DC     8:  108.920  109.500    0.580    0.061 a
+  H4'  DC    18 --  C3'  DC    18:  108.778  109.500    0.722    0.095 a
+  H6   DC     2 --  C5   DC     2:  119.773  119.100    0.673    0.083 a
+  H6   DT     5 --  C5   DT     5:  119.636  119.100    0.536    0.053 a
+  H6   DC     8 --  C5   DC     8:  119.707  119.100    0.607    0.067 a
+  H6   DC    12 --  C5   DC    12:  119.809  119.100    0.709    0.092 a
+  H6   DT    15 --  C5   DT    15:  119.656  119.100    0.556    0.057 a
+  H6   DC    18 --  C5   DC    18:  119.750  119.100    0.650    0.077 a
+  H3   DT     5 --  C2   DT     5:  115.849  116.800    0.951    0.165 a
+  H3   DT     5 --  C4   DT     5:  116.179  116.800    0.621    0.071 a
+  H3   DT    14 --  C2   DT    14:  116.039  116.800    0.761    0.106 a
+  H3   DT    14 --  C4   DT    14:  115.883  116.800    0.917    0.154 a
+  H3   DT    15 --  C2   DT    15:  115.818  116.800    0.982    0.176 a
+  H3   DT    15 --  C4   DT    15:  115.746  116.800    1.054    0.203 a
+  H1   DG    19 --  C2   DG    19:  117.190  118.000    0.810    0.120 a
+                                       Total distance penalty:      9.814
+                                       Total angle    penalty:      3.286
+                                       Total torsion  penalty:     20.984
+|                               RMS deviation from ideal bonds :      0.0091
+|                               RMS deviation from ideal angles:      2.145
  ------------------------------------------------------------------------------
 
 
@@ -423,11 +426,11 @@ Here are comments from the DISANG input file:
 
              Proton       Calc.     Observed   Penalty                          
           ---------------------------------------------                         
-      170 H1'  DA     6     -0.62      0.65      2.54                           
+      170 H1'  DA     6     -0.62      0.65      2.53                           
       186 H3'  DA     6      0.01      0.68      1.35                           
       167 H4'  DA     6     -0.02      0.41      0.86                           
       202 H1'  DA     7     -0.22      0.82      2.09                           
-      218 H3'  DA     7      0.00      0.64      1.27                           
+      218 H3'  DA     7      0.01      0.64      1.27                           
       199 H4'  DA     7      0.05      0.44      0.79                           
        43 H1'  DC     2     -0.27      0.53      1.59                           
        57 H3'  DC     2     -0.01      0.53      1.07                           
@@ -435,7 +438,7 @@ Here are comments from the DISANG input file:
       248 H3'  DC     8     -0.05      0.40      0.89                           
       182 H2   DA     6     -2.70     -1.76      1.87                           
       214 H2   DA     7     -0.77     -1.09      0.63                           
-       10 H1'  DG5    1     -0.24      0.76      2.00                           
+       10 H1'  DG5    1     -0.24      0.76      2.01                           
        27 H3'  DG5    1     -0.05      0.49      1.10                           
         7 H4'  DG5    1     -0.11      0.26      0.74                           
        73 H1'  DG     3     -0.13      0.82      1.90                           
@@ -444,21 +447,21 @@ Here are comments from the DISANG input file:
       264 H1'  DG     9     -0.45      0.70      2.30                           
       281 H3'  DG     9     -0.14      0.59      1.47                           
       261 H4'  DG     9     -0.15      0.34      0.97                           
-      486 H1'  DA    16     -0.35      0.65      2.00                           
+      486 H1'  DA    16     -0.35      0.65      2.01                           
       502 H3'  DA    16     -0.02      0.68      1.41                           
       483 H4'  DA    16     -0.04      0.41      0.89                           
-      518 H1'  DA    17     -0.20      0.82      2.05                           
+      518 H1'  DA    17     -0.21      0.82      2.06                           
       534 H3'  DA    17     -0.02      0.64      1.31                           
       515 H4'  DA    17      0.08      0.44      0.71                           
       297 H1'  DC3   10     -0.17      0.95      2.24                           
       311 H3'  DC3   10     -0.18      0.13      0.62                           
       359 H1'  DC    12     -0.14      0.53      1.34                           
       373 H3'  DC    12      0.03      0.53      1.00                           
-      550 H1'  DC    18     -0.36      0.32      1.36                           
+      550 H1'  DC    18     -0.36      0.32      1.37                           
       564 H3'  DC    18     -0.02      0.40      0.83                           
-      613 H1'  DC3   20     -0.16      0.95      2.22                           
-      498 H2   DA    16     -2.14     -1.76      0.75                           
-      326 H1'  DG5   11     -0.39      0.76      2.30                           
+      613 H1'  DC3   20     -0.17      0.95      2.23                           
+      498 H2   DA    16     -2.15     -1.76      0.76                           
+      326 H1'  DG5   11     -0.40      0.76      2.31                           
       343 H3'  DG5   11     -0.09      0.49      1.17                           
       323 H4'  DG5   11     -0.12      0.26      0.76                           
       389 H1'  DG    13     -0.12      0.82      1.86                           
@@ -473,19 +476,19 @@ Here are comments from the DISANG input file:
       188 H2'1 DA     6     -0.07      0.50      1.14                           
       164 H5'1 DA     6      0.05      0.54      0.99                           
       220 H2'1 DA     7     -0.07      0.33      0.81                           
-      196 H5'1 DA     7      0.14      0.62      0.96                           
-      189 H2'2 DA     6      0.02      0.71      1.39                           
+      196 H5'1 DA     7      0.15      0.62      0.96                           
+      189 H2'2 DA     6      0.02      0.71      1.38                           
       165 H5'2 DA     6      0.02      0.37      0.71                           
       221 H2'2 DA     7     -0.01      0.62      1.25                           
       197 H5'2 DA     7      0.06      0.51      0.89                           
        37 H5'1 DC     2      0.03      0.54      1.01                           
-      228 H5'1 DC     8      0.16      0.63      0.93                           
+      228 H5'1 DC     8      0.16      0.63      0.92                           
       106 H1'  DT     4     -0.22      0.77      1.97                           
       122 H3'  DT     4     -0.05      0.49      1.07                           
       138 H1'  DT     5     -0.15      0.44      1.18                           
       154 H3'  DT     5      0.05      0.51      0.93                           
        38 H5'2 DC     2     -0.00      0.42      0.84                           
-      251 H2'2 DC     8     -0.25      0.09      0.68                           
+      251 H2'2 DC     8     -0.25      0.09      0.67                           
       229 H5'2 DC     8      0.05      0.38      0.66                           
       329 H8   DG5   11     -0.15      0.26      0.83                           
       392 H8   DG    13     -0.30      0.24      1.09                           
@@ -493,29 +496,29 @@ Here are comments from the DISANG input file:
        29 H2'1 DG5    1     -0.05      0.37      0.84                           
        92 H2'1 DG     3     -0.08      0.43      1.02                           
        67 H5'1 DG     3      0.00      0.55      1.09                           
-      283 H2'1 DG     9     -0.29      0.34      1.25                           
+      283 H2'1 DG     9     -0.29      0.34      1.26                           
       258 H5'1 DG     9     -0.09      0.41      1.01                           
       504 H2'1 DA    16     -0.13      0.50      1.26                           
       480 H5'1 DA    16     -0.01      0.54      1.11                           
-      536 H2'1 DA    17     -0.14      0.33      0.93                           
-      512 H5'1 DA    17      0.13      0.62      0.98                           
-       30 H2'2 DG5    1     -0.05      0.63      1.35                           
-       93 H2'2 DG     3     -0.01      0.66      1.33                           
-       68 H5'2 DG     3     -0.02      0.37      0.78                           
+      536 H2'1 DA    17     -0.13      0.33      0.93                           
+      512 H5'1 DA    17      0.13      0.62      0.99                           
+       30 H2'2 DG5    1     -0.05      0.63      1.34                           
+       93 H2'2 DG     3     -0.00      0.66      1.33                           
+       68 H5'2 DG     3     -0.02      0.37      0.77                           
       284 H2'2 DG     9     -0.30      0.54      1.67                           
       259 H5'2 DG     9     -0.08      0.37      0.91                           
-      505 H2'2 DA    16     -0.03      0.71      1.48                           
+      505 H2'2 DA    16     -0.02      0.71      1.48                           
       481 H5'2 DA    16     -0.02      0.37      0.78                           
       537 H2'2 DA    17     -0.09      0.62      1.41                           
       513 H5'2 DA    17      0.05      0.51      0.92                           
       291 H5'1 DC3   10     -0.05      0.44      0.97                           
       353 H5'1 DC    12      0.01      0.54      1.06                           
-      566 H2'1 DC    18     -0.10     -0.41      0.61                           
+      566 H2'1 DC    18     -0.11     -0.41      0.61                           
       544 H5'1 DC    18      0.17      0.63      0.91                           
       607 H5'1 DC3   20     -0.01      0.44      0.90                           
       422 H1'  DT    14     -0.25      0.77      2.03                           
       438 H3'  DT    14     -0.03      0.49      1.03                           
-      454 H1'  DT    15     -0.27      0.44      1.42                           
+      454 H1'  DT    15     -0.28      0.44      1.43                           
       470 H3'  DT    15     -0.00      0.51      1.03                           
       292 H5'2 DC3   10     -0.08      0.51      1.17                           
       354 H5'2 DC    12      0.01      0.42      0.81                           
@@ -527,16 +530,16 @@ Here are comments from the DISANG input file:
       408 H2'1 DG    13     -0.06      0.43      0.98                           
       383 H5'1 DG    13      0.03      0.55      1.05                           
       599 H2'1 DG    19     -0.20      0.34      1.08                           
-      574 H5'1 DG    19     -0.03      0.41      0.89                           
+      574 H5'1 DG    19     -0.03      0.41      0.90                           
       346 H2'2 DG5   11     -0.02      0.63      1.30                           
       409 H2'2 DG    13     -0.00      0.66      1.32                           
       384 H5'2 DG    13     -0.00      0.37      0.75                           
-      600 H2'2 DG    19     -0.17      0.54      1.40                           
+      600 H2'2 DG    19     -0.16      0.54      1.40                           
       575 H5'2 DG    19     -0.04      0.37      0.83                           
       100 H5'1 DT     4      0.07      0.69      1.23                           
-      156 H2'1 DT     5      0.10     -0.23      0.65                           
+      156 H2'1 DT     5      0.10     -0.23      0.66                           
       132 H5'1 DT     5     -0.00      0.53      1.07                           
-      125 H2'2 DT     4     -0.05      0.36      0.81                           
+      125 H2'2 DT     4     -0.04      0.36      0.81                           
       101 H5'2 DT     4      0.01      0.45      0.87                           
       133 H5'2 DT     5      0.01      0.41      0.81                           
       430 H73  DT    14     -0.83     -0.43      0.80                           
@@ -545,11 +548,11 @@ Here are comments from the DISANG input file:
       441 H2'2 DT    14     -0.04      0.36      0.81                           
       417 H5'2 DT    14      0.02      0.45      0.85                           
       449 H5'2 DT    15     -0.02      0.41      0.86                           
-                                        Total shift    constraint:  155.85      
+                                        Total shift    constraint:  155.75      
                                                                                 
                      #  Pearson r   rms error                                   
                   -----------------------------------                           
-Shift correlation:  174   0.73674   0.52493                                     
+Shift correlation:  174   0.73655   0.52495                                     
  ------------------------------------------------------------------------------
 
 
@@ -559,111 +562,116 @@ Shift correlation:  174   0.73674   0.52493
  ------------------------------------------------------------------------------ 
  First atom        Last atom    curr. value target deviation  penalty  distance 
  ------------------------------------------------------------------------------ 
- C1'  DG5    1 -- H1'  DG5    1:    4.471    4.390    0.081    0.001    1.092   
- C1'  DC     2 -- H1'  DC     2:   10.244    9.810    0.434    0.019    1.097   
- C1'  DG     3 -- H1'  DG     3:   13.603   12.490    1.113    0.124    1.104   
- C1'  DT     4 -- H1'  DT     4:    7.904    9.410   -1.506    0.227    1.087   
- C1'  DT     5 -- H1'  DT     5:    9.930    8.120    1.810    0.328    1.107   
- C1'  DA     6 -- H1'  DA     6:   10.077    9.920    0.157    0.002    1.096   
- C1'  DA     7 -- H1'  DA     7:   13.980   12.490    1.490    0.222    1.106   
- C1'  DC     8 -- H1'  DC     8:   12.210   12.020    0.190    0.004    1.097   
- C1'  DG     9 -- H1'  DG     9:    5.195    4.440    0.755    0.057    1.097   
- C1'  DC3   10 -- H1'  DC3   10:    2.008    1.950    0.058    0.000    1.094   
- C1'  DG5   11 -- H1'  DG5   11:    6.119    4.390    1.729    0.299    1.095   
- C1'  DC    12 -- H1'  DC    12:    8.490    9.810   -1.320    0.174    1.088   
- C1'  DG    13 -- H1'  DG    13:   11.089   12.490   -1.401    0.196    1.083   
- C1'  DT    14 -- H1'  DT    14:    6.889    9.410   -2.521    0.635    1.082   
- C1'  DT    15 -- H1'  DT    15:    7.255    8.120   -0.865    0.075    1.091   
- C1'  DA    16 -- H1'  DA    16:   11.561    9.920    1.641    0.269    1.107   
- C1'  DA    17 -- H1'  DA    17:   14.753   12.490    2.263    0.512    1.122   
- C1'  DC    18 -- H1'  DC    18:   13.145   12.020    1.125    0.126    1.105   
- C1'  DG    19 -- H1'  DG    19:    3.373    4.440   -1.067    0.114    1.092   
- C1'  DC3   20 -- H1'  DC3   20:    4.817    1.950    2.867    0.822    1.103   
- C4'  DT     5 -- H4'  DT     5:   -0.381   -1.190    0.809    0.065    1.073   
- C4'  DC     8 -- H4'  DC     8:   14.112   14.830   -0.718    0.052    1.079   
- C4'  DC3   10 -- H4'  DC3   10:    9.315    8.660    0.655    0.043    1.095   
- C4'  DT    15 -- H4'  DT    15:   -1.273   -1.190   -0.083    0.001    1.076   
- C4'  DC    18 -- H4'  DC    18:   13.080   14.830   -1.750    0.306    1.069   
- C4'  DC3   20 -- H4'  DC3   20:    7.827    8.660   -0.833    0.069    1.081   
- C2   DA     6 -- H2   DA     6:   15.911   15.990   -0.079    0.001    1.082   
- C2   DA     7 -- H2   DA     7:   24.598   25.550   -0.952    0.091    1.065   
- C2   DA    16 -- H2   DA    16:   16.280   15.990    0.290    0.008    1.087   
- C2   DA    17 -- H2   DA    17:   24.943   25.550   -0.607    0.037    1.069   
- C6   DC     2 -- H6   DC     2:    8.708    8.320    0.388    0.015    1.087   
- C6   DT     4 -- H6   DT     4:   11.252   13.610   -2.358    0.556    1.064   
- C6   DT     5 -- H6   DT     5:   18.621   19.680   -1.059    0.112    1.072   
- C6   DC     8 -- H6   DC     8:    5.870    5.150    0.720    0.052    1.084   
- C6   DC3   10 -- H6   DC3   10:    5.356    6.640   -1.284    0.165    1.075   
- C6   DC    12 -- H6   DC    12:    9.504    8.320    1.184    0.140    1.099   
- C6   DT    14 -- H6   DT    14:   11.591   13.610   -2.019    0.408    1.066   
- C6   DT    15 -- H6   DT    15:   18.867   19.680   -0.813    0.066    1.074   
- C6   DC    18 -- H6   DC    18:    5.855    5.150    0.705    0.050    1.081   
- C6   DC3   20 -- H6   DC3   20:    9.428    6.640    2.788    0.777    1.100   
- C8   DG5    1 -- H8   DG5    1:   21.665   21.950   -0.285    0.008    1.078   
- C8   DG     3 -- H8   DG     3:    6.364    7.820   -1.456    0.212    1.075   
- C8   DA     6 -- H8   DA     6:   21.075   21.260   -0.185    0.003    1.078   
- C8   DA     7 -- H8   DA     7:   17.121   17.610   -0.489    0.024    1.074   
- C8   DG     9 -- H8   DG     9:    7.514    7.450    0.064    0.000    1.083   
- C8   DG5   11 -- H8   DG5   11:   21.587   21.950   -0.363    0.013    1.075   
- C8   DG    13 -- H8   DG    13:    6.953    7.820   -0.867    0.075    1.075   
- C8   DA    16 -- H8   DA    16:   21.222   21.260   -0.038    0.000    1.080   
- C8   DA    17 -- H8   DA    17:   18.153   17.610    0.543    0.030    1.089   
- C8   DG    19 -- H8   DG    19:    5.719    7.450   -1.731    0.300    1.076   
- N3   DT     4 -- H3   DT     4:    3.101    5.230   -2.129    0.453    1.006   
- N3   DT     5 -- H3   DT     5:    3.466    8.210   -4.744    2.251    1.001   
- N3   DT    14 -- H3   DT    14:   -0.948    5.230   -6.178    3.817    1.014   
- N3   DT    15 -- H3   DT    15:    2.384    8.210   -5.826    3.394    1.001   
- N1   DG     9 -- H1   DG     9:    1.339    3.810   -2.471    0.611    1.007   
- N1   DG     3 -- H1   DG     3:    2.574    4.020   -1.446    0.209    1.007   
- N1   DG    19 -- H1   DG    19:   -1.808    3.810   -5.618    3.156    1.014   
- N1   DG    13 -- H1   DG    13:   -1.754    4.020   -5.774    3.334    1.015   
- N7   DG5    1 -- H8   DG5    1:    1.917    1.430    0.487    0.024    2.100   
- N7   DG     3 -- H8   DG     3:    0.557    1.000   -0.443    0.020    2.096   
- N7   DG     9 -- H8   DG     9:    1.190    0.040    1.150    0.132    2.101   
- N7   DG5   11 -- H8   DG5   11:    1.928    1.430    0.498    0.025    2.098   
- N7   DG    13 -- H8   DG    13:    1.092    1.000    0.092    0.001    2.096   
- N7   DG    19 -- H8   DG    19:    1.658    0.040    1.618    0.262    2.094   
- N7   DA     7 -- H8   DA     7:    1.110    2.110   -1.000    0.100    2.095   
- N7   DA    17 -- H8   DA    17:    1.091    2.110   -1.019    0.104    2.107   
-                                        Total align    constraint:   25.78      
+ C1'  DG5    1 -- H1'  DG5    1:    4.634    4.390    0.244    0.006    1.090   
+ C1'  DC     2 -- H1'  DC     2:   10.518    9.810    0.708    0.050    1.090   
+ C1'  DG     3 -- H1'  DG     3:   14.133   12.490    1.643    0.270    1.090   
+ C1'  DT     4 -- H1'  DT     4:    7.835    9.410   -1.575    0.248    1.090   
+ C1'  DT     5 -- H1'  DT     5:   10.417    8.120    2.297    0.528    1.090   
+ C1'  DA     6 -- H1'  DA     6:   10.247    9.920    0.327    0.011    1.090   
+ C1'  DA     7 -- H1'  DA     7:   14.513   12.490    2.023    0.409    1.090   
+ C1'  DC     8 -- H1'  DC     8:   12.470   12.020    0.450    0.020    1.090   
+ C1'  DG     9 -- H1'  DG     9:    5.284    4.440    0.844    0.071    1.090   
+ C1'  DC3   10 -- H1'  DC3   10:    1.952    1.950    0.002    0.000    1.090   
+ C1'  DG5   11 -- H1'  DG5   11:    6.267    4.390    1.877    0.352    1.090   
+ C1'  DC    12 -- H1'  DC    12:    8.442    9.810   -1.368    0.187    1.090   
+ C1'  DG    13 -- H1'  DG    13:   10.954   12.490   -1.536    0.236    1.090   
+ C1'  DT    14 -- H1'  DT    14:    6.772    9.410   -2.638    0.696    1.090   
+ C1'  DT    15 -- H1'  DT    15:    7.304    8.120   -0.816    0.067    1.090   
+ C1'  DA    16 -- H1'  DA    16:   12.147    9.920    2.227    0.496    1.090   
+ C1'  DA    17 -- H1'  DA    17:   16.072   12.490    3.582    1.283    1.090   
+ C1'  DC    18 -- H1'  DC    18:   13.740   12.020    1.720    0.296    1.090   
+ C1'  DG    19 -- H1'  DG    19:    3.397    4.440   -1.043    0.109    1.090   
+ C1'  DC3   20 -- H1'  DC3   20:    5.060    1.950    3.110    0.967    1.090   
+ C4'  DT     5 -- H4'  DT     5:   -0.295   -1.190    0.895    0.080    1.090   
+ C4'  DC     8 -- H4'  DC     8:   13.831   14.830   -0.999    0.100    1.090   
+ C4'  DC3   10 -- H4'  DC3   10:    9.421    8.660    0.761    0.058    1.090   
+ C4'  DT    15 -- H4'  DT    15:   -1.258   -1.190   -0.068    0.000    1.090   
+ C4'  DC    18 -- H4'  DC    18:   12.476   14.830   -2.354    0.554    1.090   
+ C4'  DC3   20 -- H4'  DC3   20:    7.647    8.660   -1.013    0.103    1.090   
+ C2   DA     6 -- H2   DA     6:   15.981   15.990   -0.009    0.000    1.080   
+ C2   DA     7 -- H2   DA     7:   23.615   25.550   -1.935    0.375    1.080   
+ C2   DA    16 -- H2   DA    16:   16.487   15.990    0.497    0.025    1.080   
+ C2   DA    17 -- H2   DA    17:   24.232   25.550   -1.318    0.174    1.080   
+ C6   DC     2 -- H6   DC     2:    8.814    8.320    0.494    0.024    1.080   
+ C6   DT     4 -- H6   DT     4:   10.536   13.610   -3.074    0.945    1.080   
+ C6   DT     5 -- H6   DT     5:   17.943   19.680   -1.737    0.302    1.080   
+ C6   DC     8 -- H6   DC     8:    6.102    5.150    0.952    0.091    1.080   
+ C6   DC3   10 -- H6   DC3   10:    5.356    6.640   -1.284    0.165    1.080   
+ C6   DC    12 -- H6   DC    12:   10.156    8.320    1.836    0.337    1.080   
+ C6   DT    14 -- H6   DT    14:   11.201   13.610   -2.409    0.580    1.080   
+ C6   DT    15 -- H6   DT    15:   18.317   19.680   -1.363    0.186    1.080   
+ C6   DC    18 -- H6   DC    18:    5.804    5.150    0.654    0.043    1.080   
+ C6   DC3   20 -- H6   DC3   20:   10.314    6.640    3.674    1.350    1.080   
+ C8   DG5    1 -- H8   DG5    1:   21.548   21.950   -0.402    0.016    1.080   
+ C8   DG     3 -- H8   DG     3:    6.312    7.820   -1.508    0.227    1.080   
+ C8   DA     6 -- H8   DA     6:   20.859   21.260   -0.401    0.016    1.080   
+ C8   DA     7 -- H8   DA     7:   16.790   17.610   -0.820    0.067    1.080   
+ C8   DG     9 -- H8   DG     9:    7.440    7.450   -0.010    0.000    1.080   
+ C8   DG5   11 -- H8   DG5   11:   21.370   21.950   -0.580    0.034    1.080   
+ C8   DG    13 -- H8   DG    13:    6.971    7.820   -0.849    0.072    1.080   
+ C8   DA    16 -- H8   DA    16:   21.240   21.260   -0.020    0.000    1.080   
+ C8   DA    17 -- H8   DA    17:   18.649   17.610    1.039    0.108    1.080   
+ C8   DG    19 -- H8   DG    19:    5.618    7.450   -1.832    0.336    1.080   
+ N3   DT     4 -- H3   DT     4:    3.456    5.230   -1.774    0.315    1.010   
+ N3   DT     5 -- H3   DT     5:    3.910    8.210   -4.300    1.849    1.010   
+ N3   DT    14 -- H3   DT    14:   -0.291    5.230   -5.521    3.048    1.010   
+ N3   DT    15 -- H3   DT    15:    3.053    8.210   -5.157    2.660    1.010   
+ N1   DG     9 -- H1   DG     9:    1.811    3.810   -1.999    0.399    1.010   
+ N1   DG     3 -- H1   DG     3:    2.845    4.020   -1.175    0.138    1.010   
+ N1   DG    19 -- H1   DG    19:   -1.247    3.810   -5.057    2.558    1.010   
+ N1   DG    13 -- H1   DG    13:   -1.378    4.020   -5.398    2.913    1.010   
+ N7   DG5    1 -- H8   DG5    1:    1.910    1.430    0.480    0.023    2.103   
+ N7   DG     3 -- H8   DG     3:    0.557    1.000   -0.443    0.020    2.102   
+ N7   DG     9 -- H8   DG     9:    1.168    0.040    1.128    0.127    2.098   
+ N7   DG5   11 -- H8   DG5   11:    1.909    1.430    0.479    0.023    2.105   
+ N7   DG    13 -- H8   DG    13:    1.082    1.000    0.082    0.001    2.104   
+ N7   DG    19 -- H8   DG    19:    1.644    0.040    1.604    0.257    2.099   
+ N7   DA     7 -- H8   DA     7:    1.109    2.110   -1.001    0.100    2.102   
+ N7   DA    17 -- H8   DA    17:    1.096    2.110   -1.014    0.103    2.101   
+                                        Total align    constraint:   27.20      
  Diagonalize the alignment matrix:                                              
-      -50.55958          0.41603     0.73399     0.53681                        
-      -16.82566          0.85339    -0.51903     0.04830                        
-       67.38524         -0.31408    -0.43802     0.84232                        
+      -50.55787          0.41599     0.73402     0.53681                        
+      -16.82735          0.85341    -0.51899     0.04833                        
+       67.38522         -0.31408    -0.43802     0.84232                        
  Diagonalize the moment of interia tensor:                                      
-   280642.61736         -0.11636    -0.50685     0.85415         21.63532       
-   679850.79554         -0.96366     0.26583     0.02647         11.72632       
-   731313.00085         -0.24047    -0.82002    -0.51936          9.74121       
+   280582.15692         -0.11634    -0.50684     0.85415         21.63481       
+   679790.79641         -0.96367     0.26579     0.02645         11.72535       
+   731258.53457         -0.24043    -0.82004    -0.51935          9.73980       
  ------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|    Read coords time           0.00 ( 0.40% of Total)
-|                Calc gb radii              0.07 (26.90% of Gen B)
-|                Calc gb diag               0.11 (45.66% of Gen B)
-|                Calc gb off-diag           0.07 (27.42% of Gen B)
-|                Other                      0.00 ( 0.02% of Gen B)
-|             Gen Born time              0.25 (100.0% of Nonbo)
-|          Nonbond force              0.25 (81.71% of Force)
-|          Bond/Angle/Dihedral        0.01 ( 2.46% of Force)
-|             shift der time             0.00 (11.29% of Noe c)
-|             Ringcurr time              0.03 (82.36% of Noe c)
-|             Electro. noe time          0.00 ( 3.66% of Noe c)
-|             Anisotr. noe time          0.00 ( 2.70% of Noe c)
-|          Noe calc time              0.04 (13.61% of Force)
-|          Other                      0.01 ( 2.22% of Force)
-|       Force time                 0.31 (100.0% of Runmd)
-|    Runmd Time                 0.31 (81.36% of Total)
-|    Other                      0.07 (18.23% of Total)
-| Total time                 0.38 (99.86% of ALL  )
+|                Calc gb radii              0.03 (30.83% of Gen B)
+|                Calc gb diag               0.05 (45.05% of Gen B)
+|                Calc gb off-diag           0.03 (24.13% of Gen B)
+|             Gen Born time              0.11 (100.0% of Nonbo)
+|          Nonbond force              0.11 (57.37% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 1.26% of Force)
+|             shift der time             0.00 (12.64% of Noe c)
+|             Ringcurr time              0.02 (86.26% of Noe c)
+|             Electro. noe time          0.00 ( 1.10% of Noe c)
+|          Noe calc time              0.02 ( 9.58% of Force)
+|          Other                      0.06 (31.79% of Force)
+|       Force time                 0.19 (98.86% of Runmd)
+|    Runmd Time                 0.19 (87.05% of Total)
+|    Other                      0.03 (12.77% of Total)
+| Total time                 0.22 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 21:09:00.669  on 11/24/2015
-|           Setup done at 21:09:00.727  on 11/24/2015
-|           Run   done at 21:09:01.047  on 11/24/2015
-|     wallclock() was called   12220 times
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =       0.19 Per Step(ms) =      19.23
+|         ns/day =       4.49   seconds/ns =   19230.00
+| -----------------------------------------------------
+
+|           Job began  at 13:30:13.962  on 11/24/2022
+|           Setup done at 13:30:13.991  on 11/24/2022
+|           Run   done at 13:30:14.183  on 11/24/2022
+|     wallclock() was called   12272 times

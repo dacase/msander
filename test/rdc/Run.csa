@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-set sander = "${AMBERHOME}/bin/sander"
+set sander = "../../bin/msander"
 if( $?TESTsander ) then
    set sander = $TESTsander
 endif
@@ -13,6 +13,7 @@ if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "
 else
   set numprocs=`echo $DO_PARALLEL | awk -f ../numprocs.awk `
+  set sander = $sander.MPI
   if ( "$numprocs" > 19 ) then
       echo " DO_PARALLEL set to $DO_PARALLEL"
       goto toomany
@@ -30,14 +31,15 @@ cat <<EOF > mdin
   The csa restraints are dummies, intended to match the rdc values
  &cntrl                                                                        
     pencut=0.05, nmropt=2,                                     
-    imin=1, maxcyc=21, igb=1, rgbmax=25.,
-    ntpr=1,
+    imin=0, nstlim=200, igb=1, rgbmax=25.,
+    ntpr=10, ntx=1, irest=0, tempi=50.0, temp0=0.0,
+    ntt=3, gamma_ln=10.0, ig=31415, dt=0.001,
     ipnlty=1, cut=999.0, ntb=0, iscale=0, scalm=300., 
-    ntc=1, ntb=0,
+    ntc=2, ntb=0,
  /
  &wt type='END'  /                                                          
 LISTOUT=POUT
-DIPOLE=RST.dip2
+DIPOLE=RST.dip3
 CSA=RST.csa
 END                                                                            
 EOF

@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-set sander = "${AMBERHOME}/bin/sander"
+set sander = "../../bin/msander"
 if( $?TESTsander ) then
    set sander = $TESTsander
 endif
@@ -13,6 +13,7 @@ if( ! $?DO_PARALLEL ) then
         setenv DO_PARALLEL " "
 else
   set numprocs=`echo $DO_PARALLEL | awk -f ../numprocs.awk `
+  set sander = $sander.MPI
   if ( "$numprocs" > 19 ) then
       echo " DO_PARALLEL set to $DO_PARALLEL"
       goto toomany
@@ -26,14 +27,14 @@ else
 endif
 
 cat <<EOF > mdin
-  test of distance, angle, rdc and chemical shifts restraints for a DNA duplex
+  test of distance, angle, restraints for a DNA duplex
  &cntrl                                                                        
     pencut=0.05, nmropt=1,                                     
     imin=0, nstlim=30, igb=1, rgbmax=15.,
     ntpr=1,
     ipnlty=1, cut=12.0, ntb=0, 
     ntc=1, ntb=0, ntx=1, irest=0, tempi=0.0, temp0=300.,
-    ntt=1, tautp=10.0, ig=71277,
+    ntt=0, ig=71277,
  /
  &wt type='REST',  istep1= 0, istep2=30, value1=0.0, value2=2.0,/
  &wt type='END'  /                                                          

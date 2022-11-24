@@ -1,7 +1,7 @@
 test:
 	@./run_tests.sh
 
-test.all: test.general test.rism test.xray
+test.all: test.general test.rism test.xray test.nmr
 
 test.general:
 	-(cd dhfr && ./Run.dhfr)
@@ -28,6 +28,11 @@ test.rism:
 	-(cd rism3d/4lzt && ./Run.4lzt.pme)
 	-(cd rism3d/2igd && ./Run.2igd.pme)
 	-(cd xray/480d && ./Run.480d_pse2)
+
+test.nmr:
+	-(cd rdc && Run.nmr)
+	-(cd rdc && Run.dip)
+	-(cd rdc && Run.csa)
 
 test.xray:
 #	-(cd xray/2wcu && ./Run.2wcu)

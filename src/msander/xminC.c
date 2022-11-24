@@ -2,22 +2,15 @@
 /*        XMIN: Written by Istvan Kolossvary     time stamp: 1/18/2013      */
 /****************************************************************************/
 
-/*  Note: there are two "public" routines here:
- *  xminC():  a fairly low-level interface (currently used by sqm), which
+ *  xminC():  a fairly low-level interface, which
  *            requires its own driver that understands the reverse
  *            communication needed; this name may get mangled for Fortran use.
- *  xmin():   a higher-level, NAB-like interface, which takes the function
- *            to be minimized as an argument, and handles the reverse
- *            communication internally.
  */
 
 /*
     Top XMIN calling function for reverse communication:
  */
-#ifdef SQM
 #  define xminC xminc_
-#endif
-
 
 #include <ctype.h>
 #include <errno.h>
@@ -26,10 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#ifndef SQM
-#  include "sff.h"
-#endif
 
 #define DBL_EPSILON 2.2204460492503131e-16
 
@@ -117,16 +106,10 @@ static struct lbfgs {
 } *lbfgs_matrix, *lbfgs_matrix_buf;
 
 
-#ifdef SQM
 static FILE *nabout;
 int get_mytaskid(){
 	return 0;
 }
-#else
-/* Defined elsewhere: (prm.c) */
-extern int get_mytaskid();      /* for MPI */
-#endif
-
 
 /*
  Private to libxmin.c:
@@ -2503,9 +2486,7 @@ xminC(int *xyz_min, int *minim_method, int *maxiter, double *grms_tol,
 	static int allocated, error_flag;
 	static int status_flag;
 	
-#ifdef SQM
 	nabout = stdout;
-#endif
 	switch (*label) {
 		case 0:
 			if (*maxiter < 0) {
@@ -2961,202 +2942,3 @@ error_cleanup:
 	return 0.;
 }
 
-#ifndef SQM
-/*
- libXMIN reverse communication external minimization package.
- Written by Istvan Kolossvary.
- 
- This file used to be xmin.nab, but it had to be translated to standard C
- to accommodate a function pointer to be passed in the first arg to xmin().
- 
- Time stamp 1/18/2013.
- */
-
-
-INT_T xmin_opt_init( struct xmin_opt *xo )
-{
-	xo-> mol_struct_opt = 1;
-	xo-> maxiter        = 1000;
-	xo-> grms_tol       = 0.05;
-	xo-> method         = 3;
-	xo-> numdiff        = 1;
-	xo-> m_lbfgs        = 5;
-	xo-> ls_method      = 2;
-	xo-> ls_maxiter     = 20;
-	xo-> ls_maxatmov    = 0.5;
-	xo-> beta_armijo    = 0.5;
-	xo-> c_armijo       = 0.4;
-	xo-> mu_armijo      = 1.0;
-	xo-> ftol_wolfe     = 0.0001;
-	xo-> gtol_wolfe     = 0.9;
-	xo-> print_level    = 0;
-	
-	return 0;
-}
-
-REAL_T xmin( REAL_T ( *func )( REAL_T*, REAL_T*, INT_T* ),
-	    INT_T  *natm,
-	    REAL_T *xyz,
-	    REAL_T *grad,
-	    REAL_T *energy,
-	    REAL_T *grms,
-	    struct xmin_opt *xo )
-
-//  This package can be used with any program that can calculate the energy
-//  and the gradient for a particular [x, y, z] atomic configuration. There is
-//  no size limit, but the xyz[] and grad[] arrays must be allocated by the
-//  calling program.  Input params:  Number of atoms, xyz[] and grad[] arrays,
-//  minimization method, max number of minimization steps, convergence
-//  criterion (see below).  Output params: Number of minimization steps
-//  completed, final energy and the RMS of the gradient, the CPU time spent in
-//  the xmin() routine, and possibly an error message (see below).  On exit,
-//  xmin() loads the minimized coordinates into xyz[] and grad[] will be
-//  up-to-date, too.
-
-{
-	
-	//  Params:
-	// 
-	//  func        The name of the function that computes the function value and
-	//              gradient of the objective function to be minimized.
-	//  natm        Number of atoms for molecular structure optimization,
-	//              but for general optimization natm is the number of dimensions.
-	//              xo.mol_struct_opt should be set to zero for general optim. and
-	//              func set accordingly.
-	//  xyz         Allocated array of (x, y, z) atomic coordinates.
-	//  grad        Allocated array of the gradient.
-	//  energy      Energy value for structure optimization,
-	//              function value otherwise.
-	//  grms        RMS of the gradient.
-	//  maxiter     Max number of minimization steps.
-	//  ls_maxiter  Max number of line search steps per minimization step.
-	//  grms_tol    Convergence criterion in terms of the RMS of the gradient.
-	//  mol_struct_opt  Switch to select molecular structure optimization or
-	//                  general optimization of a function pointed to by func.
-	//  method      Minimization method: 1= PRCG, 2= LBFGS,
-	//                                   3= LBFGS-preconditioned TNCG,
-	//                                   4= debug mode for testing gradients
-	//  ls_method   Line search method:  1= modified Armijo,
-	//                                   2= Wolfe (J. J. More', D. J. Thuente).
-	//  numdiff     Method used in finite difference Hv matrix-vector products:
-	//              1= forward difference, 2= central difference.
-	//  m_lbfgs     Depth of LBFGS memory for LBFGS minimization or TNCG
-	//              preconditioning.
-	//              Suggested value 5. m_lbfgs=0 with TNCG minimization turns off
-	//              preconditioning.
-	//  ls_maxatmov Max atomic coord movement allowed in line search, range > 0.
-	//  beta_armijo Armijo beta param, range (0, 1).
-	//  c_armijo    Armijo c param,    range (0, 0.5 ).
-	//  mu_armijo   Armijo mu param,   range [0, 2).
-	//  ftol_wolfe  Wolfe ftol param,  range (0, 0.5 ).
-	//  gtol_wolfe  Wolfe gtol param,  range (ftol_wolfe, 1 ).
-	//  print_level Verbosity: 0= none, 1= minim details,
-	//                         2= minim and line search details plus CG details
-	//                            in TNCG
-	//  iter        Number of minimization steps completed.
-	//  ls_iter     Number of line search steps completed.
-	//  xmin_time   Time spent in the xmin() routine in CPU sec.
-	//  error_flag  Error flag. xmin() will print a descriptive error message.
-	
-	INT_T return_flag, status_flag;
-	INT_T NEG_TWO = -2, NEG_FOUR = -4;
-	
-	/*
-	 Code below is specific to mme() in terms of passing the int
-	 argument. As long as a general 'func' doesn't care about this
-	 int arg, the code is fine, 'func' just needs to accept a dummy
-	 int. However, if a 'func' wants to iterpret the int arg,
-	 a special branch needs to be added here.
-	 */
-	
-	nfunc = 0;
-	for( status_flag = xo->error_flag = 0;; ) {
-		
-		xminC( &(xo->mol_struct_opt),
-		      &(xo->method),
-		      &(xo->maxiter),
-		      &(xo->grms_tol),
-		      natm,
-		      &(xo->m_lbfgs),
-		      &(xo->numdiff),
-		      xyz,
-		      energy,
-		      grad,
-		      grms,
-		      &(xo->iter),
-		      &(xo->xmin_time),
-		      &(xo->print_level),
-		      &(xo->ls_method),
-		      &(xo->ls_maxiter),
-		      &(xo->ls_iter),
-		      &(xo->ls_maxatmov),
-		      &(xo->beta_armijo),
-		      &(xo->c_armijo),
-		      &(xo->mu_armijo),
-		      &(xo->ftol_wolfe),
-		      &(xo->gtol_wolfe),
-		      &return_flag,
-		      &status_flag );
-		
-		//      Finished minimization:
-		if( return_flag == 0 ){
-			
-			if( status_flag >= 0 )
-				xo->error_flag = 0;
-			else
-				xo->error_flag = status_flag;
-		}
-		
-		//      Current value of 'iter' is passed to func"="mme() allowing
-		//      control of NB list updates from calling program:
-		
-		else if( return_flag == 1 || return_flag == 2 || return_flag == 3 ) {
-
-			if( status_flag >= 0 ){
-				*energy = func( xyz, grad,  &xo->iter );
-				nfunc++;
-			}else
-				xo->error_flag = status_flag;
-		}
-
-		//      Force NB list update by passing '-4' to func"="mme():
-
-		else if( return_flag == 4 || return_flag == 5 || return_flag == 6 ) {
-			
-			if( status_flag >= 0 ){
-				*energy = func( xyz, grad, &NEG_FOUR );
-				nfunc++;
-			}else
-				xo->error_flag = status_flag;
-		}
-
-		//      Prevent NB list update by passing '-2' to func"="mme():
-
-		else if( return_flag == 7 || return_flag == 8 || return_flag == 9 ) {
-			
-			if( status_flag >= 0 ){
-				*energy = func( xyz, grad, &NEG_TWO );
-				nfunc++;
-			}else
-				xo->error_flag = status_flag;
-		}
-		else {
-			
-			printf( "\n XMIN ERROR: return_flag corrupted.\n" );
-			xo->error_flag =  - 100;
-			return 0.0;
-		}
-		
-		if( xo->error_flag || !return_flag ) break;
-	}
-	
-	if( xo->error_flag ) {
-		
-		printf( "\n XMIN ERROR: %d\n", status_flag );
-		return 0.0;
-	}
-	
-	return *energy;
-}
-
-#endif  /* !SQM */

@@ -4,7 +4,7 @@
 #TEST-PURPOSE regression, basic
 #TEST-STATE   undocumented
 
-set sander = "${AMBERHOME}/bin/sander"
+set sander = "../../bin/msander"
 if( $?TESTsander ) then
    set sander = $TESTsander
 endif
@@ -29,10 +29,11 @@ cat <<EOF > mdin
   test of distance, angle, rdc and chemical shifts restraints for a DNA duplex
  &cntrl                                                                        
     pencut=0.05, nmropt=2,                                     
-    imin=1, maxcyc=10, igb=1, rgbmax=15.,
+    imin=0, maxcyc=10, igb=1, rgbmax=15.,
+    nstlim=10, ntt=0, tempi=0.0, ntx=1, irest=0, dt=0.001, 
     ntpr=1,
     ipnlty=1, cut=12.0, ntb=0, iscale=5, scalm=300.,                            
-    ntc=1, ntb=0,
+    ntc=2, ntb=0,
  /
  &wt type='SHIFTS', value1=2.0, /
  &wt type='END'  /                                                          
@@ -45,7 +46,7 @@ EOF
 
 $DO_PARALLEL $sander -O -i mdin -c gcg.old.x -o gcg.dip.o < /dev/null || goto error
 
-../dacdif -s -w -t 1 gcg.dip.o.save gcg.dip.o
+../dacdif gcg.dip.o.save gcg.dip.o
 /bin/rm -f mdin restrt mdinfo
 exit(0)
 
@@ -57,13 +58,3 @@ toomany:
     echo " too many processors for this test, exiting (Max = 19)"
     echo "============================================================"
     exit(0)
-
-
-
-
-
-
-
-
-
-
