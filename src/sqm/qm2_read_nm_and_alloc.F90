@@ -1345,7 +1345,7 @@ subroutine read_qmmm_nm_and_alloc( igb, ih, ix, x, cut, use_pme, ntb, qmstep, &
 
    !Write a warning about excessively tight convergence requests.
    if ( scfconv < 1.0D-12 ) then
-     write(6,'(" QMMM: WARNING - SCF Conv = ",G8.2)') scfconv
+     write(6,'(" QMMM: WARNING - SCF Conv = ",G9.2)') scfconv
      write(6,*) "QMMM:           There is a risk of convergence problems when the"
      write(6,*) "QMMM:           requested convergence is less than 1.0D-12 kcal/mol."
    end if

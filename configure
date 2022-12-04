@@ -11,7 +11,6 @@ verbose="@"
 enablempi=
 requested_help="no"
 clangf=""
-conda="no"
 openblas="no"
 moft="moft"
 sfx=""
@@ -24,7 +23,6 @@ fpic="-fPIC"
 
 compiler="gnu"
 cc="gcc -Wno-unused-result"
-cxx="g++"
 mpicc="mpicc"
 iccflags=""
 
@@ -68,9 +66,6 @@ for var in "$@"; do
             verbose="";;
         --debug)
             debug="";;
-        --conda)
-            optflags="-g -O3"
-            conda="yes";;
         --openmp)
             ompflag='-fopenmp -DOPENMP';
             flibs_fftw="-lfftw3_omp $flibs_fftw"
@@ -88,10 +83,6 @@ for var in "$@"; do
         --gcc10)
             gcc10f="-Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
             gcc10c="-fcommon";;
-        --mingw)
-            cc="x86_64-w64-mingw32-gcc --static"
-            cxx="x86_64-w64-mingw32-g++ --static"
-            fc="x86_64-w64-mingw32-gfortran --static";;
         --mkl)
             mkl="yes";;
         --openblas)
@@ -100,8 +91,7 @@ for var in "$@"; do
             ldflags="-static";;
         --intel)
             compiler="intel"
-            cc="icc"
-            cxx="icpc"
+            cc="icx"
             fc="ifort"
             longlines=""
             mpicc="mpiicc"
@@ -112,7 +102,6 @@ for var in "$@"; do
             compiler="clang"
             clangf="-DCLANG"
             cc="clang"
-            cxx="clang++"
             fc="gfortran"
             optflags="-g -O3";;
         --mpi)
@@ -145,7 +134,6 @@ if [ "$requested_help" = "yes" ] ; then
     printf "\n"
 	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
 	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
-	printf " --conda        set up for a conda build, with conda-forge\n"
 	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --static       use static linking (experiental)\n"
     printf " --full         install everything with a serial install\n"
@@ -225,8 +213,6 @@ else
    lm=-lm
 fi
 
-if [ "$conda" == "no" ]; then
-
 #--------------------------------------------------------------------------
 #  Test if the C compiler works:
 #--------------------------------------------------------------------------
@@ -275,6 +261,7 @@ if [ $status -gt 0 ]; then
 else
 	printf "OK\n"
 fi
+/bin/rm -f testp.f testp.o testp
 
 #--------------------------------------------------------------------------
 #  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
@@ -394,8 +381,6 @@ else
   fi
 fi
 
-fi   # end of if conda block
-
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
 #--------------------------------------------------------------------------
@@ -461,7 +446,7 @@ fi
 #--------------------------------------------------------------------------
 if [ "$flibs_fftw" != "" ]; then
 
-    if [ ! -s "lib/libfftw3.a" ] || \
+   if [ ! -s "lib/libfftw3.a" ] || \
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
        [ "$openmp" == "yes" -a ! -s "lib/libfftw3_omp.a" ]; then
 
@@ -474,40 +459,22 @@ if [ "$flibs_fftw" != "" ]; then
        # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes --enable-avx=yes"
 
-       if [ "$conda" == "yes" ]; then
-          printf "\nConfiguring fftw-3.3 with $CC and $FC..."
-          cd src/fftw-3.3 && \
-              ./configure --disable-doc --prefix=$msanderhome \
-              --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static --enable-threads $enable_sse MPICC="$mpicc" \
-              CFLAGS="$optflags -fPIC"  \
-              FFLAGS="$optflags -fPIC"  \
-              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
-            ncerror=$?
-          if [ $ncerror -gt 0 ]; then
-              echo "Error: FFTW configure returned $ncerror"
-              exit 1
-          else
-              echo "OK"
-          fi
+       # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
+       #   be required for Intel compilers.
+       printf "\nConfiguring fftw-3.3 with $cc and $fc..."
+       cd src/fftw-3.3 && \
+           ./configure --disable-doc --prefix=$msanderhome \
+           --libdir=$msanderhome/lib $enableomp $fftw_flags \
+           --enable-static $enable_sse MPICC="$mpicc" \
+           CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
+           F77="$fc" FFLAGS="$optflags -fPIC" \
+           FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
+         ncerror=$?
+       if [ $ncerror -gt 0 ]; then
+           echo "Error: FFTW configure returned $ncerror"
+           exit 1
        else
-          # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
-          #   be required for Intel compilers.
-          printf "\nConfiguring fftw-3.3 with $cc and $fc..."
-          cd src/fftw-3.3 && \
-              ./configure --disable-doc --prefix=$msanderhome \
-              --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static $enable_sse MPICC="$mpicc" \
-              CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
-              F77="$fc" FFLAGS="$optflags -fPIC" \
-              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
-            ncerror=$?
-          if [ $ncerror -gt 0 ]; then
-              echo "Error: FFTW configure returned $ncerror"
-              exit 1
-          else
-              echo "OK"
-          fi
+           echo "OK"
        fi
 
        # Build FFTW3
@@ -526,34 +493,13 @@ if [ "$flibs_fftw" != "" ]; then
 fi
 
 #--------------------------------------------------------------------------
-#  create the config.h file: may differ for different subsets
+#  create the config.h file:
 #--------------------------------------------------------------------------
 
-if [ "$conda" == "yes" ]; then
-
 cat <<EOF > config.h
 
 #  msander configuration file.
 #  Created on `date` via $command
-EOF
-
-else
-
-cat <<EOF > config.h
-
-#  msander configuration file.
-#  Created on `date` via $command
-
-CC=$cc
-CXX=$cxx
-FC=$fc
-LDFLAGS=$ldflags
-
-EOF
-
-fi
-
-cat <<EOF >> config.h
 
 ###############################################################################
 
@@ -588,6 +534,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
+CC=$cc
 CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
@@ -596,6 +543,7 @@ COPTFLAGS=$optflags
 
 #  (5)  Fortran compiler
 
+FC=$fc
 FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines
 FLIBSF=-lrism -lxray -lsqm -larpack $flibs_fftw $flibs_la
 FNOOPTFLAGS= -O0 -g
@@ -615,8 +563,6 @@ SFX=$sfx
 VB=$verbose
 INSTALLTYPE=$installtype
 
-MOFT=$moft
-
 # CUDA:
 CUDAFLAGS=$cudaflags
 
@@ -626,7 +572,6 @@ PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 
 EOF
-
 
 printf "\nThe next step is to type 'make clean && make install'\n\n"
 

@@ -450,8 +450,8 @@ contains
       write(iurun, '(2a)')       'basis        ', trim(tc_nml%basis)
       write(iurun, '(2a)')       'method       ', trim(tc_nml%method)
       write(iurun, '(2a)')       'precision    ', trim(tc_nml%precision)
-      write(iurun, '(a,E22.16)') 'threall      ', tc_nml%threall
-      write(iurun, '(a,E22.16)') 'convthre     ', tc_nml%convthre
+      write(iurun, '(a,E22.15)') 'threall      ', tc_nml%threall
+      write(iurun, '(a,E22.15)') 'convthre     ', tc_nml%convthre
       write(iurun, '(2a)')       'dftd         ', trim(tc_nml%dftd)
       write(iurun, '(a,i4)')     'maxit        ', tc_nml%maxit
       write(iurun, '(a,i3)')     'dftgrid      ', tc_nml%dftgrid

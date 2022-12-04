@@ -1,9 +1,9 @@
 module xray_interface_module
 
 #ifdef CUDA
-    use xray_interface_impl_gpu_module
+    use xray_gpu_module
 #else
-    use xray_interface_impl_cpu_module
+    use xray_cpu_module
 #endif
 
     implicit none

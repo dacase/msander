@@ -5,7 +5,7 @@ module xray_common_module
 use file_io_dat
 end module xray_common_module
 
-module xray_interface_impl_cpu_module
+module xray_cpu_module
    use xray_globals_module
    use xray_contracts_module
    use xray_bulk_mask_data_module, only: k_sol, b_sol
@@ -684,4 +684,4 @@ contains
       call mexit(stdout,2)
    end function allocate_lun
    
-end module xray_interface_impl_cpu_module
+end module xray_cpu_module

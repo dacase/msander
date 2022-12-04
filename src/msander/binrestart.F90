@@ -294,7 +294,7 @@ subroutine read_nc_remd_dimension(filename,title,remd_dimension)
   implicit none
   ! Formal Arguments
   character(len=*), intent(in)                :: filename
-  character(len=80), intent(out)              :: title
+  character(len=80)                           :: title
   integer, intent(out) :: remd_dimension
   ! Local variables
   integer :: ncid
@@ -324,7 +324,7 @@ subroutine read_nc_remd_types(filename,title,remd_types,remd_dimension)
   implicit none
   ! Formal Arguments
   character(len=*), intent(in)                    :: filename
-  character(len=80), intent(out)                  :: title
+  character(len=80)                               :: title
   integer, intent(in)                             :: remd_dimension
   integer, dimension(remd_dimension), intent(out) :: remd_types
   ! Local variables
