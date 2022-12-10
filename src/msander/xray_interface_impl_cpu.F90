@@ -501,6 +501,8 @@ contains
             test_flag(i) = min(test_flag(i),1)
          end do
       end if
+      write(6,'(a,i8,a,i2)') '| found ', num_hkl, &
+         ' reflections, with has_Fuser = ', has_Fuser
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
