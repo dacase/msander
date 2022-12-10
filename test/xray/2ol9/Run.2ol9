@@ -27,7 +27,7 @@ cat > mdin <<eof
  &lmod  xmin_verbosity=0, xmin_method='PRCG', /
  &xray
    pdb_infile = 'alt1_uc.pdb',
-   pdb_read_coordinates = .true.,
+   pdb_read_coordinates = .false.,
    reflection_infile = 'alt1-sf.dat',
    atom_selection_mask = ':*', 
    xray_weight =  0.8,
@@ -39,7 +39,7 @@ cat > mdin <<eof
 eof
 
 $DO_PARALLEL $sander -O -i mdin -o 2ol9.o \
-    -p alt1_uc.parm7 -c alt1_uc.rst7 \
+    -p alt1_uc.parm7 -c restrt.min \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
 ../../dacdif 2ol9.o.save 2ol9.o
