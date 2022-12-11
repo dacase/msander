@@ -5,7 +5,7 @@ SHELL=/bin/sh
 VPATH=
 
 # Add search paths for .mod files
-LOCALFLAGS = $(CUDAFLAGS) -I../sqm -I../rism -I../xray 
+LOCALFLAGS = $(CUDAFFLAGS) -I../sqm -I../rism -I../xray 
 
 NFE_OBJECTS = \
     nfe-abmd-hooks.o nfe-bbmd-ctxt.o nfe-bbmd-hooks.o  \
