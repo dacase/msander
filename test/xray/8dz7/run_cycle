@@ -1,0 +1,30 @@
+#!/bin/bash
+
+in=$1
+let out=$in+1
+
+./run_3uc $in
+
+perl -p -e 's/CYX/CYS/;s/HID/HIS/;s/HIE/HIS/;s/WAT/HOH/;' < alt2_00$out.min1.pdb > tmp.pdb
+
+if true; then
+
+./phenix.cdl.sh tmp.pdb ../alt1/alt1-P1.mtz alt2 $out > phenix.log
+
+else
+
+refmac5 hklin alt1.mtz xyzin tmp.pdb xyzout alt2_00$out.pdb \
+    << EOF > alt2_00$out.reflog
+LABIN FP=FOBS SIGFP=SIGFOBS FREE=R-free-flags
+NCYC 20
+REFI BREF
+DAMP 0 1 1
+MAKE HOUT
+EOF
+
+fi
+
+phenix.molprobity alt2_00$out.pdb > alt2_00$out.molp
+
+/bin/rm -f molprobity* alt2_00$out.eff tmp.pdb phenix.log
+

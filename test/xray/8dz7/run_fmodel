@@ -1,0 +1,12 @@
+#!/bin/sh
+
+phenix.fmodel algorithm=direct scattering_table=it1992 \
+     high_resolution=1.30  \
+     mask.ignore_hydrogens=False  alt2_005.min1.pdb
+
+phenix.mtz.dump -f s -c alt2_005.min1.pdb.mtz | tr ',' '\t' | tail +2 > tmp.rdb
+
+awk 'BEGIN{printf("h\tk\tl\tFMODEL\tPHIMODEL\n4N\t4N\t4N\t15N\t15N\n")}' > fmodel.rdb
+cat tmp.rdb >> fmodel.rdb
+
+/bin/rm alt2_005.min1.pdb.mtz tmp.rdb
