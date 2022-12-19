@@ -2,7 +2,7 @@
 /*        XMIN: Written by Istvan Kolossvary     time stamp: 1/18/2013      */
 /****************************************************************************/
 
- *  xminC():  a fairly low-level interface, which
+/*  xminC():  a fairly low-level interface, which
  *            requires its own driver that understands the reverse
  *            communication needed; this name may get mangled for Fortran use.
  */
