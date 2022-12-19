@@ -448,10 +448,7 @@ contains
       real(real_kind) :: abs_Fuser, phase_Fuser
       integer :: has_Fuser, alloc_status
 
-      ! following is local: copied into f_mask in this routine, after
-      !     f_mask itself is allocated.  (could be simplified)
       if (pdb_infile /= '') call xray_read_pdb(trim(pdb_infile))
-
       if (reflection_infile == '') xray_active = .false.
 
       ! get the values for ucell:
@@ -503,6 +500,10 @@ contains
       end if
       write(6,'(a,i8,a,i2)') '| found ', num_hkl, &
          ' reflections, with has_Fuser = ', has_Fuser
+      if( has_Fuser > 0 ) then
+         bulk_solvent_model = 'afonine-2013'
+         write(6,'(a)') '|     setting bulk_solvent_model to afonine-2013'
+      end if
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &

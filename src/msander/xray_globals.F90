@@ -85,7 +85,6 @@ module xray_globals_module
    integer, save :: num_hkl
    integer, save :: num_free_flags
    integer, save :: num_work_flags
-   integer, save :: has_f_user
    
    integer, allocatable, target, save :: hkl_index(:,:) ! (3,num_hkl)
 
