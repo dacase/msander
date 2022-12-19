@@ -91,8 +91,9 @@ xray_bulk_mask_impl_cpu.o: \
                     xray_bulk_mask_data.o\
                     xray_contracts.o\
                     xray_unit_cell.o\
-                    xray_interface2_data.o\
-                    xray_fft_interface.o
+                    xray_fft_interface.o\
+                    xray_interface2_data.o
+
 
 xray_bulk_mask_impl_cpu.o:   xray_bulk_mask_impl_cpu.F90
 	@echo [XRAY]  FC $<
@@ -104,8 +105,9 @@ xray_bulk_mask_impl_gpu.o: \
                     xray_contracts.o\
                     xray_pure_utils.o\
                     xray_unit_cell.o\
-                    xray_interface2_data.o\
-                    xray_bulk_mask_impl_cpu.o
+                    xray_bulk_mask_impl_cpu.o\
+                    xray_interface2_data.o
+
 
 xray_bulk_mask_impl_gpu.o:   xray_bulk_mask_impl_gpu.F90
 	@echo [XRAY]  FC $<
@@ -117,7 +119,6 @@ xray_bulk_model.o: \
                     xray_pure_utils.o\
                     xray_contracts.o\
                     xray_unit_cell.o\
-                    xray_interface2_data.o\
                     xray_bulk_model_afonine_2013.o\
                     xray_bulk_model_none.o\
                     xray_bulk_model_simple.o
@@ -133,7 +134,6 @@ xray_bulk_model_afonine_2013.o: \
                     xray_contracts.o\
                     xray_unit_cell.o\
                     xray_pure_utils.o\
-                    xray_interface2_data.o\
                     xray_bulk_mask.o\
                     xray_scaling.o\
                     xray_bulk_mask_data.o
