@@ -32,7 +32,6 @@ contains
     use xray_bulk_model_afonine_2013_module, only : init_afonine => init
     use xray_bulk_model_none_module, only : init_none => init
     use xray_bulk_model_simple_module, only : init_simple => init
-    ! use xray_bulk_model_user_module, only : init_user => init
     implicit none
     integer, intent(in) :: mask_update_period
     integer, intent(in) :: scale_update_period
@@ -71,7 +70,6 @@ contains
     use xray_bulk_model_afonine_2013_module, only : finalize_afonine => finalize
     use xray_bulk_model_none_module, only : finalize_none => finalize
     use xray_bulk_model_simple_module, only : finalize_simple => finalize
-    ! use xray_bulk_model_user_module, only : finalize_user => finalize
     implicit none
     
     select case (model_id)
@@ -94,7 +92,6 @@ contains
     use xray_bulk_model_afonine_2013_module, only : afonine_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_none_module, only : none_f => add_bulk_contribution_and_rescale
     use xray_bulk_model_simple_module, only : simple_f => add_bulk_contribution_and_rescale
-    ! use xray_bulk_model_user_module, only : user_f => add_bulk_contribution_and_rescale
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     integer, intent(in) :: current_step
@@ -130,7 +127,6 @@ contains
     use xray_bulk_model_afonine_2013_module, only : afonine_f => get_f_scale
     use xray_bulk_model_none_module, only : none_f => get_f_scale
     use xray_bulk_model_simple_module, only : simple_f => get_f_scale
-    ! use xray_bulk_model_user_module, only : user_f => get_f_scale
     implicit none
     integer, intent(in) :: n_hkl
     real(real_kind) :: result(n_hkl)
