@@ -77,6 +77,7 @@ contains
   function calc_partial_d_vls_d_frac() result(d_vls_d_frac)
   implicit none
   real(real_kind) :: d_vls_d_frac      
+  d_vls_d_frac = 0.    ! to avoid a compiler warning
   end function calc_partial_d_vls_d_frac
   
   function calc_partial_d_target_d_frac(frac, f_scale, &

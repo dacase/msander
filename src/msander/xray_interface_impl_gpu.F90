@@ -1,10 +1,10 @@
-module xray_interface_impl_gpu_module
+module xray_gpu_module
 
     use xray_contracts_module
     use xray_pure_utils, only: real_kind
 
     ! Reuse functions from CPU module
-    use xray_interface_impl_cpu_module, only: &
+    use xray_cpu_module, only: &
             & xray_read_mdin, &
             & xray_read_parm, &
             & xray_write_md_state, &
@@ -27,7 +27,7 @@ module xray_interface_impl_gpu_module
 contains
 
     subroutine init()
-        use xray_interface_impl_cpu_module, only : cpu_init => init
+        use xray_cpu_module, only : cpu_init => init
         implicit none
         call cpu_init()
         call gpu_init()
@@ -35,7 +35,7 @@ contains
 
 
     subroutine finalize()
-        use xray_interface_impl_cpu_module, only : cpu_finalize => finalize
+        use xray_cpu_module, only : cpu_finalize => finalize
         call gpu_finalize()
         call cpu_finalize()
     end subroutine finalize
@@ -43,7 +43,7 @@ contains
 
     subroutine xray_get_derivative(xyz, force, current_step, xray_e)
     
-        use xray_interface_impl_cpu_module, only:  cpu_xray_get_derivative => xray_get_derivative
+        use xray_cpu_module, only:  cpu_xray_get_derivative => xray_get_derivative
         use xray_globals_module, only: xray_active, xray_energy
 
         implicit none
@@ -79,4 +79,4 @@ contains
     subroutine gpu_finalize()
     end subroutine gpu_finalize
 
-end module xray_interface_impl_gpu_module
+end module xray_gpu_module

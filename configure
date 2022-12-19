@@ -5,26 +5,24 @@ printf "configure script for msander\n\n"
 # Store the command
 command=`echo "$0 $*"`
 
-# set up defaults:
+#------------------------------------------------------------------------------
+#  Set up defaults:
+#------------------------------------------------------------------------------
 msanderhome=`pwd`
 verbose="@"
 enablempi=
 requested_help="no"
 clangf=""
-conda="no"
 openblas="no"
-moft="moft"
 sfx=""
 gcc10f=""
 gcc10c=""
 longlines="-ffree-line-length-none"
-pythonv=`python --version 2>&1 | cut -c 8-10`
 debug="-DNDEBUG"
 fpic="-fPIC"
 
 compiler="gnu"
 cc="gcc -Wno-unused-result"
-cxx="g++"
 mpicc="mpicc"
 iccflags=""
 
@@ -45,6 +43,11 @@ installtype="serial"
 
 cuda="no"
 cudaflags=''
+cudafflags=''
+cuda_arch=''
+cuda_arch_flags=''
+uspec_arch='false'
+cuda_prec='SPFP'
 
 lapack="skip"
 blas="skip"
@@ -57,41 +60,32 @@ netcdflibf=$netcdflibf_static
 #short_ene=short_ene_omp.o
 short_ene=short_ene.o   # short_ene_omp may slow things down or even crash
 
-#  process command-line flags:
-for var in "$@"; do
-    case "$var" in
+#------------------------------------------------------------------------------
+#  Process command-line flags:
+#------------------------------------------------------------------------------
+
+while [ $# -gt 0 ]; do
+    case "$1" in
         -h|-H|--h|--he|--hel|--help|-help)
-            requested_help="yes";;
-        -fullhelp|--full|--fullhelp|--full-h|--full-he|--full-hel|--full-help)
             requested_help="yes";;
         --verbose)
             verbose="";;
         --debug)
             debug="";;
-        --conda)
-            optflags="-g -O3"
-            conda="yes";;
         --openmp)
             ompflag='-fopenmp -DOPENMP';
             flibs_fftw="-lfftw3_omp $flibs_fftw"
             openmp="yes";;
-        --cuda-single)
+        --cuda)
             cuda="yes"
             installtype="cuda"
-            fpic=""
-            cudaflags="-DCUDA -DCUDA_PRECISION=Single";;
-        --cuda-double)
-            cuda="yes"
-            installtype="cuda"
-            fpic=""
-            cudaflags="-DCUDA -DCUDA_PRECISION=Double";;
+            cudafflags="-DCUDA"
+            fpic="";;
+        --prec)          shift; cuda_prec="$1";;
+        --arch)          shift; cuda_arch="$cuda_arch $1"; uspec_arch='true';;
         --gcc10)
             gcc10f="-Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
             gcc10c="-fcommon";;
-        --mingw)
-            cc="x86_64-w64-mingw32-gcc --static"
-            cxx="x86_64-w64-mingw32-g++ --static"
-            fc="x86_64-w64-mingw32-gfortran --static";;
         --mkl)
             mkl="yes";;
         --openblas)
@@ -100,8 +94,7 @@ for var in "$@"; do
             ldflags="-static";;
         --intel)
             compiler="intel"
-            cc="icc"
-            cxx="icpc"
+            cc="icx"
             fc="ifort"
             longlines=""
             mpicc="mpiicc"
@@ -112,7 +105,6 @@ for var in "$@"; do
             compiler="clang"
             clangf="-DCLANG"
             cc="clang"
-            cxx="clang++"
             fc="gfortran"
             optflags="-g -O3";;
         --mpi)
@@ -129,6 +121,7 @@ for var in "$@"; do
             echo "Option $var not recognized"
             exit 1
     esac
+    shift
 done
 
 if [ "$requested_help" = "yes" ] ; then
@@ -138,20 +131,16 @@ if [ "$requested_help" = "yes" ] ; then
     printf "\n"
 	printf " --mpi          prepare for mpi build\n"
 	printf " --openmp       prepare for OMP build\n"
-	printf " --cuda-single  prepare for cuda-single precision build\n"
-	printf " --cuda-double  prepare for cuda-double precision build\n"
-    printf "                N.B.: nvcc must be compatible with gcc/icc:\n"
-    printf "                https://docs.nvidia.com/cuda/cuda-installation-guide-linux\n"
+	printf " --cuda         prepare for cuda build\n"
+    printf " --prec         [SPFP|DPFP], cuda precision, default is SPFP\n"
+    printf " --arch          <kepler|maxwell|pascal|volta|turing|ampere> #default is all\n"
     printf "\n"
 	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
 	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
-	printf " --conda        set up for a conda build, with conda-forge\n"
 	printf " --verbose      give build details, otherwise be more silent\n"
 	printf " --static       use static linking (experiental)\n"
     printf " --full         install everything with a serial install\n"
     printf "\n"
-    printf "Notes: For GNU compilers, use versions 6 or greater\n"
-    printf "       Test suite requires a C-shell (csh/tcsh)\n"
     exit 0
 fi
 
@@ -225,8 +214,6 @@ else
    lm=-lm
 fi
 
-if [ "$conda" == "no" ]; then
-
 #--------------------------------------------------------------------------
 #  Test if the C compiler works:
 #--------------------------------------------------------------------------
@@ -275,6 +262,7 @@ if [ $status -gt 0 ]; then
 else
 	printf "OK\n"
 fi
+/bin/rm -f testp.f testp.o testp
 
 #--------------------------------------------------------------------------
 #  Configure the MKL or GOTO etc libraries for BLAS/LAPACK.
@@ -394,8 +382,6 @@ else
   fi
 fi
 
-fi   # end of if conda block
-
 #--------------------------------------------------------------------------
 #  Configure and build netcdf:
 #--------------------------------------------------------------------------
@@ -461,7 +447,7 @@ fi
 #--------------------------------------------------------------------------
 if [ "$flibs_fftw" != "" ]; then
 
-    if [ ! -s "lib/libfftw3.a" ] || \
+   if [ ! -s "lib/libfftw3.a" ] || \
        [ "$mpi" == "yes" -a ! -s "lib/libfftw3_mpi.a" ] || \
        [ "$openmp" == "yes" -a ! -s "lib/libfftw3_omp.a" ]; then
 
@@ -474,40 +460,22 @@ if [ "$flibs_fftw" != "" ]; then
        # enable_sse="--enable-sse=no --enable-sse2=no --enable-avx=no"
        enable_sse="--enable-sse2=yes --enable-avx=yes"
 
-       if [ "$conda" == "yes" ]; then
-          printf "\nConfiguring fftw-3.3 with $CC and $FC..."
-          cd src/fftw-3.3 && \
-              ./configure --disable-doc --prefix=$msanderhome \
-              --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static --enable-threads $enable_sse MPICC="$mpicc" \
-              CFLAGS="$optflags -fPIC"  \
-              FFLAGS="$optflags -fPIC"  \
-              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
-            ncerror=$?
-          if [ $ncerror -gt 0 ]; then
-              echo "Error: FFTW configure returned $ncerror"
-              exit 1
-          else
-              echo "OK"
-          fi
+       # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
+       #   be required for Intel compilers.
+       printf "\nConfiguring fftw-3.3 with $cc and $fc..."
+       cd src/fftw-3.3 && \
+           ./configure --disable-doc --prefix=$msanderhome \
+           --libdir=$msanderhome/lib $enableomp $fftw_flags \
+           --enable-static $enable_sse MPICC="$mpicc" \
+           CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
+           F77="$fc" FFLAGS="$optflags -fPIC" \
+           FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
+         ncerror=$?
+       if [ $ncerror -gt 0 ]; then
+           echo "Error: FFTW configure returned $ncerror"
+           exit 1
        else
-          # DAC note, 12/18/19: adding -gcc-sys to CFLAGS below seems to
-          #   be required for Intel compilers.
-          printf "\nConfiguring fftw-3.3 with $cc and $fc..."
-          cd src/fftw-3.3 && \
-              ./configure --disable-doc --prefix=$msanderhome \
-              --libdir=$msanderhome/lib $enableomp $fftw_flags \
-              --enable-static $enable_sse MPICC="$mpicc" \
-              CC="$cc" CFLAGS="$gccsys $optflags -fPIC"  \
-              F77="$fc" FFLAGS="$optflags -fPIC" \
-              FLIBS="$flibs_arch"  > fftw3_config.log 2>&1
-            ncerror=$?
-          if [ $ncerror -gt 0 ]; then
-              echo "Error: FFTW configure returned $ncerror"
-              exit 1
-          else
-              echo "OK"
-          fi
+           echo "OK"
        fi
 
        # Build FFTW3
@@ -525,35 +493,141 @@ if [ "$flibs_fftw" != "" ]; then
    fi
 fi
 
-#--------------------------------------------------------------------------
-#  create the config.h file: may differ for different subsets
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------!
+# Check for CUDA tool kit and compiler                                !
+#---------------------------------------------------------------------!
 
-if [ "$conda" == "yes" ]; then
+# this function sets the user defined cuda architecture flags, if specified
+set_uspec_arch(){
+  for carch in $cuda_arch; do
+    case "$carch" in
+      kepler)
+        echo "Configuring for SM3.0"
+        cuda_arch_flags="$cuda_arch_flags $sm30flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants';;
+      maxwell)
+        echo "Configuring for SM5.0"
+        cuda_arch_flags="$cuda_arch_flags $sm50flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants';;
+      pascal)
+        echo "Configuring for SM6.0"
+        cuda_arch_flags="$cuda_arch_flags $sm60flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants';;
+      volta)
+        echo "Configuring for SM7.0"
+        cuda_arch_flags="$cuda_arch_flags $sm70flags"
+        if [ `echo "$cudaversion < 10.0 "| bc` -gt 0 ]; then
+          cuda_dc_flags='-Xptxas --disable-optimizer-constants'
+        fi
+        ;;
+      turing)
+        echo "Configuring for SM7.5"
+        cuda_arch_flags="$cuda_arch_flags $sm75flags";;
+      ampere)
+        echo "Configuring for SM8.0"
+        cuda_arch_flags="$cuda_arch_flags $sm80flags";;
+    esac
+  done
+}
 
-cat <<EOF > config.h
+if [ "$cuda" = 'yes' ]; then
+  if [ -z "$CUDA_HOME" ]; then
+    echo  "Error: CUDA_HOME environment variable is not set."
+    echo  "Please make sure CUDA toolkit is loaded."
+    exit 1
+  fi
 
-#  msander configuration file.
-#  Created on `date` via $command
-EOF
+  if [ ! -x "$CUDA_HOME/bin/nvcc" ]; then
+    echo  "Error: nvcc compiler is not available in $CUDA_HOME/bin/"
+    exit 1
+  fi
 
-else
+  if [ -z "$NVCC" ]; then nvcc="$CUDA_HOME/bin/nvcc"; else nvcc="$NVCC"; fi
 
-cat <<EOF > config.h
+    #SM8.0 = A100
+    sm80flags='-gencode arch=compute_80,code=sm_80'
+    #SM7.5 = RTX20xx, Tesla T4, Quadro RTX, RTX Titan
+    sm75flags='-gencode arch=compute_75,code=sm_75'
+    #SM7.0 = V100, Titan V
+    sm70flags='-gencode arch=compute_70,code=sm_70'
+    #SM6.0 = GP100 / P100 = DGX-1
+    sm60flags='-gencode arch=compute_60,code=sm_60'
+    #SM5.0 = M40
+    sm50flags='-gencode arch=compute_50,code=sm_50'
+    #SM3.0 = K80, K40, K20
+    sm30flags='-gencode arch=compute_30,code=sm_30'
 
-#  msander configuration file.
-#  Created on `date` via $command
+    cudaversion=`$nvcc --version | awk '/release/{print substr($5,1,4)}'`
 
-CC=$cc
-CXX=$cxx
-FC=$fc
-LDFLAGS=$ldflags
+    if [ "${cudaversion:0:2}" = "11" ]; then
 
-EOF
+      echo "CUDA Version $cudaversion detected"
+
+      if [ "$uspec_arch" = 'true' ]; then
+        set_uspec_arch
+      else
+        echo "Configuring for SM5.0, SM6.0, SM7.0, SM7.5, SM8.0"
+        cuda_arch_flags="$sm50flags $sm60flags $sm70flags $sm75flags $sm80flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants'
+      fi
+
+    elif [ "${cudaversion:0:2}" = "10" ]; then
+      echo "CUDA Version $cudaversion detected"
+
+      if [ "$uspec_arch" = 'true' ]; then
+        set_uspec_arch
+      else
+        echo "Configuring for SM3.0, SM5.0, SM6.0, SM7.0 and SM7.5"
+        cuda_arch_flags="$sm30flags $sm50flags $sm60flags $sm70flags $sm75flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants'
+      fi
+
+    elif [ "${cudaversion:0:1}" = "9" ]; then
+      echo "CUDA Version $cudaversion detected"
+
+      if [ "$uspec_arch" = 'true' ]; then
+        set_uspec_arch
+      else
+        echo "Configuring for SM3.0, SM5.0, SM6.0 and SM7.0"
+        cuda_arch_flags="$sm30flags $sm50flags $sm60flags $sm70flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants'
+      fi
+
+    elif [ "${cudaversion:0:1}" = "8" ]; then
+      echo "CUDA Version $cudaversion detected"
+
+      if [ "$uspec_arch" = 'true' ]; then
+        set_uspec_arch
+      else
+        echo "Configuring for SM3.0, SM5.0, SM6.0"
+        cuda_arch_flags="$sm30flags $sm50flags $sm60flags"
+        cuda_dc_flags='-Xptxas --disable-optimizer-constants'
+      fi
+
+    else
+      echo  "Error: Unsupported CUDA version $cudaversion detected. "
+      echo  "       requires at least CUDA version 8.0 "
+      exit 1
+    fi
+
+    if [ "$cuda_prec" = 'SPFP' ]; then
+       prec_model=-DCUDA_PRECISION=Single
+       printf "Using SPFP precision model\n"
+    else
+       prec_model=-DCUDA_PRECISION=Double
+       printf "Using DPFP precision model\n"
+    fi
 
 fi
 
-cat <<EOF >> config.h
+#--------------------------------------------------------------------------
+#  create the config.h file:
+#--------------------------------------------------------------------------
+
+cat <<EOF > config.h
+
+#  msander configuration file.
+#  Created on `date` via $command
 
 ###############################################################################
 
@@ -588,6 +662,7 @@ BLAS=$blas
 
 #  (4)  C compiler
 
+CC=$cc
 CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
@@ -596,6 +671,7 @@ COPTFLAGS=$optflags
 
 #  (5)  Fortran compiler
 
+FC=$fc
 FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines
 FLIBSF=-lrism -lxray -lsqm -larpack $flibs_fftw $flibs_la
 FNOOPTFLAGS= -O0 -g
@@ -615,10 +691,9 @@ SFX=$sfx
 VB=$verbose
 INSTALLTYPE=$installtype
 
-MOFT=$moft
-
 # CUDA:
-CUDAFLAGS=$cudaflags
+CUDAFLAGS=$prec_model $cuda_arch_flags $cuda_dc_flags
+CUDAFFLAGS=$cudafflags
 
 # PLUMED related variables:
 PLUMED_INCLUDE_FILE=
@@ -626,7 +701,6 @@ PLUMED_LOAD=Plumed.o
 PLUMED_DEPENDENCIES=Plumed.o
 
 EOF
-
 
 printf "\nThe next step is to type 'make clean && make install'\n\n"
 

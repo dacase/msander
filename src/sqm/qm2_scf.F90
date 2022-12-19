@@ -474,7 +474,7 @@ subroutine qm2_scf(fock_matrix, hmatrix, W, escf, den_matrix, scf_mchg, num_qmmm
   end if
 
   if (qmmm_nml%verbosity > 0 .and. converged .and. qmmm_mpi%commqmmm_master) then
-     write(6,'("QMMM: SCF Converged to ",G10.4," in: ",i5," Cycles ")') qmmm_nml%scfconv,scf_iteration
+     write(6,'("QMMM: SCF Converged to ",G11.4," in: ",i5," Cycles ")') qmmm_nml%scfconv,scf_iteration
   end if
 
 ! If we are trying to do Fock matrix prediction based on an extrapolation of previous steps then

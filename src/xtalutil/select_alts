@@ -7,9 +7,9 @@ print "REMARK   select_alts run with seed of $ARGV[0]\n";
 
 #-----------------------------------------------------------------------
 # following is specfic to this particular system
-@repeats = (5..6,14..15,19..21,28..29,60..62,89..90,
-            97..99,112..113,127,157);
-$atomsperchain = 295;
+#   (only need repeats for the first chain)
+@repeats = (56,59..61,67,70,99,100,116-120);
+$atomsperchain = 1672;
 #-----------------------------------------------------------------------
 
 for $i (@repeats){ $repeat[$i] = 1; }
@@ -28,17 +28,40 @@ ATOM: while (<PDB>){
    chop($_);
    $_ .= "                                                                    ";
 
-   ( $label, $atno, $atname, $alt, $resname, $chainId, $resno, $iCode,
+   ( $label, $atno, $atname, $alt, $resname, $chainId, $resno1, $iCode,
          $x, $y, $z, $occ, $bfact, $element, $charge ) =
        unpack("a6 a5 x a4 a a3 x a a4 a x3 a8 a8 a8 a6 a6 x10 a2 a2",$_);
 
+   $resno = int($resno1);
    $altocc{$resno . $alt} = $occ if $alt ne " ";
    
 
    }
 }
-
 seek PDB, 0, 0;  # rewind the input file
+$max_res = $resno;
+
+#-----------------------------------------------------------------------
+#  next, use the alternate info above to select the ensemble:
+#-----------------------------------------------------------------------
+
+@res = (1..$max_res);
+for $res (@res) {
+    if (defined $altocc{$res . "A"}) {
+       $sum_occ = $altocc{$res . "A"} +
+                  $altocc{$res . "B"} +
+                  $altocc{$res . "C"} +
+                  $altocc{$res . "D"} +
+                  $altocc{$res . "E"};
+       $altocc{$res . "A"} /= $sum_occ;
+       $altocc{$res . "B"} /= $sum_occ;
+       $altocc{$res . "C"} /= $sum_occ;
+       $altocc{$res . "D"} /= $sum_occ;
+       $altocc{$res . "E"} /= $sum_occ;
+#       print "$res   $sum_occ  $altocc{$res . 'A'} $altocc{$res . 'B'} \n";
+#       print "      $altocc{$res . 'C'} $altocc{$res . 'D'} $altocc{$res . 'E'} \n";
+    }  
+}
 
 #-----------------------------------------------------------------------
 #  next, use the alternate info above to select the ensemble:
@@ -55,13 +78,13 @@ if( $_ =~ /^ATOM|^HETATM/){
     #  expand to 80+ characters (really hokey version):
     chop($_);
     $_ .= "                                                                    "; 
-    ( $label, $atno, $atname, $alt, $resname, $chainId, $resno, $iCode,
+    ( $label, $atno, $atname, $alt, $resname, $chainId, $resno1, $iCode,
           $x, $y, $z, $occ, $bfact, $element, $charge ) =
         unpack("a6 a5 x a4 a a3 x a a4 a x3 a8 a8 a8 a6 a6 x10 a2 a2",$_);
+    $resno = int($resno1);
 
     #  determine the relative residue number: only needed for repeats
-    { use integer; $relres = $resno - 
-        (($resno -1)/$atomsperchain)*$atomsperchain; }
+    $relres = $resno - (($resno -1)/$atomsperchain)*$atomsperchain;
 
     if( $resno != $resno_prev ){ 
        $rand = rand() unless defined $repeat[$relres];

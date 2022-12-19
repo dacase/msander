@@ -61,11 +61,11 @@ case "$compiler" in
 #################### gcc #######
 gnu)
     cc=gcc
-    cflags=-fPIC
+    cflags=
     cplusplus=g++
     ocflags=-O3
     fc=gfortran
-    fflags="-O0 -fPIC -fallow-argument-mismatch"
+    fflags=
 
     ;;
 

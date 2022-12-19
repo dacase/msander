@@ -553,7 +553,7 @@ contains
                 endif
                 write(6,'(2a)')         ' ffield       ', reaxff_nml%ffield
                 write(6,'(2a)')         ' solvtype     ', "EEM(fixed)"
-                write(6,"(A,E7.1)")     ' solvtol      ', reaxff_nml%solvtol
+                write(6,"(A,E8.1)")     ' solvtol      ', reaxff_nml%solvtol
                 write(6,"(A,I7)")       ' solvmaxit    ', reaxff_nml%solvmaxit
                 write(6,"(A,I7)")       ' solvprecond  ', reaxff_nml%solvprecond
                 write(6,"(A,F7.2)")     ' nbrcut       ', reaxff_nml%nbrcut

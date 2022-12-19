@@ -31,9 +31,9 @@ contains
 
     subroutine calc_partial_d_target_d_Fcalc(Fcalc, deriv, xray_energy)
         implicit none
-        complex(real_kind), intent(in) :: Fcalc(:)
-        complex(real_kind), intent(out) :: deriv(:)
-        real(real_kind), intent(out) :: xray_energy
+        complex(real_kind)   :: Fcalc(:)
+        complex(real_kind)   :: deriv(:)
+        real(real_kind)      :: xray_energy
     end subroutine calc_partial_d_target_d_Fcalc
 
     subroutine gpu_init()

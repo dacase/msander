@@ -5,7 +5,7 @@ module xray_common_module
 use file_io_dat
 end module xray_common_module
 
-module xray_interface_impl_cpu_module
+module xray_cpu_module
    use xray_globals_module
    use xray_contracts_module
    use xray_bulk_mask_data_module, only: k_sol, b_sol
@@ -501,6 +501,8 @@ contains
             test_flag(i) = min(test_flag(i),1)
          end do
       end if
+      write(6,'(a,i8,a,i2)') '| found ', num_hkl, &
+         ' reflections, with has_Fuser = ', has_Fuser
 
       if (atom_selection_mask/='') then
          call atommask(natom=natom,nres=nres,prnlev=0, &
@@ -684,4 +686,4 @@ contains
       call mexit(stdout,2)
    end function allocate_lun
    
-end module xray_interface_impl_cpu_module
+end module xray_cpu_module
