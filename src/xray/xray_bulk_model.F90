@@ -79,8 +79,6 @@ contains
       call finalize_afonine()
     case (simple_id)
       call finalize_simple()
-    ! case (user_id)
-    !   call finalize_user()
     case default
       write(6,'(a)') "bad model id"
       call mexit(6,1)
