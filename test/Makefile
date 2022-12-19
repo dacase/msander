@@ -40,6 +40,7 @@ test.xray:
 	-(cd xray/3onk && ./Run.3onk_mlopt)
 #	-(cd xray/480d && ./Run.480d_xray)
 	-(cd xray/6o2h && ./Run.6o2h_min)
+	-(cd xray/8dz7 && ./Run.8dz7)
 	-(cd xray/4lzt && ./Run.4lzt)
 	-(cd xray/2ol9 && ./Run.2ol9)
 	-(cd xray/2ol9 && ./Run.2ol9.min)

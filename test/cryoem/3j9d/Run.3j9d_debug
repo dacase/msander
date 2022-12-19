@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export XRAY_NUM_THREADS=20
+export XRAY_NUM_THREADS=10
 
 sander=../../../bin/msander
 if [ ! -z "$DO_PARALLEL" ]; then
@@ -22,11 +22,9 @@ md for 3j9d
    spacegroup_name='P1',
    pdb_infile = '4phenix_3j9d_box2.pdb',
    reflection_infile = '3j9d_noH-sf.directi.dat',
-   !  reflection_infile = 'test.dat',
    atom_selection_mask = '!@H=',
-   xray_weight_initial = 10000.,
-   xray_weight_final = 10000.,
-   target = 'vls', bulk_solvent_model='simple', 
+   xray_weight = 10000.,
+   target = 'vls', bulk_solvent_model='none', 
    scale_update_period = 10000,
    mask_update_period = 10000,
  /

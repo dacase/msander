@@ -3,7 +3,7 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/06/2022 at 16:12:36
+| Run on 12/19/2022 at 15:52:22
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander_intel/test/cryoem/3j9d
@@ -44,11 +44,9 @@ md for 3j9d
    spacegroup_name='P1',                                                       
    pdb_infile = '4phenix_3j9d_box2.pdb',                                       
    reflection_infile = '3j9d_noH-sf.directi.dat',                              
-   !  reflection_infile = 'test.dat',                                          
    atom_selection_mask = '!@H=',                                               
-   xray_weight_initial = 10000.,                                               
-   xray_weight_final = 10000.,                                                 
-   target = 'vls', bulk_solvent_model='simple',                                
+   xray_weight = 10000.,                                                       
+   target = 'vls', bulk_solvent_model='none',                                  
    scale_update_period = 10000,                                                
    mask_update_period = 10000,                                                 
  /                                                                             
@@ -97,7 +95,7 @@ X-ray Refinement Parameters:
      PDB Wrap Names: F
      Spacegroup: P 1
      Reflection InFile: 3j9d_noH-sf.directi.dat
-     X-ray weights:  0.100E+05 ...  0.100E+05
+     X-ray weight:  0.100E+05
      Use target: vls 
      Scale update Interval: 10000
      Solvent Mask Update Interval: 10000
@@ -165,8 +163,9 @@ defa
 PDB: All atoms read successfully.
  getting box info from bottom of min1.x
 XRAY: UNIT CELL=   133.320  161.600  147.460  90.00  90.00  90.00
+| found   155124 reflections, with has_Fuser =  0
 Found   6089 atoms in !@H=;                                                                                                                                                                                                                                                           
-| Running Xray OpenMP with  20 threads
+| Running Xray OpenMP with  10 threads
 | vls: setting norm_scale =  0.2918073E-10
  Number of triangulated 3-point waters found:        0
 
@@ -182,38 +181,39 @@ Found   6089 atoms in !@H=;
  ---------------------------------------------------
 | Local SIZE OF NONBOND LIST =    1846602
 | TOTAL SIZE OF NONBOND LIST =    1846602
-| gradient norms, amber/xray:  0.00000E+00 0.32432E+02 0.00000E+00
+| setting isotropic scaling to  0.2648554E+01
+| gradient norms, amber/xray:  0.00000E+00 0.17644E+02 0.00000E+00
  DEBUG FORCE!; back from force routine
 
  NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
- Etot   =      8522.9298  EKtot   =         0.0000  EPtot      =      8522.9298
+ Etot   =       161.3198  EKtot   =         0.0000  EPtot      =       161.3198
  BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
  1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
- EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =      8522.9298
+ EELEC  =         0.0000  EHBOND  =         0.0000  RESTRAINT  =       161.3198
  EKCMT  =         0.0000  VIRIAL  =         0.0000  VOLUME     =   3176953.7395
                                                     Density    =         0.0452
- Exray  =      8522.9298  Rwork   =         0.3320  Rfree      =         0.0410
+ Exray  =       161.3198  Rwork   =         0.1266  Rfree      =         0.1128
  EAMBER (non-restraint)  =         0.0000
  Checking numerical force for user chosen atoms
  ----------------------------------------------
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         1
-      1    0.02544354     0.02544357    -0.00000003
-      2    0.04202165     0.04202134     0.00000030
-      3    0.54632472     0.54632469     0.00000002
- RMS force error =  0.558E-06
+      1    0.09230992     0.09230991     0.00000002
+      2    0.01137134     0.01137133     0.00000001
+      3    0.20982136     0.20982136     0.00000000
+ RMS force error =  0.842E-07
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         5
-      1    0.25116035     0.25116040    -0.00000005
-      2    0.31168921     0.31168916     0.00000005
-      3    0.14039842     0.14039848    -0.00000006
- RMS force error =  0.221E-06
+      1   -0.04618074    -0.04618073    -0.00000000
+      2    0.17741737     0.17741736     0.00000001
+      3    0.06983857     0.06983857    -0.00000001
+ RMS force error =  0.844E-07
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         6
       1    0.00000000     0.00000000     0.00000000
       2    0.00000000     0.00000000     0.00000000
       3    0.00000000     0.00000000     0.00000000
  RMS force error =  0.000E+00
          NUMERICAL, ANALYTICAL FORCES (diff) from atom         7
-      1   -0.19491712    -0.19491703    -0.00000009
-      2   -0.60578098    -0.60578116     0.00000018
-      3   -0.37768106    -0.37768136     0.00000030
- RMS force error =  0.483E-06
+      1   -0.09515723    -0.09515723     0.00000000
+      2    0.02576026     0.02576028    -0.00000001
+      3   -0.01613529    -0.01613530     0.00000001
+ RMS force error =  0.164E-06
  --------------------------------------------
