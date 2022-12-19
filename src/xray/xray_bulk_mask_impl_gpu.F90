@@ -4,7 +4,6 @@ module xray_bulk_mask_impl_gpu_module
   use xray_contracts_module
   use xray_pure_utils, only : real_kind
   use xray_unit_cell_module, only : unit_cell_t
-  use xray_interface2_data_module, only : model_id
   
   implicit none
   private
@@ -99,8 +98,6 @@ contains
     
     if( allocated( Fuser ) ) then
        f_mask = Fuser( new_order )
-    else if( model_id == 0 ) then
-       f_mask = 0.d0
     else
        call check_precondition(size(frac, 1) == 3)
        call pmemd_xray_bulk_mask_update_f_bulk(size(frac, 2), frac)

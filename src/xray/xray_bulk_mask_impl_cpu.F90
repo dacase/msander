@@ -7,7 +7,7 @@ module xray_bulk_mask_impl_cpu_module
   use xray_bulk_mask_data_module
   use xray_contracts_module
   use xray_unit_cell_module
-  use xray_interface2_data_module, only : model_id
+  
 
   implicit none
   private
@@ -482,8 +482,6 @@ contains
   
     if( allocated(Fuser) ) then
        f_mask = Fuser( new_order )
-    else if( model_id == 0 ) then
-       f_mask = 0.d0
     else
        call grid_bulk_solvent(frac)
        call shrink_bulk_solvent()
