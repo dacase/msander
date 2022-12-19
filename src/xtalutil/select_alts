@@ -7,9 +7,8 @@ print "REMARK   select_alts run with seed of $ARGV[0]\n";
 
 #-----------------------------------------------------------------------
 # following is specfic to this particular system
-#   (only need repeats for the first chain)
-@repeats = (56,59..61,67,70,99,100,116-120);
-$atomsperchain = 1672;
+@repeats = (56,59..61,67,70,78,99..100,116..120);
+$residuesperchain = 181;
 #-----------------------------------------------------------------------
 
 for $i (@repeats){ $repeat[$i] = 1; }
@@ -34,7 +33,6 @@ ATOM: while (<PDB>){
 
    $resno = int($resno1);
    $altocc{$resno . $alt} = $occ if $alt ne " ";
-   
 
    }
 }
@@ -58,8 +56,6 @@ for $res (@res) {
        $altocc{$res . "C"} /= $sum_occ;
        $altocc{$res . "D"} /= $sum_occ;
        $altocc{$res . "E"} /= $sum_occ;
-#       print "$res   $sum_occ  $altocc{$res . 'A'} $altocc{$res . 'B'} \n";
-#       print "      $altocc{$res . 'C'} $altocc{$res . 'D'} $altocc{$res . 'E'} \n";
     }  
 }
 
@@ -84,7 +80,7 @@ if( $_ =~ /^ATOM|^HETATM/){
     $resno = int($resno1);
 
     #  determine the relative residue number: only needed for repeats
-    $relres = $resno - (($resno -1)/$atomsperchain)*$atomsperchain;
+    $relres = $resno - (($resno -1)/$residuesperchain)*$residuesperchain;
 
     if( $resno != $resno_prev ){ 
        $rand = rand() unless defined $repeat[$relres];
@@ -99,32 +95,25 @@ if( $_ =~ /^ATOM|^HETATM/){
         next ATOM if $rand < $altocc{$resno."A"}; 
         next ATOM if $rand > $altocc{$resno."A"} + $altocc{$resno."B"}; 
     } elsif( $alt eq "C" ){
-        next ATOM if $rand < $altocc{$resno."A"}; 
         next ATOM if $rand < $altocc{$resno."A"} + $altocc{$resno."B"}; 
         next ATOM if $rand > $altocc{$resno."A"} + $altocc{$resno."B"} 
                            + $altocc{$resno."C"};
     } elsif( $alt eq "D" ){
-        next ATOM if $rand < $altocc{$resno."A"}; 
-        next ATOM if $rand < $altocc{$resno."A"} + $altocc{$resno."B"}; 
         next ATOM if $rand < $altocc{$resno."A"} + $altocc{$resno."B"} 
                            + $altocc{$resno."C"};
         next ATOM if $rand > $altocc{$resno."A"} + $altocc{$resno."B"} 
-                           + $altocc{$resno."C"} + $altloc{$resno."D"};
+                           + $altocc{$resno."C"} + $altocc{$resno."D"};
     } elsif( $alt eq "E" ){
-        next ATOM if $rand < $altocc{$resno."A"}; 
-        next ATOM if $rand < $altocc{$resno."A"} + $altocc{$resno."B"}; 
         next ATOM if $rand < $altocc{$resno."A"} + $altocc{$resno."B"} 
-                           + $altocc{$resno."C"};
+                           + $altocc{$resno."C"} + $altocc{$resno."D"};
         next ATOM if $rand > $altocc{$resno."A"} + $altocc{$resno."B"} 
-                           + $altocc{$resno."C"} + $altloc{$resno."D"};
-        next ATOM if $rand > $altocc{$resno."A"} + $altocc{$resno."B"} 
-                           + $altocc{$resno."C"} + $altloc{$resno."D"}
+                           + $altocc{$resno."C"} + $altocc{$resno."D"}
                            + $altocc{$resno."E"};
     } elsif( $alt eq "F" ){
         print STDERR "Error: should never have an F conformer\n";
         exit(1);
     } elsif( $alt ne " " ){ 
-        print STDERR "Error: trouble processing atloc $altloc\n";
+        print STDERR "Error: trouble processing altocc $altocc\n";
         exit(1);
     }
                           
