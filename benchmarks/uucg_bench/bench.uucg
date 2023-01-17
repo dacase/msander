@@ -7,7 +7,7 @@ MD NVE
   cut=9.0,
   ntc=2, ntf=2, tol=0.0000005
   nstlim=500, dt=0.001,
-  ithermostat=0, ntb =1,
+  ntt=0, ntb =1,
   ntpr = 50,
  /
  &ewald
@@ -15,9 +15,9 @@ MD NVE
  /
 eof
 
-export OMP_NUM_THREADS=16
-output=intel_omp16
-../../bin/msander -O -i mdin -p uucg_tip4pew_10.parm7 \
+export XRAY_NUM_THREADS=1
+output=gpu3090
+../../bin/msander.cuda -O -i mdin -p uucg_tip4pew_10.parm7 \
    -c restrt.26_dyn -o $output  < /dev/null
 
 /bin/rm mdin restrt mdinfo

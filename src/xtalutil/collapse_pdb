@@ -16,7 +16,7 @@ $_ .= "                                                                    ";
 #
 #  do modifications necessary here:
 #
-$residues_per_chain = 11;
+$residues_per_chain = 12;
 
 $chainId = "A";
 $occ = 0.0625;
@@ -77,6 +77,4 @@ printf
       $label, $atno,$atname,$alt, $resname,$chainId, $resno, $iCode,
         $x,$y,$z, $occ, $bfact, $element, $charge;
 
-} elsif( $_ !~ /^TER/){
-   print;
 }

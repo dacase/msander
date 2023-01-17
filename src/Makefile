@@ -8,13 +8,13 @@ full:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
 	@cd xray && $(MAKE) xray
-	@cd xtalutil && $(MAKE) xtalutil
+	@cd xtalutil/src && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
 
 serial:
 	@cd msander && $(MAKE) msander
 	@cd xray && $(MAKE) xray
-	@cd xtalutil && $(MAKE) xtalutil
+	@cd xtalutil/src && $(MAKE) xtalutil
 
 parallel:
 	@cd msander && $(MAKE) msander.MPI
@@ -37,11 +37,11 @@ clean:
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
-	-(cd xtalutil && $(MAKE) clean )
+	-(cd xtalutil/src && $(MAKE) clean )
 
 uninstall: clean
-	-(cd $(BINDIR) && /bin/rm -f msander msander.MPI \
-        add_pdb add_xray addles)
+	-(cd $(BINDIR) && /bin/rm -f msander* \
+        add_pdb add_xray addles AddToBox ChBox PropPDB UnitCell)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
         libarpack.a libsqm.a librism.a /libsys.a )
 	/bin/rm -f $(INCDIR)/* ../config.h

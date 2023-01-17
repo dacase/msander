@@ -1,13 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-#   standard amber refinement
+label=$1
+pdb=$2
+mtz=$3
+cif=$4
 
-if [ "$#" -lt 4 ]; then
-   echo "Usage:  phenix.amber.sh <pdbfile> <mtzfile> <id> <serial> <cif-files>"
-   exit 1
-fi
-
-cat <<EOF > ${3}_00$4.eff
+cat <<EOF > cdl.eff
 refinement {
   input {
     xray_data {
@@ -18,8 +16,8 @@ refinement {
     }
   }
   output {
-    prefix = "$3"
-    serial = $4
+    prefix = "$1"
+    serial = 1
     write_eff_file = False
     write_geo_file = False
     write_def_file = False
@@ -32,7 +30,7 @@ refinement {
                *individual_adp group_adp tls occupancies group_anomalous
     sites {
     }
-    adp {
+    adp { 
       individual {
          anisotropic = none
       }
@@ -45,17 +43,19 @@ refinement {
   } 
   main {
     nqh_flips = True
-    number_of_macro_cycles = 10
+    number_of_macro_cycles = 5
     target = auto *ml mlhl ml_sad ls mli
     use_experimental_phases = False
     scattering_table = wk1995 *it1992 n_gaussian electron neutron
-    ordered_solvent = False
   }
   hydrogens {
-    refine = *individual riding Auto
+    refine = individual *riding Auto
   }
   pdb_interpretation {
     c_beta_restraints = False
+#    clash_guard {
+#      nonbonded_distance_threshold=None  
+#    }
   }
   mask {
     ignore_hydrogens = True
@@ -68,10 +68,10 @@ refinement {
     skip_kinemage = True
   }
   amber {
-    use_amber = True
-    topology_file_name = "a7final_uc.parm7"
-    coordinate_file_name = "a7final_uc.rst7"
-    order_file_name = "a7final_uc.order"
+    use_amber = False
+    topology_file_name = ""
+    coordinate_file_name = ""
+    order_file_name = ""
     wxc_factor = 0.2
     restraint_wt = 0
     restraintmask = ""
@@ -102,8 +102,6 @@ refinement {
 }
 EOF
 
-phenix.refine  $1  $2  $5  ${3}_00$4.eff --overwrite > $3.amber_00$4.log
+phenix.refine  $pdb $mtz $cif cdl.eff --overwrite
 
-/bin/mv $3.amber_00$4.log ${3}_00$4.log
-
-
+/bin/rm -f cdl.eff 
