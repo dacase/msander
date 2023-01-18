@@ -7,11 +7,12 @@ print "REMARK   select_alts run with seed of $ARGV[0]\n";
 
 #-----------------------------------------------------------------------
 # following is specfic to this particular system
-@repeats = (56,59..61,67,70,78,99..100,116..120);
-$residuesperchain = 181;
+@repeats = (12..27,32..37,62..63,84..92,101..103,117..33,139..142,146);
+$residuesperchain = 450;
 #-----------------------------------------------------------------------
 
 for $i (@repeats){ $repeat[$i] = 1; }
+
 
 open( PDB, "<", $ARGV[1] );
 
@@ -80,7 +81,7 @@ if( $_ =~ /^ATOM|^HETATM/){
     $resno = int($resno1);
 
     #  determine the relative residue number: only needed for repeats
-    $relres = $resno - (($resno -1)/$residuesperchain)*$residuesperchain;
+    $relres = $resno % $residuesperchain;
 
     if( $resno != $resno_prev ){ 
        $rand = rand() unless defined $repeat[$relres];
