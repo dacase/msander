@@ -113,9 +113,10 @@ void GetPDB(pdb *thispdb, int verbosity, int pqr_format)
         thispdb->res_nums[i] = rnumrescue;
       }
 
-      /*** Filter the character inputs ***/
-      touchup(&thispdb->atom_names[i*4], 4);
-      touchup(&thispdb->res_names[i*4], 4); alphanumeric(&thispdb->chain[i]);
+      /*** Don't filter the character inputs: assume input PDB is correct ***/
+      // touchup(&thispdb->atom_names[i*4], 4);
+      // touchup(&thispdb->res_names[i*4], 4);
+      // alphanumeric(&thispdb->chain[i]);
 
       i++;
     }
@@ -259,7 +260,7 @@ void PutPDB(pdb *thispdb, symT *S, char* filename, char* pdb_form,
        (thispdb->res_nums[i]+1) % 10000, dtmp[0], dtmp[1], dtmp[2],
        thispdb->charges[i], thispdb->radii[i]);
     }
-    realign_name(&line[12]);
+    // realign_name(&line[12]);
     fprintf(pdbtxt, "%s", line);
 
     if (thispdb->AnisouRec == 1) {
@@ -268,7 +269,7 @@ void PutPDB(pdb *thispdb, symT *S, char* filename, char* pdb_form,
         thispdb->alt[i], ctm2p, thispdb->chain[i], thispdb->res_nums[i]+1,
         itmp[0], itmp[1], itmp[2], itmp[3], itmp[4], itmp[5],
         thispdb->element[2*i], thispdb->element[2*i+1]);
-        realign_name(&line[12]);
+        // realign_name(&line[12]);
         fprintf(pdbtxt, "%s", line);
     }
 
@@ -335,7 +336,7 @@ void PutPDBPro(pdb *thispdb, symT *S, int* irep, char* filename, char* pdb_form,
         (thispdb->res_nums[i]+1) & 10000, dtmp[0], dtmp[1], dtmp[2],
         thispdb->charges[i], thispdb->radii[i]);
     }
-    realign_name(&line[12]);
+    // realign_name(&line[12]);
     fprintf(pdbtxt, "%s", line);
     if (thispdb->AnisouRec == 1) {
    sprintf(line, "ANISOU%5d %.4s%c%.4s%c%4d  %7d%7d%7d%7d%7d%7d      %c%c\n",
@@ -343,7 +344,7 @@ void PutPDBPro(pdb *thispdb, symT *S, int* irep, char* filename, char* pdb_form,
         thispdb->alt[i], ctm2p, thispdb->chain[i], thispdb->res_nums[i]+1,
         itmp[0], itmp[1], itmp[2], itmp[3], itmp[4], itmp[5],
         thispdb->element[2*i], thispdb->element[2*i+1]);
-        realign_name(&line[12]);
+        // realign_name(&line[12]);
         fprintf(pdbtxt, "%s", line);
     }
 
