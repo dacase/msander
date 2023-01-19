@@ -8,13 +8,11 @@ full:
 	@cd msander && $(MAKE) msander
 	@cd msander && $(MAKE) msander.LES
 	@cd xray && $(MAKE) xray
-	@cd xtalutil/src && $(MAKE) xtalutil
 	@cd addles && $(MAKE) addles
 
 serial:
 	@cd msander && $(MAKE) msander
 	@cd xray && $(MAKE) xray
-	@cd xtalutil/src && $(MAKE) xtalutil
 
 parallel:
 	@cd msander && $(MAKE) msander.MPI
@@ -37,7 +35,6 @@ clean:
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
 	-(cd sqm && $(MAKE) clean )
-	-(cd xtalutil/src && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander* \
