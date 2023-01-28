@@ -114,7 +114,7 @@ subroutine mdread1()
          ntt, gamma_ln, &
          iemap,gammamap, &
          isgld,isgsta,isgend,nsgsize,tsgavg,sgft,sgff,sgfg,tsgavp,&
-         jar, &
+         jar, ionstepvelocities, &
          numexchg, repcrd, numwatkeep, hybridgb, reservoir_exchange_step, &
          ntwprt,tausw, &
          ntwr,iyammp,imcdo, &
@@ -339,6 +339,8 @@ subroutine mdread1()
 
    ! Reservoir Exchange Frequency
    reservoir_exchange_step=2
+
+   ionstepvelocities=0
 
    ! carlos targeted MD, like ntr
 
@@ -1260,6 +1262,8 @@ subroutine mdread2(x,ix,ih)
          ', ntrx    =',ntrx,', ntwr    =',ntwr
    write(6,'(5x,5(a,i8))') 'ntwx    =',ntwx, &
          ', ntwv    =',ntwv,', ntwe    =',ntwe
+   if (ionstepvelocities > 0) &
+     write(6, '(5x, a,i8)') 'ionstepvelocities    =',ionstepvelocities
    write(6,'(5x,2(a,i8),a,i7)') 'ioutfm  =',ioutfm, &
          ', ntwprt  =',ntwprt, &
          ', rbornstat=',rbornstat

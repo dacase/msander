@@ -23,7 +23,9 @@ integer nrp,nspm,ig,ntx,ntcx,            &!5
       ipb,inp,ntrelax,relaxing,dec_verbose,vdwmodel,     &!78
       csurften,ninterface,no_ntt3_sync,nkija,idistr,baroscalingdir, &!84
       nucat,icnste,ntcnste,ntrelaxe,                     &!88
-      mask_from_ref,hidx, reservoir_exchange_step !91
+      mask_from_ref,hidx, reservoir_exchange_step,       &!91
+      ionstepvelocities                                   !92
+
 
 common/mdi/nrp,nspm,ig, &                                               !3
       ntx,ntcx,ntxo,ntt_old,ntp,ntr,init,ntcm,nscm, &                   !12
@@ -33,14 +35,15 @@ common/mdi/nrp,nspm,ig, &                                               !3
       iwatpr,nsolw,igb,alpb,iyammp,gbsa,vrand,numexchg,repcrd, &        !43
       numwatkeep,hybridgb,barostat,mcbarint, &                          !47
       iwrap,nrespa,irespa,nrespai,icfe,rbornstat, &                     !53
-      ivcap,iconstreff,idecomp,klambda,icnstph,ntcnstph,maxdup,neb,vv, &!62
-      tmode,ipol,iesp,ievb,nodeid,num_noshake,ibgion,ienion, &          !70
+      ivcap,iconstreff,idecomp,klambda,icnstph,ntcnstph,maxdup,neb,vv,  &!62
+      tmode,ipol,iesp,ievb,nodeid,num_noshake,ibgion,ienion,            &!70
       profile_mpi,lj1264,ipb,inp,ntrelax,relaxing,dec_verbose,vdwmodel, &!78
       csurften,ninterface,no_ntt3_sync,nkija,idistr,baroscalingdir,     &!84
-      nucat,icnste,ntcnste,ntrelaxe,                     &!88
-      mask_from_ref,hidx, reservoir_exchange_step !91
+      nucat,icnste,ntcnste,ntrelaxe,                                    &!88
+      mask_from_ref,hidx, reservoir_exchange_step,                      &!91
+      ionstepvelocities                                                  !92
 
-parameter (BC_MDI=91) ! Number of elements in the common block;
+parameter (BC_MDI=92) ! Number of elements in the common block;
                       ! Be sure to update if you change things 
 
 ! ... floats:

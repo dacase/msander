@@ -143,6 +143,7 @@ module runmd_module
   ! the absolute step # of the REMD or MD simulation.
   integer total_nstep, total_nstlim
 
+
 #include "../include/md.h"
 #include "box.h"
 #include "nmr.h"
@@ -282,6 +283,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   _REAL_, intent(in) ::  skip(:)   ! N.B.: skip is really a logical variable,
                                    ! but we are just really passing an opaque
                                    ! pointer here
+  _REAL_ onstepvel(3*natom)
 
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
@@ -650,9 +652,13 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Step 3: update the positions, and apply the thermostat,  {{{
     ! the step for updating x-T-x
     do i3 = istart3, iend3
-       f(i3) = x(i3)
+       f(i3) = x(i3)  ! temporarily(?) stores the starting coordinates
        x(i3) = x(i3) + v(i3)*dt5
     end do
+
+    ! DAC note: at this point, v is at the same point as x: are these the
+    !   velocities and positions we want to write if ntwv=-1?
+
     ! for random number, controled by ig
     if (no_ntt3_sync == 1) then
       iskip_start = 0
@@ -663,7 +669,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     endif
     call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
     do i3 = istart3, iend3
-       x(i3) = x(i3) + v(i3)*dt5
+       x(i3) = x(i3) + v(i3)*dt5   ! completes the full-step update of x
     end do
 
   call timer_stop(TIME_VERLET)
@@ -811,6 +817,18 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Decision to write velocities
   ivdump = .false.
   if (ntwv > 0) ivdump = (mod(total_nstep,ntwv) == 0)
+  ! Determine whether we want to save the on-step velocities.
+  if ((ionstepvelocities.ne.0).and.ivdump) then
+    onstepvel(:) = 0.d0
+    i3 = (3*(istart-1)) + 1
+    do j = istart, iend
+      onstepvel(i3  ) = (v(i3  ) + vold(i3  )) / 2.d0
+      onstepvel(i3+1) = (v(i3+1) + vold(i3+1)) / 2.d0
+      onstepvel(i3+2) = (v(i3+2) + vold(i3+2)) / 2.d0
+      i3 = i3 + 3
+    enddo
+  endif
+
 
   ! Decision to write forces
   ifdump = .false.
@@ -907,6 +925,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     ! overhead of doing it this way is probably small in most cases.)
     if (ivdump .or. ivscm .or. ixdump) then
       call xdist(v, xx(lfrctmp), nr3+iscale)
+      call xdist(onstepvel, xx(lfrctmp), natom)
     endif
     call timer_stop(TIME_DISTCRD)
   end if
@@ -1119,7 +1138,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       end if
 #endif /* MPI */
 
-      call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
+      if (ionstepvelocities.eq.0) then
+         call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
+      else
+         call corpac(onstepvel, 1, nrx, MDVEL_UNIT, loutfm)
+      endif
     end if
     ! }}}
 
