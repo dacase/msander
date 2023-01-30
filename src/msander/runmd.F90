@@ -658,6 +658,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
     ! DAC note: at this point, v is at the same point as x: are these the
     !   velocities and positions we want to write if ntwv=-1?
+    !   also: is this not the place to compute the kinetic energy?
 
     ! for random number, controled by ig
     if (no_ntt3_sync == 1) then
@@ -667,6 +668,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       iskip_start = 3*(istart-1)
       iskip_end = 3*(nr-iend)
     endif
+    !  note: following is a no-op if ntt=0
     call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5   ! completes the full-step update of x
@@ -713,6 +715,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 !------------------------------------------------------------------------------
     ! Step 4b: Now fix the velocities and calculate KE.
     ! Re-estimate the velocities from differences in positions.
+    !  DAC: is this still needed?  Might not rattlev do the job?
     v(istart3:iend3) = v(istart3:iend3) &
         + (x(istart3:iend3) - xold(istart3:iend3))*dtxinv
 
@@ -1802,6 +1805,7 @@ subroutine thermodynamic_integration(f)
       ! Do energy collection for MBAR FEP runs
       if (ifmbar .ne. 0 .and. do_mbar) &
         call calc_mbar_energies(ener%pot%tot, ecopy%pot%tot)
+
       if (masterrank == 0) then
         call mix_frcti(frcti, ecopy, f, ener, nr3, clambda, klambda)
       else
