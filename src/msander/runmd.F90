@@ -295,6 +295,16 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! init = 3: general startup if not continuing a previous run
 
 !----------------------------------------------------------------------------
+
+     !  Correct the input velocities for SHAKE:
+     if (ntc /= 1) then
+        ! RATTLE-V, correct velocities
+        call rattlev(nrp,nbonh,nbona,0,ix(iibh),ix(ijbh),ix(ibellygp), &
+        winv,conp,skip,x,v,nitp,belly,ix(iifstwt),ix(noshake))
+        ! use SETTLE to deal with water model
+        call quick3v(x, v, ix(iifstwr), natom, nres, ix(i02))
+     end if  
+
     ! Calculate the force.  Set irespa to get full
     ! energies calculated on step "0":
     irespa = 0
