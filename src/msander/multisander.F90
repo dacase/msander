@@ -291,7 +291,7 @@ program multisander
     ! Print summary of multisander run:
     if (worldrank == 0) then
       write(6, '(a)') ''
-      write(6, '(a)') ' Running multisander version of sander Amber18'
+      write(6, '(a)') ' Running multisander version of msander'
       write(6, '(a,i5)') '    Total processors = ', worldsize
       write(6, '(a,i5)') '    Number of groups = ', numgroup
       if (.not. ng_sequential) then

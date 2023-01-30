@@ -26,7 +26,9 @@ subroutine mix_frcti(f,ener,fcopy,ecopy,nr3,clambda,klambda)
      dvdl = klambda*(ener%pot%tot - ecopy%pot%tot)*(1.d0 - clambda)**(klambda-1)
    end if
       
-   ener = (ener*w1) + (ecopy*w0)
+   !  DAC trial:  don't mix energies, so printout will include both:
+   !  ener = (ener*w1) + (ecopy*w0)
+   !  ecopy  = ener
 
    if (ifsc == 1) then
       ! This subroutine also adds the softcore contribution to dvdl
@@ -35,10 +37,8 @@ subroutine mix_frcti(f,ener,fcopy,ecopy,nr3,clambda,klambda)
       f(1:nr3) = w1*f(1:nr3) + w0*fcopy(1:nr3)
    end if
 
-   !write(6,*) "thermo_int:: assigning ener%dvdl with value of :", dvdl
    ener%pot%dvdl = dvdl
-
-   ecopy  = ener
+   ecopy%pot%dvdl = dvdl
 
    if (ifsc == 0) then
       fcopy(1:nr3) = f(1:nr3)

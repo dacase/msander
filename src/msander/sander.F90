@@ -754,13 +754,15 @@ subroutine sander()
 
     ! Check that the system is neutral and print warning message
     ! if not.  Adjust charges for roundoff error.
-    if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
+
+    !  DAC note: to do mixed GB/RISM calcs, both sides need to call this
+    ! if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
       if (icfe == 0) then
         call check_neutral(x(l15),natom)
       else
         call ti_check_neutral(x(l15),natom)
       end if
-    end if
+    !end if
 
     ! Use old parallelism for energy minimization
     if (imin .ne. 0) then
