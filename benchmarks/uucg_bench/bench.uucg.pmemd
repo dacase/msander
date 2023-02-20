@@ -15,8 +15,9 @@ MD NVE
  /
 eof
 
-output=uucg_pmemd.o
-pmemd -O -i mdin -p uucg_tip4pew_10.parm7 -c restrt.26_dyn -o $output 
+output=pmemd_serial
+pmemd -O -i mdin -p uucg_tip4pew_10.parm7 \
+   -c restrt.26_dyn -o $output < /dev/null
 
 /bin/rm mdin restrt mdinfo
 
