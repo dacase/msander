@@ -1143,7 +1143,7 @@ contains
 
     if (volfmt .eq. 'mrc') then
        extension = '.mrc'
-       writeVolume => rism3d_mrc
+       writeVolume => rism3d_mrc_map_write
     else if (volfmt .eq. 'dx') then
        extension = '.dx'
        writeVolume => rism3d_opendx_write

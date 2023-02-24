@@ -14,7 +14,7 @@ EOF
 
 # There exist modules, for example, defined by the fortran standard.
 # Ignore these for dependencies
-$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=1;
+$ignore{"iso_fortran_env"}=$ignore{"mpi"}=$ignore{"intrinsic"}=$ignore{"ieee_arithmetic"}=1;
 
 #  In order to get a mapping between module names and file names, we have
 #  have to set up the following hash.

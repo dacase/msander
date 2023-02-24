@@ -15,7 +15,7 @@ amber_rism_interface.o: \
                     rism_util.o\
                     def_time.h\
                     rism_io.o\
-                    rism3d_ccp4.o\
+                    rism3d_mrc.o\
                     rism3d_opendx.o\
                     rism3d_xyzv.o\
                     array_util.o
@@ -24,7 +24,7 @@ amber_rism_interface.o: \
 amber_rism_interface.o:   amber_rism_interface.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -I../sqm -o $@ amber_rism_interface.F90
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ amber_rism_interface.F90
 
 
 array_util.o:   array_util.F90
@@ -137,21 +137,6 @@ rism3d_c.o:   rism3d_c.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism3d_c.F90
 
-rism3d_ccp4.o: \
-                    ../include/dprec.fh\
-                    safemem.o\
-                    rism_report_c.o\
-                    constants_rism.o\
-                    rism_util.o\
-                    rism3d_grid_c.o\
-                    rism3d_solute_c.o
-
-
-rism3d_ccp4.o:   rism3d_ccp4.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism3d_ccp4.F90
-
 rism3d_closure_c.o: \
                     ../include/dprec.fh\
                     rism3d_potential_c.o\
@@ -232,6 +217,21 @@ rism3d_kh_c.o:   rism3d_kh_c.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism3d_kh_c.F90
+
+rism3d_mrc.o: \
+                    ../include/dprec.fh\
+                    safemem.o\
+                    rism_report_c.o\
+                    constants_rism.o\
+                    rism_util.o\
+                    rism3d_grid_c.o\
+                    rism3d_solute_c.o
+
+
+rism3d_mrc.o:   rism3d_mrc.F90
+	@echo [RISM]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism3d_mrc.F90
 
 rism3d_opendx.o: \
                     ../include/dprec.fh\
