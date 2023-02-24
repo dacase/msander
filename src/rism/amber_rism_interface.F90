@@ -346,11 +346,11 @@ module amber_rism_interface
   !solvationEnergyfile   : (output) solvation energy map [kcal/mol/A^3]. Volumetric file.
   !entropyfile   : (output) solvent entroy (-TS) map [kcal/mol/A^3]. Volumetric file.
   !solventPotentialEnergyfile     : (output) solvent-solute potential energy map [kcal/mol/A^3]. Volumetric file.
-  !volfmt        : either 'ccp4', 'dx', or 'xyzv'
+  !volfmt        : either 'mrc', 'dx', or 'xyzv'
   character(len=256) :: xvvfile='', guvfile='', huvfile='', cuvfile='', &
        uuvfile='', quvFile='', chgDistFile='', &
        excessChemicalPotentialfile='', solvationEnergyfile='', entropyfile='', &
-       solventPotentialEnergyfile='', volfmt='ccp4', crdFile=''
+       solventPotentialEnergyfile='', volfmt='mrc', crdFile=''
 
   integer :: mpirank = 0, mpisize = 1, mpicomm = 0
 
@@ -1117,7 +1117,7 @@ contains
     use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
-    use rism3d_ccp4
+    use rism3d_mrc
     use rism3d_opendx
     use rism3d_xyzv
     use safemem
@@ -1141,9 +1141,9 @@ contains
 
     procedure (writeVolumeInterface), pointer :: writeVolume => NULL()
 
-    if (volfmt .eq. 'ccp4') then
-       extension = '.ccp4'
-       writeVolume => rism3d_ccp4_map_write
+    if (volfmt .eq. 'mrc') then
+       extension = '.mrc'
+       writeVolume => rism3d_mrc
     else if (volfmt .eq. 'dx') then
        extension = '.dx'
        writeVolume => rism3d_opendx_write
@@ -1171,7 +1171,7 @@ contains
     use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
-    use rism3d_ccp4
+    use rism3d_mrc
     use rism3d_opendx
     use rism3d_xyzv
     use safemem
@@ -1271,7 +1271,7 @@ contains
     use constants_rism, only : COULOMB_CONST_E, KB, PI
     use amber_rism_interface
     use rism_io
-    use rism3d_ccp4
+    use rism3d_mrc
     use rism3d_opendx
     use rism3d_xyzv
     use safemem
@@ -1556,7 +1556,7 @@ contains
     rismprm%verbose          = 0
 #endif
     rismprm%progress         = 1
-    volfmt                   = 'ccp4'
+    volfmt                   = 'mrc'
 
     !charge smear
     rismprm%chargeSmear = 1d0
@@ -1680,8 +1680,8 @@ contains
 
     ! Ensure that an apropriate file format has been chosen for
     ! volumetric output.
-    if (.not. (volfmt .eq. "ccp4" .or. volfmt .eq. "dx" .or. volfmt .eq. "xyzv")) then
-       call rism_report_error("Only 'ccp4', 'dx', and 'xyzv' volumetric data formats are supported")
+    if (.not. (volfmt .eq. "mrc" .or. volfmt .eq. "dx" .or. volfmt .eq. "xyzv")) then
+       call rism_report_error("Only 'mrc', 'dx', and 'xyzv' volumetric data formats are supported")
     end if
 
     ! Resize closure list to the appropriate size.

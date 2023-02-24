@@ -2,28 +2,25 @@
 
 #include "../include/dprec.fh"
 
-!> Support for binary format CCP4 volumetric data output.
-!! It involves a structured file header of 256 longwords, then
-!! symmetry information, then the map stored a 3-dimensional array.
-!! The header itself is broken into 56 longwords followed by ten
-!! 80-character text labels.
-!! Supports triclinic unit cells.
-!! TODO: There is parallel support for writing but this is done through
-!! communicating with the master node so it is very slow.
-module rism3d_ccp4
+module rism3d_mrc
   use safemem
   use rism_report_c
   implicit none
 
 contains
 
-  !> Write volumetric data to a file in CCP4 2014 format.  see
+  !> Write volumetric data to a file in MRC 2014 format.  see
   !!
   !! https://www.ccpem.ac.uk/mrc_format/mrc2014.php
   !!
   !! When writing in parallel, each process must call this function
   !! with its local data. Data transfer is handled internally.  We
   !! assume decomposition in the z-axis.
+  !!
+  !! MRC format is also compatible with the older CCP4
+  !! format. However, some readers may ignore MRC-specific information
+  !! such as the origin offset.
+  !!
   !! @param[in] file File name to write to.
   !! @param[in] data Data to write in a n(1)*n(2)*n(3) linear array.
   !! @param[in] grid Grid object.
@@ -31,8 +28,7 @@ contains
   !! @param[in] o_rank (optional) MPI process rank.
   !! @param[in] o_nproc (optional) MPI number of processes.
   !! @param[in] o_comm (optional) MPI communicator.
-  subroutine rism3d_ccp4_map_write (file, data, grid, solute, &
-             o_rank, o_nproc, o_comm)
+  subroutine rism3d_mrc_map_write (file, data, grid, solute, o_rank, o_nproc, o_comm)
     use constants_rism, only: PI
     use rism_util, only : freeUnit, rmExPrec
     use rism3d_grid_c
@@ -62,10 +58,10 @@ contains
     _REAL_ :: minValue, maxValue, meanValue, rmsd
     logical, parameter :: bigEndian = ichar(transfer(1,'a')) == 0
     ! Up to 80-character long label describing file origin.
-    character(len=*), parameter :: amberLabel = 'Amber 3D-RISM CCP4 map volumetric data.'
+    character(len=*), parameter :: amberLabel = 'Amber 3D-RISM MRC map volumetric data.'
     
 #ifdef RISM_DEBUG
-    write(0, *) "writeCCP4", rank
+    write(0, *) "writeMRC", rank
     call flush(6)
 #endif /*RISM_DEBUG*/
     
@@ -76,7 +72,7 @@ contains
     if (rank == 0) then
        ! Unfortunately gfortran does not support form='BINARY' for
        ! compiler-independent binary output, but that probably won't
-       ! be an issue for ccp4 readers.
+       ! be an issue for mrc readers.
        ! if (gfortran) then
        open(unit=unit, file=file, iostat=iostat, access='stream', status='replace', form='unformatted')
        ! else ! Intel Fortran
@@ -91,7 +87,7 @@ contains
     call MPI_REDUCE(minval(data), minValue, 1, MPI_DOUBLE, MPI_MIN, 0, comm, err)
     call MPI_REDUCE(maxval(data), maxValue, 1, MPI_DOUBLE, MPI_MAX, 0, comm, err)       
     call MPI_ALLREDUCE(sum(data), meanValue, 1, MPI_DOUBLE, MPI_SUM, comm, err)       
-    call MPI_ALLREDUCE(size(data), count, 1, MPI_INTEGER, MPI_SUM, 0, comm, err)
+    call MPI_ALLREDUCE(size(data), count, 1, MPI_INTEGER, MPI_SUM, comm, err)
     meanValue = meanValue/count
     call MPI_REDUCE(sum((meanValue - data)**2), rmsd, 1, MPI_DOUBLE, MPI_SUM, 0, comm, err)
     rmsd = sqrt(rmsd/count)
@@ -158,7 +154,7 @@ contains
        ! code for the type of extended header. One of CCP4, MCRO, SERI, AGAR, FEI1, HDF5
        ! We don't use the extended header so it shouldn't matter
        ! EXTTYP
-       write(unit) 'CCP4'
+       write(unit) 'MRCO'
 
        ! version of the MRC format
        ! The version of the MRC format that the file adheres to, specified as a 32-bit integer and calculated as:
@@ -231,8 +227,8 @@ contains
           call mpi_send(data, size(data), mpi_double, 0, 0, comm, err)
        end if
     end do
-    if (safemem_dealloc(wrk_data) /= 0) call rism_report_error("CCP4_MAP_WRITE: wrk_data deallocation failed")
+    if (safemem_dealloc(wrk_data) /= 0) call rism_report_error("MRC_MAP_WRITE: wrk_data deallocation failed")
 #endif /*defined(MPI)*/
-  end subroutine rism3d_ccp4_map_write
+  end subroutine rism3d_mrc_map_write
   
-end module rism3d_ccp4
+end module rism3d_mrc
