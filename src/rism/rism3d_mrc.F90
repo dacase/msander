@@ -168,14 +168,28 @@ contains
 
        ! The rest of EXTRA, words 29-49
        
+#if 1
        ! phase origin (pixels) or origin of subvolume (A)
-       ! This should be the same origin as for DX files
        ! ORIGIN
        ! dac: origin is always zero for periodic code:
        write(unit) real((/ 0., 0., 0. /), real32)
-       ! below is from non-periodic code; commented out here since 
-       !   msander is periodic-only
-       !   write(unit) real(solute%centerOfMass - grid%boxLength / 2, 4)
+#else
+       ! Here is Tyler's code from 2/24/23, which tries to find an optimum
+       ! origin for visualization:
+
+       ! For periodic solutes, there is no translation, but the
+       ! best view should have the CoM of the solute somewhere in
+       ! the grid. Translate the origin to choose the periodic
+       ! image that contains the CoM.
+
+       ! 1. Transform the CoM to fractional coordinates of the unit cell
+       nCellVec = transpose( matmul( grid%unitCellVectorsK, &
+                  (solute%centerOfMass, [3,1]) ) )
+       ! 2. Round down to the nearest whole unit cell vector
+       nCellVec = floor(nCellVec)
+       ! 3. Set the origin to whatever multiple of each unit cell vectors
+       write(unit) real( matmul(nCellVec, grid%unitCellVectorsR), real32)
+#endif
        
        ! Character string 'MAP ' to identify file type.
        ! MAP
