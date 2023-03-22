@@ -578,7 +578,7 @@ contains
       reflection_infile = ''
       xray_weight = 1.0
       solvent_mask_probe_radius = 0.9
-      solvent_mask_adjustment = 1.11
+      solvent_mask_adjustment = 1.1
       solvent_mask_reflection_outfile = ''
       solvent_mask_outfile = ''
       atom_selection_mask = '!@H='

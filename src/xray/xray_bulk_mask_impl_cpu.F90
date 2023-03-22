@@ -232,7 +232,9 @@ contains
     vbs = unit_cell%get_s(0, 1, 0)  ! h=0, k=1, l=0
     vcs = unit_cell%get_s(0, 0, 1)  ! h=0, k=0, l=1
 
-    temp_grid = resolution_high / 4.0
+    ! temp_grid = resolution_high / 4.0
+    ! Afonine change, 3/23: resolution-indepedent grid spacing
+    temp_grid = 0.6
     na = adjust_gridding((int(a / temp_grid)/2)*2+1, 5)
     nb = adjust_gridding((int(b / temp_grid)/2)*2+1, 5)
     nc = adjust_gridding((int(c / temp_grid)/2)*2+1, 5)
