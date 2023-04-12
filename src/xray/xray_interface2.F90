@@ -157,13 +157,13 @@ contains
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
     end if
-    ASSERT(size(grad_xyz, 2) == size(atom_selection_indices))
+    ASSERT(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
 #ifndef MPI
     ! compute norm of gradient from Amber, and from xray: this
     !   information could be used to estimate xray_weight:
     if ( current_step == 0 ) then
-       gradnorm_amber = norm2(force(:,atom_selection_indices))
+       gradnorm_amber = norm2(force(:,non_bulk_atom_indices))
        gradnorm_xray  = norm2(grad_xyz(:,:))
        write(6,'(a,3e12.5)') '| gradient norms, amber/xray: ', &
           gradnorm_amber, gradnorm_xray, gradnorm_amber/gradnorm_xray
@@ -241,7 +241,7 @@ contains
     abs_Fobs = abs(Fobs)
     allocate(abs_Fcalc(n_hkl))
     
-    call init_target(target, resolution, n_work, abs_Fobs, sigma_Fobs, target_meta_update_period)
+    call init_target(target, resolution, n_work, abs_Fobs, target_meta_update_period)
     call init_bulk(bulk_model, mask_update_period, scale_update_period, minval(resolution), hkl, &
         & unit_cell, atom_atomic_number(non_bulk_atom_indices), k_sol, b_sol, &
         & solvent_mask_adjustment, solvent_mask_probe_radius &
