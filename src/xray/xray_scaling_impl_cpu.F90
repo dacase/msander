@@ -29,10 +29,11 @@ contains
   ! Public functions/subroutines  !
   ! - - - - - - - - - - - - - - - !
   
-  subroutine init(resolution, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
+  subroutine init(resolution, reciprocal_norms, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
    
     implicit none
     real(real_kind), intent(in) :: resolution(:)
+    real(real_kind), intent(in) :: reciprocal_norms(3)
     integer, intent(in) :: num_work_flags
     integer, intent(in) :: hkl(3, size(resolution))
   
@@ -64,7 +65,7 @@ contains
       min_bin_size_value = 50
     end if
     
-    call init_impl(resolution, num_work_flags, hkl, max_resolution_bins_value, n_reflections_in_worst_resolution_bin_value, min_bin_size_value)
+    call init_impl(resolution, reciprocal_norms, num_work_flags, hkl, max_resolution_bins_value, n_reflections_in_worst_resolution_bin_value, min_bin_size_value)
     
   end subroutine init
   
@@ -97,13 +98,18 @@ contains
     ASSERT(all(k_aniso >= 0))
     !ASSERT(all(k_bulk >= 0))
     !ASSERT(all(k_bulk <= 1))
+
+    k_bulk = 0
+    k_iso = 1
+    k_iso_exp = 1
+    k_aniso = 1
     
     r_work = calc_r_factor(absFobs(:n_work), abs(k_iso(:n_work) * k_iso_exp(:n_work) * k_aniso(:n_work) * (Fprot(:n_work) + k_bulk(:n_work) * Fbulk(:n_work))))
 
     do i = 1, 2
-      updated = update_k_iso_exp(absFobs, k_iso * k_aniso * abs(Fprot + k_bulk * Fbulk), neg_s_norm2_div4, r_work)
+      updated = update_k_iso_exp(absFobs, k_iso, abs(Fprot + k_bulk * Fbulk), neg_s_norm2_div4, r_work)
       updated = update_k_bulk_k_iso(absFobs, Fprot, Fbulk, neg_s_norm2_div4, k_bulk_bin, k_iso_bin, r_work)
-      updated = update_k_iso_exp(absFobs, k_iso * k_aniso * abs(Fprot + k_bulk * Fbulk), neg_s_norm2_div4, r_work)
+      updated = update_k_iso_exp(absFobs, k_iso, abs(Fprot + k_bulk * Fbulk), neg_s_norm2_div4, r_work)
     end do
     updated = update_k_aniso(absFobs, k_iso * k_iso_exp * abs(Fprot + k_bulk * Fbulk), hkl(1,:), hkl(2,:), hkl(3,:), r_work)
     
@@ -156,6 +162,7 @@ contains
     if (allocated(k_iso)) deallocate(k_iso)
     if (allocated(k_iso_exp)) deallocate(k_iso_exp)
     if (allocated(k_aniso)) deallocate(k_aniso)
+    if (allocated(MVcryst_base)) deallocate(MVcryst_base)
     
   end subroutine finalize
   
@@ -173,6 +180,19 @@ contains
             Uaniso(4) * h * k * 2 + Uaniso(5) * h * l * 2 + Uaniso(6) * k * l * 2))
 
   end function calc_k_aniso
+
+  function calc_k_aniso_from_V(Vaniso, V_base) result(result)
+    real(real_kind), intent(in) :: V_base(:, :)  !< MVcryst_base array
+    real(real_kind), intent(in) :: Vaniso(12)
+    real(real_kind) :: result(size(V_base(1, :)))
+    integer :: i
+
+    result = 1.0_real_kind
+    do i = 1, 12
+      result = result + Vaniso(i) * V_base(i, :)
+    end do
+
+  end function calc_k_aniso_from_V
   
   function calc_k_iso_bin(absFobs, absFcalc) result(result)
     use xray_pure_utils, only: calc_k_overall
@@ -230,6 +250,30 @@ contains
     Uaniso = matmul(MUcryst_inv, b) ! in Phenix it is u_star  multiplied by (-2 *pi *pi)
   
   end function calc_Uaniso
+
+  function calc_Vaniso(absFobs, absFcalc, V_base) result(Vaniso)
+    implicit none
+    real(real_kind), intent(in) :: absFobs(:)
+    real(real_kind), intent(in) :: absFcalc(size(absFobs))
+    real(real_kind), intent(in) :: V_base(12, size(absFobs))
+    real(real_kind) :: Vaniso(12)
+    real(real_kind) :: b(12)
+    real(real_kind) :: MVcryst_inv(12, 12)
+    real(real_kind) :: b_vector_base(size(absFobs))
+    integer :: i
+
+    b_vector_base = (absFobs - absFcalc) * absFcalc / (size(absFobs) ** 2)
+
+    b = 0.0_real_kind
+    do i = 1, 12
+      b(i) = sum(b_vector_base * V_base(i, :))
+    end do
+
+    MVcryst_inv = init_MVcryst_inv(absFcalc, V_base)
+
+    Vaniso = matmul(MVcryst_inv, b)
+
+  end function calc_Vaniso
   
   function count_high_resolution_reflexes(resolution) result(result)
     
@@ -256,7 +300,38 @@ contains
     end do
   
   end function count_high_resolution_reflexes
-  
+
+  subroutine grid_search_k_iso_exp(absFobs, absFcalc, neg_s_norm2_div4, b_lower_limit, factor_kb, decay_kb)
+    use xray_pure_utils, only: calc_unscaled_r_factor, calc_k_overall
+
+    real(real_kind), intent(in) :: absFobs(:)
+    real(real_kind), intent(in) :: absFcalc(size(absFobs))
+    real(real_kind), intent(in) :: neg_s_norm2_div4(size(absFobs))
+    real(real_kind), intent(in) :: b_lower_limit
+
+    real(real_kind), intent(out) :: factor_kb
+    real(real_kind), intent(out) :: decay_kb
+
+    real(real_kind) :: factor_test, decay_test
+    real(real_kind) :: r_kb, r_test
+    integer :: i
+
+    factor_kb = 1
+    decay_kb = 0
+
+    r_kb = 1.0e10
+    do i = 0, 200
+      decay_test = b_lower_limit + i * 1.0
+      factor_test = calc_k_overall(absFobs, exp(decay_test * neg_s_norm2_div4) * absFcalc)
+      r_test = calc_unscaled_r_factor(absFobs, calc_k_iso_exp(neg_s_norm2_div4, factor_test, decay_test) * absFcalc)
+      if (r_test < r_kb) then
+        factor_kb = factor_test
+        decay_kb = decay_test
+        r_kb = r_test
+      end if
+    end do
+  end subroutine grid_search_k_iso_exp
+
   subroutine grid_search_k_bulk(absFobs, Fprot, Fbulk, k_bulk_grid, k_bulk, r, k_overall, k_upper_limit)
     use xray_pure_utils, only: calc_r_factor, calc_unscaled_r_factor, calc_k_overall
     implicit none
@@ -304,13 +379,14 @@ contains
     end do
   
   end subroutine grid_search_k_bulk
-  
-  subroutine init_impl(resolution, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
+
+  subroutine init_impl(resolution, reciprocal_norms, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
  
     use xray_pure_utils, only : create_logspace_resolution_bins, assign_resolution_bin_indices, set_start_size_from_bin_index, sorted
     
     implicit none
     real(real_kind), intent(in) :: resolution(:)
+    real(real_kind), intent(in) :: reciprocal_norms(3)
     integer, intent(in) :: num_work_flags
     integer, intent(in) :: hkl(3, size(resolution))
     
@@ -354,7 +430,7 @@ contains
     ! Assign resolution bin to work flags
     call assign_resolution_bin_indices(&
         resolution(:n_work), &
-        sorted_resolution(bin_start(:n_resolution_bins) + bin_size(:n_resolution_bins) - 1), &
+        sorted_resolution(bin_start(:n_resolution_bins)), &
         hkl_scale_resolution_bin(:n_work) &
         )
 
@@ -368,7 +444,7 @@ contains
     ! Assign resolution bin to free flags
     call assign_resolution_bin_indices(&
         resolution(n_work + 1:), &
-        sorted_resolution(bin_start(:n_resolution_bins) + bin_size(:n_resolution_bins) - 1), &
+        sorted_resolution(bin_start(:n_resolution_bins)), &
         hkl_scale_resolution_bin(n_work + 1:) &
         )
     
@@ -391,7 +467,7 @@ contains
         )
     
     ! Initialize scaling arrays
-    k_bulk = 1
+    k_bulk = 0
     k_iso = 1
     k_iso_exp = 1
     k_aniso = 1
@@ -400,6 +476,16 @@ contains
         hkl(1, :n_work), &
         hkl(2, :n_work), &
         hkl(3, :n_work) &
+        )
+
+    allocate(MVcryst_base(12, size(resolution)))
+
+    call init_MVcryst_base(&
+        hkl(1, :), &
+        hkl(2, :), &
+        hkl(3, :), &
+        resolution(:) * 2.0_real_kind, &
+        reciprocal_norms &
         )
   
   end subroutine init_impl
@@ -466,7 +552,64 @@ contains
     MUcryst_inv = inverse(Ucryst)
   
   end subroutine init_MUcryst_inv
-  
+
+  subroutine init_MVcryst_base(h, k, l, resolution, reciprocal_norms)
+    implicit none
+    integer, intent(in) :: h(:) !< Miller indices
+    integer, intent(in) :: k(:) !< Miller indices
+    integer, intent(in) :: l(:) !< Miller indices
+    real(real_kind), intent(in) :: resolution(:)
+    real(real_kind), intent(in) :: reciprocal_norms(3)
+
+    ! Preconditions
+    call check_precondition(size(h) == size(k))
+    call check_precondition(size(h) == size(l))
+    call check_precondition(size(h) == size(resolution))
+
+    MVcryst_base(1, :) = h ** 2 * reciprocal_norms(1) **2
+    MVcryst_base(2, :) = h ** 2 * resolution ** 2 * reciprocal_norms(1) **2
+    MVcryst_base(3, :) = k ** 2 * reciprocal_norms(2) **2
+    MVcryst_base(4, :) = k ** 2 * resolution ** 2 * reciprocal_norms(2) **2
+    MVcryst_base(5, :) = l ** 2 * reciprocal_norms(3) **2
+    MVcryst_base(6, :) = l ** 2 * resolution ** 2 * reciprocal_norms(3) **2
+    MVcryst_base(7, :) = k * l * reciprocal_norms(2) * reciprocal_norms(3)
+    MVcryst_base(8, :) = k * l * resolution ** 2 * reciprocal_norms(2) * reciprocal_norms(3)
+    MVcryst_base(9, :) = h * l * reciprocal_norms(1) * reciprocal_norms(3)
+    MVcryst_base(10, :) = h * l * resolution ** 2 * reciprocal_norms(1) * reciprocal_norms(3)
+    MVcryst_base(11, :) = h * k * reciprocal_norms(1) * reciprocal_norms(2)
+    MVcryst_base(12, :) = h * k * resolution ** 2 * reciprocal_norms(1) * reciprocal_norms(2)
+    MVcryst_base(7:12, :) = MVcryst_base(7:12, :) * 2.0_real_kind
+  end subroutine init_MVcryst_base
+
+  function init_MVcryst_inv(absFcalc, V_base) result(MVcryst_inv)
+    use xray_pure_utils, only: inverse
+    implicit none
+    real(real_kind), intent(in) :: absFcalc(:), V_base(:, :)
+
+    real(real_kind) :: Vcryst(12, 12), MVcryst_inv(12, 12)
+    integer :: i, j
+
+    ! Preconditions
+    call check_precondition(size(V_base(1, :)) == size(absFcalc))
+    call check_precondition(size(V_base(:, 1)) == 12)
+
+    do i = 1, 12
+      do j = i, 12
+        Vcryst(i, j) = sum(absFcalc(:) ** 2 * V_base(i, :) * V_base(j, :))
+        if (i /= j) then
+          Vcryst(j, i) = Vcryst(i, j)
+        end if
+      end do
+    end do
+
+!    Vcryst(7:12, :) = Vcryst(7:12, :) * 2
+!    Vcryst(:, 7:12) = Vcryst(:, 7:12) * 2
+    Vcryst = Vcryst / size(absFcalc) ** 2
+
+    MVcryst_inv = inverse(Vcryst)
+
+  end function init_MVcryst_inv
+
   subroutine populate_k_bulk_linear_interpolation(absFobs, Fprot, Fbulk, k_bulk_bin, neg_s_norm2_div4, test_k_bulk)
     use xray_pure_utils, only: calc_r_factor, linear_interpolation
     implicit none
@@ -539,20 +682,28 @@ contains
     
     real(real_kind), intent(in) :: absFobs(:)
     real(real_kind), intent(in) :: absFcalc(size(absFobs))
+    real(real_kind) :: k_aniso_V(size(absFobs))
     integer, dimension(size(absFobs)), intent(in) :: h, k, l  !< Miller indices
     real(real_kind), intent(inout) :: r_factor
-    real(real_kind) :: Uaniso(6)
-    real(real_kind) :: r
+    real(real_kind) :: Uaniso(6), Vaniso(12)
+    real(real_kind) :: r_U, r_V
     logical :: updated
     
     updated = .FALSE.
     
     Uaniso = calc_Uaniso(absFobs(:n_work), absFcalc(:n_work), h(:n_work), k(:n_work), l(:n_work))
-    r = calc_r_factor(absFobs(:n_work), calc_k_aniso(Uaniso, h(:n_work), k(:n_work), l(:n_work)) * absFcalc(:n_work))
-    
-    if (r < r_factor) then
-      r_factor = r
+    Vaniso = calc_Vaniso(absFobs(:n_work), absFcalc(:n_work), MVcryst_base(:, :n_work))
+    r_U = calc_r_factor(absFobs(:n_work), calc_k_aniso(Uaniso, h(:n_work), k(:n_work), l(:n_work)) * absFcalc(:n_work))
+    k_aniso_V = calc_k_aniso_from_V(Vaniso, MVcryst_base)
+    r_V = calc_r_factor(absFobs(:n_work), k_aniso_V(:n_work) * absFcalc(:n_work))
+    if (r_U < r_factor) then
+      r_factor = r_U
       k_aniso = calc_k_aniso(Uaniso, h, k, l)
+      updated = .TRUE.
+    end if
+    if (r_V < r_factor .and. all(k_aniso_V > 0)) then
+      r_factor = r_V
+      k_aniso = k_aniso_V
       updated = .TRUE.
     end if
     
@@ -615,8 +766,8 @@ contains
 
     k_bulk_in_bin_smooth = smooth_k_bulk(k_bulk_in_bin, 1 / sqrt(abs(neg_s_norm2_div4(work_scale_resolution_bin_start) * 4)) )
     call populate_k_bulk_linear_interpolation(absFobs, Fprot, Fbulk, k_bulk_in_bin_smooth, neg_s_norm2_div4, test_k_bulk)
-    k_iso_in_bin = calc_k_iso_bin(absFobs, &
-            k_aniso * k_iso_exp * abs(Fprot + test_k_bulk * Fbulk))
+    ! k_iso_in_bin = calc_k_iso_bin(absFobs, &
+    !         k_aniso * k_iso_exp * abs(Fprot + test_k_bulk * Fbulk))
     absFcalc(:n_work) = k_iso_in_bin(hkl_scale_resolution_bin(:n_work)) * &
             k_aniso(:n_work) * k_iso_exp(:n_work) * &
             abs(Fprot(:n_work) + test_k_bulk(:n_work) * Fbulk(:n_work))
@@ -731,9 +882,9 @@ contains
       k_bulk = test_k_bulk
       r_work = test_r
 
-      ! TODO: investigate whehter this makes fit better, differs from cctbx
-      k_bulk_bin = test_k_bulk_bin
-      k_iso_bin = test_k_iso_bin
+      ! TODO: investigate whether this makes fit better, differs from cctbx
+      ! k_bulk_bin = test_k_bulk_bin
+      ! k_iso_bin = test_k_iso_bin
       ! END TODO
     end if
 
@@ -742,33 +893,46 @@ contains
     
   end function update_k_bulk_k_iso_via_cubic_eq
   
-  function update_k_iso_exp(absFobs, absFcalc, neg_s_norm2_div4, r_factor) result(updated)
+  function update_k_iso_exp(absFobs, test_k_iso, absFcalc, neg_s_norm2_div4, r_factor) result(updated)
     use xray_pure_utils, only : exponential_fit_1d_analytical, calc_r_factor
     implicit none
     
     real(real_kind), intent(inout) :: r_factor
     real(real_kind), intent(in) :: absFobs(:)
+    real(real_kind), intent(in) :: test_k_iso(size(absFobs))
     real(real_kind), intent(in) :: absFcalc(size(absFobs))
     real(real_kind), intent(in) :: neg_s_norm2_div4(size(absFobs))
     
     ! https://github.com/cctbx/cctbx_project/blob/f476ac7af391357632757bf698f269333d1756e3/mmtbx/bulk_solvent/scaler.py#L225
     real(real_kind), parameter :: b_lower_limit = -100
     
-    real(real_kind) :: factor, decay
-    real(real_kind) :: r
+    real(real_kind) :: factor, decay, factor_kb, decay_kb
+    real(real_kind) :: r, r_kb
     logical :: updated
     
     updated = .FALSE.
     
     call exponential_fit_1d_analytical(absFobs(:n_work), absFcalc(:n_work), abs(neg_s_norm2_div4(:n_work)), factor, decay)
-    
-    if (decay > b_lower_limit) then
-      r = calc_r_factor(absFobs(:n_work), calc_k_iso_exp(neg_s_norm2_div4(:n_work), factor, decay) * absFcalc(:n_work))
-      if (r < r_factor) then
-        r_factor = r
-        k_iso_exp = calc_k_iso_exp(neg_s_norm2_div4, factor, decay)
-        updated = .TRUE.
-      end if
+
+    if (decay < b_lower_limit) then
+      return
+    end if
+
+    call grid_search_k_iso_exp(absFobs(:n_work), absFcalc(:n_work), neg_s_norm2_div4(:n_work), b_lower_limit, factor_kb, decay_kb)
+
+    r = calc_r_factor(absFobs(:n_work), calc_k_iso_exp(neg_s_norm2_div4(:n_work), factor, decay) * test_k_iso(:n_work) * absFcalc(:n_work))
+    r_kb = calc_r_factor(absFobs(:n_work), calc_k_iso_exp(neg_s_norm2_div4(:n_work), factor_kb, decay_kb) * test_k_iso(:n_work) * absFcalc(:n_work))
+
+    if (r_kb <= r) then
+      r = r_kb
+      factor = factor_kb
+      decay = decay_kb
+    end if
+
+    if (r < r_factor) then
+      r_factor = r
+      k_iso_exp = calc_k_iso_exp(neg_s_norm2_div4, factor, decay)
+      updated = .TRUE.
     end if
 
     ASSERT(all(k_iso_exp >= 0))

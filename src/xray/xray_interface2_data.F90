@@ -30,8 +30,8 @@ module xray_interface2_data_module
   !! Atomic data
   integer, save :: n_atom
   type(unit_cell_t), save :: unit_cell
-  logical, allocatable, save :: atom_selection(:)
-  integer, allocatable, save :: atom_selection_indices(:)
+  logical, allocatable, save :: atom_is_not_bulk(:)
+  integer, allocatable, save :: non_bulk_atom_indices(:)
   real(real_kind), allocatable, save :: atom_b_factor(:)
   integer, allocatable, save :: atom_scatter_type(:)
   real(real_kind), allocatable, save :: atom_occupancy(:)
