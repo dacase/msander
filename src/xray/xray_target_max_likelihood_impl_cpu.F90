@@ -23,15 +23,26 @@ contains
     real(real_kind), intent(in) :: abs_Fobs_free(:)
     integer, intent(in) :: ml_update_period_
     real(real_kind), parameter :: resolution_tolerance = 1e-5
-    integer :: i, bin_start, bin_size
-    integer :: num_free_flags
+    integer :: i, j, bin_start, bin_size
+    integer :: num_free_flags, num_free_flags_unique_resolution, bin_size_shift, bin_end
     integer :: num_resolution_bins
     integer, allocatable :: free_hkl_scale_resolution_bin(:)
+    integer, allocatable :: ml_bin_free_flag_doubles_count(:)
+    real(real_kind), allocatable :: d_star_sq_deltas(:)
     
     ml_update_period = ml_update_period_
     num_free_flags = size(abs_Fobs_free)
     n_work = size(resolution) - num_free_flags
-    num_resolution_bins = estimate_num_ml_resolution_bins(num_free_flags)
+    allocate(d_star_sq_deltas(num_free_flags))
+    d_star_sq_deltas(2:num_free_flags) = 1/resolution(n_work+1:size(resolution)-1)**2 - 1/resolution(n_work+2:)**2
+    d_star_sq_deltas(1) = 1e5  ! not really used, but just in case
+    num_free_flags_unique_resolution = 0
+    do i = 1, num_free_flags
+      if (d_star_sq_deltas(i) > resolution_tolerance ** 2) then
+        num_free_flags_unique_resolution = num_free_flags_unique_resolution + 1
+      end if
+    end do
+    num_resolution_bins = estimate_num_ml_resolution_bins(num_free_flags_unique_resolution)
     num_ml_resolution_bins = num_resolution_bins
     
     ! assert num_free_flags > 0
@@ -48,15 +59,42 @@ contains
 
     allocate(ml_bin_free_flag_start_index(num_resolution_bins))
     allocate(ml_bin_free_flag_count(num_resolution_bins))
+    allocate(ml_bin_free_flag_doubles_count(num_resolution_bins))
     
     call create_equisized_bins( &
-      num_free_flags, num_resolution_bins, &
+      num_free_flags_unique_resolution, num_resolution_bins, &
       ml_bin_free_flag_start_index, ml_bin_free_flag_count &
     )
+    ! Reverse bin sizes for unique resolution to match cctbx
+    ml_bin_free_flag_count(1:num_resolution_bins) = ml_bin_free_flag_count(num_resolution_bins:1:-1)
+    do i = 2, num_resolution_bins
+      ml_bin_free_flag_start_index(i) = ml_bin_free_flag_start_index(i-1) + ml_bin_free_flag_count(i-1)
+    end do
+    ! Repopulate ml_bin_free_flag_start_index(2:) and ml_bin_free_flag_count(2:) to include resolution duplicates
+    bin_end = num_free_flags
+    do i = num_resolution_bins, 1, -1
+      bin_size_shift = 0
+      do j = 0, ml_bin_free_flag_count(i) - 1
+        do while(d_star_sq_deltas(bin_end - j - bin_size_shift) <= resolution_tolerance ** 2)
+          bin_size_shift = bin_size_shift + 1
+        end do
+      end do
+      bin_end = bin_end - ml_bin_free_flag_count(i) - bin_size_shift
+      ml_bin_free_flag_doubles_count(i) = bin_size_shift
+    end do
+
+    deallocate(d_star_sq_deltas)
+    ! Fix the first resolution bin size
+    ml_bin_free_flag_count(1) = ml_bin_free_flag_count(1) + ml_bin_free_flag_doubles_count(1)
+
+    do i = 2, num_resolution_bins
+      ml_bin_free_flag_count(i) = ml_bin_free_flag_count(i) + ml_bin_free_flag_doubles_count(i)
+      ml_bin_free_flag_start_index(i) = ml_bin_free_flag_start_index(i-1) + ml_bin_free_flag_count(i-1)
+    end do
     
     call assign_resolution_bin_indices( &
         resolution(:n_work), &
-        resolution(n_work + ml_bin_free_flag_start_index + ml_bin_free_flag_count - 1) + resolution_tolerance, &
+        resolution(n_work + ml_bin_free_flag_start_index) - resolution_tolerance, &
         hkl_index_to_ml_resolution_bin &
     )
     
@@ -64,7 +102,7 @@ contains
     
     call assign_resolution_bin_indices(&
         resolution(n_work + 1:), &
-        resolution(n_work + ml_bin_free_flag_start_index + ml_bin_free_flag_count - 1) + resolution_tolerance, &
+        resolution(n_work + ml_bin_free_flag_start_index) - resolution_tolerance, &
         free_hkl_scale_resolution_bin &
     )
 

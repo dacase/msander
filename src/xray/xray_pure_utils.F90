@@ -582,21 +582,21 @@ contains
   end subroutine create_equiwide_bins
   
   
-  subroutine assign_resolution_bin_indices(resolution, max_bin_resolution, resolution_bin_index)
+  subroutine assign_resolution_bin_indices(resolution, min_bin_resolution, resolution_bin_index)
     real(real_kind), intent(in) :: resolution(:)
-    real(real_kind), intent(in) :: max_bin_resolution(:)
+    real(real_kind), intent(in) :: min_bin_resolution(:)
     integer, intent(out) :: resolution_bin_index(size(resolution))
     
     integer :: i, j
     
     ! Preconditions:
     ASSERT(is_sorted(resolution))
-    ASSERT(is_sorted(max_bin_resolution))
+    ASSERT(is_sorted(min_bin_resolution))
     
-    i = 1 ! bin index
-    do j = 1, size(resolution)
-      if (resolution(j) > max_bin_resolution(i)) then
-        i = min(i + 1, size(max_bin_resolution))
+    i = size(min_bin_resolution) ! bin index
+    do j = size(resolution), 1, -1
+      if (resolution(j) < min_bin_resolution(i)) then
+        i = max(i - 1, 1)
       end if
       resolution_bin_index(j) = i
     end do

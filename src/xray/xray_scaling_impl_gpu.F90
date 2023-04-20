@@ -15,10 +15,11 @@ module xray_scaling_impl_gpu_module
 
 contains
 
-  subroutine init(resolution, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
+  subroutine init(resolution, reciprocal_norms, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
     use xray_scaling_impl_cpu_module, only : cpu_init => init
     implicit none
     real(real_kind), intent(in) :: resolution(:)
+    real(real_kind), intent(in) :: reciprocal_norms(3)
     integer, intent(in) :: num_work_flags
     integer, intent(in) :: hkl(3, size(resolution))
 
@@ -27,7 +28,7 @@ contains
     integer, intent(in), optional :: n_reflections_in_worst_resolution_bin
     integer, intent(in), optional :: min_bin_size
 
-    call cpu_init(resolution, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
+    call cpu_init(resolution, reciprocal_norms, num_work_flags, hkl, max_resolution_bins, n_reflections_in_worst_resolution_bin, min_bin_size)
     call gpu_init()
   end subroutine init
 
