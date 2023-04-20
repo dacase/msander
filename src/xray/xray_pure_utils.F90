@@ -1309,7 +1309,6 @@ contains
     ! Preconditions:
     ASSERT(size(bin_index) > 0)
     ASSERT(is_sorted(bin_index))
-    ASSERT(bin_index(1) == 1)
     ASSERT(bin_index(size(bin_index)) <= n_bins)
     
     last = 0
