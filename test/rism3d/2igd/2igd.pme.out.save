@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 03/05/2022 at 21:11:10
+| Run on 04/20/2023 at 12:07:45
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/rism3d/2igd
+| Working directory: /home/case/msander/test/rism3d/2igd
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -124,9 +124,9 @@ Ewald parameters:
      Cutoff=    8.000   Tol   = 0.100E-04
      Ewald Coefficient =  0.34864
      Interpolation order =    4
-| Running OpenMP with   8 threads
-| Running RISM OpenMP with   8 threads
-| calling fftw_plan_with_nthreads( 8)
+| Running OpenMP with   1 threads
+| Running RISM OpenMP with   1 threads
+| calling fftw_plan_with_nthreads( 1)
 3D-RISM:
      closure   =  KH      
      solvcut   =   8.00000
@@ -139,7 +139,7 @@ Ewald parameters:
      zerofrc   =         1
      apply_rism=         1
      rismnrespa=         1
-     write_thermo   =    0, volfmt  =  ccp4    
+     write_thermo   =    0, volfmt  =  mrc     
      saveprogress   =    0, ntwrism      =   -1, verbose      =    1
      progress  =         1
      chargeSmear   = 1.000
@@ -231,36 +231,35 @@ defa
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (70.42% of List )
-|                Other                      0.01 (29.58% of List )
-|                   Short_ene time             0.03 (98.03% of Direc)
-|                   Other                      0.00 ( 1.97% of Direc)
-|                Direct Ewald time          0.04 (61.81% of Ewald)
-|                Adjust Ewald time          0.00 ( 5.03% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 8.24% of Recip)
-|                   Fill charge grid           0.00 (14.84% of Recip)
-|                   Scalar sum                 0.00 ( 6.04% of Recip)
-|                   Grad sum                   0.00 (15.38% of Recip)
-|                   FFT time                   0.01 (55.49% of Recip)
-|                Recip Ewald time           0.02 (31.60% of Ewald)
-|                Other                      0.00 ( 1.39% of Ewald)
-|                LJ Grid time               6.12 (36.17% of 3D-RI)
-|                      FFTB time                  0.20 ( 4.62% of R1RIS)
-|                      HUVK time                  0.45 (10.14% of R1RIS)
-|                      RESID time                 0.16 ( 3.68% of R1RIS)
-|                      CLOSURE time               0.48 (10.87% of R1RIS)
-|                      FFT time                   2.55 (57.93% of R1RIS)
-|                         LAPACK time                0.41 (72.96% of MDIIS)
-|                         DATA time                  0.15 (26.77% of MDIIS)
-|                      MDIIS time                 0.56 (12.72% of R1RIS)
-|                   R1RISM time                4.41 (100.0% of RXRIS)
-|                RXRISM time                4.41 (26.09% of 3D-RI)
-|                FF time                    6.33 (37.41% of 3D-RI)
-|             3D-RISM time              16.91 (99.54% of Nonbo)
-|          Nonbond force             16.99 (100.0% of Force)
-|       Force time                17.00 (100.0% of Runmd)
-|    Runmd Time                17.01 (99.14% of Total)
-| Total time                17.15 (100.0% of ALL  )
+|                Build the list             0.01 (67.86% of List )
+|                Other                      0.00 (32.14% of List )
+|                   Short_ene time             0.02 (98.66% of Direc)
+|                   Other                      0.00 ( 1.34% of Direc)
+|                Direct Ewald time          0.02 (70.22% of Ewald)
+|                Adjust Ewald time          0.00 ( 3.76% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 7.32% of Recip)
+|                   Fill charge grid           0.00 (12.20% of Recip)
+|                   Scalar sum                 0.00 ( 7.32% of Recip)
+|                   Grad sum                   0.00 (12.20% of Recip)
+|                   FFT time                   0.00 (60.98% of Recip)
+|                Recip Ewald time           0.01 (25.71% of Ewald)
+|                LJ Grid time              25.94 (41.75% of 3D-RI)
+|                      FFTB time                  0.21 ( 2.13% of R1RIS)
+|                      HUVK time                  1.09 (11.27% of R1RIS)
+|                      RESID time                 1.95 (20.17% of R1RIS)
+|                      CLOSURE time               2.07 (21.42% of R1RIS)
+|                      FFT time                   2.64 (27.31% of R1RIS)
+|                         LAPACK time                1.28 (74.97% of MDIIS)
+|                         DATA time                  0.43 (25.00% of MDIIS)
+|                      MDIIS time                 1.71 (17.68% of R1RIS)
+|                   R1RISM time                9.68 (100.0% of RXRIS)
+|                RXRISM time                9.68 (15.57% of 3D-RI)
+|                FF time                   26.49 (42.63% of 3D-RI)
+|             3D-RISM time              62.14 (100.0% of Nonbo)
+|          Nonbond force             62.19 (100.0% of Force)
+|       Force time                62.19 (100.0% of Runmd)
+|    Runmd Time                62.19 (99.88% of Total)
+| Total time                62.27 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -270,14 +269,14 @@ defa
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      17.01 Per Step(ms) =    5669.10
-|         ns/day =       0.02   seconds/ns = 5669100.00
+|     Elapsed(s) =      62.20 Per Step(ms) =   20731.67
+|         ns/day =       0.00   seconds/ns = **********
 | -----------------------------------------------------
 
-|           Job began  at 21:11:10.346  on 03/05/2022
-|           Setup done at 21:11:10.494  on 03/05/2022
-|           Run   done at 21:11:27.501  on 03/05/2022
-|     wallclock() was called   20354 times
+|           Job began  at 12:07:45.983  on 04/20/2023
+|           Setup done at 12:07:46.058  on 04/20/2023
+|           Run   done at 12:08:48.253  on 04/20/2023
+|     wallclock() was called   20346 times
 
 |3D-RISM memory allocation summary
 |Type          Maximum        Current   

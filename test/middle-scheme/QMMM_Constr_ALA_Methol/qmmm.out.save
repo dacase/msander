@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/07/2022 at 10:37:58
+| Run on 04/20/2023 at 12:07:31
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/middle-scheme/QMMM_Constr_ALA_Methol
+| Working directory: /home/case/msander/test/middle-scheme/QMMM_Constr_ALA_Methol
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -245,15 +245,15 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | QMMM:                              norbs =       52
 | QMMM:    diag iterations used for timing =       15
 | QMMM:
-| QMMM:              Internal diag routine = 0.004500 seconds
-| QMMM:                 Dspev diag routine = 0.071900 seconds
-| QMMM:                Dspevd diag routine = 0.008700 seconds
-| QMMM:                Dspevx diag routine = 0.027300 seconds
-| QMMM:                 Dsyev diag routine = 0.002700 seconds
-| QMMM:                Dsyevd diag routine = 0.002200 seconds
-| QMMM:                Dsyevr diag routine = 0.003700 seconds
+| QMMM:              Internal diag routine = 0.002500 seconds
+| QMMM:                 Dspev diag routine = 0.026700 seconds
+| QMMM:                Dspevd diag routine = 0.002500 seconds
+| QMMM:                Dspevx diag routine = 0.013500 seconds
+| QMMM:                 Dsyev diag routine = 0.002300 seconds
+| QMMM:                Dsyevd diag routine = 0.001800 seconds
+| QMMM:                Dsyevr diag routine = 0.002900 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.001100 seconds
+| QMMM:                Pseudo diag routine = 0.000700 seconds
 | QMMM:
 | QMMM: Using dsyevd routine (diag_routine=6).
 
@@ -292,8 +292,8 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 --------------------------------------------------------------------------------
 
 
- NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   377.25  PRESS =     0.0
- Etot   =      1809.8386  EKtot   =      2129.0738  EPtot      =      -319.2352
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =   292.26  PRESS =     0.0
+ Etot   =      1330.1666  EKtot   =      1649.4018  EPtot      =      -319.2352
  BOND   =        44.2720  ANGLE   =       118.2755  DIHED      =       114.6092
  1-4 NB =         0.0000  1-4 EEL =      2139.6308  VDWAALS    =      -599.4236
  EELEC  =     -2050.1411  EHBOND  =         0.0000  RESTRAINT  =         0.0000
@@ -315,7 +315,7 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 
  NSTEP =        3   TIME(PS) =       0.006  TEMP(K) =   190.42  PRESS =     0.0
  Etot   =      1260.9669  EKtot   =      1074.6750  EPtot      =       186.2919
- BOND   =        90.1318  ANGLE   =       560.5526  DIHED      =       114.1333
+ BOND   =        90.1317  ANGLE   =       560.5526  DIHED      =       114.1333
  1-4 NB =         0.0000  1-4 EEL =      2133.2552  VDWAALS    =      -597.1079
  EELEC  =     -2027.3737  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -87.2995
@@ -356,14 +356,14 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
  PM3ESCF=       -88.1946
 
  NSTEP =        9   TIME(PS) =       0.018  TEMP(K) =   223.47  PRESS =     0.0
- Etot   =      1396.3468  EKtot   =      1261.1559  EPtot      =       135.1909
+ Etot   =      1396.3469  EKtot   =      1261.1559  EPtot      =       135.1909
  BOND   =        85.4588  ANGLE   =       527.8056  DIHED      =       123.3109
  1-4 NB =         0.0000  1-4 EEL =      2128.3614  VDWAALS    =      -587.4098
  EELEC  =     -2051.6725  EHBOND  =         0.0000  RESTRAINT  =         0.0000
  PM3ESCF=       -90.6634
 
  NSTEP =       10   TIME(PS) =       0.020  TEMP(K) =   228.64  PRESS =     0.0
- Etot   =      1481.7151  EKtot   =      1290.3555  EPtot      =       191.3596
+ Etot   =      1481.7152  EKtot   =      1290.3555  EPtot      =       191.3596
  BOND   =        78.6648  ANGLE   =       589.7328  DIHED      =       124.5595
  1-4 NB =         0.0000  1-4 EEL =      2131.3726  VDWAALS    =      -588.9306
  EELEC  =     -2057.0615  EHBOND  =         0.0000  RESTRAINT  =         0.0000
@@ -393,45 +393,45 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (62.70% of List )
-|                Other                      0.00 (37.30% of List )
-|             List time                  0.01 (10.87% of Nonbo)
-|                   Short_ene time             0.04 (98.43% of Direc)
-|                   Other                      0.00 ( 1.57% of Direc)
-|                Direct Ewald time          0.04 (43.08% of Ewald)
-|                Adjust Ewald time          0.00 ( 1.74% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 5.62% of Recip)
-|                   Fill charge grid           0.01 (15.64% of Recip)
-|                   Scalar sum                 0.00 ( 8.08% of Recip)
-|                   Grad sum                   0.01 (13.36% of Recip)
-|                   FFT time                   0.03 (57.12% of Recip)
-|                Recip Ewald time           0.06 (55.08% of Ewald)
-|             Ewald time                 0.10 (89.13% of Nonbo)
-|          Nonbond force              0.12 (26.18% of Force)
-|                Other                      0.13 (100.0% of QMMM )
-|             QMMM setup                 0.13 (38.59% of QMMM )
-|             QMMM Ewald KTable          0.01 ( 2.95% of QMMM )
-|                   QMMM hcore QM-QM           0.00 (56.25% of QMMM )
-|                   QMMM hcore QM-MM           0.00 (43.75% of QMMM )
-|                QMMM hcore calc            0.00 ( 4.33% of QMMM )
-|                      QMMM Ewald Contrib         0.06 (78.76% of QMMM )
-|                      Other                      0.02 (21.24% of QMMM )
-|                   QMMM fock build            0.08 (74.16% of QMMM )
-|                   QMMM full matrix dia       0.02 (15.27% of QMMM )
-|                   QMMM pseudo matrix d       0.01 ( 6.92% of QMMM )
-|                   QMMM density build         0.00 ( 3.27% of QMMM )
-|                QMMM scf                   0.10 (93.95% of QMMM )
-|                QMMM ewald energy          0.00 ( 1.71% of QMMM )
-|             QMMM energy                0.11 (34.04% of QMMM )
-|             QMMM QM-QM force           0.01 ( 1.60% of QMMM )
-|             QMMM QM-MM force           0.01 ( 2.37% of QMMM )
-|             QMMM Ewald force           0.06 (18.49% of QMMM )
-|          QMMM                       0.33 (73.53% of Force)
-|       Force time                 0.44 (97.86% of Runmd)
-|       Verlet update time         0.01 ( 1.77% of Runmd)
-|    Runmd Time                 0.45 (95.54% of Total)
-|    Other                      0.02 ( 4.12% of Total)
-| Total time                 0.47 (100.0% of ALL  )
+|                Build the list             0.01 (58.59% of List )
+|                Other                      0.00 (41.41% of List )
+|             List time                  0.01 (12.21% of Nonbo)
+|                   Short_ene time             0.03 (98.55% of Direc)
+|                   Other                      0.00 ( 1.45% of Direc)
+|                Direct Ewald time          0.03 (48.60% of Ewald)
+|                Adjust Ewald time          0.00 ( 1.26% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 4.49% of Recip)
+|                   Fill charge grid           0.00 (12.92% of Recip)
+|                   Scalar sum                 0.00 ( 9.83% of Recip)
+|                   Grad sum                   0.00 (11.52% of Recip)
+|                   FFT time                   0.02 (60.96% of Recip)
+|                Recip Ewald time           0.04 (50.00% of Ewald)
+|             Ewald time                 0.07 (87.79% of Nonbo)
+|          Nonbond force              0.08 (29.76% of Force)
+|                Other                      0.06 (99.82% of QMMM )
+|             QMMM setup                 0.06 (29.36% of QMMM )
+|             QMMM Ewald KTable          0.01 ( 3.36% of QMMM )
+|                   QMMM hcore QM-QM           0.00 (57.50% of QMMM )
+|                   QMMM hcore QM-MM           0.00 (42.50% of QMMM )
+|                QMMM hcore calc            0.00 ( 5.35% of QMMM )
+|                      QMMM Ewald Contrib         0.04 (78.69% of QMMM )
+|                      Other                      0.01 (21.31% of QMMM )
+|                   QMMM fock build            0.05 (72.44% of QMMM )
+|                   QMMM full matrix dia       0.01 (17.03% of QMMM )
+|                   QMMM pseudo matrix d       0.01 ( 8.23% of QMMM )
+|                   QMMM density build         0.00 ( 1.88% of QMMM )
+|                QMMM scf                   0.07 (92.77% of QMMM )
+|                QMMM ewald energy          0.00 ( 1.87% of QMMM )
+|             QMMM energy                0.07 (39.23% of QMMM )
+|             QMMM QM-QM force           0.00 ( 1.89% of QMMM )
+|             QMMM QM-MM force           0.01 ( 2.73% of QMMM )
+|             QMMM Ewald force           0.04 (21.22% of QMMM )
+|          QMMM                       0.19 (69.87% of Force)
+|       Force time                 0.27 (96.67% of Runmd)
+|       Verlet update time         0.01 ( 2.98% of Runmd)
+|    Runmd Time                 0.28 (96.01% of Total)
+|    Other                      0.01 ( 3.58% of Total)
+| Total time                 0.29 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
@@ -441,11 +441,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 29
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.45 Per Step(ms) =      45.25
-|         ns/day =       3.82   seconds/ns =   22625.00
+|     Elapsed(s) =       0.28 Per Step(ms) =      28.20
+|         ns/day =       6.13   seconds/ns =   14100.00
 | -----------------------------------------------------
 
-|           Job began  at 10:37:58.584  on 06/07/2022
-|           Setup done at 10:37:58.606  on 06/07/2022
-|           Run   done at 10:37:59.058  on 06/07/2022
-|     wallclock() was called    4654 times
+|           Job began  at 12:07:31.769  on 04/20/2023
+|           Setup done at 12:07:31.780  on 04/20/2023
+|           Run   done at 12:07:32.062  on 04/20/2023
+|     wallclock() was called    4716 times

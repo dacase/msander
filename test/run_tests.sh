@@ -1,7 +1,7 @@
 #!/bin/sh
 
 date_string=`date +%Y-%m-%d_%H-%M-%S`
-logdir="../logs"
+logdir="$MSANDERHOME/logs"
 logprefix="${logdir}/${date_string}"
 logfile="${logprefix}.log"
 difffile="${logprefix}.diff"
