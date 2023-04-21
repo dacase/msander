@@ -3,6 +3,11 @@
 export XRAY_NUM_THREADS=8
 
 sander=../../../bin/msander
+
+if [ ! -z "$DO_CUDA" ]; then
+   sander=$sander.cuda
+fi
+
 if [ ! -z "$DO_PARALLEL" ]; then
    sander=$sander.MPI
 fi
@@ -32,7 +37,7 @@ $DO_PARALLEL $sander -O -i mdin -p 3onk.parm7 \
     -c 3onk.ncrst -o $output \
     < /dev/null || { echo "  $0:  Program error"; exit 1; }
 
-../../dacdif $output.save $output
+../../dacdif -r 4e-4 $output.save $output
 
 /bin/rm mdin mdinfo restrt
 

@@ -101,7 +101,7 @@ contains
     else
        call check_precondition(size(frac, 1) == 3)
        call pmemd_xray_bulk_mask_update_f_bulk(size(frac, 2), frac)
-       write(6,'(a)') '! updating fmask on gpu'
+       write(6,'(a)') '| updating fmask on gpu'
     end if
     
   end subroutine update_f_bulk
