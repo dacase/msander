@@ -1,0 +1,33 @@
+#!/bin/sh
+
+sander="../../bin/msander"
+sander="$AMBERHOME/bin/sander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+output=mdout.sync
+
+cat > gbin <<EOF
+ short md, nve ensemble
+ &cntrl
+   ntx=7, irest=1,
+   ntc=2, ntf=2, tol=0.0000001, 
+   nstlim=20, ntt=0,
+   ntpr=1, ntwr=10000, 
+   dt=0.001, vlimit=10.0, ig=71277,
+   ntwx=5, isynctraj=1, ioutfm=0, 
+ /
+ &ewald
+   nfft1 = 72, nfft2 = 60, nfft3 = 54,
+ /
+EOF
+
+$DO_PARALLEL $sander -O -i gbin -c md12.x -o $output -x md13.trj \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+../dacdif md13.trj.save md13.trj
+/bin/rm -f gbin restrt mdinfo
+exit 0 
+
