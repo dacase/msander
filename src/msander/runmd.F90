@@ -283,12 +283,18 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   _REAL_, intent(in) ::  skip(:)   ! N.B.: skip is really a logical variable,
                                    ! but we are just really passing an opaque
                                    ! pointer here
+  ! Used to save averaged velocity information for on-step output
   _REAL_ onstepvel(3*natom)
+  ! Used to save coordinates at time=t for on-step output
+  _REAL_ onstepcrd(3*natom)
+
 
 !------------------------------------------------------------------------------
 !  execution/initialization begins here:
 
   call initialize_runmd(x,ix,v)
+  onstepvel(:) = 0.d0
+  onstepcrd(:) = 0.d0
 
   if (init == 3 .or. nstlim == 0) then
   ! Make a first dynamics step. {{{
@@ -658,6 +664,16 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Update EMAP rigid domains
   if (temap) call emap_move()
 
+  ! Determine if we need to save the on-step coordinates
+  if (isynctraj.ne.0) then
+    ! Decision to write trajectory coords
+    if (ntwx > 0 .and. (mod(total_nstep+1, ntwx) == 0)) then
+      do i3 = istart3, iend3
+        onstepcrd(i3) = x(i3)
+      end do
+    end if
+  endif
+
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
     ! the step for updating x-T-x
@@ -826,13 +842,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Decision to write trajectory coords
   itdump = .false.
   if (ntwx > 0) itdump = (mod(total_nstep, ntwx) == 0)
-
   ! Decision to write velocities
   ivdump = .false.
   if (ntwv > 0) ivdump = (mod(total_nstep,ntwv) == 0)
   ! Determine whether we want to save the on-step velocities.
-  if ((ionstepvelocities.ne.0).and.ivdump) then
-    onstepvel(:) = 0.d0
+  if ((isynctraj.ne.0).and.ivdump) then
     i3 = (3*(istart-1)) + 1
     do j = istart, iend
       onstepvel(i3  ) = (v(i3  ) + vold(i3  )) / 2.d0
@@ -841,7 +855,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       i3 = i3 + 3
     enddo
   endif
-
 
   ! Decision to write forces
   ifdump = .false.
@@ -888,7 +901,10 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Distribute the coordinates, dipoles, and velocities as necessary
   call timer_stop_start(TIME_VERLET,TIME_DISTCRD)
   call timer_barrier(commsander)
-  if (.not. mpi_orig .and. numtasks > 1) call xdist(x, xx(lfrctmp), nr3+iscale)
+  if (.not. mpi_orig .and. numtasks > 1) then 
+     call xdist(x, xx(lfrctmp), nr3+iscale)
+     if (isynctraj.ne.0.and.itdump) call xdist(onstepcrd, xx(lfrctmp), natom)
+  endif
 
   ! DAC/knut change: force the coordinates to be the same on both masters.
   ! For certain compilers, addition may not be strictly commutative, so
@@ -1118,7 +1134,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
         end if
       end if
 #endif /* MPI */
-      call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
+      ! Dump coordinates:
+      if (isynctraj.ne.0) then
+        call corpac(onstepcrd, 1, nrx, MDCRD_UNIT, loutfm)
+      else
+        call corpac(x,1,nrx,MDCRD_UNIT,loutfm)
+      endif
       if (ntb > 0) call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
 
       ! If using variable QM solvent, try to write a new pdb file
@@ -1151,7 +1172,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       end if
 #endif /* MPI */
 
-      if (ionstepvelocities.eq.0) then
+      if (isynctraj.eq.0) then
          call corpac(v, 1, nrx, MDVEL_UNIT, loutfm)
       else
          call corpac(onstepvel, 1, nrx, MDVEL_UNIT, loutfm)

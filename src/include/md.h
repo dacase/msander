@@ -24,7 +24,7 @@ integer nrp,nspm,ig,ntx,ntcx,            &!5
       csurften,ninterface,no_ntt3_sync,nkija,idistr,baroscalingdir, &!84
       nucat,icnste,ntcnste,ntrelaxe,                     &!88
       mask_from_ref,hidx, reservoir_exchange_step,       &!91
-      ionstepvelocities                                   !92
+      isynctraj                                           !92
 
 
 common/mdi/nrp,nspm,ig, &                                               !3
@@ -41,7 +41,7 @@ common/mdi/nrp,nspm,ig, &                                               !3
       csurften,ninterface,no_ntt3_sync,nkija,idistr,baroscalingdir,     &!84
       nucat,icnste,ntcnste,ntrelaxe,                                    &!88
       mask_from_ref,hidx, reservoir_exchange_step,                      &!91
-      ionstepvelocities                                                  !92
+      isynctraj                                                          !92
 
 parameter (BC_MDI=92) ! Number of elements in the common block;
                       ! Be sure to update if you change things 
