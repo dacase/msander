@@ -38,7 +38,7 @@ openmp='no'
 ompflag=""
 ldflags=""
 fftw_flags=""
-mkl="no"
+mkl="yes"    # currently required
 installtype="serial"
 
 cuda="no"
