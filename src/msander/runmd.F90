@@ -728,6 +728,11 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 !------------------------------------------------------------------------------
   ! Step 3: update the positions, and apply the thermostat,  {{{
     ! the step for updating x-T-x
+  if (ntt == 10) then
+    do i3 = istart3, iend3
+      f(i3) = x(i3)
+    end do
+  else   ! default middle scheme code follows:
     do i3 = istart3, iend3
        f(i3) = x(i3)  ! temporarily(?) stores the starting coordinates
        x(i3) = x(i3) + v(i3)*dt5
@@ -750,6 +755,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5   ! completes the full-step update of x
     end do
+  endif
 
   call timer_stop(TIME_VERLET)
   ! }}}
