@@ -108,6 +108,9 @@ module runmd_module
   use sgld, only : trxsgld
 #endif
 
+  ! SINR (Stochastic Isokinetic Nose-Hoover RESPA integrator)
+  use sinr_t
+
   ! Andreas Goetz's adaptive QM/MM
   use qmmm_adaptive_module, only: adaptive_qmmm
 
@@ -143,6 +146,8 @@ module runmd_module
   ! the absolute step # of the REMD or MD simulation.
   integer total_nstep, total_nstlim
 
+  ! Stochastic Isokinetic Nose-Hoover RESPA integrator (SINR)
+  type(sinr) :: sinrdata ! Variables for SINR
 
 #include "../include/md.h"
 #include "box.h"
@@ -503,6 +508,37 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   if (rem /= 0 .and. mdloop >= 1) ekmh = remd_ekmh
 #endif
 
+  if (ntt == 10) then
+     !   initialize the SINR integrator: {{{
+
+#ifdef MPI
+    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtau, &
+                   sinrdata, commsander)
+#else
+    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtau, &
+                   sinrdata)
+#endif
+    if (irest == 1) then
+      call sinr_read_vels(v, sinrtau, sinrdata)
+    else
+      call init_sinr_vels(v, amass, sinrdata)
+    endif
+
+#ifdef MPI
+    if (numtasks > 1) then
+      call sinr_mpi_init(v,numtasks,sinrdata)
+    end if
+#endif
+    call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, &
+               xx(l96), xx(l97), xx(l98), xx(l99), qsetup, &
+               do_list_update,nstep)
+    call iLndt(v, amass, istart, iend, sinrdata)
+    call iLvdt(v, f, amass, istart, iend, sinrdata)
+    call iLudt(x, v, istart, iend, sinrdata)
+    ! }}}
+  endif
+
+
 !------------------------------------------------------------------------------
   ! The main loop for performing dynamics steps: at this point, the
   ! coordinates are a half-step "ahead" of the velocities; the variable
@@ -611,6 +647,21 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   if (isgld > 0) then
     call sgldw(natom, istart, iend, dtx, temp0, ener, amass, winv, &
                x, f, v)
+  else if (ntt == 10) then
+
+  ! Stochastic Isokinetic Nose-Hoover RESPA (SINR) integrator)
+    call iLvdt(v, f, amass, istart, iend, sinrdata)
+    call iLndt(v, amass, istart, iend, sinrdata)
+    call iLndt(v, amass, istart, iend, sinrdata)
+    call iLvdt(v, f, amass, istart, iend, sinrdata)
+    call iLudt(x, v, istart, iend, sinrdata)
+    if (mod(nstep+1, ntpr*nrespa) == 0) then
+      call sinr_temp(v, amass, istart3, iend3, sinrdata)
+    end if
+    if (mod(nstep+1, ntwr) == 0 .or. nstep+1 == nstlim) then
+      call sinr_write_vels(v, nstep, istart3, iend3, sinrtau, sinrdata)
+    end if
+
   else
   ! leap-frog middle scheme
   ! the 1st step for updating p
@@ -1440,9 +1491,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     ! Call nmrdcp to decrement the NMR counter, since this should not count as
     ! a real step (JMS 2/12). This is OK, since the counter got incremented at
     ! the very end of nmrcal, so we haven't already printed an unwanted value.
-    if (nmropt /= 0) then
-      call nmrdcp
-    end if
+    if (nmropt /= 0) call nmrdcp
 
     ! Call xdist such that master has all the velocities
     call xdist(v, xx(lfrctmp), 3*natom+iscale)
@@ -1451,6 +1500,9 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   endif
 #endif /* MPI */
   ! End Replica Exchange MD post-dynamics work }}}
+
+  ! Stochastic Isokinetic Nose-Hoover RESPA (SINR) integrator clean-up
+  if (ntt==10) call sinr_cleanup(sinrdata)
 
   ! Print averages {{{
 #ifdef MPI
