@@ -128,7 +128,7 @@ subroutine mdread1()
          mask_from_ref, &
          rdt, &
          ifqnt,ievb, profile_mpi, &
-         ipb, inp, &
+         ipb, inp, nkija, idistr, sinrtau, &
          gbneckscale, &
          gbalphaH,gbbetaH,gbgammaH, &
          gbalphaC,gbbetaC,gbgammaC, &
@@ -260,6 +260,7 @@ subroutine mdread1()
    temp0 = 300.0d0
    ntt = 3    ! was ithermostat=1
    gamma_ln = 5.d0  ! was therm_par = 5.0d0
+   sinrtau = 1.0
    plumed = 0
    plumedfile = 'plumed.dat'
 #ifdef LES
@@ -634,17 +635,20 @@ subroutine mdread1()
       end if
    end if
 
-   ! middle scheme is now the only scheme {
-   if (ntt .ne. 0 .and. ntt .ne. 2 .and. ntt .ne.  3) then
+   ! middle scheme or SINR are now the only thermostats:
+   if (ntt.ne.0 .and. ntt.ne.2 .and. ntt.ne.3 .and. ntt.ne.10) then
       write(6,'(1x,a,/)') &
-         'Middle scheme: ntt is only available for 0,2,3'
+         'Middle scheme/SINR: ntt is only available for 0,2,3 and 10'
       FATAL_ERROR
    end if
    if (gamma_ln < 0d0) then
       write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
       FATAL_ERROR
    end if
-   ! }
+   if (sinrtau < 0.5d0) then
+      write(6,'(1x,a,/)') 'sinrtau must be >= 0.5 when ntt = 10'
+      FATAL_ERROR
+   end if
 
    ! Now that we've read the input file, set up the defaults for variables
    ! whose values depend on other input values (ntb, cut)
