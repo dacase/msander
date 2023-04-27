@@ -270,10 +270,6 @@ Tyler Luchko (CSU Northridge)
 
 Vinícius Wilian D.
  Cruzeiro (UC San Diego)
-\begin_inset Newline newline
-\end_inset
-
-Madushanka Manathunga (Michigan State)
 \end_layout
 
 \end_inset
@@ -284,6 +280,10 @@ Madushanka Manathunga (Michigan State)
 \begin_layout Plain Layout
 
 \size small
+Madushanka Manathunga (Michigan State)
+\begin_inset Newline newline
+\end_inset
+
 Nikolai R.
  Skrynnikov (Purdue, SPbU)
 \begin_inset Newline newline
@@ -311,36 +311,6 @@ Saeed Izadi (Virginia Tech, Genentech)
 \end_inset
 
 Xiongwu Wu (NIH) 
-\begin_inset Newline newline
-\end_inset
-
- Holger Gohlke (D
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-"u
-\end_layout
-
-\end_inset
-
-sseldorf/FZ J
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-"u
-\end_layout
-
-\end_inset
-
-lich)
 \end_layout
 
 \begin_layout Plain Layout
@@ -358,8 +328,7 @@ Andriy Kovalenko (NINT)
 \begin_inset Newline newline
 \end_inset
 
- Peter A.
- Kollman (UC San Francisco)
+ 
 \end_layout
 
 \end_inset
@@ -632,7 +601,7 @@ Things are are problably gone for good, but which don't represent the best
 \end_layout
 
 \begin_layout Enumerate
-Things that might be useful, but really complicate the code: evb potentials,
+Things that might be useful, but really complicate the code: EVB potentials,
  some parts of adaptive QM/MM, nudged elastic band, constant pH and constant
  redox potential simulations.
 \end_layout
@@ -649,28 +618,28 @@ Key pieces of code that are still there, and being emphasized:
 
 \begin_deeper
 \begin_layout Enumerate
-* Periodic and non-periodic simulations, with all of Amber's GB models
+Periodic and non-periodic simulations, with all of Amber's GB models
 \end_layout
 
 \begin_layout Enumerate
-* 3D-RISM in periodic boundary conditions
+3D-RISM in periodic boundary conditions
 \end_layout
 
 \begin_layout Enumerate
-* QM/MM, including hooks to external codes
+QM/MM, including hooks to external codes
 \end_layout
 
 \begin_layout Enumerate
-* NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
+NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
  restraints include NVIDIA GPU-enabled capabilities)
 \end_layout
 
 \begin_layout Enumerate
-* Thermodynamic integration and non-equilibrium sampling methods
+Thermodynamic integration and non-equilibrium sampling methods
 \end_layout
 
 \begin_layout Enumerate
-* Replica exchange capabilities, except for constant pH and redox potential
+Replica exchange capabilities, except for constant pH and redox potential
  simulations
 \end_layout
 
@@ -2896,6 +2865,127 @@ ig
  will randomize this starting seed, based on the system clock.)
 \end_layout
 
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+10 Stochastic Isokinetic Nose-Hoover RESPA integrator 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Tuckerman13"
+literal "true"
+
+\end_inset
+
+.
+ A novel isokinetic integrator developed by Tuckerman and co-workers that
+ invokes an isokinetic constraint on the particle velocities combined with
+ 
+\emph on
+nkija
+\emph default
+ (see below) auxiliary thermostat velocities 
+\emph on
+v1
+\emph default
+ and 
+\emph on
+v2
+\emph default
+.
+ The integrator includes a stochastic component in the equations of motion,
+ which introduces white noise into the system, for the purpose of minimizing
+ resonance instabilities in the velocities, ultimately allowing for larger
+ RESPA steps.
+ The isokinetic constraint has the form 
+\begin_inset Formula $mv^{2}+\frac{L}{L+1}\sum_{i=1}^{L}Q_{1}v_{1i}^{2}=Lk_{B}T$
+\end_inset
+
+.
+ Here 
+\emph on
+L
+\emph default
+ is the number of additional thermostat degrees of freedom, defined in AMBER
+ as 
+\emph on
+nkija
+\emph default
+ (see below), and 
+\begin_inset Formula $Q_{1}$
+\end_inset
+
+is the thermostat mass, determined from 
+\emph on
+sinrtau
+\emph default
+ (below), 
+\emph on
+
+\begin_inset Formula $v$
+\end_inset
+
+
+\emph default
+ is the particle velocity and 
+\begin_inset Formula $v_{1}$
+\end_inset
+
+ is one of two auxiliary velocities (e.g.
+ thermostat velocities), and 
+\begin_inset Formula $m$
+\end_inset
+
+, 
+\begin_inset Formula $k_{B}$
+\end_inset
+
+, and 
+\begin_inset Formula $T$
+\end_inset
+
+, are the particle mass, Boltzmann constant, and system temperature (
+\emph on
+temp0
+\emph default
+), respectively.
+ In using this integrator, the system is placed in the isokinetic ensemble,
+ as such the velocities are NOT canonical and no thermodynamic observables
+ can be derived from them.
+ This will lead to anomalous temperature readings throughout the simulation
+ - for 1 thermostat degree of freedom (
+\emph on
+
+\begin_inset Formula $L$
+\end_inset
+
+
+\emph default
+ = 
+\emph on
+nkija
+\emph default
+ = 1) the temperature will appear about one-half the specified temperature
+ (
+\emph on
+temp0
+\emph default
+), and with additional thermostat DOF, the temperature will approach, but
+ never exceed, the desired temperature, 
+\emph on
+temp0.
+ 
+\emph default
+However, the particle coordinates ARE canonical and it can be said the configura
+tions obtained from a simulation were sampled from a Boltzmann distribution
+ at the specified temperature (
+\emph on
+temp0
+\emph default
+).
+\end_layout
+
 \end_deeper
 \begin_layout Labeling
 \labelwidthstring 00.00.0000
@@ -3291,6 +3381,110 @@ vlimit
  at room temperature.
  A warning message will be printed whenever the velocities are modified.
  Runs that have more than a few such warnings should be carefully examined.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+nkija
+\series bold
+
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+
+\series medium
+nkija
+\end_layout
+
+\end_inset
+
+ 
+\series default
+For use with 
+\emph on
+ntt=10
+\emph default
+.
+ This specifies the number of additional auxiliary velocity variables 
+\emph on
+v1
+\emph default
+ and 
+\emph on
+v2
+\emph default
+, which will total nkija
+\begin_inset Formula $\times$
+\end_inset
+
+
+\emph on
+v1
+\emph default
+ 
+\begin_inset Formula $+$
+\end_inset
+
+nkija
+\begin_inset Formula $\times$
+\end_inset
+
+
+\emph on
+v2 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Tuckerman13"
+literal "true"
+
+\end_inset
+
+.
+
+\emph default
+ Default is 1.
+\end_layout
+
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
+sinrtau
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+sinrtau
+\end_layout
+
+\end_inset
+
+ For the SINR (Stochastic Isokinetic Nose-Hoover RESPA) integrator (
+\emph on
+ntt=10
+\emph default
+), this specifies the time scale for determining the masses associated with
+ the two auxiliary velocity variables 
+\emph on
+v1
+\emph default
+ and 
+\emph on
+v2
+\emph default
+ (e.g.
+ thermostat velocities) and hence the magnitude of the coupling of the physical
+ velocities with the auxiliary velocities.
+ Generally this should be related to the time scale of the system.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Tuckerman13"
+literal "true"
+
+\end_inset
+
+ for more explanation.
+ Default is 1.0.
 \end_layout
 
 \begin_layout Subsection
