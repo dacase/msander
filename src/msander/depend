@@ -2916,6 +2916,7 @@ runmd.o: \
                     emap.o\
                     barostats.o\
                     random.o\
+                    sinr_t.o\
                     qmmm_adaptive_module.o\
                     parallel.h\
                     ../include/md.h\
@@ -2963,6 +2964,7 @@ runmd.LES.o: \
                     emap.o\
                     barostats.o\
                     random.o\
+                    sinr_t.o\
                     qmmm_adaptive_module.o\
                     parallel.h\
                     ../include/md.h\
@@ -3231,6 +3233,15 @@ short_ene.LES.o: \
 short_ene.LES.o:   short_ene.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ short_ene.F90
+
+sinr_t.o: \
+                    ../include/dprec.fh\
+                    random.o
+
+
+sinr_t.o:   sinr_t.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FNOOPTFLAGS) $(FFLAGS) -o $@ sinr_t.F90
 
 softcore.o: \
                     ../include/assert.fh\
