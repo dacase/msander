@@ -869,9 +869,7 @@ subroutine sander()
     ! For debugging, the charges must be copied at the start so that
     ! they can't change later.  Check that the system is neutral and
     ! print warning message adjust charges for roundoff error.
-    if (igb == 0 .and. ipb == 0 .and. iyammp == 0) then
-      call check_neutral(x(l15),natom)
-    end if
+    call check_neutral(x(l15),natom)
     call amrset(ig+1)
     call stack_setup()
 
