@@ -13,7 +13,7 @@ program add_pdb
 !  %COMMENT B-factor read from PDB file; DIMENSION(NATOM)
 !  %FORMAT(10F8.2)
 !
-!  %FLAG ATOM_NUMBER
+!  %FLAG ATOM_NUMBER   ! not written in this version
 !  %COMMENT Atom serial number from the PDB file
 !  %FORMAT(10I8)
 
@@ -81,8 +81,7 @@ program add_pdb
    
    character(len=4) :: name,resName,segID,element,prev_resName
    character(len=1) :: altLoc,chainID,iCode,prev_chainID,prev_iCode
-   character(len=5) :: serial
-   integer :: resSeq,prev_resSeq
+   integer :: resSeq,prev_resSeq,serial
    real :: xyz(3),occupancy,tempFactor
    real, allocatable :: coor(:,:)
    real :: d
@@ -197,7 +196,7 @@ program add_pdb
       if (buf(1:6)=='END   ') exit
       if (buf(1:6)=='ATOM  ' .or. buf(1:6)=='HETATM') then
          !  write(0,*) buf(1:70)
-         read(buf,'(6X,A5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
+         read(buf,'(6X,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
                serial,name,altLoc,resName,chainID,resSeq,iCode, &
                xyz,occupancy,tempFactor,segID,element
          pdb_natom=pdb_natom+1
@@ -268,7 +267,7 @@ program add_pdb
          end if
          atom_element(i) = element
          atom_bfactor(i) = tempFactor
-         read( serial, * ) atom_number(i)
+         atom_number(i) = serial
          atom_occupancy(i) = occupancy
       end if
    end do
@@ -297,7 +296,7 @@ program add_pdb
    !---------------------------------------------------------------------------
    ! Append new data to outfile
    
-   fmt='(20I4)'
+   fmt='(15I5)'
    write(out_lun,'(A)') &
          '%FLAG RESIDUE_NUMBER', &
          '%COMMENT Residue number (resSeq) read from PDB file; DIMENSION(NRES)'
@@ -346,12 +345,14 @@ program add_pdb
          '%FORMAT'//fmt
    write(out_lun,fmt) atom_bfactor
    
+#if 0
    fmt='(10I8)'
    write(out_lun,'(A)') &
          '%FLAG ATOM_NUMBER', &
          '%COMMENT atom serial number read from PDB file; DIMENSION(NATOM)', &
          '%FORMAT'//fmt
    write(out_lun,fmt) atom_number
+#endif
    
    close(out_lun)
    
