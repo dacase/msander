@@ -226,6 +226,8 @@ contains
                write(stdout,'(A)') 'Atom not found:'
                write(stdout,'(A)') trim(line)
                stop
+            ! else
+            !    write(stdout,'(a,a)') 'Found: ', line(1:54)
             end if
             if (atom_occupancy(i) >= 0) then
                ndup=ndup+1
@@ -241,7 +243,7 @@ contains
       end do
       nmiss = count(atom_occupancy==MISSING)
       if (nmiss>0) then
-         write(stdout,'(A,I4,A)') 'PDB: missing data for ',nmiss,' atoms.'
+         write(stdout,'(A,I7,A)') 'PDB: missing data for ',nmiss,' atoms.'
          j=0
          do i=1,num_atoms
             if (atom_occupancy(i)==MISSING) then
@@ -277,7 +279,7 @@ contains
       lname = adjustl(name)
       ! first find the matching residue; no need to match resname:
       do i=1,num_residues
-         if (resSeq==residue_number(ires) &
+         if ( mod(resSeq==residue_number(ires),10000)  &
                .and. chainID==residue_chainid(ires) &
                .and. iCode==residue_icode(ires)) then
             ! then find the matching atom name:
@@ -292,7 +294,7 @@ contains
          end if
          ires = ires + 1
       end do
-      atom_serial = -1
+      atom_serial = -1  ! not-found indicator
       return
    end function find_atom
 
