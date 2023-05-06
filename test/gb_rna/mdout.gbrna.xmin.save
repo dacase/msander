@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/09/2022 at 14:21:17
+| Run on 05/02/2023 at 14:56:07
 
-|   Executable path: ../../bin/msander
-| Working directory: /home/case/msander_intel/test/gb_rna
+|   Executable path: ../../bin/msander.MPI
+| Working directory: /home/case/msander/test/gb_rna
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -26,6 +26,14 @@ File Assignments:
 |INPDIP: inpdip                                                                
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
+
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
 
  
  Here is the input file:
@@ -49,7 +57,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags:                                                                        
+| Flags: MPI                                                                    
 |  *** cutoff > system size, list only builds once
 | Largest sphere to fit in unit cell has radius =   137.807
  NATOM  =     640 NTYPES =      14 NBONH =     220 MBONA  =     468
@@ -62,20 +70,22 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              233035
+|     Real              234955
 |     Hollerith           1942
 |     Integer            52841
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2034 kbytes
+|       Total             2049 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Note: ig = -1. Setting random seed to   537521 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   691026 based on wallclock
+|     and disabling the synchronization of random numbers between tasks
+|     to improve performance.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -115,6 +125,9 @@ LMOD:
      lbfgs_memory_depth           =       3
      matrix_vector_product_method = forward finite difference
      xmin_verbosity               =       0
+
+| MPI Timing options:
+|      profile_mpi =        0
 | Running OpenMP with   1 threads
 | Running RISM OpenMP with   1 threads
 
@@ -126,6 +139,14 @@ PDB 5DNB, Dickerson decamer
  begin time read from input coords =   130.000 ps
 
  Number of triangulated 3-point waters found:        0
+|  Atom division among processors:
+|         0     160     320     480     640
+|  Coordinate  division among processors:
+|         0     480     960    1440    1920
+
+     Sum of charges from parm topology file =     -18.0000
+|  Running AMBER/MPI version on    4 nodes
+
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -232,22 +253,22 @@ PDB 5DNB, Dickerson decamer
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.04 (19.16% of Gen B)
-|                Calc gb diag               0.08 (36.72% of Gen B)
-|                Calc gb off-diag           0.10 (44.12% of Gen B)
-|             Gen Born time              0.22 (100.0% of Nonbo)
-|          Nonbond force              0.22 (98.77% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 1.23% of Force)
-|       Force time                 0.22 (100.0% of Runmd)
-|    Runmd Time                 0.22 (93.59% of Total)
-|    Other                      0.01 ( 5.95% of Total)
-| Total time                 0.24 (100.0% of ALL  )
-
-| Number of list builds   :          0
+|                Calc gb radii              0.01 (22.49% of Gen B)
+|                Communicate gb radii       0.00 ( 1.36% of Gen B)
+|                Calc gb diag               0.01 (36.86% of Gen B)
+|                Calc gb off-diag           0.01 (39.30% of Gen B)
+|             Gen Born time              0.04 (100.0% of Nonbo)
+|          Nonbond force              0.04 (93.89% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 1.53% of Force)
+|          Other                      0.00 ( 3.82% of Force)
+|       Force time                 0.04 (100.0% of Runmd)
+|    Runmd Time                 0.04 (78.76% of Total)
+|    Other                      0.01 (20.44% of Total)
+| Total time                 0.05 (100.0% of ALL  )
 
 | Highest rstack allocated:          0
 | Highest istack allocated:          0
-|           Job began  at 14:21:17.510  on 06/09/2022
-|           Setup done at 14:21:17.522  on 06/09/2022
-|           Run   done at 14:21:17.746  on 06/09/2022
-|     wallclock() was called     281 times
+|           Job began  at 14:56:07.022  on 05/02/2023
+|           Setup done at 14:56:07.031  on 05/02/2023
+|           Run   done at 14:56:07.072  on 05/02/2023
+|     wallclock() was called     341 times
