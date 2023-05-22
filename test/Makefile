@@ -6,7 +6,7 @@ test.all: test.general test.rism test.xray test.nmr
 test.general:
 	-(cd dhfr && ./Run.dhfr)
 	-(cd dhfr && ./Run.dhfr.xmin)
-	-(cd dhfr && ./Run.dhfr_sync)
+	-(cd dhfr && ./Run.dhfr_synctraj)
 	-(cd gb8_trx && ./Run.trxox)
 	-(cd gb8_trx && ./Run.trxox_md)
 	-(cd tip4p && ./Run.tip4p)

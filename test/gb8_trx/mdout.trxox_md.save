@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/07/2022 at 10:20:02
+| Run on 05/02/2023 at 14:55:43
 
-|   Executable path: ../../bin/msander
-| Working directory: /home/case/msander_intel/test/gb8_trx
+|   Executable path: ../../bin/msander.MPI
+| Working directory: /home/case/msander/test/gb8_trx
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,6 +27,14 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
  
  Here is the input file:
  
@@ -43,7 +51,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags:                                                                        
+| Flags: MPI                                                                    
 |  *** cutoff > system size, list only builds once
 | Largest sphere to fit in unit cell has radius =   144.449
  NATOM  =    1654 NTYPES =      14 NBONH =     832 MBONA  =     838
@@ -57,13 +65,13 @@ File Assignments:
  Replacing prmtop screening parameters with GBn2 (igb=8) values
 
 |     Memory Use     Allocated
-|     Real              284653
+|     Real              289615
 |     Hollerith           5072
 |     Integer           102903
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2645 kbytes
+|       Total             2684 kbytes
 | Warning: ATOMIC_NUMBER section not found
 |          Guessing atomic numbers from masses for GB parameters
 |          Remake topology file with AmberTools 12 or add ATOMIC_NUMBERS
@@ -120,6 +128,9 @@ Molecular dynamics:
 SHAKE:
      ntc     =       2, jfastw  =       0
      tol     =   0.00000
+
+| MPI Timing options:
+|      profile_mpi =        0
 | Running OpenMP with   1 threads
 | Running RISM OpenMP with   1 threads
 
@@ -131,6 +142,14 @@ SHAKE:
  begin time read from input coords =  2405.010 ps
 
  Number of triangulated 3-point waters found:        0
+|  Atom division among processors:
+|         0     435     828    1254    1654
+|  Coordinate  division among processors:
+|         0    1305    2484    3762    4962
+
+     Sum of charges from parm topology file =      -4.0000
+|  Running AMBER/MPI version on    4 nodes
+
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -284,14 +303,16 @@ SHAKE:
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.41 (20.23% of Gen B)
-|                Calc gb diag               0.77 (38.41% of Gen B)
-|                Calc gb off-diag           0.83 (41.36% of Gen B)
-|             Gen Born time              2.01 (100.0% of Nonbo)
-|          Nonbond force              2.01 (99.57% of Force)
-|       Force time                 2.02 (99.80% of Runmd)
-|    Runmd Time                 2.03 (98.98% of Total)
-| Total time                 2.05 (100.0% of ALL  )
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Calc gb radii              0.08 (23.21% of Gen B)
+|                Calc gb diag               0.14 (39.61% of Gen B)
+|                Calc gb off-diag           0.13 (36.36% of Gen B)
+|             Gen Born time              0.34 (100.0% of Nonbo)
+|          Nonbond force              0.34 (98.86% of Force)
+|       Force time                 0.35 (99.46% of Runmd)
+|    Runmd Time                 0.35 (93.73% of Total)
+|    Other                      0.02 ( 6.21% of Total)
+| Total time                 0.37 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -301,11 +322,11 @@ SHAKE:
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       2.03 Per Step(ms) =     101.26
-|         ns/day =       0.85   seconds/ns =  101260.00
+|     Elapsed(s) =       0.35 Per Step(ms) =      17.50
+|         ns/day =       4.94   seconds/ns =   17505.00
 | -----------------------------------------------------
 
-|           Job began  at 10:20:02.580  on 06/07/2022
-|           Setup done at 10:20:02.601  on 06/07/2022
-|           Run   done at 10:20:04.626  on 06/07/2022
-|     wallclock() was called     513 times
+|           Job began  at 14:55:43.010  on 05/02/2023
+|           Setup done at 14:55:43.034  on 05/02/2023
+|           Run   done at 14:55:43.384  on 05/02/2023
+|     wallclock() was called     693 times

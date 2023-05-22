@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/09/2022 at 15:30:40
+| Run on 05/02/2023 at 14:56:12
 
-|   Executable path: ../../bin/msander
-| Working directory: /home/case/msander_intel/test/gb_rna
+|   Executable path: ../../bin/msander.MPI
+| Working directory: /home/case/msander/test/gb_rna
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -27,6 +27,14 @@ File Assignments:
 |RSTDIP: rstdip                                                                
 |INPTRA: inptraj                                                               
 
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
  
  Here is the input file:
  
@@ -44,7 +52,7 @@ File Assignments:
    1.  RESOURCE   USE: 
 --------------------------------------------------------------------------------
 
-| Flags:                                                                        
+| Flags: MPI                                                                    
 |  *** cutoff > system size, list only builds once
 | Largest sphere to fit in unit cell has radius =   137.807
  NATOM  =     640 NTYPES =      14 NBONH =     220 MBONA  =     468
@@ -57,13 +65,13 @@ File Assignments:
 
 
 |     Memory Use     Allocated
-|     Real              233035
+|     Real              234955
 |     Hollerith           1942
 |     Integer            52841
 |     Max Pairs              1
 |     nblistReal             0
 |     nblist Int             0
-|       Total             2034 kbytes
+|       Total             2049 kbytes
 
 | Note: 1-4 EEL scale factors were NOT found in the topology file.
 |       Using default value of 1.2.
@@ -111,6 +119,9 @@ Langevin dynamics temperature regulation:
 SHAKE:
      ntc     =       2, jfastw  =       0
      tol     =   0.00000
+
+| MPI Timing options:
+|      profile_mpi =        0
 | Running OpenMP with   1 threads
 | Running RISM OpenMP with   1 threads
 
@@ -122,6 +133,14 @@ PDB 5DNB, Dickerson decamer
  begin time read from input coords =   130.000 ps
 
  Number of triangulated 3-point waters found:        0
+|  Atom division among processors:
+|         0     191     320     511     640
+|  Coordinate  division among processors:
+|         0     573     960    1533    1920
+
+     Sum of charges from parm topology file =     -18.0000
+|  Running AMBER/MPI version on    4 nodes
+
   _________________ SGLD parameters _________________
   Parameters for self-guided Langevin dynamics (SGLD) simulation
 
@@ -241,17 +260,21 @@ PDB 5DNB, Dickerson decamer
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.03 (19.08% of Gen B)
-|                Calc gb diag               0.05 (35.67% of Gen B)
-|                Calc gb off-diag           0.06 (45.25% of Gen B)
-|             Gen Born time              0.14 (100.0% of Nonbo)
-|          Nonbond force              0.14 (98.60% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 1.40% of Force)
-|       Force time                 0.14 (96.75% of Runmd)
-|       Verlet update time         0.00 ( 3.18% of Runmd)
-|    Runmd Time                 0.15 (92.78% of Total)
-|    Other                      0.01 ( 6.53% of Total)
-| Total time                 0.16 (100.0% of ALL  )
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|                Calc gb radii              0.01 (19.89% of Gen B)
+|                Communicate gb radii       0.00 (10.35% of Gen B)
+|                Calc gb diag               0.01 (32.52% of Gen B)
+|                Calc gb off-diag           0.01 (37.15% of Gen B)
+|             Gen Born time              0.03 (100.0% of Nonbo)
+|          Nonbond force              0.03 (95.66% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 2.00% of Force)
+|          FRC Collect time           0.00 ( 1.56% of Force)
+|       Force time                 0.03 (87.60% of Runmd)
+|       Verlet update time         0.00 (10.50% of Runmd)
+|       CRD distribute time        0.00 ( 1.22% of Runmd)
+|    Runmd Time                 0.03 (79.06% of Total)
+|    Other                      0.01 (20.70% of Total)
+| Total time                 0.04 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -261,11 +284,11 @@ PDB 5DNB, Dickerson decamer
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.15 Per Step(ms) =      14.80
-|         ns/day =       5.84   seconds/ns =   14800.00
+|     Elapsed(s) =       0.03 Per Step(ms) =       3.32
+|         ns/day =      26.02   seconds/ns =    3320.00
 | -----------------------------------------------------
 
-|           Job began  at 15:30:40.504  on 06/09/2022
-|           Setup done at 15:30:40.515  on 06/09/2022
-|           Run   done at 15:30:40.663  on 06/09/2022
-|     wallclock() was called     263 times
+|           Job began  at 14:56:12.130  on 05/02/2023
+|           Setup done at 14:56:12.138  on 05/02/2023
+|           Run   done at 14:56:12.171  on 05/02/2023
+|     wallclock() was called     353 times

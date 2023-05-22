@@ -41,6 +41,8 @@ fftw_flags=""
 mkl="yes"    # currently required
 installtype="serial"
 
+plumed="no"
+
 cuda="no"
 cudaflags=''
 cudafflags=''
@@ -92,6 +94,8 @@ while [ $# -gt 0 ]; do
             openblas="yes";;
         --static)
             ldflags="-static";;
+        --plumed)
+            plumed="yes"
         --intel)
             compiler="intel"
             cc="icx"
@@ -676,8 +680,8 @@ COPTFLAGS=$optflags
 #  (5)  Fortran compiler
 
 FC=$fc
-FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines
-FLIBSF=-lrism -lxray -lsqm -larpack $flibs_fftw $flibs_la
+FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines $plumed_def
+FLIBSF=-lrism -lxray -lsqm -larpack $flibs_fftw $flibs_la $plumed_load
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
 SHORT_ENE=$short_ene
