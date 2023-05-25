@@ -95,7 +95,7 @@ while [ $# -gt 0 ]; do
         --static)
             ldflags="-static";;
         --plumed)
-            plumed="yes"
+            plumed="yes";;
         --intel)
             compiler="intel"
             cc="icx"
