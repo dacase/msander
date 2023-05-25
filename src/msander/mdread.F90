@@ -284,7 +284,7 @@ subroutine mdread1()
    ntc = 1
    tol = 0.00001
    ntf = 1
-   nsnb = 25
+   nsnb = NO_INPUT_VALUE
    cut =  NO_INPUT_VALUE_FLOAT
    dielc = ONE
    ntpr = 50
@@ -669,6 +669,11 @@ subroutine mdread1()
          cut = 9999.d0
       end if
    end if
+
+   if (nsnb == NO_INPUT_VALUE) then
+      nsnb = 25   ! old default from sander
+      if (imin>0) nsnb =1   ! safer if there are big initial forces
+   endif
 
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
