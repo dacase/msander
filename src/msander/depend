@@ -2885,7 +2885,8 @@ rmsgrd.o: \
                     constants.o\
                     ../include/md.h\
                     box.h\
-                    ../include/memory.h
+                    ../include/memory.h\
+                    nmr.h
 
 
 rmsgrd.o:   rmsgrd.F90
