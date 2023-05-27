@@ -56,20 +56,11 @@ subroutine align1( natom, x, f, amass )
    end do
 
    if( itarget .gt. 0 ) then
-   ! dac, may23: try forcing the alignment tensor to have particular
-   !  eigenvalues:
 
+   ! force the alignment tensor to have particular eigenvalues:
    !       ---first, diagonalize the input alignment tensor(s):
    
    do iset=1,num_datasets
-#if 0
-      write(6,42) iset, s11(iset), s12(iset), s13(iset)
-      write(6,43) s12(iset), s22(iset), s23(iset)
-      write(6,43) s13(iset), s23(iset), -s11(iset)-s22(iset)
-   42 format('     Alignment tensor:',i5,3f10.3)
-   43 format('                           ',3f10.3)
-   45 format(' new Alignment tensor:',i5,3f10.3)
-#endif
       almat(1) = s11(iset)
       almat(2) = s12(iset)
       almat(3) = s22(iset)
@@ -77,14 +68,8 @@ subroutine align1( natom, x, f, amass )
       almat(5) = s23(iset)
       almat(6) = s33(iset)
       call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
-#if 0
-      write(6,*) 'Diagonalize alignment matrix ',iset
-      do i=1,3
-         write(6,'(f15.5,5x,3f12.5)') root(i), (vect_al(j,i),j=1,3)
-      end do
-#endif
 
-      ! now, just try to reconstruct the original tensor:
+      ! now, reconstruct the original tensor with new eigenvalues:
       root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
       root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
       root(3) =  2.d0 * da_target(iset)
@@ -96,11 +81,6 @@ subroutine align1( natom, x, f, amass )
             end do
          end do
       end do
-#if 0
-      write(6,45) iset, news(1,1:3)
-      write(6,43) news(2,1:3)
-      write(6,43) news(3,1:3)
-#endif
       ! put news back into s:
       s11(iset) = news(1,1)
       s12(iset) = news(1,2)
@@ -276,11 +256,6 @@ subroutine align1( natom, x, f, amass )
          fz = fz + temp2*dz
       end if
       
-#if 0
-      write(6,*) 'align forces: ', i,j
-      write(6,'(3e20.10)') fx,fy,fz
-#endif
-
       f(3*i-2) = f(3*i-2) - fx
       f(3*i-1) = f(3*i-1) - fy
       f(3*i  ) = f(3*i  ) - fz
@@ -329,46 +304,6 @@ subroutine align1( natom, x, f, amass )
 
       end do
 
-#if 0  /* not very useful, if at all */
-      !       ---diagonalize the moment of inertia tensor:
-      
-      com(1) = 0.0d0
-      com(2) = 0.0d0
-      com(3) = 0.0d0
-      tmass = 0.0d0
-      do i=1,natom
-         com(1) = com(1) + x(3*i -2)*amass(i)
-         com(2) = com(2) + x(3*i -1)*amass(i)
-         com(3) = com(3) + x(3*i   )*amass(i)
-         tmass = tmass + amass(i)
-      end do
-      com(1) = com(1)/tmass
-      com(2) = com(2)/tmass
-      com(3) = com(3)/tmass
-      
-      do i=1,6
-         almat(i) = 0.0d0
-      end do
-      do i=1,natom
-         dx = x(3*i-2) - com(1)
-         dy = x(3*i-1) - com(2)
-         dz = x(3*i  ) - com(3)
-         almat(1) = almat(1) + amass(i)*(dy*dy + dz*dz)
-         almat(2) = almat(2) - amass(i)*dx*dy
-         almat(3) = almat(3) + amass(i)*(dx*dx + dz*dz)
-         almat(4) = almat(4) - amass(i)*dx*dz
-         almat(5) = almat(5) - amass(i)*dy*dz
-         almat(6) = almat(6) + amass(i)*(dx*dx + dy*dy)
-      end do
-      call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
-      rootsum = root(1) + root(2) + root(3)
-      write(57,*) 'Diagonalize the moment of interia tensor:'
-      do i=1,3
-         axlen = sqrt(2.5d0*(rootsum - 2.d0*root(i))/tmass)
-         write(57,'(f15.5,5x,3f12.5,5x,f12.5)') &
-               root(i), (vect_al(j,i),j=1,3), axlen
-      end do
-#endif
    end if  ! (master .and. iprint /= 0)
    
    return
