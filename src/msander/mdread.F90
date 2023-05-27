@@ -2438,10 +2438,6 @@ subroutine mdread2(x,ix,ih)
       write(6,'(/2x,a,i3,a)') 'IMIN (',imin,') must be >= 0.'
       DELAYED_ERROR
    end if
-   if( imin>0 .and. ntmin>2 .and. iscale>0 ) then
-      write(6, '(/,a)') 'cannot have iscale>0 when ntmin>2'
-      DELAYED_ERROR
-   end if
    if (ntxo .eq. 0) then
       write(6, '(/2x,a,a)') 'Old style binary restart files (ntxo=0) are no longer supported.'
       DELAYED_ERROR

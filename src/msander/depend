@@ -964,13 +964,13 @@ lmod.o: \
                     ../include/md.h\
                     xmin.h\
                     parallel.h\
+                    nmr.h\
                     constants.o\
                     bintraj.o\
                     softcore.o\
                     extra.h\
                     fastwt.o\
-                    memory_module.o\
-                    nmr.h
+                    memory_module.o
 
 
 lmod.o:   lmod.F90
@@ -986,13 +986,13 @@ lmod.LES.o: \
                     ../include/md.h\
                     xmin.h\
                     parallel.h\
+                    nmr.h\
                     constants.o\
                     bintraj.LES.o\
                     softcore.o\
                     extra.h\
                     fastwt.o\
-                    memory_module.o\
-                    nmr.h
+                    memory_module.o
 
 lmod.LES.o:   lmod.F90
 	@echo '[MSANDER_LES]  FC $<'
