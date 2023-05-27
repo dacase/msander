@@ -1292,8 +1292,8 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       call mexit(6,1)
    end if
 
-   ! call report_min_results( xmin_iter, grms, coordinates, &
-   !      forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
+   call report_min_results( xmin_iter, grms, coordinates, &
+        forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
 
    return
 
