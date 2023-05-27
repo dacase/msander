@@ -34,6 +34,7 @@ test.nmr:
 	-(cd rdc && Run.nmr)
 	-(cd rdc && Run.dip)
 	-(cd rdc && Run.csa)
+	-(cd rdc && Run.dip2)
 
 test.xray:
 #	-(cd xray/2wcu && ./Run.2wcu)
