@@ -1120,7 +1120,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    _REAL_  :: grms            = ZERO
    _REAL_  :: grms_tol
    logical :: is_error
-   logical :: ixdump, itdump, iprint
+   logical :: ixdump, itdump, iprintl
    logical :: loutfm
    logical :: qsetup
    integer :: iter
@@ -1215,28 +1215,28 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       !      1) starting geometry (step 0, n_force_calls = 1)
       !      2) if xmin made a step (xmin_iter has increased)
       !      3) when we are done (in which case xmin did not increase xmin_iter)
-      iprint = .false.
+      iprintl = .false.
       ixdump = .false.
       itdump = .false.
       if( .not. is_error .and. (n_force_calls==1) ) then 
-         iprint = .true.
+         iprintl = .true.
          if (ntwx > 0) itdump = .true.
       end if
       if( .not. is_error .and. (xmin_iter/=iter+1)) then
          iter = iter + 1
-         if ( ntpr2 /= 0 ) iprint = mod(iter,ntpr2) == 0
+         if ( ntpr2 /= 0 ) iprintl = mod(iter,ntpr2) == 0
          if ( ntwr  /= 0 ) ixdump = mod(iter,ntwr) == 0
          if ( ntwx  /= 0 ) itdump = (mod(iter,ntwx) == 0) .and. (imin /= 5)
       end if
       if( .not. is_error .and. (return_flag==DONE)) then 
          iter = iter + 1
-         iprint = .true.
+         iprintl = .true.
          ixdump = .true.
          if (ntwx > 0) itdump = .true.
       end if
       
       ! Print energies / gradients
-      if ( iprint ) then
+      if ( iprintl ) then
          call rmsgrd(forces,grms)
          call report_min_progress( iter, grms, forces, energies, &
                ih(m04), xx(l15) )  ! ih(m04) = atom names, xx(l15) = charges
@@ -1349,6 +1349,9 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
    logical :: belly
 
    winv = 1.d0
+   ! dac note: following does not work correctly if the minimization hits
+   !   and error (or satistfies drms) before maxcyc steps.  Would it be
+   !   safer to always set iprint=1 and live with the overhead?
    iprint = 0
    if ( xmin_iter == maxcyc .or. xmin_iter == 1 ) then
       iprint = 1
