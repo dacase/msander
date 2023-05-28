@@ -1258,12 +1258,11 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       case ( DONE ) 
          ! Finished minimization.
          !  One final gradient calc to re-establish SHAKE constraints:
-         if( ntc > 1 ) then
-            call gradient_calc( xx, ix, ih, ipairs, coordinates, forces, & 
-              energies, NBL_CASE, xmin_iter, qsetup )
-            n_force_calls = n_force_calls + 1
-         !  write(6,'(a)') '| Final shake at end of xmin'
-         end if
+         !    since shake is supported, this should not be needed(?)
+         xmin_iter = -1   ! signals to set nmr iprint variable to 1
+         call gradient_calc( xx, ix, ih, ipairs, coordinates, forces, & 
+            energies, NBL_CASE, xmin_iter, qsetup )
+         n_force_calls = n_force_calls + 1
          exit
       case ( CALCENRG, CALCGRAD, CALCBOTH )
          ! Normal Amber control of NB list updates.
@@ -1349,13 +1348,8 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
    logical :: belly
 
    winv = 1.d0
-   ! dac note: following does not work correctly if the minimization hits
-   !   and error (or satistfies drms) before maxcyc steps.  Would it be
-   !   safer to always set iprint=1 and live with the overhead?
    iprint = 0
-   if ( xmin_iter == maxcyc .or. xmin_iter == 1 ) then
-      iprint = 1
-   end if
+   if ( xmin_iter == 1 .or. xmin_iter == -1 ) iprint = 1
 
    select case ( list_control )
    case ( NBL_UPDATE_ALWAYS )
