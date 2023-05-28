@@ -28,7 +28,7 @@ subroutine align1( natom, x, f, amass )
    _REAL_    tmass
    _REAL_    rootsum
    _REAL_    axlen
-   _REAL_    news(3,3)
+   _REAL_    news(3,3), Qnum, Qden
    
    data uplo,jobz / 'U','V' /
    
@@ -105,6 +105,8 @@ subroutine align1( natom, x, f, amass )
    
    !    Loop over obvserved dipolar couplings:
    
+   Qnum = 0.0
+   Qden = 0.0
    do idip=1,ndip
       
       i = id(idip)
@@ -276,14 +278,18 @@ subroutine align1( natom, x, f, amass )
          end if
       end if
       9073 format(' ',a13,' -- ',a13,':',5f9.3)
+
+      ! stats for Qfactor:
+      Qnum = Qnum + (dcalc - dtarget)**2
+      Qden = Qden + dtarget**2
       
    end do  !  idip=1,ndip
    
    !     ---printing of results:
    
    if (master .and. iprint /= 0) then
-      write(57,44) ealign
-      44 format(40x,'Total align    constraint:',f8.2)
+      write(57,44) ealign, sqrt(Qnum/Qden)
+      44 format(20x,'Total align    constraint:',f8.2, ' Q = ', f10.5)
       
       !       ---diagonalize the alignment tensor:
       
