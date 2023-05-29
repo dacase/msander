@@ -279,7 +279,7 @@ contains
       lname = adjustl(name)
       ! first find the matching residue; no need to match resname:
       do i=1,num_residues
-         if ( mod(resSeq==residue_number(ires),10000)  &
+         if (        resSeq==mod(residue_number(ires),10000)  &
                .and. chainID==residue_chainid(ires) &
                .and. iCode==residue_icode(ires)) then
             ! then find the matching atom name:
