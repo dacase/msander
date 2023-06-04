@@ -32,13 +32,13 @@ flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
 gccsys=""
-optflags="-g -Ofast -march=native"
+optflags="-g -O3"
 
 openmp='no'
 ompflag=""
 ldflags=""
 fftw_flags=""
-mkl="yes"    # currently required
+mkl="no"    
 installtype="serial"
 
 plumed="no"
@@ -690,6 +690,7 @@ SHORT_ENE=$short_ene
 
 #  (6)  other flags:
 
+LDFLAGS=$ldflags
 AR=    ar rv
 RANLIB=ranlib
 MV=mv
