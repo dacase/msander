@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 06/07/2022 at 10:14:01
+| Run on 06/04/2023 at 20:31:43
 
 |   Executable path: ../../../bin/msander
-| Working directory: /home/case/msander_intel/test/qmmm2/lysine_AM1
+| Working directory: /home/case/msander/test/qmmm2/lysine_AM1
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -73,7 +73,7 @@ Lysine: 5 cycles MD, one methylene group QM, has link atoms
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Note: ig = -1. Setting random seed to   649537 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   303037 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -131,6 +131,8 @@ LYS
  begin time read from input coords =     0.400 ps
 
  Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =       1.0000
 |  # of SOLUTE  degrees of freedom (RNDFP):      66.
 |  # of SOLVENT degrees of freedom (RNDFS):       0.
 |  QMSHAKE_NOSHAKEMASK_OVERLAP =      0
@@ -178,17 +180,17 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:                              norbs =        8
 | QMMM:    diag iterations used for timing =       20
 | QMMM:
-| QMMM:              Internal diag routine = 0.000200 seconds
-| QMMM:                 Dspev diag routine = 0.059600 seconds
-| QMMM:                Dspevd diag routine = 0.000700 seconds
-| QMMM:                Dspevx diag routine = 0.001800 seconds
-| QMMM:                 Dsyev diag routine = 0.000400 seconds
-| QMMM:                Dsyevd diag routine = 0.000400 seconds
-| QMMM:                Dsyevr diag routine = 0.000700 seconds
+| QMMM:              Internal diag routine = 0.000100 seconds
+| QMMM:                 Dspev diag routine = 0.009100 seconds
+| QMMM:                Dspevd diag routine = 0.000200 seconds
+| QMMM:                Dspevx diag routine = 0.000400 seconds
+| QMMM:                 Dsyev diag routine = 0.000100 seconds
+| QMMM:                Dsyevd diag routine = 0.000000 seconds
+| QMMM:                Dsyevr diag routine = 0.000200 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.000100 seconds
+| QMMM:                Pseudo diag routine = 0.000000 seconds
 | QMMM:
-| QMMM: Using internal diagonalization routine (diag_routine=1).
+| QMMM: Using dsyevd routine (diag_routine=6).
 
 | QMMM: Estimated QM Dynamic Memory Usage (per thread)
 | QMMM: ---------------------------------------------------
@@ -214,10 +216,10 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:       _REAL_ parameter storage :        17056 bytes
 | QMMM:      integer parameter storage :          124 bytes
 | QMMM:         QM-MM RIJ Eqns storage :         7480 bytes
-| QMMM:          _REAL_ Scratch arrays :         2240 bytes
-| QMMM:         Integer Scratch arrays :          392 bytes
+| QMMM:          _REAL_ Scratch arrays :         3336 bytes
+| QMMM:         Integer Scratch arrays :          564 bytes
 | QMMM: ---------------------------------------------------
-| QMMM:        Total Dynamic Memory Usage:      0.033 Mb
+| QMMM:        Total Dynamic Memory Usage:      0.034 Mb
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -284,21 +286,18 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb off-diag           0.00 (100.0% of Gen B)
-|             Gen Born time              0.00 (100.0% of Nonbo)
-|             QMMM setup                 0.07 (97.31% of QMMM )
+|             QMMM setup                 0.01 (94.55% of QMMM )
 |                   QMMM fock build            0.00 (50.00% of QMMM )
 |                   QMMM full matrix dia       0.00 (25.00% of QMMM )
-|                   QMMM pseudo matrix d       0.00 ( 8.33% of QMMM )
-|                   Other                      0.00 (16.67% of QMMM )
+|                   QMMM pseudo matrix d       0.00 (25.00% of QMMM )
 |                QMMM scf                   0.00 (100.0% of QMMM )
-|             QMMM energy                0.00 ( 1.79% of QMMM )
-|          QMMM                       0.07 (99.55% of Force)
-|       Force time                 0.07 (98.25% of Runmd)
-|       Verlet update time         0.00 ( 1.75% of Runmd)
-|    Runmd Time                 0.07 (94.09% of Total)
-|    Other                      0.00 ( 5.78% of Total)
-| Total time                 0.07 (99.86% of ALL  )
+|             QMMM energy                0.00 ( 3.64% of QMMM )
+|          QMMM                       0.01 (99.10% of Force)
+|       Force time                 0.01 (95.69% of Runmd)
+|       Verlet update time         0.00 ( 3.45% of Runmd)
+|    Runmd Time                 0.01 (89.23% of Total)
+|    Other                      0.00 (10.77% of Total)
+| Total time                 0.01 (99.24% of ALL  )
 
 | Number of list builds   :          0
 
@@ -308,11 +307,11 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.07 Per Step(ms) =      13.72
-|         ns/day =       6.30   seconds/ns =   13720.00
+|     Elapsed(s) =       0.01 Per Step(ms) =       2.32
+|         ns/day =      37.24   seconds/ns =    2320.00
 | -----------------------------------------------------
 
-|           Job began  at 10:14:01.533  on 06/07/2022
-|           Setup done at 10:14:01.538  on 06/07/2022
-|           Run   done at 10:14:01.606  on 06/07/2022
-|     wallclock() was called    1168 times
+|           Job began  at 20:31:43.035  on 06/04/2023
+|           Setup done at 20:31:43.037  on 06/04/2023
+|           Run   done at 20:31:43.048  on 06/04/2023
+|     wallclock() was called    1158 times

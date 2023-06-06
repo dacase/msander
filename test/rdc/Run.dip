@@ -29,7 +29,7 @@ cat <<EOF > mdin
   test of distance, angle, rdc and chemical shifts restraints for a DNA duplex
  &cntrl                                                                        
     pencut=0.05, nmropt=2,                                     
-    imin=0, maxcyc=10, igb=1, rgbmax=15.,
+    imin=1, maxcyc=10, igb=1, rgbmax=15.,
     nstlim=10, ntt=0, tempi=0.0, ntx=1, irest=0, dt=0.001, 
     ntpr=1,
     ipnlty=1, cut=12.0, ntb=0, iscale=5, scalm=300.,                            

@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 09/02/2022 at 10:32:30
+| Run on 06/04/2023 at 20:35:27
 
 |   Executable path: ../../../bin/msander
-| Working directory: /Users/case/msander/test/xray/2ol9
+| Working directory: /home/case/msander/test/xray/2ol9
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -73,7 +73,7 @@ File Assignments:
 | Note: 1-4 VDW scale factors are being read from the topology file.
 
      BOX TYPE: RECTILINEAR
-| Note: ig = -1. Setting random seed to   378800 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   527667 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -93,7 +93,7 @@ Nature and format of output:
      ioutfm  =       1, ntwprt  =       0, rbornstat=      0
 
 Potential function:
-     ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
+     ntf     =       2, ntb     =       1, igb     =       0, nsnb    =       1
      ipol    =       0, gbsa    =       0, iesp    =       0
      dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
 
@@ -223,36 +223,49 @@ default_name
  1-4 VDW =      270.7945  1-4 EEL =      906.1048  RESTRAINT  =       23.5648
  EAMBER  =    -9279.7299
 
+
+                    FINAL RESULTS
+
+
+
+   NSTEP       ENERGY          RMS            GMAX         NAME    NUMBER
+     -1      -9.2562E+03     6.6995E-05     9.4028E-04     CG       1578
+
+ BOND    =       42.9197  ANGLE   =      116.0417  DIHED      =     1307.8991
+ VDWAALS =     -980.0813  EEL     =   -10943.4085  HBOND      =        0.0000
+ 1-4 VDW =      270.7945  1-4 EEL =      906.1048  RESTRAINT  =       23.5648
+ EAMBER  =    -9279.7299
+
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.01 (55.26% of List )
-|                Other                      0.01 (44.74% of List )
-|             List time                  0.01 (15.43% of Nonbo)
-|                   Short_ene time             0.05 (98.69% of Direc)
-|                   Other                      0.00 ( 1.31% of Direc)
-|                Direct Ewald time          0.05 (73.12% of Ewald)
-|                Adjust Ewald time          0.00 ( 3.36% of Ewald)
-|                   Fill Bspline coeffs        0.00 ( 7.09% of Recip)
-|                   Fill charge grid           0.00 (12.77% of Recip)
-|                   Scalar sum                 0.00 (24.82% of Recip)
-|                   Grad sum                   0.00 (19.15% of Recip)
-|                   FFT time                   0.01 (36.17% of Recip)
-|                Recip Ewald time           0.01 (22.56% of Ewald)
-|             Ewald time                 0.06 (84.57% of Nonbo)
-|          Nonbond force              0.07 (93.66% of Force)
-|          Bond/Angle/Dihedral        0.00 ( 6.21% of Force)
-|       Force time                 0.08 (100.0% of Runmd)
-|    Runmd Time                 0.08 (75.57% of Total)
-|    Other                      0.03 (24.23% of Total)
-| Total time                 0.10 (100.0% of ALL  )
+|                Build the list             0.00 (52.50% of List )
+|                Other                      0.00 (47.50% of List )
+|             List time                  0.01 (14.52% of Nonbo)
+|                   Short_ene time             0.04 (98.36% of Direc)
+|                   Other                      0.00 ( 1.64% of Direc)
+|                Direct Ewald time          0.04 (77.71% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.76% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 5.68% of Recip)
+|                   Fill charge grid           0.00 (13.64% of Recip)
+|                   Scalar sum                 0.00 (26.14% of Recip)
+|                   Grad sum                   0.00 (18.18% of Recip)
+|                   FFT time                   0.00 (36.36% of Recip)
+|                Recip Ewald time           0.01 (18.68% of Ewald)
+|             Ewald time                 0.05 (85.48% of Nonbo)
+|          Nonbond force              0.06 (94.19% of Force)
+|          Bond/Angle/Dihedral        0.00 ( 5.81% of Force)
+|       Force time                 0.06 (100.0% of Runmd)
+|    Runmd Time                 0.06 (71.17% of Total)
+|    Other                      0.02 (28.71% of Total)
+| Total time                 0.08 (100.0% of ALL  )
 
 | Number of list builds   :          1
 
 | Highest rstack allocated:      90358
 | Highest istack allocated:       1728
-|           Job began  at 10:32:30.785  on 09/02/2022
-|           Setup done at 10:32:30.803  on 09/02/2022
-|           Run   done at 10:32:30.890  on 09/02/2022
+|           Job began  at 20:35:27.658  on 06/04/2023
+|           Setup done at 20:35:27.669  on 06/04/2023
+|           Run   done at 20:35:27.740  on 06/04/2023
 |     wallclock() was called     481 times
