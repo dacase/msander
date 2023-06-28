@@ -140,7 +140,7 @@ program add_xray
    call nxtsec(infile_lun,STDOUT,0,'*','ATOM_ELEMENT',fmt,iok)
    read(infile_lun,fmt) atom_element
 
-#if 0
+#if 1
    ! scattering tables use element names like Fe, not FE:
    ! element names in current Amber don't seem to have all-caps names:
    do i = 1,num_atoms
