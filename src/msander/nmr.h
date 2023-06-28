@@ -47,7 +47,7 @@ parameter (mxp=100)
 parameter (mtot=500)
 parameter (maxdip=2000)
 parameter (maxcsa=200)
-parameter (maxdipsets=2)
+parameter (maxdipsets=5)
 
 integer isubi,isubr
 parameter (isubi=8 + 3*ma + 2*matom + mxtau + 2*mxtau*mxp + mxp)
