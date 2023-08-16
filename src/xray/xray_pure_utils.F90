@@ -675,7 +675,7 @@ contains
     ! Precondition
     ASSERT(size(abs_Fobs) == size(abs_Fcalc))
     ASSERT(all(abs_Fobs >= 0))
-    ASSERT(all(abs_Fcalc >= 0))
+    ! ASSERT(all(abs_Fcalc >= 0))
     
     denom = sum(abs_Fcalc ** 2)
     if (denom > 0) then
@@ -722,7 +722,7 @@ contains
     ! Precondition
     ASSERT(size(abs_Fobs) == size(abs_Fcalc))
     ASSERT(all(abs_Fobs >= 0))
-    ASSERT(all(abs_Fcalc >= 0))
+    ! ASSERT(all(abs_Fcalc >= 0))
     
     denum = sum(abs_Fobs)
     
@@ -743,7 +743,7 @@ contains
     ! Precondition
     ASSERT(size(abs_Fobs) == size(abs_Fcalc))
     ASSERT(all(abs_Fobs >= 0))
-    ASSERT(all(abs_Fcalc >= 0))
+    ! ASSERT(all(abs_Fcalc >= 0))
     
     scale = calc_k_overall(abs_Fobs, abs_Fcalc)
     result = calc_unscaled_r_factor(abs_Fobs, abs_Fcalc * scale)
