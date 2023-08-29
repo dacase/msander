@@ -101,7 +101,7 @@ while [ $# -gt 0 ]; do
             cc="icx"
             fc="ifort"
             longlines=""
-            mpicc="mpiicc"
+            mpicc="mpiicc -cc=icx"
             mpif90="mpiifort"
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
