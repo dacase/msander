@@ -14,7 +14,7 @@ subroutine align1( natom, x, f, amass )
 #  include "extra.h"
    character(len=1) uplo,jobz
    _REAL_    com(3)
-   _REAL_    work(27), vect_al(3,3), root(3), almat(6)
+   _REAL_    work(27), vect_al(3,3), root(3), almat(6), vect_ref(3,3)
    integer   ipear, iof, i, idip, j, iset, k
    _REAL_    dx, dy, dz, dr
    _REAL_    csx, csy, csz
@@ -57,50 +57,68 @@ subroutine align1( natom, x, f, amass )
 
    if( itarget .gt. 0 ) then
 
-   ! force the alignment tensor to have particular eigenvalues:
-   !       ---first, diagonalize the input alignment tensor(s):
+      !  ---first, diagonalize the input alignment tensor(s):
    
-   do iset=1,num_datasets
-      almat(1) = s11(iset)
-      almat(2) = s12(iset)
-      almat(3) = s22(iset)
-      almat(4) = s13(iset)
-      almat(5) = s23(iset)
-      almat(6) = s33(iset)
-      call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
+      do iset=1,num_datasets
+         almat(1) = s11(iset)
+         almat(2) = s12(iset)
+         almat(3) = s22(iset)
+         almat(4) = s13(iset)
+         almat(5) = s23(iset)
+         almat(6) = s33(iset)
+         call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
 
-      ! now, reconstruct the original tensor with new eigenvalues:
-      root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
-      root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
-      root(3) =  2.d0 * da_target(iset)
-      do i=1,3
-         do j=1,3
-            news(i,j) = 0.d0
-            do k=1,3
-               news(i,j) = news(i,j) + vect_al(i,k)*root(k)*vect_al(j,k)
+         if( itarget .eq. 1 ) then
+
+            ! reconstruct the original tensor with new eigenvalues:
+
+            root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
+            root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
+            root(3) =  2.d0 * da_target(iset)
+
+         else if( itarget .eq. 2 ) then
+
+            ! force the alignment tensor to have particular eigenvectors:
+            ! uses vectors from dataset 1 for the other two:
+
+            if( iset .eq. 1 ) then
+                vect_ref = vect_al
+            else
+                vect_al = vect_ref
+            end if
+
+         end if
+
+         ! reconstruct the alignment tensor:
+         do i=1,3
+            do j=1,3
+               news(i,j) = 0.d0
+               do k=1,3
+                  news(i,j) = news(i,j) + vect_al(i,k)*root(k)*vect_al(j,k)
+               end do
             end do
          end do
-      end do
-      ! put news back into s:
-      s11(iset) = news(1,1)
-      s12(iset) = news(1,2)
-      s22(iset) = news(2,2)
-      s13(iset) = news(1,3)
-      s23(iset) = news(2,3)
-      s33(iset) = news(3,3)
-   end do
 
-   ! also, put back in the end of the coordinate array:
-   iof = 0
-   do i=1,num_datasets
-      x(3*natom + iof + 1) = s11(i)
-      x(3*natom + iof + 2) = s12(i)
-      x(3*natom + iof + 3) = s22(i)
-      x(3*natom + iof + 4) = s13(i)
-      x(3*natom + iof + 5) = s23(i)
-      iof = iof + 5
-   end do
-      
+         ! put news back into s:
+         s11(iset) = news(1,1)
+         s12(iset) = news(1,2)
+         s22(iset) = news(2,2)
+         s13(iset) = news(1,3)
+         s23(iset) = news(2,3)
+         s33(iset) = news(3,3)
+      end do
+
+      ! also, put back in the end of the coordinate array:
+      iof = 0
+      do i=1,num_datasets
+         x(3*natom + iof + 1) = s11(i)
+         x(3*natom + iof + 2) = s12(i)
+         x(3*natom + iof + 3) = s22(i)
+         x(3*natom + iof + 4) = s13(i)
+         x(3*natom + iof + 5) = s23(i)
+         iof = iof + 5
+      end do
+
    end if  ! itarget .gt. 0
    
    !    Loop over obvserved dipolar couplings:
