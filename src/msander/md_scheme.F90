@@ -38,6 +38,9 @@ module md_scheme
 #include "../include/md.h"
 #ifdef MPI
 #  include "parallel.h"
+#else
+  integer, parameter :: numtasks = 1
+  integer, parameter :: mytaskid = 0
 #endif
 
 contains
@@ -51,7 +54,8 @@ contains
   ! @external
   !   amrand: random number in uniform dist., in ../lib/random.F90
   !   gauss:  random number in gaussian dist., in ../lib/random.F90
-  subroutine thermostat_step(v, winv, dtx, istart, iend, iskip_start, iskip_end)
+  subroutine thermostat_step(v, winv, dtx, istart, iend, &
+                             iskip_start, iskip_end, iscale)
     use constants, only: KB
     use random
 #ifdef LES
@@ -61,7 +65,7 @@ contains
 
     character(kind=1,len=*),parameter :: routine="thermostat_step"
     _REAL_ :: v(3*nrp), winv(nrp), dtx
-    integer :: istart,iend, iskip_start,iskip_end
+    integer :: istart,iend, iskip_start, iskip_end, iscale
 
     integer :: i, j, k, idof
     ! rand          : random number
@@ -83,7 +87,9 @@ contains
     select case (ntt)
     case (ENUM_NO_THERM)  ! no thermostating
       ! nothing to do here
+
     case (ENUM_LGV_THERM) ! Langevin thermostat
+
       ! gamma_ln in ps^-1, dt in ps
       lgv_c1 = exp(-gamma_ln*dt) 
       lgv_c2 = sqrt(1.0d0 - lgv_c1*lgv_c1)
@@ -110,7 +116,16 @@ contains
       do i = 1, iskip_end
         call gauss(0.0d0, 1.0d0, rand)
       end do
+      ! handle extra (iscale) degrees of freedom:
+      if( mytaskid == numtasks -1 ) then
+         do idof=3*iend+1,3*iend+iscale
+            call gauss(0.0d0, stdvel, rand)
+            v(idof) = lgv_c1 * v(idof) + lgv_c2 * rand
+         end do
+      end if
+
     case (ENUM_ADS_THERM) ! Andersen thermostat
+
       ads_prob = 1.0d0 - exp(-gamma_ln*dt)
       rtkT = sqrt(kB*temp0)
       call amrand(rand)
