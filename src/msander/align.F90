@@ -312,6 +312,14 @@ subroutine align1( natom, x, f, amass )
       !       ---diagonalize the alignment tensor:
       
       do iset=1,num_datasets
+         write(57,'(a,i3)') 'alignment tensor', iset
+         write(57, &
+        '(a,i2,a,f8.3,a,i2,a,f8.3,a,i2,a,f8.3,a,/,a,i2,a,f8.3,a,i2,a,f8.3,a)') & 
+               's11(',iset,')=',s11(iset), &
+             ', s12(',iset,')=',s12(iset), &
+             ', s13(',iset,')=',s13(iset), ', ', &
+             '  s22(',iset,')=',s22(iset), &
+             ', s23(',iset,')=',s23(iset),', '
          almat(1) = s11(iset)
          almat(2) = s12(iset)
          almat(3) = s22(iset)
@@ -319,13 +327,13 @@ subroutine align1( natom, x, f, amass )
          almat(5) = s23(iset)
          almat(6) = s33(iset)
          call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
-         write(57,*) 'Diagonalize the alignment matrix:'
+         write(57,*) 'Diagonalization:'
          do i=1,3
             write(57,'(f15.5,5x,3f12.5)') root(i), (vect_al(j,i),j=1,3)
          end do
          write(57,'(a,f10.4,a,f10.4)') ' Da = ', root(3)/2.d0, &
             ' x 10^-5;  R(=eta) =', 2.d0*(root(1)-root(2))/(3.d0*root(3))
-
+         write(57,*)
       end do
 
    end if  ! (master .and. iprint /= 0)
@@ -364,12 +372,11 @@ subroutine alignread(natom,x)
    !  --- read and echo title from alignment file:
    
    write(6,*) 'Here are comments from the alignment input file:'
-   42 read(iin,'(a)') line
-   if (line(1:1) == '#') then
-      write(6,*) line
-      goto 42
-   end if
-   backspace (iin)
+   do i=1,20
+      read(iin,'(a)') line
+      write(6,*) line(1:78)
+   end do
+   rewind (iin)
    write(6,*)
    
    ! read the namelist align, first setting up defaults:
