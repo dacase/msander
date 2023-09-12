@@ -29,7 +29,7 @@ subroutine align1( natom, x, f, amass )
    _REAL_    rootsum
    _REAL_    axlen
    _REAL_    news(3,3), Qnum, Qden
-   _REAL_    root_tmp, vect_tmp(3)
+   _REAL_    root_tmp(3), vect_tmp(3,3)
    
    data uplo,jobz / 'U','V' /
    
@@ -71,14 +71,22 @@ subroutine align1( natom, x, f, amass )
 
          ! order the roots so by absolute value, so that |root(3)| >
          !    |root(2)| > |root(1)|:
+         root_tmp = root
+         vect_tmp = vect_al
          if( abs(root(1)) > abs(root(3)) ) then
-            ! swap 1 and 3; 2 will always stay put
-            root_tmp = root(1)
-            root(1) = root(3)
-            root(3) = root_tmp
-            vect_tmp = vect_al(:,1)
-            vect_al(:,1) = vect_al(:,3)
-            vect_al(:,3) = vect_tmp
+            root(3) = root_tmp(1)
+            root(2) = root_tmp(3)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,1)
+            vect_al(:,2) = vect_tmp(:,3)
+            vect_al(:,1) = vect_tmp(:,2)
+         else
+            root(3) = root_tmp(3)
+            root(2) = root_tmp(1)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,3)
+            vect_al(:,2) = vect_tmp(:,1)
+            vect_al(:,1) = vect_tmp(:,2)
          end if
 
          if( itarget .eq. 1 ) then
@@ -342,14 +350,22 @@ subroutine align1( natom, x, f, amass )
          call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
          ! order the roots so by absolute value, so that |root(3)| >
          !    |root(2)| > |root(1)|:
+         root_tmp = root
+         vect_tmp = vect_al
          if( abs(root(1)) > abs(root(3)) ) then
-            ! swap 1 and 3; 2 will always stay put
-            root_tmp = root(1)
-            root(1) = root(3)
-            root(3) = root_tmp
-            vect_tmp = vect_al(:,1)
-            vect_al(:,1) = vect_al(:,3)
-            vect_al(:,3) = vect_tmp
+            root(3) = root_tmp(1)
+            root(2) = root_tmp(3)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,1)
+            vect_al(:,2) = vect_tmp(:,3)
+            vect_al(:,1) = vect_tmp(:,2)
+         else
+            root(3) = root_tmp(3)
+            root(2) = root_tmp(1)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,3)
+            vect_al(:,2) = vect_tmp(:,1)
+            vect_al(:,1) = vect_tmp(:,2)
          end if
 
          write(57,*) 'Diagonalization:'
@@ -357,7 +373,7 @@ subroutine align1( natom, x, f, amass )
             write(57,'(f15.5,5x,3f12.5)') root(i), (vect_al(j,i),j=1,3)
          end do
          write(57,'(a,f10.4,a,f10.4)') ' Da = ', root(3)/2.d0, &
-            ' x 10^-5;  R(=eta) =', 2.d0*(root(1)-root(2))/(3.d0*root(3))
+            ' x 10^-5;  R =', 2.d0*(root(1)-root(2))/(3.d0*root(3))
          write(57,*)
       end do
 
