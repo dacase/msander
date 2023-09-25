@@ -69,25 +69,11 @@ subroutine align1( natom, x, f, amass )
          almat(6) = s33(iset)
          call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
 
-         ! order the roots so by absolute value, so that |root(3)| >
-         !    |root(2)| > |root(1)|:
-         root_tmp = root
-         vect_tmp = vect_al
-         if( abs(root(1)) > abs(root(3)) ) then
-            root(3) = root_tmp(1)
-            root(2) = root_tmp(3)
-            root(1) = root_tmp(2)
-            vect_al(:,3) = vect_tmp(:,1)
-            vect_al(:,2) = vect_tmp(:,3)
-            vect_al(:,1) = vect_tmp(:,2)
-         else
-            root(3) = root_tmp(3)
-            root(2) = root_tmp(1)
-            root(1) = root_tmp(2)
-            vect_al(:,3) = vect_tmp(:,3)
-            vect_al(:,2) = vect_tmp(:,1)
-            vect_al(:,1) = vect_tmp(:,2)
-         end if
+         ! dac note: don't order the roots here to force an order of
+         !   the eigenvalues: that can lead to a "jump" that reverse
+         !   the sign of the tensor, and can mess up minimization or
+         !   MD.  Below, we do order the roots for printing out of the
+         !   final tensor.
 
          if( itarget .eq. 1 ) then
 
