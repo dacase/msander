@@ -672,6 +672,7 @@ BLAS=$blas
 
 CC=$cc
 CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
+NVCC_CFLAGS=$clangf $inc $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
