@@ -16,7 +16,7 @@ CUOBJS = BulkMaskGPU.o	DPartialGPU.o	NonBulkGPU.o
 
 .cpp.o:
 	@echo "[XRAY] nvcc $<"
-	$(VB)$(NVCC) -c $(NVCC_CFLAGS) -o $@ $<
+	$(VB)$(NVCC) -c -I$(INCDIR) -o $@ $<
 
 .cu.o:
 	@echo "[XRAY] nvcc $<"
