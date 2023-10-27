@@ -26,6 +26,7 @@ contains
     real(real_kind), intent(in) :: f_scale(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
+    real(real_kind) :: d_target_d_B(size(frac, 2))
     real(real_kind) :: hkl_v(3)
     real(real_kind) :: phase
     complex(real_kind) :: f
@@ -42,6 +43,7 @@ contains
     ASSERT(all(mSS4 <= 0))
     
     d_target_d_frac = 0
+    d_target_d_B = 0
 
 !$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
@@ -70,6 +72,13 @@ contains
               + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
                 aimag(f * Fcalc(ihkl)) * &
                 d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
+        ! 10/23: experimental work on gradients of B-factors
+        d_target_d_B(i) = d_target_d_B(i) &
+              + atom_occupancy(i) * f_scale(ihkl) &
+                * ( real(f) + aimag(f) ) * mss4(ihkl) &
+                * d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
       end do
     end do
 !$omp end parallel do
