@@ -10,6 +10,7 @@ module xray_dpartial_module
   private
   
   public :: calc_partial_d_target_d_frac
+  public :: calc_partial_d_target_d_B
   public :: calc_partial_d_vls_d_frac
   public :: finalize
   public :: init

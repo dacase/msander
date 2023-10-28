@@ -32,7 +32,7 @@ module xray_cpu_module
          pdb_wrap_names, &
          spacegroup_name, &
          reflection_infile, &
-         xray_weight, &
+         xray_weight, xray_weightB, &
          target, &
          solvent_mask_probe_radius, &
          solvent_mask_adjustment, &
@@ -99,7 +99,7 @@ contains
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
       write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
-      write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
+      write(stdout,'(5X,A,2E10.3)') 'X-ray weight: ', xray_weight, xray_weightB
       if( target(1:2) .eq. 'ls' ) then
          write(stdout,'(5X,A,A4,2F8.3)') 'Use target: ',target, ls_r3, ls_r4
       else
@@ -579,6 +579,7 @@ contains
       spacegroup_name = 'P 1'
       reflection_infile = ''
       xray_weight = 1.0
+      xray_weightB = 1.0
       solvent_mask_probe_radius = 0.9
       solvent_mask_adjustment = 1.1
       solvent_mask_reflection_outfile = ''
@@ -639,7 +640,8 @@ contains
       call timer_start(TIME_XRAY)
       if(nmropt.gt.0) xray_weight = wxray
 
-      call calc_force2(xyz, current_step, xray_weight, force, xray_e, Fuser)
+      call calc_force2(xyz, current_step, xray_weight, xray_weightB, &
+                       force, xray_e, Fuser)
       xray_energy = xray_e
       call get_r_factors(r_work, r_free)
       call timer_stop(TIME_XRAY)

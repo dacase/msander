@@ -86,18 +86,18 @@ contains
 
   end subroutine init
   
-  subroutine calc_force(xyz, current_step, xray_weight, force, energy, Fuser)
+  subroutine calc_force(xyz, current_step, xray_weight, xray_weightB, force, energy, Fuser)
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
     use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
     use xray_dpartial_module, only: calc_partial_d_target_d_frac, &
-         calc_partial_d_vls_d_frac
+         calc_partial_d_vls_d_frac, calc_partial_d_target_d_B
     use xray_target_module, only: target_function_id
     implicit none
     real(real_kind), intent(in) :: xyz(:, :)
     integer, intent(in) :: current_step
-    real(real_kind), intent(in) :: xray_weight
+    real(real_kind), intent(in) :: xray_weight, xray_weightB
     real(real_kind), intent(inout) :: force(:, :)
     real(real_kind), intent(out) :: energy
     complex(real_kind), allocatable, intent(in) :: Fuser(:)
@@ -107,6 +107,8 @@ contains
     real(real_kind), allocatable :: grad_xyz(:, :)
 
     real(real_kind) gradnorm_amber, gradnorm_xray
+    real(real_kind) ::  grad_B(n_atom)
+    integer :: i,i0,j0
 
 #include "../msander/def_time.h"
 
@@ -116,7 +118,7 @@ contains
     ASSERT(size(force, 2) == n_atom)
     
     allocate(grad_xyz(3, size(non_bulk_atom_indices)))
-    
+
     frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
     
     ASSERT(all(frac <= 1))
@@ -156,6 +158,9 @@ contains
        grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
+       grad_B = xray_weightB * &
+          calc_partial_d_target_d_B(frac, get_f_scale(size(abs_Fobs)), &
+          d_target_d_absFcalc) 
     end if
     ASSERT(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
@@ -171,6 +176,19 @@ contains
 #endif
 
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
+
+    ! extra storage for B-factor forces:
+    i0 = 0
+    j0 = n_atom + 1
+    do i=1,n_atom
+       i0 = i0 + 1
+       if (i0 .eq. 4 ) then
+          i0 = 1
+          j0 = j0 + 1
+       end if
+       force(i0,j0) = -grad_B(i)
+    end do
+
     call timer_stop(TIME_DHKL)
 
   end subroutine calc_force
