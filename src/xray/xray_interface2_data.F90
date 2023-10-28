@@ -37,6 +37,7 @@ module xray_interface2_data_module
   real(real_kind), allocatable, save :: atom_occupancy(:)
   real(real_kind), allocatable, save :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
 
+  real(real_kind), allocatable, save :: d_target_d_B(:)
   !! info about bulk solvent model
   integer, save :: model_id
 
@@ -138,6 +139,9 @@ contains
 
     ls_r3 = r3
     ls_r4 = r4
+
+    ! for B-factor derivatives (should be somewhere else?)
+    allocate(d_target_d_B(n_atom))
     
   end subroutine init
   
