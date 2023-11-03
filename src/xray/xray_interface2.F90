@@ -119,6 +119,19 @@ contains
     
     allocate(grad_xyz(3, size(non_bulk_atom_indices)))
 
+    ! if doing B-factor optimization, set b_factor array here from the
+    !    end of the coordinates
+    i0 = 0
+    j0 = n_atom + 1
+    do i=1,n_atom
+       i0 = i0 + 1
+       if (i0 .eq. 4 ) then
+          i0 = 1
+          j0 = j0 + 1
+       end if
+       atom_b_factor(i) = xyz(i0,j0)
+    end do
+
     frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
     
     ASSERT(all(frac <= 1))
