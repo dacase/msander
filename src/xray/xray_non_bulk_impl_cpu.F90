@@ -88,6 +88,14 @@ contains
     
     write(6,*) 'in calc_f_non_bulk: b_factor'
     write(6,'(5e15.5)') b_factor(1:10)
+    write(6,*) 'in calc_f_non_bulk: frac:'
+    write(6,'(5e15.5)') frac(1:3,1:10)
+    write(6,*) 'in calc_f_non_bulk: scatter_type_index:'
+    write(6,'(10i5)') scatter_type_index(1:10)
+    write(6,*) 'in calc_f_non_bulk: mSS4:'
+    write(6,'(5e15.5)') mSS4(1:10)
+    write(6,*) 'in calc_f_non_bulk: occupancy:'
+    write(6,'(5e15.5)') occupancy(1:10)
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
@@ -113,6 +121,12 @@ contains
       f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
+      if( ihkl .le. 5) then
+         write(6,*) 'f:'
+         write(6,'(5e15.5)') f(1:10)
+         write(6,*) 'angle'
+         write(6,'(5e15.5)') angle(1:10)
+      end if
       
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
