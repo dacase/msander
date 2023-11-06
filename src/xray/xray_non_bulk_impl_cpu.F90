@@ -36,8 +36,8 @@ contains
     occupancy = occupancy_
     
     allocate(F_non_bulk(size(mSS4_)))
-    allocate(f(size(mSS4_)))
-    allocate(angle(size(mSS4_)))
+    allocate(f(size(occupancy_)))
+    allocate(angle(size(occupancy_)))
   
   end subroutine init
   
@@ -86,16 +86,6 @@ contains
     ASSERT(size(frac, 2) == size(scatter_type_index))
     ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    write(6,*) 'in calc_f_non_bulk: b_factor'
-    write(6,'(5e15.5)') b_factor(1:10)
-    write(6,*) 'in calc_f_non_bulk: frac:'
-    write(6,'(5e15.5)') frac(1:3,1:10)
-    write(6,*) 'in calc_f_non_bulk: scatter_type_index:'
-    write(6,'(10i5)') scatter_type_index(1:10)
-    write(6,*) 'in calc_f_non_bulk: mSS4:'
-    write(6,'(5e15.5)') mSS4(1:10)
-    write(6,*) 'in calc_f_non_bulk: occupancy:'
-    write(6,'(5e15.5)') occupancy(1:10)
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
@@ -125,17 +115,8 @@ contains
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
     
-      if( ihkl .eq. 1) then
-         write(6,*) 'f:'
-         write(6,'(5e15.5)') f
-         write(6,*) 'angle'
-         write(6,'(5e15.5)') angle
-         write(6,'(4i5,2e15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
-      end if
     end do
     !$omp end parallel do
-    write(6,*) 'in calc_f_non_bulk: F_non_bulk:'
-    write(6,'(5e15.5)') F_non_bulk(1:10)
   
   end subroutine calc_f_non_bulk
 

@@ -101,9 +101,6 @@ contains
     
     ASSERT(all(abs_Fcalc >= 0))
     ASSERT(all(mSS4 <= 0))
-
-    write(6,*) 'in calc_partial_d_target_d_B:'
-    write(6,'(5e15.5)') b_factor(1:10)
     
     d_target_d_B = 0
 
