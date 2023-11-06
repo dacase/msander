@@ -621,7 +621,7 @@ contains
 #include "../include/md.h"
 #include "def_time.h"
 #include "nmr.h"
-      real(real_kind), intent(in) :: xyz(:, :)
+      real(real_kind), intent(inout) :: xyz(:, :)
       real(real_kind), intent(out) :: force(:, :)
       integer, intent(in) :: current_step
       real(real_kind), intent(out) :: xray_e
