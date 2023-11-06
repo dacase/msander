@@ -9,7 +9,6 @@ module xray_dpartial_data_module
   real(real_kind), pointer, save :: mSS4(:)
   complex(real_kind), pointer, save :: Fcalc(:)
   real(real_kind), pointer, save :: abs_Fcalc(:)
-  real(real_kind), allocatable, save :: atom_b_factor(:)
   real(real_kind), allocatable, save :: atom_occupancy(:)
   integer, allocatable, save :: atom_scatter_type(:)
 

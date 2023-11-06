@@ -32,7 +32,6 @@ module xray_interface2_data_module
   type(unit_cell_t), save :: unit_cell
   logical, allocatable, save :: atom_is_not_bulk(:)
   integer, allocatable, save :: non_bulk_atom_indices(:)
-  real(real_kind), allocatable, save :: atom_b_factor(:)
   integer, allocatable, save :: atom_scatter_type(:)
   real(real_kind), allocatable, save :: atom_occupancy(:)
   real(real_kind), allocatable, save :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
@@ -48,10 +47,11 @@ contains
   
   subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &
           input_unit_cell, input_scatter_coefficients, &
-          input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, &
+          input_b_factor, input_atom_occupancy, input_atom_scatter_type, &
           input_atom_selection, r3, r4 )
     use xray_pure_utils, only: index_partition, index_sort, calc_resolution, pack_index
     
+    use xray_non_bulk_data_module, only: b_factor
     implicit none
     
     integer, intent(in) :: input_hkl(:, :)
@@ -60,7 +60,7 @@ contains
     logical, intent(in) :: input_work_flag(:)
     class(unit_cell_t), intent(in) :: input_unit_cell
     real(real_kind), intent(in) :: input_scatter_coefficients(:,:,:) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
-    real(real_kind), intent(in) :: input_atom_b_factor(:)
+    real(real_kind), intent(in) :: input_b_factor(:)
     real(real_kind), intent(in) :: input_atom_occupancy(:)
     integer, intent(in) :: input_atom_scatter_type(:)
     logical, intent(in) :: input_atom_selection(:)
@@ -74,10 +74,10 @@ contains
     ASSERT(size(input_hkl, 2) == size(input_Fobs))
     ASSERT(size(input_hkl, 2) == size(input_sigma_Fobs))
     ASSERT(size(input_hkl, 2) == size(input_work_flag))
-    ASSERT(size(input_atom_b_factor) == size(input_atom_occupancy))
-    ASSERT(size(input_atom_b_factor) == size(input_atom_scatter_type))
+    ASSERT(size(input_b_factor) == size(input_atom_occupancy))
+    ASSERT(size(input_b_factor) == size(input_atom_scatter_type))
     ASSERT(size(input_scatter_coefficients, 1) == 2)
-    ASSERT(minval(input_atom_b_factor, input_atom_selection) >= 0)
+    ASSERT(minval(input_b_factor, input_atom_selection) >= 0)
     ASSERT(all(input_atom_occupancy <= 1.0))
     ASSERT(all(input_atom_occupancy >= 0.0))
     ASSERT(minval(input_atom_scatter_type) >= 1)
@@ -121,12 +121,12 @@ contains
     atom_is_not_bulk = input_atom_selection
     non_bulk_atom_indices = pack_index(input_atom_selection)
     
-    atom_b_factor = input_atom_b_factor
+    b_factor = input_b_factor
     atom_scatter_type = input_atom_scatter_type
     atom_occupancy = input_atom_occupancy
     scatter_coefficients = input_scatter_coefficients
 
-    ASSERT(size(atom_b_factor) == n_atom)
+    ASSERT(size(b_factor) == n_atom)
     ASSERT(size(atom_occupancy) == n_atom)
     ASSERT(size(atom_scatter_type) == n_atom)
     ASSERT(size(atom_is_not_bulk) == n_atom)
@@ -156,7 +156,6 @@ contains
     if(allocated(atom_is_not_bulk)) deallocate(atom_is_not_bulk)
     if(allocated(atom_scatter_type)) deallocate(atom_scatter_type)
     if(allocated(atom_occupancy)) deallocate(atom_occupancy)
-    if(allocated(atom_b_factor)) deallocate(atom_b_factor)
     if(allocated(scatter_coefficients)) deallocate(scatter_coefficients)
     
   end subroutine finalize

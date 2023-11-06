@@ -23,7 +23,7 @@ module xray_dpartial_impl_gpu_module
         & f_calc, &
         & abs_f_calc, &
         & n_atom, &
-        & atom_b_factor, &
+        & b_factor, &
         & atom_occupancy, &
         & atom_scatter_type, &
         & n_scatter_types, &
@@ -38,7 +38,7 @@ module xray_dpartial_impl_gpu_module
       complex(c_double_complex), intent(in) :: f_calc(n_hkl)
       real(c_double), target, intent(in) :: abs_f_calc(n_hkl)
       integer(c_int), value :: n_atom
-      real(c_double), target, intent(in) :: atom_b_factor(n_atom)
+      real(c_double), target, intent(in) :: b_factor(n_atom)
       real(c_double), target, intent(in) :: atom_occupancy(n_atom)
       integer(c_int), target, intent(in) :: atom_scatter_type(n_atom)
       integer(c_int), value :: n_scatter_types
@@ -89,7 +89,6 @@ contains
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
     
     ASSERT(size(frac, 1) == 3)
-    ASSERT(size(frac, 2) == size(atom_b_factor))
     ASSERT(size(frac, 2) == size(atom_scatter_type))
     ASSERT(size(f_scale) == size(hkl, 2))
     ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
@@ -109,7 +108,7 @@ contains
   end function calc_partial_d_target_d_frac
   
   
-  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_,  &
+  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_,  &
         atom_occupancy_, atom_scatter_type_)
     use xray_dpartial_impl_cpu_module, only : cpu_init => init
     implicit none
@@ -117,11 +116,10 @@ contains
     real(real_kind), target, intent(in) :: mSS4_(:)
     complex(real_kind), target, intent(in) :: Fcalc_(:)
     real(real_kind), target, intent(in) :: abs_Fcalc_(:)
-    real(real_kind), intent(in) :: atom_b_factor_(:)
     real(real_kind), intent(in) :: atom_occupancy_(:)
     integer, intent(in) :: atom_scatter_type_(:)
     
-    call cpu_init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_, &
+    call cpu_init(hkl_, mss4_, Fcalc_, abs_Fcalc_, &
          atom_occupancy_, atom_scatter_type_)
     call gpu_init()
   
@@ -138,6 +136,7 @@ contains
   subroutine gpu_init()
     use xray_dpartial_data_module
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
+    use xray_non_bulk_data_module, only : b_factor
     implicit none
     
     ASSERT(size(atomic_scatter_factor, 1) == size(hkl, 2))
@@ -148,8 +147,8 @@ contains
         & mSS4, &
         & Fcalc, &
         & abs_Fcalc, &
-        & size(atom_b_factor), &
-        & atom_b_factor, &
+        & size(b_factor), &
+        & b_factor, &
         & atom_occupancy, &
         & atom_scatter_type, &
         & size(atomic_scatter_factor, 2), &

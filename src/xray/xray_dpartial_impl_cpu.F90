@@ -22,6 +22,7 @@ contains
         d_target_d_abs_Fcalc) result(d_target_d_frac)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
+    use xray_non_bulk_data_module, only: b_factor
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
@@ -34,7 +35,6 @@ contains
     integer :: ihkl
     
     ASSERT(size(frac, 1) == 3)
-    ASSERT(size(frac, 2) == size(atom_b_factor))
     ASSERT(size(frac, 2) == size(atom_scatter_type))
     ASSERT(size(f_scale) == size(hkl, 2))
     ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
@@ -60,9 +60,9 @@ contains
         
         phase = -sum(hkl_v * frac(:, i))
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
-        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
+        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * b_factor(iatom))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i))
+            * exp(mSS4(ihkl) * b_factor(i))
         
         f = f * cmplx(cos(phase), sin(phase), real_kind)
         ! iatom's term of F^protein_calc (S1)
@@ -82,6 +82,7 @@ contains
         d_target_d_abs_Fcalc) result(d_target_d_B)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
     use xray_pure_utils, only : PI
+    use xray_non_bulk_data_module, only : b_factor
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
@@ -94,7 +95,6 @@ contains
     integer :: ihkl
     
     ASSERT(size(frac, 1) == 3)
-    ASSERT(size(frac, 2) == size(atom_b_factor))
     ASSERT(size(frac, 2) == size(atom_scatter_type))
     ASSERT(size(f_scale) == size(hkl, 2))
     ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
@@ -103,7 +103,7 @@ contains
     ASSERT(all(mSS4 <= 0))
 
     write(6,*) 'in calc_partial_d_target_d_B:'
-    write(6,'(5e15.5)') atom_b_factor(1:10)
+    write(6,'(5e15.5)') b_factor(1:10)
     
     d_target_d_B = 0
 
@@ -123,9 +123,9 @@ contains
         
         phase = -sum(hkl_v * frac(:, i))
         ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
-        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
+        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * b_factor(iatom))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i))
+            * exp(mSS4(ihkl) * b_factor(i))
         
         f = f * cmplx(cos(phase), sin(phase), real_kind)
         ! iatom's term of F^protein_calc (S1)
@@ -150,6 +150,7 @@ contains
     use xray_target_vector_least_squares_data_module, only: derivc
     use xray_pure_utils, only : PI
     use xray_interface2_data_module, only : n_work
+    use xray_non_bulk_data_module, only : b_factor
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     real(real_kind), intent(in) :: f_scale(:)
@@ -159,7 +160,7 @@ contains
     integer :: ihkl, i
     
     ASSERT(size(frac, 1) == 3)
-    ASSERT(size(frac, 2) == size(atom_b_factor))
+    ASSERT(size(frac, 2) == size(b_factor))
     ASSERT(size(frac, 2) == size(atom_scatter_type))
     ASSERT(size(f_scale) == size(hkl, 2))
     
@@ -184,7 +185,7 @@ contains
         
         phase = -sum(hkl_v * frac(:, i))
         f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i)) &
+            * exp(mSS4(ihkl) * b_factor(i)) &
             * ( sin(phase) * real(derivc(ihkl)) + cos(phase) * aimag(derivc(ihkl)) )
         
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
@@ -197,14 +198,13 @@ contains
   end function calc_partial_d_vls_d_frac
   
   
-  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, atom_b_factor_,  &
+  subroutine init(hkl_, mss4_, Fcalc_, abs_Fcalc_, &
         atom_occupancy_, atom_scatter_type_)
     implicit none
     integer, target, intent(in) :: hkl_(:, :)
     real(real_kind), target, intent(in) :: mSS4_(:)
     complex(real_kind), target, intent(in) :: Fcalc_(:)
     real(real_kind), target, intent(in) :: abs_Fcalc_(:)
-    real(real_kind), intent(in) :: atom_b_factor_(:)
     real(real_kind), intent(in) :: atom_occupancy_(:)
     integer, intent(in) :: atom_scatter_type_(:)
     
@@ -213,13 +213,10 @@ contains
     ASSERT(size(abs_Fcalc_) == size(hkl_, 2))
     ASSERT(size(Fcalc_) == size(hkl_, 2))
     
-    ASSERT(size(atom_scatter_type_) == size(atom_b_factor_))
-    
     hkl => hkl_
     mSS4 => mss4_
     Fcalc => Fcalc_
     abs_Fcalc => abs_Fcalc_
-    atom_b_factor = atom_b_factor_
     atom_occupancy = atom_occupancy_
     atom_scatter_type = atom_scatter_type_
   
@@ -230,9 +227,6 @@ contains
     mSS4 => null()
     Fcalc => null()
     abs_Fcalc => null()
-    !  dac: These are also deallocated in xray_interface2_data.F90
-    !  deallocate(atom_b_factor)
-    ! deallocate(atom_scatter_type)
   end subroutine finalize
 
 end module xray_dpartial_impl_cpu_module

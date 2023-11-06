@@ -25,7 +25,7 @@ module xray_interface2_module
 contains
   
   subroutine init(target, bulk_model, hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-      &   atom_b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
+      &   b_factor, atom_occupancy, atom_scatter_type, atom_is_not_bulk, &
       &   atom_atomic_number, mask_update_period, scale_update_period, &
       &   target_meta_update_period, k_sol, b_sol, &
       &   solvent_mask_adjustment, solvent_mask_probe_radius, r3, r4)
@@ -44,7 +44,7 @@ contains
     logical, intent(in) :: work_flag(:)
     class(unit_cell_t), intent(in) :: unit_cell
     real(real_kind), intent(in) :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
-    real(real_kind), intent(in) :: atom_b_factor(:)
+    real(real_kind), intent(in) :: b_factor(:)
     real(real_kind), intent(in) :: atom_occupancy(:)
     integer, intent(in) :: atom_scatter_type(:)
     logical, intent(in) :: atom_is_not_bulk(:)
@@ -62,22 +62,22 @@ contains
     ASSERT(size(hkl, 2) == size(Fobs))
     ASSERT(size(hkl, 2) == size(sigma_Fobs))
     ASSERT(size(hkl, 2) == size(work_flag))
-    ASSERT(size(atom_b_factor) == size(atom_occupancy))
-    ASSERT(size(atom_b_factor) == size(atom_scatter_type))
-    ASSERT(size(atom_b_factor) == size(atom_atomic_number))
-    ASSERT(size(atom_b_factor) == size(atom_is_not_bulk))
-    ASSERT(minval(atom_b_factor, atom_is_not_bulk) >= 0)
+    ASSERT(size(b_factor) == size(atom_occupancy))
+    ASSERT(size(b_factor) == size(atom_scatter_type))
+    ASSERT(size(b_factor) == size(atom_atomic_number))
+    ASSERT(size(b_factor) == size(atom_is_not_bulk))
+    ASSERT(minval(b_factor, atom_is_not_bulk) >= 0)
     ASSERT(all(atom_occupancy <= 1.0))
     ASSERT(all(atom_occupancy >= 0.0))
     ASSERT(minval(atom_scatter_type) >= 1)
     ASSERT(maxval(atom_scatter_type) <= size(scatter_coefficients, 3))
     ASSERT(size(hkl, 1)>0)
-    ASSERT(size(atom_b_factor) > 0)
+    ASSERT(size(b_factor) > 0)
 
     call set_xray_num_threads()
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
-        &   atom_b_factor, atom_occupancy, atom_scatter_type, &
+        &   b_factor, atom_occupancy, atom_scatter_type, &
         &   atom_is_not_bulk, r3, r4 )
   
     call init_submodules(target, bulk_model, atom_atomic_number, &
@@ -90,6 +90,7 @@ contains
     use xray_interface2_data_module
     use xray_target_module, only: calc_partial_d_target_d_absFcalc
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
+    use xray_non_bulk_data_module, only: b_factor
     use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
     use xray_dpartial_module, only: calc_partial_d_target_d_frac, &
          calc_partial_d_vls_d_frac, calc_partial_d_target_d_B
@@ -131,13 +132,13 @@ contains
           j0 = j0 + 1
        end if
        if( first ) then
-          xyz(i0,j0) = atom_b_factor(i)
+          xyz(i0,j0) = b_factor(i)
        else
-          atom_b_factor(i) = xyz(i0,j0)
+          b_factor(i) = xyz(i0,j0)
        end if
     end do
     write(6,*) 'setting B-factors:', first, n_atom
-    write(6,'(5e15.5)') atom_b_factor(1:10)
+    write(6,'(5e15.5)') b_factor(1:10)
     first = .false.
 
     frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
@@ -287,8 +288,8 @@ contains
     & )
     call init_scaling(resolution, reciprocal_norms, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
-    call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
-    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc, atom_b_factor(non_bulk_atom_indices), &
+    call init_non_bulk(hkl, mSS4, atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
+    call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc, &
             & atom_occupancy(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices))
 
   end subroutine init_submodules

@@ -146,7 +146,7 @@ contains
   
   
   ! -------------------------------------------------------------------------
-  ! Compute derivative of |Fobs|:|Fcalc| Maximum Likelihood (ML) target
+  ! Compute derivative of Maximum Likelihood (ML) target
   ! with respect to |Fcalc|.
   ! -------------------------------------------------------------------------
   subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
