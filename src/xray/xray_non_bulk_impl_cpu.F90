@@ -92,6 +92,12 @@ contains
     
     write(6,*) 'in calc_f_non_bulk: b_factor:'
     write(6,'(5e15.5)') b_factor(1:10)
+    write(6,*) 'in calc_f_non_bulk: frac:'
+    write(6,'(5e15.5)') frac(1:3,1:10)
+    write(6,*) 'in calc_f_non_bulk: scatter_type_index:'
+    write(6,'(10i5)') scatter_type_index(1:10)
+    write(6,*) 'in calc_f_non_bulk: mSS4:'
+    write(6,'(5e15.5)') mSS4(1:10)
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
