@@ -218,6 +218,7 @@ xray_dpartial_impl_cpu.o: \
                     xray_pure_utils.o\
                     constants_xray.o\
                     xray_atomic_scatter_factor.o\
+                    xray_non_bulk_data.o\
                     xray_target_vector_least_squares_data.o\
                     xray_interface2_data.o
 
@@ -233,7 +234,8 @@ xray_dpartial_impl_gpu.o: \
                     xray_dpartial_data.o\
                     xray_pure_utils.o\
                     xray_dpartial_impl_cpu.o\
-                    xray_atomic_scatter_factor.o
+                    xray_atomic_scatter_factor.o\
+                    xray_non_bulk_data.o
 
 
 xray_dpartial_impl_gpu.o:   xray_dpartial_impl_gpu.F90
@@ -279,6 +281,7 @@ xray_interface2.o: \
                     constants_xray.o\
                     xray_target.o\
                     xray_non_bulk.o\
+                    xray_non_bulk_data.o\
                     xray_bulk_model.o\
                     xray_dpartial.o\
                     ../msander/def_time.h\
@@ -295,7 +298,8 @@ xray_interface2_data.o: \
                     ../include/assert.fh\
                     xray_contracts.o\
                     xray_unit_cell.o\
-                    xray_pure_utils.o
+                    xray_pure_utils.o\
+                    xray_non_bulk_data.o
 
 
 xray_interface2_data.o:   xray_interface2_data.F90
