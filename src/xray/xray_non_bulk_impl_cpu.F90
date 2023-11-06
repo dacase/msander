@@ -121,16 +121,17 @@ contains
       f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
-      if( ihkl .le. 5) then
-         write(6,*) 'f:'
-         write(6,'(5e15.5)') f(1:10)
-         write(6,*) 'angle'
-         write(6,'(5e15.5)') angle(1:10)
-      end if
       
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
     
+      if( ihkl .eq. 1) then
+         write(6,*) 'f:'
+         write(6,'(5e15.5)') f
+         write(6,*) 'angle'
+         write(6,'(5e15.5)') angle
+         write(6,'(4i5,2e15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      end if
     end do
     !$omp end parallel do
     write(6,*) 'in calc_f_non_bulk: F_non_bulk:'
