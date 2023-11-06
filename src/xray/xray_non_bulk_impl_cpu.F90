@@ -98,6 +98,8 @@ contains
     write(6,'(10i5)') scatter_type_index(1:10)
     write(6,*) 'in calc_f_non_bulk: mSS4:'
     write(6,'(5e15.5)') mSS4(1:10)
+    write(6,*) 'in calc_f_non_bulk: occupancy:'
+    write(6,'(5e15.5)') occupancy(1:10)
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
@@ -127,6 +129,14 @@ contains
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
     
+      if( ihkl .le. 5) then
+         write(6,*) 'f:'
+         write(6,'(5e15.5)') f(1:10)
+         write(6,*) 'angle'
+         write(6,'(5e15.5)') angle(1:10)
+         write(6,'(4i5,2e15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      end if
+
     end do
     !$omp end parallel do
     write(6,*) 'in calc_f_non_bulk: F_non_bulk:'
