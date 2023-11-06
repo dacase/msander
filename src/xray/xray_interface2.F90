@@ -95,7 +95,7 @@ contains
          calc_partial_d_vls_d_frac, calc_partial_d_target_d_B
     use xray_target_module, only: target_function_id
     implicit none
-    real(real_kind), intent(in) :: xyz(:, :)
+    real(real_kind), intent(inout) :: xyz(:, :)
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: xray_weight, xray_weightB
     real(real_kind), intent(inout) :: force(:, :)
@@ -109,6 +109,7 @@ contains
     real(real_kind) gradnorm_amber, gradnorm_xray
     real(real_kind) ::  grad_B(n_atom)
     integer :: i,i0,j0
+    logical, save :: first = .true.
 
 #include "../msander/def_time.h"
 
@@ -129,8 +130,15 @@ contains
           i0 = 1
           j0 = j0 + 1
        end if
-       atom_b_factor(i) = xyz(i0,j0)
+       if( first ) then
+          xyz(i0,j0) = atom_b_factor(i)
+       else
+          atom_b_factor(i) = xyz(i0,j0)
+       end if
     end do
+    write(6,*) 'setting B-factors:', first, n_atom
+    write(6,'(5e15.5)') atom_b_factor(1:10)
+    first = .false.
 
     frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
     

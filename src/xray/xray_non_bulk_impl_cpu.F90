@@ -90,6 +90,8 @@ contains
     ASSERT(size(frac, 2) == size(scatter_type_index))
     ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
+    write(6,*) 'in calc_f_non_bulk:'
+    write(6,'(5e15.5)') b_factor(1:10)
     !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       

@@ -101,6 +101,9 @@ contains
     
     ASSERT(all(abs_Fcalc >= 0))
     ASSERT(all(mSS4 <= 0))
+
+    write(6,*) 'in calc_partial_d_target_d_B:'
+    write(6,'(5e15.5)') atom_b_factor(1:10)
     
     d_target_d_B = 0
 
@@ -136,6 +139,8 @@ contains
       end do
     end do
 !$omp end parallel do
+    write(6,*) 'd_target_d_B:'
+    write(6,'(5e15.5)') d_target_d_B(1:10)
   
   end function calc_partial_d_target_d_B
   
