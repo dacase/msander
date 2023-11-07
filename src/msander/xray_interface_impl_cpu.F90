@@ -130,7 +130,6 @@ contains
       character(len=32) :: fmt
       integer :: ierr
 
-      ! if (pdb_outfile /= '') then
          num_atoms = natom
          num_residues = nres
 
@@ -160,7 +159,6 @@ contains
 
          call nxtsec(prmtop_lun,STDOUT,0,'(20A4)','ATOM_ELEMENT',fmt,ierr)
          read(prmtop_lun,fmt) atom_element
-      ! end if
 
       if (reflection_infile == '') return
 
@@ -197,15 +195,16 @@ contains
    end subroutine xray_read_parm
 
    subroutine xray_read_pdb(filename)
-      use memory_module, only: residue_label,atom_name,coordinate
+      use memory_module, only: natom,residue_label,atom_name,coordinate
       implicit none
+#include "nmr.h"
       character(len=*), intent(in) :: filename
       ! locals
       character(len=4) :: name,resName,segID,element,altLoc,chainID,iCode
       integer :: resSeq
       real(real_kind) :: xyz(3),occupancy,tempFactor
       character(len=80) :: line
-      integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss
+      integer :: unit, iostat, iatom, ires, i, j, ndup, nmiss, i0, j0
       real(real_kind), parameter :: MISSING = -999.0_rk_
       ! begin
       atom_occupancy(:)=MISSING
@@ -238,6 +237,11 @@ contains
             end if
             if (pdb_read_coordinates) coordinate(1:3,i) = xyz
             atom_bfactor(i) = tempFactor
+            if( iscale .gt. 0 ) then
+               i0 = mod(i,3)
+               j0 = natom + 1 + i/3
+               coordinate(i0,j0) = atom_bfactor(i)
+            end if
             atom_occupancy(i) = occupancy
          end if
       end do
@@ -301,8 +305,9 @@ contains
    subroutine xray_write_pdb(filename)
       use xray_common_module, only: title, title1
       use memory_module, only: &
-           residue_pointer,residue_label,atom_name,coordinate
+           natom,residue_pointer,residue_label,atom_name,coordinate
       implicit none
+#include "nmr.h"
       character(len=*), intent(in) :: filename
       ! locals
       integer :: unit, iatom, ires, ierr
@@ -324,6 +329,7 @@ contains
             '("MODRES",1X,A4,1X,A3,1X,A1,1X,I4,A1,1X,A3,2X,A41)'
       ! GMS: Fix for pgf90 compiler
       character(len=4) :: this_residue_chainid
+      integer i0,j0
 
       call amopen(allocate_lun(unit),filename,'U','F','R')
       call date_and_time(date,time)
@@ -361,6 +367,11 @@ contains
             ! don't overflow atom or residue numbers:
             iatom_p = mod( iatom, 100000 )
             ires_p = mod( residue_number(ires), 10000 )
+            if( iscale .gt. 0 ) then
+               i0 = mod(iatom,3)
+               j0 = natom + 1 + iatom/3
+               atom_bfactor(iatom) = coordinate(i0,j0)
+            end if
             write(unit,'(A6,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)')&
                   merge('ATOM  ', 'HETATM', isStandardRes), &
                   iatom_p,name,atom_altloc(iatom)(1:1), &

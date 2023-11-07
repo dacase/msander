@@ -113,6 +113,7 @@ contains
     logical, save :: first = .true.
 
 #include "../msander/def_time.h"
+#include "../msander/nmr.h"
 
     ASSERT(size(xyz, 1) == 3)
     ASSERT(size(xyz, 2) == n_atom)
@@ -121,25 +122,20 @@ contains
     
     allocate(grad_xyz(3, size(non_bulk_atom_indices)))
 
-    ! if doing B-factor optimization, set b_factor array here from the
-    !    end of the coordinates
-    i0 = 0
-    j0 = n_atom + 1
-    do i=1,n_atom
-       i0 = i0 + 1
-       if (i0 .eq. 4 ) then
-          i0 = 1
-          j0 = j0 + 1
-       end if
-       if( first ) then
-          xyz(i0,j0) = b_factor(i)
-       else
-          b_factor(i) = xyz(i0,j0)
-       end if
-    end do
-    write(6,*) 'setting B-factors:', first, n_atom
-    write(6,'(5e15.5)') b_factor(1:10)
-    first = .false.
+    if( iscale .gt. 0 ) then
+       ! if doing B-factor optimization, set b_factor array here from the
+       !    end of the coordinates
+       do i=1,n_atom
+          i0 = mod(i,3)
+          j0 = n_atom + 1 + i/3
+          if(.not. first ) then
+             b_factor(i) = xyz(i0,j0)
+          end if
+       end do
+       ! write(6,*) 'setting B-factors:', first, n_atom
+       ! write(6,'(5e15.5)') b_factor(1:10)
+       first = .false.
+    end if
 
     frac = modulo(unit_cell%to_frac(xyz(:, non_bulk_atom_indices)), 1.0_real_kind)
     
@@ -199,17 +195,14 @@ contains
 
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
 
-    ! extra storage for B-factor forces:
-    i0 = 0
-    j0 = n_atom + 1
-    do i=1,n_atom
-       i0 = i0 + 1
-       if (i0 .eq. 4 ) then
-          i0 = 1
-          j0 = j0 + 1
-       end if
-       force(i0,j0) = -grad_B(i)
-    end do
+    if( iscale .gt. 0 ) then
+       ! put B-factor forces at end of force array:
+       do i=1,n_atom
+          i0 = mod(i,3)
+          j0 = n_atom + 1 + i/3
+          force(i0,j0) = -grad_B(i)
+       end do
+    end if
 
     call timer_stop(TIME_DHKL)
 

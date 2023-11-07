@@ -136,8 +136,6 @@ contains
       end do
     end do
 !$omp end parallel do
-    write(6,*) 'd_target_d_B:'
-    write(6,'(5e15.5)') d_target_d_B(1:10)
   
   end function calc_partial_d_target_d_B
   
