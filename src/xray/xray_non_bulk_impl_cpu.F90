@@ -81,6 +81,8 @@ contains
     ASSERT(allocated(b_factor))
     ASSERT(allocated(scatter_type_index))
     
+    write(6,*) 'in calc_f_non_bulk ', size(b_factor), size(frac,2), &
+           size(scatter_type_index)
     ASSERT(size(frac, 1) == 3)
     ASSERT(size(frac, 2) == size(b_factor))
     ASSERT(size(frac, 2) == size(scatter_type_index))
