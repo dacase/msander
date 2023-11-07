@@ -93,7 +93,10 @@ contains
     use xray_non_bulk_data_module, only: b_factor
     use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
     use xray_dpartial_module, only: calc_partial_d_target_d_frac, &
-         calc_partial_d_vls_d_frac, calc_partial_d_target_d_B
+         calc_partial_d_vls_d_frac
+#ifndef CUDA
+    use xray_dpartial_module, only: calc_partial_d_target_d_B
+#endif
     use xray_target_module, only: target_function_id
     implicit none
     real(real_kind), intent(inout) :: xyz(:, :)
@@ -176,9 +179,11 @@ contains
        grad_xyz = xray_weight * unit_cell%to_orth_derivative( &
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
+#ifndef CUDA
        grad_B = xray_weightB * &
           calc_partial_d_target_d_B(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) 
+#endif
     end if
     ASSERT(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
