@@ -11,7 +11,9 @@ module xray_dpartial_impl_cpu_module
   private
   
   public :: calc_partial_d_target_d_frac
+#ifndef CUDA
   public :: calc_partial_d_target_d_B
+#endif
   public :: calc_partial_d_vls_d_frac
   public :: finalize
   public :: init
@@ -35,6 +37,7 @@ contains
     integer :: ihkl
     
     ASSERT(size(frac, 1) == 3)
+    ASSERT(size(frac, 2) == size(b_factor))
     ASSERT(size(frac, 2) == size(atom_scatter_type))
     ASSERT(size(f_scale) == size(hkl, 2))
     ASSERT(size(d_target_d_abs_Fcalc) == size(hkl, 2))
@@ -71,13 +74,13 @@ contains
               + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
                 aimag(f * Fcalc(ihkl)) * &
                 d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
-
       end do
     end do
 !$omp end parallel do
   
   end function calc_partial_d_target_d_frac
   
+#ifndef CUDA
   function calc_partial_d_target_d_B(frac, f_scale, &
         d_target_d_abs_Fcalc) result(d_target_d_B)
     use xray_atomic_scatter_factor_module, only : atomic_scatter_factor
@@ -138,6 +141,7 @@ contains
 !$omp end parallel do
   
   end function calc_partial_d_target_d_B
+#endif
   
   function calc_partial_d_vls_d_frac(frac, f_scale) &
          result(d_target_d_frac)

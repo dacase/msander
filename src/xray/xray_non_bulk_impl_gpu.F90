@@ -52,18 +52,21 @@ module xray_non_bulk_impl_gpu_module
 
 contains
   
-  subroutine init(hkl_, mSS4_, scatter_type_index_, occupancy_)
+  subroutine init(hkl_, mSS4_, b_factor_, scatter_type_index_, occupancy_)
     use xray_non_bulk_impl_cpu_module, only : cpu_init => init
     implicit none
     integer, intent(in), target :: hkl_(:, :)
     real(real_kind), intent(in), target :: mSS4_(:)
+    real(real_kind), intent(in) :: b_factor_(:)
     integer, intent(in) :: scatter_type_index_(:)
     real(real_kind), intent(in) :: occupancy_(:)
     
     ASSERT(size(hkl_, 1) == 3)
     ASSERT(size(hkl_, 2) == size(mSS4_))
+    ASSERT(size(b_factor_) == size(scatter_type_index_))
+    ASSERT(size(b_factor_) == size(occupancy_))
     
-    call cpu_init(hkl_, mSS4_, scatter_type_index_, occupancy_)
+    call cpu_init(hkl_, mSS4_, b_factor_, scatter_type_index_, occupancy_)
     call gpu_init()
   end subroutine init
   

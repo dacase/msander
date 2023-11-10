@@ -32,6 +32,7 @@ module xray_interface2_data_module
   type(unit_cell_t), save :: unit_cell
   logical, allocatable, save :: atom_is_not_bulk(:)
   integer, allocatable, save :: non_bulk_atom_indices(:)
+  real(real_kind), allocatable, save :: atom_b_factor(:)
   integer, allocatable, save :: atom_scatter_type(:)
   real(real_kind), allocatable, save :: atom_occupancy(:)
   real(real_kind), allocatable, save :: scatter_coefficients(:, :, :) ! Fourier coefficients (2,n_scatter_coeffs,n_scatter_types)
@@ -121,12 +122,12 @@ contains
     atom_is_not_bulk = input_atom_selection
     non_bulk_atom_indices = pack_index(input_atom_selection)
     
-    b_factor = input_b_factor
+    atom_b_factor = input_b_factor
     atom_scatter_type = input_atom_scatter_type
     atom_occupancy = input_atom_occupancy
     scatter_coefficients = input_scatter_coefficients
 
-    ASSERT(size(b_factor) == n_atom)
+    ASSERT(size(atom_b_factor) == n_atom)
     ASSERT(size(atom_occupancy) == n_atom)
     ASSERT(size(atom_scatter_type) == n_atom)
     ASSERT(size(atom_is_not_bulk) == n_atom)
@@ -156,6 +157,7 @@ contains
     if(allocated(atom_is_not_bulk)) deallocate(atom_is_not_bulk)
     if(allocated(atom_scatter_type)) deallocate(atom_scatter_type)
     if(allocated(atom_occupancy)) deallocate(atom_occupancy)
+    if(allocated(atom_b_factor)) deallocate(atom_b_factor)
     if(allocated(scatter_coefficients)) deallocate(scatter_coefficients)
     
   end subroutine finalize

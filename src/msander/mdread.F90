@@ -2476,12 +2476,14 @@ subroutine mdread2(x,ix,ih)
       end if
    end if
 
+#if 0
    if (iscale > mxvar) then
       write(6,9501) iscale,mxvar
       9501 format('ERROR: ISCALE (',i5,') exceeds MXVAR (',i5, &
             '). See nmr.h')
       DELAYED_ERROR
    end if
+#endif
    if (ntx < 1 .or. ntx > 7) then
       write(6,'(/2x,a,i3,a)') 'NTX (',ntx,') must be in 1..7'
       DELAYED_ERROR
