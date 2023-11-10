@@ -108,10 +108,10 @@ contains
 
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
     real(real_kind), allocatable :: frac(:, :)
-    real(real_kind), allocatable :: grad_xyz(:, :)
+    real(real_kind) :: grad_xyz(3, size(non_bulk_atom_indices))
+    real(real_kind) :: grad_B(size(non_bulk_atom_indices))
 
     real(real_kind) gradnorm_amber, gradnorm_xray
-    real(real_kind) ::  grad_B(n_atom)
     integer :: i,i0,j0
     logical, save :: first = .true.
 
@@ -123,20 +123,19 @@ contains
     ASSERT(size(force, 1) == 3)
     ASSERT(size(force, 2) == n_atom)
     
-    allocate(grad_xyz(3, size(non_bulk_atom_indices)))
-
     if( iscale .gt. 0 ) then
        ! if doing B-factor optimization, set b_factor array here from the
        !    end of the coordinates
-       do i=1,n_atom
+       do i=1,size(non_bulk_atom_indices)
           i0 = mod(i,3)
           j0 = n_atom + 1 + i/3
           if(.not. first ) then
              b_factor(i) = xyz(i0,j0)
           end if
        end do
-       ! write(6,*) 'setting B-factors:', first, n_atom
-       ! write(6,'(5e15.5)') b_factor(1:10)
+       write(6,*) 'setting B-factors:', first, n_atom, &
+            size(non_bulk_atom_indices), size(b_factor)
+       write(6,'(5e15.5)') b_factor(1:10)
        first = .false.
     end if
 
@@ -180,12 +179,11 @@ contains
           calc_partial_d_target_d_frac(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) )
 #ifndef CUDA
-       grad_B = xray_weightB * &
+       if( iscale .gt. 0 ) grad_B = xray_weightB * &
           calc_partial_d_target_d_B(frac, get_f_scale(size(abs_Fobs)), &
           d_target_d_absFcalc) 
 #endif
     end if
-    ASSERT(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
 #ifndef MPI
     ! compute norm of gradient from Amber, and from xray: this
@@ -202,7 +200,7 @@ contains
 
     if( iscale .gt. 0 ) then
        ! put B-factor forces at end of force array:
-       do i=1,n_atom
+       do i=1,size(non_bulk_atom_indices)
           i0 = mod(i,3)
           j0 = n_atom + 1 + i/3
           force(i0,j0) = -grad_B(i)
@@ -286,7 +284,7 @@ contains
     & )
     call init_scaling(resolution, reciprocal_norms, n_work, hkl)
     call init_atomic_scatter_factor(mSS4, scatter_coefficients)
-    call init_non_bulk(hkl, mSS4, atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
+    call init_non_bulk(hkl, mSS4, atom_b_factor(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices), atom_occupancy(non_bulk_atom_indices))
     call init_dpartial(hkl, mss4, Fcalc, abs_Fcalc, &
             & atom_occupancy(non_bulk_atom_indices), atom_scatter_type(non_bulk_atom_indices))
 
