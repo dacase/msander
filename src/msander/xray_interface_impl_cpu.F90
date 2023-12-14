@@ -387,7 +387,8 @@ contains
    implicit none
    character(len=*), intent(in) :: filename
    integer rfree(num_hkl)
-   real(real_kind) :: phicalc
+   real(real_kind) :: phicalc, zero=0.0
+   complex(real_kind) :: Fcalcav
    integer :: i
 
    rfree = test_flag(new_order)
@@ -395,7 +396,7 @@ contains
    open(20,file=trim(fmtz_outfile),action='write')
    if( target_function_id == 1 ) then
       write(20,'(15a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
-         'resolution', achar(9), 'fobsr',achar(9),'fobsc',achar(9), &
+         'resolution', achar(9), 'fobsr',achar(9),'fobsi',achar(9), &
          'fcalcr',achar(9),'fcalci'
       write(20,'(15a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
          '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', achar(9),'15N'
@@ -409,19 +410,36 @@ contains
    else
       write(20,'(19a)') 'h',achar(9),'k',achar(9),'l',achar(9), &
          'resolution', achar(9), 'fobs',achar(9),'sigfobs',achar(9), &
-         'fcalc',achar(9),'phicalc',achar(9),'R-free-flag', &
-         achar(9),'penalty'
+         'fcalc',achar(9),'phicalc',achar(9),'fcalcr', &
+         achar(9),'fcalci'
       write(20,'(19a)') '4N',achar(9),'4N',achar(9),'4N',achar(9), &
          '15N', achar(9), '15N',achar(9), '15N',achar(9),'15N', &
-         achar(9),'15N',achar(9),'12N',achar(9),'15N'
+         achar(9),'15N',achar(9),'15N',achar(9),'15N'
       do i=1,num_hkl
+#if 0
+       if( mod(i,4) == 1 ) then
+         Fcalcav = Fcalc(i)
+       else if( mod(i,4) == 2 .or. mod(i,4) == 3 ) then
+         Fcalcav = Fcalcav + Fcalc(i)
+       else
+         Fcalcav = (Fcalcav + Fcalc(i)) / 4.0
+       endif
+#endif
          phicalc = atan2( aimag(Fcalc(i)), real(Fcalc(i)) ) * 57.2957795d0
          write(20,&
-         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i4,a,f12.4)') &
+         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,f12.4)') &
           hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
           resolution(i), achar(9), abs(Fobs(i)), achar(9), &
           sigma_Fobs(i), achar(9), abs(Fcalc(i)), achar(9), phicalc, &
-          achar(9), rfree(i),achar(9),penalty(i)
+          achar(9), real(Fcalc(i)),achar(9),aimag(Fcalc(i))
+#if 0
+         if( mod(i,4) == 0 ) write(20,&
+         '(i4,a,i4,a,i4,a,f8.3,a,f12.3,a,f12.3,a,f12.3,a,f12.3,a,i4,a,f12.4)') &
+          hkl(1,i), achar(9),hkl(2,i), achar(9), hkl(3,i), achar(9), &
+          resolution(i), achar(9), abs(Fobs(i)), achar(9), &
+          sigma_Fobs(i), achar(9), abs(Fcalcav), achar(9), phicalc, &
+          achar(9), rfree(i),achar(9),zero
+#endif
       end do
    end if
    close(20)
