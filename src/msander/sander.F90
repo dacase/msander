@@ -55,7 +55,7 @@ subroutine sander()
 
   use sander_rism_interface, only: rism_setparam, rism_init, rism_finalize
 
-  use xray_cpu_module, only: xray_init=>init, xray_read_parm, &
+  use xray_interface_module, only: xray_init, xray_read_parm, &
            xray_read_mdin, xray_write_options, xray_write_pdb, xray_write_fmtz
   use xray_globals_module, only: xray_active,pdb_read_coordinates,pdb_outfile, &
          fmtz_outfile

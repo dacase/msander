@@ -21,7 +21,6 @@ module xray_interface_module
    use xray_globals_module
    use bulk_solvent_module, only: k_sol, b_sol
    implicit none
-   private
 
    namelist /xray/ &
          pdb_infile, pdb_outfile, &

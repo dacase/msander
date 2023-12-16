@@ -14,7 +14,7 @@ subroutine mexit(output_unit, status)
 #ifdef MPI
    use mpi
 #endif
-  use xray_cpu_module, only: xray_fini=>finalize
+  use xray_interface_module, only: xray_fini
   implicit none
   integer output_unit
   integer status
