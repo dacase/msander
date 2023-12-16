@@ -82,8 +82,8 @@ LESOBJ= \
     xminC.o veclib.o dsarpack.o nxtsec.o
 
 XRAY_OBJS = \
-   xray_globals.o xray_interface.o xray_interface_impl_cpu.o \
-   xray_interface_pre_init_data.o
+   xray_fourier.o xray_globals.o xray_interface.o xray_utils.o \
+   xray_ml.o xray_reciprocal_space.o xray_bulk_solvent.o
 
 .PHONY: dummy
 
@@ -103,17 +103,6 @@ $(BINDIR)/msander$(SFX): libs $(MMOBJ) $(QMOBJ) \
 	$(VB)$(FC) $(FFLAGS) -o $@  $(MMOBJ) $(QMOBJ) \
 	     $(NFE_OBJECTS) $(XRAY_OBJS) \
 	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD)
-
-#---------------------------------------------------------------------------
-$(BINDIR)/msander.cuda$(SFX): libs lib_cuda $(MMOBJ) $(QMOBJ) \
-         $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o \
-         $(PLUMED_DEPENDENCIES) dummy
-	@echo "[MSANDER]  FC $@"
-	$(VB)$(FC) -o $@  $(MMOBJ) $(QMOBJ) \
-	     $(NFE_OBJECTS) $(XRAY_OBJS) xray_interface_impl_gpu.o  \
-	     -L$(LIBDIR) $(NETCDFLIBF) $(FLIBSF) $(LDFLAGS) $(PLUMED_LOAD) \
-         -lxray_cuda -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib \
-         -lcurand -lcufft -lcudart -lcudadevrt -lgfortran -lstdc++
 
 #---------------------------------------------------------------------------
 $(BINDIR)/msander.LES$(SFX): libs $(LESOBJ) $(QMOBJ) \
@@ -137,10 +126,7 @@ libs:
 	$(VB)cd ../sqm && $(MAKE) libsqm
 	$(VB)$(MAKE) binrestart.o    # needed by rism_io 
 	$(VB)cd ../rism && $(MAKE) $(RISM)
-	$(VB)cd ../xray && $(MAKE) libxray
     
-lib_cuda:
-	$(VB)cd ../xray/cuda && $(MAKE) libxray_cuda
 #---------------------------------------------------------------------------
 Plumed.o: Plumed.c
 	@echo "[MSANDER]  CC $<"
