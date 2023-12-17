@@ -113,7 +113,6 @@ contains
       ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
       !    j = 1,num_selected_atoms
       
-      ! symmetrize Fcalc:  first, let's just printout some info:
       f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
 #if 0
@@ -131,7 +130,7 @@ contains
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
-      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
 
       ! set #2:  -h,-k,l
       hkls(1) = -hkl(1,ihkl)
@@ -143,7 +142,7 @@ contains
       if( mod(hkls(1)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
       if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
     
       ! set #3:  -h,k,-l
       hkls(1) = -hkl(1,ihkl)
@@ -155,7 +154,7 @@ contains
       if( mod(hkls(2)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
       if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
     
       ! set #4:  h,-k,-l
       hkls(1) =  hkl(1,ihkl)
@@ -168,8 +167,8 @@ contains
       if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
       if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
-      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
 
     end do
     !$omp end parallel do
