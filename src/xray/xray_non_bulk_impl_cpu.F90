@@ -77,7 +77,8 @@ contains
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     ! locals
-    integer :: ihkl
+    integer :: ihkl, hkls(3)
+    complex(real_kind) :: fcalcs
     
     ASSERT(associated(hkl))
     ASSERT(associated(mSS4))
@@ -90,7 +91,7 @@ contains
     ASSERT(size(frac, 2) == size(scatter_type_index))
     ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
+    !$omp parallel do private(ihkl,f,angle,hkls,fcalcs)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
@@ -112,13 +113,64 @@ contains
       ! Bhkl = SUM( fj * sin(2 * M_PI * (h * xj + k * yj + l * zj)) ),
       !    j = 1,num_selected_atoms
       
+      ! symmetrize Fcalc:  first, let's just printout some info:
       f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
+#if 0
+      ! symmetrize Fcalc:  first, let's just printout some info:
+      !  we want to see how f depends on ihkl: looks like all symmetry
+      !   mates of the main hkl are the same
+      if (ihkl .lt. 13 ) then
+         write(6,'(4i5)') ihkl,hkl(1:3,ihkl)
+         write(6,'(4f15.5)') mSS4(ihkl),atomic_scatter_factor(ihkl, &
+           scatter_type_index(1:3))
+         write(6,'(5f15.5)') f(1:5)
+      end if
+#endif
+      ! original hkl for P212121:
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
-      
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+
+      ! set #2:  -h,-k,l
+      hkls(1) = -hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) =  hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(1)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
+      if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
     
+      ! set #3:  -h,k,-l
+      hkls(1) = -hkl(1,ihkl)
+      hkls(2) =  hkl(2,ihkl)
+      hkls(3) = -hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(2)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
+      if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+    
+      ! set #4:  h,-k,-l
+      hkls(1) =  hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) = -hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(1)+hkls(2),2) .ne. 0 ) fcalcs = -fcalcs
+      if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
+      if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+
     end do
     !$omp end parallel do
   

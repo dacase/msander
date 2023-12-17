@@ -14,7 +14,7 @@ module xray_non_bulk_data_module
   real(real_kind), allocatable :: occupancy(:)
   
   ! automatic
-  complex(real_kind), allocatable :: f_non_bulk(:)
+  complex(real_kind), allocatable :: F_non_bulk(:)
   real(real_kind), allocatable :: f(:)
   real(real_kind), allocatable :: angle(:)
   
