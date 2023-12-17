@@ -26,11 +26,12 @@ contains
     real(real_kind), intent(in) :: f_scale(:)
     real(real_kind), intent(in) :: d_target_d_abs_Fcalc(:)
     real(real_kind) :: d_target_d_frac(3, size(frac, 2))
+
+    ! locals:
     real(real_kind) :: hkl_v(3)
-    real(real_kind) :: phase
+    real(real_kind) :: phase, fa
     complex(real_kind) :: f
-    integer :: i
-    integer :: ihkl
+    integer :: i, ihkl, hkls(3)
     
     ASSERT(size(frac, 1) == 3)
     ASSERT(size(frac, 2) == size(atom_b_factor))
@@ -43,7 +44,7 @@ contains
     
     d_target_d_frac = 0
 
-!$omp parallel do private(i,ihkl,hkl_v,phase,f) num_threads(xray_num_threads)
+!$omp parallel do private(i,ihkl,hkl_v,hkls,phase,f) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
         
@@ -57,19 +58,61 @@ contains
         ! hkl-vector by 2pi
         hkl_v = hkl(:, ihkl) * 2 * PI
         
-        phase = -sum(hkl_v * frac(:, i))
-        ! f_n(s)          = atomic_scatter_factor(ihkl, atom_scatter_type(iatom))
-        ! exp(-B_n*s^2/4) = exp(mSS4(ihkl) * atom_b_factor(iatom))
-        f = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
+        !  fa should be the same for all symmetry mates
+        fa = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
             * exp(mSS4(ihkl) * atom_b_factor(i))
         
-        f = f * cmplx(cos(phase), sin(phase), real_kind)
-        ! iatom's term of F^protein_calc (S1)
-        
+        ! original hkl for P212121:
+        phase = -sum(hkl_v * frac(:, i))
+        f = fa * cmplx(cos(phase), sin(phase), real_kind)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
               + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
                 aimag(f * Fcalc(ihkl)) * &
                 d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
+        ! set #2:  -h,-k,l
+        hkls(1) = -hkl(1,ihkl)
+        hkls(2) = -hkl(2,ihkl)
+        hkls(3) =  hkl(3,ihkl)
+        hkl_v = hkls * 2 * PI
+        phase = -sum(hkl_v * frac(:, i))
+        f = fa * cmplx(cos(phase), sin(phase), real_kind)
+        if( mod(hkls(1)+hkls(3),2) .ne. 0 ) f = -f
+        if( hkls(3) .eq. 0 ) f = conjg(f)
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
+                aimag(f * Fcalc(ihkl)) * &
+                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
+        ! set #3:  -h,k,-l
+        hkls(1) = -hkl(1,ihkl)
+        hkls(2) =  hkl(2,ihkl)
+        hkls(3) = -hkl(3,ihkl)
+        hkl_v = hkls * 2 * PI
+        phase = -sum(hkl_v * frac(:, i))
+        f = fa * cmplx(cos(phase), sin(phase), real_kind)
+        if( mod(hkls(2)+hkls(3),2) .ne. 0 ) f = -f
+        if( hkls(3) .eq. 0 .and. hkls(1) .eq.  0) f = conjg(f)
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
+                aimag(f * Fcalc(ihkl)) * &
+                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
+        ! set #4:   h,-k,-l
+        hkls(1) =  hkl(1,ihkl)
+        hkls(2) = -hkl(2,ihkl)
+        hkls(3) = -hkl(3,ihkl)
+        hkl_v = hkls * 2 * PI
+        phase = -sum(hkl_v * frac(:, i))
+        f = fa * cmplx(cos(phase), sin(phase), real_kind)
+        if( mod(hkls(1)+hkls(2),2) .ne. 0 ) f = -f
+        if( hkls(3) .eq. 0 ) f=conjg(f)
+        if( hkls(3) .eq. 0 .and. hkls(1) .eq.  0) f = conjg(f)
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
+                aimag(f * Fcalc(ihkl)) * &
+                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+
       end do
     end do
 !$omp end parallel do
