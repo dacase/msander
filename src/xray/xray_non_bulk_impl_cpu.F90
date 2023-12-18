@@ -132,6 +132,7 @@ contains
           sum(f(:) * sin(angle(:))), real_kind)
       ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
 
+#if 1  /* 0 to skip symmetry mates as a test */
       ! set #2:  -h,-k,l
       hkls(1) = -hkl(1,ihkl)
       hkls(2) = -hkl(2,ihkl)
@@ -169,6 +170,7 @@ contains
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
       ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
       ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+#endif
 
     end do
     !$omp end parallel do

@@ -60,58 +60,60 @@ contains
         
         !  fa should be the same for all symmetry mates
         fa = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i))
+            * exp(mSS4(ihkl) * atom_b_factor(i)) * atom_occupancy(i)
         
         ! original hkl for P212121:
-        phase = -sum(hkl_v * frac(:, i))
+        phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
-                aimag(f * Fcalc(ihkl)) * &
-                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+           + f_scale(ihkl) * hkl_v(:) * &
+             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
 
+#if 1  /* 0 to skip symmetry mates as a test */
         ! set #2:  -h,-k,l
         hkls(1) = -hkl(1,ihkl)
         hkls(2) = -hkl(2,ihkl)
         hkls(3) =  hkl(3,ihkl)
         hkl_v = hkls * 2 * PI
-        phase = -sum(hkl_v * frac(:, i))
+        phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         if( mod(hkls(1)+hkls(3),2) .ne. 0 ) f = -f
         if( hkls(3) .eq. 0 ) f = conjg(f)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
-                aimag(f * Fcalc(ihkl)) * &
-                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+           + f_scale(ihkl) * hkl_v(:) * &
+             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
 
         ! set #3:  -h,k,-l
         hkls(1) = -hkl(1,ihkl)
         hkls(2) =  hkl(2,ihkl)
         hkls(3) = -hkl(3,ihkl)
         hkl_v = hkls * 2 * PI
-        phase = -sum(hkl_v * frac(:, i))
+        phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         if( mod(hkls(2)+hkls(3),2) .ne. 0 ) f = -f
         if( hkls(3) .eq. 0 .and. hkls(1) .eq.  0) f = conjg(f)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
-                aimag(f * Fcalc(ihkl)) * &
-                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+           + f_scale(ihkl) * hkl_v(:) * &
+             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
 
         ! set #4:   h,-k,-l
         hkls(1) =  hkl(1,ihkl)
         hkls(2) = -hkl(2,ihkl)
         hkls(3) = -hkl(3,ihkl)
         hkl_v = hkls * 2 * PI
-        phase = -sum(hkl_v * frac(:, i))
+        phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         if( mod(hkls(1)+hkls(2),2) .ne. 0 ) f = -f
         if( hkls(3) .eq. 0 ) f=conjg(f)
         if( hkls(3) .eq. 0 .and. hkls(1) .eq.  0) f = conjg(f)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-              + atom_occupancy(i) * f_scale(ihkl) * hkl_v(:) * &
-                aimag(f * Fcalc(ihkl)) * &
-                d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+           + f_scale(ihkl) * hkl_v(:) * &
+             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+#endif
 
       end do
     end do
