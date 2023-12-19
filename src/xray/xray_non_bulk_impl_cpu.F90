@@ -94,6 +94,7 @@ contains
     !$omp parallel do private(ihkl,f,angle,hkls,fcalcs)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
+   !  if( hkl(1,ihkl).ne.2 .or. hkl(2,ihkl).ne.9 .or. hkl(3,ihkl).ne.37 ) cycle
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
       !      j = 1,num_selected_atoms
       ! where:
@@ -126,11 +127,13 @@ contains
          write(6,'(5f15.5)') f(1:5)
       end if
 #endif
+#if 0
       ! original hkl for P212121:
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
-      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+#endif
 
 #if 1  /* 0 to skip symmetry mates as a test */
       ! set #2:  -h,-k,l
@@ -142,9 +145,12 @@ contains
           sum(f(:) * sin(angle(:))), real_kind)
       if( mod(hkls(1)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
       if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
-      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      ! F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      F_non_bulk(ihkl) = fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+#endif
     
+#if 0
       ! set #3:  -h,k,-l
       hkls(1) = -hkl(1,ihkl)
       hkls(2) =  hkl(2,ihkl)
@@ -155,7 +161,7 @@ contains
       if( mod(hkls(2)+hkls(3),2) .ne. 0 ) fcalcs = -fcalcs
       if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
     
       ! set #4:  h,-k,-l
       hkls(1) =  hkl(1,ihkl)
@@ -168,8 +174,8 @@ contains
       if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
       if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
-      ! if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkls(1:3), fcalcs
+      if(ihkl .lt. 4) write(6,'(4i4,2f15.5)') ihkl, hkl(1:3,ihkl), F_non_bulk(ihkl)
 #endif
 
     end do
