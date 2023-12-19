@@ -67,7 +67,7 @@ contains
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
            + f_scale(ihkl) * hkl_v(:) * &
-             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) * &
              d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
 
 #if 1  /* 0 to skip symmetry mates as a test */
@@ -79,11 +79,18 @@ contains
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         if( mod(hkls(1)+hkls(3),2) .ne. 0 ) f = -f
-        if( hkls(3) .eq. 0 ) f = conjg(f)
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+        if( hkls(3) .eq. 0 ) then
+           f = conjg(f)
+           d_target_d_frac(:, i) = d_target_d_frac(:, i) &
            + f_scale(ihkl) * hkl_v(:) * &
              (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
              d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        else
+           d_target_d_frac(:, i) = d_target_d_frac(:, i) &
+           + f_scale(ihkl) * hkl_v(:) * &
+             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
+             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        endif
 
         ! set #3:  -h,k,-l
         hkls(1) = -hkl(1,ihkl)
@@ -93,7 +100,7 @@ contains
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
         if( mod(hkls(2)+hkls(3),2) .ne. 0 ) f = -f
-        if( hkls(3) .eq. 0 .and. hkls(1) .eq.  0) f = conjg(f)
+        if( hkls(3).eq.0 .and. hkls(1).eq.0 ) f = conjg(f)
         d_target_d_frac(:, i) = d_target_d_frac(:, i) &
            + f_scale(ihkl) * hkl_v(:) * &
              (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
