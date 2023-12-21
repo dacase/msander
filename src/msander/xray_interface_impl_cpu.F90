@@ -30,7 +30,7 @@ module xray_cpu_module
          pdb_read_coordinates, &
          pdb_use_segid, &
          pdb_wrap_names, &
-         spacegroup_name, &
+         spacegroup_name, spacegroup_number, &
          reflection_infile, &
          xray_weight, &
          target, &
@@ -97,7 +97,8 @@ contains
       write(stdout,'(5X,A,L1)') 'PDB Read Coordinates: ',pdb_read_coordinates
       write(stdout,'(5X,A,L1)') 'PDB Use SegID: ',pdb_use_segid
       write(stdout,'(5X,A,L1)') 'PDB Wrap Names: ',pdb_wrap_names
-      write(stdout,'(5X,2A)') 'Spacegroup: ',trim(spacegroup_name)
+      write(stdout,'(5X,3A,i3)') 'Spacegroup: ',trim(spacegroup_name), &
+          ' number ',spacegroup_number
       write(stdout,'(5X,2A)') 'Reflection InFile: ',trim(reflection_infile)
       write(stdout,'(5X,A,E10.3)') 'X-ray weight: ', xray_weight
       if( target(1:2) .eq. 'ls' ) then
@@ -184,8 +185,6 @@ contains
          write(STDOUT,*) &
                'XRAY_SYMMETRY_TYPE not found in PRMTOP file; assuming P1'
          num_symmops = 1
-         spacegroup_number = 1
-         spacegroup_name = 'P 1'
          au_type = 1
       else
          stop 'ONLY P1 SUPPORTED FOR NOW'
@@ -564,8 +563,8 @@ contains
          & atom_selection==1, ix(i100+1:i100+natom), &
          & mask_update_period, scale_update_period, &
          & ml_update_period, k_sol, b_sol, &
-         & solvent_mask_adjustment, solvent_mask_probe_radius, ls_r3, ls_r4 &
-      )
+         & solvent_mask_adjustment, solvent_mask_probe_radius, ls_r3, ls_r4, &
+         & spacegroup_number )
       
       ! should be able to do some deallocations here:
       deallocate(hkl_index,Fobs,sigFobs, &
@@ -595,6 +594,7 @@ contains
       pdb_wrap_names = .false.
       target = 'ls  '
       spacegroup_name = 'P 1'
+      spacegroup_number = 1
       reflection_infile = ''
       xray_weight = 1.0
       solvent_mask_probe_radius = 0.9

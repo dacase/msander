@@ -26,6 +26,7 @@ module xray_interface2_data_module
   real(real_kind), allocatable, save :: sigma_Fobs(:)  ! size = (n_hkl)
   real(real_kind), allocatable, save :: resolution(:)
   real(real_kind), allocatable, save :: penalty(:)  ! per-reflection penalty
+  integer :: spacegroup_number
 
   !! Atomic data
   integer, save :: n_atom
@@ -48,7 +49,7 @@ contains
   subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &
           input_unit_cell, input_scatter_coefficients, &
           input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, &
-          input_atom_selection, r3, r4 )
+          input_atom_selection, r3, r4 , input_spacegroup_number )
     use xray_pure_utils, only: index_partition, index_sort, calc_resolution, pack_index
     
     implicit none
@@ -64,6 +65,7 @@ contains
     integer, intent(in) :: input_atom_scatter_type(:)
     logical, intent(in) :: input_atom_selection(:)
     real(real_kind), intent(in) :: r3, r4
+    integer, intent(in) :: input_spacegroup_number
     
     ! locals
     integer :: j
@@ -138,6 +140,7 @@ contains
 
     ls_r3 = r3
     ls_r4 = r4
+    spacegroup_number = input_spacegroup_number
     
   end subroutine init
   

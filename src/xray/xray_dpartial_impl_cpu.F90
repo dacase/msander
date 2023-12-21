@@ -6,6 +6,7 @@ module xray_dpartial_impl_cpu_module
   use xray_dpartial_data_module
   use xray_pure_utils, only : real_kind
   use constants_xray, only : xray_num_threads
+  use xray_interface2_data_module, only : spacegroup_number
   
   implicit none
   private
@@ -70,7 +71,8 @@ contains
              (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) * &
              d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
 
-#if 1  /* 0 to skip symmetry mates as a test */
+     if( spacegroup_number .eq. 19 ) then
+
         ! set #2:  -h,-k,l
         hkls(1) = -hkl(1,ihkl)
         hkls(2) = -hkl(2,ihkl)
@@ -109,7 +111,8 @@ contains
            + f_scale(ihkl) * hkl_v(:) * &
              (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
              d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
-#endif
+
+     end if
 
       end do
     end do

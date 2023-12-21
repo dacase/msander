@@ -5,6 +5,7 @@ module xray_non_bulk_impl_cpu_module
   use xray_pure_utils, only : real_kind
   use xray_contracts_module
   use xray_non_bulk_data_module
+  use xray_interface2_data_module, only : spacegroup_number
   
   implicit none
   
@@ -122,7 +123,8 @@ contains
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
 
-#if 1  /* 0 to skip symmetry mates as a test */
+   if( spacegroup_number .eq. 19 ) then
+
       ! set #2:  -h,-k,l
       hkls(1) = -hkl(1,ihkl)
       hkls(2) = -hkl(2,ihkl)
@@ -155,10 +157,11 @@ contains
       ! if( hkls(3) .eq. 0 ) fcalcs = conjg(fcalcs)
       ! if( hkls(3) .eq. 0 .and. hkls(1) .eq. 0 ) fcalcs = conjg(fcalcs)
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
-#endif
 
-    end do
-    !$omp end parallel do
+   end if
+
+     end do
+     !$omp end parallel do
   
   end subroutine calc_f_non_bulk
 
