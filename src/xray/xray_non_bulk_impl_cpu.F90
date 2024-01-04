@@ -84,11 +84,6 @@ contains
 
     call wallclock( time0 )
 
-    ! specific to james' 1aho:
-    ixp = 2
-    iyp = 2
-    izp = 3
-    
     ASSERT(associated(hkl))
     ASSERT(associated(mSS4))
     ASSERT(allocated(atomic_scatter_factor))
@@ -134,7 +129,7 @@ contains
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
 
-   ! if( spacegroup_number .eq. 19 ) then
+   if( spacegroup_number .eq. 19 ) then
 
       ! set #2:  -h,-k,l
       hkls(1) = -hkl(1,ihkl)
@@ -166,13 +161,13 @@ contains
       if( mod(hkls(1)/ixp + hkls(2)/iyp, 2) .ne. 0 ) fcalcs = -fcalcs
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
 
-   ! end if
+   end if
 
      end do
      !$omp end parallel do
 
      call wallclock( time1 )
-     write(0,'(a,f8.3)') 'ihkl time: ', time1 - time0
+     ! write(0,'(a,f8.3)') 'ihkl time: ', time1 - time0
   
   end subroutine calc_f_non_bulk
 

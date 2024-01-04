@@ -74,7 +74,7 @@ contains
         d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
             * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
-     ! if( spacegroup_number .eq. 19 ) then
+     if( spacegroup_number .eq. 19 ) then
 
         ! set #2:  -h,-k,l
         hkls(1) = -hkl(1,ihkl)
@@ -109,14 +109,14 @@ contains
         d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
             * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
-     ! end if
+     end if
 
       end do
     end do
 !$omp end parallel do
 
     call wallclock( time1 )
-    write(0,'(a,f8.3)') 'dhkl time: ', time1 - time0
+    ! write(0,'(a,f8.3)') 'dhkl time: ', time1 - time0
   
   end function calc_partial_d_target_d_frac
   
