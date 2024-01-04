@@ -7,6 +7,7 @@ module xray_dpartial_impl_cpu_module
   use xray_pure_utils, only : real_kind
   use constants_xray, only : xray_num_threads
   use xray_interface2_data_module, only : spacegroup_number
+  use xray_non_bulk_data_module, only : ixp, iyp, izp
   
   implicit none
   private
@@ -33,6 +34,9 @@ contains
     real(real_kind) :: phase, fa
     complex(real_kind) :: f
     integer :: i, ihkl, hkls(3)
+    real(real_kind) :: time0, time1
+
+    call wallclock( time0 )
     
     ASSERT(size(frac, 1) == 3)
     ASSERT(size(frac, 2) == size(atom_b_factor))
@@ -45,7 +49,7 @@ contains
     
     d_target_d_frac = 0
 
-!$omp parallel do private(i,ihkl,hkl_v,hkls,phase,f) num_threads(xray_num_threads)
+!$omp parallel do private(i,ihkl,hkl_v,hkls,phase,f,fa) num_threads(xray_num_threads)
     do i = 1, size(frac, 2)
       do ihkl = 1, size(hkl, 2)
         
@@ -61,17 +65,16 @@ contains
         
         !  fa should be the same for all symmetry mates
         fa = atomic_scatter_factor(ihkl, atom_scatter_type(i)) &
-            * exp(mSS4(ihkl) * atom_b_factor(i)) * atom_occupancy(i)
+            * exp(mSS4(ihkl) * atom_b_factor(i)) * atom_occupancy(i) &
+            * f_scale(ihkl) * d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
         
         ! original hkl for P212121:
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-           + f_scale(ihkl) * hkl_v(:) * &
-             (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) * &
-             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
+            * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
-     if( spacegroup_number .eq. 19 ) then
+     ! if( spacegroup_number .eq. 19 ) then
 
         ! set #2:  -h,-k,l
         hkls(1) = -hkl(1,ihkl)
@@ -80,11 +83,9 @@ contains
         hkl_v = hkls * 2 * PI
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
-        if( mod(hkls(1)+hkls(3),2) .ne. 0 ) f = -f
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-           + f_scale(ihkl) * hkl_v(:) * &
-           (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) * &
-           d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        if( mod(hkls(1)/ixp + hkls(3)/izp, 2) .ne. 0 ) f = -f
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
+            * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
         ! set #3:  -h,k,-l
         hkls(1) = -hkl(1,ihkl)
@@ -93,11 +94,9 @@ contains
         hkl_v = hkls * 2 * PI
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
-        if( mod(hkls(2)+hkls(3),2) .ne. 0 ) f = -f
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-           + f_scale(ihkl) * hkl_v(:) * &
-             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
-             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        if( mod(hkls(2)/iyp + hkls(3)/izp, 2) .ne. 0 ) f = -f
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
+            * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
         ! set #4:   h,-k,-l
         hkls(1) =  hkl(1,ihkl)
@@ -106,17 +105,18 @@ contains
         hkl_v = hkls * 2 * PI
         phase = sum(hkl_v * frac(:, i))
         f = fa * cmplx(cos(phase), sin(phase), real_kind)
-        if( mod(hkls(1)+hkls(2),2) .ne. 0 ) f = -f
-        d_target_d_frac(:, i) = d_target_d_frac(:, i) &
-           + f_scale(ihkl) * hkl_v(:) * &
-             (real(f) * aimag(Fcalc(ihkl)) - aimag(f) * real(Fcalc(ihkl))) * &
-             d_target_d_abs_Fcalc(ihkl) / abs_Fcalc(ihkl)
+        if( mod(hkls(1)/ixp + hkls(2)/iyp, 2) .ne. 0 ) f = -f
+        d_target_d_frac(:, i) = d_target_d_frac(:, i) + hkl_v(:) &
+            * (real(f)*aimag(Fcalc(ihkl)) - aimag(f)*real(Fcalc(ihkl))) 
 
-     end if
+     ! end if
 
       end do
     end do
 !$omp end parallel do
+
+    call wallclock( time1 )
+    write(0,'(a,f8.3)') 'dhkl time: ', time1 - time0
   
   end function calc_partial_d_target_d_frac
   
