@@ -122,9 +122,6 @@ contains
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
 
       ! original hkl for P212121:
-      hkls(1) = -hkl(1,ihkl)
-      hkls(2) = -hkl(2,ihkl)
-      hkls(3) =  hkl(3,ihkl)
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
