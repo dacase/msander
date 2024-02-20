@@ -49,9 +49,7 @@ subroutine relaxmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   use fastwt
   use file_io_dat
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
-  use qmmm_module, only: qmmm_struct
 #ifdef RELAXATION_TRAJ
-  use qmmm_module, only: qmmm_nml
 #endif /* RELAXATION_TRAJ */
   use random
   use stack

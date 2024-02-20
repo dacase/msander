@@ -261,7 +261,6 @@ end subroutine startup
 !+ [Enter a one-line description of subroutine fdist here]
 subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
 
-   use qmmm_module, only : qmmm_nml
    use state
    use mpi
    implicit none
