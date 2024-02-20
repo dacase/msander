@@ -28,19 +28,17 @@ clean:
 	-(cd blas && $(MAKE) clean )
 	-(cd lapack && $(MAKE) clean )
 	-(cd arpack && $(MAKE) clean )
-	-(cd sqm && $(MAKE) clean )
 	-(cd rism && $(MAKE) clean )
 	-(cd msander && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd addles && $(MAKE) clean )
-	-(cd sqm && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander* \
         add_pdb add_xray addles AddToBox ChBox PropPDB UnitCell)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
-        libarpack.a libsqm.a librism.a /libsys.a )
+        libarpack.a librism.a /libsys.a )
 	/bin/rm -f $(INCDIR)/* ../config.h
 	/bin/rm $(LIBDIR)/python3.*
 
