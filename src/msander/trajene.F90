@@ -195,7 +195,7 @@ subroutine trajene(x,ix,ih,ipairs,ene,ok,qsetup)
 
       xmin_iter = 0
       call run_xmin(x, ix, ih, ipairs, x(lcrd), x(lforce), &
-                    ene, qsetup, xmin_iter, ntpr)
+                    ene, qsetup, xmin_iter, ntpr, 0)
 
       write (6,364) ene%pot%tot,carrms
       364 format ('minimization completed, ENE=',1x,e14.7, &

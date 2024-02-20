@@ -45,9 +45,9 @@ uninstall: clean
 	/bin/rm $(LIBDIR)/python3.*
 
 distclean: clean
-	-(cd .. && /bin/rm -rf $(BINDIR) $(LIBDIR) $(INCDIR) logs config.h)
 	-(/bin/rm -f netcdf*.log )
 	-(cd netcdf-c-4.7.2 && make uninstall)
 	-(cd netcdf-fortran-4.5.2 && make uninstall)
 	-(cd fftw-3.3 && make uninstall)
+	-(cd .. && /bin/rm -rf bin lib inc share logs config.h)
 

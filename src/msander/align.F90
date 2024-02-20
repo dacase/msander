@@ -14,8 +14,8 @@ subroutine align1( natom, x, f, amass )
 #  include "extra.h"
    character(len=1) uplo,jobz
    _REAL_    com(3)
-   _REAL_    work(27), vect_al(3,3), root(3), almat(6)
-   integer   ipear, iof, i, idip, j, iset
+   _REAL_    work(27), vect_al(3,3), root(3), almat(6), vect_ref(3,3)
+   integer   ipear, iof, i, idip, j, iset, k
    _REAL_    dx, dy, dz, dr
    _REAL_    csx, csy, csz
    _REAL_    csx2, csy2, csz2
@@ -28,6 +28,8 @@ subroutine align1( natom, x, f, amass )
    _REAL_    tmass
    _REAL_    rootsum
    _REAL_    axlen
+   _REAL_    news(3,3), Qnum, Qden
+   _REAL_    root_tmp(3), vect_tmp(3,3)
    
    data uplo,jobz / 'U','V' /
    
@@ -53,9 +55,83 @@ subroutine align1( natom, x, f, amass )
       s33(i)  = -s11(i) - s22(i)
       iof = iof + 5
    end do
+
+   if( itarget .gt. 0 ) then
+
+      !  ---first, diagonalize the input alignment tensor(s):
+   
+      do iset=1,num_datasets
+         almat(1) = s11(iset)
+         almat(2) = s12(iset)
+         almat(3) = s22(iset)
+         almat(4) = s13(iset)
+         almat(5) = s23(iset)
+         almat(6) = s33(iset)
+         call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
+
+         ! dac note: don't order the roots here to force an order of
+         !   the eigenvalues: that can lead to a "jump" that reverse
+         !   the sign of the tensor, and can mess up minimization or
+         !   MD.  Below, we do order the roots for printing out of the
+         !   final tensor.
+
+         if( itarget .eq. 1 ) then
+
+            ! reconstruct the original tensor with new eigenvalues:
+
+            root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
+            root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
+            root(3) =  2.d0 * da_target(iset)
+
+         else if( itarget .eq. 2 ) then
+
+            ! force the alignment tensor to have particular eigenvectors:
+            ! uses vectors from dataset 1 for the other two:
+
+            if( iset .eq. 1 ) then
+                vect_ref = vect_al
+            else
+                vect_al = vect_ref
+            end if
+
+         end if
+
+         ! reconstruct the alignment tensor:
+         do i=1,3
+            do j=1,3
+               news(i,j) = 0.d0
+               do k=1,3
+                  news(i,j) = news(i,j) + vect_al(i,k)*root(k)*vect_al(j,k)
+               end do
+            end do
+         end do
+
+         ! put news back into s:
+         s11(iset) = news(1,1)
+         s12(iset) = news(1,2)
+         s22(iset) = news(2,2)
+         s13(iset) = news(1,3)
+         s23(iset) = news(2,3)
+         s33(iset) = news(3,3)
+      end do
+
+      ! also, put back in the end of the coordinate array:
+      iof = 0
+      do i=1,num_datasets
+         x(3*natom + iof + 1) = s11(i)
+         x(3*natom + iof + 2) = s12(i)
+         x(3*natom + iof + 3) = s22(i)
+         x(3*natom + iof + 4) = s13(i)
+         x(3*natom + iof + 5) = s23(i)
+         iof = iof + 5
+      end do
+
+   end if  ! itarget .gt. 0
    
    !    Loop over obvserved dipolar couplings:
    
+   Qnum = 0.0
+   Qden = 0.0
    do idip=1,ndip
       
       i = id(idip)
@@ -130,16 +206,13 @@ subroutine align1( natom, x, f, amass )
       else
          djcst = -0.077004d0 * gigj(idip) / dij(idip)**3
       end if
-      
+
       dcalc = djcst*( s11(iset)*csx2 + &
             s22(iset)*csy2 + &
             s33(iset)*csz2 + &
             2.d0*s12(iset)*csx*csy + &
             2.d0*s13(iset)*csx*csz + &
             2.d0*s23(iset)*csy*csz  )
-
-      !write(6,*) 'details: ', i,j
-      !write(6,*) csx,csy,csz,djcst,dcalc
 
       if( dcalc > dobsu(idip) ) then
          ealigni = dwt(idip)*(dcalc - dobsu(idip))**2
@@ -210,11 +283,6 @@ subroutine align1( natom, x, f, amass )
          fz = fz + temp2*dz
       end if
       
-#if 0
-      write(6,*) 'align forces: ', i,j
-      write(6,'(3e20.10)') fx,fy,fz
-#endif
-
       f(3*i-2) = f(3*i-2) - fx
       f(3*i-1) = f(3*i-1) - fy
       f(3*i  ) = f(3*i  ) - fz
@@ -235,18 +303,30 @@ subroutine align1( natom, x, f, amass )
          end if
       end if
       9073 format(' ',a13,' -- ',a13,':',5f9.3)
+
+      ! stats for Qfactor:
+      Qnum = Qnum + (dcalc - dtarget)**2
+      Qden = Qden + dtarget**2
       
    end do  !  idip=1,ndip
    
    !     ---printing of results:
    
    if (master .and. iprint /= 0) then
-      write(57,44) ealign
-      44 format(40x,'Total align    constraint:',f8.2)
+      write(57,44) ealign, sqrt(Qnum/Qden)
+      44 format(20x,'Total align    constraint:',f8.2, ' Q = ', f10.5)
       
       !       ---diagonalize the alignment tensor:
       
       do iset=1,num_datasets
+         write(57,'(a,i3)') 'alignment tensor', iset
+         write(57, &
+        '(a,i2,a,f8.3,a,i2,a,f8.3,a,i2,a,f8.3,a,/,a,i2,a,f8.3,a,i2,a,f8.3,a)') & 
+               's11(',iset,')=',s11(iset), &
+             ', s12(',iset,')=',s12(iset), &
+             ', s13(',iset,')=',s13(iset), ', ', &
+             '  s22(',iset,')=',s22(iset), &
+             ', s23(',iset,')=',s23(iset),', '
          almat(1) = s11(iset)
          almat(2) = s12(iset)
          almat(3) = s22(iset)
@@ -254,50 +334,35 @@ subroutine align1( natom, x, f, amass )
          almat(5) = s23(iset)
          almat(6) = s33(iset)
          call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
-         write(57,*) 'Diagonalize the alignment matrix:'
+         ! order the roots so by absolute value, so that |root(3)| >
+         !    |root(2)| > |root(1)|:
+         root_tmp = root
+         vect_tmp = vect_al
+         if( abs(root(1)) > abs(root(3)) ) then
+            root(3) = root_tmp(1)
+            root(2) = root_tmp(3)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,1)
+            vect_al(:,2) = vect_tmp(:,3)
+            vect_al(:,1) = vect_tmp(:,2)
+         else
+            root(3) = root_tmp(3)
+            root(2) = root_tmp(1)
+            root(1) = root_tmp(2)
+            vect_al(:,3) = vect_tmp(:,3)
+            vect_al(:,2) = vect_tmp(:,1)
+            vect_al(:,1) = vect_tmp(:,2)
+         end if
+
+         write(57,*) 'Diagonalization:'
          do i=1,3
             write(57,'(f15.5,5x,3f12.5)') root(i), (vect_al(j,i),j=1,3)
          end do
+         write(57,'(a,f10.4,a,f10.4)') ' Da = ', root(3)/2.d0, &
+            ' x 10^-5;  R =', 2.d0*(root(1)-root(2))/(3.d0*root(3))
+         write(57,*)
       end do
-      
-      !       ---diagonalize the moment of inertia tensor:
-      
-      com(1) = 0.0d0
-      com(2) = 0.0d0
-      com(3) = 0.0d0
-      tmass = 0.0d0
-      do i=1,natom
-         com(1) = com(1) + x(3*i -2)*amass(i)
-         com(2) = com(2) + x(3*i -1)*amass(i)
-         com(3) = com(3) + x(3*i   )*amass(i)
-         tmass = tmass + amass(i)
-      end do
-      com(1) = com(1)/tmass
-      com(2) = com(2)/tmass
-      com(3) = com(3)/tmass
-      
-      do i=1,6
-         almat(i) = 0.0d0
-      end do
-      do i=1,natom
-         dx = x(3*i-2) - com(1)
-         dy = x(3*i-1) - com(2)
-         dz = x(3*i  ) - com(3)
-         almat(1) = almat(1) + amass(i)*(dy*dy + dz*dz)
-         almat(2) = almat(2) - amass(i)*dx*dy
-         almat(3) = almat(3) + amass(i)*(dx*dx + dz*dz)
-         almat(4) = almat(4) - amass(i)*dx*dz
-         almat(5) = almat(5) - amass(i)*dy*dz
-         almat(6) = almat(6) + amass(i)*(dx*dx + dy*dy)
-      end do
-      call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
-      rootsum = root(1) + root(2) + root(3)
-      write(57,*) 'Diagonalize the moment of interia tensor:'
-      do i=1,3
-         axlen = sqrt(2.5d0*(rootsum - 2.d0*root(i))/tmass)
-         write(57,'(f15.5,5x,3f12.5,5x,f12.5)') &
-               root(i), (vect_al(j,i),j=1,3), axlen
-      end do
+
    end if  ! (master .and. iprint /= 0)
    
    return
@@ -322,7 +387,7 @@ subroutine alignread(natom,x)
    integer   iin, i, iof
    namelist /align/ ndip, id, jd, dobsu, dobsl, dataset, &
          num_datasets, s11,s22,s12,s13,s23,dcut,gigj,dij,dwt, &
-         freezemol,freezes
+         freezemol,freezes,da_target,r_target,itarget
    
    ! If restraint input has been redirected, open the appropriate file
    
@@ -334,12 +399,11 @@ subroutine alignread(natom,x)
    !  --- read and echo title from alignment file:
    
    write(6,*) 'Here are comments from the alignment input file:'
-   42 read(iin,'(a)') line
-   if (line(1:1) == '#') then
-      write(6,*) line
-      goto 42
-   end if
-   backspace (iin)
+   do i=1,20
+      read(iin,'(a)') line
+      write(6,*) line(1:78)
+   end do
+   rewind (iin)
    write(6,*)
    
    ! read the namelist align, first setting up defaults:
@@ -348,6 +412,7 @@ subroutine alignread(natom,x)
    num_datasets = 1
    freezemol = .false.
    freezes = .false.
+   itarget = 0
    do i=1,maxdip
       dwt(i) = 1.0d0
       dataset(i) = 1

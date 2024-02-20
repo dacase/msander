@@ -3,10 +3,10 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 11/24/2022 at 13:30:13
+| Run on 05/27/2023 at 12:45:31
 
 |   Executable path: ../../bin/msander
-| Working directory: /home/case/msander_intel/test/rdc
+| Working directory: /home/case/msander/test/rdc
 |          Hostname: Unknown
   [-O]verwriting output
 
@@ -76,7 +76,7 @@ END
 
 | Note: 1-4 VDW scale factors were NOT found in the topology file.
 |       Using default value of 2.0.
-| Note: ig = -1. Setting random seed to   409982 based on wallclock time in microseconds.
+| Note: ig = -1. Setting random seed to   375712 based on wallclock time in microseconds.
 
 --------------------------------------------------------------------------------
    2.  CONTROL  DATA  FOR  THE  RUN
@@ -154,6 +154,8 @@ Here are comments from the DISANG input file:
  Here are comments from the alignment input file:
  
  Number of triangulated 3-point waters found:        0
+
+     Sum of charges from parm topology file =     -18.0000
 
 --------------------------------------------------------------------------------
    4.  RESULTS
@@ -633,31 +635,29 @@ Shift correlation:  174   0.73655   0.52495
       -50.55787          0.41599     0.73402     0.53681                        
       -16.82735          0.85341    -0.51899     0.04833                        
        67.38522         -0.31408    -0.43802     0.84232                        
- Diagonalize the moment of interia tensor:                                      
-   280582.15692         -0.11634    -0.50684     0.85415         21.63481       
-   679790.79641         -0.96367     0.26579     0.02645         11.72535       
-   731258.53457         -0.24043    -0.82004    -0.51935          9.73980       
+ Da =    33.6926 x 10^-5;  R(=eta) =   -0.3337                                  
  ------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Calc gb radii              0.03 (30.83% of Gen B)
-|                Calc gb diag               0.05 (45.05% of Gen B)
-|                Calc gb off-diag           0.03 (24.13% of Gen B)
-|             Gen Born time              0.11 (100.0% of Nonbo)
-|          Nonbond force              0.11 (57.37% of Force)
+|                Calc gb radii              0.02 (28.15% of Gen B)
+|                Calc gb diag               0.03 (49.04% of Gen B)
+|                Calc gb off-diag           0.02 (22.81% of Gen B)
+|             Gen Born time              0.07 (100.0% of Nonbo)
+|          Nonbond force              0.07 (70.75% of Force)
 |          Bond/Angle/Dihedral        0.00 ( 1.26% of Force)
-|             shift der time             0.00 (12.64% of Noe c)
-|             Ringcurr time              0.02 (86.26% of Noe c)
-|             Electro. noe time          0.00 ( 1.10% of Noe c)
-|          Noe calc time              0.02 ( 9.58% of Force)
-|          Other                      0.06 (31.79% of Force)
-|       Force time                 0.19 (98.86% of Runmd)
-|    Runmd Time                 0.19 (87.05% of Total)
-|    Other                      0.03 (12.77% of Total)
-| Total time                 0.22 (100.0% of ALL  )
+|             shift der time             0.00 (13.49% of Noe c)
+|             Ringcurr time              0.01 (84.92% of Noe c)
+|             Electro. noe time          0.00 ( 1.59% of Noe c)
+|          Noe calc time              0.01 (13.21% of Force)
+|          Other                      0.01 (14.78% of Force)
+|       Force time                 0.10 (98.05% of Runmd)
+|       Verlet update time         0.00 ( 1.13% of Runmd)
+|    Runmd Time                 0.10 (87.66% of Total)
+|    Other                      0.01 (12.16% of Total)
+| Total time                 0.11 (100.0% of ALL  )
 
 | Number of list builds   :          0
 
@@ -667,11 +667,11 @@ Shift correlation:  174   0.73655   0.52495
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =       0.19 Per Step(ms) =      19.23
-|         ns/day =       4.49   seconds/ns =   19230.00
+|     Elapsed(s) =       0.10 Per Step(ms) =       9.73
+|         ns/day =       8.88   seconds/ns =    9730.00
 | -----------------------------------------------------
 
-|           Job began  at 13:30:13.962  on 11/24/2022
-|           Setup done at 13:30:13.991  on 11/24/2022
-|           Run   done at 13:30:14.183  on 11/24/2022
+|           Job began  at 12:45:31.703  on 05/27/2023
+|           Setup done at 12:45:31.717  on 05/27/2023
+|           Run   done at 12:45:31.814  on 05/27/2023
 |     wallclock() was called   12272 times

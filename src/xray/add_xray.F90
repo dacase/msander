@@ -140,14 +140,13 @@ program add_xray
    call nxtsec(infile_lun,STDOUT,0,'*','ATOM_ELEMENT',fmt,iok)
    read(infile_lun,fmt) atom_element
 
-#if 0
-   ! scattering tables use element names like Fe, not FE:
-   ! element names in current Amber don't seem to have all-caps names:
+   ! scattering tables use element names like Fe, not FE; convert
+   !   second character to lower case if it is upper case to begin with:
    do i = 1,num_atoms
-      if( atom_element(i)(1:1) .ne. ' ' ) &
+      if( atom_element(i)(1:1) .ne. ' ' .and.  &
+          iachar(atom_element(i)(2:2)) .le. 90 ) &
           atom_element(i)(2:2) = achar(iachar(atom_element(i)(2:2)) + 32)
    end do
-#endif
 
    ! fix up ion elements to match those in X-ray scattering tables:
    if( .not. electronsf ) then

@@ -81,7 +81,8 @@ program add_pdb
    
    character(len=4) :: name,resName,segID,element,prev_resName
    character(len=1) :: altLoc,chainID,iCode,prev_chainID,prev_iCode
-   integer :: resSeq,prev_resSeq,serial
+   character(len=5) :: serial
+   integer :: resSeq,prev_resSeq
    real :: xyz(3),occupancy,tempFactor
    real, allocatable :: coor(:,:)
    real :: d
@@ -93,7 +94,8 @@ program add_pdb
    ! New PRMTOP data:
    character(len=1), allocatable :: residue_chainid(:), residue_icode(:)
    character(len=4), allocatable :: atom_element(:) ! atom_altloc(:)
-   integer, allocatable :: residue_number(:), atom_number(:)
+   character(len=5), allocatable :: atom_number(:)
+   integer, allocatable :: residue_number(:)
    real, allocatable :: atom_bfactor(:), atom_occupancy(:)
    integer :: pdb_nres, pdb_natom
    logical :: guess_all
@@ -182,7 +184,7 @@ program add_pdb
    atom_element(:) = '????'
    atom_bfactor(:) = 15.0
    atom_occupancy(:) = 1.0
-   atom_number(:) = 1
+   atom_number(:) = '    1'
    
    prev_iCode='*'
    prev_resSeq=HUGE(prev_resSeq)
@@ -196,7 +198,7 @@ program add_pdb
       if (buf(1:6)=='END   ') exit
       if (buf(1:6)=='ATOM  ' .or. buf(1:6)=='HETATM') then
          !  write(0,*) buf(1:70)
-         read(buf,'(6X,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
+         read(buf,'(6X,A5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,6X,2A4)') &
                serial,name,altLoc,resName,chainID,resSeq,iCode, &
                xyz,occupancy,tempFactor,segID,element
          pdb_natom=pdb_natom+1
@@ -346,7 +348,7 @@ program add_pdb
    write(out_lun,fmt) atom_bfactor
    
 #if 0
-   fmt='(10I8)'
+   fmt='(15A5)'
    write(out_lun,'(A)') &
          '%FLAG ATOM_NUMBER', &
          '%COMMENT atom serial number read from PDB file; DIMENSION(NATOM)', &

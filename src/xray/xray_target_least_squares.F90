@@ -40,7 +40,7 @@ contains
         real(real_kind) :: e,rij,r1,dif1,r2,df,r3,r4,dif
         integer :: i
 
-#if 1   /* optimize R_work, based on disnrg()  */
+#if 0   /* optimize R_work, based on disnrg()  */
         deriv(n_work + 1:) = 0 ! no force for things unselected here
         penalty(n_work + 1:) = 0 ! no penalty for things unselected here
         xray_energy = 0

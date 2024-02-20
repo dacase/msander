@@ -634,6 +634,7 @@ subroutine run_lmod( xx, ix, ih, ipairs, &
 #include "../include/memory.h"
 #include "xmin.h"
 #include "parallel.h"
+#include "nmr.h"
 
    ! ------ local variables --------------------
 ! Moved to namelist
@@ -839,7 +840,7 @@ _REAL_ , dimension(:), allocatable :: tr_min
             ntpr = maxcyc  ! turn off run_xmin printing
             xmin_iter = 0
             call run_xmin( xx, ix, ih, ipairs, &
-                  coordinates, forces, energies,qsetup, xmin_iter, ntpr )
+               coordinates, forces, energies,qsetup, xmin_iter, ntpr, iscale )
             drms = grms  ! restore user specified drms
             ntpr = amber_xmin_print_level  ! restore user specified ntpr
             write(6,'(/a)') 'End of LMOD requested XMIN minimization'
@@ -855,7 +856,7 @@ _REAL_ , dimension(:), allocatable :: tr_min
             ntpr = maxcyc  ! turn off run_xmin printing
             xmin_iter = 0
             call run_xmin( xx, ix, ih, ipairs, &
-                  coordinates, forces, energies, qsetup, xmin_iter, ntpr )
+               coordinates, forces, energies, qsetup, xmin_iter, ntpr, iscale )
             drms = grms  ! restore user specified drms
             ntpr = amber_xmin_print_level  ! restore user specified ntpr
             write(6,'(/a)') 'End of LMOD requested XMIN relaxation'
@@ -872,7 +873,7 @@ _REAL_ , dimension(:), allocatable :: tr_min
             ntpr = maxcyc  ! turn off run_xmin printing
             xmin_iter = 0
             call run_xmin( xx, ix, ih, ipairs, &
-                  coordinates, forces, energies, qsetup, xmin_iter, ntpr )
+               coordinates, forces, energies, qsetup, xmin_iter, ntpr, iscale )
             !drms = grms  ! restore user specified drms
             ntpr = amber_xmin_print_level  ! restore user specified ntpr
             write(6,'(/a)') 'End of LMOD requested XMIN minimization of initial structure'
@@ -1083,7 +1084,7 @@ end subroutine write_lmod_namelist
 ! xyz         Allocated array of (x, y, z) atomic coordinates.
 
 subroutine run_xmin( xx, ix, ih, ipairs, &
-      coordinates, forces, energies, qsetup, xmin_iter, ntpr2)
+      coordinates, forces, energies, qsetup, xmin_iter, ntpr2, iscale)
 
    use constants, only : zero
    use state
@@ -1104,6 +1105,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    ! BPR :: ntpr now comes in from files.h,
    ! BPR :: so "ntpr2" is used to avoid confusion
    integer, intent(in)    :: ntpr2          ! print frequency
+   integer, intent(in)    :: iscale         ! "extra" variables
    ! ------ External functions -----------------
    _REAL_   xminc
    external xminc
@@ -1118,7 +1120,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    _REAL_  :: grms            = ZERO
    _REAL_  :: grms_tol
    logical :: is_error
-   logical :: ixdump, itdump, iprint
+   logical :: ixdump, itdump, iprintl
    logical :: loutfm
    logical :: qsetup
    integer :: iter
@@ -1151,6 +1153,7 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
    grms_tol = drms
    status_flag = 0
    xyz_min = 1
+   if( iscale .gt. 0 ) xyz_min = 0
    ls_method = 2
    ls_maxiter = 20
    ls_maxatmov = 0.2
@@ -1177,22 +1180,33 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
 
    ! set initial gradient to non-zero value so that xminC() won't think
    !   that everything is frozen:
-   forces(1:3*nrp) = 1.d0
+   forces(1:3*nrp+iscale) = 1.d0
    !  following allows xminC to correctly determine the number of moving atoms
    if (ibelly.eq.1) call bellyf(nrp,ix(ibellygp),forces)
 
    do while ( .not. is_error ) !Will exit loop if done or encounter an error
 
-      forces(1:3*nrp) = -forces(1:3*nrp)
+      forces(1:3*nrp+iscale) = -forces(1:3*nrp+iscale)
 
-      minimum_energy = xminc( xyz_min, xmin_method_code, maxiter, grms_tol, &
+      if( iscale .eq. 0 ) then
+         ! code specific to molecules with npr atoms:
+         minimum_energy = xminc( xyz_min, xmin_method_code, maxiter, grms_tol, &
             nrp, lbfgs_memory_depth, mvpm_code, &
             coordinates, energies%pot%tot, forces, grms, xmin_iter, xmin_time, &
             xmin_verbosity, ls_method, ls_maxiter, ls_iter, ls_maxatmov, &
             beta_armijo, c_armijo, mu_armijo, ftol_wolfe, gtol_wolfe,  &
             return_flag, status_flag )
+      else
+         !  general function code, with ndim = 3*nrp+iscale
+         minimum_energy = xminc( xyz_min, xmin_method_code, maxiter, grms_tol, &
+            3*nrp+iscale, lbfgs_memory_depth, mvpm_code, &
+            coordinates, energies%pot%tot, forces, grms, xmin_iter, xmin_time, &
+            xmin_verbosity, ls_method, ls_maxiter, ls_iter, ls_maxatmov, &
+            beta_armijo, c_armijo, mu_armijo, ftol_wolfe, gtol_wolfe,  &
+            return_flag, status_flag )
+      end if
 
-      forces(1:3*nrp) = -forces(1:3*nrp)
+      forces(1:3*nrp+iscale) = -forces(1:3*nrp+iscale)
       is_error = status_flag < 0
 
       ! Here if we are starting a new step or if we are done;
@@ -1201,28 +1215,28 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       !      1) starting geometry (step 0, n_force_calls = 1)
       !      2) if xmin made a step (xmin_iter has increased)
       !      3) when we are done (in which case xmin did not increase xmin_iter)
-      iprint = .false.
+      iprintl = .false.
       ixdump = .false.
       itdump = .false.
       if( .not. is_error .and. (n_force_calls==1) ) then 
-         iprint = .true.
+         iprintl = .true.
          if (ntwx > 0) itdump = .true.
       end if
       if( .not. is_error .and. (xmin_iter/=iter+1)) then
          iter = iter + 1
-         if ( ntpr2 /= 0 ) iprint = mod(iter,ntpr2) == 0
+         if ( ntpr2 /= 0 ) iprintl = mod(iter,ntpr2) == 0
          if ( ntwr  /= 0 ) ixdump = mod(iter,ntwr) == 0
          if ( ntwx  /= 0 ) itdump = (mod(iter,ntwx) == 0) .and. (imin /= 5)
       end if
       if( .not. is_error .and. (return_flag==DONE)) then 
          iter = iter + 1
-         iprint = .true.
+         iprintl = .true.
          ixdump = .true.
          if (ntwx > 0) itdump = .true.
       end if
       
       ! Print energies / gradients
-      if ( iprint ) then
+      if ( iprintl ) then
          call rmsgrd(forces,grms)
          call report_min_progress( iter, grms, forces, energies, &
                ih(m04), xx(l15) )  ! ih(m04) = atom names, xx(l15) = charges
@@ -1244,12 +1258,11 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       case ( DONE ) 
          ! Finished minimization.
          !  One final gradient calc to re-establish SHAKE constraints:
-         if( ntc > 1 ) then
-            call gradient_calc( xx, ix, ih, ipairs, coordinates, forces, & 
-              energies, NBL_CASE, xmin_iter, qsetup )
-            n_force_calls = n_force_calls + 1
-         !  write(6,'(a)') '| Final shake at end of xmin'
-         end if
+         !    since shake is supported, this should not be needed(?)
+         xmin_iter = -1   ! signals to set nmr iprint variable to 1
+         call gradient_calc( xx, ix, ih, ipairs, coordinates, forces, & 
+            energies, NBL_CASE, xmin_iter, qsetup )
+         n_force_calls = n_force_calls + 1
          exit
       case ( CALCENRG, CALCGRAD, CALCBOTH )
          ! Normal Amber control of NB list updates.
@@ -1278,8 +1291,8 @@ subroutine run_xmin( xx, ix, ih, ipairs, &
       call mexit(6,1)
    end if
 
-   ! call report_min_results( xmin_iter, grms, coordinates, &
-   !      forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
+   call report_min_results( xmin_iter, grms, coordinates, &
+        forces, energies, ih(m04), xx, ix, ih )  ! ih(m04) = atom names
 
    return
 
@@ -1336,9 +1349,7 @@ subroutine gradient_calc( xx, ix, ih, ipairs, coordinates, &
 
    winv = 1.d0
    iprint = 0
-   if ( xmin_iter == maxcyc .or. xmin_iter == 1 ) then
-      iprint = 1
-   end if
+   if ( xmin_iter == 1 .or. xmin_iter == -1 ) iprint = 1
 
    select case ( list_control )
    case ( NBL_UPDATE_ALWAYS )

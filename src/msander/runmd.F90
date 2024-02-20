@@ -703,7 +703,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
     end if
   end if
 
-  !  Simple Newtonian dynamics on the "extra" variables  (why?)
+  !  Update velocities for the "extra" variables
   if( mytaskid == numtasks - 1 ) then
      do im = 1, iscale
         v(nr3+im) = (v(nr3+im) + f(nr3+im)*dtx/scalm)
@@ -751,7 +751,8 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       iskip_end = 3*(nr-iend)
     endif
     !  note: following is a no-op if ntt=0
-    call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end)
+    call thermostat_step(v, winv, dtx, istart, iend, iskip_start,iskip_end, &
+          iscale)
     do i3 = istart3, iend3
        x(i3) = x(i3) + v(i3)*dt5   ! completes the full-step update of x
     end do

@@ -17,6 +17,7 @@ subroutine rmsgrd(forces, grms)
 #include "../include/md.h"
 #include "box.h"
 #include "../include/memory.h"
+#include "nmr.h"
 
    _REAL_, intent(in) :: forces(*)
    _REAL_, intent(out) :: grms
@@ -26,28 +27,17 @@ subroutine rmsgrd(forces, grms)
    
    _REAL_ :: dotprod
    
-   integer :: numcomponents !, shakecomponents
+   integer :: numcomponents
    
    if (ibelly > 0) then
-      numcomponents = natbel * 3
+      numcomponents = natbel * 3 + iscale
    else
-      numcomponents = nrp * 3
+      numcomponents = nrp * 3 + iscale
    end if
-   
-   ! Ben Roberts: Took out this block on 14 April 2011.
-   ! Need to find out whether SHAKEn atoms should be included in
-   ! RMS gradient calculations or not.
-   !shakecomponents = 0
-   !if (ntc == 2) then
-   !   shakecomponents = nbonh
-   !else if (ntc == 3) then
-   !   shakecomponents = nbonh + nbona
-   !end if
-   !numcomponents = numcomponents - shakecomponents
    
    ! Initialise rmsgrad so it at least has a valid value
    grms = ZERO
-   dotprod = ddot(3*nrp, forces, 1, forces, 1)
+   dotprod = ddot(3*nrp+iscale, forces, 1, forces, 1)
    if (numcomponents /= 0) grms = sqrt(dotprod / numcomponents)
    
 end subroutine rmsgrd

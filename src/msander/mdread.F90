@@ -285,7 +285,7 @@ subroutine mdread1()
    ntc = 1
    tol = 0.00001
    ntf = 1
-   nsnb = 25
+   nsnb = NO_INPUT_VALUE
    cut =  NO_INPUT_VALUE_FLOAT
    dielc = ONE
    ntpr = 50
@@ -422,9 +422,9 @@ subroutine mdread1()
    gbalphaOS = 0.867814d0
    gbbetaOS = 0.876635d0
    gbgammaOS = 0.387882d0
-   gbalphaP = 1.0d0    !P parameters are not optimized yet
-   gbbetaP = 0.8d0     !P parameters are not optimized yet
-   gbgammaP = 4.85d0   !P parameters are not optimized yet
+   gbalphaP   = 0.418365d0 !!Use gbneck2nu parms for P
+   gbbetaP    = 0.290054d0
+   gbgammaP   = 0.1064245d0
    !scaling parameters below will only be used for igb=8.
    ! the actual code does not use these variables, it uses X(l96)
    ! if igb=8, we will use these to set the X(l96) array.
@@ -673,6 +673,11 @@ subroutine mdread1()
          cut = 9999.d0
       end if
    end if
+
+   if (nsnb == NO_INPUT_VALUE) then
+      nsnb = 25   ! old default from sander
+      if (imin>0) nsnb =1   ! safer if there are big initial forces
+   endif
 
    ! Force igb=6 to get vacuum electrostatics or igb=0 for periodic
    ! boundary conditions. This must be done ASAP to ensure SANDER's
@@ -2435,10 +2440,6 @@ subroutine mdread2(x,ix,ih)
    end if
    if (imin < 0) then
       write(6,'(/2x,a,i3,a)') 'IMIN (',imin,') must be >= 0.'
-      DELAYED_ERROR
-   end if
-   if( imin>0 .and. ntmin>2 .and. iscale>0 ) then
-      write(6, '(/,a)') 'cannot have iscale>0 when ntmin>2'
       DELAYED_ERROR
    end if
    if (ntxo .eq. 0) then

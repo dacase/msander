@@ -32,13 +32,13 @@ flibs_la=""
 flibs_fftw="-lfftw3"
 mpif90="mpif90"
 gccsys=""
-optflags="-g -Ofast -march=native"
+optflags="-g -O3"
 
 openmp='no'
 ompflag=""
 ldflags=""
 fftw_flags=""
-mkl="yes"    # currently required
+mkl="no"    
 installtype="serial"
 
 plumed="no"
@@ -95,13 +95,13 @@ while [ $# -gt 0 ]; do
         --static)
             ldflags="-static";;
         --plumed)
-            plumed="yes"
+            plumed="yes";;
         --intel)
             compiler="intel"
             cc="icx"
             fc="ifort"
             longlines=""
-            mpicc="mpiicc"
+            mpicc="mpiicc -cc=icx"
             mpif90="mpiifort"
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
@@ -672,6 +672,7 @@ BLAS=$blas
 
 CC=$cc
 CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
+NVCC_CFLAGS=$clangf $inc $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
 COPTFLAGS=$optflags
 
@@ -690,6 +691,7 @@ SHORT_ENE=$short_ene
 
 #  (6)  other flags:
 
+LDFLAGS=$ldflags
 AR=    ar rv
 RANLIB=ranlib
 MV=mv

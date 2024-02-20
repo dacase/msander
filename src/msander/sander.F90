@@ -1102,7 +1102,7 @@ subroutine sander()
             write(6,'(a)') ''
             xmin_iter = 0
             call run_xmin(x, ix, ih, ipairs, x(lcrd), x(lforce), &
-                          ene, qsetup, xmin_iter, ntpr)
+                          ene, qsetup, xmin_iter, ntpr, iscale)
             if (master) then
 
               ! Write the restart file

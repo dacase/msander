@@ -47,7 +47,7 @@ parameter (mxp=100)
 parameter (mtot=500)
 parameter (maxdip=2000)
 parameter (maxcsa=200)
-parameter (maxdipsets=2)
+parameter (maxdipsets=5)
 
 integer isubi,isubr
 parameter (isubi=8 + 3*ma + 2*matom + mxtau + 2*mxtau*mxp + mxp)
@@ -70,8 +70,8 @@ common /methyli/ nath,natmet,nummt,id2o,iroesy,ihet,nvect,ihsful,m2, &
 integer BC_METHYLR,BC_METHYLI,BC_ALIGNR,BC_ALIGNI
 parameter(BC_METHYLR=3*ma+mxtau+3*mxtau*mxp+6)
 parameter(BC_METHYLI=8 + 3*ma + 2*matom + mxtau + 2*mxtau*mxp)
-parameter(BC_ALIGNR=5*maxdip + 1 + 6*maxdipsets)
-parameter(BC_ALIGNI=3*maxdip + 4)
+parameter(BC_ALIGNR=5*maxdip + 1 + 8*maxdipsets)
+parameter(BC_ALIGNI=3*maxdip + 5)
 
 integer nmropt,iprint,noeskp,iscale,ipnlty,iuse,maxsub,jar,morse
 _REAL_ scalm,pencut,ensave,tausw,ebdev,eadev,drjar
@@ -86,11 +86,13 @@ common/nmr2/ resat
 _REAL_ dobsu(maxdip),dobsl(maxdip),dcut,gigj(maxdip), &
       dij(maxdip),dwt(maxdip), &
       s11(maxdipsets),s12(maxdipsets),s13(maxdipsets), &
-      s22(maxdipsets),s23(maxdipsets),s33(maxdipsets)
+      s22(maxdipsets),s23(maxdipsets),s33(maxdipsets), &
+      da_target(maxdipsets),r_target(maxdipsets)
 integer ndip,num_datasets,id(maxdip),jd(maxdip),dataset(maxdip),ifreeze, &
-        ifreezes
+        ifreezes, itarget
 common/align/dobsu,dobsl,dcut,gigj,dij,dwt,s11,s12,s13,s22,s23,s33, &
-      ndip,id,jd,dataset,num_datasets,ifreeze,ifreezes
+      da_target,r_target,ndip,id,jd,dataset,num_datasets,ifreeze,ifreezes, &
+      itarget
 
 !   residual csa shift restraint information:
 
