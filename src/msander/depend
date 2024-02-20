@@ -863,6 +863,15 @@ force.LES.o:   force.F90
 	@echo '[MSANDER_LES]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -DLES -c $(FOPTFLAGS) $(FFLAGS) -o $@ force.F90
 
+get_atomic_number.o: \
+                    ../include/dprec.fh\
+                    utilitiesModule.o
+
+
+get_atomic_number.o:   get_atomic_number.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ get_atomic_number.F90
+
 getcor.o: \
                     ../include/dprec.fh\
                     ../include/assert.fh\
@@ -2936,6 +2945,14 @@ trajene.o: \
 trajene.o:   trajene.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ trajene.F90
+
+utilitiesModule.o: \
+                    ../include/dprec.fh
+
+
+utilitiesModule.o:   utilitiesModule.F90
+	@echo '[MSANDER]  FC $<'
+	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ utilitiesModule.F90
 
 veclib.o: \
                     ../include/dprec.fh
