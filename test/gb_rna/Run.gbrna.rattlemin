@@ -1,0 +1,34 @@
+#!/bin/sh
+
+sander="../../bin/msander"
+
+if [ ! -z "$DO_PARALLEL" ]; then
+   sander=$sander.MPI
+fi
+
+cat > gbin <<EOF
+ test of gen. Born, on a stretch of A-RNA
+ &cntrl
+   imin=1, maxcyc=500, drms=1e-9,
+   cut=999.0, igb=2, imin=1, saltcon=0.1,
+   ntpr=50,
+   ntx=1, irest=0,                                                 
+   ntc=2, ntf=2, tol=0.000001,                                     
+   ntb=0,                                                
+ /                                                                 
+ &lmod                                                             
+   xmin_method = 'TNCG'
+   lbfgs_memory_depth = 3,
+   xmin_verbosity=0
+ /
+EOF
+
+output=mdout.gbrna.xmin
+
+$DO_PARALLEL $sander -O -i gbin -p prmtop -c min1.x -o $output \
+    < /dev/null || { echo "  $0:  Program error"; exit 1; }
+
+# ../dacdif $output.save $output
+# /bin/rm -f gbin restrt mdinfo prmtop.lmod
+exit 0 
+

@@ -1,7 +1,7 @@
 #ifndef AMBER_XRAY_BULK_MASK_H
 #define AMBER_XRAY_BULK_MASK_H
 
-#include "xray_unit_cell.h"
+#include "UnitCell.h"
 #include "xray_common.h"
 #include <vector>
 #include <utility>

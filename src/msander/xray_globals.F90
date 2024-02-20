@@ -105,6 +105,9 @@ module xray_globals_module
    integer, save :: au_type ! Laue code index
    integer, save :: system  ! i.e. SYMM_TRICLINIC
 
+   !  number of unit-cells in supercell (x,y,z):
+   integer, save :: ixp=1, iyp=1, izp=1
+
    real(real_kind), save :: xray_energy, r_work, r_free
 
    ! bulk solvent model

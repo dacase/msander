@@ -421,9 +421,9 @@ subroutine mdread1()
    gbalphaOS = 0.867814d0
    gbbetaOS = 0.876635d0
    gbgammaOS = 0.387882d0
-   gbalphaP = 1.0d0    !P parameters are not optimized yet
-   gbbetaP = 0.8d0     !P parameters are not optimized yet
-   gbgammaP = 4.85d0   !P parameters are not optimized yet
+   gbalphaP   = 0.418365d0 !!Use gbneck2nu parms for P
+   gbbetaP    = 0.290054d0
+   gbgammaP   = 0.1064245d0
    !scaling parameters below will only be used for igb=8.
    ! the actual code does not use these variables, it uses X(l96)
    ! if igb=8, we will use these to set the X(l96) array.

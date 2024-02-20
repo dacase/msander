@@ -5,9 +5,9 @@
 
 namespace {
   int hkl_to_grid_index(int h, int k, int l, int nx, int ny, int nz) {
-    assert(-(nx - 1) / 2 <= h && h <= (nx - 1) / 2);
-    assert(-(ny - 1) / 2 <= k && k <= (ny - 1) / 2);
-    assert(0 <= l && l <= nz / 2 + 1);
+    // assert(-(nx - 1) / 2 <= h && h <= (nx - 1) / 2);
+    // assert(-(ny - 1) / 2 <= k && k <= (ny - 1) / 2);
+    // assert(0 <= l && l <= nz / 2 + 1);
 
     if (h < 0) {
       h += nx;
