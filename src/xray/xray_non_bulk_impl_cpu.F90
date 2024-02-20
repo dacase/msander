@@ -158,6 +158,30 @@ contains
       if( mod(hkls(1)/ixp + hkls(2)/iyp, 2) .ne. 0 ) fcalcs = -fcalcs
       F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
 
+   else if ( spacegroup_number .eq. 4 ) then
+
+      ! set #2:   h,-k,l
+      write(6,'(3i4,2f10.4)') hkl(1:3, ihkl), F_non_bulk(ihkl)
+
+      hkls(1) =  hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) =  hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      write(6,'(3i4,2f10.4)') hkls(1:3), fcalcs
+
+      if( hkls(2) .eq. 0 ) then
+         fcalcs = conjg(fcalcs)
+      else
+         fcalcs = cmplx(-sum(f(:) * sin(angle(:))), &
+             sum(f(:) * cos(angle(:))), real_kind)
+      end if
+ 
+
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      write(6,'(3i4,4f10.4)') hkls(1:3), fcalcs, F_non_bulk(ihkl)
+
    end if
 
      end do
