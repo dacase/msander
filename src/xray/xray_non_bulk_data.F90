@@ -17,5 +17,7 @@ module xray_non_bulk_data_module
   complex(real_kind), allocatable :: F_non_bulk(:)
   real(real_kind), allocatable :: f(:)
   real(real_kind), allocatable :: angle(:)
+
+  integer ixp, iyp, izp
   
 end module xray_non_bulk_data_module

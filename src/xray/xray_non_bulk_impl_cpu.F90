@@ -5,6 +5,7 @@ module xray_non_bulk_impl_cpu_module
   use xray_pure_utils, only : real_kind
   use xray_contracts_module
   use xray_non_bulk_data_module
+  use xray_interface2_data_module, only : spacegroup_number
   
   implicit none
   
@@ -77,8 +78,12 @@ contains
     implicit none
     real(real_kind), intent(in) :: frac(:, :)
     ! locals
-    integer :: ihkl
-    
+    integer :: ihkl, hkls(3)
+    complex(real_kind) :: fcalcs
+    double precision :: time0, time1
+
+    call wallclock( time0 )
+
     ASSERT(associated(hkl))
     ASSERT(associated(mSS4))
     ASSERT(allocated(atomic_scatter_factor))
@@ -92,9 +97,10 @@ contains
     ASSERT(size(frac, 2) == size(scatter_type_index))
     ASSERT(size(hkl, 2) == size(atomic_scatter_factor, 1))
     
-    !$omp parallel do private(ihkl,f,angle)  num_threads(xray_num_threads)
+    !$omp parallel do private(ihkl,f,angle,hkls,fcalcs)  num_threads(xray_num_threads)
     do ihkl = 1, size(hkl, 2)
       
+   !  if( hkl(1,ihkl).ne.2 .or. hkl(2,ihkl).ne.9 .or. hkl(3,ihkl).ne.37 ) cycle
       ! Fhkl = SUM( fj * exp(2 * M_PI * i * (h * xj + k * yj + l * zj)) ),
       !      j = 1,num_selected_atoms
       ! where:
@@ -116,13 +122,75 @@ contains
       
       f(:) = exp(mSS4(ihkl) * b_factor(:)) * occupancy(:) &
           * atomic_scatter_factor(ihkl, scatter_type_index(:))
+
+      ! original hkl for P212121:
       angle(:) = matmul(M_TWOPI * hkl(1:3, ihkl), frac(1:3, :))
-      
       F_non_bulk(ihkl) = cmplx(sum(f(:) * cos(angle(:))), &
           sum(f(:) * sin(angle(:))), real_kind)
+
+   if( spacegroup_number .eq. 19 ) then
+
+      ! set #2:  -h,-k,l
+      hkls(1) = -hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) =  hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(1)/ixp + hkls(3)/izp, 2) .ne. 0 ) fcalcs = -fcalcs
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+
+      ! set #3:  -h,k,-l
+      hkls(1) = -hkl(1,ihkl)
+      hkls(2) =  hkl(2,ihkl)
+      hkls(3) = -hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(2)/iyp + hkls(3)/izp, 2) .ne. 0 ) fcalcs = -fcalcs
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
     
-    end do
-    !$omp end parallel do
+      ! set #4:  h,-k,-l
+      hkls(1) =  hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) = -hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      if( mod(hkls(1)/ixp + hkls(2)/iyp, 2) .ne. 0 ) fcalcs = -fcalcs
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+
+   else if ( spacegroup_number .eq. 4 ) then
+
+      ! set #2:   h,-k,l
+      write(6,'(3i4,2f10.4)') hkl(1:3, ihkl), F_non_bulk(ihkl)
+
+      hkls(1) =  hkl(1,ihkl)
+      hkls(2) = -hkl(2,ihkl)
+      hkls(3) =  hkl(3,ihkl)
+      angle(:) = matmul(M_TWOPI * hkls(1:3), frac(1:3, :))
+      fcalcs = cmplx(sum(f(:) * cos(angle(:))), &
+          sum(f(:) * sin(angle(:))), real_kind)
+      write(6,'(3i4,2f10.4)') hkls(1:3), fcalcs
+
+      if( hkls(2) .eq. 0 ) then
+         fcalcs = conjg(fcalcs)
+      else
+         fcalcs = cmplx(-sum(f(:) * sin(angle(:))), &
+             sum(f(:) * cos(angle(:))), real_kind)
+      end if
+ 
+
+      F_non_bulk(ihkl) = F_non_bulk(ihkl) + fcalcs
+      write(6,'(3i4,4f10.4)') hkls(1:3), fcalcs, F_non_bulk(ihkl)
+
+   end if
+
+     end do
+     !$omp end parallel do
+
+     call wallclock( time1 )
+     ! write(0,'(a,f8.3)') 'ihkl time: ', time1 - time0
   
   end subroutine calc_f_non_bulk
 
