@@ -61,12 +61,6 @@ module runmd_module
                                    RISM_INTERP, rism_calc_type, &
                                    rism_solvdist_thermo_calc, mylcm
 
-  use qmmm_module, only: qmmm_nml,qmmm_struct, qmmm_mpi, qm2_struct
-
-#ifdef MPI
-  use qmmm_module, only: qmmm_vsolv
-#endif /* MPI */
-
   use file_io_dat
   use constants, only: third, ten_to_minus3
   use stack
@@ -110,9 +104,6 @@ module runmd_module
 
   ! SINR (Stochastic Isokinetic Nose-Hoover RESPA integrator)
   use sinr_t
-
-  ! Andreas Goetz's adaptive QM/MM
-  use qmmm_adaptive_module, only: adaptive_qmmm
 
   ! }}}
 
@@ -251,17 +242,7 @@ module runmd_module
   character(len=*),parameter :: file_ek = "eke.dat"
   _REAL_ :: ekhf, ekhf2
 
-#ifdef MPI
-
-  ! for adaptive qm/mm runs
-  _REAL_ :: adqmmm_first_energy, etotcorr, tadc
-  _REAL_ :: corrected_energy
-  integer :: nstepadc
-  logical :: flag_first_energy = .true.
-#endif
-
   _REAL_ :: kinetic_E_save(2)
-  integer :: aqmmm_flag
 
   ! PLUMED related variables
   _REAL_ :: plumed_box(3,3), plumed_virial(3,3), plumed_kbt
@@ -625,15 +606,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! End contingency for the first sander call in REMD
   ! (rem is not 0, and mdloop == 0)
 
-  ! REB Do adaptive QMMM
-  if ( qmmm_nml%vsolv > 1 ) then
-    ! Mix forces for adaptive QM/MM and calculate adaptive energy if requested.
-    ! Note: nstep is zero during first call; this is the energy/force
-    ! calculation with the starting geometry / velocities.
-    call adaptive_qmmm(nstep, natom, x, f, ener%pot%tot, ntpr, ntwx, xx, ix, &
-                       ih, ipairs, qsetup, do_list_update, corrected_energy, &
-                       aqmmm_flag)
-  endif
   ! }}}
 #endif /* MPI */
 
@@ -930,21 +902,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
   ! Combined coordinate and velocity file writing
   if (ntwv == -1 .and. itdump) ivdump = .true.
 
-#ifdef MPI
-  ! Adaptive QM/MM via multisander: all groups have identical
-  ! coords and velocities only master of first group needs to dump results
-  ! We have to leave the dump values for all threads in the group, though
-  ! since for dumping the coords, these are broadcast within the group
-  ! (see call to xdist() below)
-  if (qmmm_nml%vsolv > 1) then
-    if (nodeid .ne. 0) then
-      ixdump = .false.
-      itdump = .false.
-      ivdump = .false.
-    end if
-  end if
-#endif
-
   ! Write RISM files this step?
   irismdump = .false.
   if (rismprm%rism == 1) then
@@ -1103,7 +1060,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
   ! Full energies are only calculated every nrespa steps.
   ! nvalid is the number of steps where all energies are calculated.
-  if (onstep .or. aqmmm_flag > 0) then
+  if (onstep) then
     nvalid = nvalid + 1
 
     ! Update all elements of these sequence types
@@ -1200,12 +1157,6 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       endif
       if (ntb > 0) call corpac(box, 1, 3, MDCRD_UNIT, loutfm)
 
-      ! If using variable QM solvent, try to write a new pdb file
-      ! with the QM coordinates for this step. This is done here
-      ! to keep the PDB file in sync with the mdcrd file, which
-      ! makes it easier to check later.
-      if (qmmm_nml%vsolv > 0 .and. qmmm_nml%verbosity == 0) &
-        call qm_print_coords(nstep,.false.)
     end if
     ! End contingency for trajectory writing on the master process (itdump) }}}
 
@@ -1258,60 +1209,12 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
       call prntmd(total_nstep, t, ener, onefac, 7, .false.)
 
-#ifdef MPI
-      ! AWG FIXME - this should be in a subroutine
-      ! Print corrected energy for adaptive qm/mm runs.
-      ! Note: nstep has already been increased here
-      !       (it was not increased when adaptive_qmmm() was called above)
-      if (qmmm_nml%vsolv > 1) then
-        if (masterrank == 0) then
-          if (aqmmm_flag > 0 .and. nstep > aqmmm_flag) then
-            etotcorr = corrected_energy + kinetic_E_save(aqmmm_flag)
-            nstepadc = nstep - aqmmm_flag + 1
-            tadc = t - dt * (dble(aqmmm_flag - 1))
-            write(6, '(a)') ' Adaptive QM/MM energies:'
-            write(6, '(x,a,i5,x,a,f11.4,x,2(a,f15.4,x))') 'adQMMM STEP=', &
-                  nstepadc, 'TIME(PS)=', tadc, 'ETC=', etotcorr, &
-                  'EPC=', corrected_energy
-
-            ! print total energy for adaptive qm/mm into a separate file
-            ! when qmmm_vsolv%verbosity > 0
-            ! set reference energy to zero only for energy dumping purposes
-            if (flag_first_energy) then
-              flag_first_energy = .false.
-              adqmmm_first_energy = etotcorr
-              etotcorr = 0.0d0
-            else
-              etotcorr = etotcorr - adqmmm_first_energy
-            end if
-            if (qmmm_vsolv%verbosity > 0) then
-              open(80,file='adqmmm_tot_energy.dat',position='append')
-              write(80,'(i9,5x,f11.4,5x,f15.4)') nstepadc, tadc, etotcorr
-              close(80)
-            end if
-          end if
-        end if
-      end if
-#endif
-
 #ifdef MPI /* SOFT CORE */
       if (ifsc .ne. 0) call sc_print_energies(6, sc_ener)
       if (ifsc .ne. 0) call sc_print_energies(7, sc_ener)
 #endif
 
 !------------------------------------------------------------------------------
-      ! Print QMMM Muliken Charges if needed
-      if (qmmm_nml%ifqnt) then
-        if (qmmm_nml%printcharges .and. qmmm_mpi%commqmmm_master) then
-          call qm2_print_charges(nstep, qmmm_nml%dftb_chg, &
-                                 qmmm_struct%nquant_nlink, &
-                                 qm2_struct%scf_mchg, &
-                                 qmmm_struct%iqm_atomic_numbers)
-        end if
-      end if
-      if (qmmm_nml%printdipole .ne. 0) &
-        call qmmm_dipole(x, xx(Lmass), ix(i02), ih(m02), nres)
-
       if (nmropt > 0) call nmrptx(6)
       if (infe > 0) call nfe_prt(6)
       if (itgtmd == 2) then
@@ -1650,7 +1553,6 @@ subroutine initialize_runmd(x,ix,v)
     end if
   end if
 
-  adqmmm_first_energy = 0.d0
 #else
   call amopen(7, mdinfo, 'U', 'F', 'W')
 #endif
@@ -1665,7 +1567,6 @@ subroutine initialize_runmd(x,ix,v)
   nr3 = 3*nr
   ekmh = 0.d0
 
-  aqmmm_flag = 0
   etot_save = 0.d0
   pres0x = 0.d0
   pres0y = 0.d0

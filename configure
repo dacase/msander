@@ -122,7 +122,7 @@ while [ $# -gt 0 ]; do
         --full)
             installtype="full";;
         *)
-            echo "Option $var not recognized"
+            echo "Option $1 not recognized"
             exit 1
     esac
     shift
