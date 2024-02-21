@@ -108,7 +108,7 @@ contains
      sd%nsys = 3
      sd%nres = 2
 
-     sd%wj(1) = (1.0d0/(2.0d0 - 2.0d0**(1.0d0/3.0d0)))*sd%dt2/dble(sd%nres)
+     sd%wj(1) = (1.0d0/(2.0d0 - 2.0d0**(1.0d0/3.0d0)))*sd%dt/dble(sd%nres)
      sd%wj(3) = sd%wj(1)
      sd%wj(2) = -2.0d0**(1.0d0/3.0d0)*sd%wj(1)
 
@@ -260,7 +260,7 @@ contains
                ! Outer translation operator LN,2 eq. 66
 
                  do k=1,sd%L
-                    sd%v2(k,ind+jj) = sd%v2(k,ind+jj) + 0.5d0*sd%wj(i)*(sd%Q1*(sd%v1(k,ind+jj)**2) - sd%kbT)/sd%Q2
+                    sd%v2(k,ind+jj) = sd%v2(k,ind+jj) + 0.25d0*sd%wj(i)*(sd%Q1*(sd%v1(k,ind+jj)**2) - sd%kbT)/sd%Q2
                  enddo
 
                ! Inner translation operator LN,1 eq. 66, solutions with eq. 70
@@ -268,7 +268,7 @@ contains
                  q1v1sq = 0.0d0
 
                  do k=1,sd%L
-                    v2kw(k) = exp(-2.0d0*sd%v2(k,ind+jj)*sd%wj(i))
+                    v2kw(k) = exp(-1.0d0*sd%v2(k,ind+jj)*sd%wj(i))
                     q1v1sq = q1v1sq + sd%Q1*sd%v1(k,ind+jj)*sd%v1(k,ind+jj)*v2kw(k)
                  enddo
 
@@ -283,7 +283,7 @@ contains
                ! LN,2 again
 
                  do k=1,sd%L
-                    sd%v2(k,ind+jj) = sd%v2(k,ind+jj) + 0.5d0*sd%wj(i)*(sd%Q1*(sd%v1(k,ind+jj)**2) - sd%kbT)/sd%Q2
+                    sd%v2(k,ind+jj) = sd%v2(k,ind+jj) + 0.25d0*sd%wj(i)*(sd%Q1*(sd%v1(k,ind+jj)**2) - sd%kbT)/sd%Q2
                  enddo
 
               enddo
@@ -308,6 +308,8 @@ contains
      do i=istart,iend !sd%natom
         do j=1,3
 
+           ! Updated equations from 10.1021/acs.jpca.9b02771 and 10.1021/acs.jpcb.2c02262
+
            p = m(i)*v(ind+j)
            mlbeta = m(i)*(sd%lbeta)
            smlbeta = sqrt(mlbeta)
@@ -318,7 +320,7 @@ contains
 
            fs = smlbeta*sinhbt + p*(coshbt - 1.0d0)
            sdot = (p/smlbeta)*sinhbt + coshbt
-
+ 
            v(ind+j) = (v(ind+j) + (fs/m(i)))/sdot
 
            ! Update thermostats
