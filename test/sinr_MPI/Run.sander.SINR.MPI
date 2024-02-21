@@ -1,0 +1,50 @@
+#!/bin/csh -f
+#TEST-PROGRAM sander
+#TEST-DESCRIP TO_BE_DEtermined
+#TEST-PURPOSE regression, basic
+#TEST-STATE   undocumented
+
+if( ! $?TESTsander ) set TESTsander = "sander.MPI"
+
+if( ! $?DO_PARALLEL ) then
+        setenv DO_PARALLEL "mpirun -np 2"
+else
+  set numprocs=`echo $DO_PARALLEL | awk -f ../numprocs.awk `
+  if ( $numprocs > 2 ) then
+      echo " DO_PARALLEL set to $DO_PARALLEL"
+      goto toomany
+  endif
+endif
+
+cat > gbin <<EOF
+ Relaxtion of trip cage using OIN (isokinetic ensemble)
+ &cntrl                                                                        
+  imin=0, irest=1, ntx=5,
+  nstlim=32, dt=0.001,
+  ntc=1, ntf=1, ioutfm=1,
+  ntpr=1, ntwx=2, ntwr=50,
+  tempi=298.15 temp0=298.15, ntp=0,
+  ntb=1, igb=0, cut=7.0, iwrap=1,
+  ig=314159, ntt=10, nrespa=8, nkija=2,
+  gamma_ln=10.0, sinrtau=20.4
+ /
+EOF
+
+set output = mdout.sander.SINR
+cp sinrvels.rst.save sinrvels.rst
+
+$DO_PARALLEL $TESTsander -O -i gbin -c init.rst7 -p complex.parm7 -o $output < /dev/null || goto error
+
+../dacdif -r 0.00001 $output.save $output
+/bin/rm -f gbin restrt mdinfo mdcrd *.rst
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+exit(1)
+
+toomany:
+    echo " too many processors for this test, exiting (Max = 2)"
+    echo "============================================================"
+    exit(0)
+

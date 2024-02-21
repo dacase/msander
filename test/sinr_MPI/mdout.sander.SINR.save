@@ -1,0 +1,311 @@
+
+          -------------------------------------------------------
+          Amber 14 SANDER                              2014
+          -------------------------------------------------------
+
+| Run on 01/28/2016 at 20:16:49
+
+|   Executable path: sander.MPI
+| Working directory: /home/jdeckman/Source/amber/test/sinr_MPI
+|          Hostname: trpzip2.rutgers.edu
+
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: gbin                                                                  
+| MDOUT: mdout.sander.SINR                                                     
+|INPCRD: init.rst7                                                             
+|  PARM: complex.parm7                                                         
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+|    REMLOG: rem.log
+|   REMTYPE: rem.type
+|  REMSTRIP: 
+|   SAVEENE: saveene
+|CLUSTERINF: cluster.info
+| RESERVOIR: reserv/frame
+|   REMDDIM: 
+
+
+ Here is the input file:
+
+ Relaxtion of trip cage using OIN (isokinetic ensemble)                        
+ &cntrl                                                                        
+  imin=0, irest=1, ntx=5,                                                      
+  nstlim=32, dt=0.001,                                                         
+  ntc=1, ntf=1, ioutfm=1,                                                      
+  ntpr=1, ntwx=2, ntwr=50,                                                     
+  tempi=298.15 temp0=298.15, ntp=0,                                            
+  ntb=1, igb=0, cut=7.0, iwrap=1,                                              
+  ig=314159, ntt=10, nrespa=8, nkija=2,                                        
+  gamma_ln=10.0, sinrtau=20.4                                                  
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags: MPI                                                                    
+ getting new box info from bottom of inpcrd
+|  INFO: Old style inpcrd file read
+
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    19.041
+| New format PARM file being parsed.
+| Version =    1.000 Date = 12/17/15 Time = 19:19:44
+ NATOM  =    7720 NTYPES =      13 NBONH =    7628 MBONA  =     113
+ NTHETH =     145 MTHETA =     192 NPHIH =     265 MPHIA  =     428
+ NHPARM =       0 NPARM  =       0 NNB   =   11114 NRES   =    2526
+ NBONA  =     113 NTHETA =     192 NPHIA =     428 NUMBND =      14
+ NUMANG =      21 NPTRA  =      16 NATYP =      14 NPHB   =       1
+ IFBOX  =       1 NMXRS  =     126 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              621061
+|     Hollerith          25688
+|     Integer           229856
+|     Max Pairs        1875960
+|     nblistReal         92640
+|     nblist Int        358197
+|       Total            15301 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+     BOX TYPE: RECTILINEAR
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       5, irest   =       1, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =       1, ntrx    =       1, ntwr    =      50
+     iwrap   =       1, ntwx    =       2, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   7.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =        32, nscm    =      1000, nrespa  =         8
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+
+Stochastic Isokinetic Nose-Hoover RESPA (SINR) integration:
+     temp0   = 298.15000, tempi   = 298.15000, gamma_ln=  10.00000
+     nkija   =         2, sinrtau  =    20.40000
+
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     Box X =   44.214   Box Y =   43.801   Box Z =   38.083
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   48       NFFT2 =   45       NFFT3 =   40
+     Cutoff=    7.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.40167
+     Interpolation order =    4
+
+| MPI Timing options:
+|      profile_mpi =        0
+ 
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+default_name                                                                    
+ begin time read from input coords =   139.600 ps
+
+ Number of triangulated 3-point waters found:     2524
+|  Atom division among processors:
+|         0    3862    7720
+
+     Sum of charges from parm topology file =   0.99999998
+     Assuming uniform neutralizing plasma
+|  Running AMBER/MPI version on    2 nodes
+
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):   23160.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =   23160.     NUM_NOSHAKE =      0     CORRECTED RNDFP =   23160.
+|  TOTAL # of degrees of freedom (RNDF) =   23160.
+ 
+| Using Stochastic Isokinetic Nose-Hoover RESPA (SINR) integrator (ntt=10)
+| ------------------------------------------------------------------------
+ 
+| NOTE: Only the coordinates are canonical while the velocites are NOT.
+| The reported temperature will thus appear anomolous, being about half
+| the desired simulation temperature for 1 thermostat DOF (nkija = 1)
+| and will approach but not exceed the set simulation temperature, temp0.
+| However the coordinates are canonical and represent configurations
+| sampled from a Boltzman distribution at the specfied temperature, temp0.
+| See SINR related references in the AMBER manual for a full explanation.
+ 
+| Number of SINR thermostat chain variables (DOF):  2
+| Thermostat mass Q1:      246.567
+
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
+| CHECK d/dx switch(x): max rel err =   0.8332E-11   at   2.782960
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =     611979
+| TOTAL SIZE OF NONBOND LIST =    1220873
+ 
+ SINR kinetic energy / N:     3.55872
+
+ NSTEP =        8   TIME(PS) =     139.608  TEMP(K) =   200.67  PRESS =     0.0
+ Etot   =    -20878.3843  EKtot   =      4617.8453  EPtot      =    -25496.2297
+ BOND   =      4307.5183  ANGLE   =       180.3788  DIHED      =        85.7901
+ 1-4 NB =         7.6386  1-4 EEL =       177.0660  VDWAALS    =      4460.0217
+ EELEC  =    -34714.6432  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.1732E-03
+ ------------------------------------------------------------------------------
+
+ 
+ SINR kinetic energy / N:     3.55839
+
+ NSTEP =       16   TIME(PS) =     139.616  TEMP(K) =   217.08  PRESS =     0.0
+ Etot   =    -21824.1457  EKtot   =      4995.4363  EPtot      =    -26819.5820
+ BOND   =      4269.0816  ANGLE   =       155.2283  DIHED      =        79.7926
+ 1-4 NB =         6.5205  1-4 EEL =       176.1781  VDWAALS    =      4130.6440
+ EELEC  =    -35637.0271  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.3026E-04
+ ------------------------------------------------------------------------------
+
+ 
+ SINR kinetic energy / N:     3.55843
+
+ NSTEP =       24   TIME(PS) =     139.624  TEMP(K) =   203.28  PRESS =     0.0
+ Etot   =    -21350.2355  EKtot   =      4677.8282  EPtot      =    -26028.0638
+ BOND   =      4581.3939  ANGLE   =       183.1017  DIHED      =        78.6322
+ 1-4 NB =         7.1219  1-4 EEL =       175.7847  VDWAALS    =      4107.6086
+ EELEC  =    -35161.7067  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.5076E-05
+ ------------------------------------------------------------------------------
+
+ 
+ SINR kinetic energy / N:     3.55831
+
+ NSTEP =       32   TIME(PS) =     139.632  TEMP(K) =   186.55  PRESS =     0.0
+ Etot   =    -20643.0512  EKtot   =      4292.8955  EPtot      =    -24935.9467
+ BOND   =      4532.0169  ANGLE   =       177.3579  DIHED      =        83.2104
+ 1-4 NB =         7.5112  1-4 EEL =       174.8126  VDWAALS    =      4348.4444
+ EELEC  =    -34259.3001  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.4530E-04
+ ------------------------------------------------------------------------------
+
+
+      A V E R A G E S   O V E R       4 S T E P S
+
+
+ NSTEP =       32   TIME(PS) =     139.632  TEMP(K) =   201.90  PRESS =     0.0
+ Etot   =    -21173.9542  EKtot   =      4646.0013  EPtot      =    -25819.9555
+ BOND   =      4422.5027  ANGLE   =       174.0167  DIHED      =        81.8563
+ 1-4 NB =         7.1980  1-4 EEL =       175.9604  VDWAALS    =      4261.6797
+ EELEC  =    -34943.1693  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.6346E-04
+ ------------------------------------------------------------------------------
+
+
+      R M S  F L U C T U A T I O N S
+
+
+ NSTEP =       32   TIME(PS) =     139.632  TEMP(K) =    10.83  PRESS =     0.0
+ Etot   =       453.6088  EKtot   =       249.2961  EPtot      =       694.4120
+ BOND   =       136.0140  ANGLE   =        11.0361  DIHED      =         2.8268
+ 1-4 NB =         0.4351  1-4 EEL =         0.8090  VDWAALS    =       148.1350
+ EELEC  =       512.1275  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ Ewald error estimate:   0.6497E-04
+ ------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+|>>>>>>>>PROFILE of Average TIMES>>>>>>>>> 
+|    Read coords time           0.01 ( 0.40% of Total)
+|    Fast Water setup           0.00 ( 0.01% of Total)
+|                Build the list             0.03 (64.60% of List )
+|                Other                      0.02 (35.40% of List )
+|             List time                  0.05 ( 6.11% of Nonbo)
+|                   Short_ene time             0.72 (98.15% of Direc)
+|                   Other                      0.01 ( 1.85% of Direc)
+|                Direct Ewald time          0.73 (94.35% of Ewald)
+|                Adjust Ewald time          0.01 ( 1.13% of Ewald)
+|                   Fill Bspline coeffs        0.00 ( 6.79% of Recip)
+|                   Fill charge grid           0.00 (10.74% of Recip)
+|                   Scalar sum                 0.00 (17.99% of Recip)
+|                   Grad sum                   0.01 (23.15% of Recip)
+|                      FFT back comm time         0.00 ( 9.89% of FFT t)
+|                      Other                      0.01 (90.11% of FFT t)
+|                   FFT time                   0.01 (40.87% of Recip)
+|                   Other                      0.00 ( 0.46% of Recip)
+|                Recip Ewald time           0.02 ( 3.17% of Ewald)
+|                Force Adjust               0.01 ( 1.13% of Ewald)
+|                Virial junk                0.00 ( 0.16% of Ewald)
+|                Other                      0.00 ( 0.07% of Ewald)
+|             Ewald time                 0.78 (93.88% of Nonbo)
+|          Nonbond force              0.83 (98.71% of Force)
+|          Bond/Angle/Dihedral        0.01 ( 0.93% of Force)
+|          FRC Collect time           0.00 ( 0.29% of Force)
+|          Other                      0.00 ( 0.07% of Force)
+|       Force time                 0.84 (48.19% of Runmd)
+|       Verlet update time         0.78 (45.07% of Runmd)
+|       CRD distribute time        0.00 ( 0.07% of Runmd)
+|       Other                      0.12 ( 6.67% of Runmd)
+|    Runmd Time                 1.74 (95.33% of Total)
+|    Other                      0.08 ( 4.26% of Total)
+| Total time                 1.82 (100.0% of ALL  )
+
+| Number of list builds   :          1
+
+| Highest rstack allocated:     303556
+| Highest istack allocated:       5918
+
+| Final Performance Info:
+| -----------------------------------------------------
+| Average timings for all steps:
+|     Elapsed(s) =       1.75 Per Step(ms) =      54.84
+|         ns/day =       1.58   seconds/ns =   54840.88
+| -----------------------------------------------------
+
+|           Job began  at 20:16:49.404  on 01/28/2016
+|           Setup done at 20:16:49.489  on 01/28/2016
+|           Run   done at 20:16:51.244  on 01/28/2016
+|     wallclock() was called    1266 times
