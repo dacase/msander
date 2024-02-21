@@ -1093,11 +1093,10 @@ subroutine mdread2(x,ix,ih)
    ! all replicas.  Only use the IG value from worldrank=0. Ok to 
    ! broadcast between the various sander masters since
    ! they all call mdread2.
-   ! Also needs to be synchronized for adaptive QM/MM (qmmm_nml%vsolv > 1)
-   if ( (icfe > 0) .or. (qmmm_nml%vsolv > 1) ) then
+   if ( icfe > 0 ) then
       ! no_ntt3_sync currently does not work with softcore TI simulations
       ! see sc_lngdyn in softcore.F90
-      if ( (ifsc > 0) .or. (qmmm_nml%vsolv > 1) ) no_ntt3_sync = 0
+      if ( ifsc > 0 ) no_ntt3_sync = 0
       call mpi_bcast(ig, 1, MPI_INTEGER, 0, commmaster, ierr)
    end if
 #endif
