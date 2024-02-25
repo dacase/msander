@@ -99,10 +99,10 @@ while [ $# -gt 0 ]; do
         --intel)
             compiler="intel"
             cc="icx"
-            fc="ifort"
+            fc="ifx"
             longlines=""
             mpicc="mpiicc -cc=icx"
-            mpif90="mpiifort"
+            mpif90="mpiifort -fc=ifx"
             optflags="-g -O3"
             flibs_arch="-lifport -lifcore -lsvml";;
         --clang)
