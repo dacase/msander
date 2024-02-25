@@ -41,7 +41,7 @@ MMOBJ = \
     pearsn.o printe.o quench.o rand2.o \
     random.o rattle.o rdparm.o relax_mat.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
-    sander_lib.o sander.o set.o get_atomic_number.o \
+    sander_lib.o sander.o set.o get_atomic_number.o utilitiesModule.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
     stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
