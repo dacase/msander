@@ -417,11 +417,11 @@ contains
            ind=ind+3
         enddo
 
-        write(6,*) ""
-     !  write(6,"(A29,F12.3)") "Total SINR kinetic energy: ", ketot
-        write(6,"(A25,F12.5)") " SINR kinetic energy / N: ", ketot/sd%natom
-      !  write(6,"(A26,F12.5)") "  Isokinetic temperature: ", ketot/sd%natom/(sd%L+sd%kb)
-     !  write(6,*) ""
+        ! write(6,*) ""
+        ! write(6,"(A,F12.3)") "| Total SINR kinetic energy: ", ketot
+        ! write(6,"(A,F12.5)") "| SINR kinetic energy / N: ", ketot/sd%natom
+        ! write(6,"(A,F12.5)") "| Isokinetic temperature: ", ketot/sd%natom/(sd%L+sd%kb)
+        !  write(6,*) ""
     endif
 #else
         ketot = 0.0d0
@@ -441,11 +441,11 @@ contains
            ind=ind+3
         enddo
 
-        write(6,*) ""
-     !  write(6,"(A29,F12.3)") "Total SINR kinetic energy: ", ketot
-        Write(6,"(A25,F12.5)") " SINR kinetic energy / N: ", ketot/sd%natom
-     !  write(6,"(A29,F12.5)") "     Isokinetic temperature: ", ct/sd%natom
-     !  write(6,*) ""
+        ! write(6,*) ""
+        ! write(6,"(A,F12.3)") "| Total SINR kinetic energy: ", ketot
+        ! Write(6,"(A,F12.5)") "| SINR kinetic energy / N: ", ketot/sd%natom
+        ! write(6,"(A,F12.5)") "| Isokinetic temperature: ", ct/sd%natom
+        ! write(6,*) ""
 #endif
    end subroutine sinr_temp
 
