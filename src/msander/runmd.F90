@@ -1394,7 +1394,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
     ! This call to force will bring all energies up-to-date
     call force(xx, ix, ih, ipairs, x, f, ener, ener%vir, xx(l96), xx(l97), &
-               xx(l98), xx(l99), qsetup, do_list_update)
+               xx(l98), xx(l99), qsetup, do_list_update, nstep)
     my_remd_data%myeptot = ener%pot%tot
     my_pressure = pres0
     my_volume = ener%volume

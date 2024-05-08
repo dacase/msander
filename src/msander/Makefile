@@ -41,7 +41,7 @@ MMOBJ = \
     pearsn.o printe.o quench.o rand2.o \
     random.o rattle.o rdparm.o relax_mat.o \
     remd.o rfree.o rgroup.o rmsgrd.o runmd.o \
-    sander_lib.o sander.o set.o get_atomic_number.o \
+    sander_lib.o sander.o set.o get_atomic_number.o utilitiesModule.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
     stack.o state.o thermo_int.o trajene.o \
     wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
@@ -55,7 +55,7 @@ LESOBJ= \
     erfcfun.o ew_box.LES.o ew_bspline.o \
     ew_fft.o ew_force.LES.o ew_recip.LES.o ew_setup.LES.o \
     extra_pts.LES.o fastwt.o file_io_dat.o findmask.o force.LES.o \
-    getcor.LES.o icosasurf.o iwrap2.o \
+    get_atomic_number.o utilitiesModule.o getcor.LES.o icosasurf.o iwrap2.o \
     les.o linear_response.o lmodC.o lmod.LES.o locmem.LES.o \
     matinv.o mbar.o mdfil.LES.o mdread.LES.o md_scheme.LES.o \
     mdwrit.LES.o memory_module.o mexit.o minrit.LES.o molecule.o \

@@ -939,24 +939,24 @@ subroutine sander()
 #else
     nstlim_total = nstlim
 #endif
-    if (imin == 0) then
-      call print_ongoing_time_summary(nstlim_total, nstlim_total, dt, 6)
+    if( master ) then
+       if (imin == 0) then
+         call print_ongoing_time_summary(nstlim_total, nstlim_total, dt, 6)
+       end if
+       write(6,'(12(a))') '|           Job began  at ', initial_time(1:2), &
+             ':', initial_time(3:4), ':', initial_time(5:10), '  on ',&
+             initial_date(5:6), '/', initial_date(7:8), '/', initial_date(1:4)
+       write(6,'(12(a))') '|           Setup done at ', setup_end_time(1:2),  &
+             ':', setup_end_time(3:4), ':', setup_end_time(5:10), '  on ', &
+             setup_end_date(5:6), '/', setup_end_date(7:8), '/', &
+             setup_end_date(1:4)
+       write(6,'(12(a))') '|           Run   done at ', final_time(1:2),  &
+             ':', final_time(3:4), ':', final_time(5:10), '  on ', &
+             final_date(5:6), '/', final_date(7:8), '/', final_date(1:4)
+       call nwallclock( ncalls )
+       write(6, '(''|'',5x,''wallclock() was called'',I8,'' times'')') ncalls
+       call flush(6)
     end if
-    write(6,'(12(a))') '|           Job began  at ', initial_time(1:2), &
-          ':', initial_time(3:4), ':', initial_time(5:10), '  on ',&
-          initial_date(5:6), '/', initial_date(7:8), '/', initial_date(1:4)
-    write(6,'(12(a))') '|           Setup done at ', setup_end_time(1:2),  &
-          ':', setup_end_time(3:4), ':', setup_end_time(5:10), '  on ', &
-          setup_end_date(5:6), '/', setup_end_date(7:8), '/', &
-          setup_end_date(1:4)
-    write(6,'(12(a))') '|           Run   done at ', final_time(1:2),  &
-          ':', final_time(3:4), ':', final_time(5:10), '  on ', &
-          final_date(5:6), '/', final_date(7:8), '/', final_date(1:4)
-    call nwallclock( ncalls )
-    write(6, '(''|'',5x,''wallclock() was called'',I8,'' times'')') ncalls
-    call flush(6)
-
-  call flush(6)
 
 #ifdef MPI
    ! --- dynamic memory deallocation:

@@ -318,7 +318,7 @@ subroutine fdist(f,forcetmp,pot,vir,newbalance,size)
       newbalance=0
       !if(forcetmp(j+32) > 0.d0)newbalance=1  !TODO mjw
 
-      if (init /= 3 .AND. qmmm_nml%vsolv < 2) then
+      if (init /= 3) then
          !  ---Do a distributed sum of the force array:
          call fsum(f,forcetmp)
       else
