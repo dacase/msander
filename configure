@@ -86,7 +86,7 @@ while [ $# -gt 0 ]; do
         --prec)          shift; cuda_prec="$1";;
         --arch)          shift; cuda_arch="$cuda_arch $1"; uspec_arch='true';;
         --gcc10)
-            gcc10f="-Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
+            gcc10f="-fno-strict-aliasing -Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
             gcc10c="-fcommon";;
         --mkl)
             mkl="yes";;
