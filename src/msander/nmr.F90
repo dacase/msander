@@ -4243,7 +4243,7 @@ subroutine nmrred(x,name,ipres,rimass,r1nmr,r2nmr,r3nmr,r4nmr, &
    _REAL_  idxyz(*)
    parameter (rstwttol = 1.0d-7)
 
-   character(len=80) aline
+   character(len=256) aline
    character(256) restraint
    ! Added 9/2007 by Matthew Seetin to enable natural language input of restraints
    character(len=4) atnam(8),grnam1,grnam2,grnam3,grnam4,grnam5,grnam6,grnam7,grnam8, &
