@@ -44,7 +44,7 @@ MMOBJ = \
     sander_lib.o sander.o set.o get_atomic_number.o utilitiesModule.o \
     sglds.o shake.o $(SHORT_ENE) softcore.o \
     stack.o state.o thermo_int.o trajene.o \
-    wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o
+    wallclock.o xminC.o veclib.o dsarpack.o nxtsec.o sinr_t.o
 
 LESOBJ= \
     align.o AmberNetcdf.o amopen.o \

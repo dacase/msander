@@ -2443,36 +2443,6 @@ relax_mat.o:   relax_mat.F90
 	@echo '[MSANDER]  FC $<'
 	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ relax_mat.F90
 
-relaxmd.o: \
-                    ../include/dprec.fh\
-                    ../include/assert.fh\
-                    bintraj.o\
-                    barostats.o\
-                    constants.o\
-                    fastwt.o\
-                    file_io_dat.o\
-                    nonbond_list.o\
-                    random.o\
-                    stack.o\
-                    state.o\
-                    md_scheme.o\
-                    parallel.h\
-                    ../include/md.h\
-                    box.h\
-                    nmr.h\
-                    ../include/memory.h\
-                    extra.h\
-                    ew_frc.h\
-                    ew_cntrl.h\
-                    ew_mpole.h\
-                    def_time.h\
-                    extra_pts.h
-
-
-relaxmd.o:   relaxmd.F90
-	@echo '[MSANDER]  FC $<'
-	$(VB)$(FC) $(LOCALFLAGS) -c $(FOPTFLAGS) $(FFLAGS) -o $@ relaxmd.F90
-
 remd.o: \
                     ../include/assert.fh\
                     ../include/dprec.fh\

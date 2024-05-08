@@ -68,6 +68,7 @@ module runmd_module
   use fastwt
   use bintraj, only: end_binary_frame
   use nblist,only: fill_tranvec,volume,oldrecip,ucell
+  use md_scheme, only: gamma_ln
 
   use sgld, only: isgld, sgenergy, sgldw, sgmdw
 
@@ -139,6 +140,7 @@ module runmd_module
 
   ! Stochastic Isokinetic Nose-Hoover RESPA integrator (SINR)
   type(sinr) :: sinrdata ! Variables for SINR
+  _REAL_ gammai
 
 #include "../include/md.h"
 #include "box.h"
@@ -491,6 +493,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
   if (ntt == 10) then
      !   initialize the SINR integrator: {{{
+    gammai = gamma_ln/20.455d0
 
 #ifdef MPI
     call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtau, &
