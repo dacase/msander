@@ -436,16 +436,16 @@ contains
                  ke = ke + sd%LLp1*sd%Q1*(sd%v1(k,ind+j)**2)
               enddo
               ketot = ketot + ke
-            ! ct = ct + ke/(sd%L+sd%kb)
+              ct = ct + ke/(sd%L+sd%kb)
            enddo
            ind=ind+3
         enddo
 
-        ! write(6,*) ""
-        ! write(6,"(A,F12.3)") "| Total SINR kinetic energy: ", ketot
-        ! Write(6,"(A,F12.5)") "| SINR kinetic energy / N: ", ketot/sd%natom
-        ! write(6,"(A,F12.5)") "| Isokinetic temperature: ", ct/sd%natom
-        ! write(6,*) ""
+          ! write(6,*) ""
+          ! write(6,"(A,F12.3)") "| Total SINR kinetic energy: ", ketot
+          ! Write(6,"(A,F12.5)") "| SINR kinetic energy / N: ", ketot/sd%natom
+          ! write(6,"(A,F12.5)") "| Isokinetic temperature: ", ct/sd%natom
+          ! write(6,*) ""
 #endif
    end subroutine sinr_temp
 
