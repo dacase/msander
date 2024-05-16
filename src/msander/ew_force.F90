@@ -150,7 +150,8 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
    call timer_stop(TIME_EWFSTRT)
    if( numextra > 0 ) call local_to_global(crd,x,ix)
    
-   if( use_pme /= 0 .and. mod(irespa,nrespa) == 0) then
+   ! Set use_pme=2 to always run PME, e.g. when rismrespa is set as well)
+   if( use_pme == 2 .or. (use_pme == 1 .and. mod(irespa,nrespa) == 0)) then
       
       !--------------------------------------------------------
       ! SELF ENERGY
@@ -183,7 +184,7 @@ subroutine ewald_force(crd,numatoms,iac,ico,charge, &
         
            ! Scaleup forces, field for respa
          
-           if ( nrespa > 1 ) &
+           if ( use_pme == 1 .and. nrespa > 1 ) &
                call respa_scale(numatoms,frc,nrespa)
 #ifdef MPI
            numtasks = commsander_numtasks
