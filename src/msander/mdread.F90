@@ -258,7 +258,7 @@ subroutine mdread1()
    temp0 = 300.0d0
    ntt = 3    ! was ithermostat=1
    gamma_ln = 5.d0  ! was therm_par = 5.0d0
-   sinrtau = 1.0
+   sinrtau = 0.05
    plumed = 0
    plumedfile = 'plumed.dat'
 #ifdef LES
@@ -631,8 +631,8 @@ subroutine mdread1()
       write(6,'(1x,a,/)') 'Middle scheme: gamma_ln MUST be non-negative'
       FATAL_ERROR
    end if
-   if (sinrtau < 0.5d0) then
-      write(6,'(1x,a,/)') 'sinrtau must be >= 0.5 when ntt = 10'
+   if (sinrtau < 0.025d0) then
+      write(6,'(1x,a,/)') 'sinrtau must be >= 0.025 when ntt = 10'
       FATAL_ERROR
    end if
 

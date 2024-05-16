@@ -505,7 +505,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
                    sinrdata)
 #endif
     if (irest == 1) then
-      call sinr_read_vels(v, sinrtau, sinrdata)
+      call sinr_read_vels(v, sinrtaui, sinrdata)
     else
       call init_sinr_vels(v, amass, sinrdata)
     endif
@@ -636,7 +636,7 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
       call sinr_temp(v, amass, istart3, iend3, sinrdata)
     end if
     if (mod(nstep+1, ntwr) == 0 .or. nstep+1 == nstlim) then
-      call sinr_write_vels(v, nstep, istart3, iend3, sinrtau, sinrdata)
+      call sinr_write_vels(v, nstep, istart3, iend3, sinrtaui, sinrdata)
     end if
 
   else
