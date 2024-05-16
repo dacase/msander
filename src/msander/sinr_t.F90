@@ -15,7 +15,7 @@ module sinr_t
 
      integer :: L,nsys,nres,natom,istep,nrespa
 #ifdef MPI
-     integer :: mpirank,mpicomm,nproc
+     integer :: mpirank,mpicomm,nproc,idummy
 #endif
 
      double precision :: kb,errtol,wj(3)
@@ -25,9 +25,6 @@ module sinr_t
      double precision :: lbeta,LLp1
 
    ! Arrays: auxilliary thermostat variables
-   ! double precision, pointer :: v1(:,:,:) => NULL()
-   ! double precision, pointer :: v2(:,:,:) => NULL()
-
      double precision, allocatable :: v1(:,:)
      double precision, allocatable :: v2(:,:)
 
