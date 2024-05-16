@@ -3,7 +3,7 @@
           MSANDER                                      2021
           -------------------------------------------------------
 
-| Run on 05/08/2024 at 16:01:23
+| Run on 05/08/2024 at 16:17:06
 
 |   Executable path: ../../../bin/msander
 | Working directory: /home/case/msander/test/rism3d/2igd_soln
@@ -34,13 +34,13 @@ File Assignments:
  Relaxtion of solution 2igd using SINR (isokinetic ensemble)                   
  &cntrl                                                                        
   imin=0, ntx=5, irest=1,                                                      
-  nstlim=12, dt=0.002,                                                         
+  nstlim=24, dt=0.004,                                                         
   ntc=2, ntf=2, tol=1.e-6, ioutfm=1,                                           
   ntpr=1, ntwx=0, ntwr=50,                                                     
   tempi=298.15 temp0=298.15, ntp=0,                                            
   ntb=1, irism=1, cut=8.0,                                                     
   ig=314159, ntt=10, nrespa=4, nkija=4,                                        
-  gamma_ln=1.0, sinrtau=1.0,                                                   
+  gamma_ln=2.0, sinrtau=1.0,                                                   
  /                                                                             
 &rism                                                                          
     periodic='pme',                                                            
@@ -50,7 +50,7 @@ File Assignments:
     verbose=1,                                                                 
     write_thermo=0,                                                            
     npropagate=1, maxstep=1000,                                                
-    mdiis_del=0.5, mdiis_nvec=10, tolerance=1e-7,                              
+    mdiis_del=0.6, mdiis_nvec=10, tolerance=1e-7,                              
     apply_rism_force=1,                                                        
     rismnrespa=4,                                                              
  /                                                                             
@@ -113,8 +113,8 @@ Frozen or restrained atoms:
      ibelly  =       0, ntr     =       0
 
 Molecular dynamics:
-     nstlim  =        12, nscm    =      1000, nrespa  =         4
-     t       =   0.00000, dt      =   0.00200, vlimit  =  20.00000
+     nstlim  =        24, nscm    =      1000, nrespa  =         4
+     t       =   0.00000, dt      =   0.00400, vlimit  =  20.00000
 
 SHAKE:
      ntc     =       2, jfastw  =       0
@@ -138,7 +138,7 @@ Ewald parameters:
      grd_spc   =   0.50000    0.50000    0.50000
      ng3       =        -1         -1         -1
      tolerance =  1.00E-07
-     mdiis_del =   0.50000, mdiis_nv=        10
+     mdiis_del =   0.60000, mdiis_nv=        10
      mdiis_meth=         2, mdiis_re=  1.00E+01
      maxstep   =      1000, npropaga=         1
      zerofrc   =         1
@@ -200,93 +200,130 @@ default_name
 |internal angles [°]:      90.000,     90.000,     90.000
 |inscribed sphere radius [A]:     17.500
 |Switching to KH closure
-|RXRISM converged in   359 steps
+|RXRISM converged in   453 steps
  
 | Total SINR kinetic energy:     6590.761
 | SINR kinetic energy / N:      7.10977
 | Isokinetic temperature:      0.00000
  
 
- NSTEP =        4   TIME(PS) =       0.032  TEMP(K) =   212.79  PRESS =     0.0
- Etot   =       510.6271  EKtot   =       490.3054  EPtot      =        20.3217
- BOND   =       116.2789  ANGLE   =       360.9348  DIHED      =       753.4684
- 1-4 NB =       230.3836  1-4 EEL =      3259.3379  VDWAALS    =      -403.0011
- EELEC  =     -4750.9833  ERISM   =       453.9025  RESTRAINT  =         0.0000
-|RXRISM converged in   300 steps
+ NSTEP =        4   TIME(PS) =       0.040  TEMP(K) =   238.21  PRESS =     0.0
+ Etot   =       716.4868  EKtot   =       548.8729  EPtot      =       167.6139
+ BOND   =       162.3766  ANGLE   =       436.8030  DIHED      =       772.1679
+ 1-4 NB =       229.4780  1-4 EEL =      3248.1911  VDWAALS    =      -400.2879
+ EELEC  =     -4745.1321  ERISM   =       464.0173  RESTRAINT  =         0.0000
+|RXRISM converged in   333 steps
  
 | Total SINR kinetic energy:     6590.761
 | SINR kinetic energy / N:      7.10977
 | Isokinetic temperature:      0.00000
  
 
- NSTEP =        8   TIME(PS) =       0.040  TEMP(K) =   198.74  PRESS =     0.0
- Etot   =       518.2200  EKtot   =       457.9204  EPtot      =        60.2996
- BOND   =       136.2420  ANGLE   =       388.0210  DIHED      =       766.2528
- 1-4 NB =       224.6306  1-4 EEL =      3235.1561  VDWAALS    =      -407.1617
- EELEC  =     -4735.6737  ERISM   =       452.8325  RESTRAINT  =         0.0000
-|RXRISM converged in   289 steps
+ NSTEP =        8   TIME(PS) =       0.056  TEMP(K) =   232.54  PRESS =     0.0
+ Etot   =       737.5284  EKtot   =       535.7969  EPtot      =       201.7315
+ BOND   =       179.3605  ANGLE   =       453.0096  DIHED      =       781.9681
+ 1-4 NB =       212.1321  1-4 EEL =      3211.3598  VDWAALS    =      -400.3185
+ EELEC  =     -4709.7309  ERISM   =       473.9509  RESTRAINT  =         0.0000
+|RXRISM converged in   410 steps
  
 | Total SINR kinetic energy:     6590.761
 | SINR kinetic energy / N:      7.10977
 | Isokinetic temperature:      0.00000
  
 
- NSTEP =       12   TIME(PS) =       0.048  TEMP(K) =   211.73  PRESS =     0.0
- Etot   =       504.8423  EKtot   =       487.8462  EPtot      =        16.9961
- BOND   =       151.1992  ANGLE   =       345.8734  DIHED      =       755.2446
- 1-4 NB =       216.4934  1-4 EEL =      3227.4746  VDWAALS    =      -403.9876
- EELEC  =     -4734.4501  ERISM   =       459.1486  RESTRAINT  =         0.0000
+ NSTEP =       12   TIME(PS) =       0.072  TEMP(K) =   230.35  PRESS =     0.0
+ Etot   =       747.3387  EKtot   =       530.7539  EPtot      =       216.5848
+ BOND   =       183.7404  ANGLE   =       485.2183  DIHED      =       777.6098
+ 1-4 NB =       211.3091  1-4 EEL =      3205.9685  VDWAALS    =      -401.2114
+ EELEC  =     -4712.1940  ERISM   =       466.1441  RESTRAINT  =         0.0000
+|RXRISM converged in   503 steps
+ 
+| Total SINR kinetic energy:     6590.761
+| SINR kinetic energy / N:      7.10977
+| Isokinetic temperature:      0.00000
+ 
 
-      A V E R A G E S   O V E R       3 S T E P S
+ NSTEP =       16   TIME(PS) =       0.088  TEMP(K) =   233.76  PRESS =     0.0
+ Etot   =       747.7307  EKtot   =       538.6202  EPtot      =       209.1104
+ BOND   =       186.4200  ANGLE   =       481.3950  DIHED      =       789.6044
+ 1-4 NB =       201.3241  1-4 EEL =      3201.0954  VDWAALS    =      -388.1278
+ EELEC  =     -4730.9190  ERISM   =       468.3185  RESTRAINT  =         0.0000
+|RXRISM converged in   370 steps
+ 
+| Total SINR kinetic energy:     6590.761
+| SINR kinetic energy / N:      7.10977
+| Isokinetic temperature:      0.00000
+ 
+
+ NSTEP =       20   TIME(PS) =       0.104  TEMP(K) =   246.31  PRESS =     0.0
+ Etot   =       749.6353  EKtot   =       567.5349  EPtot      =       182.1004
+ BOND   =       195.0816  ANGLE   =       454.7367  DIHED      =       773.0492
+ 1-4 NB =       204.3203  1-4 EEL =      3202.8542  VDWAALS    =      -379.8472
+ EELEC  =     -4746.8040  ERISM   =       478.7096  RESTRAINT  =         0.0000
+|RXRISM converged in   406 steps
+ 
+| Total SINR kinetic energy:     6590.761
+| SINR kinetic energy / N:      7.10977
+| Isokinetic temperature:      0.00000
+ 
+
+ NSTEP =       24   TIME(PS) =       0.120  TEMP(K) =   237.66  PRESS =     0.0
+ Etot   =       776.8960  EKtot   =       547.6044  EPtot      =       229.2915
+ BOND   =       177.7896  ANGLE   =       468.4698  DIHED      =       777.7899
+ 1-4 NB =       227.2919  1-4 EEL =      3211.8459  VDWAALS    =      -364.3084
+ EELEC  =     -4741.0048  ERISM   =       471.4177  RESTRAINT  =         0.0000
+
+      A V E R A G E S   O V E R       6 S T E P S
 
 
- NSTEP =       12   TIME(PS) =       0.048  TEMP(K) =   207.75  PRESS =     0.0
- Etot   =       511.2298  EKtot   =       478.6907  EPtot      =        32.5391
- BOND   =       134.5733  ANGLE   =       364.9431  DIHED      =       758.3219
- 1-4 NB =       223.8359  1-4 EEL =      3240.6562  VDWAALS    =      -404.7168
- EELEC  =     -4740.3690  ERISM   =       455.2945  RESTRAINT  =         0.0000
+ NSTEP =       24   TIME(PS) =       0.120  TEMP(K) =   236.47  PRESS =     0.0
+ Etot   =       745.9360  EKtot   =       544.8639  EPtot      =       201.0721
+ BOND   =       180.7948  ANGLE   =       463.2721  DIHED      =       778.6982
+ 1-4 NB =       214.3092  1-4 EEL =      3213.5525  VDWAALS    =      -389.0169
+ EELEC  =     -4730.9642  ERISM   =       470.4263  RESTRAINT  =         0.0000
 
       R M S  F L U C T U A T I O N S
 
 
- NSTEP =       12   TIME(PS) =       0.048  TEMP(K) =     6.39  PRESS =     0.0
- Etot   =         5.4780  EKtot   =        14.7211  EPtot      =        19.6765
- BOND   =        14.3049  ANGLE   =        17.4386  DIHED      =         5.6546
- 1-4 NB =         5.6984  1-4 EEL =        13.5771  VDWAALS    =         1.7751
- EELEC  =         7.5220  ERISM   =         2.7600  RESTRAINT  =         0.0000
+ NSTEP =       24   TIME(PS) =       0.120  TEMP(K) =     5.19  PRESS =     0.0
+ Etot   =        17.8668  EKtot   =        11.9572  EPtot      =        20.7421
+ BOND   =         9.9561  ANGLE   =        16.9109  DIHED      =         5.8624
+ 1-4 NB =        10.6519  1-4 EEL =        15.9932  VDWAALS    =        13.5330
+ EELEC  =        15.0312  ERISM   =         4.9308  RESTRAINT  =         0.0000
 
 --------------------------------------------------------------------------------
    5.  TIMINGS
 --------------------------------------------------------------------------------
 
-|                Build the list             0.00 (33.33% of List )
-|                Other                      0.00 (66.67% of List )
-|                   Short_ene time             0.01 (100.0% of Direc)
-|                Direct Ewald time          0.01 (71.43% of Ewald)
-|                Adjust Ewald time          0.00 ( 4.76% of Ewald)
-|                   Fill charge grid           0.00 (20.00% of Recip)
-|                   Grad sum                   0.00 (20.00% of Recip)
-|                   FFT time                   0.00 (60.00% of Recip)
-|                Recip Ewald time           0.00 (23.81% of Ewald)
-|                LJ Grid time               1.19 ( 6.35% of 3D-RI)
-|                      FFTB time                  0.66 ( 3.98% of R1RIS)
-|                      HUVK time                  0.64 ( 3.87% of R1RIS)
-|                      RESID time                 0.40 ( 2.43% of R1RIS)
-|                      CLOSURE time               0.61 ( 3.71% of R1RIS)
-|                      FFT time                   6.57 (39.82% of R1RIS)
-|                         LAPACK time                5.64 (74.03% of MDIIS)
-|                         DATA time                  1.98 (25.94% of MDIIS)
-|                      MDIIS time                 7.62 (46.19% of R1RIS)
-|                   R1RISM time               16.50 (100.0% of RXRIS)
-|                RXRISM time               16.50 (87.93% of 3D-RI)
-|                FF time                    1.01 ( 5.38% of 3D-RI)
-|             3D-RISM time              18.77 (99.86% of Nonbo)
-|          Nonbond force             18.79 (100.0% of Force)
-|       Force time                18.80 (99.57% of Runmd)
-|    Runmd Time                18.88 (99.70% of Total)
-| Total time                18.94 (100.0% of ALL  )
+|                Build the list             0.00 (50.00% of List )
+|                Other                      0.00 (50.00% of List )
+|                   Short_ene time             0.03 (100.0% of Direc)
+|                Direct Ewald time          0.03 (76.19% of Ewald)
+|                Adjust Ewald time          0.00 ( 2.38% of Ewald)
+|                   Fill Bspline coeffs        0.00 (12.50% of Recip)
+|                   Scalar sum                 0.00 (12.50% of Recip)
+|                   FFT time                   0.01 (75.00% of Recip)
+|                Recip Ewald time           0.01 (19.05% of Ewald)
+|                Other                      0.00 ( 2.38% of Ewald)
+|                LJ Grid time               2.45 ( 5.16% of 3D-RI)
+|                      FFTB time                  1.65 ( 3.85% of R1RIS)
+|                      HUVK time                  1.70 ( 3.96% of R1RIS)
+|                      RESID time                 1.05 ( 2.45% of R1RIS)
+|                      CLOSURE time               1.65 ( 3.84% of R1RIS)
+|                      FFT time                  17.29 (40.33% of R1RIS)
+|                         LAPACK time               14.30 (73.25% of MDIIS)
+|                         DATA time                  5.22 (26.72% of MDIIS)
+|                      MDIIS time                19.53 (45.55% of R1RIS)
+|                   R1RISM time               42.87 (100.0% of RXRIS)
+|                RXRISM time               42.89 (90.39% of 3D-RI)
+|                FF time                    2.02 ( 4.26% of 3D-RI)
+|             3D-RISM time              47.44 (99.90% of Nonbo)
+|          Nonbond force             47.49 (100.0% of Force)
+|       Force time                47.50 (99.69% of Runmd)
+|    Runmd Time                47.65 (99.88% of Total)
+| Total time                47.71 (100.0% of ALL  )
 
-| Number of list builds   :          1
+| Number of list builds   :          2
 
 | Highest rstack allocated:     133267
 | Highest istack allocated:        927
@@ -294,14 +331,14 @@ default_name
 | Final Performance Info:
 | -----------------------------------------------------
 | Average timings for all steps:
-|     Elapsed(s) =      18.88 Per Step(ms) =    1573.50
-|         ns/day =       0.11   seconds/ns =  786750.00
+|     Elapsed(s) =      47.65 Per Step(ms) =    1985.42
+|         ns/day =       0.17   seconds/ns =  496354.17
 | -----------------------------------------------------
 
-|           Job began  at 16:01:23.126  on 05/08/2024
-|           Setup done at 16:01:23.183  on 05/08/2024
-|           Run   done at 16:01:42.065  on 05/08/2024
-|     wallclock() was called   17562 times
+|           Job began  at 16:17:06.153  on 05/08/2024
+|           Setup done at 16:17:06.210  on 05/08/2024
+|           Run   done at 16:17:53.859  on 05/08/2024
+|     wallclock() was called   45506 times
 
 |3D-RISM memory allocation summary
 |Type          Maximum        Current   
