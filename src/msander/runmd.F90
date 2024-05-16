@@ -140,7 +140,7 @@ module runmd_module
 
   ! Stochastic Isokinetic Nose-Hoover RESPA integrator (SINR)
   type(sinr) :: sinrdata ! Variables for SINR
-  _REAL_ gammai
+  _REAL_ gammai, sinrtaui
 
 #include "../include/md.h"
 #include "box.h"
@@ -493,13 +493,15 @@ subroutine runmd(xx, ix, ih, ipairs, x, winv, amass, f, v, vold, xc, &
 
   if (ntt == 10) then
      !   initialize the SINR integrator: {{{
+    ! convert from ps time units to internal times:
     gammai = gamma_ln/20.455d0
+    sinrtaui = sinrtau*20.455d0
 
 #ifdef MPI
-    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtau, &
+    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtaui, &
                    sinrdata, commsander)
 #else
-    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtau, &
+    call sinr_init(natom, nkija, dtx, boltz2, temp0, gammai, sinrtaui, &
                    sinrdata)
 #endif
     if (irest == 1) then
