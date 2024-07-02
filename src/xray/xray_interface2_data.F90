@@ -45,12 +45,18 @@ module xray_interface2_data_module
   !! options for ls target
   real(real_kind), save :: ls_r3, ls_r4
 
+  !! history data for time-averaging:
+  complex(real_kind), allocatable, save :: Fhis(:,:) ! size = (n_hkl,10)
+  real(real_kind), allocatable, save :: gxyz_his(:,:,:) ! size = (3,n_hkl,10)
+  logical, save :: timeavg
+
 contains
   
   subroutine init(input_hkl, input_Fobs, input_sigma_Fobs, input_work_flag, &
       input_unit_cell, input_scatter_coefficients, &
       input_atom_b_factor, input_atom_occupancy, input_atom_scatter_type, &
-      input_atom_selection, r3, r4 , input_spacegroup_number, iix, iiy, iiz )
+      input_atom_selection, r3, r4 , input_spacegroup_number, iix, iiy, iiz, &
+      itimeavg )
     use xray_pure_utils, only: index_partition, index_sort, calc_resolution, pack_index
     
     implicit none
@@ -67,6 +73,7 @@ contains
     logical, intent(in) :: input_atom_selection(:)
     real(real_kind), intent(in) :: r3, r4
     integer, intent(in) :: input_spacegroup_number, iix, iiy, iiz
+    logical, intent(in) :: itimeavg
     
     ! locals
     integer :: j
@@ -145,6 +152,11 @@ contains
     ixp = iix
     iyp = iiy
     izp = iiz
+    timeavg = itimeavg
+    if( timeavg ) then
+        allocate(Fhis(n_hkl,10))
+        allocate(gxyz_his(3,n_hkl,10))
+    end if
     
   end subroutine init
   

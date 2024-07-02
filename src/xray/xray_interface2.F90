@@ -29,7 +29,7 @@ contains
       &   atom_atomic_number, mask_update_period, scale_update_period, &
       &   target_meta_update_period, k_sol, b_sol, &
       &   solvent_mask_adjustment, solvent_mask_probe_radius, r3, r4, &
-      &   spacegroup_number, ixp, iyp, izp )
+      &   spacegroup_number, ixp, iyp, izp, timeavg )
     use xray_interface2_data_module, only : init_data => init
     use xray_pure_utils, only : index_partition, index_sort, calc_resolution
     use constants_xray, only : set_xray_num_threads
@@ -60,6 +60,7 @@ contains
     real(real_kind), intent(in) :: r3,r4  !  ls_nmr options
     integer, intent(in) :: spacegroup_number
     integer, intent(in) :: ixp, iyp, izp
+    logical, intent(in) :: timeavg
 
     ASSERT(size(hkl, 1) == 3)
     ASSERT(size(hkl, 2) == size(Fobs))
@@ -81,7 +82,7 @@ contains
 
     call init_data(hkl, Fobs, sigma_Fobs, work_flag, unit_cell, scatter_coefficients, &
         &   atom_b_factor, atom_occupancy, atom_scatter_type, &
-        &   atom_is_not_bulk, r3, r4, spacegroup_number, ixp, iyp, izp )
+        &   atom_is_not_bulk, r3, r4, spacegroup_number, ixp, iyp, izp, timeavg)
   
     call init_submodules(target, bulk_model, atom_atomic_number, &
         mask_update_period, scale_update_period, target_meta_update_period, &
@@ -91,7 +92,8 @@ contains
   
   subroutine calc_force(xyz, current_step, xray_weight, force, energy, Fuser)
     use xray_interface2_data_module
-    use xray_target_module, only: calc_partial_d_target_d_absFcalc
+    use xray_target_module, only: calc_partial_d_target_d_absFcalc, &
+          calc_xray_energy
     use xray_non_bulk_module, only: calc_f_non_bulk, get_f_non_bulk
     use xray_bulk_model_module, only: add_bulk_contribution_and_rescale, get_f_scale
     use xray_dpartial_module, only: calc_partial_d_target_d_frac, &
@@ -103,6 +105,8 @@ contains
     real(real_kind), intent(in) :: xray_weight
     real(real_kind), intent(inout) :: force(:, :)
     real(real_kind), intent(out) :: energy
+
+    integer his_step, nav
     complex(real_kind), allocatable, intent(in) :: Fuser(:)
 
     real(real_kind), allocatable :: d_target_d_absFcalc(:)
@@ -128,6 +132,7 @@ contains
     call timer_start(TIME_IHKL)
     call calc_f_non_bulk(frac)
     Fcalc = get_f_non_bulk()
+
     call timer_stop(TIME_IHKL)
 
     call add_bulk_contribution_and_rescale(&
@@ -141,11 +146,8 @@ contains
     
     allocate(d_target_d_absFcalc(size(Fcalc)))
     call calc_partial_d_target_d_absFcalc(current_step, &
-            abs_Fobs, abs_Fcalc, &
-            deriv=d_target_d_absFcalc, xray_energy=energy &
-    )
+            abs_Fobs, abs_Fcalc, d_target_d_absFcalc)
 
-    energy = xray_weight * energy
     call timer_start(TIME_DHKL)
     if( target_function_id == 1 ) then
 #ifdef CUDA
@@ -162,6 +164,7 @@ contains
     end if
     ASSERT(size(grad_xyz, 2) == size(non_bulk_atom_indices))
 
+
 #ifndef MPI
     ! compute norm of gradient from Amber, and from xray: this
     !   information could be used to estimate xray_weight:
@@ -173,7 +176,35 @@ contains
     endif
 #endif
 
+    if( timeavg ) then
+       ! shift history:
+       do his_step=10,2,-1
+          Fhis(:,his_step) = Fhis(:,his_step-1)
+          gxyz_his(:,:,his_step) = gxyz_his(:,:,his_step-1)
+       end do
+       Fhis(:,1) = Fcalc(:)
+       gxyz_his(:,:,1) = grad_xyz
+       nav = min(current_step,10)
+       if( nav .eq. 0 ) nav = 1
+       write(0,*) 'current step, nav: ', current_step, nav
+
+       ! do time-averaging of Fcalc and grad_xyz:
+       Fcalc = (0.d0, 0.d0)
+       grad_xyz = 0.d0
+       do his_step=1,nav
+          Fcalc = Fcalc + Fhis(:,his_step)
+          grad_xyz = grad_xyz + gxyz_his(:,:,his_step)
+       end do
+       Fcalc = Fcalc/nav
+       abs_Fcalc(:) = abs(Fcalc(:))
+       grad_xyz = grad_xyz/nav
+    end if
+
+    ! return results:
     force(:,non_bulk_atom_indices) = force(:,non_bulk_atom_indices) - grad_xyz
+    call calc_xray_energy(current_step, abs_Fobs, abs_Fcalc, energy)
+    energy = xray_weight * energy
+
     call timer_stop(TIME_DHKL)
 
   end subroutine calc_force

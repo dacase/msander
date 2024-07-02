@@ -11,6 +11,7 @@ module xray_target_module
     public :: init
     public :: finalize
     public :: calc_partial_d_target_d_absFcalc
+    public :: calc_xray_energy
     public :: target_function_id
 
     ! Enumeration
@@ -91,9 +92,37 @@ contains
         case (vector_least_squares_id)
             call vls_partial(Fcalc, derivc, xray_energy)
         case (max_likehood_id)
-            call ml_partial(current_step, absFobs, absFcalc, deriv, xray_energy)
+            call ml_partial(current_step, absFobs, absFcalc, deriv)
         end select
     end subroutine calc_partial_d_target_d_absFcalc
+
+    subroutine calc_xray_energy(current_step, absFobs, absFcalc, xray_energy)
+        use xray_target_max_likelihood_module, only : ml_energy => calc_xray_energy
+        use xray_interface2_data_module, only : Fcalc
+        implicit none
+        integer, intent(in) :: current_step
+        real(real_kind), intent(in) :: absFobs(:)
+        real(real_kind), intent(in) :: absFcalc(size(absFobs))
+        real(real_kind), intent(out) :: xray_energy
+
+        logical, save :: first_call = .TRUE.
+
+        ! First call of `calc_partial_d_target_d_absFcalc(...)`
+        ! must be made with current_step=0")
+        ASSERT(.not. first_call .or. current_step == 0)
+        first_call = .FALSE.
+
+        select case(target_function_id)
+        case (least_squares_id)
+            write(0,*) 'no calc_xray_energy routine for least_squares'
+            call mexit(6,1)
+        case (vector_least_squares_id)
+            write(0,*) 'no calc_xray_energy routine for vector_least_squares'
+            call mexit(6,1)
+        case (max_likehood_id)
+            call ml_energy(current_step, absFobs, absFcalc, xray_energy)
+        end select
+    end subroutine calc_xray_energy
 
     function target_function_name_to_id(target) result(f_id)
         implicit none

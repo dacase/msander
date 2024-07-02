@@ -34,6 +34,9 @@ module xray_globals_module
    ! If TRUE, write the full 4-character ChainID to the SegID field.
    logical, save :: pdb_use_segid, pdb_wrap_names
 
+   ! use time-averaging?
+   logical, save :: timeavg
+
    ! Xray energy target function, see xray_target.F90 for details
    character(len=4), save :: target
    ! variable parameters for the least-squares target:

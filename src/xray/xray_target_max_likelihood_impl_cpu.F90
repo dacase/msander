@@ -12,6 +12,7 @@ module xray_target_max_likelihood_impl_cpu_module
 
   public :: init
   public :: calc_partial_d_target_d_absFcalc
+  public :: calc_xray_energy
   public :: finalize
 
 contains
@@ -149,7 +150,7 @@ contains
   ! Compute derivative of |Fobs|:|Fcalc| Maximum Likelihood (ML) target
   ! with respect to |Fcalc|.
   ! -------------------------------------------------------------------------
-  subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv, xray_energy)
+  subroutine calc_partial_d_target_d_absFcalc(current_step, absFobs, absFcalc, deriv)
     use xray_pure_utils, only: i1_over_i0, ln_of_i0
     use xray_interface2_data_module, only : penalty
 
@@ -157,8 +158,7 @@ contains
     integer, intent(in) :: current_step
     real(real_kind), intent(in) :: absFobs(:)
     real(real_kind), intent(in) :: absFcalc(size(absFobs))
-    real(real_kind), intent(out), optional :: deriv(size(absFobs))
-    real(real_kind), intent(out), optional :: xray_energy
+    real(real_kind), intent(out) :: deriv(size(absFobs))
     
     real(real_kind), parameter :: epsilon = 1.0
     
@@ -168,30 +168,46 @@ contains
         absFcalc(n_work + 1:)  &
         )
     
-    if (present(deriv)) then
-      deriv(n_work + 1:) = 0._real_kind
-      deriv(:n_work) = &
-          2 * ml_alpha / ml_beta / epsilon * ( &
-              ml_alpha * absFcalc(:n_work) &
-                  - i1_over_i0( &
-                  2 * ml_alpha / ml_beta / epsilon * absFobs(:n_work) * absFcalc(:n_work) &
-                  ) *  absFobs(:n_work)  &
-              )
-    end if
+    deriv(n_work + 1:) = 0._real_kind
+    deriv(:n_work) = &
+        2 * ml_alpha / ml_beta / epsilon * ( &
+            ml_alpha * absFcalc(:n_work) &
+                - i1_over_i0( &
+                2 * ml_alpha / ml_beta / epsilon * absFobs(:n_work) * absFcalc(:n_work) &
+                ) *  absFobs(:n_work)  &
+            )
     
-    if (present(xray_energy)) then
-      penalty(n_work + 1:) = 0._real_kind
-      penalty(:n_work) = &
-            - log(2 * absFobs(:n_work) / ml_beta / epsilon) &
-                + absFobs(:n_work) ** 2 / ml_beta / epsilon &
-                + ml_alpha ** 2 * absFcalc(:n_work) ** 2 / ml_beta / epsilon &
-                - ln_of_i0(2 * ml_alpha / ml_beta &
-                / epsilon * absFobs(:n_work) * absFcalc(:n_work)) 
-      xray_energy = sum( penalty )
-    end if
-  
   end subroutine calc_partial_d_target_d_absFcalc
   
+  subroutine calc_xray_energy(current_step, absFobs, absFcalc, xray_energy)
+    use xray_pure_utils, only: i1_over_i0, ln_of_i0
+    use xray_interface2_data_module, only : penalty
+
+    implicit none
+    integer, intent(in) :: current_step
+    real(real_kind), intent(in) :: absFobs(:)
+    real(real_kind), intent(in) :: absFcalc(size(absFobs))
+    real(real_kind), intent(out) :: xray_energy
+    
+    real(real_kind), parameter :: epsilon = 1.0
+    
+    call estimate_alpha_beta(   &
+        current_step, &
+        absFobs(n_work + 1:),  &
+        absFcalc(n_work + 1:)  &
+        )
+    
+    penalty(n_work + 1:) = 0._real_kind
+    penalty(:n_work) = &
+          - log(2 * absFobs(:n_work) / ml_beta / epsilon) &
+              + absFobs(:n_work) ** 2 / ml_beta / epsilon &
+              + ml_alpha ** 2 * absFcalc(:n_work) ** 2 / ml_beta / epsilon &
+              - ln_of_i0(2 * ml_alpha / ml_beta &
+              / epsilon * absFobs(:n_work) * absFcalc(:n_work)) 
+    xray_energy = sum( penalty )
+  
+  end subroutine calc_xray_energy
+
   pure function estimate_num_ml_resolution_bins(num_free_flags) result(result)
     integer, intent(in) :: num_free_flags
     integer :: result
