@@ -334,6 +334,9 @@ subroutine align1( natom, x, f, amass )
          almat(5) = s23(iset)
          almat(6) = s33(iset)
          call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
+
+         write(57,'(A)') '| Skipping ordering of the roots; R may be negative'
+#if 0
          ! order the roots so by absolute value, so that |root(3)| >
          !    |root(2)| > |root(1)|:
          root_tmp = root
@@ -353,6 +356,7 @@ subroutine align1( natom, x, f, amass )
             vect_al(:,2) = vect_tmp(:,1)
             vect_al(:,1) = vect_tmp(:,2)
          end if
+#endif
 
          write(57,*) 'Diagonalization:'
          do i=1,3
