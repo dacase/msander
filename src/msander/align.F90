@@ -458,9 +458,12 @@ subroutine alignread(natom,x)
    if( freezes ) ifreezes = 1
 
    if( itarget .gt. 0 ) then
-      if( r_target .lt 0.0 .or r_target .gt. 0.667 ) then
-         write(6,*) 'Error: r_target must be between 0 and 2/3: ', r_target
-      end if
+      do i=1,num_datasets
+         if( (r_target(i) .lt. 0.0) .or. (r_target(i) .gt. 0.667) ) then
+            write(6,*) 'Error: r_target must be between 0 and 2/3: ', i, &
+                r_target(i)
+         end if
+      end do
    end if
    
    iof = 0
