@@ -462,6 +462,7 @@ subroutine alignread(natom,x)
          if( (r_target(i) .lt. 0.0) .or. (r_target(i) .gt. 0.667) ) then
             write(6,*) 'Error: r_target must be between 0 and 2/3: ', i, &
                 r_target(i)
+            call mexit(6,1)
          end if
       end do
    end if
