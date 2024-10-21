@@ -1,6 +1,6 @@
 # Makefile for antechamber
 
-include ../config.h
+include ../../config.h
 
 ACDOCTOROBJS = acdoctor.o eprintf.o
 AM1BCCOBJS = am1bcc.o eprintf.o
@@ -24,39 +24,39 @@ TOP2FFOBJS = top2ff.o eprintf.o
 TOP2MOL2OBJS = top2mol2.o eprintf.o
 
 # Dispatched programs are wrapper scripts of programs; these scripts
-# automatically set AMBERHOME; they live in $(BINDIR)/to_be_dispatched/
+# automatically set AMBERHOME; they live in $(BINDIR)/wrapped_progs/
 DISPATCHEDPROGS = \
-	$(BINDIR)/to_be_dispatched/am1bcc$(SFX) \
-	$(BINDIR)/to_be_dispatched/antechamber$(SFX) \
-	$(BINDIR)/to_be_dispatched/atomtype$(SFX) \
-	$(BINDIR)/to_be_dispatched/bondtype$(SFX) \
-	$(BINDIR)/to_be_dispatched/espgen$(SFX) \
-	$(BINDIR)/to_be_dispatched/parmchk2$(SFX) \
-	$(BINDIR)/to_be_dispatched/prepgen$(SFX) \
-	$(BINDIR)/to_be_dispatched/residuegen$(SFX) \
-	$(BINDIR)/to_be_dispatched/respgen$(SFX) \
+	$(BINDIR)/wrapped_progs/am1bcc \
+	$(BINDIR)/wrapped_progs/antechamber \
+	$(BINDIR)/wrapped_progs/atomtype \
+	$(BINDIR)/wrapped_progs/bondtype \
+	$(BINDIR)/wrapped_progs/espgen \
+	$(BINDIR)/wrapped_progs/parmchk2 \
+	$(BINDIR)/wrapped_progs/prepgen \
+	$(BINDIR)/wrapped_progs/residuegen \
+	$(BINDIR)/wrapped_progs/respgen \
 
 LOCALPROGS = \
-	am1bcc$(SFX) \
-	antechamber$(SFX) \
-	atomtype$(SFX) \
-	bondtype$(SFX) \
-	espgen$(SFX) \
-	parmchk2$(SFX) \
-	prepgen$(SFX) \
-	residuegen$(SFX) \
-	respgen$(SFX) \
+	am1bcc \
+	antechamber \
+	atomtype \
+	bondtype \
+	espgen \
+	parmchk2 \
+	prepgen \
+	residuegen \
+	respgen \
 
 PROGS = \
-	$(BINDIR)/am1bcc$(SFX) \
-	$(BINDIR)/antechamber$(SFX) \
-	$(BINDIR)/atomtype$(SFX) \
-	$(BINDIR)/bondtype$(SFX) \
-	$(BINDIR)/espgen$(SFX) \
-	$(BINDIR)/parmchk2$(SFX) \
-	$(BINDIR)/prepgen$(SFX) \
-	$(BINDIR)/residuegen$(SFX) \
-	$(BINDIR)/respgen$(SFX) \
+	$(BINDIR)/am1bcc \
+	$(BINDIR)/antechamber \
+	$(BINDIR)/atomtype \
+	$(BINDIR)/bondtype \
+	$(BINDIR)/espgen \
+	$(BINDIR)/parmchk2 \
+	$(BINDIR)/prepgen \
+	$(BINDIR)/residuegen \
+	$(BINDIR)/respgen \
 
 TESTS = test-penalties test-int-part test-combination
 
@@ -65,7 +65,7 @@ TESTS = test-penalties test-int-part test-combination
 all: $(PROGS)
 
 dispatch:
-	SFX=$(SFX) BINDIR=$(BINDIR) sh patch.sh
+	BINDIR=$(BINDIR) sh patch.sh
 
 tests: $(TESTS)
 
@@ -89,96 +89,96 @@ $(LIBDIR)/libcifparse.a:
 #_____________________________________________________________________________
 # Dispatched Programs
 
-$(BINDIR)/to_be_dispatched/acdoctor$(SFX): acdoctor$(SFX)
-	$(VB)$(MV) acdoctor$(SFX) $@
+$(BINDIR)/wrapped_progs/acdoctor: acdoctor
+	$(VB)$(MV) acdoctor $@
 
-$(BINDIR)/to_be_dispatched/am1bcc$(SFX): am1bcc$(SFX)
-	$(VB)$(MV) am1bcc$(SFX) $@
+$(BINDIR)/wrapped_progs/am1bcc: am1bcc
+	$(VB)$(MV) am1bcc $@
 
-$(BINDIR)/to_be_dispatched/antechamber$(SFX): antechamber$(SFX)
-	$(VB)$(MV) antechamber$(SFX) $@
+$(BINDIR)/wrapped_progs/antechamber: antechamber
+	$(VB)$(MV) antechamber $@
 
-$(BINDIR)/to_be_dispatched/atomtype$(SFX): atomtype$(SFX)
-	$(VB)$(MV) atomtype$(SFX) $@
+$(BINDIR)/wrapped_progs/atomtype: atomtype
+	$(VB)$(MV) atomtype $@
 
-$(BINDIR)/to_be_dispatched/bondtype$(SFX): bondtype$(SFX)
-	$(VB)$(MV) bondtype$(SFX) $@
+$(BINDIR)/wrapped_progs/bondtype: bondtype
+	$(VB)$(MV) bondtype $@
 
-$(BINDIR)/to_be_dispatched/bondtype.orig$(SFX): bondtype.orig$(SFX)
-	$(VB)$(MV) bondtype.orig$(SFX) $@
+$(BINDIR)/wrapped_progs/bondtype.orig: bondtype.orig
+	$(VB)$(MV) bondtype.orig $@
 
-$(BINDIR)/to_be_dispatched/charmmgen$(SFX): charmmgen$(SFX)
-	$(VB)$(MV) charmmgen$(SFX) $@
+$(BINDIR)/wrapped_progs/charmmgen: charmmgen
+	$(VB)$(MV) charmmgen $@
 
-$(BINDIR)/to_be_dispatched/crdgrow$(SFX): crdgrow$(SFX)
-	$(VB)$(MV) crdgrow$(SFX) $@
+$(BINDIR)/wrapped_progs/crdgrow: crdgrow
+	$(VB)$(MV) crdgrow $@
 
-$(BINDIR)/to_be_dispatched/database$(SFX): database$(SFX)
-	$(VB)$(MV) database$(SFX) $@
+$(BINDIR)/wrapped_progs/database: database
+	$(VB)$(MV) database $@
 
-$(BINDIR)/to_be_dispatched/delphigen$(SFX): delphigen$(SFX)
-	$(VB)$(MV) delphigen$(SFX) $@
+$(BINDIR)/wrapped_progs/delphigen: delphigen
+	$(VB)$(MV) delphigen $@
 
-$(BINDIR)/to_be_dispatched/espgen$(SFX): espgen$(SFX)
-	$(VB)$(MV) espgen$(SFX) $@
+$(BINDIR)/wrapped_progs/espgen: espgen
+	$(VB)$(MV) espgen $@
 
-$(BINDIR)/to_be_dispatched/match$(SFX): match$(SFX)
-	$(VB)$(MV) match$(SFX) $@
+$(BINDIR)/wrapped_progs/match: match
+	$(VB)$(MV) match $@
 
-$(BINDIR)/to_be_dispatched/match_atomname$(SFX): match_atomname$(SFX)
-	$(VB)$(MV) match_atomname$(SFX) $@
+$(BINDIR)/wrapped_progs/match_atomname: match_atomname
+	$(VB)$(MV) match_atomname $@
 
-$(BINDIR)/to_be_dispatched/parmcal$(SFX): parmcal$(SFX)
-	$(VB)$(MV) parmcal$(SFX) $@
+$(BINDIR)/wrapped_progs/parmcal: parmcal
+	$(VB)$(MV) parmcal $@
 
-$(BINDIR)/to_be_dispatched/parmchk2$(SFX): parmchk2$(SFX)
-	$(VB)$(MV) parmchk2$(SFX) $@
+$(BINDIR)/wrapped_progs/parmchk2: parmchk2
+	$(VB)$(MV) parmchk2 $@
 
-$(BINDIR)/to_be_dispatched/parmjoin$(SFX): parmjoin$(SFX)
-	$(VB)$(MV) parmjoin$(SFX) $@
+$(BINDIR)/wrapped_progs/parmjoin: parmjoin
+	$(VB)$(MV) parmjoin $@
 
-$(BINDIR)/to_be_dispatched/prepgen$(SFX): prepgen$(SFX)
-	$(VB)$(MV) prepgen$(SFX) $@
+$(BINDIR)/wrapped_progs/prepgen: prepgen
+	$(VB)$(MV) prepgen $@
 
-$(BINDIR)/to_be_dispatched/residuegen$(SFX): residuegen$(SFX)
-	$(VB)$(MV) residuegen$(SFX) $@
+$(BINDIR)/wrapped_progs/residuegen: residuegen
+	$(VB)$(MV) residuegen $@
 
-$(BINDIR)/to_be_dispatched/respgen$(SFX): respgen$(SFX)
-	$(VB)$(MV) respgen$(SFX) $@
+$(BINDIR)/wrapped_progs/respgen: respgen
+	$(VB)$(MV) respgen $@
 
-$(BINDIR)/to_be_dispatched/translate$(SFX): translate$(SFX)
-	$(VB)$(MV) translate$(SFX) $@
+$(BINDIR)/wrapped_progs/translate: translate
+	$(VB)$(MV) translate $@
 
-$(BINDIR)/to_be_dispatched/top2ff$(SFX): top2ff$(SFX)
-	$(VB)$(MV) top2ff$(SFX) $@
+$(BINDIR)/wrapped_progs/top2ff: top2ff
+	$(VB)$(MV) top2ff $@
 
-$(BINDIR)/to_be_dispatched/top2mol2$(SFX): top2mol2$(SFX)
-	$(VB)$(MV) top2mol2$(SFX) $@
+$(BINDIR)/wrapped_progs/top2mol2: top2mol2
+	$(VB)$(MV) top2mol2 $@
 
 #_____________________________________________________________________________
 # Local Programs, i.e., compilation rules.
 
-acdoctor$(SFX): $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
+acdoctor: $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ACDOCTOROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-am1bcc$(SFX): $(AM1BCCOBJS)
+am1bcc: $(AM1BCCOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(AM1BCCOBJS) \
 	    $(LM) -o $@
 
-antechamber$(SFX): $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
+antechamber: $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ANTECHAMBEROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-atomtype$(SFX): $(ATOMTYPEOBJS)
+atomtype: $(ATOMTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ATOMTYPEOBJS) $(LM) -o $@
 
-bondtype$(SFX): $(BONDTYPEOBJS)
+bondtype: $(BONDTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(BONDTYPEOBJS) $(LM) -o $@
@@ -187,85 +187,85 @@ bondtype.orig.o: bondtype.cpp
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CXX) -c $(CXXNOOPTFLAGS) $(CXXFLAGS) $(AMBERCXXFLAGS) -o bondtype.orig.o bondtype.cpp
 
-bondtype.orig$(SFX): bondtype.orig.o
+bondtype.orig: bondtype.orig.o
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CXX) $(CXXFLAGS) $(AMBERCXXFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) bondtype.orig.o $(LM) -o $@
 
-charmmgen$(SFX): $(CHARMMGENOBJS)
+charmmgen: $(CHARMMGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CHARMMGENOBJS) $(LM) -o $@
 
-crdgrow$(SFX): $(CRDGROWOBJS)
+crdgrow: $(CRDGROWOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CRDGROWOBJS) $(LM) -o $@
 
-database$(SFX): $(DATABASEOBJS)
+database: $(DATABASEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DATABASEOBJS) $(LM) -o $@
 
-delphigen$(SFX): $(DELPHIGENOBJS)
+delphigen: $(DELPHIGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DELPHIGENOBJS) -o $@
 
-espgen$(SFX): $(ESPGENOBJS)
+espgen: $(ESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ESPGENOBJS) $(LM) -o $@
 
-match$(SFX): $(MATCHOBJS)
+match: $(MATCHOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCHOBJS) $(LM) -o $@
 
-match_atomname$(SFX): $(MATCH_ATOMNAMEOBJS)
+match_atomname: $(MATCH_ATOMNAMEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCH_ATOMNAMEOBJS) $(LM) -o $@
 
-parmcal$(SFX): $(PARMCALOBJS)
+parmcal: $(PARMCALOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCALOBJS) $(LM) -o $@
 
-parmchk2$(SFX): $(PARMCHK2OBJS)
+parmchk2: $(PARMCHK2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCHK2OBJS) $(LM) -o $@
 
-parmjoin$(SFX): parmjoin.o
+parmjoin: parmjoin.o
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) parmjoin.o -o $@
 
-prepgen$(SFX): $(PREPGENOBJS)
+prepgen: $(PREPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PREPGENOBJS) $(LM) -o $@
 
-residuegen$(SFX): $(RESIDUEGENOBJS)
+residuegen: $(RESIDUEGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESIDUEGENOBJS) $(LM) -o $@
 
-respgen$(SFX): $(RESPGENOBJS)
+respgen: $(RESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESPGENOBJS) $(LM) -o $@
 
-translate$(SFX): $(TRANSLATEOBJS)
+translate: $(TRANSLATEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TRANSLATEOBJS) $(LM) -o $@
 
-top2ff$(SFX): $(TOP2FFOBJS)
+top2ff: $(TOP2FFOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2FFOBJS) $(LM) -o $@
 
-top2mol2$(SFX): $(TOP2MOL2OBJS)
+top2mol2: $(TOP2MOL2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2MOL2OBJS) $(LM) -o $@
@@ -273,71 +273,71 @@ top2mol2$(SFX): $(TOP2MOL2OBJS)
 #_____________________________________________________________________________
 # Programs
 
-$(BINDIR)/acdoctor$(SFX): acdoctor$(SFX)
-	$(VB)$(MV) acdoctor$(SFX) $@
+$(BINDIR)/acdoctor: acdoctor
+	$(VB)$(MV) acdoctor $@
 
-$(BINDIR)/am1bcc$(SFX): am1bcc$(SFX)
-	$(VB)$(MV) am1bcc$(SFX) $@
+$(BINDIR)/am1bcc: am1bcc
+	$(VB)$(MV) am1bcc $@
 
-$(BINDIR)/antechamber$(SFX): antechamber$(SFX)
-	$(VB)$(MV) antechamber$(SFX) $@
+$(BINDIR)/antechamber: antechamber
+	$(VB)$(MV) antechamber $@
 
-$(BINDIR)/atomtype$(SFX): atomtype$(SFX)
-	$(VB)$(MV) atomtype$(SFX) $@
+$(BINDIR)/atomtype: atomtype
+	$(VB)$(MV) atomtype $@
 
-$(BINDIR)/bondtype$(SFX): bondtype$(SFX)
-	$(VB)$(MV) bondtype$(SFX) $@
+$(BINDIR)/bondtype: bondtype
+	$(VB)$(MV) bondtype $@
 
-$(BINDIR)/bondtype.orig$(SFX): bondtype.orig$(SFX)
-	$(VB)$(MV) bondtype.orig$(SFX) $@
+$(BINDIR)/bondtype.orig: bondtype.orig
+	$(VB)$(MV) bondtype.orig $@
 
-$(BINDIR)/charmmgen$(SFX): charmmgen$(SFX)
-	$(VB)$(MV) charmmgen$(SFX) $@
+$(BINDIR)/charmmgen: charmmgen
+	$(VB)$(MV) charmmgen $@
 
-$(BINDIR)/crdgrow$(SFX): crdgrow$(SFX)
-	$(VB)$(MV) crdgrow$(SFX) $@
+$(BINDIR)/crdgrow: crdgrow
+	$(VB)$(MV) crdgrow $@
 
-$(BINDIR)/database$(SFX): database$(SFX)
-	$(VB)$(MV) database$(SFX) $@
+$(BINDIR)/database: database
+	$(VB)$(MV) database $@
 
-$(BINDIR)/delphigen$(SFX): delphigen$(SFX)
-	$(VB)$(MV) delphigen$(SFX) $@
+$(BINDIR)/delphigen: delphigen
+	$(VB)$(MV) delphigen $@
 
-$(BINDIR)/espgen$(SFX): espgen$(SFX)
-	$(VB)$(MV) espgen$(SFX) $@
+$(BINDIR)/espgen: espgen
+	$(VB)$(MV) espgen $@
 
-$(BINDIR)/match$(SFX): match$(SFX)
-	$(VB)$(MV) match$(SFX) $@
+$(BINDIR)/match: match
+	$(VB)$(MV) match $@
 
-$(BINDIR)/match_atomname$(SFX): match_atomname$(SFX)
-	$(VB)$(MV) match_atomname$(SFX) $@
+$(BINDIR)/match_atomname: match_atomname
+	$(VB)$(MV) match_atomname $@
 
-$(BINDIR)/parmcal$(SFX): parmcal$(SFX)
-	$(VB)$(MV) parmcal$(SFX) $@
+$(BINDIR)/parmcal: parmcal
+	$(VB)$(MV) parmcal $@
 
-$(BINDIR)/parmchk2$(SFX): parmchk2$(SFX)
-	$(VB)$(MV) parmchk2$(SFX) $@
+$(BINDIR)/parmchk2: parmchk2
+	$(VB)$(MV) parmchk2 $@
 
-$(BINDIR)/parmjoin$(SFX): parmjoin$(SFX)
-	$(VB)$(MV) parmjoin$(SFX) $@
+$(BINDIR)/parmjoin: parmjoin
+	$(VB)$(MV) parmjoin $@
 
-$(BINDIR)/prepgen$(SFX): prepgen$(SFX)
-	$(VB)$(MV) prepgen$(SFX) $@
+$(BINDIR)/prepgen: prepgen
+	$(VB)$(MV) prepgen $@
 
-$(BINDIR)/residuegen$(SFX): residuegen$(SFX)
-	$(VB)$(MV) residuegen$(SFX) $@
+$(BINDIR)/residuegen: residuegen
+	$(VB)$(MV) residuegen $@
 
-$(BINDIR)/respgen$(SFX): respgen$(SFX)
-	$(VB)$(MV) respgen$(SFX) $@
+$(BINDIR)/respgen: respgen
+	$(VB)$(MV) respgen $@
 
-$(BINDIR)/translate$(SFX): translate$(SFX)
-	$(VB)$(MV) translate$(SFX) $@
+$(BINDIR)/translate: translate
+	$(VB)$(MV) translate $@
 
-$(BINDIR)/top2ff$(SFX): top2ff$(SFX)
-	$(VB)$(MV) top2ff$(SFX) $@
+$(BINDIR)/top2ff: top2ff
+	$(VB)$(MV) top2ff $@
 
-$(BINDIR)/top2mol2$(SFX): top2mol2$(SFX)
-	$(VB)$(MV) top2mol2$(SFX) $@
+$(BINDIR)/top2mol2: top2mol2
+	$(VB)$(MV) top2mol2 $@
 
 #_____________________________________________________________________________
 # Tests

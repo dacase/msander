@@ -700,6 +700,8 @@ MAKE=make --no-print-directory
 SFX=$sfx
 VB=$verbose
 INSTALLTYPE=$installtype
+FLEX=flex
+BISON=bison
 
 # CUDA:
 CUDAFLAGS=$prec_model $cuda_arch_flags $cuda_dc_flags

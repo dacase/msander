@@ -11,6 +11,7 @@ full:
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) leap
 	@cd sff && $(MAKE) sff
+	@cd antechamber && mkdir -p $(BINDIR)/wrapped_progs && $(MAKE) install
 
 serial:
 	@cd msander && $(MAKE) msander
