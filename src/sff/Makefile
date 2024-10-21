@@ -1,4 +1,4 @@
-include ../config.h
+include ../../config.h
 
 .c.o:
 	@echo "[SFF]  CC $<"
@@ -7,7 +7,7 @@ include ../config.h
 OBJS = conjgrad.o lmodC.o memutil.o nblist.o newton.o nmode.o wallclock.o \
 	   prm.o rand2.o sasad.o sff.o xminC.o ptrajmask.o
 
-install: $(LIBDIR)/libsff.a
+sff: $(LIBDIR)/libsff.a
 	$(VB)cp sff.h $(INCDIR)
 
 $(LIBDIR)/libsff.a: $(OBJS)

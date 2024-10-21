@@ -109,7 +109,7 @@ PROGS = $(LEAPPROGS) $(UTILPROGS)
 
 util:   $(UTILPROGS)
 
-install: $(BINDIR)/teLeap$(SFX) $(BINDIR)/tleap
+leap: $(BINDIR)/teLeap$(SFX) $(BINDIR)/tleap
 
 uninstall: clean
 	-rm -f $(BINDIR)/teLeap$(SFX) $(BINDIR)/tleap

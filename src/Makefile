@@ -9,6 +9,8 @@ full:
 	@cd msander && $(MAKE) msander.LES
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
+	@cd leap && $(MAKE) leap
+	@cd sff && $(MAKE) sff
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -32,15 +34,16 @@ clean:
 	-(cd msander && $(MAKE) clean )
 	-(cd xray && $(MAKE) clean )
 	-(cd xray/cuda && $(MAKE) clean )
-	-(cd addles && $(MAKE) clean )
+	-(cd leap && $(MAKE) clean )
+	-(cd sff && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander* \
-        add_pdb add_xray addles AddToBox ChBox PropPDB UnitCell)
+        add_pdb add_xray addles AddToBox ChBox PropPDB UnitCell \
+        tleap teLeap)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
-        libarpack.a librism.a /libsys.a )
+        libarpack.a librism.a libsff.a )
 	/bin/rm -f $(INCDIR)/* ../config.h
-	/bin/rm $(LIBDIR)/python3.*
 
 distclean: clean
 	-(/bin/rm -f netcdf*.log )
