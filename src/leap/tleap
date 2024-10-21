@@ -1,10 +1,10 @@
 #!/bin/sh
 
-export AFNMRHOME="$(dirname "$(cd "$(dirname "$0")" && pwd)")"
+export MSANDERHOME="$(dirname "$(cd "$(dirname "$0")" && pwd)")"
 
-$AFNMRHOME/bin/teLeap \
-           -I$AFNMRHOME/dat/leap/prep \
-           -I$AFNMRHOME/dat/leap/lib \
-           -I$AFNMRHOME/dat/leap/parm \
-           -I$AFNMRHOME/dat/leap/cmd \
+$MSANDERHOME/bin/teLeap \
+           -I$MSANDERHOME/dat/leap/prep \
+           -I$MSANDERHOME/dat/leap/lib \
+           -I$MSANDERHOME/dat/leap/parm \
+           -I$MSANDERHOME/dat/leap/cmd \
             $*
