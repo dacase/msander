@@ -48,6 +48,7 @@ module mdiis_blas2_c
      !xi    :: array of vector data.  np X nvec
      !ri    :: array of residual data.  np X nvec
      _REAL_,pointer :: xi(:,:)=>NULL(), ri(:,:)=>NULL()
+    _REAL_, allocatable :: aij(:,:), bi(:, 1)
 
   end type mdiis_blas2
 
@@ -247,7 +248,8 @@ contains
 
     ! aij :: overlap matrix for LAPACK
     ! bi  :: linear coefficients from LAPACK
-    _REAL_ :: aij(0:this%nvec, 0:this%nvec), bi(0:this%nvec, 1)
+    !   dac: try keeping this off of the stack
+    ! _REAL_ :: aij(0:this%nvec, 0:this%nvec), bi(0:this%nvec, 1)
 
     ! nvecWRK :: number of vectors with data
     integer :: nvecWRK
@@ -265,6 +267,8 @@ contains
     nvecWRK = count(this%vecMap > 0)
     !.................. increment step and MDIIS counters ..................
     this%istep = this%istep + 1
+
+    allocate(aij(0:this%nvec, 0:this%nvec), bi(0:this%nvec, 1))
 
     !............. calculate diagonal overlap of new residual ..............
     !                              and
@@ -394,6 +398,7 @@ contains
     call DAXPY (this%np, this%delta, this%ri(1, this%vecMap(1)), 1, &
          this%xi(1,this%vecMap(1)), 1)
     call timer_stop(TIME_MDIIS_LAPACK)
+    deallocate(aij(0:this%nvec, 0:this%nvec), bi(0:this%nvec, 1))
 
   end subroutine mdiis_blas2_advance
 
