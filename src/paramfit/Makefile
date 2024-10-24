@@ -23,14 +23,13 @@ OBJECTS=calc_r_squared.o create_input.o defaults.o \
 
 HEADERS=constants.h function_def.h forces.h prmtop_params.h
 
-all: paramfit$(SFX)
-
 calc_r_squared.o: $(HEADERS)
 
-paramfit$(SFX): 	$(OBJECTS) 
-	@echo "[PARAMFIT]  CC $@"
-	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o paramfit$(SFX) $(OBJECTS) \
-		$(LDFLAGS) $(AMBERLDFLAGS) $(LM) 
+paramfit: $(LIBDIR)/paramfit
+
+$(LIBDIR)/paramfit: 	$(OBJECTS) 
+	@echo "[PARAMFIT]  CC $<"
+	$(VB)$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LDFLAGS) $(LM) 
 
 .c.o:
 	@echo "[PARAMFIT]  CC $<"
@@ -40,9 +39,6 @@ paramfit$(SFX): 	$(OBJECTS)
 
 clean:
 	/bin/rm -f $(OBJECTS) paramfit$(SFX)
-
-install: all
-	/bin/mv paramfit$(SFX) $(BINDIR)
 
 uninstall:
 	/bin/rm -f $(BINDIR)/paramfit$(SFX)
