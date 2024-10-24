@@ -1,25 +1,7 @@
 #
-#************************************************************************
-#                              AMBER                                   **
-#                                                                      **
-#               Copyright (c) 1986, 1991, 1995, 1997, 1999             **
-#                Regents of the University of California               **
-#                       All Rights Reserved.                           **
-#                                                                      **
-#  This software provided pursuant to a license agreement containing   **
-#  restrictions on its disclosure, duplication, and use. This software **
-#  contains confidential and proprietary information, and may not be   **
-#  extracted or distributed, in whole or in part, for any purpose      **
-#  whatsoever, without the express written permission of the authors.  **
-#  This notice, and the associated author list, must be attached to    **
-#  all copies, or extracts, of this software. Any additional           **
-#  restrictions set forth in the license agreement also apply to this  **
-#  software.                                                           **
-#************************************************************************
-#
 # Makefile for SQM (stand-alone quantum program)
 #
-include ../config.h
+include ../../config.h
 
 # Sqm Fortran source files are free format
 LOCALFLAGS = $(FREEFORMAT_FLAG)
@@ -80,13 +62,13 @@ QMOBJ = qm2_allocate_e_repul.o qm2_calc_charges.o qm2_calc_dipole.o \
 	qm2_dftb_get_dftb3_parameters.o qm2_dftb_gamma_dftb3.o
 
 
-install: sqm$(SFX)
-	mv sqm$(SFX) $(BINDIR)
+install: sqm
+	mv sqm $(BINDIR)
 
-sqm$(SFX): $(SQMOBJ) $(QMOBJ) netlib sys
+sqm: $(SQMOBJ) $(QMOBJ) netlib sys
 	@echo "[SQM]  FC $@"
-	$(VB)$(FC) $(SANDER_FPPFLAGS) $(FFLAGS) $(AMBERFFLAGS) -o sqm$(SFX) $(SQMOBJ) $(QMOBJ) \
-		-L$(LIBDIR) $(SQM_FLIBSF) ../lib/sys.a $(LDFLAGS) $(AMBERLDFLAGS)
+	$(VB)$(FC) $(FFLAGS) $(AMBERFFLAGS) -o sqm $(SQMOBJ) $(QMOBJ) \
+		-L$(LIBDIR) $(FLIBSF)
 
 #-----------LIBS
 
@@ -103,18 +85,18 @@ $(LIBDIR)/libsqm.a: $(QMOBJ) $(LIBQMOBJ)
 	$(VB)mv libsqm.a $(LIBDIR)
 
 sys:
-	cd ../lib; $(MAKE) sys.a
+	cd ../lib; $(MAKE) libsys
 
 netlib:
 	cd ../lapack; $(MAKE) $(LAPACK)
 	cd ../blas; $(MAKE) $(BLAS)
-	cd ../arpack && $(MAKE) install
+	cd ../arpack && $(MAKE) libarpack
 
 clean:
-	/bin/rm -f *.o  *.mod *.d sqm$(SFX)
+	/bin/rm -f *.o  *.mod *.d sqm
 
 uninstall:
-	-rm -f $(BINDIR)/sqm$(SFX)
+	-rm -f $(BINDIR)/sqm
 	-rm -f $(LIBDIR)/libsqm.a
 
 depend::

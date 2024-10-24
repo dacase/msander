@@ -682,7 +682,7 @@ COPTFLAGS=$optflags
 
 FC=$fc
 FFLAGS=$clangf $inc $ompflag $mpiflag $gcc10f $fpic $longlines $plumed_def
-FLIBSF=-lrism -lxray -larpack $flibs_fftw $flibs_la $plumed_load
+FLIBSF=-lrism -lxray -lsys -larpack $flibs_fftw $flibs_la $plumed_load
 FNOOPTFLAGS= -O0 -g
 FOPTFLAGS=$optflags
 SHORT_ENE=$short_ene
