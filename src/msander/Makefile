@@ -147,18 +147,6 @@ xminC.o:  xminC.c
 	@echo "[MSANDER]  CC $<"
 	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
 
-ArrayList.o:  ArrayList.c
-	@echo "[MSANDER]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
-
-KFReader.o:  KFReader.c
-	@echo "[MSANDER]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
-
-qm2_read_adf_results.o:  qm2_read_adf_results.c
-	@echo "[MSANDER]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o $@ $<
-
 #---------------------------------------------------------------------------
 clean:
 	/bin/rm -f *.o
