@@ -12,6 +12,8 @@ full:
 	@cd leap && $(MAKE) leap
 	@cd sff && $(MAKE) sff
 	@cd antechamber && mkdir -p $(BINDIR)/wrapped_progs && $(MAKE) install
+	@cd nmr_aux && $(MAKE) nmr_aux
+	@cd xtalutil && make xtalutil
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -37,6 +39,9 @@ clean:
 	-(cd xray/cuda && $(MAKE) clean )
 	-(cd leap && $(MAKE) clean )
 	-(cd sff && $(MAKE) clean )
+	-(cd antechamber && $(MAKE) clean )
+	-(cd nmr_aux && $(MAKE) clean )
+	-(cd xtalutil && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -f msander* \
