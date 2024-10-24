@@ -20,14 +20,6 @@ SQMOBJ= file_io_dat.o constants.o findmask.o sqm.SQM.o \
 	qm2_scf.SQM.o \
 	qm2_dftb_scf.SQM.o
 
-#LIBQMOBJ = Objects specific to building as a library.
-LIBQMOBJ = qm_print_info.o \
-	qm2_energy.o \
-	qm2_read_nm_and_alloc.o \
-	qm2_scf.o \
-	qm2_dftb_ewald.o \
-	qm2_dftb_scf.o
-
 #QMOBJ = Objects common to both SQM and libsqm
 QMOBJ = qm2_allocate_e_repul.o qm2_calc_charges.o qm2_calc_dipole.o \
 	qm2_calc_rij_and_eqns.o qm2_dihed.o qm2_fock.o \
@@ -59,13 +51,13 @@ QMOBJ = qm2_allocate_e_repul.o qm2_calc_charges.o qm2_calc_dipole.o \
 	slater_overlap.o qm2_h1elec_d.o rotation.o qm2_repp_d.o \
 	opnq_Edisp.o  opnq_Erep.o  opnq_Evdw.o  opnq.o  opnq_SwitchMod.o \
 	qm2_fock_d.o MNDOChargeSeparation.o qm2_print_energy.o \
-	qm2_dftb_get_dftb3_parameters.o qm2_dftb_gamma_dftb3.o
+	qm2_dftb_get_dftb3_parameters.o qm2_dftb_gamma_dftb3.o wallclock.o
 
 
 install: sqm
 	mv sqm $(BINDIR)
 
-sqm: $(SQMOBJ) $(QMOBJ) netlib sys
+sqm: $(SQMOBJ) $(QMOBJ) netlib
 	@echo "[SQM]  FC $@"
 	$(VB)$(FC) $(FFLAGS) $(AMBERFFLAGS) -o sqm $(SQMOBJ) $(QMOBJ) \
 		-L$(LIBDIR) $(FLIBSF)
@@ -74,18 +66,11 @@ sqm: $(SQMOBJ) $(QMOBJ) netlib sys
 
 xminC.o:  ../sff/xminC.c
 	@echo "[SQM]  CC $<"
-	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o xminC.o ../sff/xminC.c
+	$(VB)$(CC) -c -DSQM $(COPTFLAGS) $(CFLAGS) -o xminC.o ../sff/xminC.c
 
-libsqm: $(LIBDIR)/libsqm.a
-
-$(LIBDIR)/libsqm.a: $(QMOBJ) $(LIBQMOBJ)
-	@echo "[SQM]  AR $@"
-	$(VB)$(AR) libsqm.a $(QMOBJ) $(LIBQMOBJ) > /dev/null
-	$(VB)$(RANLIB) libsqm.a
-	$(VB)mv libsqm.a $(LIBDIR)
-
-sys:
-	cd ../lib; $(MAKE) libsys
+wallclock.o:  wallclock.c
+	@echo "[SQM]  CC $<"
+	$(VB)$(CC) -c $(CFLAGS) -o $@ $<
 
 netlib:
 	cd ../lapack; $(MAKE) $(LAPACK)
