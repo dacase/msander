@@ -260,7 +260,7 @@ int check_dihedrals(global_options_struct *global_options, parm_struct *parm_dat
       if (global_options->SCATTERPLOTS==TRUE)
         {
         FILE *plot;
-        char filename[10];
+        char filename[20];
         sprintf(filename, "%d.diheq", theta);
         printf("  Writing dihedral scatter plot %s\n", filename);
         plot = fopen(filename, "w");
@@ -384,7 +384,7 @@ int check_angles(global_options_struct *global_options, parm_struct *parm_data, 
       // Create scatter plot file if desired
       FILE *plot;
       if (global_options->SCATTERPLOTS==TRUE) {
-        char filename[10];
+        char filename[20];
         sprintf(filename, "%d.angleq", param);
         printf("  Writing angle scatter plot %s\n", filename);
         plot = fopen(filename, "w");
@@ -512,7 +512,7 @@ int check_bonds(global_options_struct *global_options, parm_struct *parm_data, c
     {
       // Create scatter plot file if desired
       if (global_options->SCATTERPLOTS==TRUE) {
-        char filename[10];
+        char filename[20];
         sprintf(filename, "%d.bondeq\n", param);
         plot = fopen(filename, "w");
         fprintf(plot, filename, "%s-%s", parm_data->bond_data[param].atom_type1, parm_data->bond_data[param].atom_type2);

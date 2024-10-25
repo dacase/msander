@@ -646,7 +646,7 @@ static int read_pdb_file( FILE *fp )
 	int 	nat, atom_serial_number, residue_sequence_number, lineno = 0;
 	char 	line[LINESIZE];
 	char	atom[WORDSIZE], atom_name[WORDSIZE], residue_name[WORDSIZE];
-	char 	l[WORDSIZE+WORDSIZE];
+	char 	l[WORDSIZE+WORDSIZE+WORDSIZE];
 	float 	x, y, z;
 
 #ifdef DEBUG

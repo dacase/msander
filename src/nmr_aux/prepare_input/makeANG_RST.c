@@ -38,7 +38,7 @@ int residue_offset( char *a, char *b );
 int	torcnt=0;
 
 typedef struct tordef {
-	char    type[WORDSIZE];
+	char    type[WORDSIZE+WORDSIZE];
 	char    A[5][WORDSIZE];
 	int     R[5], pseudo;
 	float   J[3];

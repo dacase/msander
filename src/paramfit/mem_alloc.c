@@ -226,7 +226,7 @@ int alloc_coords(global_options_struct *global_options, coord_set *c)
   // Allocate set of structures
   c->struc = (coords_struct*)malloc(c->num_coords*sizeof(coords_struct));
   if (!c->struc) {
-    printf("ERROR! Failed to allocate %d bytes for coords_data\n",c->num_coords*sizeof(coords_struct));
+    printf("ERROR! Failed to allocate %ld bytes for coords_data\n",c->num_coords*sizeof(coords_struct));
     return ALLOC_FAIL;
   }
   c->mem_allocated = sizeof(coord_set);

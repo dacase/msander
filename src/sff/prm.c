@@ -2019,7 +2019,7 @@ INT_T wrparm( PARMSTRUCT_T* prm, STRING_T* name )
          FortranFormat(1, "%-80s");
          time(&tp);
          strftime(sVersionHeader, 81,
-                  "%%VERSION  VERSION_STAMP = V0001.000  DATE = %m/%d/%y  %H:%M:%S\0",
+                  "%%VERSION  VERSION_STAMP = V0001.000  DATE = %m/%d/%y  %H:%M:%S",
                   localtime(&tp));
          FortranWriteString(sVersionHeader);
          FortranWriteString("%FLAG TITLE");
@@ -2712,8 +2712,7 @@ PARMSTRUCT_T *copyparm(PARMSTRUCT_T * prm)
    newprm->Natcap = prm->Natcap;
    if ((AtomNamesbuf =
         (NAME_T *) malloc( prm->Natom * sizeof(NAME_T))) == NULL) {
-      sprintf(e_msg, "copyparm AtomNames %s", prm->AtomNames);
-      fprintf( stderr, "Can't allocate memory for %s\n", e_msg );
+      fprintf( stderr, "Can't allocate memory for AtomNames\n" );
       return (NULL);
    }
    newprm->AtomNames = AtomNamesbuf;
@@ -2723,8 +2722,7 @@ PARMSTRUCT_T *copyparm(PARMSTRUCT_T * prm)
    newprm->Iblo = prm->Iblo;
    newprm->Cno = prm->Cno;
    if ((ResNamesbuf = (NAME *) malloc( prm->Nres * sizeof(NAME_T))) == NULL) {
-      sprintf(e_msg, "copyparm ResNames %s", prm->ResNames);
-      fprintf( stderr, "Can't allocate memory for %s\n", e_msg );
+      fprintf( stderr, "Can't allocate memory for ResNames\n" );
       return (NULL);
    }
    newprm->ResNames = ResNamesbuf;
@@ -2777,14 +2775,12 @@ PARMSTRUCT_T *copyparm(PARMSTRUCT_T * prm)
    newprm->HB12 = prm->HB12;
    newprm->HB10 = prm->HB10;
    if ((AtomTypebuf = malloc( prm->Natom * sizeof(NAME_T))) == NULL) {
-      sprintf(e_msg, "copyparm AtomType %s", prm->AtomType);
-      fprintf( stderr, "Can't allocate memory for %s\n", e_msg );
+      fprintf( stderr, "Can't allocate memory for AtomType\n" );
       return (NULL);
    }
    newprm->AtomType = AtomTypebuf;
    if ((AtomTreebuf = malloc( prm->Natom * sizeof(NAME_T))) == NULL) {
-      sprintf(e_msg, "copyparm AtomTree %s", prm->AtomTree);
-      fprintf( stderr, "Can't allocate memory for %s\n", e_msg );
+      fprintf( stderr, "Can't allocate memory for AtomTree\n" );
       return (NULL);
    }
    newprm->AtomTree = AtomTreebuf;
