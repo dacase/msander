@@ -6,7 +6,7 @@ install: $(INSTALLTYPE)
 
 full:
 	@cd msander && $(MAKE) msander
-	@cd msander && $(MAKE) msander.LES
+#	@cd msander && $(MAKE) msander.LES
 	@cd xray && $(MAKE) xray
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) leap

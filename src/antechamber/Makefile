@@ -80,7 +80,7 @@ uninstall:
 #############################################################################
 
 $(LIBDIR)/libcifparse.a:
-	cd ../cifparse && $(MAKE) cifparse
+	cd ../cifparse && $(MAKE) install
 
 .c.o:
 	@echo "[ANTECHAMBER]  CC $<"
