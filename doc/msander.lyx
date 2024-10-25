@@ -190,6 +190,124 @@ sander
 \end_layout
 
 \begin_layout Standard
+This collection also contains versions of a number of the 
+\begin_inset Quotes eld
+\end_inset
+
+classic
+\begin_inset Quotes erd
+\end_inset
+
+ (and most-used) parts of 
+\family typewriter
+AmberTools
+\family default
+: 
+\emph on
+tleap, antechamber
+\emph default
+, 
+\emph on
+sqm,
+\emph default
+ and 
+\emph on
+paramfit
+\emph default
+.
+ With these tools, many systems can be set up for simulation in 
+\emph on
+msander
+\emph default
+.
+ Documentation for these programs are in Chapters 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:LEaP-and-sleap"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ through 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "cha:paramfit"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+, below.
+ The tutorials at 
+\begin_inset CommandInset href
+LatexCommand href
+name "https://ambermd/org/tutorials"
+target "https://ambermd.org/tutorials"
+literal "false"
+
+\end_inset
+
+ illustrate the use of these programs.
+ (Analysis of trajectories is most commonly carried out via 
+\emph on
+cpptraj
+\emph default
+, which is distributed separately, at 
+\begin_inset CommandInset href
+LatexCommand href
+name "hittps://githbu.com/Amber-MD"
+target "https://github.com/Amber-MD"
+literal "false"
+
+\end_inset
+
+.) If you need more capabilities than these classic, stripped-down versions
+ provide, consider installing the full 
+\family typewriter
+AmberTools
+\family default
+ and 
+\family typewriter
+Amber
+\family default
+ suites, available at 
+\begin_inset CommandInset href
+LatexCommand href
+name "https://ambermd.org"
+target "https://ambermd.org"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+One goal of this collection is to make compiling and installation as simple
+ as possible.
+ There is a pretty simple 
+\family typewriter
+configure
+\family default
+ script, and minimal dependencies on external packages.
+ If you have problems or questions, creating an issue at 
+\family typewriter
+github.com
+\family default
+ is the recommended path, but you can also send email to dacase1@gmail.com.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \align center
 
 \series bold
@@ -234,11 +352,6 @@ Adrian Roitberg (Florida)
 \begin_inset Newline newline
 \end_inset
 
-Kenneth M.
- Merz (Michigan State)
-\begin_inset Newline newline
-\end_inset
-
 Tom Darden (OpenEye)
 \begin_inset Newline newline
 \end_inset
@@ -252,11 +365,6 @@ Feng Pan (FSU)
 \end_inset
 
 Jason Swails (Entos)
-\begin_inset Newline newline
-\end_inset
-
-Andreas W.
- Götz (UC San Diego)
 \begin_inset Newline newline
 \end_inset
 
@@ -280,10 +388,6 @@ Vinícius Wilian D.
 \begin_layout Plain Layout
 
 \size small
-Madushanka Manathunga (Michigan State)
-\begin_inset Newline newline
-\end_inset
-
 Nikolai R.
  Skrynnikov (Purdue, SPbU)
 \begin_inset Newline newline
@@ -415,7 +519,7 @@ estraints, but this module is used for a variety of simulations that have
 \begin_layout Enumerate
 
 \shape italic
-Sander
+msander
 \shape default
  provides direct support for several force fields for proteins and nucleic
  acids, and for several water models and other organic solvents.
@@ -560,22 +664,6 @@ Free energy calculations, using thermodynamic integration (TI) with a linear
  sampling.
 \end_layout
 
-\begin_layout Enumerate
-QMMM Calculations where part of the system can be treated quantum mechanically
- allowing bond breaking and formation during a simulation.
- Semi-empirical and DFTB Hamiltonians are provided directly within 
-\shape italic
-sander
-\shape default
-.
- More advanced 
-\emph on
-ab initio
-\emph default
- and DFT Hamiltonians are available via an interface to external QM software
- packages.
-\end_layout
-
 \begin_layout Section
 Main changes from the 
 \emph on
@@ -602,8 +690,8 @@ Things are are problably gone for good, but which don't represent the best
 
 \begin_layout Enumerate
 Things that might be useful, but really complicate the code: EVB potentials,
- some parts of adaptive QM/MM, nudged elastic band, constant pH and constant
- redox potential simulations.
+ QM/MM, nudged elastic band, constant pH and constant redox potential simulation
+s.
 \end_layout
 
 \begin_layout Enumerate
@@ -623,10 +711,6 @@ Periodic and non-periodic simulations, with all of Amber's GB models
 
 \begin_layout Enumerate
 3D-RISM in periodic boundary conditions
-\end_layout
-
-\begin_layout Enumerate
-QM/MM, including hooks to external codes
 \end_layout
 
 \begin_layout Enumerate
@@ -4734,30 +4818,6 @@ nbflag
 \labelwidthstring 00.00.0000
 
 \series bold
-ifqnt
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-
-\series medium
-ifqnt
-\end_layout
-
-\end_inset
-
-
-\series default
- Flag for QM/MM run; if set to 1, you must also include a &qmmm namelist.
- See Section 6.4 for details on this option.
- Default is 0.
- 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-
-\series bold
 igb
 \begin_inset Index idx
 status open
@@ -5393,392 +5453,6 @@ fft
  Users should test the efficiency of the method in comparison to the default
  method before performing long calculations.
  Default is 0 (off).
-\end_layout
-
-\begin_layout Subsection
-
-\series bold
-Using IPS for the calculation of nonbonded interactions
-\end_layout
-
-\begin_layout Standard
-Isotropic Periodic Sum (IPS) is a method for long-range interaction calculation.
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Wu05,Klauda07,Takahashi07,Wu08,Wu09,Venable09"
-literal "true"
-
-\end_inset
-
- Unlike the Ewald method, which uses periodic boundary images to calculate
- long range interactions, IPS uses isotropic periodic images of a local
- region to calculate the long-range contributions.
- 
-\end_layout
-
-\begin_layout Standard
-The IPS method in the current version is different from that implemented
- in Amber10.
- All IPS potentials use rationalized polynomial forms and the electrostatic
- interaction is calculated using the polar IPS potential.
- 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Wu09"
-literal "true"
-
-\end_inset
-
- In addition, the 3D IPS/DFFT algorithm 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Wu08"
-literal "true"
-
-\end_inset
-
- is implemented to handle heterogeneous systems as well as finite systems.
- A homogeneous system is defined as the one where a cutoff region (with
- 
-\shape italic
-cut
-\shape default
- as its radius) has similar composition throughout the system, such as small
- molecular solutions.
- Otherwise, a system is defined as a heterogeneous system, such as interfacial
- systems or finite systems.
- For heterogeneous systems, a local region larger than the cutoff region,
- normally equal or larger than the periodic boundary box, must be used to
- produce accurate long range interactions.
- For homogeneous systems, it is recommended to use the 3D IPS method (
-\shape italic
-ips
-\shape default
-≤3), which uses the cutoff distance,
-\shape italic
- cut
-\shape default
-, to define the local region radius.
- 
-\shape italic
-cut
-\shape default
- is typically around 10 Å.
- The 3D IPS/DFFT method (
-\shape italic
-ips
-\shape default
-≥4) can be used for any type of systems, but is recommended for heterogeneous
- systems only due to the extra discrete fast Fourier transform (DFFT) expense.
- 
-\end_layout
-
-\begin_layout Standard
-For the amoeba polarizable potentials in 
-\emph on
-sander
-\emph default
-, 3D IPS is implemented for interactions between charges, dipoles, and multipole
-s.
- The local region radius takes the value of 
-\shape italic
-ee_dsum_cut
-\shape default
- in the amoeba namelist, typically, 7 Å.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-ips
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-ips
-\end_layout
-
-\end_inset
-
- Flag to control nonbonded interaction calculation method.
- The 
-\shape italic
-cut
-\shape default
- value will be used to define the local region radius for 
-\shape italic
-ips
-\shape default
-≤3.
- When IPS is used for electrostatic interaction, PME will be turned off.
- When using the amoeba polarizable potentials, 
-\shape italic
-iamoeba=1
-\shape default
-, 
-\shape italic
-ips
-\shape default
->0 (same as 
-\shape italic
-ips
-\shape default
-=2)will turn on 3D IPS for all charge, dipole, and quadrupole interactions
- and the 
-\shape italic
-ee_dsum_cut
-\shape default
- value will be used to define the local region radius.
-\begin_inset Separator latexpar
-\end_inset
-
-
-\end_layout
-
-\begin_deeper
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-0 IPS will not be used (default).
- 
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-1 3D IPS will be used for both electrostatic and L-J interactions.
- 
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-2 3D IPS will be used only for electrostatic, including all multipole, interacti
-ons.
- 
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-3 3D IPS will be used only for L-J interactions.
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-4 3D IPS/DFFT will be used for both electrostatic and L-J interactions.
- 
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-5 3D IPS/DFFT will be used only for electrostatic interactions.
- 
-\end_layout
-
-\begin_layout Description
-=
-\begin_inset space ~
-\end_inset
-
-6 3D IPS/DFFT will be used only for L-J interactions.
- 
-\end_layout
-
-\end_deeper
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-raips
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-raips
-\end_layout
-
-\end_inset
-
- Local region radius.
- 
-\shape italic
-raips
-\shape default
- is automatically set to 
-\shape italic
-cut
-\shape default
- for 3D IPS calculations (
-\shape italic
-ips
-\shape default
-≤3) and should be set larger than 
-\shape italic
-cut
-\shape default
- for 3D IPS/DFFT calculations (
-\shape italic
-ips
-\shape default
-≥4).
- A negative value indicates that it is set to the longest box side of a
- simulation system.
- For finite systems, i.e., system without periodic boundary conditions, 
-\shape italic
-raips
-\shape default
-=∞, which corresponding no image interaction.
- The default value is -1 Å.
- 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mipsx,mipsy,mipsz
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-mipsx
-\end_layout
-
-\end_inset
-
- Number of grids along three periodic boundary sides when using 3D IPS/DFFT
- method (
-\shape italic
-ips
-\shape default
-≥4).
- Negative values indicate they are calculated based on the grid size, 
-\shape italic
-gridips
-\shape default
-.
- Typical numbers are the lengths of box sides (in Å) divided by 2 Å.
- Default values are -1.
- When 
-\shape italic
-ips
-\shape default
-=6 and PME is used for electrostatic interaction, they are set to 
-\shape italic
-nfft1
-\shape default
-, 
-\shape italic
-nfft2
-\shape default
-, and 
-\shape italic
-nfft3
-\shape default
- defined for PME, respectively.
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-mipso
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-mipso
-\end_layout
-
-\end_inset
-
- The order of the B-spline interpolation (
-\shape italic
-ips
-\shape default
-≥4).
- The higher the order, the better the accuracy (unless the charge grid is
- too coarse).
- The minimum order is 3.
- An order of 4 (the default) implies a cubic spline approximation which
- is a good standard value.
- The cost for the DFFT calculation goes as roughly the order to the third
- power.
- For 
-\shape italic
-ips
-\shape default
-=6 and PME is used to electrostatic interaction, it is set to 
-\shape italic
-order 
-\shape default
-defined for PME.
- 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-gridips
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-gridips
-\end_layout
-
-\end_inset
-
- Grid size for 3D IPS/DFFT calculation (
-\shape italic
-ips
-\shape default
-≥4).
- The default value is 2 Å.
- 
-\end_layout
-
-\begin_layout Labeling
-\labelwidthstring 00.00.0000
-dvbips
-\begin_inset Index idx
-status open
-
-\begin_layout Plain Layout
-dvbips
-\end_layout
-
-\end_inset
-
- Volume tolerance for updating IPS function grids (
-\shape italic
-ips
-\shape default
-≥4).
- When volume changes like in 
-\shape italic
-NPT
-\shape default
- simulations, the grid size changes and IPS function on grid points need
- be updated.
- The updating only happens when the volume change ratio is more than 
-\shape italic
-dvbips
-\shape default
-.
- The default value is 1×10
-\begin_inset Formula $^{\text{-8}}$
-\end_inset
-
-.
- 
 \end_layout
 
 \begin_layout Subsection
@@ -38602,7 +38276,7 @@ ntpr=1000, ntwr=100000,ntwx=10000, ntt=3, gamma_ln=10.0,nscm=100, dt=0.001,
 
 \begin_layout Plain Layout
 
-ntb=0,igb=0,ips=1, isgld=1, tsgavg=1.0, sgft=0.5,tempsg=0,         (SGLD)
+ntb=0,igb=0, isgld=1, tsgavg=1.0, sgft=0.5,tempsg=0,         (SGLD)
 \end_layout
 
 \begin_layout Plain Layout
@@ -50275,7 +49949,2059 @@ match_atomname -i SAH.prepi -fi prepi -o SAH_matched.prepi -r SAH_XRAY.pdb
 \begin_layout Standard
 The output, SAH_matched.prepi and SAH_XRAY.pdb can be loaded to tleap directly
  to generate a topology for minimization or MD simulations.
- 1
+\end_layout
+
+\begin_layout Chapter
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:paramfit"
+
+\end_inset
+
+paramfit
+\begin_inset Index idx
+status open
+
+\begin_layout Plain Layout
+paramfit
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\emph on
+Robin Betz
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+paramfit 
+\emph default
+program allows specific forcefield parameters to be optimized or created
+ by fitting to quantum energy data.
+ 
+\emph on
+Paramfit
+\emph default
+ can be used when parameters are missing in the default force fields and
+ 
+\emph on
+antechamber
+\emph default
+ cannot find a replacement, or when existing parameters do not describe
+ the system to the desired level of accuracy, such as for dihedral constants
+ on protein backbones.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit 
+\emph default
+attempts to make the following statement true: 
+\series bold
+With the correct AMBER parameters, calculations performed at a quantum level
+ over many conformations of a structures should match those calculated by
+ AMBER.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit
+\emph default
+ can calculate the energy of each conformation and/or the force on each
+ atom, and adjust the force field parameters so that these values correspond
+ to input quantum data.
+\end_layout
+
+\begin_layout Standard
+For energies, 
+\emph on
+Paramfit
+\emph default
+ attempts to fit the AMBER energy to the quantum energy for a variety of
+ conformations of the input structure, minimizing the equation 
+\begin_inset Formula 
+\[
+\sum_{n=1}^{N}w_{i}\Big[\big(E_{MM}(n)-E{}_{QM}(n)\big)^{2}+K\Big]=0
+\]
+
+\end_inset
+
+ where K is a constant that adjusts for different origins in the QM and
+ MM calculations so that minimization may be done to zero and N is the number
+ of molecular conformations that are considered.
+\end_layout
+
+\begin_layout Standard
+For forces, the equation that is optimized is 
+\begin_inset Formula 
+\[
+\sum_{n=1}^{N}\sum_{atom=1}^{N_{atoms}}w_{i}\big|F(n,atom)_{MM}-F(n,atom)_{QM}\big|^{2}=0
+\]
+
+\end_inset
+
+ where the sum of the differences in the forces on each atom should match
+ given the correct set of parameters.
+ Individual structures can be assigned weights 
+\begin_inset Formula $w_{i}$
+\end_inset
+
+to give them more or less relative importance in the fit.
+ By default, all weights are set to 1.
+\end_layout
+
+\begin_layout Standard
+The program works by altering the parameters that AMBER uses to describe
+ the molecule, which alter the elements in the AMBER sum that is used to
+ calculate the energy or forces.
+ It is necessary to evaluate over many conformations of the molecule because
+ the parameters should predict how the molecule will behave dynamically
+ rather than statically.
+ To get a good idea of the forces on a dihedral, for example, the energy
+ needs to be evaluated for multiple conformations of the dihedral to see
+ how it changes each time.
+ 
+\emph on
+Paramfit 
+\emph default
+will fit so that the energy changes that AMBER predicts will happen when
+ the dihedral twists match the changes predicted with quantum methods.
+\end_layout
+
+\begin_layout Standard
+In order to facilitate force field development, 
+\emph on
+Paramfit
+\emph default
+ supports fitting parameters across multiple molecules (for example, fitting
+ a single dihedral backbone term across a variety of input amino acids).
+ Single molecule fits can also be done to generate parameters that are missing
+ or inadequate to describe small molecules or ligands.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit 
+\emph default
+provides functionality for the majority of steps in the fitting process,
+ including writing input files for quantum packages, specifying which parameters
+ are to be fit, determining the value of K for the system, and finally conductin
+g the fit and saving it in a force field modification file that can be used
+ by other programs.
+ An external quantum program is needed to generate the energies needed for
+ 
+\emph on
+paramfit
+\emph default
+ to conduct a fitting.
+ Currently, the program is capable of writing input files for ADF, GAMESS,
+ and Gaussian, although if you write your own input files instead of using
+ 
+\emph on
+paramfit's 
+\emph default
+functionality, any quantum package will work.
+\end_layout
+
+\begin_layout Standard
+Paramfit has OpenMP support for parallelization of the AMBER function evaluation
+ over the input conformations, where each core will evaluate the energy
+ for a subset of the conformations.
+ Enable this by adding the 
+\emph on
+-openmp
+\emph default
+ option to configure and rebuilding 
+\emph on
+paramfit.
+ 
+\emph default
+By default all available cores will be used.
+ To change this, set the 
+\family typewriter
+OMP_NUM_THREADS
+\family default
+ 
+\begin_inset Index idx
+status collapsed
+
+\begin_layout Plain Layout
+OMP
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+_
+\end_layout
+
+\end_inset
+
+NUM
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+_
+\end_layout
+
+\end_inset
+
+THREADS
+\end_layout
+
+\end_inset
+
+ environment variable to the number of threads to be executed.
+ You will see a speedup directly proportional to the number of cores you
+ are running.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit
+\emph default
+ now includes several ways fitting functions to aid in parameter generation.
+ It can fit such that the energy of each input structure matches the single-poin
+t quantum energies inputted, or can now do the same fitting only with the
+ forces on each atom, which may produce a more accurate fit that is less
+ sensitive to problems with the input structure, and can also fit all dihedral
+ force constants and phases simultaneously to a small set of quantum energies
+ using a method developed by Chad Hopkins and Adrian Roitberg.
+ This method fits every term and requires fewer function evaluations than
+ running the full minimization algorithm, but requires especially good sampling
+ of each torsion angle of interest.
+\end_layout
+
+\begin_layout Standard
+Fitting forces requires several additional options to specify the location
+ of the output forces files in the job control file.
+ The easiest way to create a job control file for any of these options is
+ to use the wizard, which runs automatically when no job control file is
+ specified.
+ This will walk you through the creation of a job control file and write
+ it for you while prompting for all necessary options for the selected fitting
+ function.
+\end_layout
+
+\begin_layout Standard
+It is highly recommended that you fit to single-point quantum energies,
+ as fitting to forces is considerably more expensive in terms of required
+ calculation and still somewhat experimental.
+ The implementation of the dihedral fitting method is requires a varied
+ set of input structures, and does not allow specifying individual dihedrals
+ to be fit.
+ No matter which method is used, please take care to carefully validate
+ all parameters for reasonableness– 
+\emph on
+paramfit's
+\emph default
+ fit is dependent on the variation and quality of the input structures and
+ the resulting parameters are not guaranteed in ill-defined areas of the
+ input conformation set.
+ For example, if you fit a dihedral torsion term with input structures sampling
+ the 0-30 degree range of that dihedral, the resulting parameters cannot
+ be expected to give a valid energy of a structure with the dihedral at
+ 90 degrees, as the algorithm merely fits to the available data and cannot
+ make other predictions.
+\end_layout
+
+\begin_layout Section
+Usage
+\end_layout
+
+\begin_layout Standard
+Paramfit is called from the command line as follows for a single molecule
+ fit:
+\end_layout
+
+\begin_layout LyX-Code
+paramfit -i Job_Control.in -p prmtop -c mdcrd -q QM_data.dat 
+\backslash
+
+\end_layout
+
+\begin_layout LyX-Code
+-v MEDIUM --random-seed seed
+\end_layout
+
+\begin_layout Standard
+Running 
+\emph on
+paramfit 
+\emph default
+without any options will run a wizard that assists in the creation of a
+ job control file.
+ It is highly recommended that you use the wizard to assist you in setting
+ run options.
+\end_layout
+
+\begin_layout Standard
+The following switches apply to single molecule fits only:
+\end_layout
+
+\begin_layout Description
+-p prmtop The molecular topology file for the structure.
+\end_layout
+
+\begin_layout Description
+-c mdcrd A coordinate file containing many conformations of the input structure.
+ These may be generated by running a short simulation in solution, or by
+ manually specifying coordinates for each atom.
+ It is important that there be a good representation of the solution space
+ for any parameters that are to be optimized– for example, if you want a
+ bond force constant it would be a good idea to have input structures with
+ a good range of values for the length of the that bond type.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "subsec:paramfit_bounds"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+-q QM_data.dat A file containing the quantum energies of the structures in
+ the coordinate file, in order, one per line.
+ You will have to extract the energies from the output files that the quantum
+ package produces.
+ An example script to do this for Gaussian formatted output files can be
+ found in $AMBERHOME/AmberTools/src/paramfit/scripts.
+\end_layout
+
+\begin_layout Standard
+To fit multiple molecules, the following switches are used:
+\end_layout
+
+\begin_layout LyX-Code
+paramfit -i Job_Control.in -pf prmtop_list -cf mdcrd_list -v MEDIUM --random-seed
+ seed
+\end_layout
+
+\begin_layout Standard
+Here is a very brief description of the command-line arguments for a multiple
+ molecule fit.
+ For more information on conducting these, fits, please see 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:paramfit_multifit"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+-pf prmtop_list A file containing a plain-text list of input topology files
+ and the adjustment constant K for each file separated by a space, one per
+ line.
+\end_layout
+
+\begin_layout Description
+-cf mdcrd_list A file containing a plain text list of input coordinate files,
+ number of structures to read from each file, and directory containing quantum
+ output from each file, separated by a space.
+ These should be specified in the same order as the topologies in the prmtop_lis
+t.
+\end_layout
+
+\begin_layout Standard
+The following switches apply to either type of fit:
+\end_layout
+
+\begin_layout Description
+-i Job_Control.in The job control file for the program.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "sec:paramfit_jobcontrol"
+
+\end_inset
+
+ for a description of the options and format for this file.
+ If no job control file is specified, a wizard will be initiated that will
+ prompt you for options and help create the file.
+ Use of the wizard is highly recommended when running 
+\emph on
+Paramfit
+\emph default
+ for the first time.
+\end_layout
+
+\begin_layout Description
+-v MEDIUM The verbosity level to run the program at, either LOW, MEDIUM,
+ or HIGH.
+\end_layout
+
+\begin_layout Description
+–random-seed seed The integer seed for the random number generator.
+ Only specify this parameter when exactly reproducible results are needed
+ for debugging.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:paramfit_jobcontrol"
+
+\end_inset
+
+The Job Control File
+\end_layout
+
+\begin_layout Standard
+Similarly to 
+\emph on
+sander
+\emph default
+ and other programs, 
+\emph on
+paramfit
+\emph default
+ requires a job control file that specifies individual options for each
+ run.
+ The options that apply to your run vary depending on the runtype and the
+ other settings, and they are quite numerous.
+ To aid you in creating a job control file, a wizard has been included that
+ will prompt you about applicable settings and create the job control file
+ for you.
+ Using the wizard is highly recommended, especially when running a fit for
+ the first time.
+ To use the wizard, simply run 
+\emph on
+paramfit
+\emph default
+ without any options.
+ 
+\series bold
+It is highly recommended that you use the wizard to create job control files,
+ 
+\series default
+as it prompts for all options relevant to your run and the resulting file
+ can then be easily edited by hand.
+\end_layout
+
+\begin_layout Standard
+The format consists of variable assignments, in the format variable=value,
+ with one assignment per line.
+ Pound signs (#) will comment out lines.
+ See the following sections for a description of what to put in the job
+ control file for various tasks:
+\end_layout
+
+\begin_layout Subsection
+
+\shape italic
+\emph on
+General options
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+paramfit 
+\emph default
+requires several options be set for every run.
+ These variables should usually appear in your job control file.
+\end_layout
+
+\begin_layout Description
+RUNTYPE Specifies whether this run will be creating quantum input files,
+ setting parameters, or conducting a fit.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+CREATE_INPUT The structures in the coordinate file will be written out as
+ individual input files for a quantum package.
+ See 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:paramfit_input"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+SET_PARAMS Provides an interactive prompt allowing you to specify which
+ parameters will be fit for this molecule.
+ See 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:paramfit_params"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+FIT Conducts a fitting using one of the two minimization algorithms.
+ See 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:paramfit_fit"
+
+\end_inset
+
+for other options that need to be specified.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+NSTRUCTURES Specifies how many structures are in the input coordinate file.
+ If this value is less than the total number of structures in the file,
+ only the first 
+\series bold
+n
+\series default
+ will be read.
+ Only applies to single molecule fits! If you are fitting multiple molecules
+ at once, the number of structures for each molecule should be specified
+ in the mdcrd_list file as described in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:paramfit_multifit"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_input"
+
+\end_inset
+
+Creating quantum input files
+\end_layout
+
+\begin_layout Standard
+Given a trajectory, 
+\emph on
+Paramfit
+\emph default
+ can write input files for a variety of quantum packages.
+ This is necessary to generate the energy values for each input conformation
+ that 
+\emph on
+Paramfit 
+\emph default
+will fit to.
+ You do not necessarily need to do this step and can write your own input
+ files if desired.
+ Currently Gaussian, ADF, and GAMESS formats are supported.
+ 
+\end_layout
+
+\begin_layout Standard
+Job files will be named sequentially with filename prefix and suffix specified
+ in the job control file.
+ Once all the input files are written, you must run the quantum package
+ yourself
+\emph on
+.
+ Paramfit
+\emph default
+ can read Gaussian output files directly, but for other packages you must
+ extract the energies yourself into a file with one energy per line in the
+ same order as the input structures.
+\end_layout
+
+\begin_layout Standard
+Currently 
+\emph on
+Paramfit
+\emph default
+ only supports Gaussian if you are fitting forces, and will read the output
+ files and extract the force information for you.
+ See 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:paramfit_forces"
+
+\end_inset
+
+ for more information on fitting these.
+\end_layout
+
+\begin_layout Standard
+To enter this mode, set RUNTYPE=CREATE_INPUT and specify the following options
+ in your job control file:
+\end_layout
+
+\begin_layout Description
+QMHEADER File that will be prepended to all created input files for the
+ quantum program.
+ This specifies things on a per-system basis, such as choice of basis set,
+ amount of memory to use, etc.
+ These parameters will vary depending on which quantum package you are using.
+ Sample header files for all supported quantum packages are included in
+ example_config_files in 
+\emph on
+paramfit's
+\emph default
+ source directory.
+\end_layout
+
+\begin_layout Description
+QMFILEFORMAT Specifies which quantum package the created input files should
+ be formatted for.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+ADF Use the Amsterdam Density Functional Theory package.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+GAMESS Use the General Atomic and Molecular Electronic Structure System
+ (GAMESS).
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+GAUSSIAN Use Gaussian.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+QM_SYSTEM_CHARGE The integral charge of the system.
+ Defaults to 0.
+ Note that some quantum packages may require this to also be specified in
+ your header file.
+\end_layout
+
+\begin_layout Description
+QM_SYSTEM_MULTIPLICITY The integral multiplicity of the system.
+ Defaults to 1 (singlet).
+\end_layout
+
+\begin_layout Description
+QMFILEOUTSTART The prefix for each of the created input files.
+ Defaults to 'Job.' The structure number and then the suffix will be appended
+ to this value.
+\end_layout
+
+\begin_layout Description
+QMFILEOUTEND The suffix for each of the created input files.
+ Defaults to '.in'.
+ With both default options, the file will be named Job.
+\series bold
+n
+\series default
+.in.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_params"
+
+\end_inset
+
+Specifying parameters
+\end_layout
+
+\begin_layout Standard
+In order to facilitate batch runs as well as simplify the process of running
+ 
+\emph on
+paramfit
+\emph default
+ on larger systems, the parameters to be fit are saved and then loaded in
+ during actual fitting so that they do not have to be specified every time.
+ The parameter setting runtype accomplishes this by prompting whether you
+ would like to fit bond, angle and/or dihedral parameters and then displaying
+ a list of the specific atom types for each so that you can pick exactly
+ what 
+\emph on
+paramfit
+\emph default
+ should optimize.
+ This saved file does not specify a value for any of the parameters, but
+ simply indicates which ones are to be changed during fitting.
+\end_layout
+
+\begin_layout Standard
+If you do not wish to save a parameter file, you may instead fit a default
+ set of parameters or be prompted every time.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "subsec:paramfit_fit"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+To enter this mode, set 
+\family typewriter
+RUNTYPE=SET_PARAMS
+\family default
+ and the following options:
+\end_layout
+
+\begin_layout Description
+PARAMETER_FILE_NAME Specifies the name of a file in which to store the parameter
+s.
+ When loading these parameters in during a fitting, this line will stay
+ the same.
+ Do not modify this file by hand: 
+\emph on
+paramfit
+\emph default
+ numbers each bond, angle, and dihedral in a manner that is consistent but
+ not human-readable.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_fit"
+
+\end_inset
+
+Fitting options
+\end_layout
+
+\begin_layout Standard
+The fitting function accomplishes the actual parameter modification.
+ It does this by minimizing the least squares difference between the quantum
+ energy and the energy calculated with the AMBER equation over all of the
+ input conformations.
+ For a perfect fit, this means that over all structures, 
+\begin_inset Formula $E_{MD}-E{}_{QM}+K=0$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+K is the intrinsic difference between the quantum and the classical energies,
+ which is represented as a parameter that is also fit.
+ The value of K depends on the system, and should be fit once as the only
+ parameter before fitting any other parameters.
+\end_layout
+
+\begin_layout Standard
+To enter this mode, set 
+\family typewriter
+RUNTYPE=FIT
+\family default
+ and set the following additional variables:
+\end_layout
+
+\begin_layout Description
+ALGORITHM The minimization algorithm to use.
+ 
+\emph on
+paramfit
+\emph default
+ currently implements a genetic algorithm and a simplex algorithm for conduction
+ minimization.
+ Each algorithm requires several parameters and is suited to different problems.
+ Please see 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:paramfit_algorithms"
+
+\end_inset
+
+ for descriptions of these options and a guide on choosing the appropriate
+ algorithm.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+GENETIC 
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+SIMPLEX
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+BOTH Runs the hybrid genetic algorithm followed by the simplex algorithm
+ to fine tune results
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+NONE No fit is performed- useful for calculating energy of each structure
+ with the initial parameters to see their quality
+\end_layout
+
+\end_deeper
+\begin_layout Description
+FUNC_TO_FIT The fitting function to use in the calculation.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+SUM_SQUARES_AMBER_STANDARD Standard fit to single-point energies.
+ Recommended selection.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+AMBER_FORCES Fit to the forces on atoms involved in fitted parameters.
+ Currently only supports Gaussian output.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "sec:paramfit_forces"
+
+\end_inset
+
+ for details.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+DIHEDRAL_LEAST_SQUARES Use Chad Hopkins and Adrian Roitberg's method to
+ fit all dihedral terms at once.
+ This method will fit all dihedral torsion terms simultaneously with a minimal
+ number of function evaluations, but requires very good sampling of the
+ relevant torsion angles.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+K The intrinsic difference between the quantum and classical energies.
+ This value needs to be determined once for each system so that the algorithm
+ can minimize to zero instead of to a constant.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "subsec:paramfit_K"
+
+\end_inset
+
+ for an example.
+\end_layout
+
+\begin_layout Description
+PARAMETERS_TO_FIT Sets how 
+\emph on
+paramfit 
+\emph default
+determines which parameters are to be fit.
+ 
+\emph on
+paramfit
+\emph default
+ does not fit electrostatics, but is capable of fitting every other element
+ of the AMBER sum, which include bond harmonic force constant and equilibrium
+ length, angle harmonic force constant and equilibrium angle, and proper
+ and improper dihedral barrier height, phase shift, and periodicity.
+ As a general rule, the fewer parameters there are to fit, the faster and
+ more accurate the results will be.
+ Avoid fitting more parameters than necessary.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+DEFAULT Fit all bond force constants and lengths, angle force constants
+ and sizes, and dihedral force constants.
+ This option will usually fit a very large number of parameters, and is
+ rarely necessary.
+ For most cases, only a few parameters are desired, and they should be fit
+ individually.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+K_ONLY Do not fit any force field parameters.
+ Only fit the value of K (the difference between quantum and classical energies
+ for the system).
+ This needs to be done once per system in order to determine K before any
+ other parameters are fit, as attempting to fit it at the same time results
+ in inaccurate results.
+ Since small changes in K produce a great change in the overall least squares
+ sum, the algorithm will tend to focus on changing the value of K and will
+ neglect the parameters.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+LOAD The list of parameters to be fit is contained in a file that was previously
+ created with the parameter setting runtype.
+ Set PARAMETER_FILE_NAME to the location of this file.
+ To create this file, run 
+\emph on
+paramfit
+\emph default
+ with 
+\family typewriter
+RUNTYPE=SET_PARAMS
+\family default
+.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+SCEE The value by which to scale 1-4 electrostatics for the AMBER sum.
+ Defaults to 1.2
+\end_layout
+
+\begin_layout Description
+SCNB The value by which to scale 1-4 van der Waals for the AMBER sum.
+ Defaults to 2.0.
+\end_layout
+
+\begin_layout Description
+QM_ENERGY_UNITS The unit of energy in the quantum data file if you are fitting
+ to energies.
+ This will depend on your quantum package and settings used for the single
+ point calculations.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+HARTREE Default
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+KCALMOL
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+KJMOL
+\end_layout
+
+\end_deeper
+\begin_layout Description
+QM_FORCE_UNITS The unit of force in the quantum data files if you are fitting
+ to forces.
+ This will depend on your quantum package and settings used for the force
+ calculations.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+HARTREE_BOHR Default
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+KCALMOL_ANGSTROM
+\end_layout
+
+\end_deeper
+\begin_layout Description
+WRITE_ENERGY Saves the final AMBER energy and the quantum data for each
+ structure to the specified file.
+ Plotting these data is useful in verifying the results of the fitting and
+ identifying any problem structures.
+ See 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "subsec:paramfit_eval"
+
+\end_inset
+
+ for more on how to verify the accuracy of results.
+\end_layout
+
+\begin_layout Description
+WRITE_FRCMOD When the fitting is complete, the parameters will be saved
+ in a force field modification file at this location in addition to displaying
+ them in standard output.
+ This file may be used with LEaP to create a new 
+\emph on
+prmtop.
+
+\emph default
+ If no value is specified the file will not be created.
+\end_layout
+
+\begin_layout Description
+SCATTERPLOTS Creates graphs of the bond, angles, and dihedrals found in
+ the input files for each parameter that is being fit.
+ These plots can be visualized using 
+\emph on
+scripts/scatterplots.sh 
+\emph default
+found in 
+\emph on
+paramfit's
+\emph default
+ source directory.
+ This can be helpful in assessing the quality of the input conformations.
+ No need to specify anything after the = sign for this parameter.
+\end_layout
+
+\begin_layout Description
+SORT_MDCRDS
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+YES Sorts the input structures in order of increasing energy before conducting
+ the fit.
+ This can aid in identification of problem regions for the initial or fitted
+ parameters, as they may be generally worse on structures in certain energy
+ ranges.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+NO Default
+\end_layout
+
+\end_deeper
+\begin_layout Description
+COORDINATE_FORMAT The format of the input coordinate set.
+ 
+\emph on
+Paramfit 
+\emph default
+will return an error if the file is in an unexpected format.
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+TRAJECTORY Default
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+RESTART
+\end_layout
+
+\end_deeper
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_algorithms"
+
+\end_inset
+
+Algorithm options
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit
+\emph default
+ implements two minimization algorithms: a simplex and a hybrid simplex-genetic
+ algorithm (GA).
+ The current version of 
+\emph on
+paramfit
+\emph default
+ incorporates numerous refinements to the genetic algorithm that require
+ much less input from the user– it is no longer necessary to choose between
+ the simplex or GA.
+ This improved algorithm means that iterative fits are no longer necessary,
+ and the algorithm will converge very close to or at the global minimum
+ on a single run.
+\end_layout
+
+\begin_layout Standard
+The genetic algorithm starts with a randomly generated solution set, which
+ it recombines and alters in ways similar to evolution.
+ The GA will start with many initial randomly generated sets of parameters.
+ It will then determine which are the best by evaluating the AMBER sum,
+ select them for recombination to produce a new set of parameters, randomly
+ alter a few parameters slightly to prevent premature convergence, and iterate.
+ Once several 
+\begin_inset Quotes eld
+\end_inset
+
+generations
+\begin_inset Quotes erd
+\end_inset
+
+ have passed without improvement, a loosely converging simplex algorithm
+ is run on a random subset of the population, which is then allowed to recover
+ for several generations before further simplex iterations are conducted.
+ This hybrid approach dramatically speeds convergence to the global minimum,
+ while maintaining the strengths of the genetic algorithm in searching a
+ large, complex solution space with low sampling.
+\end_layout
+
+\begin_layout Standard
+The following options in the job control file will control the behavior
+ of the genetic algorithm.
+ In general the default values for these options is sufficient to produce
+ good results, and alterations to them will speed convergence.
+ Options marked 
+\emph on
+internal algorithm parameter 
+\emph default
+should not need to be altered by the vast majority of users, as they are
+ already set to their optimum.
+ The algorithm's results should be independent of these values if they are
+ within reasonable ranges (run the wizard for suggestions).
+\end_layout
+
+\begin_layout Description
+OPTIMIZATIONS The integer number of possible optimizations the algorithm
+ will use.
+ Analogous to the population size in evolution; larger values require more
+ function evaluations and are slower but produce better initial sampling,
+ and smaller ones will delay convergence.
+ Defaults to 50.
+\end_layout
+
+\begin_layout Description
+SEARCH_SPACE If positive, the algorithm will search for new parameters for
+ everything except dihedral phases within this percentage of the original
+ value, where 1.0 will search within 
+\begin_inset Formula $\pm100\%$
+\end_inset
+
+ of the value found in the input 
+\emph on
+prmtop
+\emph default
+.
+ Defaults to searching over the entire range of valid values and ignoring
+ the original value in the topology file.
+ You may wish to alter this value if you know that the original parameters
+ are good and you wish to search in their neighborhood.
+\end_layout
+
+\begin_layout Description
+MAX_GENERATIONS The maximum number of iterations the algorithm is allowed
+ to run before it returns the best non-converged optimization.
+ Defaults to 50,000.
+ If you find that you repeatedly need to increase this value compared to
+ the default, there are likely significant problems with your system or
+ insufficient input structures.
+\end_layout
+
+\begin_layout Description
+GENERATIONS_TO_SIMPLEX The number of iterations in a row that must pass
+ without improvement in the best parameter set for simplex refinements to
+ be run on a random 5% of the populations.
+ Set to 0 for a pure genetic algorithm.
+ Smaller values will speed convergence but may result in retrieval of local
+ minima.
+ Defaults to 10.
+\end_layout
+
+\begin_layout Description
+GENERATIONS_WITHOUT_SIMPLEX The number of generations that must pass between
+ runs of simplex refinement, regardless of improvement in the best parameter
+ set.
+ These iterations serve as a recovery period for the population of the genetic
+ algorithm, and allows time for the simplex results to be incorporated.
+ If set to small or zero values, simplex refinement may run too often, resulting
+ in convergence to a local minima and eliminating the global search properties
+ of the genetic algorithm.
+ Defaults to 10.
+\end_layout
+
+\begin_layout Description
+GENERATIONS_TO_CONV The number of iterations in a row that must pass without
+ improvement in the best parameter set for the algorithm to be considered
+ converged.
+ Set to a larger value for a longer but potentially more accurate run.
+ Defaults to 50, which is too large for most systems.
+ This counter increments along with the counter to trigger simplex refinement,
+ and at the global minimum simplex refinement will produce no improvement
+ on the population, allowing convergence.
+\end_layout
+
+\begin_layout Description
+MUTATION_RATE 
+\emph on
+Internal algorithm parameter 
+\emph default
+The chance an allele (potential parameter) in the genetic algorithm population
+ has to be randomly set to a new value each generation.
+ Defaults to 0.05.
+\end_layout
+
+\begin_layout Description
+PARENT_PERCENT 
+\emph on
+Internal algorithm parameter
+\emph default
+ The percentage of each generation that is allowed to pass on alleles to
+ the next generation.
+ Defaults to 0.25.
+\end_layout
+
+\begin_layout Standard
+The simplex algorithm is excellent at refining a good set of input parameters,
+ but can converge on physically unreasonable values (such as negative bond
+ force constants) if given a naive guess.
+ For this reason, the genetic algorithm is recommended for finding the global
+ minimum or a close approximation thereof, and the simplex algorithm may
+ be run on the resulting parameters to confirm the results, if desired.
+ The simplex algorithm starts at an initial set of parameters and moves
+ 
+\begin_inset Quotes eld
+\end_inset
+
+downhill
+\begin_inset Quotes erd
+\end_inset
+
+ iteratively while sampling neighboring areas (much like an amoeba crawling
+ along the function landscape), and converges when the improvement from
+ one step to another becomes negligible.
+ The simplex algorithm is generally faster than the GA, and excels at well-defin
+ed systems with a small number of dimensions.
+ This algorithm requires a very well-defined sample space, and the input
+ structures should contain a good range over all the bonds, angles, and
+ dihedrals that are to be optimized.
+ Otherwise, the algorithm tends to wander and will converge in badly defined
+ areas of the sample set.
+ In smaller, well-defined systems with only a few parameters, this algorithm
+ will outperform the genetic algorithm.
+\end_layout
+
+\begin_layout Standard
+Choose the simplex algorithm if you wish to fit only a few parameters and
+ have a large number of input conformations.
+ You may specify the following options to fine-tune the step sizes taken,
+ but for the vast majority of cases the defaults should suffice:
+\end_layout
+
+\begin_layout Description
+BONDFC_dx Intrinsic length of parameter space for minimization.
+ Used to determine the size of the steps to construct the initial simplex.
+ Should be large enough that the steps sample a sufficiently large area
+ but small enough to not move outside of normal parameter range.
+ Bond force constant step size defaults to 5.0.
+\end_layout
+
+\begin_layout Description
+BONDEQ_dx Bond equilibrium length step size.
+ Defaults to 0.02.
+\end_layout
+
+\begin_layout Description
+ANGLEFC_dx Angle force constant step size.
+ Defaults to 1.0.
+\end_layout
+
+\begin_layout Description
+ANGLEEQ_dx Angle equilibrium step size.
+ Defaults to 0.05.
+\end_layout
+
+\begin_layout Description
+DIHEDRALBH_dx Dihedral force constant step size.
+ Defaults to 0.2.
+\end_layout
+
+\begin_layout Description
+DIHEDRALN_dx Dihedral periodicity step size.
+ Defaults to 0.01.
+\end_layout
+
+\begin_layout Description
+DIHEDRALG_dx Dihedral phase step size.
+ Defaults to 0.05.
+\end_layout
+
+\begin_layout Description
+K_dx Step size for intrinsic difference constant.
+ Defaults to 10.0.
+\end_layout
+
+\begin_layout Description
+CONV_LIMIT Floating point number that details the convergence limit for
+ the minimization.
+ The smaller the number, the longer the algorithm will take to converge
+ but the results may be more accurate.
+ Defaults to 1.0E-15, which is very strict.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_bounds"
+
+\end_inset
+
+Bounds Checking
+\end_layout
+
+\begin_layout Standard
+In order to ensure that the algorithms can return meaningful results, bounds
+ checking routines are included in 
+\emph on
+paramfit.
+ 
+\emph default
+The bounds checking functionality ensures that the algorithm's results are
+ reasonable given the initial sample set, and also makes sure that the sample
+ set is well-defined.
+\end_layout
+
+\begin_layout Standard
+Since bonds and angles are approximately harmonic, the algorithm's result
+ is reasonable if it lies within a well-defined area of the sample set.
+ Bonds and angle values are therefore checked after the algorithm has finished
+ running.
+ In order to properly fit dihedrals, sample structures should span the entire
+ range of phases for each dihedral that is to be fit.
+ Dihedral checking is therefore accomplished before the algorithm begins
+ to conduct the fit.
+\end_layout
+
+\begin_layout Standard
+Bounds checking defaults to halting execution of the program upon reaching
+ a failing condition.
+ It is not recommended that this behavior be disabled, since the results
+ of the fit are most likely inaccurate.
+ Using the fitted parameters anyway will probably result in an inaccurate
+ depiction of the molecule.
+ Properly represented parameters in the input structures are crucial for
+ a valid fit.
+ Instead of using the parameters, fix the input structures so that data
+ are provided in the missing ranges, which will be stated in the error message,
+ and rerun the program twice: first in CREATE_INPUT mode to obtain quantum
+ energies for the added structures and then in FIT mode to redo the fit.
+\end_layout
+
+\begin_layout Standard
+If you 
+\series bold
+know
+\series default
+ that your input structures describe the parameters to be fit quite well,
+ the selectivity of the bounds checking can be altered by the specifying
+ the following options in the job control file.
+ Use these options with caution, and verify the generated parameters carefully.
+\end_layout
+
+\begin_layout Description
+CHECK_BOUNDS
+\begin_inset Separator latexpar
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+ON The recommended and default option.
+ This will halt execution when the bounds check fails.
+\end_layout
+
+\begin_layout Description
+=
+\begin_inset space ~
+\end_inset
+
+WARN Continue upon reaching a bounds failure condition, but output a warning.
+ Do not use the parameters generated by this fit without careful verification!
+ Use the error message and other results to determine if they are reasonable.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+BOND_LIMIT Fitting results for bond lengths that are this many Angstroms
+ away from the closest approximation in the input structures will result
+ in a failing condition.
+ Defaults to 0.1.
+\end_layout
+
+\begin_layout Description
+ANGLE_LIMIT Fitting results for angles that are more than this many radians
+ away from the closes approximation in the input structures will result
+ in a failing condition.
+ Defaults to 
+\begin_inset Formula $0.05\pi$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+DIHEDRAL_SPAN The entire range of valid dihedral angles, 0 to 
+\begin_inset Formula $\pi$
+\end_inset
+
+, for each dihedral that is to be fit should be spanned by this many input
+ structure values, otherwise a failing condition will result.
+ Defaults to 12, meaning that there needs to be a dihedral in every 
+\begin_inset Formula $\frac{\pi}{12}$
+\end_inset
+
+ radian interval of the valid range.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:paramfit_multifit"
+
+\end_inset
+
+Multiple molecule fits
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit
+\emph default
+ supports fitting one or more parameters across multiple molecules, and
+ contains several features to aid in force field development.
+ The program is invoked differently, using a prmtop list and mdcrd list
+ that specify topology and structures for each molecule to fit.
+ Since the value of K is also system-dependent, you will need to fit K for
+ each molecule individually.
+\end_layout
+
+\begin_layout Standard
+Input topologies are specified in a 
+\emph on
+prmtop list, 
+\emph default
+which contains the filename of each topology and the value of K for that
+ system, separated by a space.
+ There are no comments permitted in this file.
+ For example:
+\end_layout
+
+\begin_layout LyX-Code
+molecule1.prmtop 50.0
+\end_layout
+
+\begin_layout LyX-Code
+molecule2.prmtop 100.0
+\end_layout
+
+\begin_layout Standard
+To obtain the value of K for each topology file, conduct a single-molecule
+ fit using all the structures corresponding to that topology and put the
+ resulting value in this file.
+ This enables fitting to zero over multiple molecules.
+\end_layout
+
+\begin_layout Standard
+Input coordinate files are stated in the 
+\emph on
+coordinate list, 
+\emph default
+which contains the filename of each coordinate set, the number of structures
+ contained in it, and the filename containing the energy of each structure,
+ separated by a space.
+ Each energy file is exactly the same as single-molecule fits, containing
+ the energy of each structure, one per line, in the same order as the correspond
+ing coordinate file.
+ If there are more structures available in the coordinate file than the
+ number N specified, the first N structures will be used in the fit.
+ An example coordinate list would be:
+\end_layout
+
+\begin_layout LyX-Code
+molecule1.mdcrd 200 energy1.dat
+\end_layout
+
+\begin_layout LyX-Code
+molecule2.mdcrd 100 energy2.dat
+\end_layout
+
+\begin_layout Standard
+Parameters to fit must be present in all of the available topologies, and
+ the parameter specification file (PARAMETER_FILE_NAME) should be created
+ using a single-molecule invocation of 
+\emph on
+paramfit.
+ 
+\emph default
+Saved output files such as energy profile will be named according to the
+ input file name, and a single frcmod will be written if specified.
+ A multiple molecule invocation of 
+\emph on
+paramfit 
+\emph default
+uses the following command line options:
+\end_layout
+
+\begin_layout LyX-Code
+paramfit -i Job_Control.in -pf prmtop_list -cf mdcrd_list [-v MEDIUM] [--random-s
+eed seed]
+\end_layout
+
+\begin_layout Standard
+The only alteration to the job control file necessary for multiple molecule
+ fits is the deletion of the NSTRUCTURES parameter.
+ NSTRUCTURES should not be specified as it is now ambiguous and will result
+ in a program error.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:paramfit_forces"
+
+\end_inset
+
+Fitting Forces
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Paramfit 
+\emph default
+can fit to the forces on each atom within an input structure rather than
+ to single point energies.
+ In theory, this provides more data to the fitting algorithm and reduces
+ noise by considering only the forces on atoms involved in a fitted parameter
+ in the function evaluation.
+ This section will walk you through the process of fitting forces using
+ 
+\emph on
+paramfit.
+\end_layout
+
+\begin_layout Standard
+Currently, force fitting can only read in Gaussian output files, so input
+ files will be created in the format accepted by that program.
+ Specify in the QMHEADER file the 
+\begin_inset Quotes eld
+\end_inset
+
+force
+\begin_inset Quotes erd
+\end_inset
+
+ keyword, so Gaussian will print out the forces on each atom, and run 
+\emph on
+paramfit
+\emph default
+ in the CREATE_INPUT mode as normal.
+ Then run Gaussian on those input files, keeping the resulting output with
+ the same naming scheme, for example appending 
+\begin_inset Quotes eld
+\end_inset
+
+.out
+\begin_inset Quotes erd
+\end_inset
+
+ to the name of an input file to indicate its input.
+ For example, in bash:
+\end_layout
+
+\begin_layout LyX-Code
+for i in `ls output/Job.*.gjf`; do g09 < $i > $i.out; done
+\end_layout
+
+\begin_layout Standard
+To run a fit with forces, you must specify the following options in the
+ job control file, or use the wizard.
+ 
+\emph on
+Paramfit 
+\emph default
+will read in the output files from the Gaussian job using the same order
+ and naming scheme, so alter the QM filename parameters so that they match
+ the suffix you appended to Gaussian output files.
+\end_layout
+
+\begin_layout LyX-Code
+# Enable force fitting function
+\end_layout
+
+\begin_layout LyX-Code
+FUNC_TO_FIT=AMBER_FORCES
+\end_layout
+
+\begin_layout LyX-Code
+# K irrelevant for force fitting
+\end_layout
+
+\begin_layout LyX-Code
+K=0.0
+\end_layout
+
+\begin_layout LyX-Code
+# Force units used by Gaussian
+\end_layout
+
+\begin_layout LyX-Code
+QM_FORCE_UNITS=HARTREE_BOHR
+\end_layout
+
+\begin_layout LyX-Code
+# Naming scheme of gaussian output files
+\end_layout
+
+\begin_layout LyX-Code
+QMFILEOUTSTART=output/Job.
+\end_layout
+
+\begin_layout LyX-Code
+QMFILEOUTEND=.gjf.out
+\end_layout
+
+\begin_layout Standard
+Specify parameters to fit, algorithm and output options as described previously
+ for fits to energy.
+\end_layout
+
+\begin_layout Standard
+As forces fitting is still experimental, take care to evaluate the resulting
+ parameters.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:paramfit_process"
+
+\end_inset
+
+Examples
+\end_layout
+
+\begin_layout Subsection
+Setting up to fit
+\end_layout
+
+\begin_layout Standard
+The fitting process with 
+\emph on
+paramfit 
+\emph default
+follows a specific order.
+ Example job control files for each step and a description of the step follow.
+\end_layout
+
+\begin_layout Standard
+First, write a job control file to create the input structures and run 
+\emph on
+paramfit:
+\end_layout
+
+\begin_layout LyX-Code
+RUNTYPE=CREATE_INPUT
+\end_layout
+
+\begin_layout LyX-Code
+# Trajectory has 50 structures
+\end_layout
+
+\begin_layout LyX-Code
+NSTRUCTURES=50
+\end_layout
+
+\begin_layout LyX-Code
+# Write in Gaussian format
+\end_layout
+
+\begin_layout LyX-Code
+QMFILEFORMAT=GAUSSIAN
+\end_layout
+
+\begin_layout LyX-Code
+# Prepend this file to QM inputs
+\end_layout
+
+\begin_layout LyX-Code
+QMHEADER=Gaussian.header
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/bin/paramfit -i Job_Control.in -p prmtop -c mdcrd
+\end_layout
+
+\begin_layout Standard
+After all 50 input files have been created, run the quantum program on them.
+ Once it's finished, extract the quantum energies from the output files
+ using the provided script, or write your own.
+ Since the example used Gaussian:
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/AmberTools/src/paramfit/scripts/process_gaussian.x 
+\backslash
+
+\end_layout
+
+\begin_layout LyX-Code
+output_directory energies.dat
+\end_layout
+
+\begin_layout Standard
+Now, or while the quantum jobs are running, since neither the energies nor
+ the structures are needed yet, determine which parameters are to be fit
+ and save them.
+\end_layout
+
+\begin_layout LyX-Code
+RUNTYPE=SET_PARAMS
+\end_layout
+
+\begin_layout LyX-Code
+# File to be created
+\end_layout
+
+\begin_layout LyX-Code
+PARAMETER_FILE_NAME=saved_params
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/bin/paramfit -i Job_Control.in -p prmtop
+\end_layout
+
+\begin_layout Standard
+Now the quantum energies to fit have been obtained and the parameters to
+ fit have been set, and the fitting process may begin.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_K"
+
+\end_inset
+
+Fitting K
+\end_layout
+
+\begin_layout Standard
+The first step in fitting is determining the value of K for a system.
+ A job control file that will only fit K follows:
+\end_layout
+
+\begin_layout LyX-Code
+RUNTYPE=FIT
+\end_layout
+
+\begin_layout LyX-Code
+PARAMETERS_TO_FIT=K_ONLY
+\end_layout
+
+\begin_layout LyX-Code
+# Use the simplex function
+\end_layout
+
+\begin_layout LyX-Code
+FITTING_FUNCTION=SIMPLEX
+\end_layout
+
+\begin_layout Standard
+Then,
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/bin/paramfit -i Job_Control.in -p prmtop -c mdcrd -q energies.dat
+\end_layout
+
+\begin_layout Standard
+Take this value of K and put it back in the job control file when conducting
+ the actual fit.
+\end_layout
+
+\begin_layout LyX-Code
+RUNTYPE=FIT
+\end_layout
+
+\begin_layout LyX-Code
+# Use the parameters specified earlier
+\end_layout
+
+\begin_layout LyX-Code
+PARAMETERS_TO_FIT=LOAD
+\end_layout
+
+\begin_layout LyX-Code
+PARAMETER_FILE_NAME=saved_params
+\end_layout
+
+\begin_layout LyX-Code
+# Genetic algorithm options
+\end_layout
+
+\begin_layout LyX-Code
+FITTING_FUNCTION=GENETIC
+\end_layout
+
+\begin_layout LyX-Code
+OPTIMIZATIONS=500
+\end_layout
+
+\begin_layout LyX-Code
+GENERATIONS_TO_CONV=10
+\end_layout
+
+\begin_layout LyX-Code
+GENERATIONS_TO_SIMPLEX=2
+\end_layout
+
+\begin_layout LyX-Code
+GENERATIONS_WITHOUT_SIMPLEX=5
+\end_layout
+
+\begin_layout LyX-Code
+# Save parameters so they can be read into leap
+\end_layout
+
+\begin_layout LyX-Code
+WRITE_FRCMOD=fitted_params.frcmod
+\end_layout
+
+\begin_layout Standard
+And call 
+\emph on
+paramfit
+\emph default
+ just as before.
+ This example fit will create a force field modification file that can later
+ be read into 
+\emph on
+LEaP
+\emph default
+ to create a new 
+\emph on
+prmtop 
+\emph default
+with the modified parameters for the molecule.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:paramfit_eval"
+
+\end_inset
+
+Evaluating Results
+\end_layout
+
+\begin_layout Standard
+When using 
+\emph on
+paramfit
+\emph default
+, it is important to verify the accuracy of the fitted parameters for your
+ input structures.
+ The WRITE_ENERGY option in the Job Control file is useful for this.
+ Set it to a filename and 
+\emph on
+paramfit 
+\emph default
+will write the final AMBER energy of each structure next to the quantum
+ energy for the same structure in a file that can be easily graphed.
+\end_layout
+
+\begin_layout Standard
+If you have gnuplot, a script has been provided to quickly show each structure's
+ energies.
+ Assuming your energy file is named energy.dat:
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/AmberTools/src/paramfit/scripts/plot_energy.x energy.dat
+\end_layout
+
+\begin_layout Standard
+The resulting graph makes the identification of problem structures much
+ easier, and gives a good visualization of the fit.
+ In general, carefully validate parameters generated by 
+\emph on
+paramfit
+\emph default
+ against other data before conducting large simulations.
+\end_layout
+
+\begin_layout Standard
+The SCATTERPLOT option in the job control file can also be useful in assessing
+ the quality of the input structures.
+ If this option is set, 
+\emph on
+paramfit
+\emph default
+ will dump a variety of data files indicating the value for all fitted bonds,
+ angles, and dihedrals in the input conformations.
+ These data may be visualized if you have the program gnuplot by running
+ the following command in the directory where 
+\emph on
+paramfit
+\emph default
+ was run:
+\end_layout
+
+\begin_layout LyX-Code
+$AMBERHOME/AmberTools/src/paramfit/scripts/scatterplots.sh
+\end_layout
+
+\begin_layout Standard
+The resulting graphs feature different colored points for each bond, angle,
+ and dihedral type that is being fit for each of the input structures.
+ This is useful in evaluating if the results of the fit are reasonable–
+ for example, if the algorithm converges with an equilibrium bond length
+ that is not similar to any of the structures, that parameter may not be
+ accurate.
 \end_layout
 
 \begin_layout Standard
