@@ -692,6 +692,7 @@ Things are are problably gone for good, but which don't represent the best
 Things that might be useful, but really complicate the code: EVB potentials,
  QM/MM, nudged elastic band, constant pH and constant redox potential simulation
 s.
+ The API interface to Fortran, C and Python codes has also been removed.
 \end_layout
 
 \begin_layout Enumerate
@@ -720,6 +721,11 @@ NMR, cryoEM and Xray restraints (including quite a bit of new code; Xray
 
 \begin_layout Enumerate
 Thermodynamic integration and non-equilibrium sampling methods
+\end_layout
+
+\begin_layout Enumerate
+Sampling and minimization using the lmod and xmin approaches; these can
+ now be used in conjunction with SHAKE and SETTLE.
 \end_layout
 
 \begin_layout Enumerate

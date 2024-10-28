@@ -5,21 +5,18 @@ LYX=lyx
 SHELL = /bin/sh
 .SUFFIXES: .txt .ps .html .lyx .pdf .tex .pic
 
-.lyx.pdf:  $< amber.bib
+.lyx.pdf:
 	$(LYX) --export pdf2 $<
 		
-.lyx.tex:  $< amber.bib
+.lyx.tex:
 	$(LYX) --export pdflatex $<
 		
-.lyx.txt:  $< amber.bib
+.lyx.txt:
 	$(LYX) --export text $<
 		
-.lyx.ps:  $< amber.bib
+.lyx.ps:
 	$(LYX) --export ps $<
 
-.lyx.html: $< amber.bib
-	elyxer.py --css=amber.css --title "$@" $<  $@
-		
 .pic.pdf: $<
 	groff -p $< | ps2pdf - $@
 
