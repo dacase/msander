@@ -91,7 +91,7 @@ subroutine align1( natom, x, f, amass )
                vect_al(:,1) = vect_tmp(:,2)
             end if
 
-            ! reconstruct the original tensor with new eigenvalues:
+            ! construct the new eigenvalues from da_target and r_target:
 
             root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
             root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
