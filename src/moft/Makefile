@@ -24,7 +24,7 @@ install: $(BINDIR)/metatwist
 
 metatwist.o:  metatwist.cpp $(HEADERS)
 	@echo "[MoFT]  CXX $<"
-	$(VB)$(CXX) $(CXXFLAGS) -c -std=c++0x -I. -I$(INCDIR) -o $@ $<
+	$(VB)$(CXX) $(COPTFLAGS) $(CFLAGS) -c -std=c++0x -I. -I$(INCDIR) -o $@ $<
 
 $(BINDIR)/metatwist:  metatwist.o
 	@echo "[MoFT]  CXX $@"

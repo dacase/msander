@@ -16,6 +16,7 @@ full:
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd paramfit && $(MAKE) paramfit
 	@cd moft && $(MAKE) install
+	@cd saxs && $(MAKE) install
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -46,6 +47,7 @@ clean:
 	-(cd xtalutil && $(MAKE) clean )
 	-(cd paramfit && $(MAKE) clean )
 	-(cd moft && $(MAKE) clean )
+	-(cd saxs && $(MAKE) clean )
 
 uninstall: clean
 	-(cd $(BINDIR) && /bin/rm -rf *)

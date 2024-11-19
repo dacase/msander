@@ -23,6 +23,7 @@ fpic="-fPIC"
 
 compiler="gnu"
 cc="gcc -Wno-unused-result"
+cxx="g++ -Wno-unused-result"
 mpicc="mpicc"
 iccflags=""
 
@@ -99,6 +100,7 @@ while [ $# -gt 0 ]; do
         --intel)
             compiler="intel"
             cc="icx"
+            cxx="icpx"
             fc="ifx"
             longlines=""
             mpicc="mpiicc -cc=icx"
@@ -109,6 +111,7 @@ while [ $# -gt 0 ]; do
             compiler="clang"
             clangf="-DCLANG"
             cc="clang"
+            cxx="clang"
             fc="gfortran"
             optflags="-g -O3";;
         --mpi)
@@ -671,6 +674,7 @@ BLAS=$blas
 #  (4)  C compiler
 
 CC=$cc
+CXX=$cxx
 CFLAGS=$clangf $inc $gcc10c $iccflags $fpic $debug
 NVCC_CFLAGS=$clangf $inc $iccflags $fpic $debug
 CNOOPTFLAGS=-g -O0
