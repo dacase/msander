@@ -13,8 +13,9 @@ full:
 	@cd sff && $(MAKE) sff
 	@cd antechamber && mkdir -p $(BINDIR)/wrapped_progs && $(MAKE) install
 	@cd nmr_aux && $(MAKE) nmr_aux
-	@cd xtalutil && make xtalutil
-	@cd paramfit && make paramfit
+	@cd xtalutil && $(MAKE) xtalutil
+	@cd paramfit && $(MAKE) paramfit
+	@cd moft && $(MAKE) install
 
 serial:
 	@cd msander && $(MAKE) msander
@@ -44,16 +45,15 @@ clean:
 	-(cd nmr_aux && $(MAKE) clean )
 	-(cd xtalutil && $(MAKE) clean )
 	-(cd paramfit && $(MAKE) clean )
+	-(cd moft && $(MAKE) clean )
 
 uninstall: clean
-	-(cd $(BINDIR) && /bin/rm -f msander* \
-        add_pdb add_xray addles AddToBox ChBox PropPDB UnitCell \
-        tleap teLeap)
+	-(cd $(BINDIR) && /bin/rm -rf *)
 	-(cd $(LIBDIR) && /bin/rm -f liblapack.a libblas.a \
         libarpack.a librism.a libsff.a )
 	/bin/rm -f $(INCDIR)/* ../config.h
 
-distclean: clean
+distclean: uninstall
 	-(/bin/rm -f netcdf*.log )
 	-(cd netcdf-c-4.7.2 && make uninstall)
 	-(cd netcdf-fortran-4.5.2 && make uninstall)
