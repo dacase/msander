@@ -173,15 +173,10 @@ fi
 #------------------------------------------------------------------------------
 #  Make some needed directories:
 #------------------------------------------------------------------------------
-if [ ! -d bin ]; then
-    mkdir bin
-fi
-if [ ! -d lib ]; then
-    mkdir lib
-fi
-if [ ! -d include ]; then
-    mkdir include
-fi
+mkdir -p bin
+mkdir -p bin/wrapped_progs
+mkdir -p lib
+mkdir -p include
 cp src/msander/sander.h include
 
 #------------------------------------------------------------------------------
