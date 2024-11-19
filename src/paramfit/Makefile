@@ -38,8 +38,8 @@ $(BINDIR)/paramfit: 	$(OBJECTS)
 #
 
 clean:
-	/bin/rm -f $(OBJECTS) paramfit$(SFX)
+	/bin/rm -f *.o
 
-uninstall:
-	/bin/rm -f $(BINDIR)/paramfit$(SFX)
+uninstall: clean
+	/bin/rm -f $(BINDIR)/paramfit
 
