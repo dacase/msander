@@ -15,8 +15,8 @@ requested_help="no"
 clangf=""
 openblas="no"
 sfx=""
-gcc10f=""
-gcc10c=""
+gcc10f="-fno-strict-aliasing -Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
+gcc10c="-fcommon"
 longlines="-ffree-line-length-none"
 debug="-DNDEBUG"
 fpic="-fPIC"
@@ -84,11 +84,11 @@ while [ $# -gt 0 ]; do
             installtype="cuda"
             cudafflags="-DCUDA"
             fpic="";;
-        --prec)          shift; cuda_prec="$1";;
-        --arch)          shift; cuda_arch="$cuda_arch $1"; uspec_arch='true';;
-        --gcc10)
-            gcc10f="-fno-strict-aliasing -Wno-argument-mismatch -fallow-argument-mismatch -fno-inline-arg-packing"
-            gcc10c="-fcommon";;
+        --cudaprec)      shift; cuda_prec="$1";;
+        --cudaarch)      shift; cuda_arch="$cuda_arch $1"; uspec_arch='true';;
+        --nogcc10)
+            gcc10f=""
+            gcc10c="";;
         --mkl)
             mkl="yes";;
         --openblas)
@@ -134,14 +134,16 @@ done
 if [ "$requested_help" = "yes" ] ; then
 	printf " --intel        use Intel compilers; default is gnu\n"
 	printf " --clang        use clang/gfortran as compilers\n"
-	printf " --gcc10        add flags for gcc10 and above\n"
+	printf " --nogcc10      use flags for gcc9 and below\n"
     printf "\n"
-	printf " --mpi          prepare for mpi build\n"
-	printf " --openmp       prepare for OMP build\n"
-	printf " --cuda         prepare for cuda build\n"
-    printf " --prec         [SPFP|DPFP], cuda precision, default is SPFP\n"
-    printf " --arch          <kepler|maxwell|pascal|volta|turing|ampere|ada>"
+	printf " --mpi          build only msander.MPI\n"
+	printf " --cuda         build only msander.cuda\n"
+                            [If both --mpi and --cuda are set, build only
+                            msander.cuda.MPI]
+    printf " --cudaprec     [SPFP|DPFP], cuda precision, default is SPFP\n"
+    printf " --cudaarch     <kepler|maxwell|pascal|volta|turing|ampere|ada>"
     printf "\n"
+	printf " --openmp       make use of OPENMP\n"
 	printf " --mkl          use MKL routines from \$MKLROOT environment variable\n"
 	printf " --openblas     use BLAS routines from \$GOTO environment variable\n"
 	printf " --verbose      give build details, otherwise be more silent\n"
