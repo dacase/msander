@@ -14,7 +14,7 @@ subroutine align1( natom, x, f, amass )
 #  include "extra.h"
    character(len=1) uplo,jobz
    _REAL_    com(3)
-   _REAL_    work(27), vect_al(3,3), root(3), almat(6), vect_ref(3,3)
+   _REAL_    work(27), vect_al(3,3), almat(6), vect_ref(3,3)
    integer   ipear, iof, i, idip, j, iset, k
    _REAL_    dx, dy, dz, dr
    _REAL_    csx, csy, csz
@@ -67,25 +67,25 @@ subroutine align1( natom, x, f, amass )
          almat(4) = s13(iset)
          almat(5) = s23(iset)
          almat(6) = s33(iset)
-         call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
+         call D_OR_S()spev(jobz,uplo,3,almat,root(1,iset),vect_al,3,work,ier)
 
          if( itarget .eq. 1 ) then
 
             ! order the roots so by absolute value, so that |root(3)| >
             !    |root(2)| > |root(1)|:
-            root_tmp = root
+            root_tmp = root(:,iset)
             vect_tmp = vect_al
-            if( abs(root(1)) > abs(root(3)) ) then
-               root(3) = root_tmp(1)
-               root(2) = root_tmp(3)
-               root(1) = root_tmp(2)
+            if( abs(root(1,iset)) > abs(root(3,iset)) ) then
+               root(3,iset) = root_tmp(1)
+               root(2,iset) = root_tmp(3)
+               root(1,iset) = root_tmp(2)
                vect_al(:,3) = vect_tmp(:,1)
                vect_al(:,2) = vect_tmp(:,3)
                vect_al(:,1) = vect_tmp(:,2)
             else
-               root(3) = root_tmp(3)
-               root(2) = root_tmp(1)
-               root(1) = root_tmp(2)
+               root(3,iset) = root_tmp(3)
+               root(2,iset) = root_tmp(1)
+               root(1,iset) = root_tmp(2)
                vect_al(:,3) = vect_tmp(:,3)
                vect_al(:,2) = vect_tmp(:,1)
                vect_al(:,1) = vect_tmp(:,2)
@@ -93,9 +93,9 @@ subroutine align1( natom, x, f, amass )
 
             ! construct the new eigenvalues from da_target and r_target:
 
-            root(1) = 0.5d0 * da_target(iset) * (3.d0*r_target(iset) - 2.d0)
-            root(2) = - 0.5d0 * da_target(iset) * (3.d0*r_target(iset) + 2.d0)
-            root(3) =  2.d0 * da_target(iset)
+            root(1,iset) = 0.5d0*da_target(iset) * (3.d0*r_target(iset) - 2.d0)
+            root(2,iset) = -0.5d0*da_target(iset) * (3.d0*r_target(iset) + 2.d0)
+            root(3,iset) =  2.d0 * da_target(iset)
 
          else if( itarget .eq. 2 ) then
 
@@ -121,7 +121,7 @@ subroutine align1( natom, x, f, amass )
             do j=1,3
                news(i,j) = 0.d0
                do k=1,3
-                  news(i,j) = news(i,j) + vect_al(i,k)*root(k)*vect_al(j,k)
+                  news(i,j) = news(i,j) + vect_al(i,k)*root(k,iset)*vect_al(j,k)
                end do
             end do
          end do
@@ -353,23 +353,23 @@ subroutine align1( natom, x, f, amass )
          almat(4) = s13(iset)
          almat(5) = s23(iset)
          almat(6) = s33(iset)
-         call D_OR_S()spev(jobz,uplo,3,almat,root,vect_al,3,work,ier)
+         call D_OR_S()spev(jobz,uplo,3,almat,root(1,iset),vect_al,3,work,ier)
 
          ! order the roots so by absolute value, so that |root(3)| >
          !    |root(2)| > |root(1)|:
-         root_tmp = root
+         root_tmp = root(:,iset)
          vect_tmp = vect_al
-         if( abs(root(1)) > abs(root(3)) ) then
-            root(3) = root_tmp(1)
-            root(2) = root_tmp(3)
-            root(1) = root_tmp(2)
+         if( abs(root(1,iset)) > abs(root(3,iset)) ) then
+            root(3,iset) = root_tmp(1)
+            root(2,iset) = root_tmp(3)
+            root(1,iset) = root_tmp(2)
             vect_al(:,3) = vect_tmp(:,1)
             vect_al(:,2) = vect_tmp(:,3)
             vect_al(:,1) = vect_tmp(:,2)
          else
-            root(3) = root_tmp(3)
-            root(2) = root_tmp(1)
-            root(1) = root_tmp(2)
+            root(3,iset) = root_tmp(3)
+            root(2,iset) = root_tmp(1)
+            root(1,iset) = root_tmp(2)
             vect_al(:,3) = vect_tmp(:,3)
             vect_al(:,2) = vect_tmp(:,1)
             vect_al(:,1) = vect_tmp(:,2)
@@ -377,10 +377,11 @@ subroutine align1( natom, x, f, amass )
 
          write(57,*) 'Diagonalization:'
          do i=1,3
-            write(57,'(f15.5,5x,3f12.5)') root(i), (vect_al(j,i),j=1,3)
+            write(57,'(f15.5,5x,3f12.5)') root(i,iset), (vect_al(j,i),j=1,3)
          end do
-         write(57,'(a,f10.4,a,f10.4)') ' Da = ', root(3)/2.d0, &
-            ' x 10^-5;  R =', 2.d0*(root(1)-root(2))/(3.d0*root(3))
+         write(57,'(a,f10.4,a,f10.4)') ' Da = ', root(3,iset)/2.d0, &
+            ' x 10^-5;  R =', &
+            2.d0*(root(1,iset)-root(2,iset))/(3.d0*root(3,iset))
          write(57,*)
       end do
 
