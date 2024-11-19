@@ -28,7 +28,7 @@ metatwist.o:  metatwist.cpp $(HEADERS)
 
 $(BINDIR)/metatwist:  metatwist.o
 	@echo "[MoFT]  CXX $@"
-	$(VB)$(CXX) -std=c++0x -o $@ $< -L$(LIBDIR) $(BOOSTLIB) -lfftw3
+	$(VB)$(CXX) -std=c++0x -o $@ $< -L$(LIBDIR) $(BOOSTLIB) $(FLIBSF)
 
 clean:
 	/bin/rm -f *.o
