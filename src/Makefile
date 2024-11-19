@@ -11,12 +11,12 @@ full:
 	@cd addles && $(MAKE) addles
 	@cd leap && $(MAKE) leap
 	@cd sff && $(MAKE) sff
-	@cd antechamber && mkdir -p $(BINDIR)/wrapped_progs && $(MAKE) install
+	@cd antechamber && $(MAKE) install
 	@cd nmr_aux && $(MAKE) nmr_aux
 	@cd xtalutil && $(MAKE) xtalutil
 	@cd paramfit && $(MAKE) paramfit
-	@cd moft && $(MAKE) install
-	@cd saxs && $(MAKE) install
+	@cd moft && $(MAKE) moft
+	@cd saxs && $(MAKE) saxs
 
 serial:
 	@cd msander && $(MAKE) msander

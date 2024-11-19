@@ -1,8 +1,8 @@
 include ../../config.h
 
 nmr_aux::	
-	cd prepare_input && $(MAKE) clean && $(MAKE) install
-	cp senergy sviol sviol2 $(BINDIR)
+	$(VB)cd prepare_input && $(MAKE) nmr_aux
+	$(VB)rsync -a senergy sviol sviol2 $(BINDIR)
 
 clean::	
 	cd prepare_input && $(MAKE) clean 

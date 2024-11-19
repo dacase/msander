@@ -23,8 +23,6 @@ TRANSLATEOBJS = translate.o eprintf.o
 TOP2FFOBJS = top2ff.o eprintf.o
 TOP2MOL2OBJS = top2mol2.o eprintf.o
 
-# Dispatched programs are wrapper scripts of programs; these scripts
-# automatically set AMBERHOME; they live in $(BINDIR)/wrapped_progs/
 DISPATCHEDPROGS = \
 	$(BINDIR)/wrapped_progs/am1bcc \
 	$(BINDIR)/wrapped_progs/antechamber \
@@ -35,17 +33,6 @@ DISPATCHEDPROGS = \
 	$(BINDIR)/wrapped_progs/prepgen \
 	$(BINDIR)/wrapped_progs/residuegen \
 	$(BINDIR)/wrapped_progs/respgen \
-
-LOCALPROGS = \
-	am1bcc \
-	antechamber \
-	atomtype \
-	bondtype \
-	espgen \
-	parmchk2 \
-	prepgen \
-	residuegen \
-	respgen \
 
 PROGS = \
 	$(BINDIR)/am1bcc \
@@ -58,21 +45,15 @@ PROGS = \
 	$(BINDIR)/residuegen \
 	$(BINDIR)/respgen \
 
-TESTS = test-penalties test-int-part test-combination
-
 #############################################################################
 
-all: $(PROGS)
-
 dispatch:
-	BINDIR=$(BINDIR) sh patch.sh
-
-tests: $(TESTS)
+	$(VB)BINDIR=$(BINDIR) sh patch.sh
 
 install: $(DISPATCHEDPROGS) dispatch
 
 clean:
-	/bin/rm -f *.o $(LOCALPROGS) $(TESTS)
+	/bin/rm -f *.o 
 
 uninstall:
 	/bin/rm -f $(PROGS) $(DISPATCHEDPROGS)
@@ -80,192 +61,123 @@ uninstall:
 #############################################################################
 
 $(LIBDIR)/libcifparse.a:
-	cd ../cifparse && $(MAKE) install
+	$(VB)cd ../cifparse && $(MAKE) install
 
 .c.o:
 	@echo "[ANTECHAMBER]  CC $<"
 	$(VB)$(CC) -c $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
 
 #_____________________________________________________________________________
-# Dispatched Programs
 
-$(BINDIR)/wrapped_progs/acdoctor: acdoctor
-	$(VB)$(MV) acdoctor $@
 
-$(BINDIR)/wrapped_progs/am1bcc: am1bcc
-	$(VB)$(MV) am1bcc $@
-
-$(BINDIR)/wrapped_progs/antechamber: antechamber
-	$(VB)$(MV) antechamber $@
-
-$(BINDIR)/wrapped_progs/atomtype: atomtype
-	$(VB)$(MV) atomtype $@
-
-$(BINDIR)/wrapped_progs/bondtype: bondtype
-	$(VB)$(MV) bondtype $@
-
-$(BINDIR)/wrapped_progs/bondtype.orig: bondtype.orig
-	$(VB)$(MV) bondtype.orig $@
-
-$(BINDIR)/wrapped_progs/charmmgen: charmmgen
-	$(VB)$(MV) charmmgen $@
-
-$(BINDIR)/wrapped_progs/crdgrow: crdgrow
-	$(VB)$(MV) crdgrow $@
-
-$(BINDIR)/wrapped_progs/database: database
-	$(VB)$(MV) database $@
-
-$(BINDIR)/wrapped_progs/delphigen: delphigen
-	$(VB)$(MV) delphigen $@
-
-$(BINDIR)/wrapped_progs/espgen: espgen
-	$(VB)$(MV) espgen $@
-
-$(BINDIR)/wrapped_progs/match: match
-	$(VB)$(MV) match $@
-
-$(BINDIR)/wrapped_progs/match_atomname: match_atomname
-	$(VB)$(MV) match_atomname $@
-
-$(BINDIR)/wrapped_progs/parmcal: parmcal
-	$(VB)$(MV) parmcal $@
-
-$(BINDIR)/wrapped_progs/parmchk2: parmchk2
-	$(VB)$(MV) parmchk2 $@
-
-$(BINDIR)/wrapped_progs/parmjoin: parmjoin
-	$(VB)$(MV) parmjoin $@
-
-$(BINDIR)/wrapped_progs/prepgen: prepgen
-	$(VB)$(MV) prepgen $@
-
-$(BINDIR)/wrapped_progs/residuegen: residuegen
-	$(VB)$(MV) residuegen $@
-
-$(BINDIR)/wrapped_progs/respgen: respgen
-	$(VB)$(MV) respgen $@
-
-$(BINDIR)/wrapped_progs/translate: translate
-	$(VB)$(MV) translate $@
-
-$(BINDIR)/wrapped_progs/top2ff: top2ff
-	$(VB)$(MV) top2ff $@
-
-$(BINDIR)/wrapped_progs/top2mol2: top2mol2
-	$(VB)$(MV) top2mol2 $@
-
-#_____________________________________________________________________________
-# Local Programs, i.e., compilation rules.
-
-acdoctor: $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/wrapped_progs/acdoctor: $(ACDOCTOROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ACDOCTOROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-am1bcc: $(AM1BCCOBJS)
+$(BINDIR)/wrapped_progs/am1bcc: $(AM1BCCOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(AM1BCCOBJS) \
 	    $(LM) -o $@
 
-antechamber: $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
+$(BINDIR)/wrapped_progs/antechamber: $(ANTECHAMBEROBJS) $(LIBDIR)/libcifparse.a
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) $(ANTECHAMBEROBJS) \
 	    -L$(LIBDIR) -lcifparse $(LM) -o $@
 
-atomtype: $(ATOMTYPEOBJS)
+$(BINDIR)/wrapped_progs/atomtype: $(ATOMTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ATOMTYPEOBJS) $(LM) -o $@
 
-bondtype: $(BONDTYPEOBJS)
+$(BINDIR)/wrapped_progs/bondtype: $(BONDTYPEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(BONDTYPEOBJS) $(LM) -o $@
 
-bondtype.orig.o: bondtype.cpp
+$(BINDIR)/wrapped_progs/bondtype.orig.o: bondtype.cpp
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CXX) -c $(CXXNOOPTFLAGS) $(CXXFLAGS) $(AMBERCXXFLAGS) -o bondtype.orig.o bondtype.cpp
 
-bondtype.orig: bondtype.orig.o
+$(BINDIR)/wrapped_progs/bondtype.orig: bondtype.orig.o
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CXX) $(CXXFLAGS) $(AMBERCXXFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) bondtype.orig.o $(LM) -o $@
 
-charmmgen: $(CHARMMGENOBJS)
+$(BINDIR)/wrapped_progs/charmmgen: $(CHARMMGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CHARMMGENOBJS) $(LM) -o $@
 
-crdgrow: $(CRDGROWOBJS)
+$(BINDIR)/wrapped_progs/crdgrow: $(CRDGROWOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(CRDGROWOBJS) $(LM) -o $@
 
-database: $(DATABASEOBJS)
+$(BINDIR)/wrapped_progs/database: $(DATABASEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DATABASEOBJS) $(LM) -o $@
 
-delphigen: $(DELPHIGENOBJS)
+$(BINDIR)/wrapped_progs/delphigen: $(DELPHIGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(DELPHIGENOBJS) -o $@
 
-espgen: $(ESPGENOBJS)
+$(BINDIR)/wrapped_progs/espgen: $(ESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(ESPGENOBJS) $(LM) -o $@
 
-match: $(MATCHOBJS)
+$(BINDIR)/wrapped_progs/match: $(MATCHOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCHOBJS) $(LM) -o $@
 
-match_atomname: $(MATCH_ATOMNAMEOBJS)
+$(BINDIR)/wrapped_progs/match_atomname: $(MATCH_ATOMNAMEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(MATCH_ATOMNAMEOBJS) $(LM) -o $@
 
-parmcal: $(PARMCALOBJS)
+$(BINDIR)/wrapped_progs/parmcal: $(PARMCALOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCALOBJS) $(LM) -o $@
 
-parmchk2: $(PARMCHK2OBJS)
+$(BINDIR)/wrapped_progs/parmchk2: $(PARMCHK2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PARMCHK2OBJS) $(LM) -o $@
 
-parmjoin: parmjoin.o
+$(BINDIR)/wrapped_progs/parmjoin: parmjoin.o
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) parmjoin.o -o $@
 
-prepgen: $(PREPGENOBJS)
+$(BINDIR)/wrapped_progs/prepgen: $(PREPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(PREPGENOBJS) $(LM) -o $@
 
-residuegen: $(RESIDUEGENOBJS)
+$(BINDIR)/wrapped_progs/residuegen: $(RESIDUEGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESIDUEGENOBJS) $(LM) -o $@
 
-respgen: $(RESPGENOBJS)
+$(BINDIR)/wrapped_progs/respgen: $(RESPGENOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(RESPGENOBJS) $(LM) -o $@
 
-translate: $(TRANSLATEOBJS)
+$(BINDIR)/wrapped_progs/translate: $(TRANSLATEOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TRANSLATEOBJS) $(LM) -o $@
 
-top2ff: $(TOP2FFOBJS)
+$(BINDIR)/wrapped_progs/top2ff: $(TOP2FFOBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2FFOBJS) $(LM) -o $@
 
-top2mol2: $(TOP2MOL2OBJS)
+$(BINDIR)/wrapped_progs/top2mol2: $(TOP2MOL2OBJS)
 	@echo "[ANTECHAMBER]  CC $@"
 	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) $(LDFLAGS) $(AMBERLDFLAGS) \
 	    $(TOP2MOL2OBJS) $(LM) -o $@

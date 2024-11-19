@@ -25,9 +25,9 @@ HEADERS=constants.h function_def.h forces.h prmtop_params.h
 
 calc_r_squared.o: $(HEADERS)
 
-paramfit: $(LIBDIR)/paramfit
+paramfit: $(BINDIR)/paramfit
 
-$(LIBDIR)/paramfit: 	$(OBJECTS) 
+$(BINDIR)/paramfit: 	$(OBJECTS) 
 	@echo "[PARAMFIT]  CC $<"
 	$(VB)$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LDFLAGS) $(LM) 
 

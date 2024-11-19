@@ -1,28 +1,27 @@
 include ../../../config.h
 
-makeDIST_RST$(SFX):	makeDIST_RST.o
+$(BINDIR)/makeDIST_RST:	makeDIST_RST.o
 	@echo "[NMR_AUX]  CC $@"
-	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o makeDIST_RST$(SFX) makeDIST_RST.o \
+	$(VB)$(CC) $(CFLAGS) -o $@ makeDIST_RST.o \
 		$(LDFLAGS) $(AMBERLDFLAGS) $(LM)
 
-nef_to_RST$(SFX):	nef_to_RST.o $(LIBDIR)/libcifparse.a
+$(BINDIR)/nef_to_RST:	nef_to_RST.o $(LIBDIR)/libcifparse.a
 	@echo "[NMR_AUX]  CC $@"
-	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o nef_to_RST$(SFX) nef_to_RST.o \
+	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o $@ nef_to_RST.o \
 		$(LDFLAGS) $(AMBERLDFLAGS) $(LM) -L$(LIBDIR) -lcifparse
 
-makeANG_RST$(SFX):	makeANG_RST.o
+$(BINDIR)/makeANG_RST:	makeANG_RST.o
 	@echo "[NMR_AUX]  CC $@"
-	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o makeANG_RST$(SFX) makeANG_RST.o \
+	$(VB)$(CC) $(CFLAGS) $(AMBERCFLAGS) -o $@ makeANG_RST.o \
 		$(LDFLAGS) $(AMBERLDFLAGS) $(LM)
 
-install: 	makeDIST_RST$(SFX) makeANG_RST$(SFX) nef_to_RST$(SFX)
-	$(VB)mv makeDIST_RST$(SFX) makeANG_RST$(SFX) nef_to_RST$(SFX) $(BINDIR)
+nmr_aux: 	$(BINDIR)/makeDIST_RST $(BINDIR)/makeANG_RST $(BINDIR)/nef_to_RST
 	$(VB)cp makeCHIR_RST $(BINDIR)
 	$(VB)cp map.NEF-AMBER map.DG-AMBER $(DATDIR)
 
 uninstall:
-	/bin/rm -f $(BINDIR)/makeDIST_RST$(SFX) \
-	           $(BINDIR)/makeANG_RST$(SFX) $(BINDIR)/nef_to_RST$(SFX)
+	/bin/rm -f $(BINDIR)/makeDIST_RST \
+	           $(BINDIR)/makeANG_RST $(BINDIR)/nef_to_RST
 	/bin/rm -f $(BINDIR)/makeCHIR_RST $(BINDIR)/makeDIP_RST.cyana
 	/bin/rm -f $(DATDIR)/map.NEF-AMBER $(DATDIR)/map.DG-AMBER
 
@@ -36,7 +35,7 @@ nef_to_RST.o:  global.h
 
 .c.o:
 	@echo "[NMR_AUX]  CC $<"
-	$(VB)$(CC) -c $(CPPFLAGS) $(CNOOPTFLAGS) $(CFLAGS) $(AMBERCFLAGS) -o $@ $<
+	$(VB)$(CC) -c $(CPPFLAGS) $(CNOOPTFLAGS) $(CFLAGS) -o $@ $<
 
 $(LIBDIR)/libcifparse.a:
 	cd ../../cifparse && $(MAKE) install
