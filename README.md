@@ -3,8 +3,8 @@
 This directory tree contains `msander`, a "modern" version of parts
 of sander.  Also included are various X-ray and cryoEM-related code
 and utilities, as well as versions of a number of the “classic”
-(and most-used) parts of AmberTools: `tleap, antechamber, sqm`, and
-`paramfit`. With these tools, many systems can be set up for simulation in
+(and most-used) parts of AmberTools: `tleap, antechamber, sqm, metatwist`
+and `paramfit`. With these tools, many systems can be set up for simulation in
 msander.
 
 The documentation and authorship credits are in the *doc/msander.pdf* file.
@@ -78,8 +78,8 @@ instead.)
 # Execution speed
 
 Force field evaluation is still slow compared to many other codes.  This
-project thus focusses on systems where other parts of the simulation, such
-as QM, RISM, or Xray/Cryoem restraints, are the bottleneck, so that force
+project thus focusses on systems where other parts of the simulation (such
+as QM, RISM, or Xray/Cryoem restraints) are the bottleneck, so that force
 field speed is not the limiting component.
 
 # Building the code
