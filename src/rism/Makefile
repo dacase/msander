@@ -23,17 +23,17 @@ LIBOBJ = array_util.o rism_util.o \
 
 librism: $(LIBDIR)/librism.a
 
-$(BINDIR)/rism1d: rism1d.o $(LIBDIR)/librism.a $(LIBDIR)/libxblas-amb.a
+rism1d: $(BINDIR)/rism1d
+
+$(BINDIR)/rism1d: rism1d_driver.o $(LIBDIR)/librism.a $(LIBDIR)/libxblas-amb.a
 	@echo "[RISM]  FC $@"
-	$(VB)$(FC) $(FFLAGS) -o $@ rism1d.o \
+	$(VB)$(FC) $(FFLAGS) -o $@ rism1d_driver.o \
 	        -L$(LIBDIR) -lrism -lxblas-amb $(FLIBSF)
 
 $(LIBDIR)/librism.a: $(LIBOBJ)
 	@echo "[RISM]  AR $@"
 	$(VB)$(AR) $@ $(LIBOBJ) > /dev/null
 	$(VB)$(RANLIB) $@
-
-install: $(LIBDIR)/librism.a $(BINDIR)/rism1d
 
 uninstall:
 	/bin/rm -f $(LIBDIR)/librism.a $(BINDIR)/rism1d

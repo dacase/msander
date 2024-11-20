@@ -142,24 +142,6 @@ quaternion.o:   quaternion.F90
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ quaternion.F90
 
-rism1d.o: \
-                    ../include/dprec.fh\
-                    rism1d_c.o\
-                    rism_report_c.o\
-                    rism_timer_c.o\
-                    rism_util.o\
-                    array_util.o\
-                    constants.o\
-                    solvmdl_c.o\
-                    rism1d_nub_c.o\
-                    ../xblas/f77/blas_namedconstants.fh
-
-
-rism1d.o:   rism1d.F90
-	@echo [RISM]  FC $<
-	$(VB)$(FC) -c \
-		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism1d.F90
-
 rism1d_c.o: \
                     ../include/dprec.fh\
                     safemem.o\
@@ -212,6 +194,24 @@ rism1d_devb_c.o:   rism1d_devb_c.F90
 	@echo [RISM]  FC $<
 	$(VB)$(FC) -c \
 		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism1d_devb_c.F90
+
+rism1d_driver.o: \
+                    ../include/dprec.fh\
+                    rism1d_c.o\
+                    rism_report_c.o\
+                    rism_timer_c.o\
+                    rism_util.o\
+                    array_util.o\
+                    constants.o\
+                    solvmdl_c.o\
+                    rism1d_nub_c.o\
+                    ../xblas/f77/blas_namedconstants.fh
+
+
+rism1d_driver.o:   rism1d_driver.F90
+	@echo [RISM]  FC $<
+	$(VB)$(FC) -c \
+		$(FOPTFLAGS) $(LOCALFLAGS) $(FFLAGS) -o $@ rism1d_driver.F90
 
 rism1d_hnc_c.o: \
                     ../include/dprec.fh\

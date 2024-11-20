@@ -17,6 +17,7 @@ full:
 	@cd paramfit && $(MAKE) paramfit
 	@cd moft && $(MAKE) moft
 	@cd saxs && $(MAKE) saxs
+	@cd rism && $(MAKE) rism1d
 
 serial:
 	@cd msander && $(MAKE) msander
