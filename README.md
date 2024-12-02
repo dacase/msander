@@ -1,3 +1,9 @@
+# UPDATE: December 2024:
+This repository has now been merged into
+`https://github.com/Amber-MD/AmberClassic.`  Futher development will take
+place there.  I will leave this repository here for now, but at some point
+it will go away, to avoid confusion.
+
 # Overview
 
 This directory tree contains `msander`, a "modern" version of parts
